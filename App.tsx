@@ -5,6 +5,8 @@ import { createFrontendDataStore } from './src/lib/frontendDataStore';
 import { DataStore, BootstrapConfig } from './data/types';
 import { BottomNavigation } from './src/components/BottomNavigation';
 import { TelegramAuth } from './src/components/TelegramAuth';
+import { OrderCreationWizard } from './src/components/OrderCreationWizard';
+import { BusinessManager } from './src/components/BusinessManager';
 import { hebrew } from './src/lib/hebrew';
 
 // Pages
@@ -29,6 +31,9 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service' | null>(null);
+  const [showOrderWizard, setShowOrderWizard] = useState(false);
+  const [showBusinessManager, setShowBusinessManager] = useState(false);
+  const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
 
   // Derived state for login status
   const isLoggedIn = user !== null;
@@ -120,6 +125,59 @@ export default function App() {
   const handleNavigate = (page: Page) => {
     setCurrentPage(page);
     telegram.hapticFeedback('selection');
+  };
+
+  // Create action handlers
+  const handleShowCreateOrder = () => {
+    setShowOrderWizard(true);
+  };
+
+  const handleShowCreateTask = () => {
+    // Navigate to tasks page or show task creation modal
+    setCurrentPage('tasks');
+  };
+
+  const handleShowScanBarcode = () => {
+    // Implement barcode scanning functionality
+    console.log('Scan barcode action triggered');
+    telegram.showAlert('פונקציונליות סריקת ברקוד תתווסף בקרוב');
+  };
+
+  const handleShowContactCustomer = () => {
+    // Show contact customer interface
+    console.log('Contact customer action triggered');
+    telegram.showAlert('פונקציונליות יצירת קשר עם לקוח תתווסף בקרוב');
+  };
+
+  const handleShowCheckInventory = () => {
+    // Navigate to products/inventory page
+    setCurrentPage('products');
+  };
+
+  const handleShowCreateRoute = () => {
+    // Show route planning interface
+    console.log('Create route action triggered');
+    telegram.showAlert('פונקציונליות תכנון מסלולים תתווסף בקרוב');
+  };
+
+  const handleShowCreateUser = () => {
+    // Show user management
+    setCurrentPage('users');
+  };
+
+  const handleShowCreateProduct = () => {
+    // Navigate to products page
+    setCurrentPage('products');
+  };
+
+  const handleShowBusinessManager = () => {
+    setShowBusinessManager(true);
+  };
+
+  const handleOrderCreated = (order: any) => {
+    setShowOrderWizard(false);
+    setCurrentPage('orders');
+    telegram.showAlert('ההזמנה נוצרה בהצלחה!');
   };
 
   if (loading) {
@@ -241,6 +299,33 @@ export default function App() {
           currentPage={currentPage}
           onNavigate={handleNavigate}
           userRole={userRole}
+          businessId={currentBusinessId || undefined}
+          onShowCreateOrder={handleShowCreateOrder}
+          onShowCreateTask={handleShowCreateTask}
+          onShowScanBarcode={handleShowScanBarcode}
+          onShowContactCustomer={handleShowContactCustomer}
+          onShowCheckInventory={handleShowCheckInventory}
+          onShowCreateRoute={handleShowCreateRoute}
+          onShowCreateUser={handleShowCreateUser}
+          onShowCreateProduct={handleShowCreateProduct}
+        />
+      )}
+
+      {/* Modals */}
+      {showOrderWizard && dataStore && (
+        <OrderCreationWizard
+          dataStore={dataStore}
+          businessId={currentBusinessId || undefined}
+          onOrderCreated={handleOrderCreated}
+          onCancel={() => setShowOrderWizard(false)}
+        />
+      )}
+
+      {showBusinessManager && dataStore && (
+        <BusinessManager
+          dataStore={dataStore}
+          currentUserId={user?.telegram_id}
+          onClose={() => setShowBusinessManager(false)}
         />
       )}
     </div>
