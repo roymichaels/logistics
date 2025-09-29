@@ -10,36 +10,12 @@ interface BootstrapResult {
 export async function bootstrap(): Promise<BootstrapResult> {
   console.log('Bootstrap: isTelegramEnv =', telegram.isTelegramEnv);
   
-  if (!telegram.isTelegramEnv) {
-    // Return mock configuration for development/browser environment
-    console.log('Bootstrap: Using mock config for browser');
-    return {
-      config: {
-        app: 'miniapp',
-        adapters: { data: 'mock' },
-        features: {
-          offline_mode: true,
-          photo_upload: true,
-          gps_tracking: true,
-          route_optimization: false,
-        },
-        ui: {
-          brand: 'Logistics Mini App',
-          accent: '#007aff',
-          theme: 'auto',
-        },
-        defaults: {
-          mode: 'demo' as const,
-        },
-      },
-      user: null,
-      prefMode: null,
-    };
-  }
-
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-  if (!SUPABASE_URL) {
-    console.warn('VITE_SUPABASE_URL not configured, using mock data');
+  
+  // If not in Telegram environment OR no Supabase URL, use mock config
+  if (!telegram.isTelegramEnv || !SUPABASE_URL) {
+    // Return mock configuration for development/browser environment
+    console.log('Bootstrap: Using mock config for development');
     return {
       config: {
         app: 'miniapp',
@@ -65,69 +41,174 @@ export async function bootstrap(): Promise<BootstrapResult> {
   }
   
   const initData = telegram.initData;
+  
+  // If no initData available, fall back to mock
+  if (!initData) {
+    console.log('Bootstrap: No initData available, using mock config');
+    return {
+      config: {
+        app: 'miniapp',
+        adapters: { data: 'mock' },
+        features: {
+          offline_mode: true,
+          photo_upload: true,
+          gps_tracking: true,
+          route_optimization: false,
+        },
+        ui: {
+          brand: 'Logistics Mini App',
+          accent: '#007aff',
+          theme: 'auto',
+        },
+        defaults: {
+          mode: 'demo' as const,
+        },
+      },
+      user: null,
+      prefMode: null,
+    };
+  }
 
   // Step 1: Verify init data and get session
-  const verifyResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-verify`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ 
-      type: 'webapp', 
-      initData 
-    }),
-  });
+  try {
+    const verifyResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-verify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        type: 'webapp', 
+        initData 
+      }),
+    });
 
-  if (!verifyResponse.ok) {
-    let errorMessage = 'Authentication failed';
-    try {
-      const error = await verifyResponse.json();
-      errorMessage = error.error || errorMessage;
-    } catch {
-      errorMessage = `Authentication failed: ${verifyResponse.status} ${verifyResponse.statusText}`;
+    if (!verifyResponse.ok) {
+      console.warn('Telegram verification failed, falling back to mock mode');
+      return {
+        config: {
+          app: 'miniapp',
+          adapters: { data: 'mock' },
+          features: {
+            offline_mode: true,
+            photo_upload: true,
+            gps_tracking: true,
+            route_optimization: false,
+          },
+          ui: {
+            brand: 'Logistics Mini App',
+            accent: '#007aff',
+            theme: 'auto',
+          },
+          defaults: {
+            mode: 'demo' as const,
+          },
+        },
+        user: null,
+        prefMode: null,
+      };
     }
-    throw new Error(errorMessage);
-  }
 
-  const { ok, user, session } = await verifyResponse.json();
-  
-  if (!ok || !user) {
-    throw new Error('Authentication failed: Invalid response');
-  }
-
-  // Step 2: Get bootstrap configuration
-  const bootstrapResponse = await fetch(`${SUPABASE_URL}/functions/v1/bootstrap`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      telegram_id: user.telegram_id
-    }),
-  });
-
-  if (!bootstrapResponse.ok) {
-    let errorMessage = 'Bootstrap failed';
-    try {
-      const error = await bootstrapResponse.json();
-      errorMessage = error.error || errorMessage;
-    } catch {
-      errorMessage = `Bootstrap failed: ${bootstrapResponse.status} ${bootstrapResponse.statusText}`;
+    const { ok, user, session } = await verifyResponse.json();
+    
+    if (!ok || !user) {
+      console.warn('Invalid authentication response, falling back to mock mode');
+      return {
+        config: {
+          app: 'miniapp',
+          adapters: { data: 'mock' },
+          features: {
+            offline_mode: true,
+            photo_upload: true,
+            gps_tracking: true,
+            route_optimization: false,
+          },
+          ui: {
+            brand: 'Logistics Mini App',
+            accent: '#007aff',
+            theme: 'auto',
+          },
+          defaults: {
+            mode: 'demo' as const,
+          },
+        },
+        user: null,
+        prefMode: null,
+      };
     }
-    throw new Error(errorMessage);
+
+    // Step 2: Get bootstrap configuration
+    const bootstrapResponse = await fetch(`${SUPABASE_URL}/functions/v1/bootstrap`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        telegram_id: user.telegram_id
+      }),
+    });
+
+    if (!bootstrapResponse.ok) {
+      console.warn('Bootstrap failed, using default config');
+      return {
+        config: {
+          app: 'miniapp',
+          adapters: { data: 'mock' },
+          features: {
+            offline_mode: true,
+            photo_upload: true,
+            gps_tracking: true,
+            route_optimization: false,
+          },
+          ui: {
+            brand: 'Logistics Mini App',
+            accent: '#007aff',
+            theme: 'auto',
+          },
+          defaults: {
+            mode: 'demo' as const,
+          },
+        },
+        user,
+        prefMode: null,
+      };
+    }
+
+    const data = await bootstrapResponse.json();
+    const config: BootstrapConfig = data.config || data;
+    const prefMode = data.prefMode || null;
+    
+    console.log('Bootstrap: Found saved mode =', prefMode);
+
+    return {
+      config,
+      user,
+      prefMode,
+    };
+  } catch (error) {
+    console.warn('Network error during authentication, falling back to mock mode:', error);
+    return {
+      config: {
+        app: 'miniapp',
+        adapters: { data: 'mock' },
+        features: {
+          offline_mode: true,
+          photo_upload: true,
+          gps_tracking: true,
+          route_optimization: false,
+        },
+        ui: {
+          brand: 'Logistics Mini App',
+          accent: '#007aff',
+          theme: 'auto',
+        },
+        defaults: {
+          mode: 'demo' as const,
+        },
+      },
+      user: null,
+      prefMode: null,
+    };
   }
-
-  const data = await bootstrapResponse.json();
-  const config: BootstrapConfig = data.config || data;
-  const prefMode = data.prefMode || null;
-  
-  console.log('Bootstrap: Found saved mode =', prefMode);
-
-  return {
-    config,
-    user,
-    prefMode,
-  };
 }
 
 export async function setUserMode(user: any, mode: 'demo' | 'real'): Promise<void> {
