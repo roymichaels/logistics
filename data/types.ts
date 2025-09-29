@@ -78,14 +78,14 @@ export interface BootstrapConfig {
     theme?: 'light' | 'dark' | 'auto';
   };
   defaults: {
-    mode: 'demo' | 'real';
+    mode: 'real';
   };
 }
 
 export interface UserPreference {
   telegram_id: string;
   app: string;
-  mode: 'demo' | 'real';
+  mode: 'real';
   updated_at: string;
 }
 

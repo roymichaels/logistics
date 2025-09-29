@@ -5,11 +5,10 @@ import { DataStore, User, BootstrapConfig } from '../data/types';
 interface SettingsProps {
   dataStore: DataStore;
   onNavigate: (page: string) => void;
-  mode: 'demo' | 'real' | null;
   config: BootstrapConfig | null;
 }
 
-export function Settings({ dataStore, onNavigate, mode, config }: SettingsProps) {
+export function Settings({ dataStore, onNavigate, config }: SettingsProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [switchingRole, setSwitchingRole] = useState(false);
@@ -178,7 +177,7 @@ export function Settings({ dataStore, onNavigate, mode, config }: SettingsProps)
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <InfoRow
               label="Current Mode"
-              value={mode ? `${mode.charAt(0).toUpperCase() + mode.slice(1)} Mode` : 'Unknown'}
+              value="Real Mode"
               theme={theme}
             />
             <InfoRow
@@ -220,21 +219,6 @@ export function Settings({ dataStore, onNavigate, mode, config }: SettingsProps)
               }}
               theme={theme}
               disabled={switchingRole}
-            />
-            
-            <ActionButton
-              title="Switch Mode"
-              subtitle={`Currently in ${mode || 'unknown'} mode`}
-              icon="🔄"
-              onClick={() => {
-                telegram.hapticFeedback('selection');
-                telegram.showConfirm('Switch between Demo and Real mode?').then((confirmed) => {
-                  if (confirmed) {
-                    onNavigate('lobby');
-                  }
-                });
-              }}
-              theme={theme}
             />
             
             <ActionButton
@@ -295,7 +279,7 @@ export function Settings({ dataStore, onNavigate, mode, config }: SettingsProps)
             <strong>Debug Info:</strong><br />
             Telegram ID: {user?.telegram_id}<br />
             Role: {user?.role}<br />
-            Mode: {mode}<br />
+            Mode: real<br />
             Adapter: {config?.adapters?.data}<br />
             Platform: {telegram.isAvailable ? 'Telegram' : 'Browser'}
           </div>

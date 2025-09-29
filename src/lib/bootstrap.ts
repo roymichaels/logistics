@@ -4,7 +4,6 @@ import { telegram } from '../../lib/telegram';
 interface BootstrapResult {
   config: BootstrapConfig;
   user: any | null;
-  prefMode: 'demo' | 'real' | null;
 }
 
 export async function bootstrap(): Promise<BootstrapResult> {
@@ -32,11 +31,10 @@ export async function bootstrap(): Promise<BootstrapResult> {
           theme: 'auto',
         },
         defaults: {
-          mode: 'demo' as const,
+          mode: 'real' as const,
         },
       },
       user: null,
-      prefMode: null,
     };
   }
   
@@ -61,11 +59,10 @@ export async function bootstrap(): Promise<BootstrapResult> {
           theme: 'auto',
         },
         defaults: {
-          mode: 'demo' as const,
+          mode: 'real' as const,
         },
       },
       user: null,
-      prefMode: null,
     };
   }
 
@@ -100,11 +97,10 @@ export async function bootstrap(): Promise<BootstrapResult> {
             theme: 'auto',
           },
           defaults: {
-            mode: 'demo' as const,
+            mode: 'real' as const,
           },
         },
         user: null,
-        prefMode: null,
       };
     }
 
@@ -128,11 +124,10 @@ export async function bootstrap(): Promise<BootstrapResult> {
             theme: 'auto',
           },
           defaults: {
-            mode: 'demo' as const,
+            mode: 'real' as const,
           },
         },
         user: null,
-        prefMode: null,
       };
     }
 
@@ -165,24 +160,19 @@ export async function bootstrap(): Promise<BootstrapResult> {
             theme: 'auto',
           },
           defaults: {
-            mode: 'demo' as const,
+            mode: 'real' as const,
           },
         },
         user,
-        prefMode: null,
       };
     }
 
     const data = await bootstrapResponse.json();
     const config: BootstrapConfig = data.config || data;
-    const prefMode = data.prefMode || null;
-    
-    console.log('Bootstrap: Found saved mode =', prefMode);
 
     return {
       config,
       user,
-      prefMode,
     };
   } catch (error) {
     console.warn('Network error during authentication, falling back to mock mode:', error);
@@ -202,56 +192,10 @@ export async function bootstrap(): Promise<BootstrapResult> {
           theme: 'auto',
         },
         defaults: {
-          mode: 'demo' as const,
+          mode: 'real' as const,
         },
       },
       user: null,
-      prefMode: null,
     };
-  }
-}
-
-export async function setUserMode(user: any, mode: 'demo' | 'real'): Promise<void> {
-  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-  if (!SUPABASE_URL) {
-    throw new Error('VITE_SUPABASE_URL environment variable is required');
-  }
-
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/user-mode`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ 
-      telegram_id: user.telegram_id,
-      mode 
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to set user mode');
-  }
-}
-
-export async function seedDemo(user: any): Promise<void> {
-  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-  if (!SUPABASE_URL) {
-    throw new Error('VITE_SUPABASE_URL environment variable is required');
-  }
-
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/seed-demo`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      telegram_id: user.telegram_id
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to seed demo data');
   }
 }
