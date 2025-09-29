@@ -46,7 +46,7 @@ export function BottomNavigation({ currentPage, onNavigate, userRole }: BottomNa
     tabs = [
       { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
       { id: 'orders', label: hebrew.orders, icon: '📋' },
-      { id: 'customers', label: hebrew.customers, icon: '👥' },
+      { id: 'products', label: hebrew.products, icon: '📦' },
       { id: 'settings', label: hebrew.settings, icon: '⚙️' }
     ];
   } else { // customer_service
