@@ -185,3 +185,5 @@ export function createFrontendDataStore(cfg: BootstrapConfig, mode: 'demo' | 're
   // In the future, you could implement an ApiDataStore that makes HTTP requests to your backend
   return new FrontendMockDataStore();
 }
+
+export { createFrontendDataStore }

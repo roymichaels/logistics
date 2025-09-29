@@ -25,3 +25,5 @@ export async function createStore(cfg: BootstrapConfig, mode: 'demo' | 'real'): 
 }
 
 export * from './types';
+
+export { createStore }
