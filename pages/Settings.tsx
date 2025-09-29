@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { telegram } from '../lib/telegram';
 import { TelegramModal } from '../src/components/TelegramModal';
 import { DataStore, User, BootstrapConfig } from '../data/types';
+import { roleNames, roleIcons } from '../src/lib/hebrew';
 
 interface SettingsProps {
   dataStore: DataStore;
