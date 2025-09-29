@@ -142,19 +142,16 @@ WHERE app = 'miniapp';
 
 ## TODOs Explicitly Deferred
 
-### Phase 2 Features
-- [ ] Real-time updates via WebSocket/SSE
-- [ ] Advanced route optimization
-- [ ] CSV export functionality
-- [ ] Push notifications
-- [ ] Multi-language support
-
-### Technical Debt
-- [ ] Add comprehensive error boundaries
-- [ ] Implement proper offline sync
-- [ ] Add unit tests for critical paths
-- [ ] Performance monitoring integration
-- [ ] Advanced caching strategies
+- [ ] Phase 2 Feature - Real-time updates via WebSocket/SSE
+- [ ] Phase 2 Feature - Advanced route optimization
+- [ ] Phase 2 Feature - CSV export functionality
+- [ ] Phase 2 Feature - Push notifications
+- [ ] Phase 2 Feature - Multi-language support
+- [ ] Technical Debt - Add comprehensive error boundaries
+- [ ] Technical Debt - Implement proper offline sync
+- [ ] Technical Debt - Add unit tests for critical paths
+- [ ] Technical Debt - Performance monitoring integration
+- [ ] Technical Debt - Advanced caching strategies
 
 ## Quality Metrics
 
