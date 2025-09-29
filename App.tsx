@@ -12,8 +12,9 @@ import { Dashboard } from './pages/Dashboard';
 import { Orders } from './pages/Orders';
 import { Tasks } from './pages/Tasks';
 import { Settings } from './pages/Settings';
+import { UserManagement } from './pages/UserManagement';
 
-type Page = 'dashboard' | 'orders' | 'tasks' | 'settings' | 'products' | 'deliveries' | 'route' | 'customers' | 'reports';
+type Page = 'dashboard' | 'orders' | 'tasks' | 'settings' | 'products' | 'deliveries' | 'route' | 'customers' | 'reports' | 'users';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -75,6 +76,13 @@ export default function App() {
   const handleLogin = async (userData: any) => {
     try {
       console.log('Authenticating user:', userData);
+      
+      // Check if user is approved (unless they're the first admin)
+      if (!userData.isFirstAdmin && !userData.isApproved) {
+        setError('חשבונך ממתין לאישור מהמנהל. אנא פנה למנהל המערכת.');
+        return;
+      }
+      
       setUser(userData);
       
       // Create data store in real mode
@@ -194,8 +202,10 @@ export default function App() {
         return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד לקוחות - בפיתוח</div>;
       case 'reports':
         return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד דוחות - בפיתוח</div>;
+      case 'users':
+        return <UserManagement onNavigate={handleNavigate} currentUser={user} />;
       case 'settings':
-        return <Settings dataStore={dataStore} onNavigate={handleNavigate} config={config} />;
+        return <Settings dataStore={dataStore} onNavigate={handleNavigate} config={config} currentUser={user} />;
       default:
         return <Dashboard dataStore={dataStore} onNavigate={handleNavigate} />;
     }

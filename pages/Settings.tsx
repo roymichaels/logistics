@@ -3,14 +3,16 @@ import { telegram } from '../lib/telegram';
 import { TelegramModal } from '../src/components/TelegramModal';
 import { DataStore, User, BootstrapConfig } from '../data/types';
 import { roleNames, roleIcons } from '../src/lib/hebrew';
+import { userManager } from '../src/lib/userManager';
 
 interface SettingsProps {
   dataStore: DataStore;
   onNavigate: (page: string) => void;
   config: BootstrapConfig | null;
+  currentUser?: any;
 }
 
-export function Settings({ dataStore, onNavigate, config }: SettingsProps) {
+export function Settings({ dataStore, onNavigate, config, currentUser }: SettingsProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [switchingRole, setSwitchingRole] = useState(false);
@@ -20,6 +22,7 @@ export function Settings({ dataStore, onNavigate, config }: SettingsProps) {
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>('');
 
+  const isFirstAdmin = currentUser && userManager.isFirstAdmin(currentUser.telegram_id);
   const theme = telegram.themeParams;
 
   useEffect(() => {
@@ -218,6 +221,19 @@ export function Settings({ dataStore, onNavigate, config }: SettingsProps) {
           </h2>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {isFirstAdmin && (
+              <ActionButton
+                title="ניהול משתמשים"
+                subtitle="אישור וניהול משתמשים במערכת"
+                icon="👥"
+                onClick={() => {
+                  telegram.hapticFeedback('selection');
+                  onNavigate('users');
+                }}
+                theme={theme}
+              />
+            )}
+            
             <ActionButton
               title="Switch Role"
               subtitle={`Current: ${user?.role || 'unknown'}`}

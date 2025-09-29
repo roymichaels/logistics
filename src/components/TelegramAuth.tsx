@@ -103,6 +103,15 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
       auth_date: Math.floor(Date.now() / 1000)
     };
 
+    // Register user in local system
+    const { userManager } = await import('../lib/userManager');
+    const registration = userManager.registerUser(userData);
+    
+    // Add registration info to user data
+    userData.registration = registration;
+    userData.isFirstAdmin = userManager.isFirstAdmin(userData.telegram_id);
+    userData.isApproved = registration.approved;
+
     console.log('✅ Using Telegram user data');
     onAuth(userData);
   };
@@ -149,6 +158,15 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
         photo_url: user.photo_url,
         auth_date: user.auth_date
       };
+
+      // Register user in local system
+      const { userManager } = await import('../lib/userManager');
+      const registration = userManager.registerUser(userData);
+      
+      // Add registration info to user data
+      userData.registration = registration;
+      userData.isFirstAdmin = userManager.isFirstAdmin(userData.telegram_id);
+      userData.isApproved = registration.approved;
 
       console.log('✅ Using Telegram Login Widget data');
       onAuth(userData);
