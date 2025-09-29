@@ -65,12 +65,18 @@ declare global {
 
 class TelegramService {
   private webApp: TelegramWebApp | null = null;
+  private user: any = null;
 
   constructor() {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
       this.webApp = window.Telegram.WebApp;
       this.webApp.ready();
       this.webApp.expand();
+      
+      // Parse user data from initDataUnsafe
+      if (this.webApp.initDataUnsafe?.user) {
+        this.user = this.webApp.initDataUnsafe.user;
+      }
     }
   }
 
@@ -96,6 +102,14 @@ class TelegramService {
 
   get initData(): string {
     return this.webApp?.initData || '';
+  }
+
+  get user(): any {
+    return this.user || this.webApp?.initDataUnsafe?.user || null;
+  }
+
+  get isAuthenticated(): boolean {
+    return !!(this.user || this.webApp?.initDataUnsafe?.user);
   }
 
   setMainButton({ text, visible = true, onClick }: { text: string; visible?: boolean; onClick: () => void }): void {

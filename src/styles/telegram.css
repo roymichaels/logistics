@@ -36,6 +36,12 @@ input, textarea {
   50% { opacity: 0.5; }
 }
 
+/* Spin animation for loading */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 /* Telegram-style button */
 .tg-button {
   padding: var(--tg-spacing-md) var(--tg-spacing-lg);

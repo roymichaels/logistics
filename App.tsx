@@ -4,7 +4,7 @@ import { bootstrap } from './src/lib/bootstrap';
 import { createFrontendDataStore } from './src/lib/frontendDataStore';
 import { DataStore, BootstrapConfig } from './data/types';
 import { BottomNavigation } from './src/components/BottomNavigation';
-import { TelegramLogin } from './src/components/TelegramLogin';
+import { TelegramAuth } from './src/components/TelegramAuth';
 import { hebrew } from './src/lib/hebrew';
 
 // Pages
@@ -74,6 +74,7 @@ export default function App() {
 
   const handleLogin = async (userData: any) => {
     try {
+      console.log('Authenticating user:', userData);
       setUser(userData);
       
       // Create data store in real mode
@@ -92,7 +93,14 @@ export default function App() {
       }
     } catch (error) {
       console.error('Login failed:', error);
-      setError(error instanceof Error ? error.message : 'Login failed');
+      setError(error instanceof Error ? error.message : 'שגיאה בהתחברות');
+    }
+  };
+
+  const handleAuthError = (error: string) => {
+    console.error('Authentication error:', error);
+    setError(error);
+    setLoading(false);
     }
   };
 
@@ -152,7 +160,12 @@ export default function App() {
 
   // Show login screen if not logged in
   if (!isLoggedIn) {
-    return <TelegramLogin onLogin={handleLogin} />;
+    return (
+      <TelegramAuth 
+        onAuth={handleLogin} 
+        onError={handleAuthError}
+      />
+    );
   }
 
   if (!dataStore) {
