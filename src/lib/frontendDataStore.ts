@@ -198,5 +198,3 @@ export function createFrontendDataStore(cfg: BootstrapConfig, mode: 'demo' | 're
   
   return store;
 }
-
-export { createFrontendDataStore }
