@@ -3,7 +3,7 @@ import { telegram } from '../../lib/telegram';
 
 interface BootstrapResult {
   config: BootstrapConfig;
-  token: string | null;
+  user: any | null;
   prefMode: 'demo' | 'real' | null;
 }
 
@@ -32,7 +32,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
           mode: 'demo' as const,
         },
       },
-      token: null,
+      user: null,
       prefMode: null,
     };
   }
@@ -59,7 +59,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
           mode: 'demo' as const,
         },
       },
-      token: null,
+      user: null,
       prefMode: null,
     };
   }
@@ -89,14 +89,21 @@ export async function bootstrap(): Promise<BootstrapResult> {
     throw new Error(errorMessage);
   }
 
-  const { session, user } = await verifyResponse.json();
-  const token = session?.access_token;
+  const { ok, user, session } = await verifyResponse.json();
+  
+  if (!ok || !user) {
+    throw new Error('Authentication failed: Invalid response');
+  }
 
   // Step 2: Get bootstrap configuration
   const bootstrapResponse = await fetch(`${SUPABASE_URL}/functions/v1/bootstrap`, {
+    method: 'POST',
     headers: {
-      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify({
+      telegram_id: user.telegram_id
+    }),
   });
 
   if (!bootstrapResponse.ok) {
@@ -118,12 +125,12 @@ export async function bootstrap(): Promise<BootstrapResult> {
 
   return {
     config,
-    token,
+    user,
     prefMode,
   };
 }
 
-export async function setUserMode(token: string, mode: 'demo' | 'real'): Promise<void> {
+export async function setUserMode(user: any, mode: 'demo' | 'real'): Promise<void> {
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
   if (!SUPABASE_URL) {
     throw new Error('VITE_SUPABASE_URL environment variable is required');
@@ -133,9 +140,11 @@ export async function setUserMode(token: string, mode: 'demo' | 'real'): Promise
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ mode }),
+    body: JSON.stringify({ 
+      telegram_id: user.telegram_id,
+      mode 
+    }),
   });
 
   if (!response.ok) {
@@ -144,7 +153,7 @@ export async function setUserMode(token: string, mode: 'demo' | 'real'): Promise
   }
 }
 
-export async function seedDemo(token: string): Promise<void> {
+export async function seedDemo(user: any): Promise<void> {
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
   if (!SUPABASE_URL) {
     throw new Error('VITE_SUPABASE_URL environment variable is required');
@@ -153,8 +162,11 @@ export async function seedDemo(token: string): Promise<void> {
   const response = await fetch(`${SUPABASE_URL}/functions/v1/seed-demo`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify({
+      telegram_id: user.telegram_id
+    }),
   });
 
   if (!response.ok) {

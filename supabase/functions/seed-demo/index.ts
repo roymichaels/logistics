@@ -1,8 +1,7 @@
 import { corsHeaders } from '../_shared/cors.ts';
 
-interface SetModeRequest {
+interface SeedDemoRequest {
   telegram_id: string;
-  mode: 'demo' | 'real';
 }
 
 Deno.serve(async (req: Request) => {
@@ -19,11 +18,11 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const body = await req.json() as SetModeRequest;
+    const body = await req.json() as SeedDemoRequest;
     
-    if (!body.telegram_id || !['demo', 'real'].includes(body.mode)) {
+    if (!body.telegram_id) {
       return new Response(
-        JSON.stringify({ error: 'Invalid telegram_id or mode' }),
+        JSON.stringify({ error: 'telegram_id required' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -31,11 +30,11 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // TODO: Save user preference to Supabase
-    console.log(`User ${body.telegram_id} set mode to ${body.mode}`);
+    // TODO: Seed demo data in Supabase
+    console.log(`Seeding demo data for user ${body.telegram_id}`);
 
     return new Response(
-      JSON.stringify({ ok: true, mode: body.mode }),
+      JSON.stringify({ ok: true, message: 'Demo data seeded successfully' }),
       {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -43,7 +42,7 @@ Deno.serve(async (req: Request) => {
     );
 
   } catch (error) {
-    console.error('Set user mode error:', error);
+    console.error('Seed demo error:', error);
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       {

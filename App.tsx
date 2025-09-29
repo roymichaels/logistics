@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { telegram } from './lib/telegram';
-import { bootstrap, setUserMode } from './src/lib/bootstrap';
+import { bootstrap, setUserMode, seedDemo } from './src/lib/bootstrap';
 import { createFrontendDataStore } from './src/lib/frontendDataStore';
 import { DataStore, BootstrapConfig } from './data/types';
 import { ModeBadge } from './src/components/ModeBadge';
@@ -18,7 +18,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('lobby');
   const [dataStore, setDataStore] = useState<DataStore | null>(null);
   const [config, setConfig] = useState<BootstrapConfig | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [mode, setMode] = useState<'demo' | 'real' | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +43,7 @@ export default function App() {
       // Bootstrap from server
       const result = await bootstrap();
       setConfig(result.config);
-      setToken(result.token);
+      setUser(result.user);
       
       // Check if user has a saved preference
       if (result.prefMode) {
@@ -67,12 +67,21 @@ export default function App() {
     
     try {
       // Set user preference if remember is true
-      if (remember && token) {
-        await setUserMode(token, selectedMode);
+      if (remember && user) {
+        await setUserMode(user, selectedMode);
+      }
+      
+      // Seed demo data if in demo mode
+      if (selectedMode === 'demo' && user) {
+        try {
+          await seedDemo(user);
+        } catch (error) {
+          console.warn('Failed to seed demo data:', error);
+        }
       }
       
       // Create data store with selected mode
-      const store = createFrontendDataStore(config, selectedMode);
+      const store = createFrontendDataStore(config, selectedMode, user);
       setDataStore(store);
       setMode(selectedMode);
       setCurrentPage('dashboard');

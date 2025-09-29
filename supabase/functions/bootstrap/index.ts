@@ -1,5 +1,4 @@
 import { corsHeaders } from '../_shared/cors.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 interface BootstrapConfig {
   app: string;
@@ -28,37 +27,20 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
-  try {
-    // Get authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Authorization required' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
+  if (req.method !== "POST") {
+    return new Response("Method not allowed", { 
+      status: 405, 
+      headers: corsHeaders 
     });
+  }
 
-    // Get user from token
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+  try {
+    const body = await req.json();
+    const { telegram_id } = body;
     
-    if (error || !user) {
+    if (!telegram_id) {
       return new Response(
-        JSON.stringify({ error: 'Invalid token' }),
+        JSON.stringify({ error: 'telegram_id required' }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -66,19 +48,15 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Get user preferences
-    const { data: userPrefs } = await supabase
-      .from('user_preferences')
-      .select('mode')
-      .eq('telegram_id', user.user_metadata.telegram_id)
-      .eq('app', 'miniapp')
-      .single();
+    // TODO: Get user preferences from Supabase
+    // For now, return null to force lobby selection
+    const userPrefs = null;
 
     // Default configuration
     const config: BootstrapConfig = {
       app: 'miniapp',
       adapters: {
-        data: 'supabase'
+        data: 'mock'
       },
       features: {
         offline_mode: true,
@@ -100,13 +78,6 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         config,
         prefMode: userPrefs?.mode || null,
-        user: {
-          telegram_id: user.user_metadata.telegram_id,
-          first_name: user.user_metadata.first_name,
-          last_name: user.user_metadata.last_name,
-          username: user.user_metadata.username,
-          photo_url: user.user_metadata.photo_url
-        }
       }),
       {
         status: 200,

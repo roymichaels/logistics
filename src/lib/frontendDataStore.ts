@@ -180,10 +180,23 @@ class FrontendMockDataStore implements DataStore {
   }
 }
 
-export function createFrontendDataStore(cfg: BootstrapConfig, mode: 'demo' | 'real'): DataStore {
+export function createFrontendDataStore(cfg: BootstrapConfig, mode: 'demo' | 'real', user?: any): DataStore {
   // For now, always return mock data store for frontend
   // In the future, you could implement an ApiDataStore that makes HTTP requests to your backend
-  return new FrontendMockDataStore();
+  const store = new FrontendMockDataStore();
+  
+  // Update user data if provided
+  if (user) {
+    (store as any).user = {
+      telegram_id: user.telegram_id,
+      role: user.role || 'dispatcher',
+      name: user.first_name + (user.last_name ? ` ${user.last_name}` : ''),
+      username: user.username,
+      photo_url: user.photo_url
+    };
+  }
+  
+  return store;
 }
 
 export { createFrontendDataStore }
