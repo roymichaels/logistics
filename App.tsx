@@ -101,7 +101,6 @@ export default function App() {
     console.error('Authentication error:', error);
     setError(error);
     setLoading(false);
-    }
   };
 
   const handleNavigate = (page: Page) => {
@@ -160,12 +159,7 @@ export default function App() {
 
   // Show login screen if not logged in
   if (!isLoggedIn) {
-    return (
-      <TelegramAuth 
-        onAuth={handleLogin} 
-        onError={handleAuthError}
-      />
-    );
+    return <TelegramAuth onLogin={handleLogin} onError={handleAuthError} />;
   }
 
   if (!dataStore) {
