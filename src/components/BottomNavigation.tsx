@@ -1,10 +1,11 @@
 import React from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
+import { hebrew, roleIcons } from '../lib/hebrew';
 
 interface BottomNavigationProps {
   currentPage: string;
   onNavigate: (page: string) => void;
-  userRole?: 'manager' | 'worker' | 'dispatcher' | 'courier';
+  userRole?: 'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service';
 }
 
 export function BottomNavigation({ currentPage, onNavigate, userRole }: BottomNavigationProps) {
@@ -14,28 +15,47 @@ export function BottomNavigation({ currentPage, onNavigate, userRole }: BottomNa
   
   if (userRole === 'manager') {
     tabs = [
-        { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-        { id: 'orders', label: 'Inventory', icon: '📦' },
-        { id: 'settings', label: 'Settings', icon: '⚙️' }
-      ];
+      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'orders', label: hebrew.orders, icon: '📋' },
+      { id: 'products', label: hebrew.products, icon: '📦' },
+      { id: 'reports', label: hebrew.reports, icon: '📈' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ];
   } else if (userRole === 'dispatcher') {
     tabs = [
-        { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-        { id: 'orders', label: 'Orders', icon: '📋' },
-        { id: 'settings', label: 'Settings', icon: '⚙️' }
-      ];
-  } else if (userRole === 'courier') {
+      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'orders', label: hebrew.orders, icon: '📋' },
+      { id: 'tasks', label: hebrew.tasks, icon: '✅' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ];
+  } else if (userRole === 'driver') {
     tabs = [
-        { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-        { id: 'tasks', label: 'Deliveries', icon: '🚚' },
-        { id: 'settings', label: 'Settings', icon: '⚙️' }
-      ];
-  } else { // worker
+      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'deliveries', label: hebrew.deliveries, icon: '🚚' },
+      { id: 'route', label: 'מסלול', icon: '🗺️' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ];
+  } else if (userRole === 'warehouse') {
     tabs = [
-        { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-        { id: 'tasks', label: 'Tasks', icon: '✅' },
-        { id: 'settings', label: 'Settings', icon: '⚙️' }
-      ];
+      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'tasks', label: hebrew.tasks, icon: '✅' },
+      { id: 'products', label: hebrew.products, icon: '📦' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ];
+  } else if (userRole === 'sales') {
+    tabs = [
+      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'orders', label: hebrew.orders, icon: '📋' },
+      { id: 'customers', label: hebrew.customers, icon: '👥' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ];
+  } else { // customer_service
+    tabs = [
+      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'orders', label: hebrew.orders, icon: '📋' },
+      { id: 'customers', label: hebrew.customers, icon: '👥' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ];
   }
 
   return (
@@ -48,7 +68,8 @@ export function BottomNavigation({ currentPage, onNavigate, userRole }: BottomNa
       borderTop: `1px solid ${theme.hint_color}20`,
       display: 'flex',
       padding: '8px 0',
-      zIndex: 1000
+      zIndex: 1000,
+      direction: 'rtl'
     }}>
       {tabs.map((tab) => (
         <button

@@ -4,6 +4,7 @@ import { bootstrap } from './src/lib/bootstrap';
 import { createFrontendDataStore } from './src/lib/frontendDataStore';
 import { DataStore, BootstrapConfig } from './data/types';
 import { BottomNavigation } from './src/components/BottomNavigation';
+import { hebrew } from './src/lib/hebrew';
 
 // Pages
 import { Dashboard } from './pages/Dashboard';
@@ -11,7 +12,7 @@ import { Orders } from './pages/Orders';
 import { Tasks } from './pages/Tasks';
 import { Settings } from './pages/Settings';
 
-type Page = 'dashboard' | 'orders' | 'tasks' | 'settings';
+type Page = 'dashboard' | 'orders' | 'tasks' | 'settings' | 'products' | 'deliveries' | 'route' | 'customers' | 'reports';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -20,7 +21,7 @@ export default function App() {
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<'dispatcher' | 'courier' | null>(null);
+  const [userRole, setUserRole] = useState<'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service' | null>(null);
 
   const theme = telegram.themeParams;
 
@@ -52,10 +53,10 @@ export default function App() {
       if (store) {
         try {
           const profile = await store.getProfile();
-          setUserRole(profile.role as 'dispatcher' | 'courier' | 'manager' | 'worker');
+          setUserRole(profile.role);
         } catch (error) {
           console.warn('Failed to get user profile:', error);
-          setUserRole('dispatcher'); // Default fallback
+          setUserRole('manager'); // Default fallback
         }
       }
       
@@ -83,7 +84,7 @@ export default function App() {
         color: theme.text_color,
         fontSize: '16px'
       }}>
-        Loading...
+        {hebrew.loading}
       </div>
     );
   }
@@ -102,7 +103,7 @@ export default function App() {
         textAlign: 'center'
       }}>
         <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>⚠️ Error</h1>
-        <p style={{ fontSize: '16px', marginBottom: '24px' }}>{error}</p>
+        <p style={{ fontSize: '16px', marginBottom: '24px', direction: 'rtl' }}>{error}</p>
         <button
           onClick={() => window.location.reload()}
           style={{
@@ -115,7 +116,7 @@ export default function App() {
             cursor: 'pointer'
           }}
         >
-          Retry
+          נסה שוב
         </button>
       </div>
     );
@@ -132,7 +133,7 @@ export default function App() {
         color: theme.text_color,
         fontSize: '16px'
       }}>
-        Setting up workspace...
+        מכין את המערכת...
       </div>
     );
   }
@@ -143,6 +144,16 @@ export default function App() {
         return <Orders dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'tasks':
         return <Tasks dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'products':
+        return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד מוצרים - בפיתוח</div>;
+      case 'deliveries':
+        return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד משלוחים - בפיתוח</div>;
+      case 'route':
+        return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד מסלול - בפיתוח</div>;
+      case 'customers':
+        return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד לקוחות - בפיתוח</div>;
+      case 'reports':
+        return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד דוחות - בפיתוח</div>;
       case 'settings':
         return <Settings dataStore={dataStore} onNavigate={handleNavigate} config={config} />;
       default:

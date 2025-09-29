@@ -1,179 +1,268 @@
-import { DataStore, User, Order, Task, Route, BootstrapConfig } from '../../data/types';
+import { DataStore, User, Order, Task, Product, Route, GroupChat, Channel, Notification, BootstrapConfig } from '../../data/types';
 
-const mockDeliveryOrders = [
-  {
-    id: 'del-1',
-    created_by: '123456789',
-    status: 'new' as const,
-    customer: 'John Smith',
-    address: '123 Main St, Downtown',
-    eta: '2024-01-20T14:00:00Z',
-    notes: 'Ring doorbell twice',
-    items: [
-      { name: 'Pizza Margherita', quantity: 2 },
-      { name: 'Coca Cola', quantity: 3 }
-    ],
-    created_at: '2024-01-20T10:00:00Z',
-    updated_at: '2024-01-20T10:00:00Z'
-  },
-  {
-    id: 'del-2',
-    created_by: '123456789',
-    status: 'assigned' as const,
-    customer: 'Sarah Johnson',
-    address: '456 Oak Ave, Uptown',
-    eta: '2024-01-20T16:00:00Z',
-    notes: 'Leave at door if no answer',
-    items: [
-      { name: 'Laptop Computer', quantity: 1 },
-      { name: 'Mouse', quantity: 1 }
-    ],
-    created_at: '2024-01-20T09:00:00Z',
-    updated_at: '2024-01-20T11:00:00Z'
-  },
-  {
-    id: 'del-3',
-    created_by: '123456789',
-    status: 'delivered' as const,
-    customer: 'Mike Wilson',
-    address: '789 Pine St, Midtown',
-    notes: 'Delivered successfully',
-    items: [
-      { name: 'Office Supplies', quantity: 5 }
-    ],
-    created_at: '2024-01-19T14:00:00Z',
-    updated_at: '2024-01-20T09:30:00Z'
-  }
-];
-
-const mockDeliveryTasks = [
-  {
-    id: 'dt-1',
-    order_id: 'del-2',
-    courier_id: '987654321',
-    status: 'enroute' as const,
-    gps: { lat: 40.7128, lng: -74.0060 },
-    created_at: '2024-01-20T11:00:00Z'
-  },
-  {
-    id: 'dt-2',
-    order_id: 'del-1',
-    courier_id: '987654321',
-    status: 'pending' as const,
-    created_at: '2024-01-20T10:00:00Z'
-  }
-];
-
-// Browser-compatible mock data store
-const createMockUser = (providedUser?: any): User => ({
-  telegram_id: providedUser?.telegram_id || '123456789',
-  role: providedUser?.role || 'dispatcher',
-  name: providedUser?.name || (providedUser?.first_name ? 
-    `${providedUser.first_name}${providedUser.last_name ? ` ${providedUser.last_name}` : ''}` : 
-    'Demo User'),
-  username: providedUser?.username || 'demouser',
-  photo_url: providedUser?.photo_url
-});
-
-const mockOrders: Order[] = [
+// Mock data for Hebrew logistics company
+const mockProducts: Product[] = [
   {
     id: '1',
-    created_by: '123456789',
-    status: 'pending',
-    item_name: 'Office Chairs',
-    location: 'Warehouse A - Section 1',
-    due_date: '2024-01-20T14:00:00Z',
-    notes: 'Fragile items, handle with care',
-    quantity: 25,
-    unit: 'pieces',
+    name: 'מחשב נייד Dell',
+    sku: 'DELL-001',
+    price: 3500,
+    stock_quantity: 25,
+    category: 'מחשבים',
+    description: 'מחשב נייד Dell Inspiron 15',
+    warehouse_location: 'מחסן א - מדף 1',
     created_at: '2024-01-20T10:00:00Z',
     updated_at: '2024-01-20T10:00:00Z'
   },
   {
     id: '2',
-    created_by: '123456789',
-    status: 'assigned',
-    item_name: 'Computer Monitors',
-    location: 'Warehouse B - Section 3',
-    due_date: '2024-01-20T16:00:00Z',
-    notes: 'Check serial numbers',
-    quantity: 10,
-    unit: 'pieces',
+    name: 'עכבר אלחוטי',
+    sku: 'MOUSE-001',
+    price: 120,
+    stock_quantity: 150,
+    category: 'אביזרים',
+    description: 'עכבר אלחוטי Logitech',
+    warehouse_location: 'מחסן ב - מדף 3',
     created_at: '2024-01-20T09:00:00Z',
     updated_at: '2024-01-20T11:00:00Z'
+  }
+];
+
+const mockOrders: Order[] = [
+  {
+    id: '1',
+    customer_name: 'יוסי כהן',
+    customer_phone: '050-1234567',
+    customer_address: 'רחוב הרצל 15, תל אביב',
+    status: 'new',
+    items: [
+      { product_id: '1', product_name: 'מחשב נייד Dell', quantity: 1, price: 3500 },
+      { product_id: '2', product_name: 'עכבר אלחוטי', quantity: 2, price: 120 }
+    ],
+    total_amount: 3740,
+    notes: 'משלוח דחוף',
+    delivery_date: '2024-01-21T14:00:00Z',
+    created_by: '123456789',
+    created_at: '2024-01-20T10:00:00Z',
+    updated_at: '2024-01-20T10:00:00Z'
   },
   {
-    id: '3',
+    id: '2',
+    customer_name: 'שרה לוי',
+    customer_phone: '052-9876543',
+    customer_address: 'שדרות רוטשילד 45, תל אביב',
+    status: 'confirmed',
+    items: [
+      { product_id: '2', product_name: 'עכבר אלחוטי', quantity: 5, price: 120 }
+    ],
+    total_amount: 600,
+    delivery_date: '2024-01-22T16:00:00Z',
     created_by: '123456789',
-    status: 'completed',
-    item_name: 'Office Supplies',
-    location: 'Warehouse A - Section 2',
-    notes: 'Completed successfully',
-    quantity: 100,
-    unit: 'boxes',
-    created_at: '2024-01-19T14:00:00Z',
-    updated_at: '2024-01-20T09:30:00Z'
+    created_at: '2024-01-20T09:00:00Z',
+    updated_at: '2024-01-20T11:00:00Z'
   }
 ];
 
 const mockTasks: Task[] = [
   {
     id: '1',
-    order_id: '2',
-    worker_id: '987654321',
-    status: 'in_progress',
-    location: 'Warehouse B - Section 3',
-    created_at: '2024-01-20T11:00:00Z'
+    title: 'הכנת הזמנה #1',
+    description: 'הכנת מוצרים להזמנה של יוסי כהן',
+    type: 'warehouse',
+    status: 'pending',
+    assigned_to: '987654321',
+    assigned_by: '123456789',
+    priority: 'high',
+    due_date: '2024-01-21T12:00:00Z',
+    order_id: '1',
+    created_at: '2024-01-20T10:30:00Z'
   },
   {
     id: '2',
-    order_id: '1',
-    worker_id: '987654321',
-    status: 'pending',
-    created_at: '2024-01-20T10:00:00Z'
+    title: 'משלוח להזמנה #2',
+    description: 'משלוח מוצרים לשרה לוי',
+    type: 'delivery',
+    status: 'in_progress',
+    assigned_to: '555666777',
+    assigned_by: '123456789',
+    priority: 'medium',
+    due_date: '2024-01-22T16:00:00Z',
+    order_id: '2',
+    created_at: '2024-01-20T11:00:00Z'
   }
 ];
 
-const mockRoute: Route = {
-  id: '1',
-  worker_id: '987654321',
-  date: '2024-01-20',
-  stops: [
-    {
-      order_id: '2',
-      location: 'Warehouse B - Section 3',
-      sequence: 1,
-      status: 'in_progress'
-    },
-    {
-      order_id: '1',
-      location: 'Warehouse A - Section 1',
-      sequence: 2,
-      status: 'pending'
-    }
-  ]
+const mockGroupChats: GroupChat[] = [
+  {
+    id: '1',
+    name: 'צוות משלוחים',
+    type: 'department',
+    department: 'delivery',
+    members: ['123456789', '555666777'],
+    description: 'תיאום משלוחים יומי',
+    created_at: '2024-01-15T10:00:00Z'
+  },
+  {
+    id: '2',
+    name: 'צוות מחסן',
+    type: 'department',
+    department: 'warehouse',
+    members: ['123456789', '987654321'],
+    description: 'ניהול מלאי ומחסן',
+    created_at: '2024-01-15T10:00:00Z'
+  }
+];
+
+const mockChannels: Channel[] = [
+  {
+    id: '1',
+    name: 'הודעות חברה',
+    type: 'announcements',
+    description: 'הודעות רשמיות מההנהלה',
+    subscribers: ['123456789', '987654321', '555666777'],
+    created_at: '2024-01-15T10:00:00Z'
+  },
+  {
+    id: '2',
+    name: 'עדכוני מערכת',
+    type: 'updates',
+    description: 'עדכונים טכניים ושיפורים',
+    subscribers: ['123456789', '987654321', '555666777'],
+    created_at: '2024-01-15T10:00:00Z'
+  }
+];
+
+const mockNotifications: Notification[] = [
+  {
+    id: '1',
+    title: 'הזמנה חדשה',
+    message: 'הזמנה חדשה מיוסי כהן - ₪3,740',
+    type: 'info',
+    recipient_id: '123456789',
+    read: false,
+    action_url: '/orders/1',
+    created_at: '2024-01-20T10:00:00Z'
+  },
+  {
+    id: '2',
+    title: 'משימה הוקצתה',
+    message: 'הוקצתה לך משימה: הכנת הזמנה #1',
+    type: 'info',
+    recipient_id: '987654321',
+    read: false,
+    action_url: '/tasks/1',
+    created_at: '2024-01-20T10:30:00Z'
+  }
+];
+
+// Create mock user based on role
+const createMockUser = (providedUser?: any): User => {
+  const roles = ['manager', 'dispatcher', 'driver', 'warehouse', 'sales', 'customer_service'];
+  const defaultRole = providedUser?.role || 'manager';
+  
+  return {
+    telegram_id: providedUser?.telegram_id || '123456789',
+    role: defaultRole,
+    name: providedUser?.name || (providedUser?.first_name ? 
+      `${providedUser.first_name}${providedUser.last_name ? ` ${providedUser.last_name}` : ''}` : 
+      'משתמש דמו'),
+    username: providedUser?.username || 'demouser',
+    photo_url: providedUser?.photo_url,
+    department: getDepartmentByRole(defaultRole),
+    phone: '050-1234567'
+  };
 };
 
-class FrontendMockDataStore implements DataStore {
+function getDepartmentByRole(role: string): string {
+  switch (role) {
+    case 'manager': return 'הנהלה';
+    case 'dispatcher': return 'מוקד';
+    case 'driver': return 'משלוחים';
+    case 'warehouse': return 'מחסן';
+    case 'sales': return 'מכירות';
+    case 'customer_service': return 'שירות לקוחות';
+    default: return 'כללי';
+  }
+}
+
+class HebrewLogisticsDataStore implements DataStore {
   private user: User;
+  private products: Product[] = [...mockProducts];
   private orders: Order[] = [...mockOrders];
-  private deliveryOrders = [...mockDeliveryOrders];
   private tasks: Task[] = [...mockTasks];
-  private deliveryTasks = [...mockDeliveryTasks];
-  private routes: Route[] = [mockRoute];
+  private groupChats: GroupChat[] = [...mockGroupChats];
+  private channels: Channel[] = [...mockChannels];
+  private notifications: Notification[] = [...mockNotifications];
 
   constructor(providedUser?: any) {
     this.user = createMockUser(providedUser);
-  }
-
-  async updateProfile(updates: Partial<User>): Promise<void> {
-    this.user = { ...this.user, ...updates };
   }
 
   async getProfile(): Promise<User> {
     return this.user;
   }
 
+  async updateProfile(updates: Partial<User>): Promise<void> {
+    this.user = { 
+      ...this.user, 
+      ...updates,
+      department: updates.role ? getDepartmentByRole(updates.role) : this.user.department
+    };
+  }
+
+  // Products
+  async listProducts(filters?: { category?: string; q?: string }): Promise<Product[]> {
+    let filtered = [...this.products];
+    
+    if (filters?.category && filters.category !== 'all') {
+      filtered = filtered.filter(product => product.category === filters.category);
+    }
+    
+    if (filters?.q) {
+      const query = filters.q.toLowerCase();
+      filtered = filtered.filter(product => 
+        product.name.includes(query) ||
+        product.sku.toLowerCase().includes(query) ||
+        product.description?.includes(query)
+      );
+    }
+    
+    return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }
+
+  async getProduct(id: string): Promise<Product> {
+    const product = this.products.find(p => p.id === id);
+    if (!product) throw new Error('Product not found');
+    return product;
+  }
+
+  async createProduct(input: Omit<Product, 'id' | 'created_at' | 'updated_at'>): Promise<{ id: string }> {
+    const id = Date.now().toString();
+    const now = new Date().toISOString();
+    
+    const product: Product = {
+      ...input,
+      id,
+      created_at: now,
+      updated_at: now
+    };
+    
+    this.products.unshift(product);
+    return { id };
+  }
+
+  async updateProduct(id: string, updates: Partial<Product>): Promise<void> {
+    const index = this.products.findIndex(p => p.id === id);
+    if (index === -1) throw new Error('Product not found');
+    
+    this.products[index] = {
+      ...this.products[index],
+      ...updates,
+      updated_at: new Date().toISOString()
+    };
+  }
+
+  // Orders
   async listOrders(filters?: { status?: string; q?: string }): Promise<Order[]> {
     let filtered = [...this.orders];
     
@@ -184,8 +273,9 @@ class FrontendMockDataStore implements DataStore {
     if (filters?.q) {
       const query = filters.q.toLowerCase();
       filtered = filtered.filter(order => 
-        order.customer.toLowerCase().includes(query) ||
-        order.address.toLowerCase().includes(query)
+        order.customer_name.includes(query) ||
+        order.customer_phone.includes(query) ||
+        order.customer_address.includes(query)
       );
     }
     
@@ -224,65 +314,40 @@ class FrontendMockDataStore implements DataStore {
     };
   }
 
-  async listDeliveryOrders(filters?: { status?: string; q?: string }) {
-    let filtered = [...this.deliveryOrders];
-    
-    if (filters?.status && filters.status !== 'all') {
-      filtered = filtered.filter(order => order.status === filters.status);
-    }
-    
-    if (filters?.q) {
-      const query = filters.q.toLowerCase();
-      filtered = filtered.filter(order => 
-        order.customer.toLowerCase().includes(query) ||
-        order.address.toLowerCase().includes(query)
-      );
-    }
-    
-    return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  // Tasks
+  async listMyTasks(): Promise<Task[]> {
+    return this.tasks.filter(task => task.assigned_to === this.user.telegram_id);
   }
 
-  async getDeliveryOrder(id: string) {
-    const order = this.deliveryOrders.find(o => o.id === id);
-    if (!order) throw new Error('Delivery order not found');
-    return order;
+  async listAllTasks(): Promise<Task[]> {
+    return [...this.tasks];
   }
 
-  async createDeliveryOrder(input: any) {
-    const id = 'del-' + Date.now().toString();
+  async createTask(input: Omit<Task, 'id' | 'created_at'>): Promise<{ id: string }> {
+    const id = Date.now().toString();
     const now = new Date().toISOString();
     
-    const order = {
+    const task: Task = {
       ...input,
       id,
-      created_at: now,
-      updated_at: now
+      created_at: now
     };
     
-    this.deliveryOrders.unshift(order);
+    this.tasks.unshift(task);
     return { id };
   }
 
-  async updateDeliveryOrder(id: string, updates: any) {
-    const index = this.deliveryOrders.findIndex(o => o.id === id);
-    if (index === -1) throw new Error('Delivery order not found');
+  async updateTask(id: string, updates: Partial<Task>): Promise<void> {
+    const index = this.tasks.findIndex(t => t.id === id);
+    if (index === -1) throw new Error('Task not found');
     
-    this.deliveryOrders[index] = {
-      ...this.deliveryOrders[index],
-      ...updates,
-      updated_at: new Date().toISOString()
+    this.tasks[index] = {
+      ...this.tasks[index],
+      ...updates
     };
   }
 
-  async listMyTasks(): Promise<Task[]> {
-    // Return tasks for current worker
-    if (this.user.role === 'worker') {
-      return this.tasks.filter(task => task.worker_id === this.user.telegram_id);
-    }
-    return this.tasks;
-  }
-
-  async completeTask(id: string, proof?: { photo?: string; qr?: string; location?: string }): Promise<void> {
+  async completeTask(id: string, proof?: { photo?: string; location?: string; notes?: string }): Promise<void> {
     const taskIndex = this.tasks.findIndex(t => t.id === id);
     if (taskIndex === -1) throw new Error('Task not found');
     
@@ -291,52 +356,60 @@ class FrontendMockDataStore implements DataStore {
       status: 'completed',
       completed_at: new Date().toISOString(),
       proof_url: proof?.photo,
-      location: proof?.location || this.tasks[taskIndex].location
+      location: proof?.location
     };
-    
-    const task = this.tasks[taskIndex];
-    const orderIndex = this.orders.findIndex(o => o.id === task.order_id);
-    if (orderIndex !== -1) {
-      this.orders[orderIndex].status = 'completed';
-      this.orders[orderIndex].updated_at = new Date().toISOString();
-    }
   }
 
-  async listMyDeliveryTasks() {
-    // Return delivery tasks for current courier
-    if (this.user.role === 'courier') {
-      return this.deliveryTasks.filter(task => task.courier_id === this.user.telegram_id);
-    }
-    return this.deliveryTasks;
-  }
-
-  async completeDeliveryTask(id: string, proof?: { photo?: string; gps?: { lat: number; lng: number } }) {
-    const taskIndex = this.deliveryTasks.findIndex(t => t.id === id);
-    if (taskIndex === -1) throw new Error('Delivery task not found');
-    
-    this.deliveryTasks[taskIndex] = {
-      ...this.deliveryTasks[taskIndex],
-      status: 'done',
-      completed_at: new Date().toISOString(),
-      proof_url: proof?.photo,
-      gps: proof?.gps || this.deliveryTasks[taskIndex].gps
-    };
-    
-    const task = this.deliveryTasks[taskIndex];
-    const orderIndex = this.deliveryOrders.findIndex(o => o.id === task.order_id);
-    if (orderIndex !== -1) {
-      this.deliveryOrders[orderIndex].status = 'delivered';
-      this.deliveryOrders[orderIndex].updated_at = new Date().toISOString();
-    }
-  }
-
+  // Routes
   async getMyRoute(date: string): Promise<Route | null> {
-    return this.routes.find(route => route.date === date && route.worker_id === this.user.telegram_id) || null;
+    // Mock route for drivers
+    if (this.user.role === 'driver') {
+      return {
+        id: '1',
+        driver_id: this.user.telegram_id,
+        date,
+        orders: ['1', '2'],
+        status: 'planned',
+        estimated_duration: 240, // 4 hours
+        created_at: new Date().toISOString()
+      };
+    }
+    return null;
+  }
+
+  async createRoute(input: Omit<Route, 'id' | 'created_at'>): Promise<{ id: string }> {
+    const id = Date.now().toString();
+    return { id };
+  }
+
+  // Communications
+  async listGroupChats(): Promise<GroupChat[]> {
+    return this.groupChats.filter(chat => 
+      chat.members.includes(this.user.telegram_id)
+    );
+  }
+
+  async listChannels(): Promise<Channel[]> {
+    return this.channels.filter(channel => 
+      channel.subscribers.includes(this.user.telegram_id)
+    );
+  }
+
+  // Notifications
+  async getNotifications(): Promise<Notification[]> {
+    return this.notifications.filter(notification => 
+      notification.recipient_id === this.user.telegram_id
+    ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }
+
+  async markNotificationRead(id: string): Promise<void> {
+    const index = this.notifications.findIndex(n => n.id === id);
+    if (index !== -1) {
+      this.notifications[index].read = true;
+    }
   }
 }
 
-export function createFrontendDataStore(cfg: BootstrapConfig, mode: 'demo' | 'real', user?: any): DataStore {
-  // For now, always return mock data store for frontend
-  // In the future, you could implement an ApiDataStore that makes HTTP requests to your backend
-  return new FrontendMockDataStore(user);
+export function createFrontendDataStore(cfg: BootstrapConfig, mode: 'real', user?: any): DataStore {
+  return new HebrewLogisticsDataStore(user);
 }

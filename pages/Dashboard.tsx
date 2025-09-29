@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useTelegramUI } from '../src/hooks/useTelegramUI';
 import { useSkeleton, SkeletonCard } from '../src/hooks/useSkeleton';
 import { Toast } from '../src/components/Toast';
-import { DataStore, User, Order, Task } from '../data/types';
+import { DataStore, User } from '../data/types';
+import { hebrew, roleNames, roleIcons, formatCurrency } from '../src/lib/hebrew';
 
 interface DashboardProps {
   dataStore: DataStore;
@@ -14,12 +15,15 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   const [stats, setStats] = useState({
     totalOrders: 0,
     pendingTasks: 0,
-    completedToday: 0
+    completedToday: 0,
+    totalProducts: 0,
+    lowStock: 0,
+    revenue: 0
   });
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const showSkeleton = useSkeleton(100);
   const { theme, mainButton, backButton, haptic } = useTelegramUI();
-
 
   useEffect(() => {
     loadData();
@@ -30,38 +34,52 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
       const profile = await dataStore.getProfile();
       setUser(profile);
 
+      // Load notifications
+      if (dataStore.getNotifications) {
+        const userNotifications = await dataStore.getNotifications();
+        setNotifications(userNotifications.slice(0, 3)); // Show only 3 recent
+      }
+
+      // Load stats based on role
       if (profile.role === 'manager') {
-        const orders = await dataStore.listOrders?.() || [];
+        const [orders, products, tasks] = await Promise.all([
+          dataStore.listOrders?.() || [],
+          dataStore.listProducts?.() || [],
+          dataStore.listAllTasks?.() || []
+        ]);
+        
+        const revenue = orders.reduce((sum, order) => sum + order.total_amount, 0);
+        
         setStats({
           totalOrders: orders.length,
-          pendingTasks: orders.filter(o => o.status === 'pending' || o.status === 'assigned').length,
-          completedToday: orders.filter(o => 
-            o.status === 'completed' && 
-            new Date(o.updated_at).toDateString() === new Date().toDateString()
-          ).length
+          pendingTasks: tasks.filter(t => t.status === 'pending').length,
+          completedToday: tasks.filter(t => 
+            t.status === 'completed' && 
+            t.completed_at &&
+            new Date(t.completed_at).toDateString() === new Date().toDateString()
+          ).length,
+          totalProducts: products.length,
+          lowStock: products.filter(p => p.stock_quantity < 10).length,
+          revenue
         });
       } else if (profile.role === 'dispatcher') {
-        const orders = await dataStore.listDeliveryOrders?.() || [];
+        const [orders, tasks] = await Promise.all([
+          dataStore.listOrders?.() || [],
+          dataStore.listAllTasks?.() || []
+        ]);
+        
         setStats({
           totalOrders: orders.length,
-          pendingTasks: orders.filter(o => o.status === 'new' || o.status === 'assigned').length,
+          pendingTasks: orders.filter(o => o.status === 'new' || o.status === 'confirmed').length,
           completedToday: orders.filter(o => 
             o.status === 'delivered' && 
             new Date(o.updated_at).toDateString() === new Date().toDateString()
-          ).length
+          ).length,
+          totalProducts: 0,
+          lowStock: 0,
+          revenue: 0
         });
-      } else if (profile.role === 'courier') {
-        const tasks = await dataStore.listMyDeliveryTasks?.() || [];
-        setStats({
-          totalOrders: 0,
-          pendingTasks: tasks.filter(t => t.status === 'pending' || t.status === 'enroute').length,
-          completedToday: tasks.filter(t => 
-            t.status === 'done' && 
-            t.completed_at &&
-            new Date(t.completed_at).toDateString() === new Date().toDateString()
-          ).length
-        });
-      } else { // worker
+      } else {
         const tasks = await dataStore.listMyTasks?.() || [];
         setStats({
           totalOrders: 0,
@@ -70,60 +88,47 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
             t.status === 'completed' && 
             t.completed_at &&
             new Date(t.completed_at).toDateString() === new Date().toDateString()
-          ).length
+          ).length,
+          totalProducts: 0,
+          lowStock: 0,
+          revenue: 0
         });
       }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
-      Toast.error('Failed to load dashboard data');
+      Toast.error('שגיאה בטעינת נתוני לוח הבקרה');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateOrder = () => {
-    haptic();
-    onNavigate('orders');
-  };
-
-  const handleStartRoute = () => {
-    haptic();
-    onNavigate('tasks');
-  };
-
   useEffect(() => {
-    if (user?.role === 'dispatcher' || user?.role === 'manager') {
-      // Don't show main button since we have bottom navigation now
-      mainButton.hide();
-    } else {
-      mainButton.hide();
-    }
-
-    // Don't set back button since we have bottom navigation
+    mainButton.hide();
     backButton.hide();
   }, [user]);
 
   if (loading || showSkeleton) {
     return (
       <div style={{ 
-        padding: 'var(--tg-spacing-lg)', 
+        padding: '16px', 
         color: theme.text_color,
         backgroundColor: theme.bg_color,
-        minHeight: '100vh'
+        minHeight: '100vh',
+        direction: 'rtl'
       }}>
-        <div style={{ marginBottom: 'var(--tg-spacing-2xl)' }}>
+        <div style={{ marginBottom: '24px' }}>
           <div style={{
             height: '32px',
             backgroundColor: theme.hint_color + '40',
-            borderRadius: 'var(--tg-radius-sm)',
-            marginBottom: 'var(--tg-spacing-sm)',
+            borderRadius: '8px',
+            marginBottom: '8px',
             width: '60%',
             animation: 'pulse 1.5s ease-in-out infinite'
           }} />
           <div style={{
             height: '20px',
             backgroundColor: theme.hint_color + '30',
-            borderRadius: 'var(--tg-radius-sm)',
+            borderRadius: '8px',
             width: '40%',
             animation: 'pulse 1.5s ease-in-out infinite'
           }} />
@@ -132,14 +137,14 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
-          gap: 'var(--tg-spacing-md)',
-          marginBottom: 'var(--tg-spacing-2xl)'
+          gap: '12px',
+          marginBottom: '24px'
         }}>
           {[1, 2, 3].map(i => (
             <div key={i} style={{
               height: '80px',
               backgroundColor: theme.hint_color + '20',
-              borderRadius: 'var(--tg-radius-md)',
+              borderRadius: '12px',
               animation: 'pulse 1.5s ease-in-out infinite'
             }} />
           ))}
@@ -151,78 +156,146 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     );
   }
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return hebrew.good_morning;
+    if (hour < 18) return hebrew.good_afternoon;
+    return hebrew.good_evening;
+  };
+
   return (
     <div style={{ 
-      padding: 'var(--tg-spacing-lg)', 
+      padding: '16px', 
       backgroundColor: theme.bg_color,
       color: theme.text_color,
-      minHeight: '100vh'
+      minHeight: '100vh',
+      direction: 'rtl'
     }}>
       {/* Header */}
-      <div style={{ marginBottom: 'var(--tg-spacing-2xl)' }}>
+      <div style={{ marginBottom: '24px' }}>
         <h1 style={{ 
-          margin: '0 0 var(--tg-spacing-sm) 0', 
-          fontSize: 'var(--tg-font-3xl)', 
+          margin: '0 0 8px 0', 
+          fontSize: '24px', 
           fontWeight: '600',
           color: theme.text_color
         }}>
-          Good {new Date().getHours() < 12 ? 'Morning' : 'Afternoon'}
+          {getGreeting()}
         </h1>
-        <p style={{ 
-          margin: 0, 
-          color: theme.hint_color,
-          fontSize: 'var(--tg-font-lg)'
-        }}>
-          {user?.name || 'User'} • {user?.role === 'manager' ? 'Manager' : 
-                                    user?.role === 'worker' ? 'Worker' :
-                                    user?.role === 'dispatcher' ? 'Dispatcher' : 'Courier'}
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '20px' }}>
+            {roleIcons[user?.role || 'manager']}
+          </span>
+          <p style={{ 
+            margin: 0, 
+            color: theme.hint_color,
+            fontSize: '16px'
+          }}>
+            {user?.name || 'משתמש'} • {roleNames[user?.role || 'manager']}
+          </p>
+        </div>
       </div>
+
+      {/* Notifications */}
+      {notifications.length > 0 && (
+        <div style={{ marginBottom: '24px' }}>
+          <h2 style={{ 
+            margin: '0 0 12px 0', 
+            fontSize: '18px', 
+            fontWeight: '600',
+            color: theme.text_color
+          }}>
+            התראות אחרונות
+          </h2>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {notifications.map((notification) => (
+              <div
+                key={notification.id}
+                style={{
+                  padding: '12px',
+                  backgroundColor: notification.read ? theme.secondary_bg_color : theme.button_color + '20',
+                  borderRadius: '8px',
+                  borderRight: `4px solid ${getNotificationColor(notification.type)}`,
+                  cursor: 'pointer'
+                }}
+                onClick={() => {
+                  haptic();
+                  if (notification.action_url) {
+                    // Navigate to specific page
+                  }
+                }}
+              >
+                <div style={{ 
+                  fontSize: '14px', 
+                  fontWeight: '600',
+                  color: theme.text_color,
+                  marginBottom: '4px'
+                }}>
+                  {notification.title}
+                </div>
+                <div style={{ 
+                  fontSize: '12px', 
+                  color: theme.hint_color
+                }}>
+                  {notification.message}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
-        gap: 'var(--tg-spacing-md)',
-        marginBottom: 'var(--tg-spacing-2xl)'
+        gap: '12px',
+        marginBottom: '24px'
       }}>
         {user?.role === 'manager' ? (
           <>
             <StatCard
-              title="Total Items"
+              title={hebrew.total_orders}
               value={stats.totalOrders}
               color={theme.button_color}
               theme={theme}
             />
             <StatCard
-              title="Pending Tasks"
+              title={hebrew.pending_tasks}
               value={stats.pendingTasks}
               color="#ff9500"
               theme={theme}
             />
             <StatCard
-              title="Completed Today"
-              value={stats.completedToday}
+              title="הכנסות"
+              value={formatCurrency(stats.revenue)}
               color="#34c759"
+              theme={theme}
+              isText={true}
+            />
+            <StatCard
+              title="מלאי נמוך"
+              value={stats.lowStock}
+              color="#ff3b30"
               theme={theme}
             />
           </>
         ) : user?.role === 'dispatcher' ? (
           <>
             <StatCard
-              title="Total Orders"
+              title={hebrew.total_orders}
               value={stats.totalOrders}
               color={theme.button_color}
               theme={theme}
             />
             <StatCard
-              title="Pending"
+              title="ממתינות"
               value={stats.pendingTasks}
               color="#ff9500"
               theme={theme}
             />
             <StatCard
-              title="Delivered Today"
+              title="נמסרו היום"
               value={stats.completedToday}
               color="#34c759"
               theme={theme}
@@ -231,13 +304,13 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
         ) : (
           <>
             <StatCard
-              title="Pending Tasks"
+              title={hebrew.pending_tasks}
               value={stats.pendingTasks}
               color={theme.button_color}
               theme={theme}
             />
             <StatCard
-              title="Completed Today"
+              title={hebrew.completed_today}
               value={stats.completedToday}
               color="#34c759"
               theme={theme}
@@ -247,272 +320,103 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
       </div>
 
       {/* Quick Actions */}
-      <div style={{ marginBottom: 'var(--tg-spacing-2xl)' }}>
+      <div style={{ marginBottom: '24px' }}>
         <h2 style={{ 
-          margin: '0 0 var(--tg-spacing-lg) 0', 
-          fontSize: 'var(--tg-font-xl)', 
+          margin: '0 0 16px 0', 
+          fontSize: '18px', 
           fontWeight: '600',
           color: theme.text_color
         }}>
-          Quick Actions
+          פעולות מהירות
         </h2>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--tg-spacing-md)' }}>
-          <ActionButton
-            title={user?.role === 'manager' ? 'Manage Inventory' : 
-                   user?.role === 'dispatcher' ? 'Manage Orders' :
-                   user?.role === 'courier' ? 'My Deliveries' : 'My Tasks'}
-            subtitle={user?.role === 'manager' ? 'View and create inventory tasks' : 
-                     user?.role === 'dispatcher' ? 'View and create delivery orders' :
-                     user?.role === 'courier' ? 'View assigned deliveries' : 'View assigned warehouse tasks'}
-            icon={user?.role === 'manager' ? '📦' : 
-                  user?.role === 'dispatcher' ? '📋' :
-                  user?.role === 'courier' ? '🚚' : '✅'}
-            onClick={() => onNavigate(user?.role === 'manager' || user?.role === 'dispatcher' ? 'orders' : 'tasks')}
-            theme={theme}
-            haptic={haptic}
-          />
-          
-          <ActionButton
-            title="Settings"
-            subtitle="Profile and preferences"
-            icon="⚙️"
-            onClick={() => onNavigate('settings')}
-            theme={theme}
-            haptic={haptic}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-        const orders = await dataStore.listOrders?.() || [];
-        setStats({
-          totalOrders: orders.length,
-          pendingTasks: orders.filter(o => o.status === 'new' || o.status === 'assigned').length,
-          completedToday: orders.filter(o => 
-            o.status === 'delivered' && 
-            new Date(o.updated_at).toDateString() === new Date().toDateString()
-          ).length
-        });
-      } else {
-        const tasks = await dataStore.listMyTasks?.() || [];
-        setStats({
-          totalOrders: 0,
-          pendingTasks: tasks.filter(t => t.status === 'pending' || t.status === 'enroute').length,
-          completedToday: tasks.filter(t => 
-            t.status === 'done' && 
-            t.completed_at &&
-            new Date(t.completed_at).toDateString() === new Date().toDateString()
-          ).length
-        });
-      }
-    } catch (error) {
-      console.error('Failed to load dashboard data:', error);
-      Toast.error('Failed to load dashboard data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCreateOrder = () => {
-    haptic();
-    onNavigate('orders');
-  };
-
-  const handleStartRoute = () => {
-    haptic();
-    onNavigate('tasks');
-  };
-
-  useEffect(() => {
-    if (user?.role === 'dispatcher') {
-      // Don't show main button since we have bottom navigation now
-      mainButton.hide();
-    } else {
-      mainButton.hide();
-    }
-
-    // Don't set back button since we have bottom navigation
-    backButton.hide();
-  }, [user]);
-
-  if (loading || showSkeleton) {
-    return (
-      <div style={{ 
-        padding: 'var(--tg-spacing-lg)', 
-        color: theme.text_color,
-        backgroundColor: theme.bg_color,
-        minHeight: '100vh'
-      }}>
-        <div style={{ marginBottom: 'var(--tg-spacing-2xl)' }}>
-          <div style={{
-            height: '32px',
-            backgroundColor: theme.hint_color + '40',
-            borderRadius: 'var(--tg-radius-sm)',
-            marginBottom: 'var(--tg-spacing-sm)',
-            width: '60%',
-            animation: 'pulse 1.5s ease-in-out infinite'
-          }} />
-          <div style={{
-            height: '20px',
-            backgroundColor: theme.hint_color + '30',
-            borderRadius: 'var(--tg-radius-sm)',
-            width: '40%',
-            animation: 'pulse 1.5s ease-in-out infinite'
-          }} />
-        </div>
-        
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
-          gap: 'var(--tg-spacing-md)',
-          marginBottom: 'var(--tg-spacing-2xl)'
-        }}>
-          {[1, 2, 3].map(i => (
-            <div key={i} style={{
-              height: '80px',
-              backgroundColor: theme.hint_color + '20',
-              borderRadius: 'var(--tg-radius-md)',
-              animation: 'pulse 1.5s ease-in-out infinite'
-            }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {getQuickActions(user?.role).map((action, index) => (
+            <ActionButton
+              key={index}
+              title={action.title}
+              subtitle={action.subtitle}
+              icon={action.icon}
+              onClick={() => onNavigate(action.page)}
+              theme={theme}
+              haptic={haptic}
+            />
           ))}
         </div>
-        
-        <SkeletonCard theme={theme} />
-        <SkeletonCard theme={theme} />
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ 
-      padding: 'var(--tg-spacing-lg)', 
-      backgroundColor: theme.bg_color,
-      color: theme.text_color,
-      minHeight: '100vh'
-    }}>
-      {/* Header */}
-      <div style={{ marginBottom: 'var(--tg-spacing-2xl)' }}>
-        <h1 style={{ 
-          margin: '0 0 var(--tg-spacing-sm) 0', 
-          fontSize: 'var(--tg-font-3xl)', 
-          fontWeight: '600',
-          color: theme.text_color
-        }}>
-          Good {new Date().getHours() < 12 ? 'Morning' : 'Afternoon'}
-        </h1>
-        <p style={{ 
-          margin: 0, 
-          color: theme.hint_color,
-          fontSize: 'var(--tg-font-lg)'
-        }}>
-          {user?.name || 'User'} • {user?.role === 'manager' ? 'Manager' : 'Worker'}
-        </p>
-      </div>
-
-      {/* Stats Cards */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
-        gap: 'var(--tg-spacing-md)',
-        marginBottom: 'var(--tg-spacing-2xl)'
-      }}>
-        {user?.role === 'manager' ? (
-          <>
-            <StatCard
-              title="Total Items"
-              value={stats.totalOrders}
-              color={theme.button_color}
-              theme={theme}
-            />
-            <StatCard
-              title="Pending Tasks"
-              value={stats.pendingTasks}
-              color="#ff9500"
-              theme={theme}
-            />
-            <StatCard
-              title="Completed Today"
-              value={stats.completedToday}
-              color="#34c759"
-              theme={theme}
-            />
-          </>
-        ) : (
-          <>
-            <StatCard
-              title="Pending Tasks"
-              value={stats.pendingTasks}
-              color={theme.button_color}
-              theme={theme}
-            />
-            <StatCard
-              title="Completed Today"
-              value={stats.completedToday}
-              color="#34c759"
-              theme={theme}
-            />
-          </>
-        )}
-      </div>
-
-      {/* Quick Actions */}
-      <div style={{ marginBottom: 'var(--tg-spacing-2xl)' }}>
-        <h2 style={{ 
-          margin: '0 0 var(--tg-spacing-lg) 0', 
-          fontSize: 'var(--tg-font-xl)', 
-          fontWeight: '600',
-          color: theme.text_color
-        }}>
-          Quick Actions
-        </h2>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--tg-spacing-md)' }}>
-          <ActionButton
-            title={user?.role === 'manager' ? 'Manage Inventory' : 'My Tasks'}
-            subtitle={user?.role === 'manager' ? 'View and create inventory tasks' : 'View assigned warehouse tasks'}
-            icon={user?.role === 'manager' ? '📦' : '✅'}
-            onClick={() => onNavigate(user?.role === 'manager' ? 'orders' : 'tasks')}
-            theme={theme}
-            haptic={haptic}
-          />
-          
-          <ActionButton
-            title="Settings"
-            subtitle="Profile and preferences"
-            icon="⚙️"
-            onClick={() => onNavigate('settings')}
-            theme={theme}
-            haptic={haptic}
-          />
-        </div>
       </div>
     </div>
   );
 }
 
-function StatCard({ title, value, color, theme }: { 
+function getNotificationColor(type: string): string {
+  switch (type) {
+    case 'error': return '#ff3b30';
+    case 'warning': return '#ff9500';
+    case 'success': return '#34c759';
+    default: return '#007aff';
+  }
+}
+
+function getQuickActions(role?: string) {
+  switch (role) {
+    case 'manager':
+      return [
+        { title: 'ניהול הזמנות', subtitle: 'צפייה ויצירת הזמנות', icon: '📋', page: 'orders' },
+        { title: 'ניהול מוצרים', subtitle: 'מלאי ומוצרים', icon: '📦', page: 'products' },
+        { title: 'דוחות', subtitle: 'דוחות ואנליטיקה', icon: '📈', page: 'reports' }
+      ];
+    case 'dispatcher':
+      return [
+        { title: 'ניהול הזמנות', subtitle: 'תיאום משלוחים', icon: '📋', page: 'orders' },
+        { title: 'משימות', subtitle: 'הקצאת משימות', icon: '✅', page: 'tasks' }
+      ];
+    case 'driver':
+      return [
+        { title: 'המשלוחים שלי', subtitle: 'משלוחים להיום', icon: '🚚', page: 'deliveries' },
+        { title: 'המסלול שלי', subtitle: 'מסלול נסיעה', icon: '🗺️', page: 'route' }
+      ];
+    case 'warehouse':
+      return [
+        { title: 'המשימות שלי', subtitle: 'משימות מחסן', icon: '✅', page: 'tasks' },
+        { title: 'מוצרים', subtitle: 'מלאי ומיקומים', icon: '📦', page: 'products' }
+      ];
+    case 'sales':
+      return [
+        { title: 'הזמנות', subtitle: 'הזמנות לקוחות', icon: '📋', page: 'orders' },
+        { title: 'לקוחות', subtitle: 'ניהול לקוחות', icon: '👥', page: 'customers' }
+      ];
+    default:
+      return [
+        { title: 'הזמנות', subtitle: 'שירות לקוחות', icon: '📋', page: 'orders' },
+        { title: 'לקוחות', subtitle: 'תמיכה ושירות', icon: '👥', page: 'customers' }
+      ];
+  }
+}
+
+function StatCard({ title, value, color, theme, isText = false }: { 
   title: string; 
-  value: number; 
+  value: number | string; 
   color: string;
   theme: any;
+  isText?: boolean;
 }) {
   return (
-    <div className="tg-card" style={{
+    <div style={{
+      padding: '16px',
       backgroundColor: theme.secondary_bg_color || '#f1f1f1',
+      borderRadius: '12px',
       textAlign: 'center'
     }}>
       <div style={{ 
-        fontSize: 'var(--tg-font-3xl)', 
+        fontSize: isText ? '16px' : '24px', 
         fontWeight: '700', 
         color,
-        marginBottom: 'var(--tg-spacing-xs)'
+        marginBottom: '4px'
       }}>
         {value}
       </div>
       <div style={{ 
-        fontSize: 'var(--tg-font-sm)', 
+        fontSize: '12px', 
         color: theme.hint_color,
         fontWeight: '500'
       }}>
@@ -536,29 +440,31 @@ function ActionButton({ title, subtitle, icon, onClick, theme, haptic }: {
         haptic();
         onClick();
       }}
-      className="tg-list-item"
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 'var(--tg-spacing-md)',
+        gap: '12px',
+        padding: '16px',
         backgroundColor: theme.secondary_bg_color || '#f1f1f1',
         border: 'none',
+        borderRadius: '12px',
         cursor: 'pointer',
-        textAlign: 'left'
+        textAlign: 'right',
+        width: '100%'
       }}
     >
-      <div style={{ fontSize: 'var(--tg-font-3xl)' }}>{icon}</div>
+      <div style={{ fontSize: '24px' }}>{icon}</div>
       <div style={{ flex: 1 }}>
         <div style={{ 
-          fontSize: 'var(--tg-font-lg)', 
+          fontSize: '16px', 
           fontWeight: '600', 
           color: theme.text_color,
-          marginBottom: 'var(--tg-spacing-xs)'
+          marginBottom: '4px'
         }}>
           {title}
         </div>
         <div style={{ 
-          fontSize: 'var(--tg-font-md)', 
+          fontSize: '14px', 
           color: theme.hint_color
         }}>
           {subtitle}

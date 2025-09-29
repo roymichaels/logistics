@@ -19,6 +19,17 @@
   --tg-font-3xl: 24px;
 }
 
+/* Hebrew RTL Support */
+body {
+  direction: rtl;
+  text-align: right;
+}
+
+input, textarea {
+  direction: rtl;
+  text-align: right;
+}
+
 /* Pulse animation for skeletons */
 @keyframes pulse {
   0%, 100% { opacity: 1; }

@@ -26,9 +26,10 @@ export async function bootstrap(): Promise<BootstrapResult> {
           route_optimization: false,
         },
         ui: {
-          brand: 'Warehouse Management',
+          brand: 'מערכת לוגיסטיקה',
           accent: '#007aff',
           theme: 'auto',
+          language: 'he'
         },
         defaults: {
           mode: 'real' as const,
@@ -54,9 +55,10 @@ export async function bootstrap(): Promise<BootstrapResult> {
           route_optimization: false,
         },
         ui: {
-          brand: 'Warehouse Management',
+          brand: 'מערכת לוגיסטיקה',
           accent: '#007aff',
           theme: 'auto',
+          language: 'he'
         },
         defaults: {
           mode: 'real' as const,
@@ -92,9 +94,10 @@ export async function bootstrap(): Promise<BootstrapResult> {
             route_optimization: false,
           },
           ui: {
-            brand: 'Warehouse Management',
+            brand: 'מערכת לוגיסטיקה',
             accent: '#007aff',
             theme: 'auto',
+            language: 'he'
           },
           defaults: {
             mode: 'real' as const,
@@ -119,9 +122,10 @@ export async function bootstrap(): Promise<BootstrapResult> {
             route_optimization: false,
           },
           ui: {
-            brand: 'Warehouse Management',
+            brand: 'מערכת לוגיסטיקה',
             accent: '#007aff',
             theme: 'auto',
+            language: 'he'
           },
           defaults: {
             mode: 'real' as const,
@@ -155,9 +159,10 @@ export async function bootstrap(): Promise<BootstrapResult> {
             route_optimization: false,
           },
           ui: {
-            brand: 'Warehouse Management',
+            brand: 'מערכת לוגיסטיקה',
             accent: '#007aff',
             theme: 'auto',
+            language: 'he'
           },
           defaults: {
             mode: 'real' as const,
@@ -187,9 +192,10 @@ export async function bootstrap(): Promise<BootstrapResult> {
           route_optimization: false,
         },
         ui: {
-          brand: 'Warehouse Management',
+          brand: 'מערכת לוגיסטיקה',
           accent: '#007aff',
           theme: 'auto',
+          language: 'he'
         },
         defaults: {
           mode: 'real' as const,
