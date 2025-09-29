@@ -154,6 +154,16 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
                 }}>
                   {user?.username ? `@${user.username}` : `ID: ${user?.telegram_id}`}
                 </p>
+                {user?.username && (
+                  <p style={{ 
+                    margin: '4px 0 0 0', 
+                    fontSize: '12px', 
+                    color: theme.hint_color,
+                    fontFamily: 'monospace'
+                  }}>
+                    ID: {user?.telegram_id}
+                  </p>
+                )}
               </div>
             </div>
             
