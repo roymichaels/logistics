@@ -332,8 +332,6 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
     
     const container = document.getElementById('telegram-login-container');
     if (container) {
-      // Clear any existing content
-      container.innerHTML = '';
       container.appendChild(script);
     } else {
       console.error('❌ Telegram login container not found');
@@ -341,8 +339,8 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
 
     return () => {
       // Cleanup
-      if (container) {
-        container.innerHTML = '';
+      if (container && script.parentNode === container) {
+        container.removeChild(script);
       }
       delete (window as any).onTelegramAuth;
     };
@@ -387,6 +385,20 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
         התחבר עם חשבון הטלגרם שלך כדי לגשת למערכת
       </p>
 
+      {/* Loading indicator - outside the widget container */}
+      {!widgetLoaded && !widgetError && (
+        <div style={{
+          padding: '12px 24px',
+          backgroundColor: theme.button_color,
+          color: theme.button_text_color,
+          borderRadius: '8px',
+          fontSize: '16px',
+          marginBottom: '32px'
+        }}>
+          טוען כפתור טלגרם...
+        </div>
+      )}
+
       {/* Telegram Login Widget Container */}
       <div 
         id="telegram-login-container"
@@ -397,19 +409,7 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
           alignItems: 'center',
           justifyContent: 'center'
         }}
-      >
-        {!widgetLoaded && !widgetError && (
-          <div style={{
-            padding: '12px 24px',
-            backgroundColor: theme.button_color,
-            color: theme.button_text_color,
-            borderRadius: '8px',
-            fontSize: '16px'
-          }}>
-            טוען כפתור טלגרם...
-          </div>
-        )}
-      </div>
+      />
 
       {widgetError && (
         <div style={{
