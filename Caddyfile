@@ -1,0 +1,71 @@
+# Development domains (automatic HTTPS for localhost)
+app.localhost {
+	reverse_proxy web:80
+	encode zstd gzip
+	
+	header {
+		# Security headers
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		X-XSS-Protection "1; mode=block"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		
+		# CSP for Telegram Mini App
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://telegram.org; connect-src 'self' https://api.telegram.org; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'"
+		
+		# Optional: Cross-Origin headers for advanced features
+		Cross-Origin-Embedder-Policy "credentialless"
+		Cross-Origin-Opener-Policy "same-origin"
+	}
+}
+
+api.localhost {
+	reverse_proxy api:3000
+	encode zstd gzip
+	
+	header {
+		# CORS headers
+		Access-Control-Allow-Origin "https://app.localhost"
+		Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+		Access-Control-Allow-Headers "Content-Type, Authorization"
+		Access-Control-Max-Age "86400"
+		
+		# Security headers
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+	}
+}
+
+# Production domains (uncomment and modify for production)
+# your-app.com {
+# 	reverse_proxy web:80
+# 	encode zstd gzip
+# 	
+# 	header {
+# 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+# 		X-Content-Type-Options "nosniff"
+# 		X-Frame-Options "SAMEORIGIN"
+# 		X-XSS-Protection "1; mode=block"
+# 		Referrer-Policy "strict-origin-when-cross-origin"
+# 		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://telegram.org; connect-src 'self' https://api.telegram.org; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'"
+# 		Cross-Origin-Embedder-Policy "credentialless"
+# 		Cross-Origin-Opener-Policy "same-origin"
+# 	}
+# }
+
+# api.your-app.com {
+# 	reverse_proxy api:3000
+# 	encode zstd gzip
+# 	
+# 	header {
+# 		Access-Control-Allow-Origin "https://your-app.com"
+# 		Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+# 		Access-Control-Allow-Headers "Content-Type, Authorization"
+# 		Access-Control-Max-Age "86400"
+# 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+# 		X-Content-Type-Options "nosniff"
+# 		X-Frame-Options "DENY"
+# 	}
+# }
