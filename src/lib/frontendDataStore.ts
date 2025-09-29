@@ -157,8 +157,8 @@ const mockNotifications: Notification[] = [
 
 // Create mock user based on role
 const createMockUser = (providedUser?: any): User => {
-  const roles = ['manager', 'dispatcher', 'driver', 'warehouse', 'sales', 'customer_service'];
-  const defaultRole = providedUser?.role || 'manager';
+  const roles = ['user', 'manager', 'dispatcher', 'driver', 'warehouse', 'sales', 'customer_service'];
+  const defaultRole = providedUser?.role || 'user';
   
   return {
     telegram_id: providedUser?.telegram_id || '123456789',
@@ -175,6 +175,7 @@ const createMockUser = (providedUser?: any): User => {
 
 function getDepartmentByRole(role: string): string {
   switch (role) {
+    case 'user': return 'כללי';
     case 'manager': return 'הנהלה';
     case 'dispatcher': return 'מוקד';
     case 'driver': return 'משלוחים';

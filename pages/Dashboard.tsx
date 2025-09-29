@@ -218,7 +218,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
                   borderRight: `4px solid ${getNotificationColor(notification.type)}`,
                   cursor: 'pointer'
                 }}
-                onClick={() => {
+        } else if (profile.role !== 'user') {
                   haptic();
                   if (notification.action_url) {
                     // Navigate to specific page
@@ -232,6 +232,16 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
                   marginBottom: '4px'
                 }}>
                   {notification.title}
+        } else {
+          // User role - show demo stats
+          setStats({
+            totalOrders: 12,
+            pendingTasks: 3,
+            completedToday: 8,
+            totalProducts: 45,
+            lowStock: 2,
+            revenue: 15420
+          });
                 </div>
                 <div style={{ 
                   fontSize: '12px', 
@@ -301,6 +311,33 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
               theme={theme}
             />
           </>
+        ) : user?.role === 'user' ? (
+          <>
+            <StatCard
+              title="הזמנות דמו"
+              value={stats.totalOrders}
+              color={theme.button_color}
+              theme={theme}
+            />
+            <StatCard
+              title="משימות פתוחות"
+              value={stats.pendingTasks}
+              color="#ff9500"
+              theme={theme}
+            />
+            <StatCard
+              title="הושלמו היום"
+              value={stats.completedToday}
+              color="#34c759"
+              theme={theme}
+            />
+            <StatCard
+              title="מוצרים"
+              value={stats.totalProducts}
+              color="#007aff"
+              theme={theme}
+            />
+          </>
         ) : (
           <>
             <StatCard
@@ -359,6 +396,12 @@ function getNotificationColor(type: string): string {
 
 function getQuickActions(role?: string) {
   switch (role) {
+    case 'user':
+      return [
+        { title: 'צפה בדמו', subtitle: 'התנסות במערכת', icon: '🎮', page: 'demo' },
+        { title: 'צור קשר', subtitle: 'פנה לתמיכה', icon: '📞', page: 'contact' },
+        { title: 'מידע נוסף', subtitle: 'למד על המערכת', icon: 'ℹ️', page: 'about' }
+      ];
     case 'manager':
       return [
         { title: 'ניהול הזמנות', subtitle: 'צפייה ויצירת הזמנות', icon: '📋', page: 'orders' },

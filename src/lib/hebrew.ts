@@ -19,6 +19,7 @@ export const hebrew = {
   warehouse_worker: 'עובד מחסן',
   sales_rep: 'איש מכירות',
   customer_service: 'שירות לקוחות',
+  user: 'משתמש',
   
   // Common actions
   create: 'צור',
@@ -101,6 +102,7 @@ export const hebrew = {
 };
 
 export const roleNames = {
+  user: hebrew.user,
   manager: hebrew.manager,
   dispatcher: hebrew.dispatcher,
   driver: hebrew.driver,
@@ -110,6 +112,7 @@ export const roleNames = {
 };
 
 export const roleIcons = {
+  user: '👤',
   manager: '👔',
   dispatcher: '📋',
   driver: '🚚',

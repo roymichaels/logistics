@@ -74,7 +74,7 @@ class UserManager {
       last_name: userData.last_name,
       username: userData.username,
       photo_url: userData.photo_url,
-      role: 'driver', // Default role
+      role: 'user', // Default role - limited access
       approved: true, // Auto-approve all users for now
       created_at: new Date().toISOString(),
       approved_by: telegramId, // Self-approved for now

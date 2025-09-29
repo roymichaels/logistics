@@ -5,7 +5,7 @@ import { hebrew, roleIcons } from '../lib/hebrew';
 interface BottomNavigationProps {
   currentPage: string;
   onNavigate: (page: string) => void;
-  userRole?: 'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service';
+  userRole?: 'user' | 'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service';
 }
 
 export function BottomNavigation({ currentPage, onNavigate, userRole }: BottomNavigationProps) {
@@ -13,7 +13,13 @@ export function BottomNavigation({ currentPage, onNavigate, userRole }: BottomNa
 
   let tabs;
   
-  if (userRole === 'manager') {
+  if (userRole === 'user') {
+    tabs = [
+      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'demo', label: 'דמו', icon: '🎮' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ];
+  } else if (userRole === 'manager') {
     tabs = [
       { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
       { id: 'orders', label: hebrew.orders, icon: '📋' },

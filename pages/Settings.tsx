@@ -178,7 +178,8 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
                 fontWeight: '600',
                 color: theme.button_color
               }}>
-                {user?.role === 'manager' ? '👔 Manager' : 
+                {user?.role === 'user' ? '👤 משתמש' :
+                 user?.role === 'manager' ? '👔 Manager' : 
                  user?.role === 'worker' ? '👷 Worker' :
                  user?.role === 'dispatcher' ? '📋 Dispatcher' : '🚚 Courier'}
               </span>

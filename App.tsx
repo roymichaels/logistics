@@ -61,7 +61,7 @@ export default function App() {
           setUserRole(profile.role);
         } catch (error) {
           console.warn('Failed to get user profile:', error);
-          setUserRole('manager'); // Default fallback
+          setUserRole('user'); // Default fallback
         }
       }
       
@@ -97,7 +97,7 @@ export default function App() {
           setUserRole(profile.role);
         } catch (error) {
           console.warn('Failed to get user profile:', error);
-          setUserRole('manager'); // Default fallback
+          setUserRole('user'); // Default fallback
         }
       }
     } catch (error) {
@@ -229,6 +229,218 @@ export default function App() {
           userRole={userRole}
         />
       )}
+    </div>
+  );
+}
+
+function DemoPage({ theme }: { theme: any }) {
+  return (
+    <div style={{ 
+      padding: '20px', 
+      backgroundColor: theme.bg_color,
+      color: theme.text_color,
+      minHeight: '100vh',
+      direction: 'rtl'
+    }}>
+      <h1 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px' }}>
+        🎮 דמו מערכת לוגיסטיקה
+      </h1>
+      
+      <div style={{
+        padding: '20px',
+        backgroundColor: theme.secondary_bg_color,
+        borderRadius: '12px',
+        marginBottom: '20px'
+      }}>
+        <h2 style={{ fontSize: '18px', marginBottom: '12px' }}>ברוכים הבאים למערכת!</h2>
+        <p style={{ color: theme.hint_color, lineHeight: '1.6' }}>
+          זוהי מערכת ניהול לוגיסטיקה מתקדמת המאפשרת ניהול הזמנות, משלוחים, מלאי ועוד.
+        </p>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{
+          padding: '16px',
+          backgroundColor: theme.secondary_bg_color,
+          borderRadius: '8px'
+        }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>📋 ניהול הזמנות</h3>
+          <p style={{ margin: 0, fontSize: '14px', color: theme.hint_color }}>
+            יצירה, מעקב ועדכון הזמנות בזמן אמת
+          </p>
+        </div>
+        
+        <div style={{
+          padding: '16px',
+          backgroundColor: theme.secondary_bg_color,
+          borderRadius: '8px'
+        }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>🚚 ניהול משלוחים</h3>
+          <p style={{ margin: 0, fontSize: '14px', color: theme.hint_color }}>
+            תיאום נהגים, מסלולים ומעקב משלוחים
+          </p>
+        </div>
+        
+        <div style={{
+          padding: '16px',
+          backgroundColor: theme.secondary_bg_color,
+          borderRadius: '8px'
+        }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>📦 ניהול מלאי</h3>
+          <p style={{ margin: 0, fontSize: '14px', color: theme.hint_color }}>
+            מעקב מלאי, התראות ומיקומי מחסן
+          </p>
+        </div>
+      </div>
+      
+      <div style={{
+        marginTop: '24px',
+        padding: '16px',
+        backgroundColor: theme.button_color + '20',
+        borderRadius: '8px',
+        textAlign: 'center'
+      }}>
+        <p style={{ margin: 0, color: theme.button_color, fontWeight: '600' }}>
+          💡 לקבלת גישה מלאה, פנה למנהל המערכת
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ContactPage({ theme }: { theme: any }) {
+  return (
+    <div style={{ 
+      padding: '20px', 
+      backgroundColor: theme.bg_color,
+      color: theme.text_color,
+      minHeight: '100vh',
+      direction: 'rtl'
+    }}>
+      <h1 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px' }}>
+        📞 צור קשר
+      </h1>
+      
+      <div style={{
+        padding: '20px',
+        backgroundColor: theme.secondary_bg_color,
+        borderRadius: '12px',
+        marginBottom: '20px'
+      }}>
+        <h2 style={{ fontSize: '18px', marginBottom: '12px' }}>תמיכה טכנית</h2>
+        <p style={{ color: theme.hint_color, lineHeight: '1.6' }}>
+          לקבלת עזרה או שאלות על המערכת, פנה אלינו:
+        </p>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{
+          padding: '16px',
+          backgroundColor: theme.secondary_bg_color,
+          borderRadius: '8px'
+        }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>📧 אימייל</h3>
+          <p style={{ margin: 0, fontSize: '14px', color: theme.hint_color }}>
+            support@logistics.com
+          </p>
+        </div>
+        
+        <div style={{
+          padding: '16px',
+          backgroundColor: theme.secondary_bg_color,
+          borderRadius: '8px'
+        }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>📱 טלפון</h3>
+          <p style={{ margin: 0, fontSize: '14px', color: theme.hint_color }}>
+            03-1234567
+          </p>
+        </div>
+        
+        <div style={{
+          padding: '16px',
+          backgroundColor: theme.secondary_bg_color,
+          borderRadius: '8px'
+        }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>💬 טלגרם</h3>
+          <p style={{ margin: 0, fontSize: '14px', color: theme.hint_color }}>
+            @logistics_support
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AboutPage({ theme }: { theme: any }) {
+  return (
+    <div style={{ 
+      padding: '20px', 
+      backgroundColor: theme.bg_color,
+      color: theme.text_color,
+      minHeight: '100vh',
+      direction: 'rtl'
+    }}>
+      <h1 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px' }}>
+        ℹ️ אודות המערכת
+      </h1>
+      
+      <div style={{
+        padding: '20px',
+        backgroundColor: theme.secondary_bg_color,
+        borderRadius: '12px',
+        marginBottom: '20px'
+      }}>
+        <h2 style={{ fontSize: '18px', marginBottom: '12px' }}>מערכת לוגיסטיקה מתקדמת</h2>
+        <p style={{ color: theme.hint_color, lineHeight: '1.6' }}>
+          פתרון מקיף לניהול חברות לוגיסטיקה ומשלוחים
+        </p>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{
+          padding: '16px',
+          backgroundColor: theme.secondary_bg_color,
+          borderRadius: '8px'
+        }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>🎯 המטרה</h3>
+          <p style={{ margin: 0, fontSize: '14px', color: theme.hint_color }}>
+            לייעל תהליכי עבודה ולשפר את השירות ללקוחות
+          </p>
+        </div>
+        
+        <div style={{
+          padding: '16px',
+          backgroundColor: theme.secondary_bg_color,
+          borderRadius: '8px'
+        }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>⚡ יתרונות</h3>
+          <p style={{ margin: 0, fontSize: '14px', color: theme.hint_color }}>
+            מעקב בזמן אמת, אוטומציה, דוחות מתקדמים
+          </p>
+        </div>
+        
+        <div style={{
+          padding: '16px',
+          backgroundColor: theme.secondary_bg_color,
+          borderRadius: '8px'
+        }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>🔒 אבטחה</h3>
+          <p style={{ margin: 0, fontSize: '14px', color: theme.hint_color }}>
+            הצפנה מתקדמת והגנה על נתונים רגישים
+          </p>
+        </div>
+      </div>
+      
+      <div style={{
+        marginTop: '24px',
+        padding: '16px',
+        backgroundColor: theme.hint_color + '10',
+        borderRadius: '8px',
+        textAlign: 'center'
+      }}>
+        <p style={{ margin: 0, fontSize: '12px', color: theme.hint_color }}>
+          גרסה 1.0.0 • פותח עם React ו-Telegram WebApp SDK
+        </p>
+      </div>
     </div>
   );
 }

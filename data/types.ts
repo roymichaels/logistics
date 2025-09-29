@@ -1,6 +1,6 @@
 export interface User {
   telegram_id: string;
-  role: 'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service';
+  role: 'user' | 'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service';
   name?: string;
   username?: string;
   photo_url?: string;
