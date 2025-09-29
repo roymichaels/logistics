@@ -4,23 +4,39 @@ import { useTelegramUI } from '../hooks/useTelegramUI';
 interface BottomNavigationProps {
   currentPage: string;
   onNavigate: (page: string) => void;
-  userRole?: 'manager' | 'worker';
+  userRole?: 'manager' | 'worker' | 'dispatcher' | 'courier';
 }
 
 export function BottomNavigation({ currentPage, onNavigate, userRole }: BottomNavigationProps) {
   const { theme, haptic } = useTelegramUI();
 
-  const tabs = userRole === 'manager' 
-    ? [
+  let tabs;
+  
+  if (userRole === 'manager') {
+    tabs = [
         { id: 'dashboard', label: 'Dashboard', icon: '📊' },
         { id: 'orders', label: 'Inventory', icon: '📦' },
         { id: 'settings', label: 'Settings', icon: '⚙️' }
-      ]
-    : [
+      ];
+  } else if (userRole === 'dispatcher') {
+    tabs = [
+        { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+        { id: 'orders', label: 'Orders', icon: '📋' },
+        { id: 'settings', label: 'Settings', icon: '⚙️' }
+      ];
+  } else if (userRole === 'courier') {
+    tabs = [
+        { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+        { id: 'tasks', label: 'Deliveries', icon: '🚚' },
+        { id: 'settings', label: 'Settings', icon: '⚙️' }
+      ];
+  } else { // worker
+    tabs = [
         { id: 'dashboard', label: 'Dashboard', icon: '📊' },
         { id: 'tasks', label: 'Tasks', icon: '✅' },
         { id: 'settings', label: 'Settings', icon: '⚙️' }
       ];
+  }
 
   return (
     <div style={{

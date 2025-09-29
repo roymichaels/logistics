@@ -52,7 +52,7 @@ export default function App() {
       if (store) {
         try {
           const profile = await store.getProfile();
-          setUserRole(profile.role);
+          setUserRole(profile.role as 'dispatcher' | 'courier' | 'manager' | 'worker');
         } catch (error) {
           console.warn('Failed to get user profile:', error);
           setUserRole('dispatcher'); // Default fallback

@@ -30,7 +30,262 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
       const profile = await dataStore.getProfile();
       setUser(profile);
 
-      if (profile.role === 'dispatcher') {
+      if (profile.role === 'manager') {
+        const orders = await dataStore.listOrders?.() || [];
+        setStats({
+          totalOrders: orders.length,
+          pendingTasks: orders.filter(o => o.status === 'pending' || o.status === 'assigned').length,
+          completedToday: orders.filter(o => 
+            o.status === 'completed' && 
+            new Date(o.updated_at).toDateString() === new Date().toDateString()
+          ).length
+        });
+      } else if (profile.role === 'dispatcher') {
+        const orders = await dataStore.listDeliveryOrders?.() || [];
+        setStats({
+          totalOrders: orders.length,
+          pendingTasks: orders.filter(o => o.status === 'new' || o.status === 'assigned').length,
+          completedToday: orders.filter(o => 
+            o.status === 'delivered' && 
+            new Date(o.updated_at).toDateString() === new Date().toDateString()
+          ).length
+        });
+      } else if (profile.role === 'courier') {
+        const tasks = await dataStore.listMyDeliveryTasks?.() || [];
+        setStats({
+          totalOrders: 0,
+          pendingTasks: tasks.filter(t => t.status === 'pending' || t.status === 'enroute').length,
+          completedToday: tasks.filter(t => 
+            t.status === 'done' && 
+            t.completed_at &&
+            new Date(t.completed_at).toDateString() === new Date().toDateString()
+          ).length
+        });
+      } else { // worker
+        const tasks = await dataStore.listMyTasks?.() || [];
+        setStats({
+          totalOrders: 0,
+          pendingTasks: tasks.filter(t => t.status === 'pending' || t.status === 'in_progress').length,
+          completedToday: tasks.filter(t => 
+            t.status === 'completed' && 
+            t.completed_at &&
+            new Date(t.completed_at).toDateString() === new Date().toDateString()
+          ).length
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+      Toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateOrder = () => {
+    haptic();
+    onNavigate('orders');
+  };
+
+  const handleStartRoute = () => {
+    haptic();
+    onNavigate('tasks');
+  };
+
+  useEffect(() => {
+    if (user?.role === 'dispatcher' || user?.role === 'manager') {
+      // Don't show main button since we have bottom navigation now
+      mainButton.hide();
+    } else {
+      mainButton.hide();
+    }
+
+    // Don't set back button since we have bottom navigation
+    backButton.hide();
+  }, [user]);
+
+  if (loading || showSkeleton) {
+    return (
+      <div style={{ 
+        padding: 'var(--tg-spacing-lg)', 
+        color: theme.text_color,
+        backgroundColor: theme.bg_color,
+        minHeight: '100vh'
+      }}>
+        <div style={{ marginBottom: 'var(--tg-spacing-2xl)' }}>
+          <div style={{
+            height: '32px',
+            backgroundColor: theme.hint_color + '40',
+            borderRadius: 'var(--tg-radius-sm)',
+            marginBottom: 'var(--tg-spacing-sm)',
+            width: '60%',
+            animation: 'pulse 1.5s ease-in-out infinite'
+          }} />
+          <div style={{
+            height: '20px',
+            backgroundColor: theme.hint_color + '30',
+            borderRadius: 'var(--tg-radius-sm)',
+            width: '40%',
+            animation: 'pulse 1.5s ease-in-out infinite'
+          }} />
+        </div>
+        
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
+          gap: 'var(--tg-spacing-md)',
+          marginBottom: 'var(--tg-spacing-2xl)'
+        }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} style={{
+              height: '80px',
+              backgroundColor: theme.hint_color + '20',
+              borderRadius: 'var(--tg-radius-md)',
+              animation: 'pulse 1.5s ease-in-out infinite'
+            }} />
+          ))}
+        </div>
+        
+        <SkeletonCard theme={theme} />
+        <SkeletonCard theme={theme} />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ 
+      padding: 'var(--tg-spacing-lg)', 
+      backgroundColor: theme.bg_color,
+      color: theme.text_color,
+      minHeight: '100vh'
+    }}>
+      {/* Header */}
+      <div style={{ marginBottom: 'var(--tg-spacing-2xl)' }}>
+        <h1 style={{ 
+          margin: '0 0 var(--tg-spacing-sm) 0', 
+          fontSize: 'var(--tg-font-3xl)', 
+          fontWeight: '600',
+          color: theme.text_color
+        }}>
+          Good {new Date().getHours() < 12 ? 'Morning' : 'Afternoon'}
+        </h1>
+        <p style={{ 
+          margin: 0, 
+          color: theme.hint_color,
+          fontSize: 'var(--tg-font-lg)'
+        }}>
+          {user?.name || 'User'} • {user?.role === 'manager' ? 'Manager' : 
+                                    user?.role === 'worker' ? 'Worker' :
+                                    user?.role === 'dispatcher' ? 'Dispatcher' : 'Courier'}
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
+        gap: 'var(--tg-spacing-md)',
+        marginBottom: 'var(--tg-spacing-2xl)'
+      }}>
+        {user?.role === 'manager' ? (
+          <>
+            <StatCard
+              title="Total Items"
+              value={stats.totalOrders}
+              color={theme.button_color}
+              theme={theme}
+            />
+            <StatCard
+              title="Pending Tasks"
+              value={stats.pendingTasks}
+              color="#ff9500"
+              theme={theme}
+            />
+            <StatCard
+              title="Completed Today"
+              value={stats.completedToday}
+              color="#34c759"
+              theme={theme}
+            />
+          </>
+        ) : user?.role === 'dispatcher' ? (
+          <>
+            <StatCard
+              title="Total Orders"
+              value={stats.totalOrders}
+              color={theme.button_color}
+              theme={theme}
+            />
+            <StatCard
+              title="Pending"
+              value={stats.pendingTasks}
+              color="#ff9500"
+              theme={theme}
+            />
+            <StatCard
+              title="Delivered Today"
+              value={stats.completedToday}
+              color="#34c759"
+              theme={theme}
+            />
+          </>
+        ) : (
+          <>
+            <StatCard
+              title="Pending Tasks"
+              value={stats.pendingTasks}
+              color={theme.button_color}
+              theme={theme}
+            />
+            <StatCard
+              title="Completed Today"
+              value={stats.completedToday}
+              color="#34c759"
+              theme={theme}
+            />
+          </>
+        )}
+      </div>
+
+      {/* Quick Actions */}
+      <div style={{ marginBottom: 'var(--tg-spacing-2xl)' }}>
+        <h2 style={{ 
+          margin: '0 0 var(--tg-spacing-lg) 0', 
+          fontSize: 'var(--tg-font-xl)', 
+          fontWeight: '600',
+          color: theme.text_color
+        }}>
+          Quick Actions
+        </h2>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--tg-spacing-md)' }}>
+          <ActionButton
+            title={user?.role === 'manager' ? 'Manage Inventory' : 
+                   user?.role === 'dispatcher' ? 'Manage Orders' :
+                   user?.role === 'courier' ? 'My Deliveries' : 'My Tasks'}
+            subtitle={user?.role === 'manager' ? 'View and create inventory tasks' : 
+                     user?.role === 'dispatcher' ? 'View and create delivery orders' :
+                     user?.role === 'courier' ? 'View assigned deliveries' : 'View assigned warehouse tasks'}
+            icon={user?.role === 'manager' ? '📦' : 
+                  user?.role === 'dispatcher' ? '📋' :
+                  user?.role === 'courier' ? '🚚' : '✅'}
+            onClick={() => onNavigate(user?.role === 'manager' || user?.role === 'dispatcher' ? 'orders' : 'tasks')}
+            theme={theme}
+            haptic={haptic}
+          />
+          
+          <ActionButton
+            title="Settings"
+            subtitle="Profile and preferences"
+            icon="⚙️"
+            onClick={() => onNavigate('settings')}
+            theme={theme}
+            haptic={haptic}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
         const orders = await dataStore.listOrders?.() || [];
         setStats({
           totalOrders: orders.length,
