@@ -162,7 +162,7 @@ export function Lobby({ onModeSelected, defaultMode }: LobbyProps) {
 
 
       {/* Fallback button for non-Telegram environments */}
-      {selectedMode && !telegram.isTelegramEnv && (
+      {selectedMode && (
         <button
           onClick={handleContinue}
           disabled={loading}
