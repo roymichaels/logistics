@@ -382,8 +382,8 @@ function getQuickActions(role?: string) {
       ];
     case 'sales':
       return [
-        { title: 'הזמנות', subtitle: 'הזמנות לקוחות', icon: '📋', page: 'orders' },
-        { title: 'לקוחות', subtitle: 'ניהול לקוחות', icon: '👥', page: 'customers' }
+        { title: 'ניהול הזמנות', subtitle: 'הזמנות לקוחות', icon: '📋', page: 'orders' },
+        { title: 'מוצרים', subtitle: 'קטלוג מוצרים', icon: '📦', page: 'products' }
       ];
     default:
       return [
