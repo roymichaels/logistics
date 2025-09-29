@@ -159,7 +159,7 @@ export default function App() {
 
   // Show login screen if not logged in
   if (!isLoggedIn) {
-    return <TelegramAuth onLogin={handleLogin} onError={handleAuthError} />;
+    return <TelegramAuth onAuth={handleLogin} onError={handleAuthError} />;
   }
 
   if (!dataStore) {
