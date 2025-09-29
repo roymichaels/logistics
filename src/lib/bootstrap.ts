@@ -26,7 +26,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
           route_optimization: false,
         },
         ui: {
-          brand: 'Logistics Mini App',
+          brand: 'Warehouse Management',
           accent: '#007aff',
           theme: 'auto',
         },
@@ -54,7 +54,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
           route_optimization: false,
         },
         ui: {
-          brand: 'Logistics Mini App',
+          brand: 'Warehouse Management',
           accent: '#007aff',
           theme: 'auto',
         },
@@ -92,7 +92,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
             route_optimization: false,
           },
           ui: {
-            brand: 'Logistics Mini App',
+            brand: 'Warehouse Management',
             accent: '#007aff',
             theme: 'auto',
           },
@@ -119,7 +119,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
             route_optimization: false,
           },
           ui: {
-            brand: 'Logistics Mini App',
+            brand: 'Warehouse Management',
             accent: '#007aff',
             theme: 'auto',
           },
@@ -155,7 +155,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
             route_optimization: false,
           },
           ui: {
-            brand: 'Logistics Mini App',
+            brand: 'Warehouse Management',
             accent: '#007aff',
             theme: 'auto',
           },
@@ -187,7 +187,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
           route_optimization: false,
         },
         ui: {
-          brand: 'Logistics Mini App',
+          brand: 'Warehouse Management',
           accent: '#007aff',
           theme: 'auto',
         },
