@@ -5,6 +5,7 @@ import { createFrontendDataStore } from './src/lib/frontendDataStore';
 import { DataStore, BootstrapConfig } from './data/types';
 import { ModeBadge } from './src/components/ModeBadge';
 import { Lobby } from './src/pages/Lobby';
+import { BottomNavigation } from './src/components/BottomNavigation';
 
 // Pages
 import { Dashboard } from './pages/Dashboard';
@@ -22,6 +23,7 @@ export default function App() {
   const [mode, setMode] = useState<'demo' | 'real' | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<'dispatcher' | 'courier' | null>(null);
 
   const theme = telegram.themeParams;
 
@@ -83,6 +85,18 @@ export default function App() {
       // Create data store with selected mode
       const store = createFrontendDataStore(config, selectedMode, user);
       setDataStore(store);
+      
+      // Get user role from store
+      if (store) {
+        try {
+          const profile = await store.getProfile();
+          setUserRole(profile.role);
+        } catch (error) {
+          console.warn('Failed to get user profile:', error);
+          setUserRole('dispatcher'); // Default fallback
+        }
+      }
+      
       setMode(selectedMode);
       setCurrentPage('dashboard');
     } catch (error) {
@@ -95,6 +109,7 @@ export default function App() {
     if (page === 'lobby') {
       setMode(null);
       setDataStore(null);
+      setUserRole(null);
     }
     setCurrentPage(page);
     telegram.hapticFeedback('selection');
@@ -191,7 +206,8 @@ export default function App() {
     <div style={{
       minHeight: '100vh',
       backgroundColor: theme.bg_color,
-      color: theme.text_color
+      color: theme.text_color,
+      paddingBottom: currentPage !== 'lobby' ? '80px' : '0' // Space for bottom nav
     }}>
       {mode && config && (
         <ModeBadge 
@@ -200,6 +216,15 @@ export default function App() {
         />
       )}
       {renderPage()}
+      
+      {/* Bottom Navigation - only show when not in lobby */}
+      {currentPage !== 'lobby' && dataStore && userRole && (
+        <BottomNavigation
+          currentPage={currentPage}
+          onNavigate={handleNavigate}
+          userRole={userRole}
+        />
+      )}
     </div>
   );
 }

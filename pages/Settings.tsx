@@ -22,8 +22,8 @@ export function Settings({ dataStore, onNavigate, mode, config }: SettingsProps)
   }, []);
 
   useEffect(() => {
-    telegram.setBackButton(() => onNavigate('dashboard'));
-    return () => telegram.hideBackButton();
+    // Don't show back button since we have bottom navigation
+    telegram.hideBackButton();
   }, [onNavigate]);
 
   const loadProfile = async () => {

@@ -26,11 +26,15 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
       if (selectedTask) {
         setSelectedTask(null);
       } else {
-        onNavigate('dashboard');
+        // Don't navigate back to dashboard, let bottom nav handle it
+        return;
       }
     });
 
-    return () => telegram.hideBackButton();
+    // Only show back button when in task detail
+    if (!selectedTask) {
+      telegram.hideBackButton();
+    }
   }, [selectedTask, onNavigate]);
 
   const loadData = async () => {

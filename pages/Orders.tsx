@@ -29,11 +29,15 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
       } else if (showCreateForm) {
         setShowCreateForm(false);
       } else {
-        onNavigate('dashboard');
+        // Don't navigate back to dashboard, let bottom nav handle it
+        return;
       }
     });
 
-    return () => telegram.hideBackButton();
+    // Only show back button when in detail views
+    if (!selectedOrder && !showCreateForm) {
+      telegram.hideBackButton();
+    }
   }, [selectedOrder, showCreateForm, onNavigate]);
 
   const loadData = async () => {

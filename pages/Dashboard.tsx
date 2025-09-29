@@ -72,12 +72,14 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
 
   useEffect(() => {
     if (user?.role === 'dispatcher') {
-      mainButton.show('Create Order', handleCreateOrder);
+      // Don't show main button since we have bottom navigation now
+      mainButton.hide();
     } else {
-      mainButton.show('View Tasks', handleStartRoute);
+      mainButton.hide();
     }
 
-    return () => mainButton.hide();
+    // Don't set back button since we have bottom navigation
+    backButton.hide();
   }, [user]);
 
   if (loading || showSkeleton) {

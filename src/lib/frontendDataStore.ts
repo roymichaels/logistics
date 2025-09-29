@@ -1,12 +1,15 @@
 import { DataStore, User, Order, Task, Route, BootstrapConfig } from '../../data/types';
 
 // Browser-compatible mock data store
-const mockUser: User = {
-  telegram_id: '123456789',
-  role: 'dispatcher',
-  name: 'John Dispatcher',
-  username: 'johndispatcher'
-};
+const createMockUser = (providedUser?: any): User => ({
+  telegram_id: providedUser?.telegram_id || '123456789',
+  role: providedUser?.role || 'dispatcher',
+  name: providedUser?.name || (providedUser?.first_name ? 
+    `${providedUser.first_name}${providedUser.last_name ? ` ${providedUser.last_name}` : ''}` : 
+    'Demo User'),
+  username: providedUser?.username || 'demouser',
+  photo_url: providedUser?.photo_url
+});
 
 const mockOrders: Order[] = [
   {
@@ -92,10 +95,14 @@ const mockRoute: Route = {
 };
 
 class FrontendMockDataStore implements DataStore {
-  private user: User = mockUser;
+  private user: User;
   private orders: Order[] = [...mockOrders];
   private tasks: Task[] = [...mockTasks];
   private routes: Route[] = [mockRoute];
+
+  constructor(providedUser?: any) {
+    this.user = createMockUser(providedUser);
+  }
 
   async getProfile(): Promise<User> {
     return this.user;
@@ -183,18 +190,5 @@ class FrontendMockDataStore implements DataStore {
 export function createFrontendDataStore(cfg: BootstrapConfig, mode: 'demo' | 'real', user?: any): DataStore {
   // For now, always return mock data store for frontend
   // In the future, you could implement an ApiDataStore that makes HTTP requests to your backend
-  const store = new FrontendMockDataStore();
-  
-  // Update user data if provided
-  if (user) {
-    (store as any).user = {
-      telegram_id: user.telegram_id,
-      role: user.role || 'dispatcher',
-      name: user.first_name + (user.last_name ? ` ${user.last_name}` : ''),
-      username: user.username,
-      photo_url: user.photo_url
-    };
-  }
-  
-  return store;
+  return new FrontendMockDataStore(user);
 }
