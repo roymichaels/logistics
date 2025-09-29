@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { telegram } from '../lib/telegram';
-import { DataStore, User } from '../data/types';
-
-import { BootstrapConfig } from '../data/types';
+import { DataStore, User, BootstrapConfig } from '../data/types';
 
 interface SettingsProps {
   dataStore: DataStore;
@@ -331,7 +329,7 @@ function InfoRow({ label, value, theme }: {
   );
 }
 
-function ActionButton({ title, subtitle, icon, onClick, theme }: {
+function ActionButton({ title, subtitle, icon, onClick, theme, disabled }: {
   title: string;
   subtitle: string;
   icon: string;

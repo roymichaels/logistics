@@ -163,7 +163,11 @@ class FrontendMockDataStore implements DataStore {
   }
 
   async listMyTasks(): Promise<Task[]> {
-    return this.tasks.filter(task => task.courier_id === '987654321');
+    // Return tasks for current user based on their role
+    if (this.user.role === 'courier') {
+      return this.tasks.filter(task => task.courier_id === this.user.telegram_id);
+    }
+    return this.tasks;
   }
 
   async completeTask(id: string, proof?: { photo?: string; qr?: string; gps?: { lat: number; lng: number } }): Promise<void> {
@@ -187,7 +191,7 @@ class FrontendMockDataStore implements DataStore {
   }
 
   async getMyRoute(date: string): Promise<Route | null> {
-    return this.routes.find(route => route.date === date && route.courier_id === '987654321') || null;
+    return this.routes.find(route => route.date === date && route.courier_id === this.user.telegram_id) || null;
   }
 }
 
