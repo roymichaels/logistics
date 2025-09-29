@@ -7,6 +7,7 @@ import { BottomNavigation } from './src/components/BottomNavigation';
 import { TelegramAuth } from './src/components/TelegramAuth';
 import { OrderCreationWizard } from './src/components/OrderCreationWizard';
 import { BusinessManager } from './src/components/BusinessManager';
+import { SecurityGate } from './src/components/SecurityGate';
 import { hebrew } from './src/lib/hebrew';
 
 // Pages
@@ -285,50 +286,56 @@ export default function App() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: theme.bg_color,
-      color: theme.text_color,
-      paddingBottom: '80px' // Space for bottom nav
-    }}>
-      {renderPage()}
-      
-      {/* Bottom Navigation */}
-      {dataStore && userRole && (
-        <BottomNavigation
-          currentPage={currentPage}
-          onNavigate={handleNavigate}
-          userRole={userRole}
-          businessId={currentBusinessId || undefined}
-          onShowCreateOrder={handleShowCreateOrder}
-          onShowCreateTask={handleShowCreateTask}
-          onShowScanBarcode={handleShowScanBarcode}
-          onShowContactCustomer={handleShowContactCustomer}
-          onShowCheckInventory={handleShowCheckInventory}
-          onShowCreateRoute={handleShowCreateRoute}
-          onShowCreateUser={handleShowCreateUser}
-          onShowCreateProduct={handleShowCreateProduct}
-        />
-      )}
+    <SecurityGate
+      userId={user?.id || user?.telegram_id || 'unknown'}
+      telegramId={user?.telegram_id || ''}
+      onSecurityError={(error) => setError(`Security Error: ${error}`)}
+    >
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: theme.bg_color,
+        color: theme.text_color,
+        paddingBottom: '80px' // Space for bottom nav
+      }}>
+        {renderPage()}
 
-      {/* Modals */}
-      {showOrderWizard && dataStore && (
-        <OrderCreationWizard
-          dataStore={dataStore}
-          businessId={currentBusinessId || undefined}
-          onOrderCreated={handleOrderCreated}
-          onCancel={() => setShowOrderWizard(false)}
-        />
-      )}
+        {/* Bottom Navigation */}
+        {dataStore && userRole && (
+          <BottomNavigation
+            currentPage={currentPage}
+            onNavigate={handleNavigate}
+            userRole={userRole}
+            businessId={currentBusinessId || undefined}
+            onShowCreateOrder={handleShowCreateOrder}
+            onShowCreateTask={handleShowCreateTask}
+            onShowScanBarcode={handleShowScanBarcode}
+            onShowContactCustomer={handleShowContactCustomer}
+            onShowCheckInventory={handleShowCheckInventory}
+            onShowCreateRoute={handleShowCreateRoute}
+            onShowCreateUser={handleShowCreateUser}
+            onShowCreateProduct={handleShowCreateProduct}
+          />
+        )}
 
-      {showBusinessManager && dataStore && (
-        <BusinessManager
-          dataStore={dataStore}
-          currentUserId={user?.telegram_id}
-          onClose={() => setShowBusinessManager(false)}
-        />
-      )}
-    </div>
+        {/* Modals */}
+        {showOrderWizard && dataStore && (
+          <OrderCreationWizard
+            dataStore={dataStore}
+            businessId={currentBusinessId || undefined}
+            onOrderCreated={handleOrderCreated}
+            onCancel={() => setShowOrderWizard(false)}
+          />
+        )}
+
+        {showBusinessManager && dataStore && (
+          <BusinessManager
+            dataStore={dataStore}
+            currentUserId={user?.telegram_id}
+            onClose={() => setShowBusinessManager(false)}
+          />
+        )}
+      </div>
+    </SecurityGate>
   );
 }
 

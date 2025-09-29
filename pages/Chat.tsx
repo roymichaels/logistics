@@ -3,6 +3,8 @@ import { telegram } from '../lib/telegram';
 import { useTelegramUI } from '../src/hooks/useTelegramUI';
 import { DataStore, GroupChat, User } from '../data/types';
 import { hebrew } from '../src/lib/hebrew';
+import { EncryptedChatComponent } from '../src/components/EncryptedChat';
+import { initializeEncryptedChatService } from '../src/security/encryptedChatService';
 
 interface ChatProps {
   dataStore: DataStore;
@@ -16,25 +18,67 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [encryptedChatId, setEncryptedChatId] = useState<string | null>(null);
+  const [encryptionEnabled, setEncryptionEnabled] = useState(false);
   const { theme, haptic, backButton } = useTelegramUI();
 
   useEffect(() => {
+    initializeEncryption();
     loadChats();
   }, []);
 
+  const initializeEncryption = async () => {
+    try {
+      await initializeEncryptedChatService();
+      setEncryptionEnabled(true);
+    } catch (error) {
+      console.error('Failed to initialize encrypted chat:', error);
+      setEncryptionEnabled(false);
+    }
+  };
+
   useEffect(() => {
-    if (selectedChat) {
-      backButton.show(() => setSelectedChat(null));
+    if (selectedChat || encryptedChatId) {
+      backButton.show(() => {
+        setSelectedChat(null);
+        setEncryptedChatId(null);
+      });
     } else {
       backButton.hide();
     }
-  }, [selectedChat]);
+  }, [selectedChat, encryptedChatId]);
 
   const loadChats = async () => {
     try {
       const chatsList = await dataStore.listGroupChats?.() || [];
-      setChats(chatsList);
-      
+
+      // Add encrypted chat options if encryption is enabled
+      if (encryptionEnabled) {
+        const encryptedChats = [
+          {
+            id: 'encrypted_demo',
+            name: '🔐 צ\'אט מוצפן - דמו',
+            description: 'צ\'אט מוצפן מקצה לקצה עם AES-256',
+            type: 'encrypted',
+            members: [],
+            createdAt: new Date().toISOString(),
+            isActive: true
+          },
+          {
+            id: 'encrypted_team',
+            name: '🔐 צוות ניהול מוצפן',
+            description: 'תקשורת מאובטחת לצוות הניהול',
+            type: 'encrypted',
+            members: [],
+            createdAt: new Date().toISOString(),
+            isActive: true
+          }
+        ];
+        setChats([...encryptedChats, ...chatsList]);
+      } else {
+        setChats(chatsList);
+      }
+
       // Load demo messages for selected chat
       if (selectedChat) {
         loadMessages(selectedChat.id);
@@ -116,6 +160,16 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
     );
   }
 
+  // Show encrypted chat if selected
+  if (encryptedChatId) {
+    return (
+      <EncryptedChatComponent
+        chatId={encryptedChatId}
+        onBack={() => setEncryptedChatId(null)}
+      />
+    );
+  }
+
   if (selectedChat) {
     return (
       <ChatView
@@ -184,8 +238,13 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
                 chat={chat}
                 onClick={() => {
                   haptic();
-                  setSelectedChat(chat);
-                  loadMessages(chat.id);
+                  // Check if this is an encrypted chat
+                  if (chat.type === 'encrypted') {
+                    setEncryptedChatId(chat.id);
+                  } else {
+                    setSelectedChat(chat);
+                    loadMessages(chat.id);
+                  }
                 }}
                 theme={theme}
               />
@@ -206,6 +265,7 @@ function ChatCard({ chat, onClick, theme }: {
     switch (type) {
       case 'department': return '🏢';
       case 'project': return '📋';
+      case 'encrypted': return '🔐';
       default: return '💬';
     }
   };
