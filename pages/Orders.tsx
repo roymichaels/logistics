@@ -60,12 +60,20 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
   };
 
   const handleCreateOrder = () => {
+    // Check permissions
+    if (!user || !['manager', 'sales'].includes(user.role)) {
+      telegram.showAlert('אין לך הרשאה ליצור הזמנות');
+      return;
+    }
+    
     telegram.hapticFeedback('selection');
     setShowCreateForm(true);
   };
 
   useEffect(() => {
     if (user?.role === 'dispatcher' && !selectedOrder && !showCreateForm) {
+      telegram.setMainButton('Create Order', handleCreateOrder);
+    } else if (['manager', 'sales'].includes(user?.role || '') && !selectedOrder && !showCreateForm) {
       telegram.setMainButton('Create Order', handleCreateOrder);
     } else {
       telegram.hideMainButton();

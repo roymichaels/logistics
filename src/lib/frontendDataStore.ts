@@ -266,6 +266,12 @@ class HebrewLogisticsDataStore implements DataStore {
   async listOrders(filters?: { status?: string; q?: string }): Promise<Order[]> {
     let filtered = [...this.orders];
     
+    // Role-based filtering: salespeople can only see their own orders
+    if (this.user.role === 'sales') {
+      filtered = filtered.filter(order => order.created_by === this.user.telegram_id);
+    }
+    // Managers can see all orders (no additional filtering needed)
+    
     if (filters?.status && filters.status !== 'all') {
       filtered = filtered.filter(order => order.status === filters.status);
     }
@@ -289,11 +295,17 @@ class HebrewLogisticsDataStore implements DataStore {
   }
 
   async createOrder(input: Omit<Order, 'id' | 'created_at' | 'updated_at'>): Promise<{ id: string }> {
+    // Only managers and sales can create orders
+    if (!['manager', 'sales'].includes(this.user.role)) {
+      throw new Error('אין לך הרשאה ליצור הזמנות');
+    }
+    
     const id = Date.now().toString();
     const now = new Date().toISOString();
     
     const order: Order = {
       ...input,
+      created_by: this.user.telegram_id, // Always set to current user
       id,
       created_at: now,
       updated_at: now
@@ -306,6 +318,13 @@ class HebrewLogisticsDataStore implements DataStore {
   async updateOrder(id: string, updates: Partial<Order>): Promise<void> {
     const index = this.orders.findIndex(o => o.id === id);
     if (index === -1) throw new Error('Order not found');
+    
+    const order = this.orders[index];
+    
+    // Role-based update permissions
+    if (this.user.role === 'sales' && order.created_by !== this.user.telegram_id) {
+      throw new Error('אין לך הרשאה לערוך הזמנה זו');
+    }
     
     this.orders[index] = {
       ...this.orders[index],
