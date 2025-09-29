@@ -79,6 +79,16 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
           lowStock: 0,
           revenue: 0
         });
+      } else if (profile.role === 'user') {
+        // User role - show demo stats
+        setStats({
+          totalOrders: 12,
+          pendingTasks: 3,
+          completedToday: 8,
+          totalProducts: 45,
+          lowStock: 2,
+          revenue: 15420
+        });
       } else {
         const tasks = await dataStore.listMyTasks?.() || [];
         setStats({
@@ -94,18 +104,6 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
           revenue: 0
         });
       }
-      } else {
-        // User role - show demo stats
-        setStats({
-          totalOrders: 12,
-          pendingTasks: 3,
-          completedToday: 8,
-          totalProducts: 45,
-          lowStock: 2,
-          revenue: 15420
-        });
-      }
-
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
       Toast.error('שגיאה בטעינת נתוני לוח הבקרה');
@@ -230,19 +228,26 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
                   borderRight: `4px solid ${getNotificationColor(notification.type)}`,
                   cursor: 'pointer'
                 }}
-        } else if (profile.role !== 'user') {
+                onClick={() => {
                   haptic();
                   if (notification.action_url) {
                     // Navigate to specific page
                   }
                 }}
               >
-        } else {
-          // User role - show demo stats
-          setStats({
-            totalOrders: 12,
-            pendingTasks: 3,
-            completedToday: 8,
+                <div style={{ 
+                  fontSize: '14px', 
+                  fontWeight: '600',
+                  color: theme.text_color,
+                  marginBottom: '4px'
+                }}>
+                  {notification.title}
+                </div>
+                <div style={{ 
+                  fontSize: '12px', 
+                  color: theme.hint_color
+                }}>
+                  {notification.message}
                 </div>
               </div>
             ))}
