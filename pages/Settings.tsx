@@ -39,7 +39,7 @@ export function Settings({ dataStore, onNavigate, config }: SettingsProps) {
   const handleSwitchRole = async () => {
     if (!user || !dataStore.updateProfile) return;
     
-    const newRole = user.role === 'dispatcher' ? 'courier' : 'dispatcher';
+    const newRole = user.role === 'manager' ? 'worker' : 'manager';
     const confirmed = await telegram.showConfirm(
       `Switch from ${user.role} to ${newRole}? This will change your app interface.`
     );
@@ -158,7 +158,7 @@ export function Settings({ dataStore, onNavigate, config }: SettingsProps) {
                 fontWeight: '600',
                 color: theme.button_color
               }}>
-                {user?.role === 'dispatcher' ? '📋 Dispatcher' : '🚚 Courier'}
+                {user?.role === 'manager' ? '👔 Manager' : '👷 Worker'}
               </span>
             </div>
           </div>
@@ -211,8 +211,8 @@ export function Settings({ dataStore, onNavigate, config }: SettingsProps) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <ActionButton
               title="Switch Role"
-              subtitle={`Switch to ${user?.role === 'dispatcher' ? 'courier' : 'dispatcher'} mode`}
-              icon={user?.role === 'dispatcher' ? '🚚' : '📋'}
+              subtitle={`Switch to ${user?.role === 'manager' ? 'worker' : 'manager'} mode`}
+              icon={user?.role === 'manager' ? '👷' : '👔'}
               onClick={() => {
                 telegram.hapticFeedback('selection');
                 handleSwitchRole();

@@ -1,6 +1,6 @@
 export interface User {
   telegram_id: string;
-  role: 'dispatcher' | 'courier';
+  role: 'manager' | 'worker';
   name?: string;
   username?: string;
   photo_url?: string;
@@ -9,12 +9,13 @@ export interface User {
 export interface Order {
   id: string;
   created_by: string;
-  status: 'new' | 'assigned' | 'enroute' | 'delivered' | 'failed';
-  customer: string;
-  address: string;
-  eta?: string;
+  status: 'pending' | 'assigned' | 'in_progress' | 'completed' | 'cancelled';
+  item_name: string;
+  location: string;
+  due_date?: string;
   notes?: string;
-  items?: Array<{ name: string; quantity: number }>;
+  quantity: number;
+  unit: string;
   created_at: string;
   updated_at: string;
 }
@@ -22,9 +23,9 @@ export interface Order {
 export interface Task {
   id: string;
   order_id: string;
-  courier_id: string;
-  status: 'pending' | 'enroute' | 'done' | 'failed';
-  gps?: { lat: number; lng: number };
+  worker_id: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  location?: string;
   proof_url?: string;
   completed_at?: string;
   created_at: string;
@@ -32,11 +33,11 @@ export interface Task {
 
 export interface Route {
   id: string;
-  courier_id: string;
+  worker_id: string;
   date: string;
   stops: Array<{
     order_id: string;
-    address: string;
+    location: string;
     sequence: number;
     status: string;
   }>;
@@ -47,15 +48,15 @@ export interface DataStore {
   getProfile(): Promise<User>;
   updateProfile?(updates: Partial<User>): Promise<void>;
   
-  // Orders (dispatcher)
+  // Orders (manager)
   listOrders?(filters?: { status?: string; q?: string }): Promise<Order[]>;
   getOrder?(id: string): Promise<Order>;
   createOrder?(input: Omit<Order, 'id' | 'created_at' | 'updated_at'>): Promise<{ id: string }>;
   updateOrder?(id: string, updates: Partial<Order>): Promise<void>;
   
-  // Tasks (courier)
+  // Tasks (worker)
   listMyTasks?(): Promise<Task[]>;
-  completeTask?(id: string, proof?: { photo?: string; qr?: string; gps?: { lat: number; lng: number } }): Promise<void>;
+  completeTask?(id: string, proof?: { photo?: string; qr?: string; location?: string }): Promise<void>;
   
   // Routes
   getMyRoute?(date: string): Promise<Route | null>;

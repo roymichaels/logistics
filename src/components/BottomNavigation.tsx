@@ -4,21 +4,21 @@ import { useTelegramUI } from '../hooks/useTelegramUI';
 interface BottomNavigationProps {
   currentPage: string;
   onNavigate: (page: string) => void;
-  userRole?: 'dispatcher' | 'courier';
+  userRole?: 'manager' | 'worker';
 }
 
 export function BottomNavigation({ currentPage, onNavigate, userRole }: BottomNavigationProps) {
   const { theme, haptic } = useTelegramUI();
 
-  const tabs = userRole === 'dispatcher' 
+  const tabs = userRole === 'manager' 
     ? [
         { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-        { id: 'orders', label: 'Orders', icon: '📋' },
+        { id: 'orders', label: 'Inventory', icon: '📦' },
         { id: 'settings', label: 'Settings', icon: '⚙️' }
       ]
     : [
         { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-        { id: 'tasks', label: 'Tasks', icon: '📦' },
+        { id: 'tasks', label: 'Tasks', icon: '✅' },
         { id: 'settings', label: 'Settings', icon: '⚙️' }
       ];
 

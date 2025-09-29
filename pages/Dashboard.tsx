@@ -152,7 +152,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
           color: theme.hint_color,
           fontSize: 'var(--tg-font-lg)'
         }}>
-          {user?.name || 'User'} • {user?.role === 'dispatcher' ? 'Dispatcher' : 'Courier'}
+          {user?.name || 'User'} • {user?.role === 'manager' ? 'Manager' : 'Worker'}
         </p>
       </div>
 
@@ -163,16 +163,16 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
         gap: 'var(--tg-spacing-md)',
         marginBottom: 'var(--tg-spacing-2xl)'
       }}>
-        {user?.role === 'dispatcher' ? (
+        {user?.role === 'manager' ? (
           <>
             <StatCard
-              title="Total Orders"
+              title="Total Items"
               value={stats.totalOrders}
               color={theme.button_color}
               theme={theme}
             />
             <StatCard
-              title="Pending"
+              title="Pending Tasks"
               value={stats.pendingTasks}
               color="#ff9500"
               theme={theme}
@@ -215,10 +215,10 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--tg-spacing-md)' }}>
           <ActionButton
-            title={user?.role === 'dispatcher' ? 'Manage Orders' : 'My Tasks'}
-            subtitle={user?.role === 'dispatcher' ? 'View and create orders' : 'View assigned deliveries'}
-            icon="📋"
-            onClick={() => onNavigate(user?.role === 'dispatcher' ? 'orders' : 'tasks')}
+            title={user?.role === 'manager' ? 'Manage Inventory' : 'My Tasks'}
+            subtitle={user?.role === 'manager' ? 'View and create inventory tasks' : 'View assigned warehouse tasks'}
+            icon={user?.role === 'manager' ? '📦' : '✅'}
+            onClick={() => onNavigate(user?.role === 'manager' ? 'orders' : 'tasks')}
             theme={theme}
             haptic={haptic}
           />

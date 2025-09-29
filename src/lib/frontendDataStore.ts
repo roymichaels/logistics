@@ -3,7 +3,7 @@ import { DataStore, User, Order, Task, Route, BootstrapConfig } from '../../data
 // Browser-compatible mock data store
 const createMockUser = (providedUser?: any): User => ({
   telegram_id: providedUser?.telegram_id || '123456789',
-  role: providedUser?.role || 'dispatcher',
+  role: providedUser?.role || 'manager',
   name: providedUser?.name || (providedUser?.first_name ? 
     `${providedUser.first_name}${providedUser.last_name ? ` ${providedUser.last_name}` : ''}` : 
     'Demo User'),
@@ -15,15 +15,13 @@ const mockOrders: Order[] = [
   {
     id: '1',
     created_by: '123456789',
-    status: 'new',
-    customer: 'Acme Corp',
-    address: '123 Business St, Downtown',
-    eta: '2024-01-20T14:00:00Z',
+    status: 'pending',
+    item_name: 'Office Chairs',
+    location: 'Warehouse A - Section 1',
+    due_date: '2024-01-20T14:00:00Z',
     notes: 'Fragile items, handle with care',
-    items: [
-      { name: 'Laptop', quantity: 2 },
-      { name: 'Monitor', quantity: 1 }
-    ],
+    quantity: 25,
+    unit: 'pieces',
     created_at: '2024-01-20T10:00:00Z',
     updated_at: '2024-01-20T10:00:00Z'
   },
@@ -31,26 +29,24 @@ const mockOrders: Order[] = [
     id: '2',
     created_by: '123456789',
     status: 'assigned',
-    customer: 'Tech Solutions',
-    address: '456 Tech Ave, Silicon Valley',
-    eta: '2024-01-20T16:00:00Z',
-    notes: 'Call before delivery',
-    items: [
-      { name: 'Server', quantity: 1 }
-    ],
+    item_name: 'Computer Monitors',
+    location: 'Warehouse B - Section 3',
+    due_date: '2024-01-20T16:00:00Z',
+    notes: 'Check serial numbers',
+    quantity: 10,
+    unit: 'pieces',
     created_at: '2024-01-20T09:00:00Z',
     updated_at: '2024-01-20T11:00:00Z'
   },
   {
     id: '3',
     created_by: '123456789',
-    status: 'delivered',
-    customer: 'StartupXYZ',
-    address: '789 Innovation Blvd, Tech District',
-    notes: 'Delivered successfully',
-    items: [
-      { name: 'Office Supplies', quantity: 5 }
-    ],
+    status: 'completed',
+    item_name: 'Office Supplies',
+    location: 'Warehouse A - Section 2',
+    notes: 'Completed successfully',
+    quantity: 100,
+    unit: 'boxes',
     created_at: '2024-01-19T14:00:00Z',
     updated_at: '2024-01-20T09:30:00Z'
   }
@@ -60,15 +56,15 @@ const mockTasks: Task[] = [
   {
     id: '1',
     order_id: '2',
-    courier_id: '987654321',
-    status: 'enroute',
-    gps: { lat: 37.7749, lng: -122.4194 },
+    worker_id: '987654321',
+    status: 'in_progress',
+    location: 'Warehouse B - Section 3',
     created_at: '2024-01-20T11:00:00Z'
   },
   {
     id: '2',
     order_id: '1',
-    courier_id: '987654321',
+    worker_id: '987654321',
     status: 'pending',
     created_at: '2024-01-20T10:00:00Z'
   }
@@ -76,18 +72,18 @@ const mockTasks: Task[] = [
 
 const mockRoute: Route = {
   id: '1',
-  courier_id: '987654321',
+  worker_id: '987654321',
   date: '2024-01-20',
   stops: [
     {
       order_id: '2',
-      address: '456 Tech Ave, Silicon Valley',
+      location: 'Warehouse B - Section 3',
       sequence: 1,
-      status: 'enroute'
+      status: 'in_progress'
     },
     {
       order_id: '1',
-      address: '123 Business St, Downtown',
+      location: 'Warehouse A - Section 1',
       sequence: 2,
       status: 'pending'
     }
@@ -163,35 +159,35 @@ class FrontendMockDataStore implements DataStore {
   }
 
   async listMyTasks(): Promise<Task[]> {
-    // Return tasks for current user based on their role
-    if (this.user.role === 'courier') {
-      return this.tasks.filter(task => task.courier_id === this.user.telegram_id);
+    // Return tasks for current worker
+    if (this.user.role === 'worker') {
+      return this.tasks.filter(task => task.worker_id === this.user.telegram_id);
     }
     return this.tasks;
   }
 
-  async completeTask(id: string, proof?: { photo?: string; qr?: string; gps?: { lat: number; lng: number } }): Promise<void> {
+  async completeTask(id: string, proof?: { photo?: string; qr?: string; location?: string }): Promise<void> {
     const taskIndex = this.tasks.findIndex(t => t.id === id);
     if (taskIndex === -1) throw new Error('Task not found');
     
     this.tasks[taskIndex] = {
       ...this.tasks[taskIndex],
-      status: 'done',
+      status: 'completed',
       completed_at: new Date().toISOString(),
       proof_url: proof?.photo,
-      gps: proof?.gps || this.tasks[taskIndex].gps
+      location: proof?.location || this.tasks[taskIndex].location
     };
     
     const task = this.tasks[taskIndex];
     const orderIndex = this.orders.findIndex(o => o.id === task.order_id);
     if (orderIndex !== -1) {
-      this.orders[orderIndex].status = 'delivered';
+      this.orders[orderIndex].status = 'completed';
       this.orders[orderIndex].updated_at = new Date().toISOString();
     }
   }
 
   async getMyRoute(date: string): Promise<Route | null> {
-    return this.routes.find(route => route.date === date && route.courier_id === this.user.telegram_id) || null;
+    return this.routes.find(route => route.date === date && route.worker_id === this.user.telegram_id) || null;
   }
 }
 
