@@ -286,6 +286,7 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
   theme: any;
 }) {
   const [widgetLoaded, setWidgetLoaded] = useState(false);
+  const [widgetError, setWidgetError] = useState<string | null>(null);
 
   useEffect(() => {
     // Set up global callback function BEFORE loading the script
@@ -325,6 +326,7 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
     
     script.onerror = () => {
       console.error('❌ Failed to load Telegram Login Widget');
+      setWidgetError('Failed to load Telegram login widget');
       onError('Failed to load Telegram login widget');
     };
     
@@ -342,22 +344,9 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
       if (container) {
         container.innerHTML = '';
       }
-        <div style={{
-          padding: '16px',
-          backgroundColor: '#ff3b30',
-          color: 'white',
-          borderRadius: '8px',
-          marginBottom: '24px',
-          textAlign: 'center',
-          maxWidth: '320px'
-        }}>
-          <p style={{ margin: '0 0 8px 0', fontWeight: '600' }}>שגיאה בטעינת כפתור הטלגרם</p>
-          <p style={{ margin: 0, fontSize: '14px' }}>{widgetError}</p>
-        </div>
-      ) : (
       delete (window as any).onTelegramAuth;
     };
-  }, [onAuth]);
+  }, [onAuth, onError]);
 
   return (
     <div style={{
@@ -421,6 +410,20 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
           </div>
         )}
       </div>
+
+      {widgetError && (
+        <div style={{
+          padding: '16px',
+          backgroundColor: '#ff3b30',
+          color: 'white',
+          borderRadius: '8px',
+          marginBottom: '24px',
+          textAlign: 'center',
+          maxWidth: '320px'
+        }}>
+          <p style={{ margin: '0 0 8px 0', fontWeight: '600' }}>שגיאה בטעינת כפתור הטלגרם</p>
+          <p style={{ margin: 0, fontSize: '14px' }}>{widgetError}</p>
+        </div>
       )}
 
       <div style={{
