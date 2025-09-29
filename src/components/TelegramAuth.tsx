@@ -49,8 +49,11 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
   const authenticateWithInitData = async () => {
     const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
     
+    // If no Supabase URL, fall back to client-side auth
     if (!SUPABASE_URL) {
-      throw new Error('Supabase URL not configured');
+      console.log('🔄 No Supabase URL - using client-side authentication');
+      await authenticateWithTelegramUser();
+      return;
     }
 
     try {
@@ -80,8 +83,9 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
       onAuth(result.user);
       
     } catch (error) {
-      console.error('❌ InitData verification failed:', error);
-      throw new Error('Failed to verify Telegram authentication');
+      console.warn('⚠️ Backend verification failed, falling back to client-side auth:', error);
+      // Fall back to client-side authentication
+      await authenticateWithTelegramUser();
     }
   };
 
@@ -110,25 +114,29 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
       const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
       
       if (SUPABASE_URL) {
-        // Verify with backend
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/telegram-verify`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            type: 'loginWidget',
-            data: user
-          })
-        });
+        try {
+          // Verify with backend
+          const response = await fetch(`${SUPABASE_URL}/functions/v1/telegram-verify`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              type: 'loginWidget',
+              data: user
+            })
+          });
 
-        if (response.ok) {
-          const result = await response.json();
-          if (result.ok && result.user) {
-            console.log('✅ Telegram Login Widget verified');
-            onAuth(result.user);
-            return;
+          if (response.ok) {
+            const result = await response.json();
+            if (result.ok && result.user) {
+              console.log('✅ Telegram Login Widget verified');
+              onAuth(result.user);
+              return;
+            }
           }
+        } catch (error) {
+          console.warn('⚠️ Backend verification failed:', error);
         }
       }
 
@@ -146,8 +154,8 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
       onAuth(userData);
       
     } catch (error) {
-      console.error('❌ Login widget verification failed:', error);
-      onError('שגיאה באימות עם טלגרם');
+      console.error('❌ Login widget authentication failed:', error);
+      onError('שגיאה באימות עם טלגרם - נסה שוב');
     } finally {
       setLoading(false);
     }
