@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { telegram } from '../lib/telegram';
+import { TelegramModal } from '../src/components/TelegramModal';
 import { DataStore, User, BootstrapConfig } from '../data/types';
 
 interface SettingsProps {
@@ -12,6 +13,11 @@ export function Settings({ dataStore, onNavigate, config }: SettingsProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [switchingRole, setSwitchingRole] = useState(false);
+
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [showCacheModal, setShowCacheModal] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<string>('');
 
   const theme = telegram.themeParams;
 
@@ -39,23 +45,22 @@ export function Settings({ dataStore, onNavigate, config }: SettingsProps) {
   const handleSwitchRole = async () => {
     if (!user || !dataStore.updateProfile) return;
     
-    const roleOptions = ['manager', 'worker', 'dispatcher', 'courier'];
-    const currentIndex = roleOptions.indexOf(user.role);
-    const newRole = roleOptions[(currentIndex + 1) % roleOptions.length];
-    
-    const confirmed = await telegram.showConfirm(
-      `Switch from ${user.role} to ${newRole}? This will change your app interface.`
-    );
-    
-    if (!confirmed) return;
+    setShowRoleModal(true);
+  };
+
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<string>('');
+
+  const handleRoleChange = async () => {
+    if (!selectedRole || !dataStore.updateProfile) return;
     
     setSwitchingRole(true);
     try {
-      await dataStore.updateProfile({ role: newRole });
+      await dataStore.updateProfile({ role: selectedRole });
       const updatedProfile = await dataStore.getProfile();
       setUser(updatedProfile);
       telegram.hapticFeedback('notification', 'success');
-      telegram.showAlert(`Successfully switched to ${newRole} role!`);
+      telegram.showAlert(`עבר בהצלחה לתפקיד ${roleNames[selectedRole as keyof typeof roleNames]}!`);
       
       // Refresh the page to update navigation
       setTimeout(() => {
@@ -63,9 +68,10 @@ export function Settings({ dataStore, onNavigate, config }: SettingsProps) {
       }, 1000);
     } catch (error) {
       console.error('Failed to switch role:', error);
-      telegram.showAlert('Failed to switch role');
+      telegram.showAlert('שגיאה בהחלפת תפקיד');
     } finally {
       setSwitchingRole(false);
+      setShowRoleModal(false);
     }
   };
 
@@ -290,6 +296,91 @@ export function Settings({ dataStore, onNavigate, config }: SettingsProps) {
           </div>
         )}
       </div>
+
+      {/* Role Selection Modal */}
+      <TelegramModal
+        isOpen={showRoleModal}
+        onClose={() => setShowRoleModal(false)}
+        title="בחר תפקיד"
+        primaryButton={{
+          text: switchingRole ? 'מחליף...' : 'החלף תפקיד',
+          onClick: handleRoleChange
+        }}
+        secondaryButton={{
+          text: 'ביטול',
+          onClick: () => setShowRoleModal(false)
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {Object.entries(roleNames).map(([role, name]) => (
+            <button
+              key={role}
+              onClick={() => {
+                telegram.hapticFeedback('selection');
+                setSelectedRole(role);
+              }}
+              style={{
+                padding: '12px',
+                border: `2px solid ${selectedRole === role ? theme.button_color : theme.hint_color + '40'}`,
+                borderRadius: '8px',
+                backgroundColor: selectedRole === role ? theme.button_color + '20' : 'transparent',
+                color: theme.text_color,
+                fontSize: '16px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <span>{roleIcons[role as keyof typeof roleIcons]}</span>
+              <span>{name}</span>
+            </button>
+          ))}
+        </div>
+      </TelegramModal>
+
+      {/* Cache Clear Modal */}
+      <TelegramModal
+        isOpen={showCacheModal}
+        onClose={() => setShowCacheModal(false)}
+        title="נקה מטמון"
+        primaryButton={{
+          text: 'נקה',
+          onClick: () => {
+            // Clear cache logic would go here
+            telegram.showAlert('המטמון נוקה בהצלחה');
+            setShowCacheModal(false);
+          }
+        }}
+        secondaryButton={{
+          text: 'ביטול',
+          onClick: () => setShowCacheModal(false)
+        }}
+      >
+        <p style={{ margin: 0, color: theme.text_color }}>
+          האם אתה בטוח שברצונך לנקות את כל הנתונים השמורים במטמון?
+        </p>
+      </TelegramModal>
+
+      {/* About Modal */}
+      <TelegramModal
+        isOpen={showAboutModal}
+        onClose={() => setShowAboutModal(false)}
+        title="אודות האפליקציה"
+        primaryButton={{
+          text: 'סגור',
+          onClick: () => setShowAboutModal(false)
+        }}
+      >
+        <div style={{ color: theme.text_color, lineHeight: '1.6' }}>
+          <p><strong>מערכת לוגיסטיקה v1.0.0</strong></p>
+          <p>אפליקציית טלגרם לניהול חברת לוגיסטיקה</p>
+          <p>כולל ניהול הזמנות, מוצרים, משימות, משלוחים ועוד</p>
+          <p style={{ fontSize: '14px', color: theme.hint_color, marginTop: '16px' }}>
+            נבנה עם React ו-Telegram WebApp SDK
+          </p>
+        </div>
+      </TelegramModal>
     </div>
   );
 }

@@ -122,6 +122,11 @@ export default function App() {
     );
   }
 
+  // Show login screen if not logged in
+  if (!isLoggedIn) {
+    return <TelegramLogin onLogin={handleLogin} />;
+  }
+
   if (!dataStore) {
     return (
       <div style={{

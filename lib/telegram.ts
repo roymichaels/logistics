@@ -147,16 +147,29 @@ class TelegramService {
     if (this.webApp) {
       this.webApp.showAlert(message);
     } else {
-      alert(message);
+      // Fallback for non-Telegram environment
+      console.log('Alert:', message);
     }
   }
 
   showConfirm(message: string): Promise<boolean> {
     return new Promise((resolve) => {
-      if (this.webApp && typeof this.webApp.showConfirm === 'function' && this.webApp.version !== '6.0') {
-        this.webApp.showConfirm(message, (confirmed) => resolve(confirmed));
+      if (this.webApp) {
+        // Use Telegram's popup for confirmation
+        this.webApp.showPopup({
+          title: 'אישור',
+          message: message,
+          buttons: [
+            { id: 'cancel', type: 'cancel', text: 'ביטול' },
+            { id: 'ok', type: 'ok', text: 'אישור' }
+          ]
+        }, (buttonId) => {
+          resolve(buttonId === 'ok');
+        });
       } else {
-        resolve(confirm(message));
+        // Fallback for non-Telegram environment
+        console.log('Confirm:', message);
+        resolve(true);
       }
     });
   }

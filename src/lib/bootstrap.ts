@@ -6,7 +6,7 @@ interface BootstrapResult {
   user: any | null;
 }
 
-export async function bootstrap(): Promise<BootstrapResult> {
+export async function bootstrap(userData?: any): Promise<BootstrapResult> {
   console.log('Bootstrap: isTelegramEnv =', telegram.isTelegramEnv);
   
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -35,7 +35,7 @@ export async function bootstrap(): Promise<BootstrapResult> {
           mode: 'real' as const,
         },
       },
-      user: null,
+      user: userData || null,
     };
   }
   
