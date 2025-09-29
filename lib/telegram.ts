@@ -153,7 +153,7 @@ class TelegramService {
 
   showConfirm(message: string): Promise<boolean> {
     return new Promise((resolve) => {
-      if (this.webApp) {
+      if (this.webApp && typeof this.webApp.showConfirm === 'function') {
         this.webApp.showConfirm(message, (confirmed) => resolve(confirmed));
       } else {
         resolve(confirm(message));
