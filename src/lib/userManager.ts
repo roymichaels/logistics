@@ -75,10 +75,10 @@ class UserManager {
       username: userData.username,
       photo_url: userData.photo_url,
       role: 'driver', // Default role
-      approved: this.isFirstAdmin(telegramId), // Auto-approve first admin
+      approved: true, // Auto-approve all users for now
       created_at: new Date().toISOString(),
-      approved_by: this.isFirstAdmin(telegramId) ? telegramId : undefined,
-      approved_at: this.isFirstAdmin(telegramId) ? new Date().toISOString() : undefined
+      approved_by: telegramId, // Self-approved for now
+      approved_at: new Date().toISOString()
     };
 
     this.registeredUsers.set(telegramId, registration);

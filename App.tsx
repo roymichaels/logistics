@@ -77,11 +77,12 @@ export default function App() {
     try {
       console.log('Authenticating user:', userData);
       
-      // Check if user is approved (unless they're the first admin)
-      if (!userData.isFirstAdmin && !userData.isApproved) {
-        setError('חשבונך ממתין לאישור מהמנהל. אנא פנה למנהל המערכת.');
-        return;
-      }
+      // Allow all users to log in for now
+      // TODO: Re-enable approval system when needed
+      // if (!userData.isFirstAdmin && !userData.isApproved) {
+      //   setError('חשבונך ממתין לאישור מהמנהל. אנא פנה למנהל המערכת.');
+      //   return;
+      // }
       
       setUser(userData);
       
