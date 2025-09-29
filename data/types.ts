@@ -45,6 +45,7 @@ export interface Route {
 export interface DataStore {
   // Auth
   getProfile(): Promise<User>;
+  updateProfile?(updates: Partial<User>): Promise<void>;
   
   // Orders (dispatcher)
   listOrders?(filters?: { status?: string; q?: string }): Promise<Order[]>;

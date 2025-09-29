@@ -14,6 +14,7 @@ interface SettingsProps {
 export function Settings({ dataStore, onNavigate, mode, config }: SettingsProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [switchingRole, setSwitchingRole] = useState(false);
 
   const theme = telegram.themeParams;
 
@@ -35,6 +36,36 @@ export function Settings({ dataStore, onNavigate, mode, config }: SettingsProps)
       telegram.showAlert('Failed to load profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSwitchRole = async () => {
+    if (!user || !dataStore.updateProfile) return;
+    
+    const newRole = user.role === 'dispatcher' ? 'courier' : 'dispatcher';
+    const confirmed = await telegram.showConfirm(
+      `Switch from ${user.role} to ${newRole}? This will change your app interface.`
+    );
+    
+    if (!confirmed) return;
+    
+    setSwitchingRole(true);
+    try {
+      await dataStore.updateProfile({ role: newRole });
+      const updatedProfile = await dataStore.getProfile();
+      setUser(updatedProfile);
+      telegram.hapticFeedback('notification', 'success');
+      telegram.showAlert(`Successfully switched to ${newRole} role!`);
+      
+      // Refresh the page to update navigation
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (error) {
+      console.error('Failed to switch role:', error);
+      telegram.showAlert('Failed to switch role');
+    } finally {
+      setSwitchingRole(false);
     }
   };
 
@@ -182,6 +213,18 @@ export function Settings({ dataStore, onNavigate, mode, config }: SettingsProps)
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <ActionButton
+              title="Switch Role"
+              subtitle={`Switch to ${user?.role === 'dispatcher' ? 'courier' : 'dispatcher'} mode`}
+              icon={user?.role === 'dispatcher' ? '🚚' : '📋'}
+              onClick={() => {
+                telegram.hapticFeedback('selection');
+                handleSwitchRole();
+              }}
+              theme={theme}
+              disabled={switchingRole}
+            />
+            
+            <ActionButton
               title="Switch Mode"
               subtitle={`Currently in ${mode || 'unknown'} mode`}
               icon="🔄"
@@ -294,10 +337,12 @@ function ActionButton({ title, subtitle, icon, onClick, theme }: {
   icon: string;
   onClick: () => void;
   theme: any;
+  disabled?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -308,7 +353,8 @@ function ActionButton({ title, subtitle, icon, onClick, theme }: {
         borderRadius: '12px',
         cursor: 'pointer',
         width: '100%',
-        textAlign: 'left'
+        textAlign: 'left',
+        opacity: disabled ? 0.6 : 1
       }}
     >
       <div style={{ fontSize: '20px' }}>{icon}</div>

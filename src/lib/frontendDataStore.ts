@@ -104,6 +104,10 @@ class FrontendMockDataStore implements DataStore {
     this.user = createMockUser(providedUser);
   }
 
+  async updateProfile(updates: Partial<User>): Promise<void> {
+    this.user = { ...this.user, ...updates };
+  }
+
   async getProfile(): Promise<User> {
     return this.user;
   }
