@@ -104,6 +104,10 @@ class TelegramService {
     return this.webApp?.initData || '';
   }
 
+  get initDataUnsafe(): any {
+    return this.webApp?.initDataUnsafe || null;
+  }
+
   get user(): any {
     return this.user || this.webApp?.initDataUnsafe?.user || null;
   }

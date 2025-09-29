@@ -35,6 +35,10 @@ async function hmacSha256(key: CryptoKey, data: string): Promise<string> {
 async function verifyLoginWidget(data: Record<string, string>, botToken: string): Promise<boolean> {
   const { hash, ...fields } = data;
   
+  if (!hash) {
+    return false;
+  }
+  
   // Create data check string
   const dataCheckString = Object.keys(fields)
     .sort()
@@ -60,6 +64,10 @@ async function verifyLoginWidget(data: Record<string, string>, botToken: string)
   
   // Check freshness (within 24 hours)
   const authDate = Number(fields.auth_date);
+  if (!authDate) {
+    return false;
+  }
+  
   const now = Math.floor(Date.now() / 1000);
   const isRecent = (now - authDate) < (24 * 60 * 60);
 
@@ -111,8 +119,14 @@ async function verifyWebApp(initData: string, botToken: string): Promise<{ valid
     return { valid: false };
   }
 
+  // Check auth_date exists
+  const authDateParam = params.get("auth_date");
+  if (!authDateParam) {
+    return { valid: false };
+  }
+
   // Check freshness
-  const authDate = Number(params.get("auth_date") || "0");
+  const authDate = Number(authDateParam);
   const now = Math.floor(Date.now() / 1000);
   const isRecent = (now - authDate) < (24 * 60 * 60);
   

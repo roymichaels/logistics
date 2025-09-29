@@ -10,6 +10,7 @@ interface TelegramAuthProps {
 export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showLoginWidget, setShowLoginWidget] = useState(false);
   const { theme } = useTelegramUI();
 
   useEffect(() => {
@@ -18,71 +19,135 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
 
   const authenticateUser = async () => {
     try {
-      // Check if we're in Telegram environment
-      if (!telegram.isAvailable) {
-        // For development/browser testing, create mock user
-        const mockUser = {
-          id: Date.now(),
-          first_name: 'משתמש דמו',
-          username: 'demo_user',
-          language_code: 'he',
-          is_premium: false
-        };
-        onAuth(mockUser);
+      // Check if we're in Telegram Mini App environment
+      if (telegram.isAvailable && telegram.initData) {
+        console.log('🔐 Telegram Mini App detected - using initData authentication');
+        await authenticateWithInitData();
         return;
       }
 
-      // Get user from Telegram WebApp
-      const telegramUser = telegram.user;
+      // Check if we have Telegram user from WebApp
+      if (telegram.isAvailable && telegram.user) {
+        console.log('👤 Telegram user available - authenticating');
+        await authenticateWithTelegramUser();
+        return;
+      }
+
+      // Show Telegram Login Widget for web browsers
+      console.log('🌐 Web browser detected - showing Telegram Login Widget');
+      setShowLoginWidget(true);
+      setLoading(false);
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'שגיאה באימות טלגרם';
+      setError(errorMessage);
+      onError(errorMessage);
+      setLoading(false);
+    }
+  };
+
+  const authenticateWithInitData = async () => {
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+    
+    if (!SUPABASE_URL) {
+      throw new Error('Supabase URL not configured');
+    }
+
+    try {
+      // Verify initData with backend
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/telegram-verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'webapp',
+          initData: telegram.initData
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to verify Telegram authentication');
+      }
+
+      const result = await response.json();
       
-      if (!telegramUser) {
-        // Provide mock user when Telegram user data is not available
-        const mockUser = {
-          id: Date.now(),
-          first_name: 'משתמש טלגרם',
-          username: 'telegram_user',
-          language_code: 'he',
-          is_premium: false
-        };
-        onAuth(mockUser);
-        return;
+      if (!result.ok || !result.user) {
+        throw new Error('Invalid Telegram authentication');
       }
 
-      // Verify with backend if Supabase is configured
+      console.log('✅ Telegram authentication verified');
+      onAuth(result.user);
+      
+    } catch (error) {
+      console.error('❌ InitData verification failed:', error);
+      throw new Error('Failed to verify Telegram authentication');
+    }
+  };
+
+  const authenticateWithTelegramUser = async () => {
+    const telegramUser = telegram.user;
+    
+    // Create user object from Telegram data
+    const userData = {
+      telegram_id: telegramUser.id.toString(),
+      first_name: telegramUser.first_name,
+      last_name: telegramUser.last_name,
+      username: telegramUser.username,
+      photo_url: telegramUser.photo_url,
+      language_code: telegramUser.language_code || 'he',
+      auth_date: Math.floor(Date.now() / 1000)
+    };
+
+    console.log('✅ Using Telegram user data');
+    onAuth(userData);
+  };
+
+  const handleTelegramLogin = async (user: any) => {
+    try {
+      setLoading(true);
+      
       const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
       
-      if (SUPABASE_URL && telegram.initData) {
-        try {
-          const response = await fetch(`${SUPABASE_URL}/functions/v1/telegram-verify`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              type: 'webapp',
-              initData: telegram.initData
-            })
-          });
+      if (SUPABASE_URL) {
+        // Verify with backend
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/telegram-verify`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'loginWidget',
+            data: user
+          })
+        });
 
-          if (response.ok) {
-            const result = await response.json();
-            if (result.ok && result.user) {
-              onAuth(result.user);
-              return;
-            }
+        if (response.ok) {
+          const result = await response.json();
+          if (result.ok && result.user) {
+            console.log('✅ Telegram Login Widget verified');
+            onAuth(result.user);
+            return;
           }
-        } catch (verifyError) {
-          console.warn('Backend verification failed, using client data:', verifyError);
         }
       }
 
-      // Use client-side user data
-      onAuth(telegramUser);
+      // Fallback to client-side data
+      const userData = {
+        telegram_id: user.id.toString(),
+        first_name: user.first_name,
+        last_name: user.last_name,
+        username: user.username,
+        photo_url: user.photo_url,
+        auth_date: user.auth_date
+      };
 
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'שגיאה באימות';
-      setError(errorMessage);
-      onError(errorMessage);
+      console.log('✅ Using Telegram Login Widget data');
+      onAuth(userData);
+      
+    } catch (error) {
+      console.error('❌ Login widget verification failed:', error);
+      onError('שגיאה באימות עם טלגרם');
     } finally {
       setLoading(false);
     }
@@ -106,7 +171,7 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
           marginBottom: '24px',
           animation: 'pulse 1.5s ease-in-out infinite'
         }}>
-          📱
+          🔐
         </div>
         
         <h1 style={{
@@ -202,5 +267,118 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
     );
   }
 
+  if (showLoginWidget) {
+    return (
+      <TelegramLoginWidget
+        onAuth={handleTelegramLogin}
+        onError={onError}
+        theme={theme}
+      />
+    );
+  }
+
   return null;
+}
+
+function TelegramLoginWidget({ onAuth, onError, theme }: {
+  onAuth: (user: any) => void;
+  onError: (error: string) => void;
+  theme: any;
+}) {
+  useEffect(() => {
+    // Create Telegram Login Widget
+    const script = document.createElement('script');
+    script.src = 'https://telegram.org/js/telegram-widget.js?22';
+    script.setAttribute('data-telegram-login', 'YOUR_BOT_USERNAME'); // Replace with your bot username
+    script.setAttribute('data-size', 'large');
+    script.setAttribute('data-radius', '8');
+    script.setAttribute('data-request-access', 'write');
+    script.setAttribute('data-userpic', 'true');
+    script.setAttribute('data-lang', 'he');
+    
+    // Set callback function
+    (window as any).onTelegramAuth = (user: any) => {
+      console.log('🔐 Telegram Login Widget callback:', user);
+      onAuth(user);
+    };
+    
+    script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+    
+    const container = document.getElementById('telegram-login-container');
+    if (container) {
+      container.appendChild(script);
+    }
+
+    return () => {
+      // Cleanup
+      if (container && script.parentNode) {
+        container.removeChild(script);
+      }
+      delete (window as any).onTelegramAuth;
+    };
+  }, [onAuth]);
+
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100vh',
+      backgroundColor: theme.bg_color,
+      color: theme.text_color,
+      padding: '20px',
+      direction: 'rtl'
+    }}>
+      <div style={{
+        fontSize: '64px',
+        marginBottom: '32px'
+      }}>
+        📱
+      </div>
+      
+      <h1 style={{
+        fontSize: '28px',
+        fontWeight: '600',
+        marginBottom: '16px',
+        textAlign: 'center'
+      }}>
+        מערכת לוגיסטיקה
+      </h1>
+      
+      <p style={{
+        fontSize: '18px',
+        color: theme.hint_color,
+        textAlign: 'center',
+        marginBottom: '40px',
+        lineHeight: '1.5',
+        maxWidth: '320px'
+      }}>
+        התחבר עם חשבון הטלגרם שלך כדי לגשת למערכת
+      </p>
+
+      {/* Telegram Login Widget Container */}
+      <div 
+        id="telegram-login-container"
+        style={{
+          marginBottom: '32px'
+        }}
+      />
+
+      <div style={{
+        fontSize: '14px',
+        color: theme.hint_color,
+        textAlign: 'center',
+        lineHeight: '1.4',
+        maxWidth: '280px'
+      }}>
+        <p style={{ margin: '0 0 8px 0' }}>
+          🔒 התחברות מאובטחת באמצעות טלגרם
+        </p>
+        <p style={{ margin: 0 }}>
+          הנתונים שלך מוגנים ומוצפנים
+        </p>
+      </div>
+    </div>
+  );
 }
