@@ -35,6 +35,46 @@ A Telegram Mini App for managing logistics operations, orders, and deliveries. B
 
 ## Quick Start
 
+### Supabase Setup
+
+1. **Create a Supabase project**:
+   - Go to [supabase.com](https://supabase.com)
+   - Create a new project
+   - Note your project URL and anon key
+
+2. **Deploy Edge Functions**:
+   ```bash
+   # Install Supabase CLI
+   npm install -g supabase
+   
+   # Login to Supabase
+   supabase login
+   
+   # Link to your project
+   supabase link --project-ref your-project-ref
+   
+   # Set secrets
+   supabase secrets set TELEGRAM_BOT_TOKEN=your_bot_token
+   supabase secrets set TELEGRAM_WEBHOOK_SECRET=your_webhook_secret
+   supabase secrets set JWT_SECRET=your_jwt_secret
+   
+   # Deploy functions
+   supabase functions deploy telegram-webhook
+   supabase functions deploy telegram-verify
+   supabase functions deploy bootstrap
+   supabase functions deploy user-mode
+   
+   # Run migrations
+   supabase db push
+   ```
+
+3. **Set up Telegram webhook**:
+   ```bash
+   curl -X POST "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook" \
+     -d "url=https://<project-ref>.supabase.co/functions/v1/telegram-webhook" \
+     -d "secret_token=<WEBHOOK_SECRET>"
+   ```
+
 ### Development
 
 1. **Clone and install**:
@@ -47,7 +87,7 @@ A Telegram Mini App for managing logistics operations, orders, and deliveries. B
 2. **Set up environment**:
    ```bash
    cp .env.example .env
-   # Edit .env with your configuration
+   # Edit .env with your Supabase configuration
    ```
 
 3. **Start development server**:
@@ -63,100 +103,55 @@ A Telegram Mini App for managing logistics operations, orders, and deliveries. B
 2. **Set up Mini App**:
    ```
    /newapp
-   /setmenubutton - Set menu button URL to your deployed app
+   /setmenubutton - Set menu button URL to your Bolt deployment
    ```
 3. **Configure environment**:
    ```bash
-   VITE_TELEGRAM_BOT_TOKEN=your_bot_token
-   VITE_TELEGRAM_WEBAPP_URL=https://your-app.vercel.app
+   VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+   VITE_SUPABASE_ANON_KEY=your_anon_key
    ```
 
-## Data Adapters
+## Architecture
 
-The app uses a database-driven configuration system. Switch between different backends by updating the `app_config` table:
+### Supabase Edge Functions
+- **telegram-webhook**: Handles incoming Telegram messages and commands
+- **telegram-verify**: Verifies Telegram WebApp initData and creates user sessions
+- **bootstrap**: Returns app configuration and user preferences
+- **user-mode**: Saves user mode preferences (demo/real)
 
-### Switching Data Adapters
+### Security
+- HMAC verification of Telegram initData
+- Supabase Auth integration
+- Row Level Security (RLS) policies
+- No secrets in client code
 
-Connect to your database and update the configuration:
-
-```sql
--- Switch to Postgres adapter
-UPDATE app_config 
-SET config = jsonb_set(config, '{adapters,data}', '"postgres"')
-WHERE app = 'miniapp';
-
--- Switch to SQLite adapter
-UPDATE app_config 
-SET config = jsonb_set(config, '{adapters,data}', '"sqlite"')
-WHERE app = 'miniapp';
-
--- Switch to Mock adapter (development)
-UPDATE app_config 
-SET config = jsonb_set(config, '{adapters,data}', '"mock"')
-WHERE app = 'miniapp';
-```
-
-### Database Setup
-
-#### PostgreSQL/Neon Setup
-1. Set `DATABASE_URL` environment variable
-2. Run migrations: `npm run migrate`
-3. Update app_config to use "postgres" adapter
-
-#### SQLite Setup
-1. Set `SQLITE_DB_PATH` (default: ./data.db)
-2. Set `SQLITE_KEY_PATH` for encryption key (optional)
-3. Database and tables are created automatically
-4. Update app_config to use "sqlite" adapter
-
-### Security Configuration
-
-Required server-side environment variables:
-- `TELEGRAM_BOT_TOKEN` - Your Telegram bot token
-- `JWT_SECRET` - Secret for signing JWTs
-- `DATABASE_URL` - Postgres connection string (if using Postgres)
-- `SQLITE_DB_PATH` - SQLite database file path (if using SQLite)
-- `SQLITE_KEY_PATH` - Path to SQLCipher encryption key file (optional)
-
-### Bootstrap Process
-
-The app uses a secure bootstrap process:
-1. Client sends Telegram `initData` to `/api/verify-init`
-2. Server verifies HMAC signature and returns JWT
-3. Client calls `/api/bootstrap` with JWT to get configuration
-4. Configuration determines which data adapter to use
-5. No secrets or configuration needed in client environment
+### Data Flow
+1. User opens Mini App in Telegram
+2. Frontend sends initData to telegram-verify Edge Function
+3. Edge Function verifies signature and creates Supabase session
+4. Frontend calls bootstrap to get configuration
+5. App initializes with user preferences
 
 ## Deployment
 
-### Vercel (Recommended)
+### Bolt (Frontend)
 ```bash
 npm run build
-vercel --prod
+# Deploy via Bolt interface
 ```
 
-### Cloudflare Pages
+### Supabase (Backend)
 ```bash
-npm run build
-wrangler pages publish dist
+supabase functions deploy --no-verify-jwt
 ```
 
-### Netlify
-```bash
-npm run build
-netlify deploy --prod --dir=dist
-```
+## Edge Function URLs
 
-## API Endpoints
-
-The app can work with these optional backend endpoints:
-
-- `POST /api/verify-init` - Verify Telegram init data and return JWT
-- `GET /api/orders` - List orders with filters
-- `GET /api/orders/:id` - Get order details
-- `POST /api/orders` - Create new order
-- `GET /api/tasks/mine` - Get courier's tasks
-- `POST /api/tasks/:id/complete` - Complete task with proof
+Your stable HTTPS endpoints:
+- `https://<project-ref>.supabase.co/functions/v1/telegram-webhook`
+- `https://<project-ref>.supabase.co/functions/v1/telegram-verify`
+- `https://<project-ref>.supabase.co/functions/v1/bootstrap`
+- `https://<project-ref>.supabase.co/functions/v1/user-mode`
 
 ## Project Structure
 

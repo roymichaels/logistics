@@ -3,7 +3,7 @@ import { telegram } from '../../lib/telegram';
 
 interface BootstrapResult {
   config: BootstrapConfig;
-  jwt: string | null;
+  token: string | null;
   prefMode: 'demo' | 'real' | null;
 }
 
@@ -32,21 +32,28 @@ export async function bootstrap(): Promise<BootstrapResult> {
           mode: 'demo' as const,
         },
       },
-      jwt: null,
+      token: null,
       prefMode: null,
     };
   }
 
-  const API_BASE = import.meta.env.VITE_API_BASE || '/api';
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+  if (!SUPABASE_URL) {
+    throw new Error('VITE_SUPABASE_URL environment variable is required');
+  }
+  
   const initData = telegram.initData;
 
-  // Step 1: Verify init data and get JWT
-  const verifyResponse = await fetch(`${API_BASE}/verify-init`, {
+  // Step 1: Verify init data and get session
+  const verifyResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-verify`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ initData }),
+    body: JSON.stringify({ 
+      type: 'webapp', 
+      initData 
+    }),
   });
 
   if (!verifyResponse.ok) {
@@ -60,12 +67,13 @@ export async function bootstrap(): Promise<BootstrapResult> {
     throw new Error(errorMessage);
   }
 
-  const { jwt } = await verifyResponse.json();
+  const { session, user } = await verifyResponse.json();
+  const token = session?.access_token;
 
   // Step 2: Get bootstrap configuration
-  const bootstrapResponse = await fetch(`${API_BASE}/bootstrap`, {
+  const bootstrapResponse = await fetch(`${SUPABASE_URL}/functions/v1/bootstrap`, {
     headers: {
-      'Authorization': `Bearer ${jwt}`,
+      'Authorization': `Bearer ${token}`,
     },
   });
 
@@ -88,19 +96,22 @@ export async function bootstrap(): Promise<BootstrapResult> {
 
   return {
     config,
-    jwt,
+    token,
     prefMode,
   };
 }
 
-export async function setUserMode(jwt: string, mode: 'demo' | 'real'): Promise<void> {
-  const API_BASE = import.meta.env.VITE_API_BASE || '/api';
+export async function setUserMode(token: string, mode: 'demo' | 'real'): Promise<void> {
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+  if (!SUPABASE_URL) {
+    throw new Error('VITE_SUPABASE_URL environment variable is required');
+  }
 
-  const response = await fetch(`${API_BASE}/user-mode`, {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/user-mode`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${jwt}`,
+      'Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify({ mode }),
   });
@@ -111,13 +122,16 @@ export async function setUserMode(jwt: string, mode: 'demo' | 'real'): Promise<v
   }
 }
 
-export async function seedDemo(jwt: string): Promise<void> {
-  const API_BASE = import.meta.env.VITE_API_BASE || '/api';
+export async function seedDemo(token: string): Promise<void> {
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+  if (!SUPABASE_URL) {
+    throw new Error('VITE_SUPABASE_URL environment variable is required');
+  }
 
-  const response = await fetch(`${API_BASE}/seed-demo`, {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/seed-demo`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${jwt}`,
+      'Authorization': `Bearer ${token}`,
     },
   });
 

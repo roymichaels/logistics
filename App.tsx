@@ -18,7 +18,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('lobby');
   const [dataStore, setDataStore] = useState<DataStore | null>(null);
   const [config, setConfig] = useState<BootstrapConfig | null>(null);
-  const [jwt, setJwt] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [mode, setMode] = useState<'demo' | 'real' | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +43,7 @@ export default function App() {
       // Bootstrap from server
       const result = await bootstrap();
       setConfig(result.config);
-      setJwt(result.jwt);
+      setToken(result.token);
       
       // Check if user has a saved preference
       if (result.prefMode) {
@@ -63,12 +63,12 @@ export default function App() {
   };
 
   const handleModeSelected = async (selectedMode: 'demo' | 'real', remember: boolean) => {
-    if (!config || !jwt) return;
+    if (!config) return;
     
     try {
       // Set user preference if remember is true
-      if (remember && jwt) {
-        await setUserMode(jwt, selectedMode);
+      if (remember && token) {
+        await setUserMode(token, selectedMode);
       }
       
       // Create data store with selected mode
