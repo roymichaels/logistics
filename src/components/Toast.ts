@@ -29,7 +29,11 @@ export class Toast {
         font-weight: 500;
       `;
       document.body.appendChild(toast);
-      setTimeout(() => document.body.removeChild(toast), 3000);
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 3000);
     }
   }
 
