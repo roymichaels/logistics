@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
+import fs from 'fs';
+import fs from 'fs';
 
 const verifyInitSchema = z.object({
   initData: z.string(),
@@ -11,12 +13,24 @@ export async function verifyInit(req: Request, res: Response) {
   try {
     const { initData } = verifyInitSchema.parse(req.body);
     
-    const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN_FILE 
+      ? fs.readFileSync(process.env.TELEGRAM_BOT_TOKEN_FILE, 'utf8').trim()
+      : process.env.TELEGRAM_BOT_TOKEN;
+      
+      ? fs.readFileSync(process.env.TELEGRAM_BOT_TOKEN_FILE, 'utf8').trim()
+      : process.env.TELEGRAM_BOT_TOKEN;
+      
     if (!BOT_TOKEN) {
       return res.status(500).json({ error: 'Bot token not configured' });
     }
 
-    const JWT_SECRET = process.env.JWT_SECRET;
+    const JWT_SECRET = process.env.JWT_SECRET_FILE
+      ? fs.readFileSync(process.env.JWT_SECRET_FILE, 'utf8').trim()
+      : process.env.JWT_SECRET;
+      
+      ? fs.readFileSync(process.env.JWT_SECRET_FILE, 'utf8').trim()
+      : process.env.JWT_SECRET;
+      
     if (!JWT_SECRET) {
       return res.status(500).json({ error: 'JWT secret not configured' });
     }

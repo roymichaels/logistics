@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { telegram } from './lib/telegram';
 import { bootstrap, setUserMode } from './src/lib/bootstrap';
-import { createStore } from './data';
+import { createFrontendDataStore } from './src/lib/frontendDataStore';
 import { DataStore, BootstrapConfig } from './data/types';
 import { ModeBadge } from './src/components/ModeBadge';
 import { Lobby } from './src/pages/Lobby';
@@ -72,7 +72,7 @@ export default function App() {
       }
       
       // Create data store with selected mode
-      const store = await createStore(config, selectedMode);
+      const store = createFrontendDataStore(config, selectedMode);
       setDataStore(store);
       setMode(selectedMode);
       setCurrentPage('dashboard');

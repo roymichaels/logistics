@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { getAppConfig } from '../db/config';
-import { createStore } from '../../data';
+import { createStore } from '../data';
 
 export async function seedDemo(req: Request, res: Response) {
   try {
