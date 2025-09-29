@@ -23,6 +23,9 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service' | null>(null);
 
+  // Derived state for login status
+  const isLoggedIn = user !== null;
+
   const theme = telegram.themeParams;
 
   useEffect(() => {
@@ -65,6 +68,30 @@ export default function App() {
       console.error('App initialization failed:', error);
       setError(error instanceof Error ? error.message : 'Failed to initialize app');
       setLoading(false);
+    }
+  };
+
+  const handleLogin = async (userData: any) => {
+    try {
+      setUser(userData);
+      
+      // Create data store in real mode
+      const store = createFrontendDataStore(config!, 'real', userData);
+      setDataStore(store);
+      
+      // Get user role from store
+      if (store) {
+        try {
+          const profile = await store.getProfile();
+          setUserRole(profile.role);
+        } catch (error) {
+          console.warn('Failed to get user profile:', error);
+          setUserRole('manager'); // Default fallback
+        }
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      setError(error instanceof Error ? error.message : 'Login failed');
     }
   };
 
