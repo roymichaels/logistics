@@ -56,7 +56,7 @@ export default function App() {
       setUser(result.user);
       
       // Create data store in real mode
-      const store = createFrontendDataStore(result.config, 'real', result.user);
+      const store = await createFrontendDataStore(result.config, 'real', result.user);
       setDataStore(store);
       
       // Get user role from store
@@ -92,7 +92,7 @@ export default function App() {
       setUser(userData);
       
       // Create data store in real mode
-      const store = createFrontendDataStore(config!, 'real', userData);
+      const store = await createFrontendDataStore(config!, 'real', userData);
       setDataStore(store);
       
       // Get user role from store
@@ -211,16 +211,12 @@ export default function App() {
         return <Channels dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'reports':
         return <Reports dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'products':
-        return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד מוצרים - בפיתוח</div>;
       case 'deliveries':
         return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד משלוחים - בפיתוח</div>;
       case 'route':
         return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד מסלול - בפיתוח</div>;
       case 'customers':
         return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד לקוחות - בפיתוח</div>;
-      case 'reports':
-        return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד דוחות - בפיתוח</div>;
       case 'users':
         return <UserManagement onNavigate={handleNavigate} currentUser={user} />;
       case 'settings':

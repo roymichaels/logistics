@@ -431,6 +431,13 @@ class HebrewLogisticsDataStore implements DataStore {
   }
 }
 
-export function createFrontendDataStore(cfg: BootstrapConfig, mode: 'real', user?: any): DataStore {
+export async function createFrontendDataStore(cfg: BootstrapConfig, mode: 'real', user?: any): Promise<DataStore> {
+  // Use Supabase for real mode if configured, otherwise fallback to mock
+  if (cfg.adapters.data === 'postgres' && import.meta.env.VITE_SUPABASE_URL) {
+    const { createSupabaseDataStore } = await import('./supabaseDataStore');
+    return createSupabaseDataStore(user?.telegram_id, user?.auth_token);
+  }
+
+  // Fallback to mock data store for development/demo
   return new HebrewLogisticsDataStore(user);
 }
