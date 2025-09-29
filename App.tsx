@@ -4,6 +4,7 @@ import { bootstrap } from './src/lib/bootstrap';
 import { createFrontendDataStore } from './src/lib/frontendDataStore';
 import { DataStore, BootstrapConfig } from './data/types';
 import { BottomNavigation } from './src/components/BottomNavigation';
+import { TelegramLogin } from './src/components/TelegramLogin';
 import { hebrew } from './src/lib/hebrew';
 
 // Pages
