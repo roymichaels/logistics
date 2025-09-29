@@ -56,18 +56,27 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
       if (encryptionEnabled) {
         const encryptedChats = [
           {
-            id: 'encrypted_demo',
-            name: '🔐 צ\'אט מוצפן - דמו',
-            description: 'צ\'אט מוצפן מקצה לקצה עם AES-256',
+            id: 'encrypted_general',
+            name: '🔐 צ\'אט כללי מוצפן',
+            description: 'תקשורת מאובטחת מקצה לקצה',
             type: 'encrypted',
             members: [],
             createdAt: new Date().toISOString(),
             isActive: true
           },
           {
-            id: 'encrypted_team',
-            name: '🔐 צוות ניהול מוצפן',
-            description: 'תקשורת מאובטחת לצוות הניהול',
+            id: 'encrypted_management',
+            name: '🔐 הנהלה',
+            description: 'תקשורת מאובטחת להנהלה',
+            type: 'encrypted',
+            members: [],
+            createdAt: new Date().toISOString(),
+            isActive: true
+          },
+          {
+            id: 'encrypted_logistics',
+            name: '🔐 צוות לוגיסטיקה',
+            description: 'תיאום מוצפן למשלוחים',
             type: 'encrypted',
             members: [],
             createdAt: new Date().toISOString(),
@@ -79,8 +88,8 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
         setChats(chatsList);
       }
 
-      // Load demo messages for selected chat
-      if (selectedChat) {
+      // Load messages for selected chat
+      if (selectedChat && selectedChat.type !== 'encrypted') {
         loadMessages(selectedChat.id);
       }
     } catch (error) {
@@ -90,39 +99,20 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
     }
   };
 
-  const loadMessages = (chatId: string) => {
-    // Demo messages
-    const demoMessages = [
-      {
-        id: '1',
-        user: 'יוסי כהן',
-        message: 'בוקר טוב לכולם! יש לנו הזמנה דחופה לתל אביב',
-        timestamp: new Date(Date.now() - 3600000).toISOString(),
-        avatar: '👨‍💼'
-      },
-      {
-        id: '2',
-        user: 'שרה לוי',
-        message: 'אני יכולה לקחת את זה, אני כבר באזור',
-        timestamp: new Date(Date.now() - 3000000).toISOString(),
-        avatar: '👩‍🚚'
-      },
-      {
-        id: '3',
-        user: 'דני מור',
-        message: 'מצוין! אני מכין את החבילה במחסן',
-        timestamp: new Date(Date.now() - 1800000).toISOString(),
-        avatar: '👨‍🔧'
-      },
-      {
-        id: '4',
-        user: 'רחל גולן',
-        message: 'הלקוח אישר קבלה עד 14:00',
-        timestamp: new Date(Date.now() - 900000).toISOString(),
-        avatar: '👩‍💼'
+  const loadMessages = async (chatId: string) => {
+    try {
+      // Load messages from dataStore for regular (non-encrypted) chats
+      if (dataStore.listMessages) {
+        const chatMessages = await dataStore.listMessages(chatId);
+        setMessages(chatMessages || []);
+      } else {
+        // If no messages exist, show empty state
+        setMessages([]);
       }
-    ];
-    setMessages(demoMessages);
+    } catch (error) {
+      console.error('Failed to load messages:', error);
+      setMessages([]);
+    }
   };
 
   const sendMessage = () => {

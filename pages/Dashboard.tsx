@@ -35,9 +35,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
       const profile = await dataStore.getProfile();
       setUser(profile);
       
-      // Check for demo role override
-      const demoRole = localStorage.getItem('demo_role');
-      const role = demoRole || profile.role;
+      const role = profile.role;
       setEffectiveRole(role);
 
       // Load notifications
@@ -100,14 +98,14 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
           revenue: 0
         });
       } else {
-        // User role - show demo stats
+        // Regular user role - load actual data
         setStats({
-          totalOrders: 12,
-          pendingTasks: 3,
-          completedToday: 8,
-          totalProducts: 45,
-          lowStock: 2,
-          revenue: 15420
+          totalOrders: 0,
+          pendingTasks: 0,
+          completedToday: 0,
+          totalProducts: 0,
+          lowStock: 0,
+          revenue: 0
         });
       }
 
@@ -180,33 +178,14 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     return hebrew.good_evening;
   };
 
-  // Show demo badge if in demo mode
-  const showDemoBadge = localStorage.getItem('demo_role');
   return (
-    <div style={{ 
-      padding: '16px', 
+    <div style={{
+      padding: '16px',
       backgroundColor: theme.bg_color,
       color: theme.text_color,
       minHeight: '100vh',
       direction: 'rtl'
     }}>
-      {/* Demo Badge */}
-      {showDemoBadge && (
-        <div style={{
-          position: 'fixed',
-          top: '16px',
-          left: '16px',
-          zIndex: 1000,
-          padding: '6px 12px',
-          backgroundColor: '#ff9500',
-          color: 'white',
-          borderRadius: '16px',
-          fontSize: '12px',
-          fontWeight: '600'
-        }}>
-          🎮 מצב דמו - {roleNames[showDemoBadge as keyof typeof roleNames]}
-        </div>
-      )}
       
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
@@ -341,7 +320,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
         ) : user?.role === 'user' ? (
           <>
             <StatCard
-              title="הזמנות דמו"
+              title="הזמנות כללי"
               value={stats.totalOrders}
               color={theme.button_color}
               theme={theme}
@@ -425,9 +404,9 @@ function getQuickActions(role?: string) {
   switch (role) {
     case 'user':
       return [
-        { title: 'צפה בדמו', subtitle: 'התנסות במערכת', icon: '🎮', page: 'demo' },
-        { title: 'צור קשר', subtitle: 'פנה לתמיכה', icon: '📞', page: 'contact' },
-        { title: 'מידע נוסף', subtitle: 'למד על המערכת', icon: 'ℹ️', page: 'about' }
+        { title: 'צפה בהזמנות', subtitle: 'ההזמנות שלי', icon: '📋', page: 'orders' },
+        { title: 'צ\'אטים', subtitle: 'תקשורת מאובטחת', icon: '💬', page: 'chat' },
+        { title: 'הגדרות', subtitle: 'ניהול חשבון', icon: '⚙️', page: 'settings' }
       ];
     case 'manager':
       return [
