@@ -285,35 +285,76 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
   onError: (error: string) => void;
   theme: any;
 }) {
+  const [widgetLoaded, setWidgetLoaded] = useState(false);
+
   useEffect(() => {
-    // Create Telegram Login Widget
-    const script = document.createElement('script');
-    script.src = 'https://telegram.org/js/telegram-widget.js?22';
-    script.setAttribute('data-telegram-login', 'YOUR_BOT_USERNAME'); // Replace with your bot username
-    script.setAttribute('data-size', 'large');
-    script.setAttribute('data-radius', '8');
-    script.setAttribute('data-request-access', 'write');
-    script.setAttribute('data-userpic', 'true');
-    script.setAttribute('data-lang', 'he');
-    
-    // Set callback function
+    // Set up global callback function BEFORE loading the script
     (window as any).onTelegramAuth = (user: any) => {
       console.log('🔐 Telegram Login Widget callback:', user);
+      
+      // Verify the auth_date is recent (within 24 hours)
+      const authDate = user.auth_date;
+      const now = Math.floor(Date.now() / 1000);
+      if (now - authDate > 86400) {
+        onError('Authentication data is too old');
+        return;
+      }
+      
       onAuth(user);
     };
+
+    // Create and configure the Telegram Login Widget script
+    const script = document.createElement('script');
+    script.src = 'https://telegram.org/js/telegram-widget.js?22';
+    script.async = true;
     
+    // Widget configuration according to Telegram docs
+    const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'YOUR_BOT_USERNAME';
+    script.setAttribute('data-telegram-login', botUsername);
+    script.setAttribute('data-size', 'large');
+    script.setAttribute('data-radius', '10');
+    script.setAttribute('data-request-access', 'write');
+    script.setAttribute('data-userpic', 'false');
+    script.setAttribute('data-lang', 'en'); // Use English for better compatibility
     script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+    
+    script.onload = () => {
+      setWidgetLoaded(true);
+      console.log('✅ Telegram Login Widget loaded');
+    };
+    
+    script.onerror = () => {
+      console.error('❌ Failed to load Telegram Login Widget');
+      onError('Failed to load Telegram login widget');
+    };
     
     const container = document.getElementById('telegram-login-container');
     if (container) {
+      // Clear any existing content
+      container.innerHTML = '';
       container.appendChild(script);
+    } else {
+      console.error('❌ Telegram login container not found');
     }
 
     return () => {
       // Cleanup
-      if (container && script.parentNode) {
-        container.removeChild(script);
+      if (container) {
+        container.innerHTML = '';
       }
+        <div style={{
+          padding: '16px',
+          backgroundColor: '#ff3b30',
+          color: 'white',
+          borderRadius: '8px',
+          marginBottom: '24px',
+          textAlign: 'center',
+          maxWidth: '320px'
+        }}>
+          <p style={{ margin: '0 0 8px 0', fontWeight: '600' }}>שגיאה בטעינת כפתור הטלגרם</p>
+          <p style={{ margin: 0, fontSize: '14px' }}>{widgetError}</p>
+        </div>
+      ) : (
       delete (window as any).onTelegramAuth;
     };
   }, [onAuth]);
@@ -361,9 +402,26 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
       <div 
         id="telegram-login-container"
         style={{
-          marginBottom: '32px'
+          marginBottom: '32px',
+          minHeight: '40px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
         }}
-      />
+      >
+        {!widgetLoaded && !widgetError && (
+          <div style={{
+            padding: '12px 24px',
+            backgroundColor: theme.button_color,
+            color: theme.button_text_color,
+            borderRadius: '8px',
+            fontSize: '16px'
+          }}>
+            טוען כפתור טלגרם...
+          </div>
+        )}
+      </div>
+      )}
 
       <div style={{
         fontSize: '14px',
