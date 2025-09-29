@@ -6,6 +6,7 @@
 import { PINAuthService } from './pinAuth';
 import { EncryptionService } from './encryption';
 import { SecureStorage, SecureSessionManager, SecureConfigManager } from './secureStorage';
+import { getSecurityAuditLogger } from './auditLogger';
 
 export interface SecurityManagerConfig {
   userId: string;
@@ -33,6 +34,7 @@ export class SecurityManager {
   private sessionManager: SecureSessionManager | null = null;
   private configManager: SecureConfigManager | null = null;
   private config: SecurityManagerConfig;
+  private auditLogger = getSecurityAuditLogger();
 
   constructor(config: SecurityManagerConfig) {
     this.config = config;
@@ -85,6 +87,18 @@ export class SecurityManager {
   async setupPIN(pin: string): Promise<{ success: boolean; error?: string }> {
     const result = await this.pinAuthService.setupPIN(pin);
 
+    // Log PIN setup attempt
+    await this.auditLogger.logSecurityEvent({
+      eventType: 'pin_setup',
+      userId: this.config.telegramId,
+      details: {
+        setupMethod: 'user_initiated',
+        timestamp: new Date().toISOString()
+      },
+      success: result.success,
+      riskLevel: result.success ? 'low' : 'medium'
+    });
+
     if (result.success) {
       // Generate master key from PIN
       this.masterKey = await this.pinAuthService.generateMasterKeyFromPIN(pin);
@@ -92,6 +106,19 @@ export class SecurityManager {
       if (this.masterKey) {
         await this.initializeSecureServices();
         await this.createInitialSession();
+
+        // Log successful initialization
+        await this.auditLogger.logSecurityEvent({
+          eventType: 'login_attempt',
+          userId: this.config.telegramId,
+          details: {
+            method: 'pin_setup',
+            securityLevel: 'high',
+            encryptionEnabled: true
+          },
+          success: true,
+          riskLevel: 'low'
+        });
       }
     }
 
@@ -102,7 +129,15 @@ export class SecurityManager {
    * Verify PIN and authenticate
    */
   async authenticateWithPIN(pin: string): Promise<{ success: boolean; error?: string; requiresPinChange?: boolean }> {
+    const lockoutInfo = this.pinAuthService.getLockoutInfo();
     const result = await this.pinAuthService.verifyPIN(pin);
+
+    // Log PIN verification attempt with detailed context
+    await this.auditLogger.logPINAttempt(
+      this.config.telegramId,
+      result.success,
+      lockoutInfo.failedAttempts
+    );
 
     if (result.success) {
       // Generate master key from PIN
@@ -112,11 +147,30 @@ export class SecurityManager {
         await this.initializeSecureServices();
         await this.createInitialSession();
 
+        // Log successful authentication
+        await this.auditLogger.logSessionActivity(
+          this.config.telegramId,
+          'created'
+        );
+
         return {
           success: true,
           requiresPinChange: result.requiresPinChange
         };
       } else {
+        // Log encryption key generation failure
+        await this.auditLogger.logSecurityEvent({
+          eventType: 'suspicious_activity',
+          userId: this.config.telegramId,
+          details: {
+            issue: 'master_key_generation_failed',
+            pinVerifySuccess: true,
+            timestamp: new Date().toISOString()
+          },
+          success: false,
+          riskLevel: 'high'
+        });
+
         return {
           success: false,
           error: 'Failed to generate encryption key'
@@ -136,6 +190,19 @@ export class SecurityManager {
   async changePIN(currentPin: string, newPin: string): Promise<{ success: boolean; error?: string }> {
     const result = await this.pinAuthService.changePIN(currentPin, newPin);
 
+    // Log PIN change attempt
+    await this.auditLogger.logSecurityEvent({
+      eventType: 'pin_change',
+      userId: this.config.telegramId,
+      details: {
+        changeMethod: 'user_initiated',
+        timestamp: new Date().toISOString(),
+        reencryptionRequired: true
+      },
+      success: result.success,
+      riskLevel: result.success ? 'low' : 'medium'
+    });
+
     if (result.success) {
       // Regenerate master key with new PIN
       this.masterKey = await this.pinAuthService.generateMasterKeyFromPIN(newPin);
@@ -144,6 +211,19 @@ export class SecurityManager {
         // Re-encrypt all stored data with new key
         await this.reencryptStoredData();
         await this.createInitialSession();
+
+        // Log successful data re-encryption
+        await this.auditLogger.logSecurityEvent({
+          eventType: 'key_rotation',
+          userId: this.config.telegramId,
+          details: {
+            trigger: 'pin_change',
+            dataReencrypted: true,
+            timestamp: new Date().toISOString()
+          },
+          success: true,
+          riskLevel: 'low'
+        });
       }
     }
 
@@ -174,7 +254,13 @@ export class SecurityManager {
   /**
    * Lock the application (clear master key)
    */
-  lock(): void {
+  async lock(): Promise<void> {
+    // Log session termination
+    await this.auditLogger.logSessionActivity(
+      this.config.telegramId,
+      'terminated'
+    );
+
     this.masterKey = null;
     this.secureStorage = null;
     this.sessionManager = null;
