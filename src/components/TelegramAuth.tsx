@@ -46,15 +46,6 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
         };
         onAuth(mockUser);
         return;
-        const mockUser = {
-          id: Date.now(),
-          first_name: 'משתמש טלגרם',
-          username: 'telegram_user',
-          language_code: 'he',
-          is_premium: false
-        };
-        onAuth(mockUser);
-        return;
       }
 
       // Verify with backend if Supabase is configured
