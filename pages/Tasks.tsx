@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { telegram } from '../lib/telegram';
 import { DataStore, Task, Order, Route } from '../data/types';
 import { cache } from '../lib/cache';
+import { TaskProofSubmission } from '../src/components/TaskProofSubmission';
 
 interface TasksProps {
   dataStore: DataStore;
@@ -14,6 +15,8 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
   const [route, setRoute] = useState<Route | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showProofSubmission, setShowProofSubmission] = useState(false);
+  const [taskForProof, setTaskForProof] = useState<Task | null>(null);
 
   const theme = telegram.themeParams;
 
@@ -23,7 +26,10 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
 
   useEffect(() => {
     telegram.setBackButton(() => {
-      if (selectedTask) {
+      if (showProofSubmission) {
+        setShowProofSubmission(false);
+        setTaskForProof(null);
+      } else if (selectedTask) {
         setSelectedTask(null);
       } else {
         // Don't navigate back to dashboard, let bottom nav handle it
@@ -31,8 +37,8 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
       }
     });
 
-    // Only show back button when in task detail
-    if (!selectedTask) {
+    // Only show back button when in task detail or proof submission
+    if (!selectedTask && !showProofSubmission) {
       telegram.hideBackButton();
     }
   }, [selectedTask, onNavigate]);
@@ -93,6 +99,36 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
     );
   }
 
+  if (showProofSubmission && taskForProof) {
+    return (
+      <TaskProofSubmission
+        task={taskForProof}
+        onSubmit={async (proof) => {
+          try {
+            // Handle proof submission
+            await dataStore.completeTask?.(proof.taskId, {
+              proof_images: proof.images,
+              proof_notes: proof.notes,
+              completion_location: proof.location,
+              completed_at: proof.timestamp.toISOString()
+            });
+            setShowProofSubmission(false);
+            setTaskForProof(null);
+            loadData();
+            telegram.hapticFeedback('notification', 'success');
+          } catch (error) {
+            console.error('Failed to submit proof:', error);
+            telegram.showAlert('שליחת הוכחת הביצוע נכשלה');
+          }
+        }}
+        onCancel={() => {
+          setShowProofSubmission(false);
+          setTaskForProof(null);
+        }}
+      />
+    );
+  }
+
   if (selectedTask) {
     return (
       <TaskDetail
@@ -103,6 +139,11 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
         onComplete={() => {
           setSelectedTask(null);
           loadData();
+        }}
+        onSubmitProof={(task) => {
+          setTaskForProof(task);
+          setSelectedTask(null);
+          setShowProofSubmission(true);
         }}
         theme={theme}
       />
@@ -329,12 +370,13 @@ function TaskCard({ task, order, onClick, theme }: {
   );
 }
 
-function TaskDetail({ task, order, dataStore, onBack, onComplete, theme }: {
+function TaskDetail({ task, order, dataStore, onBack, onComplete, onSubmitProof, theme }: {
   task: Task;
   order?: Order;
   dataStore: DataStore;
   onBack: () => void;
   onComplete: () => void;
+  onSubmitProof?: (task: Task) => void;
   theme: any;
 }) {
   const [completing, setCompleting] = useState(false);
@@ -472,13 +514,34 @@ function TaskDetail({ task, order, dataStore, onBack, onComplete, theme }: {
             Proof of Delivery
           </h3>
           
-          {photo ? (
+          <button
+            onClick={() => onSubmitProof?.(task)}
+            style={{
+              padding: '16px',
+              backgroundColor: theme.button_color || '#007aff',
+              color: theme.button_text_color || 'white',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '16px',
+              cursor: 'pointer',
+              width: '100%',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}
+          >
+            📷 שלח הוכחת ביצוע
+          </button>
+
+          {photo && (
             <div style={{ marginBottom: '16px' }}>
-              <img 
-                src={photo} 
+              <img
+                src={photo}
                 alt="Proof of delivery"
-                style={{ 
-                  width: '100%', 
+                style={{
+                  width: '100%',
                   maxWidth: '300px',
                   height: 'auto',
                   borderRadius: '8px',
@@ -498,26 +561,9 @@ function TaskDetail({ task, order, dataStore, onBack, onComplete, theme }: {
                   cursor: 'pointer'
                 }}
               >
-                Remove Photo
+                הסר תמונה
               </button>
             </div>
-          ) : (
-            <button
-              onClick={handleTakePhoto}
-              style={{
-                padding: '12px',
-                backgroundColor: theme.secondary_bg_color,
-                color: theme.text_color,
-                border: `1px solid ${theme.hint_color}40`,
-                borderRadius: '8px',
-                fontSize: '16px',
-                cursor: 'pointer',
-                width: '100%',
-                marginBottom: '16px'
-              }}
-            >
-              📷 Take Photo
-            </button>
           )}
         </div>
       )}

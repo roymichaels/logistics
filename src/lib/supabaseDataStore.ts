@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, RealtimeChannel } from '@supabase/supabase-js';
 import { DataStore, User, Order, Task, Product, Route, GroupChat, Channel, Notification, BootstrapConfig } from '../../data/types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -12,6 +12,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export class SupabaseDataStore implements DataStore {
   private user: User | null = null;
+  private subscriptions: Map<string, RealtimeChannel> = new Map();
+  private eventListeners: Map<string, Set<Function>> = new Map();
 
   constructor(private userTelegramId: string, private authToken?: string) {
     // Set auth token if provided
@@ -30,6 +32,84 @@ export class SupabaseDataStore implements DataStore {
         }
       });
     }
+
+    // Initialize real-time subscriptions
+    this.initializeRealTimeSubscriptions();
+  }
+
+  private initializeRealTimeSubscriptions() {
+    // Subscribe to order changes
+    const orderChannel = supabase.channel('orders')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+        this.notifyListeners('orders', payload);
+      })
+      .subscribe();
+
+    this.subscriptions.set('orders', orderChannel);
+
+    // Subscribe to task changes
+    const taskChannel = supabase.channel('tasks')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, (payload) => {
+        this.notifyListeners('tasks', payload);
+      })
+      .subscribe();
+
+    this.subscriptions.set('tasks', taskChannel);
+
+    // Subscribe to notification changes
+    const notificationChannel = supabase.channel('notifications')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'notifications',
+        filter: `recipient_id=eq.${this.userTelegramId}`
+      }, (payload) => {
+        this.notifyListeners('notifications', payload);
+      })
+      .subscribe();
+
+    this.subscriptions.set('notifications', notificationChannel);
+
+    // Subscribe to product changes
+    const productChannel = supabase.channel('products')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
+        this.notifyListeners('products', payload);
+      })
+      .subscribe();
+
+    this.subscriptions.set('products', productChannel);
+  }
+
+  private notifyListeners(table: string, payload: any) {
+    const listeners = this.eventListeners.get(table);
+    if (listeners) {
+      listeners.forEach(callback => callback(payload));
+    }
+  }
+
+  // Real-time subscription methods
+  subscribeToChanges(table: string, callback: (payload: any) => void) {
+    if (!this.eventListeners.has(table)) {
+      this.eventListeners.set(table, new Set());
+    }
+    this.eventListeners.get(table)!.add(callback);
+
+    // Return unsubscribe function
+    return () => {
+      const listeners = this.eventListeners.get(table);
+      if (listeners) {
+        listeners.delete(callback);
+      }
+    };
+  }
+
+  // Cleanup subscriptions
+  cleanup() {
+    this.subscriptions.forEach(channel => {
+      supabase.removeChannel(channel);
+    });
+    this.subscriptions.clear();
+    this.eventListeners.clear();
   }
 
   // Auth & Profile
@@ -136,8 +216,18 @@ export class SupabaseDataStore implements DataStore {
     if (error) throw error;
   }
 
-  // Orders
-  async listOrders(filters?: { status?: string; q?: string }): Promise<Order[]> {
+  // Orders with advanced filtering
+  async listOrders(filters?: {
+    status?: string;
+    q?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    minAmount?: number;
+    maxAmount?: number;
+    assignedDriver?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }): Promise<Order[]> {
     let query = supabase.from('orders').select('*');
 
     // Apply role-based filtering
@@ -146,15 +236,43 @@ export class SupabaseDataStore implements DataStore {
       query = query.eq('created_by', this.userTelegramId);
     }
 
+    // Status filter
     if (filters?.status && filters.status !== 'all') {
       query = query.eq('status', filters.status);
     }
 
+    // Text search
     if (filters?.q) {
-      query = query.or(`customer_name.ilike.%${filters.q}%,customer_phone.ilike.%${filters.q}%,customer_address.ilike.%${filters.q}%`);
+      query = query.or(`customer_name.ilike.%${filters.q}%,customer_phone.ilike.%${filters.q}%,customer_address.ilike.%${filters.q}%,notes.ilike.%${filters.q}%`);
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    // Date range filter
+    if (filters?.dateFrom) {
+      query = query.gte('created_at', filters.dateFrom);
+    }
+    if (filters?.dateTo) {
+      query = query.lte('created_at', filters.dateTo);
+    }
+
+    // Amount range filter
+    if (filters?.minAmount) {
+      query = query.gte('total_amount', filters.minAmount);
+    }
+    if (filters?.maxAmount) {
+      query = query.lte('total_amount', filters.maxAmount);
+    }
+
+    // Assigned driver filter
+    if (filters?.assignedDriver && filters.assignedDriver !== 'all') {
+      query = query.eq('assigned_driver', filters.assignedDriver);
+    }
+
+    // Sorting
+    const sortBy = filters?.sortBy || 'created_at';
+    const sortOrder = filters?.sortOrder || 'desc';
+    query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+
+    const { data, error } = await query;
 
     if (error) throw error;
     return data || [];
@@ -328,6 +446,188 @@ export class SupabaseDataStore implements DataStore {
       .eq('recipient_id', this.userTelegramId);
 
     if (error) throw error;
+  }
+
+  // Bulk Operations
+  async bulkUpdateOrderStatus(orderIds: string[], status: string): Promise<void> {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status, updated_at: new Date().toISOString() })
+      .in('id', orderIds);
+
+    if (error) throw error;
+  }
+
+  async bulkAssignTasks(taskIds: string[], assignedTo: string): Promise<void> {
+    const { error } = await supabase
+      .from('tasks')
+      .update({ assigned_to: assignedTo })
+      .in('id', taskIds);
+
+    if (error) throw error;
+  }
+
+  async bulkUpdateProductPrices(productIds: string[], priceMultiplier: number): Promise<void> {
+    // Get current products
+    const { data: products, error: fetchError } = await supabase
+      .from('products')
+      .select('id, price')
+      .in('id', productIds);
+
+    if (fetchError) throw fetchError;
+
+    // Update each product with new price
+    const updates = products?.map(product => ({
+      id: product.id,
+      price: Math.round(product.price * priceMultiplier * 100) / 100,
+      updated_at: new Date().toISOString()
+    }));
+
+    if (updates && updates.length > 0) {
+      const { error } = await supabase
+        .from('products')
+        .upsert(updates);
+
+      if (error) throw error;
+    }
+  }
+
+  async markAllNotificationsRead(): Promise<void> {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('recipient_id', this.userTelegramId)
+      .eq('read', false);
+
+    if (error) throw error;
+  }
+
+  // Batch Operations
+  async batchCreateProducts(products: Omit<Product, 'id' | 'created_at' | 'updated_at'>[]): Promise<{ ids: string[] }> {
+    const now = new Date().toISOString();
+    const productsWithTimestamps = products.map(product => ({
+      ...product,
+      created_at: now,
+      updated_at: now
+    }));
+
+    const { data, error } = await supabase
+      .from('products')
+      .insert(productsWithTimestamps)
+      .select('id');
+
+    if (error) throw error;
+    return { ids: data?.map(p => p.id) || [] };
+  }
+
+  async batchCreateTasks(tasks: Omit<Task, 'id' | 'created_at'>[]): Promise<{ ids: string[] }> {
+    const now = new Date().toISOString();
+    const tasksWithTimestamps = tasks.map(task => ({
+      ...task,
+      assigned_by: this.userTelegramId,
+      created_at: now
+    }));
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert(tasksWithTimestamps)
+      .select('id');
+
+    if (error) throw error;
+    return { ids: data?.map(t => t.id) || [] };
+  }
+
+  // Data Export
+  async exportOrdersToCSV(filters?: any): Promise<string> {
+    const orders = await this.listOrders(filters);
+
+    const headers = ['ID', 'Customer', 'Phone', 'Address', 'Status', 'Total', 'Date'];
+    const csvData = [
+      headers.join(','),
+      ...orders.map(order => [
+        order.id,
+        `"${order.customer_name}"`,
+        order.customer_phone,
+        `"${order.customer_address}"`,
+        order.status,
+        order.total_amount,
+        new Date(order.created_at).toLocaleDateString('he-IL')
+      ].join(','))
+    ];
+
+    return csvData.join('\n');
+  }
+
+  async exportProductsToCSV(): Promise<string> {
+    const products = await this.listProducts();
+
+    const headers = ['ID', 'Name', 'SKU', 'Price', 'Stock', 'Category', 'Location'];
+    const csvData = [
+      headers.join(','),
+      ...products.map(product => [
+        product.id,
+        `"${product.name}"`,
+        product.sku,
+        product.price,
+        product.stock_quantity,
+        product.category,
+        `"${product.warehouse_location || ''}"`
+      ].join(','))
+    ];
+
+    return csvData.join('\n');
+  }
+
+  // Analytics helpers
+  async getOrderStatsByDateRange(dateFrom: string, dateTo: string): Promise<any> {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('status, total_amount, created_at')
+      .gte('created_at', dateFrom)
+      .lte('created_at', dateTo);
+
+    if (error) throw error;
+
+    const stats = {
+      totalOrders: data?.length || 0,
+      totalRevenue: data?.reduce((sum, order) => sum + order.total_amount, 0) || 0,
+      statusBreakdown: {} as Record<string, number>,
+      averageOrderValue: 0
+    };
+
+    data?.forEach(order => {
+      stats.statusBreakdown[order.status] = (stats.statusBreakdown[order.status] || 0) + 1;
+    });
+
+    stats.averageOrderValue = stats.totalOrders > 0 ? stats.totalRevenue / stats.totalOrders : 0;
+
+    return stats;
+  }
+
+  async getTopProducts(limit: number = 10): Promise<any[]> {
+    // This would typically be done with a proper analytics table
+    // For now, we'll analyze order items
+    const orders = await this.listOrders();
+    const productCounts: Record<string, { name: string; count: number; revenue: number }> = {};
+
+    orders.forEach(order => {
+      order.items.forEach((item: any) => {
+        if (!productCounts[item.product_id]) {
+          productCounts[item.product_id] = {
+            name: item.product_name,
+            count: 0,
+            revenue: 0
+          };
+        }
+        productCounts[item.product_id].count += item.quantity;
+        productCounts[item.product_id].revenue += item.quantity * item.price;
+      });
+    });
+
+    return Object.entries(productCounts)
+      .map(([id, data]) => ({ id, ...data }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
   }
 }
 

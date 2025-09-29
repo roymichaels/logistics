@@ -65,7 +65,7 @@ declare global {
 
 class TelegramService {
   private webApp: TelegramWebApp | null = null;
-  private user: any = null;
+  private userData: any = null;
 
   constructor() {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -75,7 +75,7 @@ class TelegramService {
       
       // Parse user data from initDataUnsafe
       if (this.webApp.initDataUnsafe?.user) {
-        this.user = this.webApp.initDataUnsafe.user;
+        this.userData = this.webApp.initDataUnsafe.user;
       }
     }
   }
@@ -109,11 +109,11 @@ class TelegramService {
   }
 
   get user(): any {
-    return this.user || this.webApp?.initDataUnsafe?.user || null;
+    return this.userData || this.webApp?.initDataUnsafe?.user || null;
   }
 
   get isAuthenticated(): boolean {
-    return !!(this.user || this.webApp?.initDataUnsafe?.user);
+    return !!(this.userData || this.webApp?.initDataUnsafe?.user);
   }
 
   setMainButton({ text, visible = true, onClick }: { text: string; visible?: boolean; onClick: () => void }): void {
@@ -172,22 +172,15 @@ class TelegramService {
 
   showConfirm(message: string): Promise<boolean> {
     return new Promise((resolve) => {
-      if (this.webApp) {
-        // Use Telegram's popup for confirmation
-        this.webApp.showPopup({
-          title: 'אישור',
-          message: message,
-          buttons: [
-            { id: 'cancel', type: 'cancel', text: 'ביטול' },
-            { id: 'ok', type: 'ok', text: 'אישור' }
-          ]
-        }, (buttonId) => {
-          resolve(buttonId === 'ok');
+      if (this.webApp && this.webApp.showConfirm) {
+        // Use Telegram's built-in confirm dialog
+        this.webApp.showConfirm(message, (confirmed: boolean) => {
+          resolve(confirmed);
         });
       } else {
         // Fallback for non-Telegram environment
         console.log('Confirm:', message);
-        resolve(true);
+        resolve(confirm(message));
       }
     });
   }
