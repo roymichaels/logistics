@@ -11,48 +11,57 @@ interface BottomNavigationProps {
 export function BottomNavigation({ currentPage, onNavigate, userRole }: BottomNavigationProps) {
   const { theme, haptic } = useTelegramUI();
 
+  // Check for demo role override
+  const demoRole = localStorage.getItem('demo_role');
+  const effectiveRole = demoRole || userRole;
+
   let tabs;
   
-  if (userRole === 'user') {
+  if (effectiveRole === 'user') {
     tabs = [
       { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
       { id: 'demo', label: 'דמו', icon: '🎮' },
       { id: 'settings', label: hebrew.settings, icon: '⚙️' }
     ];
-  } else if (userRole === 'manager') {
+  } else if (effectiveRole === 'manager') {
     tabs = [
       { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
       { id: 'orders', label: hebrew.orders, icon: '📋' },
       { id: 'products', label: hebrew.products, icon: '📦' },
+      { id: 'chat', label: 'צ\'אט', icon: '💬' },
       { id: 'reports', label: hebrew.reports, icon: '📈' },
       { id: 'settings', label: hebrew.settings, icon: '⚙️' }
     ];
-  } else if (userRole === 'dispatcher') {
+  } else if (effectiveRole === 'dispatcher') {
     tabs = [
       { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
       { id: 'orders', label: hebrew.orders, icon: '📋' },
       { id: 'tasks', label: hebrew.tasks, icon: '✅' },
+      { id: 'chat', label: 'צ\'אט', icon: '💬' },
       { id: 'settings', label: hebrew.settings, icon: '⚙️' }
     ];
-  } else if (userRole === 'driver') {
+  } else if (effectiveRole === 'driver') {
     tabs = [
       { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
       { id: 'deliveries', label: hebrew.deliveries, icon: '🚚' },
       { id: 'route', label: 'מסלול', icon: '🗺️' },
+      { id: 'chat', label: 'צ\'אט', icon: '💬' },
       { id: 'settings', label: hebrew.settings, icon: '⚙️' }
     ];
-  } else if (userRole === 'warehouse') {
+  } else if (effectiveRole === 'warehouse') {
     tabs = [
       { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
       { id: 'tasks', label: hebrew.tasks, icon: '✅' },
       { id: 'products', label: hebrew.products, icon: '📦' },
+      { id: 'chat', label: 'צ\'אט', icon: '💬' },
       { id: 'settings', label: hebrew.settings, icon: '⚙️' }
     ];
-  } else if (userRole === 'sales') {
+  } else if (effectiveRole === 'sales') {
     tabs = [
       { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
       { id: 'orders', label: hebrew.orders, icon: '📋' },
       { id: 'products', label: hebrew.products, icon: '📦' },
+      { id: 'chat', label: 'צ\'אט', icon: '💬' },
       { id: 'settings', label: hebrew.settings, icon: '⚙️' }
     ];
   } else { // customer_service
@@ -60,6 +69,7 @@ export function BottomNavigation({ currentPage, onNavigate, userRole }: BottomNa
       { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
       { id: 'orders', label: hebrew.orders, icon: '📋' },
       { id: 'customers', label: hebrew.customers, icon: '👥' },
+      { id: 'chat', label: 'צ\'אט', icon: '💬' },
       { id: 'settings', label: hebrew.settings, icon: '⚙️' }
     ];
   }

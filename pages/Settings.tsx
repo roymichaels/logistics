@@ -232,6 +232,21 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
           </h2>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* Exit Demo Mode */}
+            {localStorage.getItem('demo_role') && (
+              <ActionButton
+                title="יציאה ממצב דמו"
+                subtitle="חזור למצב רגיל"
+                icon="🚪"
+                onClick={() => {
+                  telegram.hapticFeedback('selection');
+                  localStorage.removeItem('demo_role');
+                  window.location.reload();
+                }}
+                theme={theme}
+              />
+            )}
+            
             {isFirstAdmin && (
               <ActionButton
                 title="ניהול משתמשים"

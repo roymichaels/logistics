@@ -13,6 +13,11 @@ import { Orders } from './pages/Orders';
 import { Tasks } from './pages/Tasks';
 import { Settings } from './pages/Settings';
 import { UserManagement } from './pages/UserManagement';
+import { DemoLanding } from './pages/DemoLanding';
+import { Chat } from './pages/Chat';
+import { Channels } from './pages/Channels';
+import { Products } from './pages/Products';
+import { Reports } from './pages/Reports';
 
 type Page = 'dashboard' | 'orders' | 'tasks' | 'settings' | 'products' | 'deliveries' | 'route' | 'customers' | 'reports' | 'users';
 
@@ -188,11 +193,24 @@ export default function App() {
   }
 
   const renderPage = () => {
+    // Show demo landing for users
+    if (userRole === 'user' && currentPage === 'demo') {
+      return <DemoLanding onNavigate={handleNavigate} />;
+    }
+    
     switch (currentPage) {
       case 'orders':
         return <Orders dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'tasks':
         return <Tasks dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'products':
+        return <Products dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'chat':
+        return <Chat dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'channels':
+        return <Channels dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'reports':
+        return <Reports dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'products':
         return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד מוצרים - בפיתוח</div>;
       case 'deliveries':

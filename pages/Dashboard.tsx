@@ -12,6 +12,7 @@ interface DashboardProps {
 
 export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   const [user, setUser] = useState<User | null>(null);
+  const [effectiveRole, setEffectiveRole] = useState<string>('user');
   const [stats, setStats] = useState({
     totalOrders: 0,
     pendingTasks: 0,
@@ -33,6 +34,11 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     try {
       const profile = await dataStore.getProfile();
       setUser(profile);
+      
+      // Check for demo role override
+      const demoRole = localStorage.getItem('demo_role');
+      const role = demoRole || profile.role;
+      setEffectiveRole(role);
 
       // Load notifications
       if (dataStore.getNotifications) {
@@ -41,7 +47,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
       }
 
       // Load stats based on role
-      if (profile.role === 'manager') {
+      if (role === 'manager') {
         const [orders, products, tasks] = await Promise.all([
           dataStore.listOrders?.() || [],
           dataStore.listProducts?.() || [],
@@ -62,7 +68,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
           lowStock: products.filter(p => p.stock_quantity < 10).length,
           revenue
         });
-      } else if (profile.role === 'dispatcher') {
+      } else if (role === 'dispatcher') {
         const [orders, tasks] = await Promise.all([
           dataStore.listOrders?.() || [],
           dataStore.listAllTasks?.() || []
@@ -79,7 +85,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
           lowStock: 0,
           revenue: 0
         });
-      } else if (profile.role !== 'user') {
+      } else if (role !== 'user') {
         const tasks = await dataStore.listMyTasks?.() || [];
         setStats({
           totalOrders: 0,
@@ -174,6 +180,8 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     return hebrew.good_evening;
   };
 
+  // Show demo badge if in demo mode
+  const showDemoBadge = localStorage.getItem('demo_role');
   return (
     <div style={{ 
       padding: '16px', 
@@ -182,6 +190,24 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
       minHeight: '100vh',
       direction: 'rtl'
     }}>
+      {/* Demo Badge */}
+      {showDemoBadge && (
+        <div style={{
+          position: 'fixed',
+          top: '16px',
+          left: '16px',
+          zIndex: 1000,
+          padding: '6px 12px',
+          backgroundColor: '#ff9500',
+          color: 'white',
+          borderRadius: '16px',
+          fontSize: '12px',
+          fontWeight: '600'
+        }}>
+          🎮 מצב דמו - {roleNames[showDemoBadge as keyof typeof roleNames]}
+        </div>
+      )}
+      
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ 
@@ -194,14 +220,14 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
         </h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '20px' }}>
-            {roleIcons[user?.role || 'manager']}
+            {roleIcons[effectiveRole as keyof typeof roleIcons] || '👤'}
           </span>
           <p style={{ 
             margin: 0, 
             color: theme.hint_color,
             fontSize: '16px'
           }}>
-            {user?.name || 'משתמש'} • {roleNames[user?.role || 'manager']}
+            {user?.name || 'משתמש'} • {roleNames[effectiveRole as keyof typeof roleNames] || 'משתמש'}
           </p>
         </div>
       </div>
@@ -369,7 +395,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
         </h2>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {getQuickActions(user?.role).map((action, index) => (
+          {getQuickActions(effectiveRole).map((action, index) => (
             <ActionButton
               key={index}
               title={action.title}

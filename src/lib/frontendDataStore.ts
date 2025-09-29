@@ -157,8 +157,9 @@ const mockNotifications: Notification[] = [
 
 // Create mock user based on role
 const createMockUser = (providedUser?: any): User => {
-  const roles = ['user', 'manager', 'dispatcher', 'driver', 'warehouse', 'sales', 'customer_service'];
-  const defaultRole = providedUser?.role || 'user';
+  // Check for demo role in localStorage
+  const demoRole = localStorage.getItem('demo_role');
+  const defaultRole = demoRole || providedUser?.role || 'user';
   
   return {
     telegram_id: providedUser?.telegram_id || '123456789',
