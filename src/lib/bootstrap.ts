@@ -39,7 +39,29 @@ export async function bootstrap(): Promise<BootstrapResult> {
 
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
   if (!SUPABASE_URL) {
-    throw new Error('VITE_SUPABASE_URL environment variable is required');
+    console.warn('VITE_SUPABASE_URL not configured, using mock data');
+    return {
+      config: {
+        app: 'miniapp',
+        adapters: { data: 'mock' },
+        features: {
+          offline_mode: true,
+          photo_upload: true,
+          gps_tracking: true,
+          route_optimization: false,
+        },
+        ui: {
+          brand: 'Logistics Mini App',
+          accent: '#007aff',
+          theme: 'auto',
+        },
+        defaults: {
+          mode: 'demo' as const,
+        },
+      },
+      token: null,
+      prefMode: null,
+    };
   }
   
   const initData = telegram.initData;
