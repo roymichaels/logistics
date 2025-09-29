@@ -48,9 +48,6 @@ export function Settings({ dataStore, onNavigate, config }: SettingsProps) {
     setShowRoleModal(true);
   };
 
-  const [showRoleModal, setShowRoleModal] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<string>('');
-
   const handleRoleChange = async () => {
     if (!selectedRole || !dataStore.updateProfile) return;
     
