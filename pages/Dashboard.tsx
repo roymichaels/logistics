@@ -410,9 +410,9 @@ function getQuickActions(role?: string) {
       ];
     case 'manager':
       return [
-        { title: 'ניהול הזמנות', subtitle: 'צפייה ויצירת הזמנות', icon: '📋', page: 'orders' },
-        { title: 'ניהול מוצרים', subtitle: 'מלאי ומוצרים', icon: '📦', page: 'products' },
-        { title: 'דוחות', subtitle: 'דוחות ואנליטיקה', icon: '📈', page: 'reports' }
+        { title: 'לוח ביצועים', subtitle: 'מבט מהיר על העסק', icon: '📊', page: 'stats' },
+        { title: 'שותפים עסקיים', subtitle: 'ניהול ספקים ושיתופי פעולה', icon: '🤝', page: 'partners' },
+        { title: 'הזמנות פעילות', subtitle: 'צפייה ויצירת הזמנות', icon: '🧾', page: 'orders' }
       ];
     case 'dispatcher':
       return [
@@ -421,18 +421,18 @@ function getQuickActions(role?: string) {
       ];
     case 'driver':
       return [
-        { title: 'המשלוחים שלי', subtitle: 'משלוחים להיום', icon: '🚚', page: 'deliveries' },
-        { title: 'המסלול שלי', subtitle: 'מסלול נסיעה', icon: '🗺️', page: 'route' }
+        { title: 'המשלוחים שלי', subtitle: 'משלוחים להיום', icon: '🚚', page: 'my-deliveries' },
+        { title: 'סטטוס נהג', subtitle: 'עדכון מצב נוכחי', icon: '📍', page: 'driver-status' }
       ];
     case 'warehouse':
       return [
-        { title: 'המשימות שלי', subtitle: 'משימות מחסן', icon: '✅', page: 'tasks' },
-        { title: 'מוצרים', subtitle: 'מלאי ומיקומים', icon: '📦', page: 'products' }
+        { title: 'ניהול מלאי', subtitle: 'רמות מלאי ומיקומים', icon: '📦', page: 'inventory' },
+        { title: 'בקשות חידוש', subtitle: 'טיפול בבקשות מלאי', icon: '🔄', page: 'restock-requests' }
       ];
     case 'sales':
       return [
-        { title: 'ניהול הזמנות', subtitle: 'הזמנות לקוחות', icon: '📋', page: 'orders' },
-        { title: 'מוצרים', subtitle: 'קטלוג מוצרים', icon: '📦', page: 'products' }
+        { title: 'הזמנות לקוחות', subtitle: 'ניהול הזמנות פתוחות', icon: '🧾', page: 'orders' },
+        { title: 'הביצועים שלי', subtitle: 'יעדים ועמלות', icon: '📈', page: 'my-stats' }
       ];
     default:
       return [

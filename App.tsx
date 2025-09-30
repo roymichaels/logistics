@@ -20,8 +20,40 @@ import { Chat } from './pages/Chat';
 import { Channels } from './pages/Channels';
 import { Products } from './pages/Products';
 import { Reports } from './pages/Reports';
+import { Stats } from './pages/Stats';
+import { Partners } from './pages/Partners';
+import { MyStats } from './pages/MyStats';
+import { Inventory } from './pages/Inventory';
+import { Incoming } from './pages/Incoming';
+import { RestockRequests } from './pages/RestockRequests';
+import { Logs } from './pages/Logs';
+import { MyDeliveries } from './pages/MyDeliveries';
+import { MyInventory } from './pages/MyInventory';
+import { MyZones } from './pages/MyZones';
+import { DriverStatus } from './pages/DriverStatus';
 
-type Page = 'dashboard' | 'orders' | 'tasks' | 'settings' | 'products' | 'deliveries' | 'route' | 'customers' | 'reports' | 'users';
+type Page =
+  | 'dashboard'
+  | 'orders'
+  | 'tasks'
+  | 'settings'
+  | 'products'
+  | 'customers'
+  | 'reports'
+  | 'users'
+  | 'chat'
+  | 'channels'
+  | 'stats'
+  | 'partners'
+  | 'my-stats'
+  | 'inventory'
+  | 'incoming'
+  | 'restock-requests'
+  | 'logs'
+  | 'my-deliveries'
+  | 'my-inventory'
+  | 'my-zones'
+  | 'driver-status';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -151,13 +183,14 @@ export default function App() {
 
   const handleShowCheckInventory = () => {
     // Navigate to products/inventory page
-    setCurrentPage('products');
+    setCurrentPage('inventory');
   };
 
   const handleShowCreateRoute = () => {
     // Show route planning interface
     console.log('Create route action triggered');
     telegram.showAlert('פונקציונליות תכנון מסלולים תתווסף בקרוב');
+    setCurrentPage('my-zones');
   };
 
   const handleShowCreateUser = () => {
@@ -263,16 +296,34 @@ export default function App() {
         return <Tasks dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'products':
         return <Products dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'stats':
+        return <Stats dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'partners':
+        return <Partners dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'my-stats':
+        return <MyStats dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'inventory':
+        return <Inventory dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'incoming':
+        return <Incoming dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'restock-requests':
+        return <RestockRequests dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'logs':
+        return <Logs dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'my-deliveries':
+        return <MyDeliveries dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'my-inventory':
+        return <MyInventory dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'my-zones':
+        return <MyZones dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'driver-status':
+        return <DriverStatus dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'chat':
         return <Chat dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'channels':
         return <Channels dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'reports':
         return <Reports dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'deliveries':
-        return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד משלוחים - בפיתוח</div>;
-      case 'route':
-        return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד מסלול - בפיתוח</div>;
       case 'customers':
         return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד לקוחות - בפיתוח</div>;
       case 'users':
