@@ -95,25 +95,47 @@ export interface RolePermissions {
   can_adjust_inventory: boolean;
 }
 
+export type OrderEntryMode = 'dm' | 'storefront';
+
+export interface OrderItemInput {
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  price: number;
+  source_location?: string | null;
+}
+
 export interface Order {
   id: string;
   customer_name: string;
   customer_phone: string;
   customer_address: string;
   status: 'new' | 'confirmed' | 'preparing' | 'ready' | 'out_for_delivery' | 'delivered' | 'cancelled';
-  items: Array<{
-    product_id: string;
-    product_name: string;
-    quantity: number;
-    price: number;
-  }>;
+  items: OrderItemInput[];
   total_amount: number;
   notes?: string;
   delivery_date?: string;
   assigned_driver?: string;
   created_by: string;
+  salesperson_id?: string;
+  entry_mode?: OrderEntryMode;
+  raw_order_text?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface CreateOrderInput {
+  customer_name: string;
+  customer_phone: string;
+  customer_address: string;
+  items: OrderItemInput[];
+  notes?: string;
+  delivery_date?: string;
+  salesperson_id?: string;
+  entry_mode: OrderEntryMode;
+  raw_order_text?: string;
+  status?: Order['status'];
+  total_amount?: number;
 }
 
 export interface Task {
@@ -204,7 +226,7 @@ export interface DataStore {
   // Orders
   listOrders?(filters?: { status?: string; q?: string }): Promise<Order[]>;
   getOrder?(id: string): Promise<Order>;
-  createOrder?(input: Omit<Order, 'id' | 'created_at' | 'updated_at'>): Promise<{ id: string }>;
+  createOrder?(input: CreateOrderInput): Promise<{ id: string }>;
   updateOrder?(id: string, updates: Partial<Order>): Promise<void>;
   
   // Tasks
