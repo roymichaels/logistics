@@ -105,7 +105,7 @@ export class SupabaseDataStore implements DataStore {
     to_location_id?: string | null;
     reference_id?: string | null;
     metadata?: Record<string, any> | null;
-  }) {
+  }): Promise<string> {
     const payload = {
       ...entry,
       created_by: this.userTelegramId,
@@ -113,8 +113,33 @@ export class SupabaseDataStore implements DataStore {
       metadata: entry.metadata || {}
     };
 
-    const { error } = await supabase.from('inventory_logs').insert(payload);
+    const { data, error } = await supabase.from('inventory_logs').insert(payload).select('id').single();
     if (error) throw error;
+
+    return data.id;
+  }
+
+  private async recordSalesLog(entry: {
+    product_id: string;
+    location_id: string;
+    quantity: number;
+    total_amount: number;
+    reference_id?: string | null;
+    recorded_by?: string | null;
+    sold_at?: string | null;
+    notes?: string | null;
+  }): Promise<string> {
+    const payload = {
+      ...entry,
+      recorded_by: entry.recorded_by || this.userTelegramId,
+      sold_at: entry.sold_at || new Date().toISOString(),
+      notes: entry.notes ?? null
+    };
+
+    const { data, error } = await supabase.from('sales_logs').insert(payload).select('id').single();
+    if (error) throw error;
+
+    return data.id;
   }
 
   private async recordDriverMovement(entry: {
@@ -1462,56 +1487,61 @@ export class SupabaseDataStore implements DataStore {
 
     const salespersonId = input.salesperson_id || this.userTelegramId;
     const status = input.status || 'new';
+    const now = new Date().toISOString();
     const totalAmount = typeof input.total_amount === 'number'
       ? input.total_amount
       : input.items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
-    const now = new Date().toISOString();
 
-    const centralLocationId = await this.getCentralLocationId();
+    const fallbackLocationId = await this.getCentralLocationId();
+
+    interface InventorySnapshot {
+      recordId: string;
+      productId: string;
+      locationId: string;
+      previousOnHand: number;
+      previousReserved: number;
+      quantity: number;
+      productName: string;
+    }
+
+    const validations: InventorySnapshot[] = [];
 
     for (const item of input.items) {
+      const locationId = item.source_location || fallbackLocationId;
+
+      if (!locationId) {
+        throw new Error(`Missing inventory location for product ${item.product_name}`);
+      }
+
       const { data: inventoryRecord, error: inventoryError } = await supabase
         .from('inventory')
         .select('id, on_hand_quantity, reserved_quantity')
         .eq('product_id', item.product_id)
-        .eq('location_id', centralLocationId)
+        .eq('location_id', locationId)
         .maybeSingle();
 
       if (inventoryError) throw inventoryError;
 
-      const onHand = inventoryRecord?.on_hand_quantity ?? 0;
-      const reservedQuantity = inventoryRecord?.reserved_quantity ?? 0;
-
-      if (onHand < item.quantity) {
-        throw new Error(`Insufficient inventory at central location for product ${item.product_name}`);
+      if (!inventoryRecord) {
+        throw new Error(`Inventory record not found for ${item.product_name} at location ${locationId}`);
       }
 
-      const { error: updateError } = await supabase
-        .from('inventory')
-        .update({
-          on_hand_quantity: onHand - item.quantity,
-          reserved_quantity: reservedQuantity + item.quantity,
-          updated_at: now
-        })
-        .eq('product_id', item.product_id)
-        .eq('location_id', centralLocationId);
+      const onHand = inventoryRecord.on_hand_quantity ?? 0;
+      const reservedQuantity = inventoryRecord.reserved_quantity ?? 0;
 
-      if (updateError) throw updateError;
+      if (onHand < item.quantity) {
+        throw new Error(`Insufficient inventory for ${item.product_name} at location ${locationId}`);
+      }
 
-      await this.recordInventoryLog({
-        product_id: item.product_id,
-        change_type: 'reservation',
-        quantity_change: -item.quantity,
-        from_location_id: centralLocationId,
-        to_location_id: centralLocationId,
-        metadata: {
-          entry_mode: input.entry_mode,
-          salesperson_id: salespersonId,
-          source_location: item.source_location || 'central'
-        }
+      validations.push({
+        recordId: inventoryRecord.id,
+        productId: item.product_id,
+        locationId,
+        previousOnHand: onHand,
+        previousReserved: reservedQuantity,
+        quantity: item.quantity,
+        productName: item.product_name
       });
-
-      await this.refreshProductStock(item.product_id);
     }
 
     const payload = {
@@ -1531,14 +1561,109 @@ export class SupabaseDataStore implements DataStore {
       updated_at: now
     };
 
-    const { data, error } = await supabase
+    const { data: orderRow, error: orderError } = await supabase
       .from('orders')
       .insert(payload)
       .select('id')
       .single();
 
-    if (error) throw error;
-    return { id: data.id };
+    if (orderError) throw orderError;
+
+    const orderId = orderRow.id;
+    const processedAdjustments: InventorySnapshot[] = [];
+    const inventoryLogs: string[] = [];
+    const salesLogs: string[] = [];
+    const productsToRefresh = new Set<string>();
+
+    try {
+      for (let index = 0; index < input.items.length; index += 1) {
+        const item = input.items[index];
+        const snapshot = validations[index];
+
+        const { error: updateError } = await supabase
+          .from('inventory')
+          .update({
+            on_hand_quantity: snapshot.previousOnHand - snapshot.quantity,
+            reserved_quantity: snapshot.previousReserved + snapshot.quantity,
+            updated_at: now
+          })
+          .eq('id', snapshot.recordId);
+
+        if (updateError) {
+          throw updateError;
+        }
+
+        processedAdjustments.push(snapshot);
+
+        const logId = await this.recordInventoryLog({
+          product_id: snapshot.productId,
+          change_type: 'reservation',
+          quantity_change: -snapshot.quantity,
+          from_location_id: snapshot.locationId,
+          to_location_id: snapshot.locationId,
+          reference_id: orderId,
+          metadata: {
+            entry_mode: input.entry_mode,
+            salesperson_id: salespersonId,
+            source_location: snapshot.locationId
+          }
+        });
+
+        inventoryLogs.push(logId);
+
+        const salesLogId = await this.recordSalesLog({
+          product_id: snapshot.productId,
+          location_id: snapshot.locationId,
+          quantity: snapshot.quantity,
+          total_amount: (item.price || 0) * snapshot.quantity,
+          reference_id: orderId,
+          recorded_by: salespersonId,
+          sold_at: now,
+          notes: `Order entry via ${input.entry_mode}`
+        });
+
+        salesLogs.push(salesLogId);
+        productsToRefresh.add(snapshot.productId);
+      }
+
+      for (const productId of productsToRefresh) {
+        await this.refreshProductStock(productId);
+      }
+    } catch (error) {
+      // Attempt rollback for partial failures
+      if (processedAdjustments.length > 0) {
+        await Promise.all(
+          processedAdjustments.reverse().map((adjustment) =>
+            supabase
+              .from('inventory')
+              .update({
+                on_hand_quantity: adjustment.previousOnHand,
+                reserved_quantity: adjustment.previousReserved,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', adjustment.recordId)
+          )
+        );
+      }
+
+      if (inventoryLogs.length > 0) {
+        await supabase.from('inventory_logs').delete().in('id', inventoryLogs);
+      }
+
+      if (salesLogs.length > 0) {
+        await supabase.from('sales_logs').delete().in('id', salesLogs);
+      }
+
+      await supabase.from('orders').delete().eq('id', orderId);
+
+      if (error instanceof Error) {
+        throw error;
+      }
+
+      throw new Error('Failed to create order');
+    }
+
+    return { id: orderId };
   }
 
   async updateOrder(id: string, updates: Partial<Order>): Promise<void> {

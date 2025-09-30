@@ -487,17 +487,20 @@ function OrderDetail({
             <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '600' }}>
               Items
             </h3>
-            {orderItems.map((item, index) => (
-              <div key={index} style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                padding: '8px 0',
-                borderBottom: index < orderItems.length - 1 ? `1px solid ${theme.hint_color}20` : 'none'
-              }}>
-                <span>{item.name}</span>
-                <span>×{item.quantity}</span>
-              </div>
-            ))}
+            {orderItems.map((item, index) => {
+              const itemName = (item as any).product_name || (item as any).name || '';
+              return (
+                <div key={index} style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '8px 0',
+                  borderBottom: index < orderItems.length - 1 ? `1px solid ${theme.hint_color}20` : 'none'
+                }}>
+                  <span>{itemName}</span>
+                  <span>×{item.quantity}</span>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
