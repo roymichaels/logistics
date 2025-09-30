@@ -1,56 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React from 'react';
+import { DataStore } from '../data/types';
 import { useTelegramUI } from '../src/hooks/useTelegramUI';
-import { DataStore, User } from '../data/types';
+import { hebrew } from '../src/lib/hebrew';
 
 interface StatsProps {
   dataStore: DataStore;
   onNavigate: (page: string) => void;
 }
 
-export function Stats({ dataStore }: StatsProps) {
-  const { theme, backButton } = useTelegramUI();
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    backButton.hide();
-  }, [backButton]);
-
-  useEffect(() => {
-    let mounted = true;
-
-    dataStore.getProfile()
-      .then((profile) => {
-        if (mounted) {
-          setUser(profile);
-        }
-      })
-      .catch((error) => {
-        console.warn('Failed to load profile for stats page:', error);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, [dataStore]);
-
-  const metrics = useMemo(
-    () => [
-      { title: 'הזמנות פתוחות', value: '128', change: '+12% לעומת השבוע שעבר' },
-      { title: 'הכנסות חודשיות', value: '₪89,540', change: '+8% לעומת החודש שעבר' },
-      { title: 'שביעות רצון לקוחות', value: '4.8/5', change: '15 ביקורות חדשות' },
-      { title: 'זמן אספקה ממוצע', value: '2.5 ימים', change: 'מהיר ב-0.4 ימים' }
-    ],
-    []
-  );
-
-  const operationalInsights = useMemo(
-    () => [
-      { title: 'צוות מחסן', detail: '93% המשימות הושלמו בזמן' },
-      { title: 'צוות נהגים', detail: '85% מסלולים הסתיימו לפני הזמן' },
-      { title: 'צוות מכירות', detail: '18 עסקאות חדשות השבוע' }
-    ],
-    []
-  );
+export function Stats(_: StatsProps) {
+  const { theme } = useTelegramUI();
 
   return (
     <div
@@ -58,53 +17,23 @@ export function Stats({ dataStore }: StatsProps) {
         minHeight: '100vh',
         backgroundColor: theme.bg_color,
         color: theme.text_color,
-        padding: '20px',
-        direction: 'rtl'
+        padding: '48px 24px',
+        direction: 'rtl',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '16px',
+        textAlign: 'center'
       }}
     >
-      <h1 style={{ fontSize: '24px', margin: '0 0 16px' }}>
-        לוח ביצועים {user?.name ? `• ${user.name}` : ''}
-      </h1>
-
-      <p style={{ margin: '0 0 24px', color: theme.hint_color }}>
-        תמונת מצב עדכנית של העסק עם מגמות ונתונים מרכזיים לקבלת החלטות מהירה.
+      <div style={{ fontSize: '44px' }}>📈</div>
+      <h1 style={{ margin: 0 }}>{hebrew.stats}</h1>
+      <p style={{ margin: 0, maxWidth: '320px', color: theme.hint_color }}>
+        תצוגת הביצועים תתעדכן כאן עם הדשבורד המלא של הבעלים והמנהלים.
       </p>
-
-      <section style={{ display: 'grid', gap: '12px' }}>
-        {metrics.map((metric) => (
-          <div
-            key={metric.title}
-            style={{
-              backgroundColor: theme.secondary_bg_color || '#f7f7f7',
-              borderRadius: '12px',
-              padding: '16px'
-            }}
-          >
-            <h2 style={{ margin: '0 0 8px', fontSize: '18px' }}>{metric.title}</h2>
-            <div style={{ fontSize: '22px', fontWeight: 600, marginBottom: '4px' }}>{metric.value}</div>
-            <div style={{ fontSize: '14px', color: theme.hint_color }}>{metric.change}</div>
-          </div>
-        ))}
-      </section>
-
-      <section style={{ marginTop: '28px' }}>
-        <h2 style={{ margin: '0 0 12px', fontSize: '18px' }}>תובנות תפעוליות</h2>
-        <div style={{ display: 'grid', gap: '12px' }}>
-          {operationalInsights.map((insight) => (
-            <div
-              key={insight.title}
-              style={{
-                borderRadius: '12px',
-                padding: '16px',
-                border: `1px solid ${theme.hint_color}30`
-              }}
-            >
-              <div style={{ fontWeight: 600, marginBottom: '4px' }}>{insight.title}</div>
-              <div style={{ color: theme.hint_color }}>{insight.detail}</div>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }
+
+export default Stats;
