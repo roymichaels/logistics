@@ -6,7 +6,15 @@ import { FloatingCreateButton } from './FloatingCreateButton';
 interface BottomNavigationProps {
   currentPage: string;
   onNavigate: (page: string) => void;
-  userRole?: 'user' | 'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service';
+  userRole?:
+    | 'user'
+    | 'owner'
+    | 'manager'
+    | 'dispatcher'
+    | 'driver'
+    | 'warehouse'
+    | 'sales'
+    | 'customer_service';
   businessId?: string;
   onShowCreateOrder?: () => void;
   onShowCreateTask?: () => void;
@@ -46,10 +54,9 @@ export function BottomNavigation({
       { id: 'demo', label: 'דמו', icon: '🎮' },
       { id: 'settings', label: hebrew.settings, icon: '⚙️' }
     ];
-  } else if (effectiveRole === 'manager') {
+  } else if (effectiveRole === 'owner' || effectiveRole === 'manager') {
     tabs = [
       { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
-      { id: 'dispatch-board', label: hebrew.dispatch_board, icon: '🗺️' },
       { id: 'stats', label: hebrew.stats, icon: '📈' },
       { id: 'partners', label: hebrew.partners, icon: '🤝' },
       { id: 'orders', label: hebrew.orders, icon: '🧾' },

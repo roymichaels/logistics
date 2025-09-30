@@ -64,7 +64,17 @@ export default function App() {
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service' | null>(null);
+  const [userRole, setUserRole] = useState<
+    | 'owner'
+    | 'manager'
+    | 'dispatcher'
+    | 'driver'
+    | 'warehouse'
+    | 'sales'
+    | 'customer_service'
+    | 'user'
+    | null
+  >(null);
   const [showOrderWizard, setShowOrderWizard] = useState(false);
   const [showBusinessManager, setShowBusinessManager] = useState(false);
   const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
