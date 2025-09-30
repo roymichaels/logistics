@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { telegram } from './lib/telegram';
 import { bootstrap } from './src/lib/bootstrap';
 import { createFrontendDataStore } from './src/lib/frontendDataStore';
@@ -10,33 +10,70 @@ import { BusinessManager } from './src/components/BusinessManager';
 import { SecurityGate } from './src/components/SecurityGate';
 import { hebrew } from './src/lib/hebrew';
 
-// Pages
-import { Dashboard } from './pages/Dashboard';
-import { Orders } from './pages/Orders';
-import { Tasks } from './pages/Tasks';
-import { Settings } from './pages/Settings';
-import { UserManagement } from './pages/UserManagement';
-import { Chat } from './pages/Chat';
-import { Channels } from './pages/Channels';
-import { Products } from './pages/Products';
-import { Reports } from './pages/Reports';
-import { Stats } from './pages/Stats';
-import { Partners } from './pages/Partners';
-import { MyStats } from './pages/MyStats';
-import { Inventory } from './pages/Inventory';
-import { Incoming } from './pages/Incoming';
-import { RestockRequests } from './pages/RestockRequests';
-import { Logs } from './pages/Logs';
-import { MyDeliveries } from './pages/MyDeliveries';
-import { MyInventory } from './pages/MyInventory';
-import { MyZones } from './pages/MyZones';
-import { DriverStatus } from './pages/DriverStatus';
-import { DispatchBoard } from './pages/DispatchBoard';
-import { WarehouseDashboard } from './pages/WarehouseDashboard';
-import { ManagerInventory } from './pages/ManagerInventory';
+// Pages (lazy loaded)
+const Dashboard = lazy(() =>
+  import('./pages/Dashboard').then((module) => ({ default: module.Dashboard }))
+);
+const Orders = lazy(() => import('./pages/Orders').then((module) => ({ default: module.Orders })));
+const Tasks = lazy(() => import('./pages/Tasks').then((module) => ({ default: module.Tasks })));
+const Settings = lazy(() =>
+  import('./pages/Settings').then((module) => ({ default: module.Settings }))
+);
+const UserManagement = lazy(() =>
+  import('./pages/UserManagement').then((module) => ({ default: module.UserManagement }))
+);
+const Chat = lazy(() => import('./pages/Chat').then((module) => ({ default: module.Chat })));
+const Channels = lazy(() =>
+  import('./pages/Channels').then((module) => ({ default: module.Channels }))
+);
+const Products = lazy(() =>
+  import('./pages/Products').then((module) => ({ default: module.Products }))
+);
+const Reports = lazy(() =>
+  import('./pages/Reports').then((module) => ({ default: module.Reports }))
+);
+const Stats = lazy(() => import('./pages/Stats').then((module) => ({ default: module.Stats })));
+const Partners = lazy(() =>
+  import('./pages/Partners').then((module) => ({ default: module.Partners }))
+);
+const MyStats = lazy(() =>
+  import('./pages/MyStats').then((module) => ({ default: module.MyStats }))
+);
+const Inventory = lazy(() =>
+  import('./pages/Inventory').then((module) => ({ default: module.Inventory }))
+);
+const Incoming = lazy(() =>
+  import('./pages/Incoming').then((module) => ({ default: module.Incoming }))
+);
+const RestockRequests = lazy(() =>
+  import('./pages/RestockRequests').then((module) => ({ default: module.RestockRequests }))
+);
+const Logs = lazy(() => import('./pages/Logs').then((module) => ({ default: module.Logs })));
+const MyDeliveries = lazy(() =>
+  import('./pages/MyDeliveries').then((module) => ({ default: module.MyDeliveries }))
+);
+const MyInventory = lazy(() =>
+  import('./pages/MyInventory').then((module) => ({ default: module.MyInventory }))
+);
+const MyZones = lazy(() =>
+  import('./pages/MyZones').then((module) => ({ default: module.MyZones }))
+);
+const DriverStatus = lazy(() =>
+  import('./pages/DriverStatus').then((module) => ({ default: module.DriverStatus }))
+);
+const DispatchBoard = lazy(() =>
+  import('./pages/DispatchBoard').then((module) => ({ default: module.DispatchBoard }))
+);
+const WarehouseDashboard = lazy(() =>
+  import('./pages/WarehouseDashboard').then((module) => ({ default: module.WarehouseDashboard }))
+);
+const ManagerInventory = lazy(() =>
+  import('./pages/ManagerInventory').then((module) => ({ default: module.ManagerInventory }))
+);
 
 type Page =
   | 'dashboard'
+  | 'demo'
   | 'orders'
   | 'tasks'
   | 'settings'
@@ -401,7 +438,23 @@ export default function App() {
         color: theme.text_color,
         paddingBottom: '80px' // Space for bottom nav
       }}>
-        {renderPage()}
+        <Suspense
+          fallback={
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '50vh',
+                color: theme.hint_color
+              }}
+            >
+              {hebrew.loading}
+            </div>
+          }
+        >
+          {renderPage()}
+        </Suspense>
 
         {/* Bottom Navigation */}
         {dataStore && userRole && (

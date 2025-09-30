@@ -1,5 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
+
+type RoleKey =
+  | 'user'
+  | 'owner'
+  | 'manager'
+  | 'dispatcher'
+  | 'driver'
+  | 'warehouse'
+  | 'sales'
+  | 'customer_service';
 
 interface QuickAction {
   id: string;
@@ -11,8 +21,11 @@ interface QuickAction {
 }
 
 interface FloatingCreateButtonProps {
-  userRole: string;
+  userRole: RoleKey;
   businessId?: string;
+  actionLabel: string;
+  actionIcon: string;
+  disabled?: boolean;
   onCreateOrder: () => void;
   onCreateTask: () => void;
   onScanBarcode: () => void;
@@ -21,11 +34,14 @@ interface FloatingCreateButtonProps {
   onCreateRoute: () => void;
   onCreateUser: () => void;
   onCreateProduct: () => void;
+  onNavigate?: (page: string) => void;
 }
 
 export function FloatingCreateButton({
   userRole,
-  businessId,
+  actionLabel,
+  actionIcon,
+  disabled,
   onCreateOrder,
   onCreateTask,
   onScanBarcode,
@@ -33,186 +49,160 @@ export function FloatingCreateButton({
   onCheckInventory,
   onCreateRoute,
   onCreateUser,
-  onCreateProduct
+  onCreateProduct,
+  onNavigate
 }: FloatingCreateButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [actions, setActions] = useState<QuickAction[]>([]);
   const { theme, haptic } = useTelegramUI();
 
-  useEffect(() => {
-    setActions(getActionsForRole(userRole));
-  }, [userRole, businessId]);
-
-  const getActionsForRole = (role: string): QuickAction[] => {
-    const actionMap: { [key: string]: QuickAction[] } = {
-      manager: [
+  const actions = useMemo<QuickAction[]>(() => {
+    if (userRole === 'owner' || userRole === 'manager') {
+      return [
         {
-          id: 'create_order',
-          label: 'הזמנה חדשה',
-          icon: '📦',
+          id: 'command-order',
+          label: 'פקודת הזמנה',
+          icon: '🧾',
           color: '#007aff',
-          description: 'צור הזמנה חדשה מלקוח',
+          description: 'התחל הזמנה חדשה לצוות המכירות',
           action: onCreateOrder
         },
         {
-          id: 'create_task',
-          label: 'משימה חדשה',
-          icon: '✅',
+          id: 'command-task',
+          label: 'משימת צוות',
+          icon: '🗂️',
           color: '#34c759',
-          description: 'הקצה משימה לעובד',
+          description: 'הקצה משימה תפעולית לצוות',
           action: onCreateTask
         },
         {
-          id: 'create_route',
-          label: 'מסלול חדש',
-          icon: '🗺️',
-          color: '#ff9500',
-          description: 'תכנן מסלול משלוחים',
-          action: onCreateRoute
-        },
-        {
-          id: 'create_user',
-          label: 'עובד חדש',
-          icon: '👤',
-          color: '#af52de',
-          description: 'הוסף עובד למערכת',
-          action: onCreateUser
-        },
-        {
-          id: 'create_product',
-          label: 'מוצר חדש',
-          icon: '🏷️',
-          color: '#ff3b30',
-          description: 'הוסף מוצר לקטלוג',
-          action: onCreateProduct
-        }
-      ],
-
-      sales: [
-        {
-          id: 'create_order',
-          label: 'הזמנה חדשה',
+          id: 'command-inventory',
+          label: 'פעולת מלאי',
           icon: '📦',
-          color: '#007aff',
-          description: 'צור הזמנה חדשה מלקוח',
-          action: onCreateOrder
-        },
-        {
-          id: 'contact_customer',
-          label: 'צור קשר עם לקוח',
-          icon: '📞',
-          color: '#34c759',
-          description: 'התקשר או שלח הודעה ללקוח',
-          action: onContactCustomer
-        },
-        {
-          id: 'scan_barcode',
-          label: 'סרוק ברקוד',
-          icon: '📱',
           color: '#ff9500',
-          description: 'סרוק ברקוד מוצר',
-          action: onScanBarcode
-        }
-      ],
-
-      dispatcher: [
-        {
-          id: 'create_task',
-          label: 'משימה חדשה',
-          icon: '✅',
-          color: '#34c759',
-          description: 'הקצה משימה לנהג או עובד מחסן',
-          action: onCreateTask
-        },
-        {
-          id: 'create_route',
-          label: 'מסלול חדש',
-          icon: '🗺️',
-          color: '#007aff',
-          description: 'תכנן מסלול משלוחים',
-          action: onCreateRoute
-        },
-        {
-          id: 'contact_customer',
-          label: 'צור קשר עם לקוח',
-          icon: '📞',
-          color: '#ff9500',
-          description: 'התקשר ללקוח לתאום',
-          action: onContactCustomer
-        }
-      ],
-
-      driver: [
-        {
-          id: 'scan_barcode',
-          label: 'סרוק ברקוד',
-          icon: '📱',
-          color: '#34c759',
-          description: 'סרוק ברקוד למשלוח',
-          action: onScanBarcode
-        },
-        {
-          id: 'contact_customer',
-          label: 'צור קשר עם לקוח',
-          icon: '📞',
-          color: '#007aff',
-          description: 'התקשר ללקוח בנושא המשלוח',
-          action: onContactCustomer
-        }
-      ],
-
-      warehouse: [
-        {
-          id: 'scan_barcode',
-          label: 'סרוק ברקוד',
-          icon: '📱',
-          color: '#34c759',
-          description: 'סרוק ברקוד למוצר במלאי',
-          action: onScanBarcode
-        },
-        {
-          id: 'check_inventory',
-          label: 'בדיקת מלאי',
-          icon: '📋',
-          color: '#ff9500',
-          description: 'בדוק כמות במלאי',
+          description: 'בדוק מלאי או פתח ספירה',
           action: onCheckInventory
         },
         {
-          id: 'create_task',
-          label: 'משימה חדשה',
-          icon: '✅',
-          color: '#007aff',
-          description: 'דווח על בעיה או צרך',
-          action: onCreateTask
-        }
-      ],
-
-      customer_service: [
+          id: 'command-route',
+          label: 'מסלול חדש',
+          icon: '🗺️',
+          color: '#af52de',
+          description: 'תכנן מסלול משלוחים לצוות הנהגים',
+          action: onCreateRoute
+        },
         {
-          id: 'create_order',
-          label: 'הזמנה חדשה',
-          icon: '📦',
+          id: 'command-user',
+          label: 'הוספת משתמש',
+          icon: '👥',
+          color: '#ff3b30',
+          description: 'פתח משתמש או ספק חדש',
+          action: onCreateUser
+        },
+        {
+          id: 'command-product',
+          label: 'פריט קטלוג',
+          icon: '🏷️',
+          color: '#0a84ff',
+          description: 'הוסף או עדכן פריט בקטלוג',
+          action: onCreateProduct
+        }
+      ];
+    }
+
+    if (userRole === 'sales') {
+      return [
+        {
+          id: 'sales-dm-order',
+          label: 'הזמנה בשיחה',
+          icon: '💬',
           color: '#007aff',
-          description: 'צור הזמנה עבור לקוח',
+          description: 'פתח הזמנה ישירות עם הלקוח',
           action: onCreateOrder
         },
         {
-          id: 'contact_customer',
-          label: 'צור קשר עם לקוח',
-          icon: '📞',
+          id: 'sales-storefront',
+          label: 'חנות דיגיטלית',
+          icon: '🛒',
+          color: '#ff9500',
+          description: 'שלח קישור לחנות או הכן סל קנייה',
+          action: () => {
+            onNavigate?.('products');
+          }
+        },
+        {
+          id: 'sales-followup',
+          label: 'מעקב ללקוח',
+          icon: '🤝',
           color: '#34c759',
-          description: 'התקשר או שלח הודעה ללקוח',
+          description: 'תאם שיחה או הודעה עם הלקוח',
           action: onContactCustomer
         }
-      ]
-    };
+      ];
+    }
 
-    return actionMap[role] || actionMap.sales;
-  };
+    if (userRole === 'warehouse') {
+      return [
+        {
+          id: 'warehouse-scan',
+          label: 'סריקת קבלה',
+          icon: '📷',
+          color: '#007aff',
+          description: 'סרוק ברקוד להזנת מלאי',
+          action: onScanBarcode
+        },
+        {
+          id: 'warehouse-restock',
+          label: 'בקשת חידוש',
+          icon: '🔄',
+          color: '#ff9500',
+          description: 'פתח בקשת חידוש מלאי',
+          action: () => {
+            onNavigate?.('restock-requests');
+          }
+        },
+        {
+          id: 'warehouse-inventory',
+          label: 'בדיקת מלאי',
+          icon: '📋',
+          color: '#34c759',
+          description: 'בצע ספירה מדגמית במלאי',
+          action: onCheckInventory
+        },
+        {
+          id: 'warehouse-issue',
+          label: 'דיווח חריגה',
+          icon: '⚠️',
+          color: '#af52de',
+          description: 'פתח משימת טיפול לצוות',
+          action: onCreateTask
+        }
+      ];
+    }
+
+    return [];
+  }, [
+    userRole,
+    onCreateOrder,
+    onCreateTask,
+    onScanBarcode,
+    onContactCustomer,
+    onCheckInventory,
+    onCreateRoute,
+    onCreateUser,
+    onCreateProduct,
+    onNavigate
+  ]);
+
+  const isDisabled = disabled || actions.length === 0;
+  const primaryAction = actions[0];
 
   const handleToggle = () => {
-    setIsOpen(!isOpen);
+    if (isDisabled) {
+      haptic();
+      return;
+    }
+
+    setIsOpen((prev) => !prev);
     haptic();
   };
 
@@ -222,12 +212,9 @@ export function FloatingCreateButton({
     action.action();
   };
 
-  const primaryAction = actions[0];
-
   return (
     <>
-      {/* Backdrop */}
-      {isOpen && (
+      {isOpen && !isDisabled && (
         <div
           style={{
             position: 'fixed',
@@ -243,185 +230,123 @@ export function FloatingCreateButton({
         />
       )}
 
-      {/* Action Menu */}
-      {isOpen && (
+      {isOpen && !isDisabled && (
         <div
           style={{
             position: 'fixed',
-            bottom: '90px',
+            bottom: '96px',
             left: '50%',
             transform: 'translateX(-50%)',
             backgroundColor: theme.bg_color,
             borderRadius: '16px',
             padding: '16px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
             zIndex: 1002,
-            minWidth: '300px',
+            minWidth: '320px',
             maxWidth: '90vw',
             direction: 'rtl'
           }}
         >
-          <h3 style={{
-            margin: '0 0 16px 0',
-            fontSize: '16px',
-            fontWeight: '600',
-            color: theme.text_color,
-            textAlign: 'center'
-          }}>
-            פעולות מהירות
-          </h3>
+          <div
+            style={{
+              textAlign: 'center',
+              fontWeight: 600,
+              marginBottom: '12px',
+              color: theme.text_color
+            }}
+          >
+            {actionLabel}
+          </div>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-            gap: '12px'
-          }}>
+          <div style={{ display: 'grid', gap: '12px' }}>
             {actions.map((action) => (
               <button
                 key={action.id}
                 onClick={() => handleActionClick(action)}
                 style={{
                   display: 'flex',
-                  flexDirection: 'column',
                   alignItems: 'center',
-                  gap: '8px',
-                  padding: '16px 12px',
-                  backgroundColor: action.color + '10',
-                  border: `2px solid ${action.color}30`,
+                  gap: '12px',
+                  padding: '12px 14px',
                   borderRadius: '12px',
+                  border: 'none',
+                  backgroundColor: `${action.color}15`,
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = action.color + '20';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = action.color + '10';
-                  e.currentTarget.style.transform = 'translateY(0)';
+                  textAlign: 'right'
                 }}
               >
-                <div style={{
-                  fontSize: '32px',
-                  marginBottom: '4px'
-                }}>
-                  {action.icon}
-                </div>
-                <div style={{
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: theme.text_color,
-                  textAlign: 'center',
-                  lineHeight: '1.2'
-                }}>
-                  {action.label}
-                </div>
-                {action.description && (
-                  <div style={{
-                    fontSize: '11px',
-                    color: theme.hint_color,
-                    textAlign: 'center',
-                    lineHeight: '1.3',
-                    marginTop: '4px'
-                  }}>
-                    {action.description}
-                  </div>
-                )}
+                <span style={{ fontSize: '24px' }}>{action.icon}</span>
+                <span style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, color: theme.text_color }}>{action.label}</div>
+                  {action.description && (
+                    <div style={{ fontSize: '12px', color: theme.hint_color }}>{action.description}</div>
+                  )}
+                </span>
               </button>
             ))}
           </div>
 
-          {/* Quick tip */}
-          <div style={{
-            marginTop: '16px',
-            padding: '8px 12px',
-            backgroundColor: theme.secondary_bg_color,
-            borderRadius: '8px',
-            fontSize: '11px',
-            color: theme.hint_color,
-            textAlign: 'center'
-          }}>
-            💡 לחיצה ארוכה על כפתור יצירה תפתח מיד את {primaryAction?.label || 'הפעולה הראשית'}
-          </div>
+          {primaryAction && (
+            <div
+              style={{
+                marginTop: '16px',
+                padding: '8px 12px',
+                backgroundColor: theme.secondary_bg_color,
+                borderRadius: '8px',
+                color: theme.hint_color,
+                fontSize: '11px',
+                textAlign: 'center'
+              }}
+            >
+              💡 לחיצה ארוכה תפעיל מיד את "{primaryAction.label}"
+            </div>
+          )}
         </div>
       )}
 
-      {/* Main Create Button */}
       <div
         style={{
           position: 'fixed',
-          bottom: '70px',
+          bottom: '72px',
           left: '50%',
           transform: 'translateX(-50%)',
-          zIndex: 1001
+          zIndex: 1001,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '6px'
         }}
       >
         <button
           onClick={handleToggle}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            if (primaryAction) {
-              primaryAction.action();
+          onContextMenu={(event) => {
+            event.preventDefault();
+            if (primaryAction && !isDisabled) {
               haptic();
+              primaryAction.action();
             }
           }}
+          disabled={isDisabled}
           style={{
-            width: '56px',
-            height: '56px',
+            width: '62px',
+            height: '62px',
             borderRadius: '50%',
-            backgroundColor: theme.button_color || '#007aff',
             border: 'none',
-            color: 'white',
-            fontSize: '24px',
-            cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(0,123,255,0.4)',
-            transition: 'all 0.2s ease',
+            backgroundColor: isDisabled ? `${theme.hint_color}30` : theme.button_color || '#007aff',
+            color: isDisabled ? theme.hint_color : theme.button_text_color || '#ffffff',
+            fontSize: '26px',
+            cursor: isDisabled ? 'not-allowed' : 'pointer',
+            boxShadow: isDisabled ? 'none' : '0 8px 16px rgba(0,0,0,0.3)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateX(-50%) scale(1.1)';
-            e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,123,255,0.5)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateX(-50%) scale(1)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,123,255,0.4)';
+            justifyContent: 'center',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease'
           }}
         >
-          {isOpen ? '×' : '+'}
+          {isOpen ? '×' : actionIcon}
         </button>
-
-        {/* Role indicator */}
-        <div style={{
-          position: 'absolute',
-          top: '-8px',
-          right: '-8px',
-          width: '24px',
-          height: '24px',
-          borderRadius: '50%',
-          backgroundColor: theme.secondary_bg_color,
-          border: `2px solid ${theme.bg_color}`,
-          fontSize: '12px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          {getRoleIcon(userRole)}
-        </div>
+        <span style={{ fontSize: '12px', color: theme.hint_color }}>{actionLabel}</span>
       </div>
     </>
   );
-}
-
-function getRoleIcon(role: string): string {
-  const icons: { [key: string]: string } = {
-    manager: '👨‍💼',
-    sales: '🤝',
-    dispatcher: '📋',
-    driver: '🚚',
-    warehouse: '📦',
-    customer_service: '🎧'
-  };
-  return icons[role] || '👤';
 }
