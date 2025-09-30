@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 
 interface QuickAction {
@@ -7,25 +7,36 @@ interface QuickAction {
   icon: string;
   color: string;
   description?: string;
-  action: () => void;
+  action?: () => void;
+}
+
+interface RoleActionConfig {
+  title: string;
+  icon: string;
+  actions: QuickAction[];
 }
 
 interface FloatingCreateButtonProps {
   userRole: string;
+  triggerLabel?: string;
+  triggerIcon?: string;
+  onNavigate?: (page: string) => void;
   businessId?: string;
-  onCreateOrder: () => void;
-  onCreateTask: () => void;
-  onScanBarcode: () => void;
-  onContactCustomer: () => void;
-  onCheckInventory: () => void;
-  onCreateRoute: () => void;
-  onCreateUser: () => void;
-  onCreateProduct: () => void;
+  onCreateOrder?: () => void;
+  onCreateTask?: () => void;
+  onScanBarcode?: () => void;
+  onContactCustomer?: () => void;
+  onCheckInventory?: () => void;
+  onCreateRoute?: () => void;
+  onCreateUser?: () => void;
+  onCreateProduct?: () => void;
 }
 
 export function FloatingCreateButton({
   userRole,
-  businessId,
+  triggerLabel,
+  triggerIcon,
+  onNavigate,
   onCreateOrder,
   onCreateTask,
   onScanBarcode,
@@ -36,180 +47,165 @@ export function FloatingCreateButton({
   onCreateProduct
 }: FloatingCreateButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [actions, setActions] = useState<QuickAction[]>([]);
   const { theme, haptic } = useTelegramUI();
 
-  useEffect(() => {
-    setActions(getActionsForRole(userRole));
-  }, [userRole, businessId]);
-
-  const getActionsForRole = (role: string): QuickAction[] => {
-    const actionMap: { [key: string]: QuickAction[] } = {
-      manager: [
-        {
-          id: 'create_order',
-          label: 'הזמנה חדשה',
-          icon: '📦',
-          color: '#007aff',
-          description: 'צור הזמנה חדשה מלקוח',
-          action: onCreateOrder
-        },
-        {
-          id: 'create_task',
-          label: 'משימה חדשה',
-          icon: '✅',
-          color: '#34c759',
-          description: 'הקצה משימה לעובד',
-          action: onCreateTask
-        },
-        {
-          id: 'create_route',
-          label: 'מסלול חדש',
-          icon: '🗺️',
-          color: '#ff9500',
-          description: 'תכנן מסלול משלוחים',
-          action: onCreateRoute
-        },
-        {
-          id: 'create_user',
-          label: 'עובד חדש',
-          icon: '👤',
-          color: '#af52de',
-          description: 'הוסף עובד למערכת',
-          action: onCreateUser
-        },
-        {
-          id: 'create_product',
-          label: 'מוצר חדש',
-          icon: '🏷️',
-          color: '#ff3b30',
-          description: 'הוסף מוצר לקטלוג',
-          action: onCreateProduct
-        }
-      ],
-
-      sales: [
-        {
-          id: 'create_order',
-          label: 'הזמנה חדשה',
-          icon: '📦',
-          color: '#007aff',
-          description: 'צור הזמנה חדשה מלקוח',
-          action: onCreateOrder
-        },
-        {
-          id: 'contact_customer',
-          label: 'צור קשר עם לקוח',
-          icon: '📞',
-          color: '#34c759',
-          description: 'התקשר או שלח הודעה ללקוח',
-          action: onContactCustomer
-        },
-        {
-          id: 'scan_barcode',
-          label: 'סרוק ברקוד',
-          icon: '📱',
-          color: '#ff9500',
-          description: 'סרוק ברקוד מוצר',
-          action: onScanBarcode
-        }
-      ],
-
-      dispatcher: [
-        {
-          id: 'create_task',
-          label: 'משימה חדשה',
-          icon: '✅',
-          color: '#34c759',
-          description: 'הקצה משימה לנהג או עובד מחסן',
-          action: onCreateTask
-        },
-        {
-          id: 'create_route',
-          label: 'מסלול חדש',
-          icon: '🗺️',
-          color: '#007aff',
-          description: 'תכנן מסלול משלוחים',
-          action: onCreateRoute
-        },
-        {
-          id: 'contact_customer',
-          label: 'צור קשר עם לקוח',
-          icon: '📞',
-          color: '#ff9500',
-          description: 'התקשר ללקוח לתאום',
-          action: onContactCustomer
-        }
-      ],
-
-      driver: [
-        {
-          id: 'scan_barcode',
-          label: 'סרוק ברקוד',
-          icon: '📱',
-          color: '#34c759',
-          description: 'סרוק ברקוד למשלוח',
-          action: onScanBarcode
-        },
-        {
-          id: 'contact_customer',
-          label: 'צור קשר עם לקוח',
-          icon: '📞',
-          color: '#007aff',
-          description: 'התקשר ללקוח בנושא המשלוח',
-          action: onContactCustomer
-        }
-      ],
-
-      warehouse: [
-        {
-          id: 'scan_barcode',
-          label: 'סרוק ברקוד',
-          icon: '📱',
-          color: '#34c759',
-          description: 'סרוק ברקוד למוצר במלאי',
-          action: onScanBarcode
-        },
-        {
-          id: 'check_inventory',
-          label: 'בדיקת מלאי',
-          icon: '📋',
-          color: '#ff9500',
-          description: 'בדוק כמות במלאי',
-          action: onCheckInventory
-        },
-        {
-          id: 'create_task',
-          label: 'משימה חדשה',
-          icon: '✅',
-          color: '#007aff',
-          description: 'דווח על בעיה או צרך',
-          action: onCreateTask
-        }
-      ],
-
-      customer_service: [
-        {
-          id: 'create_order',
-          label: 'הזמנה חדשה',
-          icon: '📦',
-          color: '#007aff',
-          description: 'צור הזמנה עבור לקוח',
-          action: onCreateOrder
-        },
-        {
-          id: 'contact_customer',
-          label: 'צור קשר עם לקוח',
-          icon: '📞',
-          color: '#34c759',
-          description: 'התקשר או שלח הודעה ללקוח',
-          action: onContactCustomer
-        }
-      ]
+  const actionConfig = useMemo<RoleActionConfig | null>(() => {
+    const addAction = (
+      actions: QuickAction[],
+      action: QuickAction
+    ) => {
+      if (action.action) {
+        actions.push(action);
+      }
+      return actions;
     };
 
-    return actionMap[role] || actionMap.sales;
-  };
+    switch (userRole) {
+      case 'owner':
+      case 'manager': {
+        const actions: QuickAction[] = [];
+        addAction(actions, {
+          id: 'create_order',
+          label: 'הזמנה חדשה',
+          icon: '🧾',
+          color: '#007aff',
+          description: 'פתח אשף הזמנה לעסק',
+          action: onCreateOrder
+        });
+        addAction(actions, {
+          id: 'create_task',
+          label: 'משימת שטח',
+          icon: '✅',
+          color: '#34c759',
+          description: 'שגר משימה לצוות התפעול',
+          action: onCreateTask
+        });
+        addAction(actions, {
+          id: 'create_route',
+          label: 'מסלול נהגים',
+          icon: '🗺️',
+          color: '#ff9500',
+          description: 'תכנן חלוקה מחדש לנהגים',
+          action: onCreateRoute
+        });
+        addAction(actions, {
+          id: 'create_user',
+          label: 'חבר צוות חדש',
+          icon: '👥',
+          color: '#af52de',
+          description: 'הוסף מנהל או עובד חדש',
+          action: onCreateUser
+        });
+        addAction(actions, {
+          id: 'create_product',
+          label: 'פריט בקטלוג',
+          icon: '🏷️',
+          color: '#ff3b30',
+          description: 'הוסף מוצר חדש למלאי',
+          action: onCreateProduct
+        });
+
+        return actions.length
+          ? {
+              title: triggerLabel || 'פקודה חדשה',
+              icon: triggerIcon || '🪄',
+              actions
+            }
+          : null;
+      }
+      case 'sales': {
+        const actions: QuickAction[] = [];
+        addAction(actions, {
+          id: 'dm_order',
+          label: 'פתיחת הזמנה ב-DM',
+          icon: '💬',
+          color: '#007aff',
+          description: 'התחל הזמנה דרך שיחת לקוח',
+          action: onCreateOrder
+        });
+        addAction(actions, {
+          id: 'storefront_order',
+          label: 'הזמנה מחנות דיגיטלית',
+          icon: '🛍️',
+          color: '#ff9500',
+          description: 'נווט לקטלוג לבניית הצעת מחיר',
+          action: onNavigate ? () => onNavigate('products') : undefined
+        });
+        addAction(actions, {
+          id: 'contact_customer',
+          label: 'צור קשר עם לקוח',
+          icon: '📞',
+          color: '#34c759',
+          description: 'המשך שיחה עם לקוח קיים',
+          action: onContactCustomer
+        });
+
+        return actions.length
+          ? {
+              title: triggerLabel || 'הזמנה חדשה',
+              icon: triggerIcon || '➕',
+              actions
+            }
+          : null;
+      }
+      case 'warehouse': {
+        const actions: QuickAction[] = [];
+        addAction(actions, {
+          id: 'scan_barcode',
+          label: 'סריקת ברקוד',
+          icon: '📱',
+          color: '#34c759',
+          description: 'סרוק פריט נכנס או יוצא',
+          action: onScanBarcode
+        });
+        addAction(actions, {
+          id: 'check_inventory',
+          label: 'בדיקת מלאי',
+          icon: '📦',
+          color: '#ff9500',
+          description: 'נווט למסך ניהול המלאי',
+          action: onCheckInventory
+        });
+        addAction(actions, {
+          id: 'create_task',
+          label: 'דיווח תפעולי',
+          icon: '🛠️',
+          color: '#007aff',
+          description: 'פתח משימה לטיפול בצוות',
+          action: onCreateTask
+        });
+
+        return actions.length
+          ? {
+              title: triggerLabel || 'פעולת מלאי',
+              icon: triggerIcon || '📦',
+              actions
+            }
+          : null;
+      }
+      default:
+        return null;
+    }
+  }, [
+    onCheckInventory,
+    onContactCustomer,
+    onCreateOrder,
+    onCreateProduct,
+    onCreateRoute,
+    onCreateTask,
+    onCreateUser,
+    onNavigate,
+    onScanBarcode,
+    triggerIcon,
+    triggerLabel,
+    userRole
+  ]);
+
+  if (!actionConfig) {
+    return null;
+  }
+
+  const { actions, icon, title } = actionConfig;
 
   const handleToggle = () => {
     setIsOpen(!isOpen);
@@ -219,7 +215,7 @@ export function FloatingCreateButton({
   const handleActionClick = (action: QuickAction) => {
     setIsOpen(false);
     haptic();
-    action.action();
+    action.action?.();
   };
 
   const primaryAction = actions[0];
@@ -268,7 +264,7 @@ export function FloatingCreateButton({
             color: theme.text_color,
             textAlign: 'center'
           }}>
-            פעולות מהירות
+            {title}
           </h3>
 
           <div style={{
@@ -360,7 +356,7 @@ export function FloatingCreateButton({
           onClick={handleToggle}
           onContextMenu={(e) => {
             e.preventDefault();
-            if (primaryAction) {
+            if (primaryAction?.action) {
               primaryAction.action();
               haptic();
             }
@@ -389,7 +385,7 @@ export function FloatingCreateButton({
             e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,123,255,0.4)';
           }}
         >
-          {isOpen ? '×' : '+'}
+          {isOpen ? '×' : icon}
         </button>
 
         {/* Role indicator */}
@@ -416,7 +412,8 @@ export function FloatingCreateButton({
 
 function getRoleIcon(role: string): string {
   const icons: { [key: string]: string } = {
-    manager: '👨‍💼',
+    owner: '👑',
+    manager: '👔',
     sales: '🤝',
     dispatcher: '📋',
     driver: '🚚',

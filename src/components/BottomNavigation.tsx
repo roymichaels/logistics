@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
-import { hebrew, roleIcons } from '../lib/hebrew';
+import { hebrew } from '../lib/hebrew';
 import { FloatingCreateButton } from './FloatingCreateButton';
 
 interface BottomNavigationProps {
@@ -26,11 +26,124 @@ interface BottomNavigationProps {
   onShowCreateProduct?: () => void;
 }
 
+type RoleKey = NonNullable<BottomNavigationProps['userRole']> | 'default';
+
+interface TabDefinition {
+  id: string;
+  label: string;
+  icon: string;
+}
+
+interface NavigationConfig {
+  tabs: TabDefinition[];
+  action?: {
+    label: string;
+    icon: string;
+  };
+}
+
+const navigationConfigs: Record<RoleKey, NavigationConfig> = {
+  user: {
+    tabs: [
+      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'demo', label: 'דמו', icon: '🎮' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ]
+  },
+  owner: {
+    tabs: [
+      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'stats', label: hebrew.stats, icon: '📈' },
+      { id: 'partners', label: hebrew.partners, icon: '🤝' },
+      { id: 'orders', label: hebrew.orders, icon: '🧾' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ],
+    action: {
+      label: 'פקודה חדשה',
+      icon: '🪄'
+    }
+  },
+  manager: {
+    tabs: [
+      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'stats', label: hebrew.stats, icon: '📈' },
+      { id: 'partners', label: hebrew.partners, icon: '🤝' },
+      { id: 'orders', label: hebrew.orders, icon: '🧾' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ],
+    action: {
+      label: 'פקודה חדשה',
+      icon: '🪄'
+    }
+  },
+  dispatcher: {
+    tabs: [
+      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'dispatch-board', label: hebrew.dispatch_board, icon: '🗺️' },
+      { id: 'orders', label: hebrew.orders, icon: '📋' },
+      { id: 'tasks', label: hebrew.tasks, icon: '✅' },
+      { id: 'chat', label: 'צ\'אט', icon: '💬' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ]
+  },
+  driver: {
+    tabs: [
+      { id: 'my-deliveries', label: hebrew.my_deliveries, icon: '🚚' },
+      { id: 'my-inventory', label: hebrew.my_inventory, icon: '📦' },
+      { id: 'my-zones', label: hebrew.my_zones, icon: '🗺️' },
+      { id: 'driver-status', label: hebrew.driver_status, icon: '📍' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ]
+  },
+  warehouse: {
+    tabs: [
+      { id: 'inventory', label: hebrew.inventory, icon: '📦' },
+      { id: 'incoming', label: hebrew.incoming, icon: '🚚' },
+      { id: 'restock-requests', label: hebrew.restock_requests, icon: '🔄' },
+      { id: 'logs', label: hebrew.logs, icon: '📝' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ],
+    action: {
+      label: 'פעולת מלאי',
+      icon: '📦'
+    }
+  },
+  sales: {
+    tabs: [
+      { id: 'orders', label: hebrew.orders, icon: '🧾' },
+      { id: 'products', label: hebrew.products, icon: '🛒' },
+      { id: 'my-stats', label: hebrew.my_stats, icon: '📈' },
+      { id: 'chat', label: 'צ\'אט', icon: '💬' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ],
+    action: {
+      label: 'הזמנה חדשה',
+      icon: '➕'
+    }
+  },
+  customer_service: {
+    tabs: [
+      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'orders', label: hebrew.orders, icon: '📋' },
+      { id: 'customers', label: hebrew.customers, icon: '👥' },
+      { id: 'chat', label: 'צ\'אט', icon: '💬' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ]
+  },
+  default: {
+    tabs: [
+      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'orders', label: hebrew.orders, icon: '🧾' },
+      { id: 'tasks', label: hebrew.tasks, icon: '✅' },
+      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+    ]
+  }
+};
+
 export function BottomNavigation({
   currentPage,
   onNavigate,
   userRole,
-  businessId,
   onShowCreateOrder,
   onShowCreateTask,
   onShowScanBarcode,
@@ -44,66 +157,15 @@ export function BottomNavigation({
 
   // Check for demo role override
   const demoRole = localStorage.getItem('demo_role');
-  const effectiveRole = demoRole || userRole;
+  const effectiveRole = (demoRole || userRole || 'default') as RoleKey;
 
-  let tabs;
-  
-  if (effectiveRole === 'user') {
-    tabs = [
-      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
-      { id: 'demo', label: 'דמו', icon: '🎮' },
-      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
-    ];
-  } else if (effectiveRole === 'owner' || effectiveRole === 'manager') {
-    tabs = [
-      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
-      { id: 'stats', label: hebrew.stats, icon: '📈' },
-      { id: 'partners', label: hebrew.partners, icon: '🤝' },
-      { id: 'orders', label: hebrew.orders, icon: '🧾' },
-      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
-    ];
-  } else if (effectiveRole === 'dispatcher') {
-    tabs = [
-      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
-      { id: 'dispatch-board', label: hebrew.dispatch_board, icon: '🗺️' },
-      { id: 'orders', label: hebrew.orders, icon: '📋' },
-      { id: 'tasks', label: hebrew.tasks, icon: '✅' },
-      { id: 'chat', label: 'צ\'אט', icon: '💬' },
-      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
-    ];
-  } else if (effectiveRole === 'driver') {
-    tabs = [
-      { id: 'my-deliveries', label: hebrew.my_deliveries, icon: '🚚' },
-      { id: 'my-inventory', label: hebrew.my_inventory, icon: '📦' },
-      { id: 'my-zones', label: hebrew.my_zones, icon: '🗺️' },
-      { id: 'driver-status', label: hebrew.driver_status, icon: '📍' },
-      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
-    ];
-  } else if (effectiveRole === 'warehouse') {
-    tabs = [
-      { id: 'inventory', label: hebrew.inventory, icon: '📦' },
-      { id: 'incoming', label: hebrew.incoming, icon: '🚚' },
-      { id: 'restock-requests', label: hebrew.restock_requests, icon: '🔄' },
-      { id: 'logs', label: hebrew.logs, icon: '📝' },
-      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
-    ];
-  } else if (effectiveRole === 'sales') {
-    tabs = [
-      { id: 'orders', label: hebrew.orders, icon: '🧾' },
-      { id: 'products', label: hebrew.products, icon: '🛒' },
-      { id: 'my-stats', label: hebrew.my_stats, icon: '📈' },
-      { id: 'chat', label: 'צ\'אט', icon: '💬' },
-      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
-    ];
-  } else { // customer_service
-    tabs = [
-      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
-      { id: 'orders', label: hebrew.orders, icon: '📋' },
-      { id: 'customers', label: hebrew.customers, icon: '👥' },
-      { id: 'chat', label: 'צ\'אט', icon: '💬' },
-      { id: 'settings', label: hebrew.settings, icon: '⚙️' }
-    ];
-  }
+  const { tabs, action } = useMemo(() => {
+    const roleConfig = navigationConfigs[effectiveRole] || navigationConfigs.default;
+    return {
+      tabs: roleConfig.tabs,
+      action: roleConfig.action
+    };
+  }, [effectiveRole]);
 
   return (
     <>
@@ -149,10 +211,12 @@ export function BottomNavigation({
       </div>
 
       {/* Floating Create Button - Only show for roles that can create content */}
-      {effectiveRole && effectiveRole !== 'user' && (
+      {action && (
         <FloatingCreateButton
           userRole={effectiveRole}
-          businessId={businessId}
+          triggerLabel={action.label}
+          triggerIcon={action.icon}
+          onNavigate={onNavigate}
           onCreateOrder={() => onShowCreateOrder?.()}
           onCreateTask={() => onShowCreateTask?.()}
           onScanBarcode={() => onShowScanBarcode?.()}

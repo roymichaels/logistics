@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { telegram } from './lib/telegram';
 import { bootstrap } from './src/lib/bootstrap';
 import { createFrontendDataStore } from './src/lib/frontendDataStore';
@@ -10,28 +10,73 @@ import { BusinessManager } from './src/components/BusinessManager';
 import { SecurityGate } from './src/components/SecurityGate';
 import { hebrew } from './src/lib/hebrew';
 
-// Pages
-import { Dashboard } from './pages/Dashboard';
-import { Orders } from './pages/Orders';
-import { Tasks } from './pages/Tasks';
-import { Settings } from './pages/Settings';
-import { UserManagement } from './pages/UserManagement';
-import { Chat } from './pages/Chat';
-import { Channels } from './pages/Channels';
-import { Products } from './pages/Products';
-import { Reports } from './pages/Reports';
-import { Stats } from './pages/Stats';
-import { Partners } from './pages/Partners';
-import { MyStats } from './pages/MyStats';
-import { Inventory } from './pages/Inventory';
-import { Incoming } from './pages/Incoming';
-import { RestockRequests } from './pages/RestockRequests';
-import { Logs } from './pages/Logs';
-import { MyDeliveries } from './pages/MyDeliveries';
-import { MyInventory } from './pages/MyInventory';
-import { MyZones } from './pages/MyZones';
-import { DriverStatus } from './pages/DriverStatus';
-import { DispatchBoard } from './pages/DispatchBoard';
+// Pages (lazy loaded)
+const DashboardPage = React.lazy(() =>
+  import('./pages/Dashboard').then((module) => ({ default: module.Dashboard }))
+);
+const OrdersPage = React.lazy(() =>
+  import('./pages/Orders').then((module) => ({ default: module.Orders }))
+);
+const TasksPage = React.lazy(() =>
+  import('./pages/Tasks').then((module) => ({ default: module.Tasks }))
+);
+const SettingsPage = React.lazy(() =>
+  import('./pages/Settings').then((module) => ({ default: module.Settings }))
+);
+const UserManagementPage = React.lazy(() =>
+  import('./pages/UserManagement').then((module) => ({ default: module.UserManagement }))
+);
+const ChatPage = React.lazy(() =>
+  import('./pages/Chat').then((module) => ({ default: module.Chat }))
+);
+const ChannelsPage = React.lazy(() =>
+  import('./pages/Channels').then((module) => ({ default: module.Channels }))
+);
+const ProductsPage = React.lazy(() =>
+  import('./pages/Products').then((module) => ({ default: module.Products }))
+);
+const ReportsPage = React.lazy(() =>
+  import('./pages/Reports').then((module) => ({ default: module.Reports }))
+);
+const StatsPage = React.lazy(() =>
+  import('./pages/Stats').then((module) => ({ default: module.Stats }))
+);
+const PartnersPage = React.lazy(() =>
+  import('./pages/Partners').then((module) => ({ default: module.Partners }))
+);
+const MyStatsPage = React.lazy(() =>
+  import('./pages/MyStats').then((module) => ({ default: module.MyStats }))
+);
+const InventoryPage = React.lazy(() =>
+  import('./pages/Inventory').then((module) => ({ default: module.Inventory }))
+);
+const IncomingPage = React.lazy(() =>
+  import('./pages/Incoming').then((module) => ({ default: module.Incoming }))
+);
+const RestockRequestsPage = React.lazy(() =>
+  import('./pages/RestockRequests').then((module) => ({ default: module.RestockRequests }))
+);
+const LogsPage = React.lazy(() =>
+  import('./pages/Logs').then((module) => ({ default: module.Logs }))
+);
+const MyDeliveriesPage = React.lazy(() =>
+  import('./pages/MyDeliveries').then((module) => ({ default: module.MyDeliveries }))
+);
+const MyInventoryPage = React.lazy(() =>
+  import('./pages/MyInventory').then((module) => ({ default: module.MyInventory }))
+);
+const MyZonesPage = React.lazy(() =>
+  import('./pages/MyZones').then((module) => ({ default: module.MyZones }))
+);
+const DriverStatusPage = React.lazy(() =>
+  import('./pages/DriverStatus').then((module) => ({ default: module.DriverStatus }))
+);
+const DispatchBoardPage = React.lazy(() =>
+  import('./pages/DispatchBoard').then((module) => ({ default: module.DispatchBoard }))
+);
+const DemoPage = React.lazy(() =>
+  import('./pages/Demo').then((module) => ({ default: module.Demo }))
+);
 
 type Page =
   | 'dashboard'
@@ -55,7 +100,8 @@ type Page =
   | 'my-inventory'
   | 'my-zones'
   | 'driver-status'
-  | 'dispatch-board';
+  | 'dispatch-board'
+  | 'demo';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -303,49 +349,58 @@ export default function App() {
     
     switch (currentPage) {
       case 'orders':
-        return <Orders dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <OrdersPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'tasks':
-        return <Tasks dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <TasksPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'products':
-        return <Products dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <ProductsPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'stats':
-        return <Stats dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <StatsPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'partners':
-        return <Partners dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <PartnersPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'my-stats':
-        return <MyStats dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <MyStatsPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'inventory':
-        return <Inventory dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <InventoryPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'incoming':
-        return <Incoming dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <IncomingPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'restock-requests':
-        return <RestockRequests dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <RestockRequestsPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'logs':
-        return <Logs dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <LogsPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'my-deliveries':
-        return <MyDeliveries dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <MyDeliveriesPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'my-inventory':
-        return <MyInventory dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <MyInventoryPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'my-zones':
-        return <MyZones dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <MyZonesPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'driver-status':
-        return <DriverStatus dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <DriverStatusPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'dispatch-board':
-        return <DispatchBoard dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <DispatchBoardPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'chat':
-        return <Chat dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <ChatPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'channels':
-        return <Channels dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <ChannelsPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'reports':
-        return <Reports dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <ReportsPage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'customers':
         return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד לקוחות - בפיתוח</div>;
       case 'users':
-        return <UserManagement onNavigate={handleNavigate} currentUser={user} />;
+        return <UserManagementPage onNavigate={handleNavigate} currentUser={user} />;
       case 'settings':
-        return <Settings dataStore={dataStore} onNavigate={handleNavigate} config={config} currentUser={user} />;
+        return (
+          <SettingsPage
+            dataStore={dataStore}
+            onNavigate={handleNavigate}
+            config={config}
+            currentUser={user}
+          />
+        );
+      case 'demo':
+        return <DemoPage dataStore={dataStore} onNavigate={handleNavigate} />;
       default:
-        return <Dashboard dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <DashboardPage dataStore={dataStore} onNavigate={handleNavigate} />;
     }
   };
 
@@ -361,7 +416,22 @@ export default function App() {
         color: theme.text_color,
         paddingBottom: '80px' // Space for bottom nav
       }}>
-        {renderPage()}
+        <Suspense
+          fallback={
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '60vh',
+              color: theme.hint_color,
+              direction: 'rtl'
+            }}>
+              טוען מסך...
+            </div>
+          }
+        >
+          {renderPage()}
+        </Suspense>
 
         {/* Bottom Navigation */}
         {dataStore && userRole && (
