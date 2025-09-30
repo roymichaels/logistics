@@ -2,6 +2,7 @@
 export const hebrew = {
   // Navigation
   dashboard: 'לוח בקרה',
+  stats: 'סטטיסטיקות',
   orders: 'הזמנות',
   products: 'מוצרים',
   tasks: 'משימות',
@@ -11,6 +12,16 @@ export const hebrew = {
   customers: 'לקוחות',
   reports: 'דוחות',
   settings: 'הגדרות',
+  partners: 'שותפים',
+  my_stats: 'הנתונים שלי',
+  inventory: 'מלאי',
+  incoming: 'כניסות',
+  restock_requests: 'בקשות חידוש',
+  logs: 'יומן פעילות',
+  my_deliveries: 'המשלוחים שלי',
+  my_inventory: 'המלאי שלי',
+  my_zones: 'האזורים שלי',
+  driver_status: 'סטטוס נהג',
   
   // Roles
   manager: 'מנהל',

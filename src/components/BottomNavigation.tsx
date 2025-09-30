@@ -49,10 +49,9 @@ export function BottomNavigation({
   } else if (effectiveRole === 'manager') {
     tabs = [
       { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
-      { id: 'orders', label: hebrew.orders, icon: '📋' },
-      { id: 'products', label: hebrew.products, icon: '📦' },
-      { id: 'chat', label: 'צ\'אט', icon: '💬' },
-      { id: 'reports', label: hebrew.reports, icon: '📈' },
+      { id: 'stats', label: hebrew.stats, icon: '📈' },
+      { id: 'partners', label: hebrew.partners, icon: '🤝' },
+      { id: 'orders', label: hebrew.orders, icon: '🧾' },
       { id: 'settings', label: hebrew.settings, icon: '⚙️' }
     ];
   } else if (effectiveRole === 'dispatcher') {
@@ -65,25 +64,25 @@ export function BottomNavigation({
     ];
   } else if (effectiveRole === 'driver') {
     tabs = [
-      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
-      { id: 'deliveries', label: hebrew.deliveries, icon: '🚚' },
-      { id: 'route', label: 'מסלול', icon: '🗺️' },
-      { id: 'chat', label: 'צ\'אט', icon: '💬' },
+      { id: 'my-deliveries', label: hebrew.my_deliveries, icon: '🚚' },
+      { id: 'my-inventory', label: hebrew.my_inventory, icon: '📦' },
+      { id: 'my-zones', label: hebrew.my_zones, icon: '🗺️' },
+      { id: 'driver-status', label: hebrew.driver_status, icon: '📍' },
       { id: 'settings', label: hebrew.settings, icon: '⚙️' }
     ];
   } else if (effectiveRole === 'warehouse') {
     tabs = [
-      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
-      { id: 'tasks', label: hebrew.tasks, icon: '✅' },
-      { id: 'products', label: hebrew.products, icon: '📦' },
-      { id: 'chat', label: 'צ\'אט', icon: '💬' },
+      { id: 'inventory', label: hebrew.inventory, icon: '📦' },
+      { id: 'incoming', label: hebrew.incoming, icon: '🚚' },
+      { id: 'restock-requests', label: hebrew.restock_requests, icon: '🔄' },
+      { id: 'logs', label: hebrew.logs, icon: '📝' },
       { id: 'settings', label: hebrew.settings, icon: '⚙️' }
     ];
   } else if (effectiveRole === 'sales') {
     tabs = [
-      { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
-      { id: 'orders', label: hebrew.orders, icon: '📋' },
-      { id: 'products', label: hebrew.products, icon: '📦' },
+      { id: 'orders', label: hebrew.orders, icon: '🧾' },
+      { id: 'products', label: hebrew.products, icon: '🛒' },
+      { id: 'my-stats', label: hebrew.my_stats, icon: '📈' },
       { id: 'chat', label: 'צ\'אט', icon: '💬' },
       { id: 'settings', label: hebrew.settings, icon: '⚙️' }
     ];
