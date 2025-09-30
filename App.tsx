@@ -32,6 +32,8 @@ import { MyInventory } from './pages/MyInventory';
 import { MyZones } from './pages/MyZones';
 import { DriverStatus } from './pages/DriverStatus';
 import { DispatchBoard } from './pages/DispatchBoard';
+import { WarehouseDashboard } from './pages/WarehouseDashboard';
+import { ManagerInventory } from './pages/ManagerInventory';
 
 type Page =
   | 'dashboard'
@@ -55,7 +57,9 @@ type Page =
   | 'my-inventory'
   | 'my-zones'
   | 'driver-status'
-  | 'dispatch-board';
+  | 'dispatch-board'
+  | 'warehouse-dashboard'
+  | 'manager-inventory';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -78,6 +82,7 @@ export default function App() {
   const [showOrderWizard, setShowOrderWizard] = useState(false);
   const [showBusinessManager, setShowBusinessManager] = useState(false);
   const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
+  const [initialPageRole, setInitialPageRole] = useState<string | null>(null);
 
   // Derived state for login status
   const isLoggedIn = user !== null;
@@ -194,8 +199,14 @@ export default function App() {
   };
 
   const handleShowCheckInventory = () => {
-    // Navigate to products/inventory page
-    setCurrentPage('inventory');
+    // Navigate to role-specific inventory views
+    if (userRole === 'warehouse') {
+      setCurrentPage('warehouse-dashboard');
+    } else if (userRole === 'manager' || userRole === 'owner') {
+      setCurrentPage('manager-inventory');
+    } else {
+      setCurrentPage('inventory');
+    }
   };
 
   const handleShowCreateRoute = () => {
@@ -332,6 +343,10 @@ export default function App() {
         return <DriverStatus dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'dispatch-board':
         return <DispatchBoard dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'warehouse-dashboard':
+        return <WarehouseDashboard dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'manager-inventory':
+        return <ManagerInventory dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'chat':
         return <Chat dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'channels':
@@ -348,6 +363,31 @@ export default function App() {
         return <Dashboard dataStore={dataStore} onNavigate={handleNavigate} />;
     }
   };
+
+  useEffect(() => {
+    if (!userRole) {
+      setInitialPageRole(null);
+      return;
+    }
+
+    if (initialPageRole === userRole) {
+      return;
+    }
+
+    let defaultPage: Page | null = null;
+
+    if (userRole === 'warehouse') {
+      defaultPage = 'warehouse-dashboard';
+    } else if (userRole === 'manager' || userRole === 'owner') {
+      defaultPage = 'manager-inventory';
+    }
+
+    if (defaultPage && currentPage === 'dashboard') {
+      setCurrentPage(defaultPage);
+    }
+
+    setInitialPageRole(userRole);
+  }, [userRole, currentPage, initialPageRole]);
 
   return (
     <SecurityGate

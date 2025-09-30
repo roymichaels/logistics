@@ -18,6 +18,8 @@ export const hebrew = {
   incoming: 'כניסות',
   restock_requests: 'בקשות חידוש',
   logs: 'יומן פעילות',
+  warehouse_dashboard: 'מרכז מחסן',
+  manager_inventory: 'מלאי ניהולי',
   my_deliveries: 'המשלוחים שלי',
   my_inventory: 'המלאי שלי',
   my_zones: 'האזורים שלי',

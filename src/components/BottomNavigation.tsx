@@ -57,6 +57,7 @@ export function BottomNavigation({
   } else if (effectiveRole === 'owner' || effectiveRole === 'manager') {
     tabs = [
       { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'manager-inventory', label: hebrew.manager_inventory, icon: '🏬' },
       { id: 'stats', label: hebrew.stats, icon: '📈' },
       { id: 'partners', label: hebrew.partners, icon: '🤝' },
       { id: 'orders', label: hebrew.orders, icon: '🧾' },
@@ -81,6 +82,7 @@ export function BottomNavigation({
     ];
   } else if (effectiveRole === 'warehouse') {
     tabs = [
+      { id: 'warehouse-dashboard', label: hebrew.warehouse_dashboard, icon: '🏭' },
       { id: 'inventory', label: hebrew.inventory, icon: '📦' },
       { id: 'incoming', label: hebrew.incoming, icon: '🚚' },
       { id: 'restock-requests', label: hebrew.restock_requests, icon: '🔄' },
