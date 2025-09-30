@@ -15,9 +15,11 @@ import {
   RestockRequest,
   InventoryLog,
   InventoryAlert,
+  InventoryLocation,
   RolePermissions,
   RestockRequestStatus,
   InventoryLogType,
+  SalesLog,
   CreateOrderInput,
   Zone,
   DriverZoneAssignment,
@@ -64,12 +66,11 @@ export class SupabaseDataStore implements DataStore {
   }
 
   private async refreshProductStock(productId: string) {
-    const [{ data: inventory, error: inventoryError }, { data: driverBalances, error: driverError }] = await Promise.all([
+    const [{ data: balances, error: inventoryError }, { data: driverBalances, error: driverError }] = await Promise.all([
       supabase
         .from('inventory')
-        .select('central_quantity, reserved_quantity')
-        .eq('product_id', productId)
-        .maybeSingle(),
+        .select('on_hand_quantity, reserved_quantity')
+        .eq('product_id', productId),
       supabase
         .from('driver_inventory')
         .select('quantity')
@@ -79,10 +80,14 @@ export class SupabaseDataStore implements DataStore {
     if (inventoryError) throw inventoryError;
     if (driverError) throw driverError;
 
-    const central = inventory?.central_quantity ?? 0;
-    const reserved = inventory?.reserved_quantity ?? 0;
+    const locationTotal =
+      balances?.reduce(
+        (sum: number, row: { on_hand_quantity?: number | null; reserved_quantity?: number | null }) =>
+          sum + (row.on_hand_quantity ?? 0) + (row.reserved_quantity ?? 0),
+        0
+      ) ?? 0;
     const driverTotal = driverBalances?.reduce((sum: number, row: { quantity: number }) => sum + row.quantity, 0) ?? 0;
-    const total = central + reserved + driverTotal;
+    const total = locationTotal + driverTotal;
 
     const { error: updateError } = await supabase
       .from('products')
@@ -96,8 +101,8 @@ export class SupabaseDataStore implements DataStore {
     product_id: string;
     change_type: InventoryLogType;
     quantity_change: number;
-    from_location?: string | null;
-    to_location?: string | null;
+    from_location_id?: string | null;
+    to_location_id?: string | null;
     reference_id?: string | null;
     metadata?: Record<string, any> | null;
   }) {
@@ -132,6 +137,36 @@ export class SupabaseDataStore implements DataStore {
 
     const { error } = await supabase.from('driver_movements').insert(payload);
     if (error) throw error;
+  }
+
+  private async getCentralLocationId(): Promise<string> {
+    const { data, error } = await supabase
+      .from('inventory_locations')
+      .select('id')
+      .eq('code', 'CENTRAL')
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (data?.id) {
+      return data.id;
+    }
+
+    const { data: fallback, error: fallbackError } = await supabase
+      .from('inventory_locations')
+      .select('id')
+      .eq('type', 'central')
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (fallbackError) throw fallbackError;
+
+    if (!fallback?.id) {
+      throw new Error('לא נמצא מיקום מרכזי עבור המלאי');
+    }
+
+    return fallback.id;
   }
 
   private initializeRealTimeSubscriptions() {
@@ -371,12 +406,16 @@ export class SupabaseDataStore implements DataStore {
     if (error) throw error;
 
     const now = new Date().toISOString();
+    const centralLocationId = await this.getCentralLocationId();
+
     const { error: inventoryError } = await supabase
       .from('inventory')
       .upsert({
         product_id: data.id,
-        central_quantity: input.stock_quantity ?? 0,
+        location_id: centralLocationId,
+        on_hand_quantity: input.stock_quantity ?? 0,
         reserved_quantity: 0,
+        damaged_quantity: 0,
         low_stock_threshold: 10,
         updated_at: now
       });
@@ -388,9 +427,11 @@ export class SupabaseDataStore implements DataStore {
         product_id: data.id,
         change_type: 'restock',
         quantity_change: input.stock_quantity ?? 0,
-        to_location: 'central'
+        to_location_id: centralLocationId
       });
     }
+
+    await this.refreshProductStock(data.id);
 
     return { id: data.id };
   }
@@ -404,28 +445,34 @@ export class SupabaseDataStore implements DataStore {
     if (error) throw error;
 
     if (typeof updates.stock_quantity === 'number') {
-      const { error: inventoryError } = await supabase
-        .from('inventory')
-        .update({
-          central_quantity: updates.stock_quantity,
-          updated_at: new Date().toISOString()
-        })
-        .eq('product_id', id);
-
-      if (inventoryError) throw inventoryError;
-
       await this.refreshProductStock(id);
     }
   }
 
   // Inventory
-  async listInventory(filters?: { product_id?: string }): Promise<InventoryRecord[]> {
+  async listInventory(filters?: {
+    product_id?: string;
+    location_id?: string;
+    location_ids?: string[];
+  }): Promise<InventoryRecord[]> {
     let query = supabase
       .from('inventory')
-      .select('*, products(*)');
+      .select(
+        `id, product_id, location_id, on_hand_quantity, reserved_quantity, damaged_quantity, low_stock_threshold, updated_at,
+         product:products(*),
+         location:inventory_locations(*)`
+      );
 
     if (filters?.product_id) {
       query = query.eq('product_id', filters.product_id);
+    }
+
+    if (filters?.location_id) {
+      query = query.eq('location_id', filters.location_id);
+    }
+
+    if (filters?.location_ids && filters.location_ids.length > 0) {
+      query = query.in('location_id', filters.location_ids);
     }
 
     query = query.order('updated_at', { ascending: false });
@@ -437,40 +484,73 @@ export class SupabaseDataStore implements DataStore {
     return (data || []).map((row: any) => ({
       id: row.id,
       product_id: row.product_id,
-      central_quantity: row.central_quantity,
+      location_id: row.location_id,
+      on_hand_quantity: row.on_hand_quantity,
       reserved_quantity: row.reserved_quantity,
+      damaged_quantity: row.damaged_quantity,
       low_stock_threshold: row.low_stock_threshold,
       updated_at: row.updated_at,
-      product: row.products || undefined
+      product: row.product || undefined,
+      location: row.location || undefined
     }));
   }
 
-  async getInventory(productId: string): Promise<InventoryRecord | null> {
-    const { data, error } = await supabase
+  async getInventory(productId: string, locationId?: string): Promise<InventoryRecord | null> {
+    let query = supabase
       .from('inventory')
-      .select('*, products(*)')
+      .select(
+        `id, product_id, location_id, on_hand_quantity, reserved_quantity, damaged_quantity, low_stock_threshold, updated_at,
+         product:products(*),
+         location:inventory_locations(*)`
+      )
       .eq('product_id', productId)
-      .maybeSingle();
+      .order('updated_at', { ascending: false })
+      .limit(1);
+
+    if (locationId) {
+      query = query.eq('location_id', locationId);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
-    if (!data) return null;
+    const record = data?.[0];
+    if (!record) return null;
 
     return {
-      id: data.id,
-      product_id: data.product_id,
-      central_quantity: data.central_quantity,
-      reserved_quantity: data.reserved_quantity,
-      low_stock_threshold: data.low_stock_threshold,
-      updated_at: data.updated_at,
-      product: data.products || undefined
+      id: record.id,
+      product_id: record.product_id,
+      location_id: record.location_id,
+      on_hand_quantity: record.on_hand_quantity,
+      reserved_quantity: record.reserved_quantity,
+      damaged_quantity: record.damaged_quantity,
+      low_stock_threshold: record.low_stock_threshold,
+      updated_at: record.updated_at,
+      product: record.product || undefined,
+      location: record.location || undefined
     };
   }
 
-  async listDriverInventory(filters?: { driver_id?: string; product_id?: string; driver_ids?: string[] }): Promise<DriverInventoryRecord[]> {
+  async listInventoryLocations(): Promise<InventoryLocation[]> {
+    const { data, error } = await supabase
+      .from('inventory_locations')
+      .select('*')
+      .order('type', { ascending: true })
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async listDriverInventory(filters?: {
+    driver_id?: string;
+    product_id?: string;
+    driver_ids?: string[];
+  }): Promise<DriverInventoryRecord[]> {
     let query = supabase
       .from('driver_inventory')
-      .select('*, products(*)');
+      .select('id, product_id, driver_id, quantity, location_id, updated_at, product:products(*), location:inventory_locations(*)');
 
     if (filters?.driver_id) {
       query = query.eq('driver_id', filters.driver_id);
@@ -496,14 +576,26 @@ export class SupabaseDataStore implements DataStore {
       driver_id: row.driver_id,
       quantity: row.quantity,
       updated_at: row.updated_at,
-      product: row.products || undefined
+      location_id: row.location_id,
+      location: row.location || undefined,
+      product: row.product || undefined
     }));
   }
 
-  async listRestockRequests(filters?: { status?: RestockRequestStatus | 'all'; onlyMine?: boolean }): Promise<RestockRequest[]> {
+  async listRestockRequests(filters?: {
+    status?: RestockRequestStatus | 'all';
+    onlyMine?: boolean;
+    product_id?: string;
+    location_id?: string;
+  }): Promise<RestockRequest[]> {
     let query = supabase
       .from('restock_requests')
-      .select('*, products(*)');
+      .select(
+        `*,
+         product:products(*),
+         from_location:inventory_locations!restock_requests_from_location_id_fkey(*),
+         to_location:inventory_locations!restock_requests_to_location_id_fkey(*)`
+      );
 
     if (filters?.status && filters.status !== 'all') {
       query = query.eq('status', filters.status);
@@ -511,6 +603,14 @@ export class SupabaseDataStore implements DataStore {
 
     if (filters?.onlyMine) {
       query = query.eq('requested_by', this.userTelegramId);
+    }
+
+    if (filters?.product_id) {
+      query = query.eq('product_id', filters.product_id);
+    }
+
+    if (filters?.location_id) {
+      query = query.eq('to_location_id', filters.location_id);
     }
 
     query = query.order('created_at', { ascending: false });
@@ -525,6 +625,8 @@ export class SupabaseDataStore implements DataStore {
       requested_by: row.requested_by,
       requested_quantity: row.requested_quantity,
       status: row.status,
+      from_location_id: row.from_location_id,
+      to_location_id: row.to_location_id,
       approved_by: row.approved_by,
       approved_quantity: row.approved_quantity,
       fulfilled_by: row.fulfilled_by,
@@ -532,11 +634,19 @@ export class SupabaseDataStore implements DataStore {
       notes: row.notes,
       created_at: row.created_at,
       updated_at: row.updated_at,
-      product: row.products || undefined
+      from_location: row.from_location || null,
+      to_location: row.to_location || null,
+      product: row.product || undefined
     }));
   }
 
-  async submitRestockRequest(input: { product_id: string; requested_quantity: number; notes?: string }): Promise<{ id: string }> {
+  async submitRestockRequest(input: {
+    product_id: string;
+    requested_quantity: number;
+    to_location_id: string;
+    from_location_id?: string | null;
+    notes?: string;
+  }): Promise<{ id: string }> {
     const permissions = await this.getRolePermissions();
     if (!permissions.can_request_restock) {
       throw new Error('אין לך הרשאה לבקש חידוש מלאי');
@@ -544,12 +654,14 @@ export class SupabaseDataStore implements DataStore {
 
     const now = new Date().toISOString();
 
-    const { data: request, error } = await supabase
+    const { data, error } = await supabase
       .from('restock_requests')
       .insert({
         product_id: input.product_id,
         requested_by: this.userTelegramId,
         requested_quantity: input.requested_quantity,
+        to_location_id: input.to_location_id,
+        from_location_id: input.from_location_id ?? null,
         status: 'pending',
         notes: input.notes || null,
         created_at: now,
@@ -560,176 +672,57 @@ export class SupabaseDataStore implements DataStore {
 
     if (error) throw error;
 
-    const { data: inventoryRow, error: inventoryFetchError } = await supabase
-      .from('inventory')
-      .select('id, reserved_quantity')
-      .eq('product_id', input.product_id)
-      .maybeSingle();
-
-    if (inventoryFetchError) throw inventoryFetchError;
-
-    const reservedQuantity = (inventoryRow?.reserved_quantity ?? 0) + input.requested_quantity;
-
-    const { error: inventoryUpdateError } = inventoryRow
-      ? await supabase
-          .from('inventory')
-          .update({ reserved_quantity: reservedQuantity, updated_at: now })
-          .eq('product_id', input.product_id)
-      : await supabase
-          .from('inventory')
-          .insert({
-            product_id: input.product_id,
-            central_quantity: 0,
-            reserved_quantity: reservedQuantity,
-            low_stock_threshold: 10,
-            updated_at: now
-          });
-
-    if (inventoryUpdateError) throw inventoryUpdateError;
-
     await this.recordInventoryLog({
       product_id: input.product_id,
       change_type: 'reservation',
       quantity_change: input.requested_quantity,
-      from_location: 'supplier',
-      to_location: 'reserved',
-      reference_id: request.id,
-      metadata: { note: input.notes || null, action: 'restock_request_created' }
+      from_location_id: input.from_location_id ?? null,
+      to_location_id: input.to_location_id,
+      reference_id: data.id,
+      metadata: { note: input.notes || null, event: 'restock_requested' }
     });
 
-    await this.refreshProductStock(input.product_id);
-
-    return { id: request.id };
+    return { id: data.id };
   }
 
-  async approveRestockRequest(id: string, input: { approved_quantity: number; notes?: string }): Promise<void> {
+  async approveRestockRequest(
+    id: string,
+    input: { approved_quantity: number; from_location_id: string; notes?: string }
+  ): Promise<void> {
     const permissions = await this.getRolePermissions();
     if (!permissions.can_approve_restock) {
       throw new Error('אין לך הרשאה לאשר בקשות חידוש');
     }
 
-    const now = new Date().toISOString();
-
-    const { data: request, error: fetchError } = await supabase
-      .from('restock_requests')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (fetchError) throw fetchError;
-    if (!request) throw new Error('בקשת החידוש לא נמצאה');
-
-    const { data: inventoryRow, error: inventoryFetchError } = await supabase
-      .from('inventory')
-      .select('reserved_quantity')
-      .eq('product_id', request.product_id)
-      .maybeSingle();
-
-    if (inventoryFetchError) throw inventoryFetchError;
-
-    const reservedBefore = inventoryRow?.reserved_quantity ?? 0;
-    const requestedQty = request.requested_quantity ?? 0;
-    const approvedQty = input.approved_quantity;
-    const reservedAfter = Math.max(0, reservedBefore - requestedQty + approvedQty);
-
-    const [{ error: updateRequestError }, { error: updateInventoryError }] = await Promise.all([
-      supabase
-        .from('restock_requests')
-        .update({
-          status: 'approved',
-          approved_by: this.userTelegramId,
-          approved_quantity: approvedQty,
-          notes: input.notes || null,
-          updated_at: now
-        })
-        .eq('id', id),
-      supabase
-        .from('inventory')
-        .update({ reserved_quantity: reservedAfter, updated_at: now })
-        .eq('product_id', request.product_id)
-    ]);
-
-    if (updateRequestError) throw updateRequestError;
-    if (updateInventoryError) throw updateInventoryError;
-
-    await this.recordInventoryLog({
-      product_id: request.product_id,
-      change_type: 'adjustment',
-      quantity_change: approvedQty,
-      from_location: 'reserved',
-      to_location: 'inbound',
-      reference_id: id,
-      metadata: { note: input.notes || null, action: 'restock_request_approved' }
+    const { error } = await supabase.rpc('approve_restock_request', {
+      p_request_id: id,
+      p_actor: this.userTelegramId,
+      p_from_location_id: input.from_location_id,
+      p_approved_quantity: input.approved_quantity,
+      p_notes: input.notes || null
     });
 
-    await this.refreshProductStock(request.product_id);
+    if (error) throw error;
   }
 
-  async fulfillRestockRequest(id: string, input: { fulfilled_quantity: number; notes?: string }): Promise<void> {
+  async fulfillRestockRequest(
+    id: string,
+    input: { fulfilled_quantity: number; notes?: string; reference_id?: string | null }
+  ): Promise<void> {
     const permissions = await this.getRolePermissions();
     if (!permissions.can_fulfill_restock) {
       throw new Error('אין לך הרשאה לסמן אספקת חידוש');
     }
 
-    const now = new Date().toISOString();
-
-    const { data: request, error: fetchError } = await supabase
-      .from('restock_requests')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (fetchError) throw fetchError;
-    if (!request) throw new Error('בקשת החידוש לא נמצאה');
-
-    const fulfilledQty = input.fulfilled_quantity;
-
-    const { data: inventoryRow, error: inventoryError } = await supabase
-      .from('inventory')
-      .select('central_quantity, reserved_quantity')
-      .eq('product_id', request.product_id)
-      .maybeSingle();
-
-    if (inventoryError) throw inventoryError;
-
-    const central = (inventoryRow?.central_quantity ?? 0) + fulfilledQty;
-    const reserved = Math.max(0, (inventoryRow?.reserved_quantity ?? 0) - fulfilledQty);
-
-    const [{ error: updateRequestError }, { error: updateInventoryError }] = await Promise.all([
-      supabase
-        .from('restock_requests')
-        .update({
-          status: 'fulfilled',
-          fulfilled_by: this.userTelegramId,
-          fulfilled_quantity: fulfilledQty,
-          notes: input.notes ?? request.notes ?? null,
-          updated_at: now
-        })
-        .eq('id', id),
-      supabase
-        .from('inventory')
-        .update({
-          central_quantity: central,
-          reserved_quantity: reserved,
-          updated_at: now
-        })
-        .eq('product_id', request.product_id)
-    ]);
-
-    if (updateRequestError) throw updateRequestError;
-    if (updateInventoryError) throw updateInventoryError;
-
-    await this.recordInventoryLog({
-      product_id: request.product_id,
-      change_type: 'restock',
-      quantity_change: fulfilledQty,
-      from_location: 'inbound',
-      to_location: 'central',
-      reference_id: id,
-      metadata: { note: input.notes || null, action: 'restock_request_fulfilled' }
+    const { error } = await supabase.rpc('fulfill_restock_request', {
+      p_request_id: id,
+      p_actor: this.userTelegramId,
+      p_fulfilled_quantity: input.fulfilled_quantity,
+      p_reference_id: input.reference_id ?? null,
+      p_notes: input.notes || null
     });
 
-    await this.refreshProductStock(request.product_id);
+    if (error) throw error;
   }
 
   async rejectRestockRequest(id: string, input?: { notes?: string }): Promise<void> {
@@ -738,124 +731,118 @@ export class SupabaseDataStore implements DataStore {
       throw new Error('אין לך הרשאה לדחות בקשות');
     }
 
-    const now = new Date().toISOString();
-
-    const { data: request, error: fetchError } = await supabase
-      .from('restock_requests')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (fetchError) throw fetchError;
-    if (!request) throw new Error('בקשת החידוש לא נמצאה');
-
-    const { data: inventoryRow, error: inventoryError } = await supabase
-      .from('inventory')
-      .select('reserved_quantity')
-      .eq('product_id', request.product_id)
-      .maybeSingle();
-
-    if (inventoryError) throw inventoryError;
-
-    const reserved = Math.max(0, (inventoryRow?.reserved_quantity ?? 0) - (request.requested_quantity ?? 0));
-
-    const [{ error: updateRequestError }, { error: updateInventoryError }] = await Promise.all([
-      supabase
-        .from('restock_requests')
-        .update({
-          status: 'rejected',
-          approved_by: this.userTelegramId,
-          notes: input?.notes || request.notes || null,
-          updated_at: now
-        })
-        .eq('id', id),
-      supabase
-        .from('inventory')
-        .update({ reserved_quantity: reserved, updated_at: now })
-        .eq('product_id', request.product_id)
-    ]);
-
-    if (updateRequestError) throw updateRequestError;
-    if (updateInventoryError) throw updateInventoryError;
-
-    await this.recordInventoryLog({
-      product_id: request.product_id,
-      change_type: 'adjustment',
-      quantity_change: -(request.requested_quantity ?? 0),
-      from_location: 'reserved',
-      to_location: 'cancelled',
-      reference_id: id,
-      metadata: { note: input?.notes || null, action: 'restock_request_rejected' }
+    const { error } = await supabase.rpc('reject_restock_request', {
+      p_request_id: id,
+      p_actor: this.userTelegramId,
+      p_notes: input?.notes || null
     });
 
-    await this.refreshProductStock(request.product_id);
+    if (error) throw error;
   }
 
-  async transferInventoryToDriver(input: { product_id: string; driver_id: string; quantity: number; notes?: string }): Promise<void> {
+  async transferInventory(input: {
+    product_id: string;
+    from_location_id: string;
+    to_location_id: string;
+    quantity: number;
+    notes?: string;
+    reference_id?: string | null;
+  }): Promise<void> {
+    const { error } = await supabase.rpc('perform_inventory_transfer', {
+      p_product_id: input.product_id,
+      p_from_location_id: input.from_location_id,
+      p_to_location_id: input.to_location_id,
+      p_quantity: input.quantity,
+      p_actor: this.userTelegramId,
+      p_reference_id: input.reference_id ?? null,
+      p_notes: input.notes || null
+    });
+
+    if (error) throw error;
+  }
+
+  async transferInventoryToDriver(input: {
+    product_id: string;
+    driver_id: string;
+    quantity: number;
+    notes?: string;
+  }): Promise<void> {
     const permissions = await this.getRolePermissions();
     if (!permissions.can_transfer_inventory) {
       throw new Error('אין לך הרשאה להעביר מלאי לנהגים');
     }
 
-    const now = new Date().toISOString();
+    const centralLocationId = await this.getCentralLocationId();
 
-    const { data: inventoryRow, error: inventoryError } = await supabase
+    const { data: centralBalance, error: balanceError } = await supabase
       .from('inventory')
-      .select('central_quantity')
+      .select('on_hand_quantity')
       .eq('product_id', input.product_id)
+      .eq('location_id', centralLocationId)
       .maybeSingle();
 
-    if (inventoryError) throw inventoryError;
+    if (balanceError) throw balanceError;
 
-    const available = inventoryRow?.central_quantity ?? 0;
+    const available = centralBalance?.on_hand_quantity ?? 0;
     if (available < input.quantity) {
       throw new Error('אין מספיק מלאי במחסן המרכזי');
     }
 
-    const newCentral = available - input.quantity;
+    const now = new Date().toISOString();
+
+    const { error: updateCentralError } = await supabase
+      .from('inventory')
+      .update({ on_hand_quantity: available - input.quantity, updated_at: now })
+      .eq('product_id', input.product_id)
+      .eq('location_id', centralLocationId);
+
+    if (updateCentralError) throw updateCentralError;
 
     const { data: driverRow, error: driverError } = await supabase
       .from('driver_inventory')
-      .select('id, quantity')
+      .select('id, quantity, location_id')
       .eq('driver_id', input.driver_id)
       .eq('product_id', input.product_id)
       .maybeSingle();
 
     if (driverError) throw driverError;
 
-    const [inventoryResult, driverResult] = await Promise.all([
-      supabase
-        .from('inventory')
-        .update({ central_quantity: newCentral, updated_at: now })
-        .eq('product_id', input.product_id),
-      driverRow
-        ? supabase
-            .from('driver_inventory')
-            .update({ quantity: driverRow.quantity + input.quantity, updated_at: now })
-            .eq('id', driverRow.id)
-        : supabase
-            .from('driver_inventory')
-            .insert({
-              driver_id: input.driver_id,
-              product_id: input.product_id,
-              quantity: input.quantity,
-              updated_at: now
-            })
-    ]);
+    const driverQuantity = driverRow?.quantity ?? 0;
+    const newQuantity = driverQuantity + input.quantity;
 
-    const inventoryUpdateError = inventoryResult.error;
-    const driverUpdateError = driverResult.error;
+    const driverPayload = driverRow
+      ? { quantity: newQuantity, updated_at: now }
+      : {
+          driver_id: input.driver_id,
+          product_id: input.product_id,
+          quantity: newQuantity,
+          updated_at: now
+        };
 
-    if (inventoryUpdateError) throw inventoryUpdateError;
-    if (driverUpdateError) throw driverUpdateError;
+    const { error: driverUpsertError } = driverRow
+      ? await supabase.from('driver_inventory').update(driverPayload).eq('id', driverRow.id)
+      : await supabase.from('driver_inventory').insert(driverPayload);
+
+    if (driverUpsertError) throw driverUpsertError;
+
+    const driverLocationId = driverRow?.location_id ?? null;
+
+    await this.recordInventoryLog({
+      product_id: input.product_id,
+      change_type: 'transfer',
+      quantity_change: -input.quantity,
+      from_location_id: centralLocationId,
+      to_location_id: driverLocationId,
+      metadata: { target: 'driver', driver_id: input.driver_id, notes: input.notes || null, direction: 'outbound' }
+    });
 
     await this.recordInventoryLog({
       product_id: input.product_id,
       change_type: 'transfer',
       quantity_change: input.quantity,
-      from_location: 'central',
-      to_location: `driver:${input.driver_id}`,
-      metadata: { note: input.notes || null }
+      from_location_id: centralLocationId,
+      to_location_id: driverLocationId,
+      metadata: { target: 'driver', driver_id: input.driver_id, notes: input.notes || null, direction: 'inbound' }
     });
 
     await this.refreshProductStock(input.product_id);
@@ -873,7 +860,7 @@ export class SupabaseDataStore implements DataStore {
 
     const { data: existing, error: fetchError } = await supabase
       .from('driver_inventory')
-      .select('id, quantity')
+      .select('id, quantity, location_id')
       .eq('driver_id', input.driver_id)
       .eq('product_id', input.product_id)
       .maybeSingle();
@@ -919,16 +906,38 @@ export class SupabaseDataStore implements DataStore {
       details
     });
 
+    await this.recordInventoryLog({
+      product_id: input.product_id,
+      change_type: 'adjustment',
+      quantity_change: input.quantity_change,
+      from_location_id: existing?.location_id ?? null,
+      to_location_id: existing?.location_id ?? null,
+      metadata: { target: 'driver', driver_id: input.driver_id, reason: input.reason, notes: input.notes || null }
+    });
+
     await this.refreshProductStock(input.product_id);
   }
 
-  async listInventoryLogs(filters?: { product_id?: string; limit?: number }): Promise<InventoryLog[]> {
+  async listInventoryLogs(filters?: {
+    product_id?: string;
+    location_id?: string;
+    limit?: number;
+  }): Promise<InventoryLog[]> {
     let query = supabase
       .from('inventory_logs')
-      .select('*, products(*)');
+      .select(
+        `id, product_id, change_type, quantity_change, from_location_id, to_location_id, reference_id, created_by, created_at, metadata,
+         product:products(*),
+         from_location:inventory_locations!inventory_logs_from_location_id_fkey(*),
+         to_location:inventory_locations!inventory_logs_to_location_id_fkey(*)`
+      );
 
     if (filters?.product_id) {
       query = query.eq('product_id', filters.product_id);
+    }
+
+    if (filters?.location_id) {
+      query = query.or(`from_location_id.eq.${filters.location_id},to_location_id.eq.${filters.location_id}`);
     }
 
     if (filters?.limit) {
@@ -946,27 +955,77 @@ export class SupabaseDataStore implements DataStore {
       product_id: row.product_id,
       change_type: row.change_type,
       quantity_change: row.quantity_change,
-      from_location: row.from_location,
-      to_location: row.to_location,
+      from_location_id: row.from_location_id,
+      to_location_id: row.to_location_id,
       reference_id: row.reference_id,
       created_by: row.created_by,
       created_at: row.created_at,
       metadata: row.metadata,
-      product: row.products || undefined
+      product: row.product || undefined,
+      from_location: row.from_location || null,
+      to_location: row.to_location || null
     }));
   }
 
-  async getLowStockAlerts(): Promise<InventoryAlert[]> {
-    const inventory = await this.listInventory();
-    return inventory
-      .filter(record => record.central_quantity + record.reserved_quantity <= record.low_stock_threshold)
-      .map(record => ({
-        product_id: record.product_id,
-        product_name: record.product?.name || record.product_id,
-        central_quantity: record.central_quantity,
-        reserved_quantity: record.reserved_quantity,
-        low_stock_threshold: record.low_stock_threshold
-      }));
+  async listSalesLogs(filters?: { product_id?: string; location_id?: string; limit?: number }): Promise<SalesLog[]> {
+    let query = supabase
+      .from('sales_logs')
+      .select('id, product_id, location_id, quantity, total_amount, reference_id, recorded_by, sold_at, notes, product:products(*), location:inventory_locations(*)');
+
+    if (filters?.product_id) {
+      query = query.eq('product_id', filters.product_id);
+    }
+
+    if (filters?.location_id) {
+      query = query.eq('location_id', filters.location_id);
+    }
+
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+
+    query = query.order('sold_at', { ascending: false });
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      product_id: row.product_id,
+      location_id: row.location_id,
+      quantity: row.quantity,
+      total_amount: Number(row.total_amount ?? 0),
+      reference_id: row.reference_id,
+      recorded_by: row.recorded_by,
+      sold_at: row.sold_at,
+      notes: row.notes || null,
+      product: row.product || undefined,
+      location: row.location || undefined
+    }));
+  }
+
+  async getLowStockAlerts(filters?: { location_id?: string }): Promise<InventoryAlert[]> {
+    let query = supabase.from('inventory_low_stock_alerts').select('*');
+
+    if (filters?.location_id) {
+      query = query.eq('location_id', filters.location_id);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    return (data || []).map((row: any) => ({
+      product_id: row.product_id,
+      product_name: row.product_name,
+      location_id: row.location_id,
+      location_name: row.location_name,
+      on_hand_quantity: row.on_hand_quantity,
+      reserved_quantity: row.reserved_quantity,
+      low_stock_threshold: row.low_stock_threshold,
+      triggered_at: row.triggered_at
+    }));
   }
 
   async getRolePermissions(): Promise<RolePermissions> {
@@ -984,19 +1043,21 @@ export class SupabaseDataStore implements DataStore {
       return data as RolePermissions;
     }
 
-    const managerDefaults: RolePermissions = {
+    const defaults: RolePermissions = {
       role: profile.role,
       can_view_inventory: ['manager', 'warehouse', 'dispatcher'].includes(profile.role),
       can_request_restock: ['manager', 'warehouse', 'dispatcher', 'driver'].includes(profile.role),
       can_approve_restock: ['manager', 'warehouse'].includes(profile.role),
       can_fulfill_restock: ['manager', 'warehouse'].includes(profile.role),
       can_transfer_inventory: ['manager', 'warehouse', 'dispatcher'].includes(profile.role),
-      can_adjust_inventory: ['manager', 'warehouse'].includes(profile.role)
+      can_adjust_inventory: ['manager', 'warehouse'].includes(profile.role),
+      can_view_movements: ['manager', 'warehouse', 'dispatcher'].includes(profile.role),
+      can_manage_locations: profile.role === 'manager',
+      can_view_sales: ['manager', 'sales'].includes(profile.role)
     };
 
-    return managerDefaults;
+    return defaults;
   }
-
   // Zones & Dispatch
   async listZones(): Promise<Zone[]> {
     const { data, error } = await supabase
@@ -1406,30 +1467,34 @@ export class SupabaseDataStore implements DataStore {
       : input.items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
     const now = new Date().toISOString();
 
+    const centralLocationId = await this.getCentralLocationId();
+
     for (const item of input.items) {
       const { data: inventoryRecord, error: inventoryError } = await supabase
         .from('inventory')
-        .select('id, central_quantity, reserved_quantity')
+        .select('id, on_hand_quantity, reserved_quantity')
         .eq('product_id', item.product_id)
+        .eq('location_id', centralLocationId)
         .maybeSingle();
 
       if (inventoryError) throw inventoryError;
 
-      const centralQuantity = inventoryRecord?.central_quantity ?? 0;
+      const onHand = inventoryRecord?.on_hand_quantity ?? 0;
       const reservedQuantity = inventoryRecord?.reserved_quantity ?? 0;
 
-      if (centralQuantity < item.quantity) {
-        throw new Error(`Insufficient central inventory for product ${item.product_name}`);
+      if (onHand < item.quantity) {
+        throw new Error(`Insufficient inventory at central location for product ${item.product_name}`);
       }
 
       const { error: updateError } = await supabase
         .from('inventory')
         .update({
-          central_quantity: centralQuantity - item.quantity,
+          on_hand_quantity: onHand - item.quantity,
           reserved_quantity: reservedQuantity + item.quantity,
           updated_at: now
         })
-        .eq('product_id', item.product_id);
+        .eq('product_id', item.product_id)
+        .eq('location_id', centralLocationId);
 
       if (updateError) throw updateError;
 
@@ -1437,11 +1502,12 @@ export class SupabaseDataStore implements DataStore {
         product_id: item.product_id,
         change_type: 'reservation',
         quantity_change: -item.quantity,
-        from_location: item.source_location || 'central',
-        to_location: 'order_reservation',
+        from_location_id: centralLocationId,
+        to_location_id: centralLocationId,
         metadata: {
           entry_mode: input.entry_mode,
-          salesperson_id: salespersonId
+          salesperson_id: salespersonId,
+          source_location: item.source_location || 'central'
         }
       });
 

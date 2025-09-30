@@ -18,12 +18,20 @@ interface InventoryItem {
   id: string;
   name: string;
   sku: string;
-  central: number;
+  onHand: number;
   reserved: number;
+  damaged: number;
   driver: number;
   total: number;
   threshold: number;
-  location: string;
+  locations: {
+    id: string;
+    name: string;
+    onHand: number;
+    reserved: number;
+    damaged: number;
+    threshold: number;
+  }[];
   status: 'in_stock' | 'low' | 'out';
   pendingRequests: number;
 }
@@ -48,9 +56,54 @@ export function Inventory({ dataStore }: InventoryProps) {
       setLoading(true);
 
       const fallback: InventoryItem[] = [
-        { id: 'fallback-1', name: 'ארגז ירקות עונתי', sku: 'BX-VEG-001', central: 86, reserved: 0, driver: 0, total: 86, threshold: 10, location: 'מדף A3', status: 'in_stock', pendingRequests: 0 },
-        { id: 'fallback-2', name: 'גבינת עזים', sku: 'CH-GL-204', central: 18, reserved: 0, driver: 0, total: 18, threshold: 10, location: 'קירור B1', status: 'low', pendingRequests: 0 },
-        { id: 'fallback-3', name: 'קפה אורגני 1ק"ג', sku: 'CF-OR-552', central: 0, reserved: 0, driver: 0, total: 0, threshold: 10, location: 'מדף D4', status: 'out', pendingRequests: 0 }
+        {
+          id: 'fallback-1',
+          name: 'ארגז ירקות עונתי',
+          sku: 'BX-VEG-001',
+          onHand: 86,
+          reserved: 0,
+          damaged: 0,
+          driver: 0,
+          total: 86,
+          threshold: 10,
+          locations: [
+            { id: 'fallback-1-main', name: 'מדף A3', onHand: 86, reserved: 0, damaged: 0, threshold: 10 }
+          ],
+          status: 'in_stock',
+          pendingRequests: 0
+        },
+        {
+          id: 'fallback-2',
+          name: 'גבינת עזים',
+          sku: 'CH-GL-204',
+          onHand: 18,
+          reserved: 0,
+          damaged: 0,
+          driver: 0,
+          total: 18,
+          threshold: 10,
+          locations: [
+            { id: 'fallback-2-main', name: 'קירור B1', onHand: 18, reserved: 0, damaged: 0, threshold: 10 }
+          ],
+          status: 'low',
+          pendingRequests: 0
+        },
+        {
+          id: 'fallback-3',
+          name: 'קפה אורגני 1ק"ג',
+          sku: 'CF-OR-552',
+          onHand: 0,
+          reserved: 0,
+          damaged: 0,
+          driver: 0,
+          total: 0,
+          threshold: 10,
+          locations: [
+            { id: 'fallback-3-main', name: 'מדף D4', onHand: 0, reserved: 0, damaged: 0, threshold: 10 }
+          ],
+          status: 'out',
+          pendingRequests: 0
+        }
       ];
 
       try {
@@ -64,12 +117,22 @@ export function Inventory({ dataStore }: InventoryProps) {
                   id: product.id,
                   name: product.name,
                   sku: product.sku,
-                  central: product.stock_quantity,
+                  onHand: product.stock_quantity,
                   reserved: 0,
+                  damaged: 0,
                   driver: 0,
                   total: product.stock_quantity,
                   threshold: 10,
-                  location: product.warehouse_location || 'לא הוגדר',
+                  locations: [
+                    {
+                      id: `${product.id}-primary`,
+                      name: product.warehouse_location || 'לא הוגדר',
+                      onHand: product.stock_quantity,
+                      reserved: 0,
+                      damaged: 0,
+                      threshold: 10
+                    }
+                  ],
                   status: product.stock_quantity === 0 ? 'out' : product.stock_quantity < 25 ? 'low' : 'in_stock',
                   pendingRequests: 0
                 }));
@@ -104,25 +167,50 @@ export function Inventory({ dataStore }: InventoryProps) {
           restockLookup[request.product_id] = (restockLookup[request.product_id] || 0) + 1;
         });
 
-        const computed = inventoryList.map<InventoryItem>((record: InventoryRecord) => {
-          const central = record.central_quantity;
-          const reserved = record.reserved_quantity;
-          const driver = driverTotals[record.product_id] || 0;
-          const total = central + reserved + driver;
-          const status: InventoryItem['status'] = total === 0 ? 'out' : central <= Math.max(1, record.low_stock_threshold) ? 'low' : 'in_stock';
+        const groupedRecords = inventoryList.reduce<Record<string, InventoryRecord[]>>((acc, record) => {
+          if (!acc[record.product_id]) {
+            acc[record.product_id] = [];
+          }
+          acc[record.product_id].push(record);
+          return acc;
+        }, {});
+
+        const computed = Object.entries(groupedRecords).map<InventoryItem>(([productId, records]) => {
+          const onHand = records.reduce((sum, r) => sum + r.on_hand_quantity, 0);
+          const reserved = records.reduce((sum, r) => sum + r.reserved_quantity, 0);
+          const damaged = records.reduce((sum, r) => sum + r.damaged_quantity, 0);
+          const driver = driverTotals[productId] || 0;
+          const total = onHand + reserved + driver;
+          const thresholds = records.map((r) => r.low_stock_threshold);
+          const threshold = thresholds.length > 0 ? Math.min(...thresholds) : 0;
+          const status: InventoryItem['status'] =
+            total === 0 ? 'out' : onHand <= Math.max(1, threshold) ? 'low' : 'in_stock';
+          const product = records[0]?.product;
+
+          const locations = records
+            .map((record) => ({
+              id: record.location_id,
+              name: record.location?.name || 'ללא מיקום',
+              onHand: record.on_hand_quantity,
+              reserved: record.reserved_quantity,
+              damaged: record.damaged_quantity,
+              threshold: record.low_stock_threshold
+            }))
+            .sort((a, b) => b.onHand - a.onHand || a.name.localeCompare(b.name));
 
           return {
-            id: record.product_id,
-            name: record.product?.name || record.product_id,
-            sku: record.product?.sku || record.product_id,
-            central,
+            id: productId,
+            name: product?.name || productId,
+            sku: product?.sku || productId,
+            onHand,
             reserved,
+            damaged,
             driver,
             total,
-            threshold: record.low_stock_threshold,
-            location: record.product?.warehouse_location || 'לא הוגדר',
+            threshold,
+            locations,
             status,
-            pendingRequests: restockLookup[record.product_id] || 0
+            pendingRequests: restockLookup[productId] || 0
           };
         });
 
@@ -238,14 +326,27 @@ export function Inventory({ dataStore }: InventoryProps) {
                 fontSize: '12px',
                 marginBottom: '8px'
               }}>
-                <div>מחסן מרכזי: <strong style={{ color: theme.text_color }}>{item.central}</strong></div>
-                <div>לנהגים: <strong style={{ color: theme.text_color }}>{item.driver}</strong></div>
+                <div>זמין במחסנים: <strong style={{ color: theme.text_color }}>{item.onHand}</strong></div>
                 <div>בהקצאה: <strong style={{ color: theme.text_color }}>{item.reserved}</strong></div>
+                <div>לנהגים: <strong style={{ color: theme.text_color }}>{item.driver}</strong></div>
                 <div>סה"כ: <strong style={{ color: theme.text_color }}>{item.total}</strong></div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '12px', color: hintColor }}>מיקום: {item.location}</span>
+              {item.damaged > 0 && (
+                <div style={{ fontSize: '12px', color: hintColor, marginBottom: '8px' }}>
+                  פגומים: <strong style={{ color: theme.text_color }}>{item.damaged}</strong>
+                </div>
+              )}
+
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '8px'
+              }}>
+                <span style={{ fontSize: '12px', color: hintColor }}>
+                  {item.locations.length} מיקומים פעילים
+                </span>
                 {item.pendingRequests > 0 && (
                   <span
                     style={{
@@ -261,6 +362,29 @@ export function Inventory({ dataStore }: InventoryProps) {
                   </span>
                 )}
               </div>
+
+              {item.locations.length > 0 && (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px',
+                  fontSize: '12px',
+                  backgroundColor: theme.bg_color,
+                  borderRadius: '10px',
+                  padding: '10px',
+                  marginBottom: '8px'
+                }}>
+                  {item.locations.map((location) => (
+                    <div key={`${item.id}-${location.id}`} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: theme.text_color }}>{location.name}</span>
+                      <span>
+                        זמין {location.onHand} • בהקצאה {location.reserved}
+                        {location.damaged > 0 ? ` • פגומים ${location.damaged}` : ''}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div style={{ marginTop: '12px' }}>
                 <span

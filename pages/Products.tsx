@@ -27,7 +27,7 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [inventoryMap, setInventoryMap] = useState<Record<string, InventoryRecord>>({});
+  const [inventoryMap, setInventoryMap] = useState<Record<string, InventoryRecord[]>>({});
   const [driverInventoryMap, setDriverInventoryMap] = useState<Record<string, DriverInventoryRecord[]>>({});
   const [restockRequestMap, setRestockRequestMap] = useState<Record<string, RestockRequest[]>>({});
   const [lowStockAlerts, setLowStockAlerts] = useState<InventoryAlert[]>([]);
@@ -74,9 +74,12 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
         dataStore.getLowStockAlerts ? dataStore.getLowStockAlerts() : Promise.resolve([])
       ]);
 
-      const inventoryLookup: Record<string, InventoryRecord> = {};
+      const inventoryLookup: Record<string, InventoryRecord[]> = {};
       inventoryList.forEach(record => {
-        inventoryLookup[record.product_id] = record;
+        if (!inventoryLookup[record.product_id]) {
+          inventoryLookup[record.product_id] = [];
+        }
+        inventoryLookup[record.product_id].push(record);
       });
 
       const driverLookup: Record<string, DriverInventoryRecord[]> = {};
@@ -102,7 +105,7 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
 
       const enrichedProducts = productsList.map(product => ({
         ...product,
-        inventory_snapshot: inventoryLookup[product.id],
+        inventory_balances: inventoryLookup[product.id] || [],
         driver_balances: driverLookup[product.id] || []
       }));
 
@@ -168,7 +171,7 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
         onBack={() => setSelectedProduct(null)}
         onUpdate={loadData}
         theme={theme}
-        inventory={inventoryMap[selectedProduct.id]}
+        inventoryBalances={inventoryMap[selectedProduct.id] || []}
         driverBalances={driverInventoryMap[selectedProduct.id] || []}
         restockRequests={restockRequestMap[selectedProduct.id] || []}
         permissions={permissions}
@@ -255,8 +258,8 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
               {lowStockAlerts.slice(0, 3).map((alert) => (
-                <div key={alert.product_id}>
-                  {alert.product_name}: מחסן {alert.central_quantity} • בהקצאה {alert.reserved_quantity}
+                <div key={`${alert.product_id}-${alert.location_id}`}>
+                  {alert.product_name} · {alert.location_name}: זמין {alert.on_hand_quantity} • בהקצאה {alert.reserved_quantity}
                 </div>
               ))}
               {lowStockAlerts.length > 3 && (
@@ -293,7 +296,7 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
                   setSelectedProduct(product);
                 }}
                 theme={theme}
-                inventory={inventoryMap[product.id]}
+                inventoryBalances={inventoryMap[product.id] || []}
                 driverBalances={driverInventoryMap[product.id] || []}
                 pendingRequests={restockRequestMap[product.id]?.length || 0}
               />
@@ -309,22 +312,24 @@ function ProductCard({
   product,
   onClick,
   theme,
-  inventory,
+  inventoryBalances,
   driverBalances,
   pendingRequests
 }: {
   product: Product;
   onClick: () => void;
   theme: any;
-  inventory?: InventoryRecord;
+  inventoryBalances: InventoryRecord[];
   driverBalances: DriverInventoryRecord[];
   pendingRequests: number;
 }) {
-  const centralQuantity = inventory?.central_quantity ?? product.stock_quantity;
-  const reservedQuantity = inventory?.reserved_quantity ?? 0;
+  const onHandQuantity = inventoryBalances.reduce((sum, record) => sum + record.on_hand_quantity, 0);
+  const reservedQuantity = inventoryBalances.reduce((sum, record) => sum + record.reserved_quantity, 0);
+  const damagedQuantity = inventoryBalances.reduce((sum, record) => sum + record.damaged_quantity, 0);
   const driverQuantity = driverBalances.reduce((sum, record) => sum + record.quantity, 0);
-  const totalQuantity = centralQuantity + reservedQuantity + driverQuantity;
-  const threshold = inventory?.low_stock_threshold ?? 10;
+  const totalQuantity = onHandQuantity + reservedQuantity + driverQuantity;
+  const thresholds = inventoryBalances.map((record) => record.low_stock_threshold);
+  const threshold = thresholds.length > 0 ? Math.min(...thresholds) : 10;
 
   const getStockStatus = (quantity: number) => {
     if (quantity <= 0) return { color: '#ff3b30', text: 'אזל מהמלאי', icon: '❌' };
@@ -332,7 +337,11 @@ function ProductCard({
     return { color: '#34c759', text: 'במלאי', icon: '✅' };
   };
 
-  const stockStatus = getStockStatus(centralQuantity);
+  const stockStatus = getStockStatus(onHandQuantity);
+  const topLocations = inventoryBalances
+    .slice()
+    .sort((a, b) => b.on_hand_quantity - a.on_hand_quantity)
+    .slice(0, 2);
 
   return (
     <div
@@ -354,8 +363,8 @@ function ProductCard({
         }}>
           {product.name}
         </h3>
-        <p style={{ 
-          margin: '0 0 8px 0', 
+        <p style={{
+          margin: '0 0 8px 0',
           fontSize: '12px', 
           color: theme.hint_color,
           fontFamily: 'monospace'
@@ -404,11 +413,30 @@ function ProductCard({
         color: theme.hint_color,
         marginBottom: '8px'
       }}>
-        <div>מחסן מרכזי: <strong style={{ color: theme.text_color }}>{centralQuantity}</strong></div>
+        <div>זמין במחסנים: <strong style={{ color: theme.text_color }}>{onHandQuantity}</strong></div>
         <div>לנהגים: <strong style={{ color: theme.text_color }}>{driverQuantity}</strong></div>
         <div>בהקצאה: <strong style={{ color: theme.text_color }}>{reservedQuantity}</strong></div>
         <div>סה"כ: <strong style={{ color: theme.text_color }}>{totalQuantity}</strong></div>
       </div>
+
+      {damagedQuantity > 0 && (
+        <div style={{ fontSize: '12px', color: theme.hint_color, marginBottom: '8px' }}>
+          פגומים: <strong style={{ color: theme.text_color }}>{damagedQuantity}</strong>
+        </div>
+      )}
+
+      {topLocations.length > 0 && (
+        <div style={{ fontSize: '12px', color: theme.hint_color, marginBottom: '8px' }}>
+          {topLocations.map((record) => (
+            <div key={`${record.product_id}-${record.location_id}`}>
+              {record.location?.name || 'ללא מיקום'}: {record.on_hand_quantity}
+            </div>
+          ))}
+          {inventoryBalances.length > topLocations.length && (
+            <div>ועוד {inventoryBalances.length - topLocations.length} מיקומים...</div>
+          )}
+        </div>
+      )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ fontSize: '12px', color: theme.hint_color }}>
@@ -437,7 +465,7 @@ function ProductDetail({
   onBack,
   onUpdate,
   theme,
-  inventory,
+  inventoryBalances,
   driverBalances,
   restockRequests,
   permissions
@@ -447,14 +475,13 @@ function ProductDetail({
   onBack: () => void;
   onUpdate: () => void;
   theme: any;
-  inventory?: InventoryRecord;
+  inventoryBalances: InventoryRecord[];
   driverBalances: DriverInventoryRecord[];
   restockRequests: RestockRequest[];
   permissions: RolePermissions | null;
 }) {
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
-    central_quantity: inventory?.central_quantity ?? product.stock_quantity,
     price: product.price,
     warehouse_location: product.warehouse_location || ''
   });
@@ -463,11 +490,10 @@ function ProductDetail({
 
   useEffect(() => {
     setFormData({
-      central_quantity: inventory?.central_quantity ?? product.stock_quantity,
       price: product.price,
       warehouse_location: product.warehouse_location || ''
     });
-  }, [inventory?.central_quantity, product.price, product.warehouse_location, product.stock_quantity]);
+  }, [product.price, product.warehouse_location]);
 
   useEffect(() => {
     if (!dataStore.listInventoryLogs) {
@@ -496,12 +522,30 @@ function ProductDetail({
     };
   }, [dataStore, product.id]);
 
+  const onHandQuantity = inventoryBalances.reduce((sum, record) => sum + record.on_hand_quantity, 0);
+  const reservedQuantity = inventoryBalances.reduce((sum, record) => sum + record.reserved_quantity, 0);
+  const damagedQuantity = inventoryBalances.reduce((sum, record) => sum + record.damaged_quantity, 0);
+  const driverQuantity = driverBalances.reduce((sum, record) => sum + record.quantity, 0);
+  const totalQuantity = onHandQuantity + reservedQuantity + driverQuantity;
+  const thresholds = inventoryBalances.map((record) => record.low_stock_threshold);
+  const threshold = thresholds.length > 0 ? Math.min(...thresholds) : 10;
+
+  const stockStatus = (quantity: number) => {
+    if (quantity <= 0) return { color: '#ff3b30', text: 'אזל מהמלאי', icon: '❌' };
+    if (quantity <= Math.max(1, threshold)) return { color: '#ff9500', text: 'מלאי נמוך', icon: '⚠️' };
+    return { color: '#34c759', text: 'במלאי', icon: '✅' };
+  };
+
+  const statusBadge = stockStatus(onHandQuantity);
+  const locationSummaries = inventoryBalances
+    .slice()
+    .sort((a, b) => b.on_hand_quantity - a.on_hand_quantity || (b.location?.name || '').localeCompare(a.location?.name || ''));
+
   const handleUpdate = async () => {
     try {
       await dataStore.updateProduct?.(product.id, {
         price: formData.price,
-        warehouse_location: formData.warehouse_location,
-        stock_quantity: formData.central_quantity
+        warehouse_location: formData.warehouse_location
       });
       telegram.hapticFeedback('notification', 'success');
       setEditing(false);
@@ -512,20 +556,6 @@ function ProductDetail({
       telegram.showAlert('שגיאה בעדכון המוצר');
     }
   };
-
-  const centralQuantity = inventory?.central_quantity ?? formData.central_quantity;
-  const reservedQuantity = inventory?.reserved_quantity ?? 0;
-  const driverQuantity = driverBalances.reduce((sum, record) => sum + record.quantity, 0);
-  const totalQuantity = centralQuantity + reservedQuantity + driverQuantity;
-  const threshold = inventory?.low_stock_threshold ?? 10;
-
-  const getStockStatus = (quantity: number) => {
-    if (quantity <= 0) return { color: '#ff3b30', text: 'אזל מהמלאי', icon: '❌' };
-    if (quantity <= Math.max(1, threshold)) return { color: '#ff9500', text: 'מלאי נמוך', icon: '⚠️' };
-    return { color: '#34c759', text: 'במלאי', icon: '✅' };
-  };
-
-  const stockStatus = getStockStatus(centralQuantity);
 
   return (
     <div style={{
@@ -580,20 +610,17 @@ function ProductDetail({
             onChange={(value) => setFormData({ ...formData, price: Number(value) })}
           />
           <InfoCard
-            title="כמות במחסן"
-            value={(editing ? formData.central_quantity : centralQuantity).toString()}
-            theme={theme}
-            editable={editing}
-            type="number"
-            onChange={(value) => setFormData({ ...formData, central_quantity: Number(value) })}
-          />
-          <InfoCard
-            title="מיקום במחסן"
+            title="מיקום ראשי"
             value={editing ? formData.warehouse_location : product.warehouse_location || 'לא צוין'}
             theme={theme}
             editable={editing}
             type="text"
             onChange={(value) => setFormData({ ...formData, warehouse_location: value })}
+          />
+          <InfoCard
+            title="זמין במחסנים"
+            value={onHandQuantity.toString()}
+            theme={theme}
           />
           <InfoCard
             title="סף התראה"
@@ -621,19 +648,13 @@ function ProductDetail({
           padding: '16px',
           borderRadius: '12px'
         }}>
-          {[{
-            label: 'מחסן מרכזי',
-            value: centralQuantity
-          }, {
-            label: 'נהגים',
-            value: driverQuantity
-          }, {
-            label: 'בהקצאה',
-            value: reservedQuantity
-          }, {
-            label: 'סה"כ זמין',
-            value: totalQuantity
-          }].map((item) => (
+          {[
+            { label: 'זמין במחסנים', value: onHandQuantity },
+            { label: 'בהקצאה', value: reservedQuantity },
+            { label: 'לנהגים', value: driverQuantity },
+            ...(damagedQuantity > 0 ? [{ label: 'פגומים', value: damagedQuantity }] : []),
+            { label: 'סה"כ זמין', value: totalQuantity }
+          ].map((item) => (
             <div key={item.label} style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '12px', color: theme.hint_color }}>{item.label}</div>
               <div style={{ fontSize: '18px', fontWeight: 700 }}>{item.value}</div>
@@ -641,6 +662,40 @@ function ProductDetail({
           ))}
         </div>
       </div>
+
+      <section style={{ marginBottom: '24px' }}>
+        <h3 style={{ margin: '0 0 12px 0', fontSize: '18px', fontWeight: 600 }}>פירוט מלאי לפי מיקום</h3>
+        {inventoryBalances.length === 0 ? (
+          <div style={{ color: theme.hint_color }}>אין רישומי מלאי משויכים למוצר זה.</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {locationSummaries.map((record) => (
+              <div
+                key={`${record.product_id}-${record.location_id}`}
+                style={{
+                  padding: '12px',
+                  borderRadius: '10px',
+                  backgroundColor: theme.secondary_bg_color,
+                  border: `1px solid ${theme.hint_color}30`
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <strong>{record.location?.name || 'ללא מיקום'}</strong>
+                  <span style={{ fontSize: '12px', color: theme.hint_color }}>
+                    עודכן לאחרונה: {new Date(record.updated_at).toLocaleString('he-IL')}
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', fontSize: '13px' }}>
+                  <div>זמין: <strong>{record.on_hand_quantity}</strong></div>
+                  <div>בהקצאה: <strong>{record.reserved_quantity}</strong></div>
+                  <div>פגומים: <strong>{record.damaged_quantity}</strong></div>
+                  <div>סף התרעה: <strong>{record.low_stock_threshold}</strong></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {permissions?.can_request_restock && (
         <div style={{
@@ -674,6 +729,9 @@ function ProductDetail({
                   <span style={{ fontSize: '12px', color: theme.hint_color }}>
                     {new Date(request.created_at).toLocaleString('he-IL')}
                   </span>
+                </div>
+                <div style={{ fontSize: '12px', color: theme.hint_color, marginBottom: '4px' }}>
+                  {request.from_location?.name || 'מקור לא משויך'} → {request.to_location?.name || 'יעד לא משויך'}
                 </div>
                 <div style={{ fontSize: '13px', marginBottom: '4px' }}>
                   כמות מבוקשת: <strong>{request.requested_quantity}</strong>
@@ -729,9 +787,9 @@ function ProductDetail({
                 </div>
                 {(log.from_location || log.to_location) && (
                   <div style={{ fontSize: '12px', color: theme.hint_color }}>
-                    {log.from_location ? `מ: ${log.from_location}` : ''}
+                    {log.from_location ? `מ: ${log.from_location.name}` : ''}
                     {log.from_location && log.to_location ? ' → ' : ''}
-                    {log.to_location ? `אל: ${log.to_location}` : ''}
+                    {log.to_location ? `אל: ${log.to_location.name}` : ''}
                   </div>
                 )}
                 {log.metadata?.note && (

@@ -20,17 +20,42 @@ export interface Product {
   warehouse_location?: string;
   created_at: string;
   updated_at: string;
-  inventory_snapshot?: InventoryRecord;
+  inventory_balances?: InventoryRecord[];
   driver_balances?: DriverInventoryRecord[];
+}
+
+export type InventoryLocationType =
+  | 'central'
+  | 'warehouse'
+  | 'hub'
+  | 'vehicle'
+  | 'storefront';
+
+export interface InventoryLocation {
+  id: string;
+  code: string;
+  name: string;
+  type: InventoryLocationType;
+  description?: string | null;
+  address_line1?: string | null;
+  address_line2?: string | null;
+  city?: string | null;
+  contact_phone?: string | null;
+  manager_id?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface InventoryRecord {
   id: string;
   product_id: string;
-  central_quantity: number;
+  location_id: string;
+  on_hand_quantity: number;
   reserved_quantity: number;
+  damaged_quantity: number;
   low_stock_threshold: number;
   updated_at: string;
+  location?: InventoryLocation;
   product?: Product;
 }
 
@@ -40,6 +65,8 @@ export interface DriverInventoryRecord {
   driver_id: string;
   quantity: number;
   updated_at: string;
+  location_id?: string | null;
+  location?: InventoryLocation;
   product?: Product;
 }
 
@@ -106,6 +133,8 @@ export interface RestockRequest {
   requested_by: string;
   requested_quantity: number;
   status: RestockRequestStatus;
+  from_location_id?: string | null;
+  to_location_id: string;
   approved_by?: string | null;
   approved_quantity?: number | null;
   fulfilled_by?: string | null;
@@ -113,18 +142,22 @@ export interface RestockRequest {
   notes?: string | null;
   created_at: string;
   updated_at: string;
+  from_location?: InventoryLocation | null;
+  to_location?: InventoryLocation | null;
   product?: Product;
 }
 
-export type InventoryLogType = 'restock' | 'transfer' | 'adjustment' | 'reservation' | 'release';
+export type InventoryLogType = 'restock' | 'transfer' | 'adjustment' | 'reservation' | 'release' | 'sale';
 
 export interface InventoryLog {
   id: string;
   product_id: string;
   change_type: InventoryLogType;
   quantity_change: number;
-  from_location?: string | null;
-  to_location?: string | null;
+  from_location_id?: string | null;
+  to_location_id?: string | null;
+  from_location?: InventoryLocation | null;
+  to_location?: InventoryLocation | null;
   reference_id?: string | null;
   created_by: string;
   created_at: string;
@@ -135,9 +168,12 @@ export interface InventoryLog {
 export interface InventoryAlert {
   product_id: string;
   product_name: string;
-  central_quantity: number;
+  location_id: string;
+  location_name: string;
+  on_hand_quantity: number;
   reserved_quantity: number;
   low_stock_threshold: number;
+  triggered_at: string;
 }
 
 export interface RolePermissions {
@@ -148,6 +184,23 @@ export interface RolePermissions {
   can_fulfill_restock: boolean;
   can_transfer_inventory: boolean;
   can_adjust_inventory: boolean;
+  can_view_movements: boolean;
+  can_manage_locations: boolean;
+  can_view_sales: boolean;
+}
+
+export interface SalesLog {
+  id: string;
+  product_id: string;
+  location_id: string;
+  quantity: number;
+  total_amount: number;
+  reference_id?: string | null;
+  recorded_by: string;
+  sold_at: string;
+  notes?: string | null;
+  product?: Product;
+  location?: InventoryLocation;
 }
 
 export type OrderEntryMode = 'dm' | 'storefront';
@@ -265,14 +318,34 @@ export interface DataStore {
   updateProduct?(id: string, updates: Partial<Product>): Promise<void>;
 
   // Inventory
-  listInventory?(filters?: { product_id?: string }): Promise<InventoryRecord[]>;
-  getInventory?(productId: string): Promise<InventoryRecord | null>;
+  listInventory?(filters?: { product_id?: string; location_id?: string; location_ids?: string[] }): Promise<InventoryRecord[]>;
+  getInventory?(productId: string, locationId?: string): Promise<InventoryRecord | null>;
+  listInventoryLocations?(): Promise<InventoryLocation[]>;
   listDriverInventory?(filters?: { driver_id?: string; product_id?: string; driver_ids?: string[] }): Promise<DriverInventoryRecord[]>;
-  listRestockRequests?(filters?: { status?: RestockRequestStatus | 'all'; onlyMine?: boolean }): Promise<RestockRequest[]>;
-  submitRestockRequest?(input: { product_id: string; requested_quantity: number; notes?: string }): Promise<{ id: string }>;
-  approveRestockRequest?(id: string, input: { approved_quantity: number; notes?: string }): Promise<void>;
-  fulfillRestockRequest?(id: string, input: { fulfilled_quantity: number; notes?: string }): Promise<void>;
+  listRestockRequests?(filters?: {
+    status?: RestockRequestStatus | 'all';
+    onlyMine?: boolean;
+    product_id?: string;
+    location_id?: string;
+  }): Promise<RestockRequest[]>;
+  submitRestockRequest?(input: {
+    product_id: string;
+    requested_quantity: number;
+    to_location_id: string;
+    from_location_id?: string | null;
+    notes?: string;
+  }): Promise<{ id: string }>;
+  approveRestockRequest?(id: string, input: { approved_quantity: number; from_location_id: string; notes?: string }): Promise<void>;
+  fulfillRestockRequest?(id: string, input: { fulfilled_quantity: number; notes?: string; reference_id?: string | null }): Promise<void>;
   rejectRestockRequest?(id: string, input?: { notes?: string }): Promise<void>;
+  transferInventory?(input: {
+    product_id: string;
+    from_location_id: string;
+    to_location_id: string;
+    quantity: number;
+    notes?: string;
+    reference_id?: string | null;
+  }): Promise<void>;
   transferInventoryToDriver?(input: { product_id: string; driver_id: string; quantity: number; notes?: string }): Promise<void>;
   adjustDriverInventory?(input: {
     driver_id: string;
@@ -282,8 +355,13 @@ export interface DataStore {
     notes?: string;
     zone_id?: string | null;
   }): Promise<void>;
-  listInventoryLogs?(filters?: { product_id?: string; limit?: number }): Promise<InventoryLog[]>;
-  getLowStockAlerts?(): Promise<InventoryAlert[]>;
+  listInventoryLogs?(filters?: {
+    product_id?: string;
+    location_id?: string;
+    limit?: number;
+  }): Promise<InventoryLog[]>;
+  listSalesLogs?(filters?: { product_id?: string; location_id?: string; limit?: number }): Promise<SalesLog[]>;
+  getLowStockAlerts?(filters?: { location_id?: string }): Promise<InventoryAlert[]>;
   getRolePermissions?(): Promise<RolePermissions>;
 
   // Zones & Dispatch
