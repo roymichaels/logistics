@@ -25,6 +25,7 @@ export const hebrew = {
   dispatch_board: 'מוקד תפעול',
   
   // Roles
+  owner: 'בעלים',
   manager: 'מנהל',
   dispatcher: 'מוקדן',
   driver: 'נהג',
@@ -115,6 +116,7 @@ export const hebrew = {
 
 export const roleNames = {
   user: hebrew.user,
+  owner: hebrew.owner,
   manager: hebrew.manager,
   dispatcher: hebrew.dispatcher,
   driver: hebrew.driver,
@@ -125,6 +127,7 @@ export const roleNames = {
 
 export const roleIcons = {
   user: '👤',
+  owner: '👑',
   manager: '👔',
   dispatcher: '📋',
   driver: '🚚',
