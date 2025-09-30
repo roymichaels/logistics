@@ -1,24 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTelegramUI } from '../src/hooks/useTelegramUI';
-import { DataStore } from '../data/types';
+import { DataStore, RestockRequest, RolePermissions } from '../data/types';
 
 interface RestockRequestsProps {
   dataStore: DataStore;
   onNavigate: (page: string) => void;
 }
 
-interface RestockRequest {
-  id: string;
-  requester: string;
-  item: string;
-  quantity: number;
-  priority: 'low' | 'medium' | 'high';
-  status: 'pending' | 'approved' | 'ordered';
-}
-
 export function RestockRequests({ dataStore }: RestockRequestsProps) {
   const { theme, backButton } = useTelegramUI();
   const [requests, setRequests] = useState<RestockRequest[]>([]);
+  const [permissions, setPermissions] = useState<RolePermissions | null>(null);
+  const [loading, setLoading] = useState(true);
   const hintColor = theme.hint_color || '#999999';
   const subtleBackground = theme.secondary_bg_color || '#f6f6f6';
 
@@ -27,36 +20,61 @@ export function RestockRequests({ dataStore }: RestockRequestsProps) {
   }, [backButton]);
 
   useEffect(() => {
-    const fallback: RestockRequest[] = [
-      { id: 'RS-102', requester: 'צוות חנות דיזינגוף', item: 'ארגז פירות פרימיום', quantity: 25, priority: 'high', status: 'pending' },
-      { id: 'RS-099', requester: 'צוות חנות חיפה', item: 'קפה אורגני 1ק"ג', quantity: 40, priority: 'medium', status: 'approved' },
-      { id: 'RS-095', requester: 'צוות חנות באר שבע', item: 'קופסת עוגיות', quantity: 60, priority: 'low', status: 'ordered' }
-    ];
-    setRequests(fallback);
+    let cancelled = false;
 
+    const loadRequests = async () => {
+      try {
+        const [perms, list] = await Promise.all([
+          dataStore.getRolePermissions ? dataStore.getRolePermissions() : Promise.resolve(null),
+          dataStore.listRestockRequests ? dataStore.listRestockRequests({ status: 'all' }) : Promise.resolve([] as RestockRequest[])
+        ]);
+
+        if (cancelled) return;
+
+        if (perms) {
+          setPermissions(perms);
+        }
+
+        setRequests(list);
+      } catch (error) {
+        console.warn('Failed to load restock requests:', error);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadRequests();
     dataStore.getProfile().catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
   }, [dataStore]);
 
   const totals = useMemo(
     () => ({
       pending: requests.filter((req) => req.status === 'pending').length,
       approved: requests.filter((req) => req.status === 'approved').length,
-      ordered: requests.filter((req) => req.status === 'ordered').length
+      fulfilled: requests.filter((req) => req.status === 'fulfilled').length
     }),
     [requests]
   );
 
-  const statusLabel = {
+  const statusLabel: Record<RestockRequest['status'], string> = {
     pending: 'ממתין לאישור',
     approved: 'אושר',
-    ordered: 'הוזמן'
-  } as const;
+    fulfilled: 'סופק',
+    rejected: 'נדחה'
+  };
 
-  const statusColor = {
+  const statusColor: Record<RestockRequest['status'], string> = {
     pending: '#ff9500',
     approved: '#34c759',
-    ordered: '#007aff'
-  } as const;
+    fulfilled: '#007aff',
+    rejected: '#ff3b30'
+  };
 
   return (
     <div
@@ -82,14 +100,42 @@ export function RestockRequests({ dataStore }: RestockRequestsProps) {
           <div style={{ fontSize: '14px', color: hintColor }}>אושרו</div>
           <div style={{ fontSize: '22px', fontWeight: 600 }}>{totals.approved}</div>
         </div>
-        <div style={{ backgroundColor: subtleBackground, padding: '16px', borderRadius: '12px' }}>
-          <div style={{ fontSize: '14px', color: hintColor }}>בהזמנה</div>
-          <div style={{ fontSize: '22px', fontWeight: 600 }}>{totals.ordered}</div>
-        </div>
-      </section>
+      <div style={{ backgroundColor: subtleBackground, padding: '16px', borderRadius: '12px' }}>
+        <div style={{ fontSize: '14px', color: hintColor }}>סופקו</div>
+        <div style={{ fontSize: '22px', fontWeight: 600 }}>{totals.fulfilled}</div>
+      </div>
+    </section>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {requests.map((request) => (
+    {permissions?.can_approve_restock && (
+      <div style={{
+        backgroundColor: theme.secondary_bg_color || '#ffffff',
+        borderRadius: '12px',
+        padding: '12px',
+        marginBottom: '16px',
+        color: hintColor
+      }}>
+        יש לך הרשאה לאשר או לעדכן בקשות חידוש דרך מסך זה.
+      </div>
+    )}
+
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {loading && (
+          <div style={{ color: hintColor }}>טוען בקשות חידוש...</div>
+        )}
+        {!loading && requests.length === 0 && (
+          <div
+            style={{
+              backgroundColor: theme.secondary_bg_color || '#ffffff',
+              padding: '20px',
+              borderRadius: '14px',
+              color: hintColor,
+              textAlign: 'center'
+            }}
+          >
+            אין בקשות חידוש פעילות.
+          </div>
+        )}
+        {!loading && requests.map((request) => (
           <div
             key={request.id}
             style={{
@@ -100,33 +146,28 @@ export function RestockRequests({ dataStore }: RestockRequestsProps) {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 600 }}>{request.item}</span>
-              <span style={{ fontSize: '12px', color: hintColor }}>{request.id}</span>
+              <span style={{ fontWeight: 600 }}>{request.product?.name || 'מוצר לא ידוע'}</span>
+              <span style={{ fontSize: '12px', color: hintColor }}>#{request.id.slice(0, 8)}</span>
             </div>
-            <div style={{ marginTop: '8px' }}>כמות מבוקשת: {request.quantity}</div>
-            <div style={{ marginTop: '4px', color: hintColor }}>מבקש: {request.requester}</div>
+            <div style={{ marginTop: '4px', fontSize: '12px', color: hintColor }}>
+              SKU: {request.product?.sku || request.product_id}
+            </div>
+            <div style={{ marginTop: '8px' }}>כמות מבוקשת: {request.requested_quantity}</div>
+            {request.approved_quantity !== null && request.approved_quantity !== undefined && (
+              <div style={{ marginTop: '4px', fontSize: '12px', color: hintColor }}>
+                כמות מאושרת: {request.approved_quantity}
+              </div>
+            )}
+            <div style={{ marginTop: '4px', color: hintColor }}>מבקש: {request.requested_by}</div>
+            <div style={{ marginTop: '4px', color: hintColor, fontSize: '12px' }}>
+              נוצר: {new Date(request.created_at).toLocaleString('he-IL')}
+            </div>
+            {request.notes && (
+              <div style={{ marginTop: '4px', fontSize: '12px', color: hintColor }}>
+                הערות: {request.notes}
+              </div>
+            )}
             <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span
-                style={{
-                  padding: '4px 12px',
-                  borderRadius: '999px',
-                  backgroundColor:
-                    request.priority === 'high'
-                      ? '#ff3b3020'
-                      : request.priority === 'medium'
-                      ? '#ff950020'
-                      : '#34c75920',
-                  color:
-                    request.priority === 'high'
-                      ? '#ff3b30'
-                      : request.priority === 'medium'
-                      ? '#ff9500'
-                      : '#34c759',
-                  fontSize: '12px'
-                }}
-              >
-                עדיפות: {request.priority === 'high' ? 'גבוהה' : request.priority === 'medium' ? 'בינונית' : 'נמוכה'}
-              </span>
               <span
                 style={{
                   padding: '4px 12px',
@@ -138,6 +179,11 @@ export function RestockRequests({ dataStore }: RestockRequestsProps) {
               >
                 {statusLabel[request.status]}
               </span>
+              {request.fulfilled_by && (
+                <span style={{ fontSize: '12px', color: hintColor }}>
+                  סופק ע"י {request.fulfilled_by}
+                </span>
+              )}
             </div>
           </div>
         ))}

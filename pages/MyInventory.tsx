@@ -1,37 +1,56 @@
 import React, { useEffect, useState } from 'react';
 import { useTelegramUI } from '../src/hooks/useTelegramUI';
-import { DataStore } from '../data/types';
+import { DataStore, DriverInventoryRecord } from '../data/types';
 
 interface MyInventoryProps {
   dataStore: DataStore;
   onNavigate: (page: string) => void;
 }
 
-interface InventoryAssignment {
-  id: string;
-  name: string;
-  quantity: number;
-  unit: string;
-  notes?: string;
-}
-
 export function MyInventory({ dataStore }: MyInventoryProps) {
   const { theme, backButton } = useTelegramUI();
-  const [items, setItems] = useState<InventoryAssignment[]>([]);
+  const [items, setItems] = useState<DriverInventoryRecord[]>([]);
+  const [loading, setLoading] = useState(true);
   const hintColor = theme.hint_color || '#999999';
 
   useEffect(() => {
     backButton.hide();
-    dataStore.getProfile().catch(() => undefined);
-  }, [backButton, dataStore]);
+    let cancelled = false;
 
-  useEffect(() => {
-    setItems([
-      { id: 'PK-2201', name: 'ארגז מאפים', quantity: 12, unit: 'קופסאות', notes: 'מיועד למסעדה 45902' },
-      { id: 'PK-2198', name: 'שתייה קלה', quantity: 8, unit: 'ארגזים', notes: 'שמור בקירור' },
-      { id: 'PK-2195', name: 'מנות שף קפואות', quantity: 6, unit: 'מגש', notes: 'לבדוק טמפרטורה לפני יציאה' }
-    ]);
-  }, []);
+    const loadDriverInventory = async () => {
+      try {
+        const profile = await dataStore.getProfile();
+
+        if (!dataStore.listDriverInventory) {
+          if (!cancelled) {
+            setItems([]);
+            setLoading(false);
+          }
+          return;
+        }
+
+        const results = await dataStore.listDriverInventory({ driver_id: profile.telegram_id });
+        if (!cancelled) {
+          setItems(results);
+        }
+      } catch (error) {
+        console.warn('Failed to load driver inventory:', error);
+        if (!cancelled) {
+          setItems([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadDriverInventory();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [backButton, dataStore]);
 
   return (
     <div
@@ -49,7 +68,22 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {items.map((item) => (
+        {loading && <div style={{ color: hintColor }}>טוען מלאי אישי...</div>}
+        {!loading && items.length === 0 && (
+          <div
+            style={{
+              backgroundColor: theme.secondary_bg_color || '#ffffff',
+              borderRadius: '14px',
+              padding: '16px',
+              border: `1px solid ${hintColor}30`,
+              color: hintColor,
+              textAlign: 'center'
+            }}
+          >
+            אין פריטים שהוקצו לך כרגע.
+          </div>
+        )}
+        {!loading && items.map((item) => (
           <div
             key={item.id}
             style={{
@@ -60,11 +94,18 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 600 }}>{item.name}</span>
-              <span style={{ fontSize: '12px', color: hintColor }}>{item.id}</span>
+              <span style={{ fontWeight: 600 }}>{item.product?.name || item.product_id}</span>
+              <span style={{ fontSize: '12px', color: hintColor }}>#{item.product_id.slice(0, 8)}</span>
             </div>
-            <div style={{ marginTop: '8px' }}>כמות: {item.quantity} {item.unit}</div>
-            {item.notes && <div style={{ marginTop: '4px', color: hintColor }}>{item.notes}</div>}
+            <div style={{ marginTop: '4px', fontSize: '12px', color: hintColor }}>
+              SKU: {item.product?.sku || item.product_id}
+            </div>
+            <div style={{ marginTop: '8px' }}>כמות ברכב: {item.quantity}</div>
+            {item.product?.warehouse_location && (
+              <div style={{ marginTop: '4px', fontSize: '12px', color: hintColor }}>
+                מקור: {item.product.warehouse_location}
+              </div>
+            )}
           </div>
         ))}
       </div>

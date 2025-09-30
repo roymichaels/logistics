@@ -20,6 +20,79 @@ export interface Product {
   warehouse_location?: string;
   created_at: string;
   updated_at: string;
+  inventory_snapshot?: InventoryRecord;
+  driver_balances?: DriverInventoryRecord[];
+}
+
+export interface InventoryRecord {
+  id: string;
+  product_id: string;
+  central_quantity: number;
+  reserved_quantity: number;
+  low_stock_threshold: number;
+  updated_at: string;
+  product?: Product;
+}
+
+export interface DriverInventoryRecord {
+  id: string;
+  product_id: string;
+  driver_id: string;
+  quantity: number;
+  updated_at: string;
+  product?: Product;
+}
+
+export type RestockRequestStatus = 'pending' | 'approved' | 'fulfilled' | 'rejected';
+
+export interface RestockRequest {
+  id: string;
+  product_id: string;
+  requested_by: string;
+  requested_quantity: number;
+  status: RestockRequestStatus;
+  approved_by?: string | null;
+  approved_quantity?: number | null;
+  fulfilled_by?: string | null;
+  fulfilled_quantity?: number | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+  product?: Product;
+}
+
+export type InventoryLogType = 'restock' | 'transfer' | 'adjustment' | 'reservation' | 'release';
+
+export interface InventoryLog {
+  id: string;
+  product_id: string;
+  change_type: InventoryLogType;
+  quantity_change: number;
+  from_location?: string | null;
+  to_location?: string | null;
+  reference_id?: string | null;
+  created_by: string;
+  created_at: string;
+  metadata?: Record<string, any> | null;
+  product?: Product;
+}
+
+export interface InventoryAlert {
+  product_id: string;
+  product_name: string;
+  central_quantity: number;
+  reserved_quantity: number;
+  low_stock_threshold: number;
+}
+
+export interface RolePermissions {
+  role: User['role'];
+  can_view_inventory: boolean;
+  can_request_restock: boolean;
+  can_approve_restock: boolean;
+  can_fulfill_restock: boolean;
+  can_transfer_inventory: boolean;
+  can_adjust_inventory: boolean;
 }
 
 export interface Order {
@@ -113,6 +186,20 @@ export interface DataStore {
   getProduct?(id: string): Promise<Product>;
   createProduct?(input: Omit<Product, 'id' | 'created_at' | 'updated_at'>): Promise<{ id: string }>;
   updateProduct?(id: string, updates: Partial<Product>): Promise<void>;
+
+  // Inventory
+  listInventory?(filters?: { product_id?: string }): Promise<InventoryRecord[]>;
+  getInventory?(productId: string): Promise<InventoryRecord | null>;
+  listDriverInventory?(filters?: { driver_id?: string; product_id?: string }): Promise<DriverInventoryRecord[]>;
+  listRestockRequests?(filters?: { status?: RestockRequestStatus | 'all'; onlyMine?: boolean }): Promise<RestockRequest[]>;
+  submitRestockRequest?(input: { product_id: string; requested_quantity: number; notes?: string }): Promise<{ id: string }>;
+  approveRestockRequest?(id: string, input: { approved_quantity: number; notes?: string }): Promise<void>;
+  fulfillRestockRequest?(id: string, input: { fulfilled_quantity: number; notes?: string }): Promise<void>;
+  rejectRestockRequest?(id: string, input?: { notes?: string }): Promise<void>;
+  transferInventoryToDriver?(input: { product_id: string; driver_id: string; quantity: number; notes?: string }): Promise<void>;
+  listInventoryLogs?(filters?: { product_id?: string; limit?: number }): Promise<InventoryLog[]>;
+  getLowStockAlerts?(): Promise<InventoryAlert[]>;
+  getRolePermissions?(): Promise<RolePermissions>;
   
   // Orders
   listOrders?(filters?: { status?: string; q?: string }): Promise<Order[]>;
