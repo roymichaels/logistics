@@ -1,4 +1,23 @@
-import { DataStore, User, Order, Task, Product, Route, GroupChat, Channel, Notification, BootstrapConfig, CreateOrderInput } from '../../data/types';
+import {
+  DataStore,
+  User,
+  Order,
+  Task,
+  Product,
+  Route,
+  GroupChat,
+  Channel,
+  Notification,
+  BootstrapConfig,
+  CreateOrderInput,
+  DriverInventoryRecord,
+  Zone,
+  DriverZoneAssignment,
+  DriverStatusRecord,
+  DriverMovementLog,
+  DriverAvailabilityStatus,
+  DriverMovementAction
+} from '../../data/types';
 
 // Mock data for Hebrew logistics company
 const mockProducts: Product[] = [
@@ -155,6 +174,150 @@ const mockNotifications: Notification[] = [
   }
 ];
 
+const mockZones: Zone[] = [
+  {
+    id: 'zone-tlv-center',
+    name: 'מרכז תל אביב',
+    code: 'TLV-C',
+    description: 'אזור מרכז תל אביב והעיר הלבנה',
+    color: '#007aff',
+    active: true,
+    created_at: '2024-01-01T08:00:00Z',
+    updated_at: '2024-01-10T08:00:00Z'
+  },
+  {
+    id: 'zone-tlv-north',
+    name: 'צפון תל אביב והרצליה',
+    code: 'TLV-N',
+    description: 'החל מנמל תל אביב ועד הרצליה',
+    color: '#34c759',
+    active: true,
+    created_at: '2024-01-01T08:00:00Z',
+    updated_at: '2024-01-10T08:00:00Z'
+  },
+  {
+    id: 'zone-ramat-gan',
+    name: 'רמת גן וגבעתיים',
+    code: 'RG-GV',
+    description: 'כולל אזור הבורסה ופארק פרס',
+    color: '#ff9500',
+    active: true,
+    created_at: '2024-01-01T08:00:00Z',
+    updated_at: '2024-01-10T08:00:00Z'
+  }
+];
+
+const mockDriverZones: DriverZoneAssignment[] = [
+  {
+    id: 'dz-1',
+    driver_id: '555666777',
+    zone_id: 'zone-tlv-center',
+    active: true,
+    assigned_at: '2024-01-20T06:00:00Z',
+    assigned_by: '123456789',
+    zone: mockZones[0]
+  },
+  {
+    id: 'dz-2',
+    driver_id: '555666777',
+    zone_id: 'zone-tlv-north',
+    active: true,
+    assigned_at: '2024-01-20T06:00:00Z',
+    assigned_by: '123456789',
+    zone: mockZones[1]
+  },
+  {
+    id: 'dz-3',
+    driver_id: '777888999',
+    zone_id: 'zone-ramat-gan',
+    active: true,
+    assigned_at: '2024-01-20T06:00:00Z',
+    assigned_by: '123456789',
+    zone: mockZones[2]
+  }
+];
+
+const nowIso = new Date().toISOString();
+
+const mockDriverInventoryRecords: DriverInventoryRecord[] = [
+  {
+    id: 'di-1',
+    driver_id: '555666777',
+    product_id: '1',
+    quantity: 5,
+    updated_at: nowIso,
+    product: mockProducts[0]
+  },
+  {
+    id: 'di-2',
+    driver_id: '555666777',
+    product_id: '2',
+    quantity: 10,
+    updated_at: nowIso,
+    product: mockProducts[1]
+  },
+  {
+    id: 'di-3',
+    driver_id: '777888999',
+    product_id: '2',
+    quantity: 4,
+    updated_at: nowIso,
+    product: mockProducts[1]
+  }
+];
+
+const mockDriverStatuses: DriverStatusRecord[] = [
+  {
+    driver_id: '555666777',
+    status: 'available',
+    is_online: true,
+    current_zone_id: 'zone-tlv-center',
+    last_updated: '2024-01-20T07:00:00Z',
+    note: 'מוכן לקבל משלוחים',
+    zone: mockZones[0]
+  },
+  {
+    driver_id: '777888999',
+    status: 'on_break',
+    is_online: true,
+    current_zone_id: 'zone-ramat-gan',
+    last_updated: '2024-01-20T07:30:00Z',
+    note: 'חוזר בעוד 15 דקות',
+    zone: mockZones[2]
+  }
+];
+
+const mockDriverMovements: DriverMovementLog[] = [
+  {
+    id: 'dm-1',
+    driver_id: '555666777',
+    zone_id: 'zone-tlv-center',
+    action: 'zone_joined',
+    details: 'הצטרף לאזור הבוקר',
+    created_at: '2024-01-20T06:00:00Z',
+    zone: mockZones[0]
+  },
+  {
+    id: 'dm-2',
+    driver_id: '555666777',
+    product_id: '1',
+    quantity_change: 5,
+    action: 'inventory_added',
+    details: 'קיבל מלאי מהמגורים',
+    created_at: '2024-01-20T06:30:00Z',
+    product: mockProducts[0]
+  },
+  {
+    id: 'dm-3',
+    driver_id: '777888999',
+    zone_id: 'zone-ramat-gan',
+    action: 'status_changed',
+    details: 'יצא להפסקה',
+    created_at: '2024-01-20T07:25:00Z',
+    zone: mockZones[2]
+  }
+];
+
 // Create mock user based on role
 const createMockUser = (providedUser?: any): User => {
   // Check for demo role in localStorage
@@ -195,6 +358,11 @@ class HebrewLogisticsDataStore implements DataStore {
   private groupChats: GroupChat[] = [...mockGroupChats];
   private channels: Channel[] = [...mockChannels];
   private notifications: Notification[] = [...mockNotifications];
+  private zones: Zone[] = [...mockZones];
+  private driverZones: DriverZoneAssignment[] = [...mockDriverZones];
+  private driverInventory: DriverInventoryRecord[] = [...mockDriverInventoryRecords];
+  private driverStatuses: DriverStatusRecord[] = [...mockDriverStatuses];
+  private driverMovements: DriverMovementLog[] = [...mockDriverMovements];
 
   constructor(providedUser?: any) {
     this.user = createMockUser(providedUser);
@@ -256,12 +424,274 @@ class HebrewLogisticsDataStore implements DataStore {
   async updateProduct(id: string, updates: Partial<Product>): Promise<void> {
     const index = this.products.findIndex(p => p.id === id);
     if (index === -1) throw new Error('Product not found');
-    
+
     this.products[index] = {
       ...this.products[index],
       ...updates,
       updated_at: new Date().toISOString()
     };
+  }
+
+  async listDriverInventory(filters?: { driver_id?: string; product_id?: string; driver_ids?: string[] }): Promise<DriverInventoryRecord[]> {
+    let records = [...this.driverInventory];
+
+    if (filters?.driver_id) {
+      records = records.filter(record => record.driver_id === filters.driver_id);
+    }
+
+    if (filters?.driver_ids && filters.driver_ids.length > 0) {
+      records = records.filter(record => filters.driver_ids!.includes(record.driver_id));
+    }
+
+    if (filters?.product_id) {
+      records = records.filter(record => record.product_id === filters.product_id);
+    }
+
+    return records.map(record => ({ ...record }));
+  }
+
+  async adjustDriverInventory(input: {
+    driver_id: string;
+    product_id: string;
+    quantity_change: number;
+    reason: string;
+    notes?: string;
+    zone_id?: string | null;
+  }): Promise<void> {
+    const existingIndex = this.driverInventory.findIndex(
+      record => record.driver_id === input.driver_id && record.product_id === input.product_id
+    );
+
+    const now = new Date().toISOString();
+    if (existingIndex >= 0) {
+      const current = this.driverInventory[existingIndex];
+      const newQuantity = current.quantity + input.quantity_change;
+      if (newQuantity < 0) {
+        throw new Error('לא ניתן להוריד את המלאי של הנהג מתחת לאפס');
+      }
+
+      this.driverInventory[existingIndex] = {
+        ...current,
+        quantity: newQuantity,
+        updated_at: now
+      };
+    } else {
+      if (input.quantity_change < 0) {
+        throw new Error('אין מלאי נהג להוריד עבור מוצר זה');
+      }
+
+      this.driverInventory.push({
+        id: `di-${Date.now()}`,
+        driver_id: input.driver_id,
+        product_id: input.product_id,
+        quantity: input.quantity_change,
+        updated_at: now,
+        product: this.products.find(product => product.id === input.product_id)
+      });
+    }
+
+    this.driverMovements.unshift({
+      id: `dm-${Date.now()}`,
+      driver_id: input.driver_id,
+      zone_id: input.zone_id ?? undefined,
+      product_id: input.product_id,
+      quantity_change: input.quantity_change,
+      action: input.quantity_change >= 0 ? 'inventory_added' : 'inventory_removed',
+      details: input.notes ? `${input.reason} - ${input.notes}` : input.reason,
+      created_at: now,
+      zone: input.zone_id ? this.zones.find(zone => zone.id === input.zone_id) : undefined,
+      product: this.products.find(product => product.id === input.product_id)
+    });
+  }
+
+  async listZones(): Promise<Zone[]> {
+    return [...this.zones];
+  }
+
+  async getZone(id: string): Promise<Zone | null> {
+    return this.zones.find(zone => zone.id === id) || null;
+  }
+
+  async listDriverZones(filters?: { driver_id?: string; zone_id?: string; activeOnly?: boolean }): Promise<DriverZoneAssignment[]> {
+    let assignments = [...this.driverZones];
+
+    if (filters?.driver_id) {
+      assignments = assignments.filter(assignment => assignment.driver_id === filters.driver_id);
+    }
+
+    if (filters?.zone_id) {
+      assignments = assignments.filter(assignment => assignment.zone_id === filters.zone_id);
+    }
+
+    if (filters?.activeOnly) {
+      assignments = assignments.filter(assignment => assignment.active);
+    }
+
+    return assignments.map(assignment => ({
+      ...assignment,
+      zone: this.zones.find(zone => zone.id === assignment.zone_id)
+    }));
+  }
+
+  async assignDriverToZone(input: { zone_id: string; driver_id?: string; active?: boolean }): Promise<void> {
+    const driverId = input.driver_id || this.user.telegram_id;
+    const makeActive = input.active !== false;
+    const existingIndex = this.driverZones.findIndex(
+      assignment => assignment.driver_id === driverId && assignment.zone_id === input.zone_id
+    );
+
+    if (existingIndex >= 0) {
+      this.driverZones[existingIndex] = {
+        ...this.driverZones[existingIndex],
+        active: makeActive,
+        assigned_at: makeActive ? new Date().toISOString() : this.driverZones[existingIndex].assigned_at,
+        unassigned_at: makeActive ? undefined : new Date().toISOString()
+      };
+    } else if (makeActive) {
+      this.driverZones.push({
+        id: `dz-${Date.now()}`,
+        driver_id: driverId,
+        zone_id: input.zone_id,
+        active: true,
+        assigned_at: new Date().toISOString(),
+        assigned_by: this.user.telegram_id,
+        zone: this.zones.find(zone => zone.id === input.zone_id)
+      });
+    }
+
+    this.driverMovements.unshift({
+      id: `dm-${Date.now()}`,
+      driver_id: driverId,
+      zone_id: input.zone_id,
+      action: makeActive ? 'zone_joined' : 'zone_left',
+      details: makeActive ? 'הצטרף לאזור' : 'עזב אזור',
+      created_at: new Date().toISOString(),
+      zone: this.zones.find(zone => zone.id === input.zone_id)
+    });
+
+    if (!makeActive) {
+      const statusIndex = this.driverStatuses.findIndex(status => status.driver_id === driverId);
+      if (statusIndex >= 0 && this.driverStatuses[statusIndex].current_zone_id === input.zone_id) {
+        this.driverStatuses[statusIndex] = {
+          ...this.driverStatuses[statusIndex],
+          current_zone_id: undefined,
+          zone: undefined,
+          last_updated: new Date().toISOString()
+        };
+      }
+    }
+  }
+
+  async updateDriverStatus(input: {
+    status: DriverAvailabilityStatus;
+    driver_id?: string;
+    zone_id?: string | null;
+    is_online?: boolean;
+    note?: string;
+  }): Promise<void> {
+    const driverId = input.driver_id || this.user.telegram_id;
+    const index = this.driverStatuses.findIndex(status => status.driver_id === driverId);
+    const now = new Date().toISOString();
+
+    const zone = typeof input.zone_id === 'string'
+      ? this.zones.find(z => z.id === input.zone_id)
+      : input.zone_id === null
+        ? undefined
+        : index >= 0
+          ? this.driverStatuses[index].zone
+          : undefined;
+
+    const currentZoneId = typeof input.zone_id === 'undefined'
+      ? index >= 0 ? this.driverStatuses[index].current_zone_id : undefined
+      : input.zone_id;
+
+    const payload: DriverStatusRecord = {
+      driver_id: driverId,
+      status: input.status,
+      is_online: typeof input.is_online === 'boolean' ? input.is_online : input.status !== 'off_shift',
+      current_zone_id: currentZoneId,
+      last_updated: now,
+      note: input.note,
+      zone
+    };
+
+    if (index >= 0) {
+      this.driverStatuses[index] = payload;
+    } else {
+      this.driverStatuses.push(payload);
+    }
+
+    this.driverMovements.unshift({
+      id: `dm-${Date.now()}`,
+      driver_id: driverId,
+      zone_id: currentZoneId,
+      action: 'status_changed',
+      details: `סטטוס עודכן ל-${input.status}`,
+      created_at: now,
+      zone
+    });
+  }
+
+  async getDriverStatus(driver_id?: string): Promise<DriverStatusRecord | null> {
+    const driverId = driver_id || this.user.telegram_id;
+    const status = this.driverStatuses.find(record => record.driver_id === driverId);
+    return status ? { ...status } : null;
+  }
+
+  async listDriverStatuses(filters?: { zone_id?: string; onlyOnline?: boolean }): Promise<DriverStatusRecord[]> {
+    let statuses = [...this.driverStatuses];
+
+    if (filters?.zone_id) {
+      statuses = statuses.filter(status => status.current_zone_id === filters.zone_id);
+    }
+
+    if (filters?.onlyOnline) {
+      statuses = statuses.filter(status => status.is_online);
+    }
+
+    return statuses.map(status => ({ ...status }));
+  }
+
+  async logDriverMovement(input: {
+    driver_id: string;
+    zone_id?: string | null;
+    product_id?: string | null;
+    quantity_change?: number | null;
+    action: DriverMovementAction;
+    details?: string;
+  }): Promise<void> {
+    this.driverMovements.unshift({
+      id: `dm-${Date.now()}`,
+      driver_id: input.driver_id,
+      zone_id: input.zone_id ?? undefined,
+      product_id: input.product_id ?? undefined,
+      quantity_change: input.quantity_change ?? undefined,
+      action: input.action,
+      details: input.details,
+      created_at: new Date().toISOString(),
+      zone: input.zone_id ? this.zones.find(zone => zone.id === input.zone_id) : undefined,
+      product: input.product_id ? this.products.find(product => product.id === input.product_id) : undefined
+    });
+  }
+
+  async listDriverMovements(filters?: { driver_id?: string; zone_id?: string; limit?: number }): Promise<DriverMovementLog[]> {
+    let movements = [...this.driverMovements];
+
+    if (filters?.driver_id) {
+      movements = movements.filter(movement => movement.driver_id === filters.driver_id);
+    }
+
+    if (filters?.zone_id) {
+      movements = movements.filter(movement => movement.zone_id === filters.zone_id);
+    }
+
+    movements.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    if (filters?.limit) {
+      movements = movements.slice(0, filters.limit);
+    }
+
+    return movements.map(movement => ({ ...movement }));
   }
 
   // Orders

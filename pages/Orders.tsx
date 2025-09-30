@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { telegram } from '../lib/telegram';
-import { DataStore, Order, Product, User, OrderEntryMode } from '../data/types';
+import { DataStore, Order, Product, User, OrderEntryMode, Zone } from '../data/types';
 import { DmOrderParser, DraftOrderItem } from '../src/components/DmOrderParser';
 import { StorefrontOrderBuilder } from '../src/components/StorefrontOrderBuilder';
+import { DispatchService, DriverCandidate } from '../src/lib/dispatchService';
+import { Toast } from '../src/components/Toast';
 
 interface OrdersProps {
   dataStore: DataStore;
@@ -19,6 +21,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   const theme = telegram.themeParams;
+  const dispatchService = useMemo(() => new DispatchService(dataStore), [dataStore]);
 
   useEffect(() => {
     loadData();
@@ -119,6 +122,8 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
         onBack={() => setSelectedOrder(null)}
         onUpdate={loadData}
         theme={theme}
+        currentUser={user}
+        dispatchService={dispatchService}
       />
     );
   }
@@ -286,14 +291,51 @@ function OrderCard({ order, onClick, theme }: {
   );
 }
 
-function OrderDetail({ order, dataStore, onBack, onUpdate, theme }: {
+function OrderDetail({
+  order,
+  dataStore,
+  onBack,
+  onUpdate,
+  theme,
+  currentUser,
+  dispatchService
+}: {
   order: Order;
   dataStore: DataStore;
   onBack: () => void;
   onUpdate: () => void;
   theme: any;
+  currentUser: User | null;
+  dispatchService: DispatchService;
 }) {
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [zoneOptions, setZoneOptions] = useState<Zone[]>([]);
+  const [selectedZone, setSelectedZone] = useState<string>('');
+  const [candidates, setCandidates] = useState<DriverCandidate[]>([]);
+  const [assignLoading, setAssignLoading] = useState(false);
+  const [assignError, setAssignError] = useState<string | null>(null);
+  const [selectedDriver, setSelectedDriver] = useState<string>('');
+  const canAssign = ['manager', 'dispatcher'].includes(currentUser?.role || '');
+  const orderItems = order.items ?? [];
+
   const handleStatusUpdate = async (newStatus: Order['status']) => {
+    if (newStatus === 'assigned') {
+      if (!canAssign) {
+        telegram.showAlert('אין לך הרשאה להקצות הזמנה לנהג');
+        return;
+      }
+
+      if (!dataStore.listZones || !dataStore.listDriverStatuses) {
+        Toast.error('המערכת אינה תומכת בהקצאת הזמנות כרגע');
+        return;
+      }
+
+      setIsAssigning(true);
+      setAssignError(null);
+      setSelectedDriver('');
+      return;
+    }
+
     try {
       await dataStore.updateOrder?.(order.id, { status: newStatus });
       telegram.hapticFeedback('notification', 'success');
@@ -305,16 +347,101 @@ function OrderDetail({ order, dataStore, onBack, onUpdate, theme }: {
     }
   };
 
+  useEffect(() => {
+    if (!isAssigning) return;
+    if (!dataStore.listZones) {
+      setAssignError('לא ניתן לטעון רשימת אזורים.');
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchZones = async () => {
+      try {
+        const zones = await dataStore.listZones();
+        if (cancelled) return;
+        setZoneOptions(zones);
+        if (zones.length > 0 && !selectedZone) {
+          setSelectedZone(zones[0].id);
+        }
+      } catch (err) {
+        console.error('Failed to load zones for assignment', err);
+        if (!cancelled) {
+          setAssignError('שגיאה בטעינת רשימת האזורים');
+        }
+      }
+    };
+
+    fetchZones();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAssigning, dataStore, selectedZone]);
+
+  const loadCandidates = useCallback(async (zoneId: string) => {
+    if (!zoneId) {
+      setCandidates([]);
+      setAssignError(null);
+      return;
+    }
+
+    try {
+      setAssignLoading(true);
+      const drivers = await dispatchService.getEligibleDrivers({ zoneId, items: orderItems });
+      setCandidates(drivers);
+      setAssignError(drivers.length === 0 ? 'אין נהגים זמינים עם מלאי מתאים באזור זה' : null);
+    } catch (err) {
+      console.error('Failed to load driver candidates', err);
+      setAssignError('שגיאה בטעינת רשימת הנהגים');
+    } finally {
+      setAssignLoading(false);
+    }
+  }, [dispatchService, orderItems]);
+
+  useEffect(() => {
+    if (isAssigning && selectedZone) {
+      loadCandidates(selectedZone);
+      setSelectedDriver('');
+    }
+  }, [isAssigning, selectedZone, loadCandidates]);
+
+  const confirmAssignment = async () => {
+    if (!selectedDriver) {
+      Toast.error('בחר נהג לפני האישור');
+      return;
+    }
+
+    try {
+      setAssignLoading(true);
+      await dispatchService.assignOrder(order, selectedDriver, selectedZone || undefined);
+      telegram.hapticFeedback('notification', 'success');
+      Toast.success('ההזמנה הוקצתה לנהג בהצלחה');
+      onUpdate();
+      onBack();
+    } catch (err) {
+      console.error('Failed to assign order', err);
+      setAssignError('שגיאה בהקצאת ההזמנה. נסה שוב.');
+    } finally {
+      setAssignLoading(false);
+    }
+  };
+
+  const cancelAssignment = () => {
+    setIsAssigning(false);
+    setAssignError(null);
+    setSelectedDriver('');
+  };
+
   return (
-    <div style={{ 
+    <div style={{
       padding: '16px',
       backgroundColor: theme.bg_color,
       color: theme.text_color,
       minHeight: '100vh'
     }}>
-      <h1 style={{ 
-        margin: '0 0 24px 0', 
-        fontSize: '24px', 
+      <h1 style={{
+        margin: '0 0 24px 0',
+        fontSize: '24px',
         fontWeight: '600'
       }}>
         Order Details
@@ -327,7 +454,7 @@ function OrderDetail({ order, dataStore, onBack, onUpdate, theme }: {
         <p style={{ margin: '0 0 16px 0', color: theme.hint_color }}>
           {order.customer_address}
         </p>
-        
+
         <div style={{
           padding: '8px 12px',
           borderRadius: '8px',
@@ -355,17 +482,17 @@ function OrderDetail({ order, dataStore, onBack, onUpdate, theme }: {
           </div>
         )}
 
-        {order.items && order.items.length > 0 && (
+        {orderItems.length > 0 && (
           <div>
             <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '600' }}>
               Items
             </h3>
-            {order.items.map((item, index) => (
-              <div key={index} style={{ 
-                display: 'flex', 
+            {orderItems.map((item, index) => (
+              <div key={index} style={{
+                display: 'flex',
                 justifyContent: 'space-between',
                 padding: '8px 0',
-                borderBottom: index < order.items!.length - 1 ? `1px solid ${theme.hint_color}20` : 'none'
+                borderBottom: index < orderItems.length - 1 ? `1px solid ${theme.hint_color}20` : 'none'
               }}>
                 <span>{item.name}</span>
                 <span>×{item.quantity}</span>
@@ -375,10 +502,9 @@ function OrderDetail({ order, dataStore, onBack, onUpdate, theme }: {
         )}
       </div>
 
-      {/* Status Update Buttons */}
       {order.status !== 'delivered' && order.status !== 'failed' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {order.status === 'new' && (
+          {order.status === 'new' && canAssign && !isAssigning && (
             <button
               onClick={() => handleStatusUpdate('assigned')}
               style={{
@@ -392,10 +518,129 @@ function OrderDetail({ order, dataStore, onBack, onUpdate, theme }: {
                 cursor: 'pointer'
               }}
             >
-              Assign Order
+              הקצה הזמנה
             </button>
           )}
-          
+
+          {isAssigning && (
+            <div
+              style={{
+                padding: '16px',
+                borderRadius: '12px',
+                border: `1px solid ${theme.hint_color}30`,
+                backgroundColor: theme.secondary_bg_color || '#f5f5f5',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}
+            >
+              <h3 style={{ margin: 0 }}>בחירת אזור ונהג</h3>
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', color: theme.hint_color }}>בחר אזור</label>
+                <select
+                  value={selectedZone}
+                  onChange={(event) => setSelectedZone(event.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '10px',
+                    border: `1px solid ${theme.hint_color}40`,
+                    backgroundColor: theme.bg_color,
+                    color: theme.text_color
+                  }}
+                >
+                  <option value="">בחר אזור</option>
+                  {zoneOptions.map((zone) => (
+                    <option key={zone.id} value={zone.id}>
+                      {zone.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {assignError && (
+                <div style={{ color: '#ff3b30', backgroundColor: '#ff3b3020', padding: '8px 12px', borderRadius: '8px' }}>
+                  {assignError}
+                </div>
+              )}
+
+              {assignLoading ? (
+                <div style={{ color: theme.hint_color }}>טוען נהגים זמינים…</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {candidates.map((candidate) => {
+                    const relevantInventory = candidate.inventory.filter((record) =>
+                      orderItems.some((item) => item.product_id === record.product_id)
+                    );
+                    const totalRelevant = relevantInventory.reduce((sum, record) => sum + record.quantity, 0);
+                    const isSelected = selectedDriver === candidate.driverId;
+                    return (
+                      <button
+                        key={candidate.driverId}
+                        onClick={() => setSelectedDriver(candidate.driverId)}
+                        style={{
+                          textAlign: 'right',
+                          border: `1px solid ${isSelected ? theme.button_color : theme.hint_color + '30'}`,
+                          backgroundColor: isSelected ? theme.button_color + '20' : theme.bg_color,
+                          color: theme.text_color,
+                          borderRadius: '10px',
+                          padding: '12px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <div style={{ fontWeight: 600 }}>נהג #{candidate.driverId}</div>
+                        <div style={{ color: theme.hint_color, fontSize: '14px' }}>
+                          סטטוס: {candidate.status.status === 'available' ? 'זמין' : candidate.status.status === 'delivering' ? 'במשלוח' : candidate.status.status === 'on_break' ? 'בהפסקה' : 'סיום משמרת'}
+                        </div>
+                        <div style={{ color: theme.hint_color, fontSize: '12px', marginTop: '4px' }}>
+                          מלאי רלוונטי: {totalRelevant} יחידות
+                        </div>
+                      </button>
+                    );
+                  })}
+
+                  {candidates.length === 0 && !assignError && (
+                    <div style={{ color: theme.hint_color }}>אין נהגים זמינים באזור שנבחר.</div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={confirmAssignment}
+                  disabled={!selectedDriver || assignLoading}
+                  style={{
+                    flex: 1,
+                    padding: '10px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    backgroundColor: theme.button_color,
+                    color: theme.button_text_color || '#ffffff',
+                    fontWeight: 600,
+                    cursor: selectedDriver ? 'pointer' : 'not-allowed',
+                    opacity: selectedDriver ? 1 : 0.6
+                  }}
+                >
+                  אשר הקצאה
+                </button>
+                <button
+                  onClick={cancelAssignment}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '10px',
+                    border: `1px solid ${theme.hint_color}40`,
+                    backgroundColor: 'transparent',
+                    color: theme.text_color,
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  בטל
+                </button>
+              </div>
+            </div>
+          )}
+
           {order.status === 'assigned' && (
             <button
               onClick={() => handleStatusUpdate('enroute')}
@@ -413,7 +658,7 @@ function OrderDetail({ order, dataStore, onBack, onUpdate, theme }: {
               Mark En Route
             </button>
           )}
-          
+
           {order.status === 'enroute' && (
             <button
               onClick={() => handleStatusUpdate('delivered')}

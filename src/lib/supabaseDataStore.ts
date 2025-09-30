@@ -18,7 +18,13 @@ import {
   RolePermissions,
   RestockRequestStatus,
   InventoryLogType,
-  CreateOrderInput
+  CreateOrderInput,
+  Zone,
+  DriverZoneAssignment,
+  DriverStatusRecord,
+  DriverMovementLog,
+  DriverAvailabilityStatus,
+  DriverMovementAction
 } from '../../data/types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -106,6 +112,28 @@ export class SupabaseDataStore implements DataStore {
     if (error) throw error;
   }
 
+  private async recordDriverMovement(entry: {
+    driver_id: string;
+    zone_id?: string | null;
+    product_id?: string | null;
+    quantity_change?: number | null;
+    action: DriverMovementAction;
+    details?: string | null;
+  }) {
+    const payload = {
+      driver_id: entry.driver_id,
+      zone_id: entry.zone_id ?? null,
+      product_id: entry.product_id ?? null,
+      quantity_change: entry.quantity_change ?? null,
+      action: entry.action,
+      details: entry.details ?? null,
+      created_at: new Date().toISOString()
+    };
+
+    const { error } = await supabase.from('driver_movements').insert(payload);
+    if (error) throw error;
+  }
+
   private initializeRealTimeSubscriptions() {
     // Subscribe to order changes
     const orderChannel = supabase.channel('orders')
@@ -183,6 +211,38 @@ export class SupabaseDataStore implements DataStore {
       .subscribe();
 
     this.subscriptions.set('inventory_logs', logChannel);
+
+    const zonesChannel = supabase.channel('zones')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'zones' }, (payload) => {
+        this.notifyListeners('zones', payload);
+      })
+      .subscribe();
+
+    this.subscriptions.set('zones', zonesChannel);
+
+    const driverZonesChannel = supabase.channel('driver_zones')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'driver_zones' }, (payload) => {
+        this.notifyListeners('driver_zones', payload);
+      })
+      .subscribe();
+
+    this.subscriptions.set('driver_zones', driverZonesChannel);
+
+    const driverStatusChannel = supabase.channel('driver_status')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'driver_status' }, (payload) => {
+        this.notifyListeners('driver_status', payload);
+      })
+      .subscribe();
+
+    this.subscriptions.set('driver_status', driverStatusChannel);
+
+    const driverMovementsChannel = supabase.channel('driver_movements')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'driver_movements' }, (payload) => {
+        this.notifyListeners('driver_movements', payload);
+      })
+      .subscribe();
+
+    this.subscriptions.set('driver_movements', driverMovementsChannel);
   }
 
   private notifyListeners(table: string, payload: any) {
@@ -407,13 +467,17 @@ export class SupabaseDataStore implements DataStore {
     };
   }
 
-  async listDriverInventory(filters?: { driver_id?: string; product_id?: string }): Promise<DriverInventoryRecord[]> {
+  async listDriverInventory(filters?: { driver_id?: string; product_id?: string; driver_ids?: string[] }): Promise<DriverInventoryRecord[]> {
     let query = supabase
       .from('driver_inventory')
       .select('*, products(*)');
 
     if (filters?.driver_id) {
       query = query.eq('driver_id', filters.driver_id);
+    }
+
+    if (filters?.driver_ids && filters.driver_ids.length > 0) {
+      query = query.in('driver_id', filters.driver_ids);
     }
 
     if (filters?.product_id) {
@@ -797,6 +861,67 @@ export class SupabaseDataStore implements DataStore {
     await this.refreshProductStock(input.product_id);
   }
 
+  async adjustDriverInventory(input: {
+    driver_id: string;
+    product_id: string;
+    quantity_change: number;
+    reason: string;
+    notes?: string;
+    zone_id?: string | null;
+  }): Promise<void> {
+    const now = new Date().toISOString();
+
+    const { data: existing, error: fetchError } = await supabase
+      .from('driver_inventory')
+      .select('id, quantity')
+      .eq('driver_id', input.driver_id)
+      .eq('product_id', input.product_id)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+
+    const currentQuantity = existing?.quantity ?? 0;
+    const newQuantity = currentQuantity + input.quantity_change;
+
+    if (newQuantity < 0) {
+      throw new Error('לא ניתן להוריד את המלאי של הנהג מתחת לאפס');
+    }
+
+    const upsertPayload = existing
+      ? { quantity: newQuantity, updated_at: now }
+      : {
+          driver_id: input.driver_id,
+          product_id: input.product_id,
+          quantity: newQuantity,
+          updated_at: now
+        };
+
+    const { error: upsertError } = existing
+      ? await supabase
+          .from('driver_inventory')
+          .update(upsertPayload)
+          .eq('id', existing.id)
+      : await supabase
+          .from('driver_inventory')
+          .insert(upsertPayload);
+
+    if (upsertError) throw upsertError;
+
+    const action: DriverMovementAction = input.quantity_change >= 0 ? 'inventory_added' : 'inventory_removed';
+    const details = input.notes ? `${input.reason} - ${input.notes}` : input.reason;
+
+    await this.recordDriverMovement({
+      driver_id: input.driver_id,
+      zone_id: input.zone_id ?? null,
+      product_id: input.product_id,
+      quantity_change: input.quantity_change,
+      action,
+      details
+    });
+
+    await this.refreshProductStock(input.product_id);
+  }
+
   async listInventoryLogs(filters?: { product_id?: string; limit?: number }): Promise<InventoryLog[]> {
     let query = supabase
       .from('inventory_logs')
@@ -870,6 +995,330 @@ export class SupabaseDataStore implements DataStore {
     };
 
     return managerDefaults;
+  }
+
+  // Zones & Dispatch
+  async listZones(): Promise<Zone[]> {
+    const { data, error } = await supabase
+      .from('zones')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async getZone(id: string): Promise<Zone | null> {
+    const { data, error } = await supabase
+      .from('zones')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data || null;
+  }
+
+  async listDriverZones(filters?: { driver_id?: string; zone_id?: string; activeOnly?: boolean }): Promise<DriverZoneAssignment[]> {
+    let query = supabase
+      .from('driver_zones')
+      .select('*, zones(*)');
+
+    if (filters?.driver_id) {
+      query = query.eq('driver_id', filters.driver_id);
+    }
+
+    if (filters?.zone_id) {
+      query = query.eq('zone_id', filters.zone_id);
+    }
+
+    if (filters?.activeOnly) {
+      query = query.eq('active', true);
+    }
+
+    query = query.order('assigned_at', { ascending: false });
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      driver_id: row.driver_id,
+      zone_id: row.zone_id,
+      active: row.active,
+      assigned_at: row.assigned_at,
+      unassigned_at: row.unassigned_at,
+      assigned_by: row.assigned_by,
+      zone: row.zones || undefined
+    }));
+  }
+
+  async assignDriverToZone(input: { zone_id: string; driver_id?: string; active?: boolean }): Promise<void> {
+    const driverId = input.driver_id || this.userTelegramId;
+    const now = new Date().toISOString();
+
+    const { data: existing, error: fetchError } = await supabase
+      .from('driver_zones')
+      .select('id, active, assigned_at')
+      .eq('driver_id', driverId)
+      .eq('zone_id', input.zone_id)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+
+    const makeActive = input.active !== false;
+
+    if (existing) {
+      const updatePayload: any = { active: makeActive };
+      if (makeActive) {
+        updatePayload.assigned_at = now;
+        updatePayload.unassigned_at = null;
+      } else {
+        updatePayload.unassigned_at = now;
+      }
+
+      const { error: updateError } = await supabase
+        .from('driver_zones')
+        .update(updatePayload)
+        .eq('id', existing.id);
+
+      if (updateError) throw updateError;
+    } else if (makeActive) {
+      const { error: insertError } = await supabase
+        .from('driver_zones')
+        .insert({
+          driver_id: driverId,
+          zone_id: input.zone_id,
+          active: true,
+          assigned_at: now,
+          assigned_by: this.userTelegramId
+        });
+
+      if (insertError) throw insertError;
+    } else {
+      return;
+    }
+
+    await this.recordDriverMovement({
+      driver_id: driverId,
+      zone_id: input.zone_id,
+      action: makeActive ? 'zone_joined' : 'zone_left',
+      details: `Updated by ${this.userTelegramId}`
+    });
+
+    if (!makeActive) {
+      const status = await this.getDriverStatus(driverId);
+      if (status?.current_zone_id === input.zone_id) {
+        await this.updateDriverStatus({
+          driver_id: driverId,
+          status: status.status,
+          zone_id: null,
+          is_online: status.is_online,
+          note: status.note || undefined
+        });
+      }
+    }
+  }
+
+  async updateDriverStatus(input: {
+    status: DriverAvailabilityStatus;
+    driver_id?: string;
+    zone_id?: string | null;
+    is_online?: boolean;
+    note?: string;
+  }): Promise<void> {
+    const driverId = input.driver_id || this.userTelegramId;
+    const now = new Date().toISOString();
+
+    const payload: any = {
+      driver_id: driverId,
+      status: input.status,
+      is_online: typeof input.is_online === 'boolean' ? input.is_online : input.status !== 'off_shift',
+      note: input.note ?? null,
+      last_updated: now
+    };
+
+    if (typeof input.zone_id !== 'undefined') {
+      payload.current_zone_id = input.zone_id;
+    }
+
+    const { error } = await supabase
+      .from('driver_status')
+      .upsert(payload, { onConflict: 'driver_id' });
+
+    if (error) throw error;
+
+    await this.recordDriverMovement({
+      driver_id: driverId,
+      zone_id: input.zone_id ?? null,
+      action: 'status_changed',
+      details: `Status changed to ${input.status}`
+    });
+  }
+
+  async getDriverStatus(driver_id?: string): Promise<DriverStatusRecord | null> {
+    const targetDriver = driver_id || this.userTelegramId;
+
+    const { data, error } = await supabase
+      .from('driver_status')
+      .select('*')
+      .eq('driver_id', targetDriver)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return null;
+
+    let zone: Zone | undefined;
+    if (data.current_zone_id) {
+      const zoneData = await this.getZone(data.current_zone_id);
+      if (zoneData) {
+        zone = zoneData;
+      }
+    }
+
+    return {
+      driver_id: data.driver_id,
+      status: data.status,
+      is_online: data.is_online,
+      current_zone_id: data.current_zone_id,
+      last_updated: data.last_updated,
+      note: data.note,
+      zone
+    };
+  }
+
+  async listDriverStatuses(filters?: { zone_id?: string; onlyOnline?: boolean }): Promise<DriverStatusRecord[]> {
+    let query = supabase
+      .from('driver_status')
+      .select('*');
+
+    if (filters?.zone_id) {
+      query = query.eq('current_zone_id', filters.zone_id);
+    }
+
+    if (filters?.onlyOnline) {
+      query = query.eq('is_online', true);
+    }
+
+    query = query.order('last_updated', { ascending: false });
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    const rows = data || [];
+    const zoneIds = Array.from(
+      new Set(
+        rows
+          .map((row: any) => row.current_zone_id as string | null)
+          .filter((id): id is string => Boolean(id))
+      )
+    );
+
+    let zoneMap = new Map<string, Zone>();
+    if (zoneIds.length > 0) {
+      const { data: zoneData, error: zoneError } = await supabase
+        .from('zones')
+        .select('*')
+        .in('id', zoneIds);
+
+      if (zoneError) throw zoneError;
+
+      (zoneData || []).forEach((zone: Zone) => {
+        zoneMap.set(zone.id, zone);
+      });
+    }
+
+    return rows.map((row: any) => ({
+      driver_id: row.driver_id,
+      status: row.status,
+      is_online: row.is_online,
+      current_zone_id: row.current_zone_id,
+      last_updated: row.last_updated,
+      note: row.note,
+      zone: row.current_zone_id ? zoneMap.get(row.current_zone_id) : undefined
+    }));
+  }
+
+  async logDriverMovement(input: {
+    driver_id: string;
+    zone_id?: string | null;
+    product_id?: string | null;
+    quantity_change?: number | null;
+    action: DriverMovementAction;
+    details?: string;
+  }): Promise<void> {
+    await this.recordDriverMovement(input);
+  }
+
+  async listDriverMovements(filters?: { driver_id?: string; zone_id?: string; limit?: number }): Promise<DriverMovementLog[]> {
+    let query = supabase
+      .from('driver_movements')
+      .select('*');
+
+    if (filters?.driver_id) {
+      query = query.eq('driver_id', filters.driver_id);
+    }
+
+    if (filters?.zone_id) {
+      query = query.eq('zone_id', filters.zone_id);
+    }
+
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+
+    query = query.order('created_at', { ascending: false });
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    const rows = data || [];
+    const zoneIds = Array.from(new Set(rows.map((row: any) => row.zone_id as string | null).filter((id): id is string => Boolean(id))));
+    const productIds = Array.from(new Set(rows.map((row: any) => row.product_id as string | null).filter((id): id is string => Boolean(id))));
+
+    let zoneMap = new Map<string, Zone>();
+    if (zoneIds.length > 0) {
+      const { data: zoneData, error: zoneError } = await supabase
+        .from('zones')
+        .select('*')
+        .in('id', zoneIds);
+
+      if (zoneError) throw zoneError;
+
+      (zoneData || []).forEach((zone: Zone) => {
+        zoneMap.set(zone.id, zone);
+      });
+    }
+
+    let productMap = new Map<string, Product>();
+    if (productIds.length > 0) {
+      const { data: productData, error: productError } = await supabase
+        .from('products')
+        .select('*')
+        .in('id', productIds);
+
+      if (productError) throw productError;
+
+      (productData || []).forEach((product: Product) => {
+        productMap.set(product.id, product);
+      });
+    }
+
+    return rows.map((row: any) => ({
+      id: row.id,
+      driver_id: row.driver_id,
+      zone_id: row.zone_id,
+      product_id: row.product_id,
+      quantity_change: row.quantity_change,
+      action: row.action,
+      details: row.details,
+      created_at: row.created_at,
+      zone: row.zone_id ? zoneMap.get(row.zone_id) : undefined,
+      product: row.product_id ? productMap.get(row.product_id) : undefined
+    }));
   }
 
   // Orders with advanced filtering
