@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTelegramUI } from '../src/hooks/useTelegramUI';
-import { DataStore } from '../data/types';
+import { DataStore, InventoryLog } from '../data/types';
 
 interface LogsProps {
   dataStore: DataStore;
@@ -11,35 +11,44 @@ export function Logs({ dataStore }: LogsProps) {
   const { theme, backButton } = useTelegramUI();
   const hintColor = theme.hint_color || '#999999';
   const subtleBackground = theme.secondary_bg_color || '#f8f8f8';
+  const [logs, setLogs] = useState<InventoryLog[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     backButton.hide();
-    dataStore.getProfile().catch(() => undefined);
-  }, [backButton, dataStore]);
+    let cancelled = false;
 
-  const entries = useMemo(
-    () => [
-      {
-        id: 'LG-5521',
-        time: '09:45',
-        actor: 'יעל כהן',
-        action: 'עדכנה את מלאי SKU BX-VEG-001 ל-86 יחידות'
-      },
-      {
-        id: 'LG-5518',
-        time: '08:20',
-        actor: 'אפליקציית נהג',
-        action: 'משלוח 45902 סומן כמסופק בהצלחה'
-      },
-      {
-        id: 'LG-5512',
-        time: 'אתמול • 19:10',
-        actor: 'דוחות מערכת',
-        action: 'נוצר דו"ח ביצועים יומי ונשלח למנהלים'
+    const loadLogs = async () => {
+      if (!dataStore.listInventoryLogs) {
+        setLoading(false);
+        return;
       }
-    ],
-    []
-  );
+
+      setLoading(true);
+      try {
+        const results = await dataStore.listInventoryLogs({ limit: 25 });
+        if (!cancelled) {
+          setLogs(results);
+        }
+      } catch (error) {
+        console.warn('Failed to load inventory logs:', error);
+        if (!cancelled) {
+          setLogs([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadLogs();
+    dataStore.getProfile().catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [backButton, dataStore]);
 
   return (
     <div
@@ -57,7 +66,22 @@ export function Logs({ dataStore }: LogsProps) {
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {entries.map((entry) => (
+        {loading && <div style={{ color: hintColor }}>טוען יומן תנועות...</div>}
+        {!loading && logs.length === 0 && (
+          <div
+            style={{
+              backgroundColor: subtleBackground,
+              borderRadius: '12px',
+              padding: '16px',
+              border: `1px solid ${hintColor}30`,
+              color: hintColor,
+              textAlign: 'center'
+            }}
+          >
+            אין תנועות מלאי להצגה.
+          </div>
+        )}
+        {!loading && logs.map((entry) => (
           <div
             key={entry.id}
             style={{
@@ -68,11 +92,32 @@ export function Logs({ dataStore }: LogsProps) {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 600 }}>{entry.actor}</span>
-              <span style={{ fontSize: '12px', color: hintColor }}>{entry.time}</span>
+              <span style={{ fontWeight: 600 }}>{entry.product?.name || entry.product_id}</span>
+              <span style={{ fontSize: '12px', color: hintColor }}>
+                {new Date(entry.created_at).toLocaleString('he-IL')}
+              </span>
             </div>
-            <div style={{ marginTop: '8px' }}>{entry.action}</div>
-            <div style={{ marginTop: '12px', fontSize: '12px', color: hintColor }}>#{entry.id}</div>
+            <div style={{ marginTop: '6px', fontSize: '12px', color: hintColor }}>
+              פעולה: {entry.change_type}
+            </div>
+            <div style={{ marginTop: '8px' }}>
+              שינוי כמות: <strong>{entry.quantity_change}</strong>
+            </div>
+            {(entry.from_location || entry.to_location) && (
+              <div style={{ marginTop: '4px', fontSize: '12px', color: hintColor }}>
+                {entry.from_location ? `מ: ${entry.from_location}` : ''}
+                {entry.from_location && entry.to_location ? ' → ' : ''}
+                {entry.to_location ? `אל: ${entry.to_location}` : ''}
+              </div>
+            )}
+            <div style={{ marginTop: '4px', fontSize: '12px', color: hintColor }}>
+              עודכן ע"י {entry.created_by}
+            </div>
+            {entry.metadata?.note && (
+              <div style={{ marginTop: '4px', fontSize: '12px', color: hintColor }}>
+                הערה: {entry.metadata.note}
+              </div>
+            )}
           </div>
         ))}
       </div>
