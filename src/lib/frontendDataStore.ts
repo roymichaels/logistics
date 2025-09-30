@@ -1,4 +1,4 @@
-import { DataStore, User, Order, Task, Product, Route, GroupChat, Channel, Notification, BootstrapConfig } from '../../data/types';
+import { DataStore, User, Order, Task, Product, Route, GroupChat, Channel, Notification, BootstrapConfig, CreateOrderInput } from '../../data/types';
 
 // Mock data for Hebrew logistics company
 const mockProducts: Product[] = [
@@ -296,24 +296,55 @@ class HebrewLogisticsDataStore implements DataStore {
     return order;
   }
 
-  async createOrder(input: Omit<Order, 'id' | 'created_at' | 'updated_at'>): Promise<{ id: string }> {
-    // Only managers and sales can create orders
+  async createOrder(input: CreateOrderInput): Promise<{ id: string }> {
     if (!['manager', 'sales'].includes(this.user.role)) {
       throw new Error('אין לך הרשאה ליצור הזמנות');
     }
-    
+
+    if (!input.items || input.items.length === 0) {
+      throw new Error('Order must include at least one item');
+    }
+
     const id = Date.now().toString();
     const now = new Date().toISOString();
-    
+    const salespersonId = input.salesperson_id || this.user.telegram_id;
+    const status = input.status || 'new';
+    const totalAmount = typeof input.total_amount === 'number'
+      ? input.total_amount
+      : input.items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
+
     const order: Order = {
-      ...input,
-      created_by: this.user.telegram_id, // Always set to current user
       id,
+      customer_name: input.customer_name,
+      customer_phone: input.customer_phone,
+      customer_address: input.customer_address,
+      status,
+      items: input.items,
+      total_amount: totalAmount,
+      notes: input.notes,
+      delivery_date: input.delivery_date,
+      created_by: this.user.telegram_id,
+      salesperson_id: salespersonId,
+      entry_mode: input.entry_mode,
+      raw_order_text: input.raw_order_text,
       created_at: now,
       updated_at: now
     };
-    
+
     this.orders.unshift(order);
+
+    // Simulate inventory reservation in the local cache
+    order.items.forEach(item => {
+      const index = this.products.findIndex(product => product.id === item.product_id);
+      if (index !== -1) {
+        const product = this.products[index];
+        this.products[index] = {
+          ...product,
+          stock_quantity: Math.max(0, (product.stock_quantity ?? 0) - item.quantity)
+        };
+      }
+    });
+
     return { id };
   }
 

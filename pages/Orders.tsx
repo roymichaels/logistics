@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { telegram } from '../lib/telegram';
-import { DataStore, Order, User } from '../data/types';
+import { DataStore, Order, Product, User, OrderEntryMode } from '../data/types';
+import { DmOrderParser, DraftOrderItem } from '../src/components/DmOrderParser';
+import { StorefrontOrderBuilder } from '../src/components/StorefrontOrderBuilder';
 
 interface OrdersProps {
   dataStore: DataStore;
@@ -98,6 +100,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
     return (
       <CreateOrderForm
         dataStore={dataStore}
+        currentUser={user}
         onCancel={() => setShowCreateForm(false)}
         onSuccess={() => {
           setShowCreateForm(false);
@@ -246,7 +249,7 @@ function OrderCard({ order, onClick, theme }: {
             fontWeight: '600',
             color: theme.text_color
           }}>
-            {order.customer}
+            {order.customer_name}
           </h3>
           <p style={{ 
             margin: 0, 
@@ -254,7 +257,7 @@ function OrderCard({ order, onClick, theme }: {
             color: theme.hint_color,
             lineHeight: '1.4'
           }}>
-            {order.address}
+            {order.customer_address}
           </p>
         </div>
         
@@ -319,10 +322,10 @@ function OrderDetail({ order, dataStore, onBack, onUpdate, theme }: {
 
       <div style={{ marginBottom: '24px' }}>
         <h2 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '600' }}>
-          {order.customer}
+          {order.customer_name}
         </h2>
         <p style={{ margin: '0 0 16px 0', color: theme.hint_color }}>
-          {order.address}
+          {order.customer_address}
         </p>
         
         <div style={{
@@ -434,179 +437,384 @@ function OrderDetail({ order, dataStore, onBack, onUpdate, theme }: {
   );
 }
 
-function CreateOrderForm({ dataStore, onCancel, onSuccess, theme }: {
+
+function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }: {
   dataStore: DataStore;
+  currentUser: User | null;
   onCancel: () => void;
   onSuccess: () => void;
   theme: any;
 }) {
   const [formData, setFormData] = useState({
-    customer: '',
-    address: '',
+    customerName: '',
+    customerPhone: '',
+    customerAddress: '',
     notes: '',
-    eta: ''
+    deliveryDate: ''
   });
+  const [activeMode, setActiveMode] = useState<OrderEntryMode>('dm');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [dmState, setDmState] = useState<{ items: DraftOrderItem[]; errors: string[]; rawText: string }>({
+    items: [],
+    errors: [],
+    rawText: ''
+  });
+  const [storefrontItems, setStorefrontItems] = useState<DraftOrderItem[]>([]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.customer || !formData.address) {
-      telegram.showAlert('Please fill in customer and address fields');
+  useEffect(() => {
+    let isMounted = true;
+    const loadProducts = async () => {
+      if (!dataStore.listProducts) {
+        setProductsLoading(false);
+        return;
+      }
+
+      try {
+        const list = await dataStore.listProducts();
+        if (isMounted) {
+          setProducts(list);
+        }
+      } catch (error) {
+        console.error('Failed to load products for order creation', error);
+        if (isMounted) {
+          setProductsError('שגיאה בטעינת רשימת המוצרים');
+        }
+      } finally {
+        if (isMounted) {
+          setProductsLoading(false);
+        }
+      }
+    };
+
+    loadProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, [dataStore]);
+
+  const handleMainButtonClick = useCallback(() => {
+    const form = document.getElementById('create-order-form') as HTMLFormElement | null;
+    form?.requestSubmit();
+  }, []);
+
+  useEffect(() => {
+    telegram.setMainButton({
+      text: loading ? 'שולח הזמנה…' : 'Create Order',
+      onClick: handleMainButtonClick
+    });
+  }, [handleMainButtonClick, loading]);
+
+  useEffect(() => () => {
+    telegram.hideMainButton();
+  }, []);
+
+  const activeItems = activeMode === 'dm' ? dmState.items : storefrontItems;
+  const totalAmount = activeItems.reduce(
+    (sum, item) => sum + item.quantity * (item.product.price || 0),
+    0
+  );
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!formData.customerName || !formData.customerAddress || !formData.customerPhone) {
+      telegram.showAlert('אנא מלאו שם, טלפון וכתובת לקוח');
+      return;
+    }
+
+    if (activeItems.length === 0) {
+      telegram.showAlert('יש להוסיף לפחות פריט אחד להזמנה');
+      return;
+    }
+
+    if (activeMode === 'dm' && dmState.errors.length > 0) {
+      telegram.showAlert('לא ניתן לשמור הזמנה עם שורות שלא זוהו');
       return;
     }
 
     setLoading(true);
+
     try {
       await dataStore.createOrder?.({
-        customer: formData.customer,
-        address: formData.address,
+        customer_name: formData.customerName,
+        customer_phone: formData.customerPhone,
+        customer_address: formData.customerAddress,
         notes: formData.notes || undefined,
-        eta: formData.eta || undefined,
-        status: 'new',
-        created_by: 'current_user' // This would come from auth context
+        delivery_date: formData.deliveryDate || undefined,
+        entry_mode: activeMode,
+        salesperson_id: currentUser?.telegram_id,
+        raw_order_text: activeMode === 'dm' ? dmState.rawText : undefined,
+        items: activeItems.map(item => ({
+          product_id: item.product.id,
+          product_name: item.product.name,
+          quantity: item.quantity,
+          price: item.product.price,
+          source_location: item.source_location
+        })),
+        total_amount: totalAmount,
+        status: 'new'
       });
-      
+
       telegram.hapticFeedback('notification', 'success');
       onSuccess();
     } catch (error) {
       console.error('Failed to create order:', error);
-      telegram.showAlert('Failed to create order');
+      telegram.showAlert('אירעה שגיאה ביצירת ההזמנה');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    telegram.setMainButton('Create Order', () => {
-      const form = document.getElementById('create-order-form') as HTMLFormElement;
-      form?.requestSubmit();
-    });
-
-    return () => telegram.hideMainButton();
-  }, []);
-
   return (
-    <div style={{ 
+    <div style={{
       padding: '16px',
       backgroundColor: theme.bg_color,
       color: theme.text_color,
       minHeight: '100vh'
     }}>
-      <h1 style={{ 
-        margin: '0 0 24px 0', 
-        fontSize: '24px', 
-        fontWeight: '600'
-      }}>
-        Create Order
-      </h1>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <h1 style={{
+          margin: 0,
+          fontSize: '24px',
+          fontWeight: '600'
+        }}>
+          יצירת הזמנה חדשה
+        </h1>
+        <button
+          onClick={onCancel}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: theme.link_color || theme.button_color,
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
+        >
+          ביטול
+        </button>
+      </div>
 
-      <form id="create-order-form" onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ 
-            display: 'block', 
-            marginBottom: '8px', 
-            fontSize: '16px', 
-            fontWeight: '600' 
-          }}>
-            Customer *
-          </label>
-          <input
-            type="text"
-            value={formData.customer}
-            onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
-            style={{
-              width: '100%',
-              padding: '12px',
-              border: `1px solid ${theme.hint_color}40`,
-              borderRadius: '8px',
-              backgroundColor: theme.secondary_bg_color || '#f1f1f1',
-              color: theme.text_color,
-              fontSize: '16px'
-            }}
-            disabled={loading}
-          />
-        </div>
+      <form id="create-order-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <section style={{
+          borderRadius: '12px',
+          padding: '16px',
+          backgroundColor: theme.secondary_bg_color || '#f1f1f1'
+        }}>
+          <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600 }}>פרטי לקוח</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600 }}>שם לקוח *</label>
+              <input
+                type="text"
+                value={formData.customerName}
+                onChange={event => setFormData({ ...formData, customerName: event.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: `1px solid ${theme.hint_color}40`,
+                  backgroundColor: theme.bg_color,
+                  color: theme.text_color,
+                  fontSize: '15px'
+                }}
+                disabled={loading}
+              />
+            </div>
 
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ 
-            display: 'block', 
-            marginBottom: '8px', 
-            fontSize: '16px', 
-            fontWeight: '600' 
-          }}>
-            Address *
-          </label>
-          <textarea
-            value={formData.address}
-            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            rows={3}
-            style={{
-              width: '100%',
-              padding: '12px',
-              border: `1px solid ${theme.hint_color}40`,
-              borderRadius: '8px',
-              backgroundColor: theme.secondary_bg_color || '#f1f1f1',
-              color: theme.text_color,
-              fontSize: '16px',
-              resize: 'vertical'
-            }}
-            disabled={loading}
-          />
-        </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600 }}>טלפון לקוח *</label>
+              <input
+                type="tel"
+                value={formData.customerPhone}
+                onChange={event => setFormData({ ...formData, customerPhone: event.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: `1px solid ${theme.hint_color}40`,
+                  backgroundColor: theme.bg_color,
+                  color: theme.text_color,
+                  fontSize: '15px'
+                }}
+                disabled={loading}
+              />
+            </div>
 
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ 
-            display: 'block', 
-            marginBottom: '8px', 
-            fontSize: '16px', 
-            fontWeight: '600' 
-          }}>
-            ETA
-          </label>
-          <input
-            type="datetime-local"
-            value={formData.eta}
-            onChange={(e) => setFormData({ ...formData, eta: e.target.value })}
-            style={{
-              width: '100%',
-              padding: '12px',
-              border: `1px solid ${theme.hint_color}40`,
-              borderRadius: '8px',
-              backgroundColor: theme.secondary_bg_color || '#f1f1f1',
-              color: theme.text_color,
-              fontSize: '16px'
-            }}
-            disabled={loading}
-          />
-        </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600 }}>כתובת מסירה *</label>
+              <textarea
+                value={formData.customerAddress}
+                onChange={event => setFormData({ ...formData, customerAddress: event.target.value })}
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: `1px solid ${theme.hint_color}40`,
+                  backgroundColor: theme.bg_color,
+                  color: theme.text_color,
+                  fontSize: '15px',
+                  resize: 'vertical'
+                }}
+                disabled={loading}
+              />
+            </div>
 
-        <div style={{ marginBottom: '24px' }}>
-          <label style={{ 
-            display: 'block', 
-            marginBottom: '8px', 
-            fontSize: '16px', 
-            fontWeight: '600' 
-          }}>
-            Notes
-          </label>
-          <textarea
-            value={formData.notes}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            rows={3}
-            style={{
-              width: '100%',
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontWeight: 600 }}>תאריך אספקה</label>
+              <input
+                type="datetime-local"
+                value={formData.deliveryDate}
+                onChange={event => setFormData({ ...formData, deliveryDate: event.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: `1px solid ${theme.hint_color}40`,
+                  backgroundColor: theme.bg_color,
+                  color: theme.text_color,
+                  fontSize: '15px'
+                }}
+                disabled={loading}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontWeight: 600 }}>הערות להזמנה</label>
+              <textarea
+                value={formData.notes}
+                onChange={event => setFormData({ ...formData, notes: event.target.value })}
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: `1px solid ${theme.hint_color}40`,
+                  backgroundColor: theme.bg_color,
+                  color: theme.text_color,
+                  fontSize: '15px',
+                  resize: 'vertical'
+                }}
+                disabled={loading}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section style={{
+          borderRadius: '12px',
+          padding: '16px',
+          backgroundColor: theme.secondary_bg_color || '#f1f1f1'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>Sales Intake</h2>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {([
+                { mode: 'dm', label: 'DM הזמנה' },
+                { mode: 'storefront', label: 'בחירת מוצרים' }
+              ] as Array<{ mode: OrderEntryMode; label: string }>).map(option => (
+                <button
+                  key={option.mode}
+                  type="button"
+                  onClick={() => setActiveMode(option.mode)}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '20px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    backgroundColor: activeMode === option.mode ? theme.button_color : theme.bg_color,
+                    color: activeMode === option.mode ? theme.button_text_color : theme.text_color
+                  }}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {productsLoading ? (
+            <div style={{ textAlign: 'center', color: theme.hint_color }}>טוען קטלוג מוצרים…</div>
+          ) : productsError ? (
+            <div style={{
+              color: '#ff3b30',
+              backgroundColor: '#ff3b3020',
               padding: '12px',
-              border: `1px solid ${theme.hint_color}40`,
-              borderRadius: '8px',
-              backgroundColor: theme.secondary_bg_color || '#f1f1f1',
-              color: theme.text_color,
-              fontSize: '16px',
-              resize: 'vertical'
-            }}
-            disabled={loading}
-          />
-        </div>
+              borderRadius: '8px'
+            }}>
+              {productsError}
+            </div>
+          ) : activeMode === 'dm' ? (
+            <DmOrderParser
+              products={products}
+              theme={theme}
+              onChange={(items, context) => setDmState({
+                items,
+                errors: context.errors,
+                rawText: context.rawText
+              })}
+            />
+          ) : (
+            <StorefrontOrderBuilder
+              products={products}
+              value={storefrontItems}
+              theme={theme}
+              onChange={setStorefrontItems}
+            />
+          )}
+        </section>
+
+        <section style={{
+          borderRadius: '12px',
+          padding: '16px',
+          backgroundColor: theme.secondary_bg_color || '#f1f1f1'
+        }}>
+          <h2 style={{ margin: '0 0 12px 0', fontSize: '18px', fontWeight: 600 }}>סיכום הזמנה</h2>
+          {activeItems.length === 0 ? (
+            <div style={{ color: theme.hint_color }}>התחילו להוסיף פריטים מהטאב למעלה.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {activeItems.map(item => (
+                <div
+                  key={`${item.product.id}-${item.product.sku}`}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    backgroundColor: theme.bg_color
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontWeight: 600, color: theme.text_color }}>{item.product.name}</span>
+                    <span style={{ fontSize: '12px', color: theme.hint_color }}>₪{item.product.price.toLocaleString()} × {item.quantity}</span>
+                  </div>
+                  <span style={{ fontWeight: 600, color: theme.text_color }}>
+                    ₪{(item.product.price * item.quantity).toLocaleString()}
+                  </span>
+                </div>
+              ))}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingTop: '12px',
+                  borderTop: `1px solid ${theme.hint_color}30`,
+                  fontSize: '18px',
+                  fontWeight: 700
+                }}
+              >
+                <span>סה"כ</span>
+                <span>₪{totalAmount.toLocaleString()}</span>
+              </div>
+            </div>
+          )}
+        </section>
       </form>
     </div>
   );

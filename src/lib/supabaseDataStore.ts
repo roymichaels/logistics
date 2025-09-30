@@ -17,7 +17,8 @@ import {
   InventoryAlert,
   RolePermissions,
   RestockRequestStatus,
-  InventoryLogType
+  InventoryLogType,
+  CreateOrderInput
 } from '../../data/types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -944,15 +945,80 @@ export class SupabaseDataStore implements DataStore {
     return data;
   }
 
-  async createOrder(input: Omit<Order, 'id' | 'created_at' | 'updated_at'>): Promise<{ id: string }> {
+  async createOrder(input: CreateOrderInput): Promise<{ id: string }> {
+    if (!input.items || input.items.length === 0) {
+      throw new Error('Order must include at least one item');
+    }
+
+    const salespersonId = input.salesperson_id || this.userTelegramId;
+    const status = input.status || 'new';
+    const totalAmount = typeof input.total_amount === 'number'
+      ? input.total_amount
+      : input.items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
+    const now = new Date().toISOString();
+
+    for (const item of input.items) {
+      const { data: inventoryRecord, error: inventoryError } = await supabase
+        .from('inventory')
+        .select('id, central_quantity, reserved_quantity')
+        .eq('product_id', item.product_id)
+        .maybeSingle();
+
+      if (inventoryError) throw inventoryError;
+
+      const centralQuantity = inventoryRecord?.central_quantity ?? 0;
+      const reservedQuantity = inventoryRecord?.reserved_quantity ?? 0;
+
+      if (centralQuantity < item.quantity) {
+        throw new Error(`Insufficient central inventory for product ${item.product_name}`);
+      }
+
+      const { error: updateError } = await supabase
+        .from('inventory')
+        .update({
+          central_quantity: centralQuantity - item.quantity,
+          reserved_quantity: reservedQuantity + item.quantity,
+          updated_at: now
+        })
+        .eq('product_id', item.product_id);
+
+      if (updateError) throw updateError;
+
+      await this.recordInventoryLog({
+        product_id: item.product_id,
+        change_type: 'reservation',
+        quantity_change: -item.quantity,
+        from_location: item.source_location || 'central',
+        to_location: 'order_reservation',
+        metadata: {
+          entry_mode: input.entry_mode,
+          salesperson_id: salespersonId
+        }
+      });
+
+      await this.refreshProductStock(item.product_id);
+    }
+
+    const payload = {
+      customer_name: input.customer_name,
+      customer_phone: input.customer_phone,
+      customer_address: input.customer_address,
+      notes: input.notes || null,
+      delivery_date: input.delivery_date || null,
+      status,
+      items: input.items,
+      total_amount: totalAmount,
+      entry_mode: input.entry_mode,
+      raw_order_text: input.raw_order_text || null,
+      created_by: this.userTelegramId,
+      salesperson_id: salespersonId,
+      created_at: now,
+      updated_at: now
+    };
+
     const { data, error } = await supabase
       .from('orders')
-      .insert({
-        ...input,
-        created_by: this.userTelegramId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
+      .insert(payload)
       .select('id')
       .single();
 
