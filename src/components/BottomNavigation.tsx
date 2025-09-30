@@ -49,6 +49,7 @@ export function BottomNavigation({
   } else if (effectiveRole === 'manager') {
     tabs = [
       { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'dispatch-board', label: hebrew.dispatch_board, icon: '🗺️' },
       { id: 'stats', label: hebrew.stats, icon: '📈' },
       { id: 'partners', label: hebrew.partners, icon: '🤝' },
       { id: 'orders', label: hebrew.orders, icon: '🧾' },
@@ -57,6 +58,7 @@ export function BottomNavigation({
   } else if (effectiveRole === 'dispatcher') {
     tabs = [
       { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+      { id: 'dispatch-board', label: hebrew.dispatch_board, icon: '🗺️' },
       { id: 'orders', label: hebrew.orders, icon: '📋' },
       { id: 'tasks', label: hebrew.tasks, icon: '✅' },
       { id: 'chat', label: 'צ\'אט', icon: '💬' },

@@ -31,6 +31,7 @@ import { MyDeliveries } from './pages/MyDeliveries';
 import { MyInventory } from './pages/MyInventory';
 import { MyZones } from './pages/MyZones';
 import { DriverStatus } from './pages/DriverStatus';
+import { DispatchBoard } from './pages/DispatchBoard';
 
 type Page =
   | 'dashboard'
@@ -53,7 +54,8 @@ type Page =
   | 'my-deliveries'
   | 'my-inventory'
   | 'my-zones'
-  | 'driver-status';
+  | 'driver-status'
+  | 'dispatch-board';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -318,6 +320,8 @@ export default function App() {
         return <MyZones dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'driver-status':
         return <DriverStatus dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'dispatch-board':
+        return <DispatchBoard dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'chat':
         return <Chat dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'channels':

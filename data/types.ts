@@ -43,6 +43,61 @@ export interface DriverInventoryRecord {
   product?: Product;
 }
 
+export interface Zone {
+  id: string;
+  name: string;
+  code?: string | null;
+  description?: string | null;
+  color?: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DriverZoneAssignment {
+  id: string;
+  driver_id: string;
+  zone_id: string;
+  active: boolean;
+  assigned_at: string;
+  unassigned_at?: string | null;
+  assigned_by?: string | null;
+  zone?: Zone;
+}
+
+export type DriverAvailabilityStatus = 'available' | 'on_break' | 'delivering' | 'off_shift';
+
+export interface DriverStatusRecord {
+  driver_id: string;
+  status: DriverAvailabilityStatus;
+  is_online: boolean;
+  current_zone_id?: string | null;
+  last_updated: string;
+  note?: string | null;
+  zone?: Zone;
+}
+
+export type DriverMovementAction =
+  | 'zone_joined'
+  | 'zone_left'
+  | 'status_changed'
+  | 'inventory_added'
+  | 'inventory_removed'
+  | 'order_assigned';
+
+export interface DriverMovementLog {
+  id: string;
+  driver_id: string;
+  zone_id?: string | null;
+  product_id?: string | null;
+  quantity_change?: number | null;
+  action: DriverMovementAction;
+  details?: string | null;
+  created_at: string;
+  zone?: Zone;
+  product?: Product;
+}
+
 export type RestockRequestStatus = 'pending' | 'approved' | 'fulfilled' | 'rejected';
 
 export interface RestockRequest {
@@ -212,17 +267,49 @@ export interface DataStore {
   // Inventory
   listInventory?(filters?: { product_id?: string }): Promise<InventoryRecord[]>;
   getInventory?(productId: string): Promise<InventoryRecord | null>;
-  listDriverInventory?(filters?: { driver_id?: string; product_id?: string }): Promise<DriverInventoryRecord[]>;
+  listDriverInventory?(filters?: { driver_id?: string; product_id?: string; driver_ids?: string[] }): Promise<DriverInventoryRecord[]>;
   listRestockRequests?(filters?: { status?: RestockRequestStatus | 'all'; onlyMine?: boolean }): Promise<RestockRequest[]>;
   submitRestockRequest?(input: { product_id: string; requested_quantity: number; notes?: string }): Promise<{ id: string }>;
   approveRestockRequest?(id: string, input: { approved_quantity: number; notes?: string }): Promise<void>;
   fulfillRestockRequest?(id: string, input: { fulfilled_quantity: number; notes?: string }): Promise<void>;
   rejectRestockRequest?(id: string, input?: { notes?: string }): Promise<void>;
   transferInventoryToDriver?(input: { product_id: string; driver_id: string; quantity: number; notes?: string }): Promise<void>;
+  adjustDriverInventory?(input: {
+    driver_id: string;
+    product_id: string;
+    quantity_change: number;
+    reason: string;
+    notes?: string;
+    zone_id?: string | null;
+  }): Promise<void>;
   listInventoryLogs?(filters?: { product_id?: string; limit?: number }): Promise<InventoryLog[]>;
   getLowStockAlerts?(): Promise<InventoryAlert[]>;
   getRolePermissions?(): Promise<RolePermissions>;
-  
+
+  // Zones & Dispatch
+  listZones?(): Promise<Zone[]>;
+  getZone?(id: string): Promise<Zone | null>;
+  listDriverZones?(filters?: { driver_id?: string; zone_id?: string; activeOnly?: boolean }): Promise<DriverZoneAssignment[]>;
+  assignDriverToZone?(input: { zone_id: string; driver_id?: string; active?: boolean }): Promise<void>;
+  updateDriverStatus?(input: {
+    status: DriverAvailabilityStatus;
+    driver_id?: string;
+    zone_id?: string | null;
+    is_online?: boolean;
+    note?: string;
+  }): Promise<void>;
+  getDriverStatus?(driver_id?: string): Promise<DriverStatusRecord | null>;
+  listDriverStatuses?(filters?: { zone_id?: string; onlyOnline?: boolean }): Promise<DriverStatusRecord[]>;
+  logDriverMovement?(input: {
+    driver_id: string;
+    zone_id?: string | null;
+    product_id?: string | null;
+    quantity_change?: number | null;
+    action: DriverMovementAction;
+    details?: string;
+  }): Promise<void>;
+  listDriverMovements?(filters?: { driver_id?: string; zone_id?: string; limit?: number }): Promise<DriverMovementLog[]>;
+
   // Orders
   listOrders?(filters?: { status?: string; q?: string }): Promise<Order[]>;
   getOrder?(id: string): Promise<Order>;

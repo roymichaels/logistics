@@ -22,6 +22,7 @@ export const hebrew = {
   my_inventory: 'המלאי שלי',
   my_zones: 'האזורים שלי',
   driver_status: 'סטטוס נהג',
+  dispatch_board: 'מוקד תפעול',
   
   // Roles
   manager: 'מנהל',
