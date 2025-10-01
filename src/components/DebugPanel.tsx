@@ -79,7 +79,7 @@ export function DebugPanel() {
         onClick={() => setIsExpanded(true)}
         style={{
           position: 'fixed',
-          bottom: '80px',
+          bottom: '10px',
           left: '10px',
           backgroundColor: theme.button_color,
           color: theme.button_text_color,
@@ -104,7 +104,7 @@ export function DebugPanel() {
     <div
       style={{
         position: 'fixed',
-        bottom: '80px',
+        bottom: '10px',
         left: '10px',
         right: '10px',
         maxHeight: '60vh',

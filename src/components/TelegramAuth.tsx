@@ -239,115 +239,121 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
-        padding: '20px',
-        direction: 'rtl'
-      }}>
+      <>
         <div style={{
-          fontSize: '48px',
-          marginBottom: '24px',
-          animation: 'pulse 1.5s ease-in-out infinite'
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          backgroundColor: theme.bg_color,
+          color: theme.text_color,
+          padding: '20px',
+          direction: 'rtl'
         }}>
-          🔐
-        </div>
-        
-        <h1 style={{
-          fontSize: '24px',
-          fontWeight: '600',
-          marginBottom: '8px',
-          textAlign: 'center'
-        }}>
-          מערכת לוגיסטיקה
-        </h1>
-        
-        <p style={{
-          fontSize: '16px',
-          color: theme.hint_color,
-          textAlign: 'center',
-          marginBottom: '32px'
-        }}>
-          מתחבר לטלגרם...
-        </p>
+          <div style={{
+            fontSize: '48px',
+            marginBottom: '24px',
+            animation: 'pulse 1.5s ease-in-out infinite'
+          }}>
+            🔐
+          </div>
 
-        <div style={{
-          width: '40px',
-          height: '40px',
-          border: `3px solid ${theme.hint_color}30`,
-          borderTop: `3px solid ${theme.button_color}`,
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }} />
-      </div>
+          <h1 style={{
+            fontSize: '24px',
+            fontWeight: '600',
+            marginBottom: '8px',
+            textAlign: 'center'
+          }}>
+            מערכת לוגיסטיקה
+          </h1>
+
+          <p style={{
+            fontSize: '16px',
+            color: theme.hint_color,
+            textAlign: 'center',
+            marginBottom: '32px'
+          }}>
+            מתחבר לטלגרם...
+          </p>
+
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: `3px solid ${theme.hint_color}30`,
+            borderTop: `3px solid ${theme.button_color}`,
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+        </div>
+        <DebugPanel />
+      </>
     );
   }
 
   if (error) {
     return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
-        padding: '20px',
-        direction: 'rtl'
-      }}>
+      <>
         <div style={{
-          fontSize: '48px',
-          marginBottom: '24px'
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          backgroundColor: theme.bg_color,
+          color: theme.text_color,
+          padding: '20px',
+          direction: 'rtl'
         }}>
-          ⚠️
-        </div>
-        
-        <h1 style={{
-          fontSize: '24px',
-          fontWeight: '600',
-          marginBottom: '16px',
-          textAlign: 'center',
-          color: '#ff3b30'
-        }}>
-          שגיאה באימות
-        </h1>
-        
-        <p style={{
-          fontSize: '16px',
-          color: theme.hint_color,
-          textAlign: 'center',
-          marginBottom: '32px',
-          lineHeight: '1.5'
-        }}>
-          {error}
-        </p>
+          <div style={{
+            fontSize: '48px',
+            marginBottom: '24px'
+          }}>
+            ⚠️
+          </div>
 
-        <button
-          onClick={() => {
-            setError(null);
-            setLoading(true);
-            authenticateUser();
-          }}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: theme.button_color,
-            color: theme.button_text_color,
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
+          <h1 style={{
+            fontSize: '24px',
             fontWeight: '600',
-            cursor: 'pointer'
-          }}
-        >
-          נסה שוב
-        </button>
-      </div>
+            marginBottom: '16px',
+            textAlign: 'center',
+            color: '#ff3b30'
+          }}>
+            שגיאה באימות
+          </h1>
+
+          <p style={{
+            fontSize: '16px',
+            color: theme.hint_color,
+            textAlign: 'center',
+            marginBottom: '32px',
+            lineHeight: '1.5'
+          }}>
+            {error}
+          </p>
+
+          <button
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              authenticateUser();
+            }}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: theme.button_color,
+              color: theme.button_text_color,
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            נסה שוב
+          </button>
+        </div>
+        <DebugPanel />
+      </>
     );
   }
 

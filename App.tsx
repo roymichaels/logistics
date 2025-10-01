@@ -128,6 +128,12 @@ export default function App() {
   const theme = telegram.themeParams;
 
   useEffect(() => {
+    debugLog.info('🎬 App component mounted', {
+      isTelegram: telegram.isAvailable,
+      hasInitData: !!telegram.initData,
+      hasUser: !!telegram.user,
+      supabaseUrl: !!import.meta.env.VITE_SUPABASE_URL
+    });
     initializeApp();
   }, []);
 
@@ -287,71 +293,85 @@ export default function App() {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
-        fontSize: '16px'
-      }}>
-        {hebrew.loading}
-      </div>
+      <>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          backgroundColor: theme.bg_color,
+          color: theme.text_color,
+          fontSize: '16px'
+        }}>
+          {hebrew.loading}
+        </div>
+        <DebugPanel />
+      </>
     );
   }
 
   if (error) {
     return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
-        padding: '20px',
-        textAlign: 'center'
-      }}>
-        <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>⚠️ Error</h1>
-        <p style={{ fontSize: '16px', marginBottom: '24px', direction: 'rtl' }}>{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: theme.button_color,
-            color: theme.button_text_color,
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            cursor: 'pointer'
-          }}
-        >
-          נסה שוב
-        </button>
-      </div>
+      <>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          backgroundColor: theme.bg_color,
+          color: theme.text_color,
+          padding: '20px',
+          textAlign: 'center'
+        }}>
+          <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>⚠️ Error</h1>
+          <p style={{ fontSize: '16px', marginBottom: '24px', direction: 'rtl' }}>{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: theme.button_color,
+              color: theme.button_text_color,
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              cursor: 'pointer'
+            }}
+          >
+            נסה שוב
+          </button>
+        </div>
+        <DebugPanel />
+      </>
     );
   }
 
   // Show login screen if not logged in
   if (!isLoggedIn) {
-    return <TelegramAuth onAuth={handleLogin} onError={handleAuthError} />;
+    return (
+      <>
+        <TelegramAuth onAuth={handleLogin} onError={handleAuthError} />
+        <DebugPanel />
+      </>
+    );
   }
 
   if (!dataStore) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
-        fontSize: '16px'
-      }}>
-        מכין את המערכת...
-      </div>
+      <>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          backgroundColor: theme.bg_color,
+          color: theme.text_color,
+          fontSize: '16px'
+        }}>
+          מכין את המערכת...
+        </div>
+        <DebugPanel />
+      </>
     );
   }
 
