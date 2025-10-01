@@ -201,36 +201,87 @@ Deno.serve(async (req: Request) => {
     }
 
     // Create Supabase client for session management
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    // Create or update user in Supabase Auth
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error("Missing Supabase configuration");
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    // Create or update user in Supabase Auth and mint a session
     let authUser;
+    let authSession;
+
     if (user) {
-      const { data, error } = await supabase.auth.admin.createUser({
-        email: `${user.id}@telegram.local`,
-        user_metadata: {
-          telegram_id: user.id,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          username: user.username,
-          photo_url: user.photo_url,
-          provider: 'telegram'
-        },
+      const email = `${user.id}@telegram.local`;
+      const metadata = {
+        telegram_id: user.id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        username: user.username,
+        photo_url: user.photo_url,
+        provider: 'telegram'
+      };
+
+      const { error: createError } = await supabase.auth.admin.createUser({
+        email,
+        user_metadata: metadata,
         email_confirm: true
       });
 
-      if (error && !error.message.includes('already registered')) {
-        console.error("Error creating user:", error);
-        throw error;
+      if (createError && !createError.message.includes('already registered')) {
+        console.error("Error creating user:", createError);
+        throw createError;
       }
 
-      authUser = data?.user;
+      const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email
+      });
+
+      if (linkError) {
+        console.error('Failed to generate magic link session:', linkError);
+        throw linkError;
+      }
+
+      authUser = linkData.user ?? null;
+      const emailOtp = linkData.properties?.email_otp;
+
+      if (authUser?.id) {
+        const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, {
+          user_metadata: metadata
+        });
+
+        if (updateError) {
+          console.warn('Failed to sync user metadata:', updateError);
+        }
+      }
+
+      if (!emailOtp) {
+        throw new Error('Unable to mint Supabase session');
+      }
+
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+        type: 'magiclink',
+        email,
+        token: emailOtp
+      });
+
+      if (verifyError) {
+        console.error('Failed to verify OTP for session:', verifyError);
+        throw verifyError;
+      }
+
+      authSession = verifyData.session;
+      if (!authUser && verifyData.user) {
+        authUser = verifyData.user;
+      }
     }
 
-    // Generate session token
     const sessionData = {
       telegram_id: user?.id.toString(),
       username: user?.username,
@@ -241,18 +292,12 @@ Deno.serve(async (req: Request) => {
       verified_at: new Date().toISOString()
     };
 
-    // Create JWT token (you can also use Supabase Auth session)
-    const jwtSecret = Deno.env.get("JWT_SECRET");
-    if (jwtSecret) {
-      // Import JWT library if needed
-      // For now, return session data directly
-    }
-
     return new Response(
       JSON.stringify({
         ok: true,
         user: sessionData,
-        session: authUser ? { user: authUser } : null
+        session: authSession ?? null,
+        supabase_user: authUser ?? null
       }),
       {
         status: 200,

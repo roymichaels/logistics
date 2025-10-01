@@ -61,6 +61,14 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+export interface SupabaseAuthSessionPayload {
+  access_token: string;
+  refresh_token: string;
+  expires_in?: number | null;
+  expires_at?: number | null;
+  token_type?: string | null;
+}
+
 const VALID_ROLES: User['role'][] = [
   'user',
   'manager',
@@ -389,22 +397,19 @@ export class SupabaseDataStore implements DataStore {
   private subscriptions: Map<string, RealtimeChannel> = new Map();
   private eventListeners: Map<string, Set<Function>> = new Map();
 
-  constructor(private userTelegramId: string, private authToken?: string) {
-    // Set auth token if provided
-    if (authToken) {
-      supabase.auth.setSession({
-        access_token: authToken,
-        refresh_token: '',
-        expires_in: 3600,
-        token_type: 'bearer',
-        user: {
-          id: userTelegramId,
-          app_metadata: { telegram_id: userTelegramId },
-          user_metadata: {},
-          aud: 'authenticated',
-          created_at: new Date().toISOString()
-        }
-      });
+  constructor(private userTelegramId: string, authSession?: SupabaseAuthSessionPayload | null) {
+    if (authSession?.access_token && authSession.refresh_token) {
+      void supabase.auth
+        .setSession({
+          access_token: authSession.access_token,
+          refresh_token: authSession.refresh_token,
+          expires_in: authSession.expires_in ?? undefined,
+          expires_at: authSession.expires_at ?? undefined,
+          token_type: authSession.token_type ?? 'bearer'
+        })
+        .catch((error) => {
+          console.error('Failed to establish Supabase session:', error);
+        });
     }
 
     // Initialize real-time subscriptions
@@ -3067,6 +3072,9 @@ export class SupabaseDataStore implements DataStore {
   }
 }
 
-export function createSupabaseDataStore(userTelegramId: string, authToken?: string): DataStore {
-  return new SupabaseDataStore(userTelegramId, authToken);
+export function createSupabaseDataStore(
+  userTelegramId: string,
+  authSession?: SupabaseAuthSessionPayload | null
+): DataStore {
+  return new SupabaseDataStore(userTelegramId, authSession ?? null);
 }
