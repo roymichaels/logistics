@@ -99,17 +99,23 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
 
   const authenticateWithTelegramUser = async () => {
     const telegramUser = telegram.user;
-    
+
     // Create user object from Telegram data
     const userData = {
       telegram_id: telegramUser.id.toString(),
       first_name: telegramUser.first_name,
       last_name: telegramUser.last_name,
-      username: telegramUser.username,
+      username: telegramUser.username || `user${telegramUser.id}`,
       photo_url: telegramUser.photo_url,
       language_code: telegramUser.language_code || 'he',
       auth_date: Math.floor(Date.now() / 1000)
     };
+
+    console.log('👤 Authenticating Telegram user:', {
+      id: userData.telegram_id,
+      username: userData.username,
+      name: userData.first_name
+    });
 
     // Register user in local system
     const { userManager } = await import('../lib/userManager');
@@ -123,7 +129,7 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
 
     // Add registration info to user data
     userData.registration = registration;
-    userData.isFirstAdmin = userManager.isFirstAdmin(userData.telegram_id);
+    userData.isFirstAdmin = userManager.isFirstAdmin(userData.username || '');
     userData.isApproved = registration?.status === 'approved';
 
     console.log('✅ Using Telegram user data');
@@ -192,7 +198,7 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
 
       // Add registration info to user data
       userData.registration = registration;
-      userData.isFirstAdmin = userManager.isFirstAdmin(userData.telegram_id);
+      userData.isFirstAdmin = userManager.isFirstAdmin(userData.username || '');
       userData.isApproved = registration?.status === 'approved';
 
       console.log('✅ Using Telegram Login Widget data');

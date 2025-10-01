@@ -40,10 +40,12 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
   }
   
   const initData = telegram.initData;
-  
+  const telegramUser = telegram.user;
+
   // If no initData available, fall back to mock
   if (!initData) {
     console.log('Bootstrap: No initData available, using mock config');
+    console.log('Bootstrap: telegram.user =', telegramUser);
     return {
       config: {
         app: 'miniapp',
@@ -70,19 +72,23 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
 
   // Step 1: Verify init data and get session
   try {
+    console.log('Bootstrap: Verifying with Supabase...', { initData: initData?.substring(0, 50) + '...' });
     const verifyResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-verify`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
-        type: 'webapp', 
-        initData 
+      body: JSON.stringify({
+        type: 'webapp',
+        initData
       }),
     });
+    console.log('Bootstrap: Verify response status:', verifyResponse.status);
 
     if (!verifyResponse.ok) {
-      console.warn('Telegram verification failed, falling back to mock mode');
+      const errorText = await verifyResponse.text();
+      console.warn('Telegram verification failed:', verifyResponse.status, errorText);
+      console.warn('Falling back to mock mode');
       return {
         config: {
           app: 'miniapp',
@@ -107,10 +113,13 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
       };
     }
 
-    const { ok, user, session, supabase_user } = await verifyResponse.json();
+    const verifyData = await verifyResponse.json();
+    console.log('Bootstrap: Verify response data:', { ok: verifyData.ok, hasUser: !!verifyData.user });
+    const { ok, user, session, supabase_user } = verifyData;
 
     if (!ok || !user) {
-      console.warn('Invalid authentication response, falling back to mock mode');
+      console.warn('Invalid authentication response:', verifyData);
+      console.warn('Falling back to mock mode');
       return {
         config: {
           app: 'miniapp',
