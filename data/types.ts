@@ -70,6 +70,24 @@ export interface DriverInventoryRecord {
   product?: Product;
 }
 
+export interface DriverInventorySyncEntry {
+  product_id: string;
+  quantity: number;
+  location_id?: string | null;
+}
+
+export interface DriverInventorySyncInput {
+  driver_id?: string;
+  entries: DriverInventorySyncEntry[];
+  note?: string;
+  zone_id?: string | null;
+}
+
+export interface DriverInventorySyncResult {
+  updated: number;
+  removed: number;
+}
+
 export interface Zone {
   id: string;
   name: string;
@@ -376,8 +394,11 @@ export interface DataStore {
     is_online?: boolean;
     note?: string;
   }): Promise<void>;
+  setDriverOnline?(input?: { driver_id?: string; zone_id?: string | null; status?: DriverAvailabilityStatus; note?: string }): Promise<void>;
+  setDriverOffline?(input?: { driver_id?: string; note?: string }): Promise<void>;
   getDriverStatus?(driver_id?: string): Promise<DriverStatusRecord | null>;
   listDriverStatuses?(filters?: { zone_id?: string; onlyOnline?: boolean }): Promise<DriverStatusRecord[]>;
+  syncDriverInventory?(input: DriverInventorySyncInput): Promise<DriverInventorySyncResult>;
   logDriverMovement?(input: {
     driver_id: string;
     zone_id?: string | null;

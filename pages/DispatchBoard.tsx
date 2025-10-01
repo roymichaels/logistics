@@ -5,7 +5,8 @@ import {
   Zone,
   DriverStatusRecord,
   DriverZoneAssignment,
-  DriverInventoryRecord
+  DriverInventoryRecord,
+  Order
 } from '../data/types';
 import { Toast } from '../src/components/Toast';
 
@@ -25,6 +26,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
   const { theme, backButton, haptic } = useTelegramUI();
   const [zones, setZones] = useState<ZoneCoverage[]>([]);
   const [unassignedDrivers, setUnassignedDrivers] = useState<DriverStatusRecord[]>([]);
+  const [outstandingOrders, setOutstandingOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const hintColor = theme.hint_color || '#999999';
@@ -42,16 +44,21 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
     }
 
     try {
-      const [zoneList, statuses, assignments] = await Promise.all([
+      const [zoneList, statuses, assignments, orders] = await Promise.all([
         dataStore.listZones(),
         dataStore.listDriverStatuses(),
-        dataStore.listDriverZones ? dataStore.listDriverZones({ activeOnly: true }) : Promise.resolve([])
+        dataStore.listDriverZones ? dataStore.listDriverZones({ activeOnly: true }) : Promise.resolve([]),
+        dataStore.listOrders ? dataStore.listOrders() : Promise.resolve([])
       ]);
 
       const onlineDrivers = statuses.filter((status) => status.is_online);
       const inventory = dataStore.listDriverInventory
         ? await dataStore.listDriverInventory({ driver_ids: onlineDrivers.map((status) => status.driver_id) })
         : [];
+
+      const outstanding = (orders || []).filter((order) =>
+        ['confirmed', 'preparing', 'ready', 'out_for_delivery'].includes(order.status)
+      );
 
       const coverage: ZoneCoverage[] = zoneList.map((zone) => {
         const zoneDrivers = onlineDrivers.filter((status) => status.current_zone_id === zone.id);
@@ -70,6 +77,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
 
       setZones(coverage);
       setUnassignedDrivers(driversWithoutZone);
+      setOutstandingOrders(outstanding);
       setError(null);
     } catch (err) {
       console.error('Failed to load dispatch data', err);
@@ -85,6 +93,8 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
   }, [loadData]);
 
   const totalOnline = zones.reduce((sum, zone) => sum + zone.onlineDrivers.length, 0);
+  const activeDeliveries = outstandingOrders.filter((order) => order.status === 'out_for_delivery').length;
+  const pendingAssignments = outstandingOrders.filter((order) => order.status !== 'out_for_delivery').length;
 
   const handleRefresh = async () => {
     setLoading(true);
@@ -200,6 +210,18 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           <div style={{ color: hintColor, marginBottom: '8px' }}>נהגים ללא שיוך</div>
           <div style={{ fontSize: '32px', fontWeight: 700 }}>{unassignedDrivers.length}</div>
         </div>
+        <div
+          style={{
+            padding: '16px',
+            borderRadius: '14px',
+            backgroundColor: theme.secondary_bg_color || '#f5f5f5',
+            border: `1px solid ${hintColor}30`
+          }}
+        >
+          <div style={{ color: hintColor, marginBottom: '8px' }}>משלוחים פעילים</div>
+          <div style={{ fontSize: '32px', fontWeight: 700 }}>{activeDeliveries}</div>
+          <div style={{ fontSize: '12px', color: hintColor }}>מוכנים ליציאה: {pendingAssignments}</div>
+        </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -280,6 +302,38 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 }}
               >
                 נהג #{driver.driver_id} • סטטוס {driver.status === 'available' ? 'זמין' : driver.status === 'delivering' ? 'במשלוח' : driver.status === 'on_break' ? 'בהפסקה' : 'סיום משמרת'}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {outstandingOrders.length > 0 && (
+        <div style={{ marginTop: '24px' }}>
+          <h2 style={{ margin: '0 0 8px', fontSize: '18px' }}>משלוחים ממתינים</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {outstandingOrders.slice(0, 10).map((order) => (
+              <div
+                key={order.id}
+                style={{
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: `1px solid ${hintColor}25`,
+                  backgroundColor: theme.secondary_bg_color || '#ffffff'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 600 }}>{order.customer_name}</span>
+                  <span style={{ fontSize: '12px', color: hintColor }}>{order.status}</span>
+                </div>
+                <div style={{ fontSize: '12px', color: hintColor, marginTop: '4px' }}>
+                  {order.customer_address}
+                </div>
+                {order.assigned_driver && (
+                  <div style={{ fontSize: '12px', color: hintColor, marginTop: '4px' }}>
+                    נהג משויך: {order.assigned_driver}
+                  </div>
+                )}
               </div>
             ))}
           </div>
