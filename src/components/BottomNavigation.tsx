@@ -72,11 +72,10 @@ export function BottomNavigation({
     },
     owner: {
       tabs: [
-        { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
         { id: 'stats', label: hebrew.stats, icon: '📈' },
         { id: 'partners', label: hebrew.partners, icon: '🤝' },
         { id: 'orders', label: hebrew.orders, icon: '🧾' },
-        { id: 'manager-inventory', label: hebrew.manager_inventory, icon: '🏬' },
+        { id: 'inventory', label: hebrew.inventory, icon: '📦' },
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
       ],
       action: {
@@ -87,9 +86,8 @@ export function BottomNavigation({
     manager: {
       tabs: [
         { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
-        { id: 'stats', label: hebrew.stats, icon: '📈' },
-        { id: 'partners', label: hebrew.partners, icon: '🤝' },
         { id: 'orders', label: hebrew.orders, icon: '🧾' },
+        { id: 'dispatch-board', label: hebrew.dispatch_board, icon: '🗺️' },
         { id: 'manager-inventory', label: hebrew.manager_inventory, icon: '🏬' },
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
       ],
@@ -115,18 +113,13 @@ export function BottomNavigation({
         { id: 'my-zones', label: hebrew.my_zones, icon: '🗺️' },
         { id: 'driver-status', label: hebrew.driver_status, icon: '📍' },
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
-      ],
-      action: {
-        label: 'בקרוב',
-        icon: '🚚',
-        disabled: true
-      }
+      ]
     },
     warehouse: {
       tabs: [
         { id: 'warehouse-dashboard', label: hebrew.warehouse_dashboard, icon: '🏭' },
-        { id: 'inventory', label: hebrew.inventory, icon: '📦' },
         { id: 'incoming', label: hebrew.incoming, icon: '🚚' },
+        { id: 'inventory', label: hebrew.inventory, icon: '📦' },
         { id: 'restock-requests', label: hebrew.restock_requests, icon: '🔄' },
         { id: 'logs', label: hebrew.logs, icon: '📝' },
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
@@ -139,8 +132,8 @@ export function BottomNavigation({
     sales: {
       tabs: [
         { id: 'orders', label: hebrew.orders, icon: '🧾' },
-        { id: 'products', label: hebrew.products, icon: '🛒' },
         { id: 'my-stats', label: hebrew.my_stats, icon: '📈' },
+        { id: 'products', label: hebrew.products, icon: '🛒' },
         { id: 'chat', label: "צ'אט", icon: '💬' },
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
       ],

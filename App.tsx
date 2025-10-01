@@ -413,10 +413,16 @@ export default function App() {
 
     let defaultPage: Page | null = null;
 
-    if (userRole === 'warehouse') {
-      defaultPage = 'warehouse-dashboard';
-    } else if (userRole === 'manager' || userRole === 'owner') {
+    if (userRole === 'owner') {
+      defaultPage = 'stats';
+    } else if (userRole === 'manager') {
       defaultPage = 'manager-inventory';
+    } else if (userRole === 'warehouse') {
+      defaultPage = 'warehouse-dashboard';
+    } else if (userRole === 'driver') {
+      defaultPage = 'my-deliveries';
+    } else if (userRole === 'sales') {
+      defaultPage = 'orders';
     }
 
     if (defaultPage && currentPage === 'dashboard') {
