@@ -1,8 +1,18 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { telegram } from '../lib/telegram';
-import { DataStore, Order, Product, User, OrderEntryMode, Zone } from '../data/types';
-import { DmOrderParser, DraftOrderItem } from '../src/components/DmOrderParser';
+import {
+  DataStore,
+  Order,
+  Product,
+  User,
+  OrderEntryMode,
+  Zone,
+  InventoryRecord,
+  InventoryLocation
+} from '../data/types';
+import { DmOrderParser } from '../src/components/DmOrderParser';
 import { StorefrontOrderBuilder } from '../src/components/StorefrontOrderBuilder';
+import { DraftOrderItem, ProductInventoryAvailability } from '../src/components/orderTypes';
 import { DispatchService, DriverCandidate } from '../src/lib/dispatchService';
 import { Toast } from '../src/components/Toast';
 
@@ -713,6 +723,10 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
   const [products, setProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [productsError, setProductsError] = useState<string | null>(null);
+  const [inventoryRecords, setInventoryRecords] = useState<InventoryRecord[]>([]);
+  const [inventoryLocations, setInventoryLocations] = useState<InventoryLocation[]>([]);
+  const [inventoryLoading, setInventoryLoading] = useState(true);
+  const [inventoryError, setInventoryError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [dmState, setDmState] = useState<{ items: DraftOrderItem[]; errors: string[]; rawText: string }>({
     items: [],
@@ -720,6 +734,9 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
     rawText: ''
   });
   const [storefrontItems, setStorefrontItems] = useState<DraftOrderItem[]>([]);
+  const enforceInventoryChecks = Boolean(
+    dataStore.listInventory && dataStore.listInventoryLocations
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -752,6 +769,51 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
     };
   }, [dataStore]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!enforceInventoryChecks) {
+      setInventoryLoading(false);
+      setInventoryError(null);
+      setInventoryRecords([]);
+      setInventoryLocations([]);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const loadInventory = async () => {
+      try {
+        setInventoryLoading(true);
+        const [records, locations] = await Promise.all([
+          dataStore.listInventory?.() ?? [],
+          dataStore.listInventoryLocations?.() ?? []
+        ]);
+
+        if (isMounted) {
+          setInventoryRecords(records);
+          setInventoryLocations(locations);
+          setInventoryError(null);
+        }
+      } catch (error) {
+        console.error('Failed to load inventory for order creation', error);
+        if (isMounted) {
+          setInventoryError('שגיאה בטעינת נתוני המלאי');
+        }
+      } finally {
+        if (isMounted) {
+          setInventoryLoading(false);
+        }
+      }
+    };
+
+    loadInventory();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dataStore, enforceInventoryChecks]);
+
   const handleMainButtonClick = useCallback(() => {
     const form = document.getElementById('create-order-form') as HTMLFormElement | null;
     form?.requestSubmit();
@@ -768,11 +830,84 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
     telegram.hideMainButton();
   }, []);
 
+  const inventoryAvailability = useMemo(() => {
+    const map: Record<string, ProductInventoryAvailability> = {};
+    const locationNames = new Map(
+      inventoryLocations.map(location => [location.id, location.name])
+    );
+
+    inventoryRecords.forEach(record => {
+      const available = Math.max(
+        0,
+        (record.on_hand_quantity ?? 0) - (record.reserved_quantity ?? 0)
+      );
+
+      if (!map[record.product_id]) {
+        map[record.product_id] = {
+          totalAvailable: 0,
+          byLocation: []
+        };
+      }
+
+      map[record.product_id].totalAvailable += available;
+      map[record.product_id].byLocation.push({
+        locationId: record.location_id,
+        locationName:
+          record.location?.name || locationNames.get(record.location_id) || record.location_id,
+        available
+      });
+    });
+
+    Object.values(map).forEach(entry => {
+      entry.byLocation.sort((a, b) => b.available - a.available);
+    });
+
+    return map;
+  }, [inventoryRecords, inventoryLocations]);
+
   const activeItems = activeMode === 'dm' ? dmState.items : storefrontItems;
   const totalAmount = activeItems.reduce(
     (sum, item) => sum + item.quantity * (item.product.price || 0),
     0
   );
+  const inventoryIssues = useMemo(() => {
+    if (!enforceInventoryChecks) {
+      return [];
+    }
+
+    const issues: string[] = [];
+
+    activeItems.forEach(item => {
+      const availability = inventoryAvailability[item.product.id];
+
+      if (!availability || availability.totalAvailable <= 0) {
+        issues.push(`אין מלאי זמין עבור ${item.product.name}.`);
+        return;
+      }
+
+      if (!item.source_location) {
+        issues.push(`בחר מקור מלאי עבור ${item.product.name}.`);
+        return;
+      }
+
+      const selectedLocation = availability.byLocation.find(
+        location => location.locationId === item.source_location
+      );
+
+      if (!selectedLocation) {
+        issues.push(`המיקום שנבחר עבור ${item.product.name} אינו קיים במלאי.`);
+        return;
+      }
+
+      if (selectedLocation.available < item.quantity) {
+        issues.push(
+          `${item.product.name}: קיימות ${selectedLocation.available} יחידות בלבד במיקום שנבחר.`
+        );
+      }
+    });
+
+    return issues;
+  }, [activeItems, inventoryAvailability, enforceInventoryChecks]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -789,6 +924,21 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
 
     if (activeMode === 'dm' && dmState.errors.length > 0) {
       telegram.showAlert('לא ניתן לשמור הזמנה עם שורות שלא זוהו');
+      return;
+    }
+
+    if (enforceInventoryChecks && inventoryLoading) {
+      telegram.showAlert('ממתינים לטעינת נתוני המלאי, נסו שוב בעוד רגע');
+      return;
+    }
+
+    if (enforceInventoryChecks && inventoryError) {
+      telegram.showAlert('לא ניתן לאמת מלאי עבור ההזמנה: ' + inventoryError);
+      return;
+    }
+
+    if (enforceInventoryChecks && inventoryIssues.length > 0) {
+      telegram.showAlert('יש לפתור את בעיות המלאי שסומנו לפני השליחה');
       return;
     }
 
@@ -1004,10 +1154,22 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
             }}>
               {productsError}
             </div>
+          ) : enforceInventoryChecks && inventoryLoading ? (
+            <div style={{ textAlign: 'center', color: theme.hint_color }}>טוען נתוני מלאי…</div>
+          ) : enforceInventoryChecks && inventoryError ? (
+            <div style={{
+              color: '#ff3b30',
+              backgroundColor: '#ff3b3020',
+              padding: '12px',
+              borderRadius: '8px'
+            }}>
+              {inventoryError}
+            </div>
           ) : activeMode === 'dm' ? (
             <DmOrderParser
               products={products}
               theme={theme}
+              inventoryAvailability={inventoryAvailability}
               onChange={(items, context) => setDmState({
                 items,
                 errors: context.errors,
@@ -1019,6 +1181,7 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
               products={products}
               value={storefrontItems}
               theme={theme}
+              inventoryAvailability={inventoryAvailability}
               onChange={setStorefrontItems}
             />
           )}
@@ -1036,7 +1199,7 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {activeItems.map(item => (
                 <div
-                  key={`${item.product.id}-${item.product.sku}`}
+                  key={item.draftId}
                   style={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -1046,15 +1209,64 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
                     backgroundColor: theme.bg_color
                   }}
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <span style={{ fontWeight: 600, color: theme.text_color }}>{item.product.name}</span>
-                    <span style={{ fontSize: '12px', color: theme.hint_color }}>₪{item.product.price.toLocaleString()} × {item.quantity}</span>
+                    <span style={{ fontSize: '12px', color: theme.hint_color }}>
+                      ₪{item.product.price.toLocaleString()} × {item.quantity}
+                    </span>
+                    {(() => {
+                      const availability = inventoryAvailability[item.product.id];
+                      const selectedLocation = availability?.byLocation.find(
+                        location => location.locationId === item.source_location
+                      );
+                      const locationName = selectedLocation?.locationName
+                        || (item.source_location ? `מיקום ${item.source_location}` : 'לא נבחר');
+                      const locationDetail = selectedLocation
+                        ? `זמין ${selectedLocation.available}`
+                        : availability
+                          ? `סה"כ זמין ${availability.totalAvailable}`
+                          : 'אין נתוני מלאי';
+                      const warning =
+                        !selectedLocation ||
+                        !item.source_location ||
+                        selectedLocation.available < item.quantity;
+
+                      return (
+                        <span
+                          style={{
+                            fontSize: '12px',
+                            color: warning ? '#ff9500' : theme.hint_color
+                          }}
+                        >
+                          מקור: {locationName} ({locationDetail})
+                        </span>
+                      );
+                    })()}
                   </div>
                   <span style={{ fontWeight: 600, color: theme.text_color }}>
                     ₪{(item.product.price * item.quantity).toLocaleString()}
                   </span>
                 </div>
               ))}
+              {enforceInventoryChecks && inventoryIssues.length > 0 && (
+                <div
+                  style={{
+                    borderRadius: '8px',
+                    border: '1px solid #ff950040',
+                    backgroundColor: '#ff950020',
+                    padding: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                    color: '#a15c00',
+                    fontSize: '13px'
+                  }}
+                >
+                  {inventoryIssues.map((issue, index) => (
+                    <span key={index}>{issue}</span>
+                  ))}
+                </div>
+              )}
               <div
                 style={{
                   display: 'flex',
