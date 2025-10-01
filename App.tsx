@@ -8,6 +8,7 @@ import { TelegramAuth } from './src/components/TelegramAuth';
 import { OrderCreationWizard } from './src/components/OrderCreationWizard';
 import { BusinessManager } from './src/components/BusinessManager';
 import { SecurityGate } from './src/components/SecurityGate';
+import { DebugPanel, debugLog } from './src/components/DebugPanel';
 import { hebrew } from './src/lib/hebrew';
 
 // Pages (lazy loaded)
@@ -141,28 +142,39 @@ export default function App() {
 
   const initializeApp = async () => {
     try {
+      debugLog.info('🚀 Initializing app...');
+
       // Bootstrap from server
+      debugLog.info('📡 Calling bootstrap...');
       const result = await bootstrap();
+      debugLog.success('✅ Bootstrap complete', { hasUser: !!result.user, adapter: result.config.adapters.data });
+
       setConfig(result.config);
       setUser(result.user);
-      
+
       // Create data store in real mode
+      debugLog.info('💾 Creating data store...');
       const store = await createFrontendDataStore(result.config, 'real', result.user);
       setDataStore(store);
-      
+      debugLog.success('✅ Data store created');
+
       // Get user role from store
       if (store) {
         try {
+          debugLog.info('👤 Getting user role...');
           const role = (await store.getCurrentRole?.()) ?? (await store.getProfile()).role;
           setUserRole(role ?? 'user');
+          debugLog.success(`✅ User role: ${role ?? 'user'}`);
         } catch (error) {
-          console.warn('Failed to resolve user role:', error);
-          setUserRole('user'); // Default fallback
+          debugLog.warn('⚠️ Failed to resolve user role', error);
+          setUserRole('user');
         }
       }
-      
+
       setLoading(false);
+      debugLog.success('🎉 App initialized successfully!');
     } catch (error) {
+      debugLog.error('❌ App initialization failed', error);
       console.error('App initialization failed:', error);
       setError(error instanceof Error ? error.message : 'Failed to initialize app');
       setLoading(false);
@@ -497,6 +509,9 @@ export default function App() {
             onClose={() => setShowBusinessManager(false)}
           />
         )}
+
+        {/* Debug Panel - Shows logs on screen */}
+        <DebugPanel />
       </div>
     </SecurityGate>
   );

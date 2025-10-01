@@ -6,15 +6,38 @@ interface BootstrapResult {
   user: any | null;
 }
 
+// Import debugLog - use lazy import inside function
+async function getDebugLog() {
+  try {
+    const module = await import('../components/DebugPanel');
+    return module.debugLog;
+  } catch (e) {
+    // Fallback if DebugPanel not available
+    return {
+      info: console.log,
+      warn: console.warn,
+      error: console.error,
+      success: console.log
+    };
+  }
+}
+
 export async function bootstrap(userData?: any): Promise<BootstrapResult> {
-  console.log('Bootstrap: isTelegramEnv =', telegram.isTelegramEnv);
+  const debugLog = await getDebugLog();
+
+  debugLog.info('🔧 Bootstrap: Starting...', {
+    isTelegramEnv: telegram.isTelegramEnv,
+    hasUserData: !!userData
+  });
   
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-  
+
   // If not in Telegram environment OR no Supabase URL, use mock config
   if (!telegram.isTelegramEnv || !SUPABASE_URL) {
-    // Return mock configuration for development/browser environment
-    console.log('Bootstrap: Using mock config for development');
+    debugLog.warn('⚠️ Using mock config', {
+      isTelegramEnv: telegram.isTelegramEnv,
+      hasSupabaseUrl: !!SUPABASE_URL
+    });
     return {
       config: {
         app: 'miniapp',
@@ -44,8 +67,10 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
 
   // If no initData available, fall back to mock
   if (!initData) {
-    console.log('Bootstrap: No initData available, using mock config');
-    console.log('Bootstrap: telegram.user =', telegramUser);
+    debugLog.warn('⚠️ No initData - using mock', {
+      hasTelegramUser: !!telegramUser,
+      userId: telegramUser?.id
+    });
     return {
       config: {
         app: 'miniapp',
@@ -72,7 +97,7 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
 
   // Step 1: Verify init data and get session
   try {
-    console.log('Bootstrap: Verifying with Supabase...', { initData: initData?.substring(0, 50) + '...' });
+    debugLog.info('🔐 Verifying initData with Supabase...');
     const verifyResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-verify`, {
       method: 'POST',
       headers: {
@@ -83,12 +108,14 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
         initData
       }),
     });
-    console.log('Bootstrap: Verify response status:', verifyResponse.status);
+    debugLog.info(`📥 Verify response: ${verifyResponse.status}`);
 
     if (!verifyResponse.ok) {
       const errorText = await verifyResponse.text();
-      console.warn('Telegram verification failed:', verifyResponse.status, errorText);
-      console.warn('Falling back to mock mode');
+      debugLog.error('❌ Verification failed', {
+        status: verifyResponse.status,
+        error: errorText
+      });
       return {
         config: {
           app: 'miniapp',
@@ -114,12 +141,15 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
     }
 
     const verifyData = await verifyResponse.json();
-    console.log('Bootstrap: Verify response data:', { ok: verifyData.ok, hasUser: !!verifyData.user });
+    debugLog.info('📦 Verify data received', {
+      ok: verifyData.ok,
+      hasUser: !!verifyData.user,
+      username: verifyData.user?.username
+    });
     const { ok, user, session, supabase_user } = verifyData;
 
     if (!ok || !user) {
-      console.warn('Invalid authentication response:', verifyData);
-      console.warn('Falling back to mock mode');
+      debugLog.error('❌ Invalid auth response', verifyData);
       return {
         config: {
           app: 'miniapp',
@@ -161,18 +191,23 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
     };
 
     // Step 2: Get bootstrap configuration
+    debugLog.info('⚙️ Getting bootstrap config...', {
+      telegram_id: user.telegram_id,
+      username: user.username
+    });
     const bootstrapResponse = await fetch(`${SUPABASE_URL}/functions/v1/bootstrap`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        telegram_id: user.telegram_id
+        telegram_id: user.telegram_id,
+        username: user.username
       }),
     });
 
     if (!bootstrapResponse.ok) {
-      console.warn('Bootstrap failed, using default config');
+      debugLog.warn('⚠️ Bootstrap config failed, using defaults');
       return {
         config: {
           app: 'miniapp',
@@ -200,12 +235,17 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
     const data = await bootstrapResponse.json();
     const config: BootstrapConfig = data.config || data;
 
+    debugLog.success('✅ Bootstrap complete!', {
+      adapter: config.adapters.data,
+      hasUser: !!enrichedUser
+    });
+
     return {
       config,
       user: enrichedUser,
     };
   } catch (error) {
-    console.warn('Network error during authentication, falling back to mock mode:', error);
+    debugLog.error('❌ Bootstrap error', error);
     return {
       config: {
         app: 'miniapp',

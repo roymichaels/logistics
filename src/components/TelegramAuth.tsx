@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { UserRegistration } from '../../data/types';
 import { telegram } from '../../lib/telegram';
 import { useTelegramUI } from '../hooks/useTelegramUI';
+import { debugLog } from './DebugPanel';
 
 interface TelegramAuthProps {
   onAuth: (userData: any) => void;
@@ -20,27 +21,38 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
 
   const authenticateUser = async () => {
     try {
+      debugLog.info('🔐 Starting authentication...', {
+        isAvailable: telegram.isAvailable,
+        hasInitData: !!telegram.initData,
+        hasUser: !!telegram.user
+      });
+
       // Check if we're in Telegram Mini App environment
       if (telegram.isAvailable && telegram.initData) {
-        console.log('🔐 Telegram Mini App detected - using initData authentication');
+        debugLog.info('📱 Telegram Mini App detected - using initData');
         await authenticateWithInitData();
         return;
       }
 
       // Check if we have Telegram user from WebApp
       if (telegram.isAvailable && telegram.user) {
-        console.log('👤 Telegram user available - authenticating');
+        debugLog.info('👤 Telegram user available', {
+          id: telegram.user.id,
+          username: telegram.user.username,
+          firstName: telegram.user.first_name
+        });
         await authenticateWithTelegramUser();
         return;
       }
 
       // Show Telegram Login Widget for web browsers
-      console.log('🌐 Web browser detected - showing Telegram Login Widget');
+      debugLog.info('🌐 Web browser - showing login widget');
       setShowLoginWidget(true);
       setLoading(false);
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'שגיאה באימות טלגרם';
+      debugLog.error('❌ Authentication error', err);
       setError(errorMessage);
       onError(errorMessage);
       setLoading(false);
@@ -49,15 +61,17 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
 
   const authenticateWithInitData = async () => {
     const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-    
+
     // If no Supabase URL, fall back to client-side auth
     if (!SUPABASE_URL) {
-      console.log('🔄 No Supabase URL - using client-side authentication');
+      debugLog.warn('⚠️ No Supabase URL - using client-side auth');
       await authenticateWithTelegramUser();
       return;
     }
 
     try {
+      debugLog.info('📡 Verifying with Supabase...');
+
       // Verify initData with backend
       const response = await fetch(`${SUPABASE_URL}/functions/v1/telegram-verify`, {
         method: 'POST',
@@ -70,17 +84,22 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
         })
       });
 
+      debugLog.info(`📥 Response status: ${response.status}`);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        debugLog.error('❌ Verification failed', { status: response.status, error: errorText });
         throw new Error('Failed to verify Telegram authentication');
       }
 
       const result = await response.json();
-      
+      debugLog.info('📦 Verification result', { ok: result.ok, hasUser: !!result.user });
+
       if (!result.ok || !result.user) {
         throw new Error('Invalid Telegram authentication');
       }
 
-      console.log('✅ Telegram authentication verified');
+      debugLog.success('✅ Telegram authentication verified!');
       const enrichedUser = {
         ...result.user,
         supabase_user: result.supabase_user ?? null,
@@ -91,7 +110,7 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
       onAuth(enrichedUser);
 
     } catch (error) {
-      console.warn('⚠️ Backend verification failed, falling back to client-side auth:', error);
+      debugLog.warn('⚠️ Backend verification failed, using client-side', error);
       // Fall back to client-side authentication
       await authenticateWithTelegramUser();
     }
@@ -111,20 +130,22 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
       auth_date: Math.floor(Date.now() / 1000)
     };
 
-    console.log('👤 Authenticating Telegram user:', {
+    debugLog.info('👤 Processing Telegram user', {
       id: userData.telegram_id,
       username: userData.username,
       name: userData.first_name
     });
 
     // Register user in local system
+    debugLog.info('📝 Registering user...');
     const { userManager } = await import('../lib/userManager');
     let registration: UserRegistration | null = null;
 
     try {
       registration = await userManager.registerUser(userData);
+      debugLog.success('✅ User registered', { status: registration?.status });
     } catch (error) {
-      console.error('Failed to register user in Supabase:', error);
+      debugLog.error('❌ Failed to register user', error);
     }
 
     // Add registration info to user data
@@ -132,7 +153,11 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
     userData.isFirstAdmin = userManager.isFirstAdmin(userData.username || '');
     userData.isApproved = registration?.status === 'approved';
 
-    console.log('✅ Using Telegram user data');
+    debugLog.success('✅ Authentication complete!', {
+      isAdmin: userData.isFirstAdmin,
+      isApproved: userData.isApproved
+    });
+
     onAuth(userData);
   };
 
