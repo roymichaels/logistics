@@ -449,6 +449,7 @@ export interface Route {
 export interface DataStore {
   // Auth & Profile
   getProfile(): Promise<User>;
+  getCurrentRole?(): Promise<User['role'] | null>;
   updateProfile?(updates: Partial<User>): Promise<void>;
   
   // Products

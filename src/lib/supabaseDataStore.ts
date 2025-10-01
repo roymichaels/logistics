@@ -387,6 +387,37 @@ export class SupabaseDataStore implements DataStore {
     return data;
   }
 
+  async getCurrentRole(): Promise<User['role'] | null> {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
+
+    const sessionUser = sessionData.session?.user;
+    const sessionTelegramId =
+      (sessionUser?.app_metadata as Record<string, any> | undefined)?.telegram_id ??
+      (sessionUser?.user_metadata as Record<string, any> | undefined)?.telegram_id ??
+      sessionUser?.id;
+
+    const telegramId = sessionTelegramId || this.userTelegramId;
+    if (!telegramId) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('telegram_id', telegramId)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) {
+      return null;
+    }
+
+    this.user = data;
+    return data.role;
+  }
+
   async updateProfile(updates: Partial<User>): Promise<void> {
     const { error } = await supabase
       .from('users')
