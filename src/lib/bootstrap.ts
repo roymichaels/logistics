@@ -107,8 +107,8 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
       };
     }
 
-    const { ok, user, session } = await verifyResponse.json();
-    
+    const { ok, user, session, supabase_user } = await verifyResponse.json();
+
     if (!ok || !user) {
       console.warn('Invalid authentication response, falling back to mock mode');
       return {
@@ -134,6 +134,22 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
         user: null,
       };
     }
+
+    const enrichedUser = {
+      ...user,
+      supabase_user: supabase_user ?? null,
+      auth_token: session?.access_token ?? null,
+      refresh_token: session?.refresh_token ?? null,
+      auth_session: session
+        ? {
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+            expires_in: session.expires_in ?? null,
+            expires_at: session.expires_at ?? null,
+            token_type: session.token_type ?? 'bearer'
+          }
+        : null
+    };
 
     // Step 2: Get bootstrap configuration
     const bootstrapResponse = await fetch(`${SUPABASE_URL}/functions/v1/bootstrap`, {
@@ -168,7 +184,7 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
             mode: 'real' as const,
           },
         },
-        user,
+        user: enrichedUser,
       };
     }
 
@@ -177,7 +193,7 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
 
     return {
       config,
-      user,
+      user: enrichedUser,
     };
   } catch (error) {
     console.warn('Network error during authentication, falling back to mock mode:', error);

@@ -81,8 +81,15 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
       }
 
       console.log('✅ Telegram authentication verified');
-      onAuth(result.user);
-      
+      const enrichedUser = {
+        ...result.user,
+        supabase_user: result.supabase_user ?? null,
+        auth_token: result.session?.access_token ?? null,
+        refresh_token: result.session?.refresh_token ?? null,
+        auth_session: result.session ?? null
+      };
+      onAuth(enrichedUser);
+
     } catch (error) {
       console.warn('⚠️ Backend verification failed, falling back to client-side auth:', error);
       // Fall back to client-side authentication
@@ -147,7 +154,14 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
             const result = await response.json();
             if (result.ok && result.user) {
               console.log('✅ Telegram Login Widget verified');
-              onAuth(result.user);
+              const enrichedUser = {
+                ...result.user,
+                supabase_user: result.supabase_user ?? null,
+                auth_token: result.session?.access_token ?? null,
+                refresh_token: result.session?.refresh_token ?? null,
+                auth_session: result.session ?? null
+              };
+              onAuth(enrichedUser);
               return;
             }
           }
