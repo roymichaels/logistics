@@ -1,11 +1,14 @@
-import { corsHeaders } from '../_shared/cors.ts';
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+};
 
 interface SeedDemoRequest {
   telegram_id: string;
 }
 
 Deno.serve(async (req: Request) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
@@ -30,7 +33,6 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // TODO: Seed demo data in Supabase
     console.log(`Seeding demo data for user ${body.telegram_id}`);
 
     return new Response(

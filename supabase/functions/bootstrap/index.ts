@@ -1,5 +1,10 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+};
 
 interface BootstrapConfig {
   app: string;
@@ -25,7 +30,6 @@ interface BootstrapConfig {
 }
 
 Deno.serve(async (req: Request) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
@@ -34,9 +38,7 @@ Deno.serve(async (req: Request) => {
     let telegram_id = null;
     let user = null;
 
-    // Handle both GET and POST requests
     if (req.method === "GET") {
-      // Extract telegram_id from query params or headers if needed
       const url = new URL(req.url);
       telegram_id = url.searchParams.get('telegram_id');
     } else if (req.method === "POST") {
@@ -45,12 +47,10 @@ Deno.serve(async (req: Request) => {
       user = body.user;
     }
 
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get app configuration from database
     let config: BootstrapConfig;
 
     try {
@@ -66,7 +66,6 @@ Deno.serve(async (req: Request) => {
       config = getDefaultConfig();
     }
 
-    // Get user preferences if telegram_id is provided
     let userPrefs = null;
     if (telegram_id) {
       try {
@@ -79,7 +78,6 @@ Deno.serve(async (req: Request) => {
 
         userPrefs = preferences;
 
-        // Create or update user profile if user data is provided
         if (user) {
           const { error: upsertError } = await supabase
             .from('users')

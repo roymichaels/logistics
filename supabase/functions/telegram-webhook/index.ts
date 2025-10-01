@@ -1,4 +1,8 @@
-import { corsHeaders } from '../_shared/cors.ts';
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+};
 
 interface TelegramUpdate {
   update_id: number;
@@ -41,13 +45,11 @@ const telegramAPI = (method: string, body: unknown) =>
   });
 
 Deno.serve(async (req: Request) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
   try {
-    // Verify webhook secret
     const expectedSecret = Deno.env.get("TELEGRAM_WEBHOOK_SECRET");
     const receivedSecret = req.headers.get("X-Telegram-Bot-Api-Secret-Token");
     
@@ -59,13 +61,11 @@ Deno.serve(async (req: Request) => {
     const update = await req.json() as TelegramUpdate;
     console.log("Received update:", JSON.stringify(update, null, 2));
 
-    // Handle regular messages
     if (update.message?.text) {
       const chatId = update.message.chat.id;
       const text = update.message.text;
       const userId = update.message.from.id;
 
-      // Handle /start command
       if (text === '/start') {
         await telegramAPI("sendMessage", {
           chat_id: chatId,
@@ -82,7 +82,6 @@ Deno.serve(async (req: Request) => {
           }
         });
       } else {
-        // Echo other messages
         await telegramAPI("sendMessage", {
           chat_id: chatId,
           text: `You said: ${text}\n\nUse the menu button to open the Logistics app!`
@@ -90,7 +89,6 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Handle callback queries (inline button presses)
     if (update.callback_query) {
       await telegramAPI("answerCallbackQuery", {
         callback_query_id: update.callback_query.id,

@@ -1,5 +1,10 @@
-import { corsHeaders } from '../_shared/cors.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+};
 
 interface VerifyRequest {
   type: 'loginWidget' | 'webapp';
@@ -39,13 +44,11 @@ async function verifyLoginWidget(data: Record<string, string>, botToken: string)
     return false;
   }
   
-  // Create data check string
   const dataCheckString = Object.keys(fields)
     .sort()
     .map(key => `${key}=${fields[key]}`)
     .join("\n");
 
-  // Create secret key: SHA256(bot_token)
   const encoder = new TextEncoder();
   const secretBytes = new Uint8Array(
     await crypto.subtle.digest("SHA-256", encoder.encode(botToken))
@@ -59,10 +62,8 @@ async function verifyLoginWidget(data: Record<string, string>, botToken: string)
     ["sign"]
   );
 
-  // Calculate hash
   const calculatedHash = await hmacSha256(secretKey, dataCheckString);
   
-  // Check freshness (within 24 hours)
   const authDate = Number(fields.auth_date);
   if (!authDate) {
     return false;
@@ -77,7 +78,6 @@ async function verifyLoginWidget(data: Record<string, string>, botToken: string)
 async function verifyWebApp(initData: string, botToken: string): Promise<{ valid: boolean; user?: TelegramUser }> {
   const encoder = new TextEncoder();
   
-  // Create WebApp secret key: HMAC_SHA256("WebAppData", bot_token)
   const seedKey = await crypto.subtle.importKey(
     "raw",
     encoder.encode(botToken),
@@ -96,7 +96,6 @@ async function verifyWebApp(initData: string, botToken: string): Promise<{ valid
     ["sign"]
   );
 
-  // Parse initData
   const params = new URLSearchParams(initData);
   const hash = params.get("hash");
   
@@ -106,26 +105,22 @@ async function verifyWebApp(initData: string, botToken: string): Promise<{ valid
   
   params.delete("hash");
 
-  // Create data check string
   const sortedParams = Array.from(params.entries())
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, value]) => `${key}=${value}`)
     .join("\n");
 
-  // Calculate hash
   const calculatedHash = await hmacSha256(webappKey, sortedParams);
   
   if (calculatedHash !== hash) {
     return { valid: false };
   }
 
-  // Check auth_date exists
   const authDateParam = params.get("auth_date");
   if (!authDateParam) {
     return { valid: false };
   }
 
-  // Check freshness
   const authDate = Number(authDateParam);
   const now = Math.floor(Date.now() / 1000);
   const isRecent = (now - authDate) < (24 * 60 * 60);
@@ -134,7 +129,6 @@ async function verifyWebApp(initData: string, botToken: string): Promise<{ valid
     return { valid: false };
   }
 
-  // Extract user data
   const userParam = params.get("user");
   if (userParam) {
     try {
@@ -149,7 +143,6 @@ async function verifyWebApp(initData: string, botToken: string): Promise<{ valid
 }
 
 Deno.serve(async (req: Request) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
@@ -200,7 +193,6 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Create Supabase client for session management
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -212,7 +204,6 @@ Deno.serve(async (req: Request) => {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // Create or update user in Supabase Auth and mint a session
     let authUser;
     let authSession;
 
