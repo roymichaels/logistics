@@ -15,13 +15,22 @@ import {
   DriverInventorySyncInput,
   DriverInventorySyncResult,
   RestockRequest,
+  RestockRequestInput,
+  RestockApprovalInput,
+  RestockFulfillmentInput,
   InventoryLog,
   InventoryAlert,
   InventoryLocation,
+  InventoryBalanceSummary,
+  LocationInventoryBalance,
+  InventoryTransferInput,
+  DriverInventoryTransferInput,
+  DriverInventoryAdjustmentInput,
   RolePermissions,
   RestockRequestStatus,
   InventoryLogType,
   SalesLog,
+  SalesLogInput,
   CreateOrderInput,
   Zone,
   DriverZoneAssignment,
@@ -482,6 +491,11 @@ export class SupabaseDataStore implements DataStore {
     location_id?: string;
     location_ids?: string[];
   }): Promise<InventoryRecord[]> {
+    const permissions = await this.getRolePermissions();
+    if (!permissions.can_view_inventory) {
+      throw new Error('אין לך הרשאה לצפות במלאי');
+    }
+
     let query = supabase
       .from('inventory')
       .select(
@@ -523,6 +537,11 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async getInventory(productId: string, locationId?: string): Promise<InventoryRecord | null> {
+    const permissions = await this.getRolePermissions();
+    if (!permissions.can_view_inventory) {
+      throw new Error('אין לך הרשאה לצפות במלאי');
+    }
+
     let query = supabase
       .from('inventory')
       .select(
@@ -560,6 +579,11 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async listInventoryLocations(): Promise<InventoryLocation[]> {
+    const permissions = await this.getRolePermissions();
+    if (!permissions.can_view_inventory) {
+      throw new Error('אין לך הרשאה לצפות במיקומי המלאי');
+    }
+
     const { data, error } = await supabase
       .from('inventory_locations')
       .select('*')
@@ -575,6 +599,19 @@ export class SupabaseDataStore implements DataStore {
     product_id?: string;
     driver_ids?: string[];
   }): Promise<DriverInventoryRecord[]> {
+    const permissions = await this.getRolePermissions();
+    if (!permissions.can_view_inventory) {
+      throw new Error('אין לך הרשאה לצפות במלאי נהגים');
+    }
+
+    const profile = await this.getProfile();
+    if (profile.role === 'driver') {
+      const targetDriverId = filters?.driver_id || this.userTelegramId;
+      if (targetDriverId !== this.userTelegramId) {
+        throw new Error('נהגים יכולים לצפות רק במלאי האישי שלהם');
+      }
+    }
+
     let query = supabase
       .from('driver_inventory')
       .select('id, product_id, driver_id, quantity, location_id, updated_at, product:products(*), location:inventory_locations(*)');
@@ -609,12 +646,140 @@ export class SupabaseDataStore implements DataStore {
     }));
   }
 
+  async getInventorySummary(productId: string): Promise<InventoryBalanceSummary> {
+    const permissions = await this.getRolePermissions();
+    if (!permissions.can_view_inventory) {
+      throw new Error('אין לך הרשאה לצפות במלאי');
+    }
+
+    const [productResponse, inventoryResponse, driverResponse, restockResponse] = await Promise.all([
+      supabase
+        .from('products')
+        .select('*')
+        .eq('id', productId)
+        .maybeSingle(),
+      supabase
+        .from('inventory')
+        .select(
+          `id, product_id, location_id, on_hand_quantity, reserved_quantity, damaged_quantity, updated_at,
+           location:inventory_locations(*)`
+        )
+        .eq('product_id', productId),
+      supabase
+        .from('driver_inventory')
+        .select('id, driver_id, product_id, quantity, updated_at, location_id')
+        .eq('product_id', productId),
+      supabase
+        .from('restock_requests')
+        .select(
+          `id, product_id, requested_by, requested_quantity, status, from_location_id, to_location_id, approved_by,
+           approved_quantity, fulfilled_by, fulfilled_quantity, notes, created_at, updated_at,
+           from_location:inventory_locations!restock_requests_from_location_id_fkey(*),
+           to_location:inventory_locations!restock_requests_to_location_id_fkey(*),
+           product:products(*)`
+        )
+        .eq('product_id', productId)
+        .in('status', ['pending', 'approved', 'in_transit'])
+    ]);
+
+    if (productResponse.error) throw productResponse.error;
+    if (inventoryResponse.error) throw inventoryResponse.error;
+    if (driverResponse.error) throw driverResponse.error;
+    if (restockResponse.error) throw restockResponse.error;
+
+    const inventoryRows = inventoryResponse.data || [];
+    const driverRows = driverResponse.data || [];
+    const restockRows = restockResponse.data || [];
+
+    const locations: LocationInventoryBalance[] = inventoryRows.map((row: any) => {
+      const pending = restockRows
+        .filter((request: any) => request.to_location_id === row.location_id)
+        .reduce((sum: number, request: any) => sum + (request.requested_quantity ?? 0), 0);
+
+      return {
+        location_id: row.location_id,
+        on_hand_quantity: row.on_hand_quantity ?? 0,
+        reserved_quantity: row.reserved_quantity ?? 0,
+        damaged_quantity: row.damaged_quantity ?? 0,
+        pending_restock_quantity: pending,
+        location: row.location || undefined
+      };
+    });
+
+    const total_on_hand = locations.reduce((sum, loc) => sum + loc.on_hand_quantity, 0);
+    const total_reserved = locations.reduce((sum, loc) => sum + loc.reserved_quantity, 0);
+    const total_damaged = locations.reduce((sum, loc) => sum + loc.damaged_quantity, 0);
+
+    const drivers = driverRows.map((row: any) => ({
+      driver_id: row.driver_id,
+      product_id: row.product_id,
+      quantity: row.quantity ?? 0,
+      location_id: row.location_id ?? null,
+      updated_at: row.updated_at
+    }));
+
+    const total_driver_quantity = drivers.reduce((sum, driver) => sum + (driver.quantity ?? 0), 0);
+
+    const lastUpdatedCandidates = [
+      ...inventoryRows.map((row: any) => row.updated_at),
+      ...driverRows.map((row: any) => row.updated_at)
+    ].filter(Boolean);
+
+    const last_updated = lastUpdatedCandidates.length
+      ? new Date(
+          Math.max(
+            ...lastUpdatedCandidates.map((date: string) => new Date(date).getTime())
+          )
+        ).toISOString()
+      : undefined;
+
+    const openRestockRequests: RestockRequest[] = restockRows.map((row: any) => ({
+      id: row.id,
+      product_id: row.product_id,
+      requested_by: row.requested_by,
+      requested_quantity: row.requested_quantity,
+      status: row.status,
+      from_location_id: row.from_location_id,
+      to_location_id: row.to_location_id,
+      approved_by: row.approved_by,
+      approved_quantity: row.approved_quantity,
+      fulfilled_by: row.fulfilled_by,
+      fulfilled_quantity: row.fulfilled_quantity,
+      notes: row.notes,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      from_location: row.from_location || null,
+      to_location: row.to_location || null,
+      product: row.product || undefined
+    }));
+
+    return {
+      product_id: productId,
+      product: productResponse.data || undefined,
+      total_on_hand,
+      total_reserved,
+      total_damaged,
+      total_driver_quantity,
+      locations,
+      drivers,
+      open_restock_requests: openRestockRequests,
+      last_updated
+    };
+  }
+
   async listRestockRequests(filters?: {
     status?: RestockRequestStatus | 'all';
     onlyMine?: boolean;
     product_id?: string;
     location_id?: string;
   }): Promise<RestockRequest[]> {
+    const permissions = await this.getRolePermissions();
+    const profile = await this.getProfile();
+
+    if (!permissions.can_view_inventory && !filters?.onlyMine) {
+      throw new Error('אין לך הרשאה לצפות בבקשות חידוש מלאי');
+    }
+
     let query = supabase
       .from('restock_requests')
       .select(
@@ -623,6 +788,10 @@ export class SupabaseDataStore implements DataStore {
          from_location:inventory_locations!restock_requests_from_location_id_fkey(*),
          to_location:inventory_locations!restock_requests_to_location_id_fkey(*)`
       );
+
+    if (filters?.onlyMine || profile.role === 'driver') {
+      query = query.eq('requested_by', this.userTelegramId);
+    }
 
     if (filters?.status && filters.status !== 'all') {
       query = query.eq('status', filters.status);
@@ -667,13 +836,7 @@ export class SupabaseDataStore implements DataStore {
     }));
   }
 
-  async submitRestockRequest(input: {
-    product_id: string;
-    requested_quantity: number;
-    to_location_id: string;
-    from_location_id?: string | null;
-    notes?: string;
-  }): Promise<{ id: string }> {
+  async submitRestockRequest(input: RestockRequestInput): Promise<{ id: string }> {
     const permissions = await this.getRolePermissions();
     if (!permissions.can_request_restock) {
       throw new Error('אין לך הרשאה לבקש חידוש מלאי');
@@ -712,10 +875,7 @@ export class SupabaseDataStore implements DataStore {
     return { id: data.id };
   }
 
-  async approveRestockRequest(
-    id: string,
-    input: { approved_quantity: number; from_location_id: string; notes?: string }
-  ): Promise<void> {
+  async approveRestockRequest(id: string, input: RestockApprovalInput): Promise<void> {
     const permissions = await this.getRolePermissions();
     if (!permissions.can_approve_restock) {
       throw new Error('אין לך הרשאה לאשר בקשות חידוש');
@@ -732,10 +892,7 @@ export class SupabaseDataStore implements DataStore {
     if (error) throw error;
   }
 
-  async fulfillRestockRequest(
-    id: string,
-    input: { fulfilled_quantity: number; notes?: string; reference_id?: string | null }
-  ): Promise<void> {
+  async fulfillRestockRequest(id: string, input: RestockFulfillmentInput): Promise<void> {
     const permissions = await this.getRolePermissions();
     if (!permissions.can_fulfill_restock) {
       throw new Error('אין לך הרשאה לסמן אספקת חידוש');
@@ -767,14 +924,20 @@ export class SupabaseDataStore implements DataStore {
     if (error) throw error;
   }
 
-  async transferInventory(input: {
-    product_id: string;
-    from_location_id: string;
-    to_location_id: string;
-    quantity: number;
-    notes?: string;
-    reference_id?: string | null;
-  }): Promise<void> {
+  async transferInventory(input: InventoryTransferInput): Promise<void> {
+    const permissions = await this.getRolePermissions();
+    if (!permissions.can_transfer_inventory) {
+      throw new Error('אין לך הרשאה להעביר מלאי בין מיקומים');
+    }
+
+    if (input.quantity <= 0) {
+      throw new Error('כמות ההעברה חייבת להיות גדולה מאפס');
+    }
+
+    if (input.from_location_id === input.to_location_id) {
+      throw new Error('מקור ויעד ההעברה חייבים להיות שונים');
+    }
+
     const { error } = await supabase.rpc('perform_inventory_transfer', {
       p_product_id: input.product_id,
       p_from_location_id: input.from_location_id,
@@ -786,17 +949,18 @@ export class SupabaseDataStore implements DataStore {
     });
 
     if (error) throw error;
+
+    await this.refreshProductStock(input.product_id);
   }
 
-  async transferInventoryToDriver(input: {
-    product_id: string;
-    driver_id: string;
-    quantity: number;
-    notes?: string;
-  }): Promise<void> {
+  async transferInventoryToDriver(input: DriverInventoryTransferInput): Promise<void> {
     const permissions = await this.getRolePermissions();
     if (!permissions.can_transfer_inventory) {
       throw new Error('אין לך הרשאה להעביר מלאי לנהגים');
+    }
+
+    if (input.quantity <= 0) {
+      throw new Error('יש להעביר כמות חיובית');
     }
 
     const centralLocationId = await this.getCentralLocationId();
@@ -875,14 +1039,12 @@ export class SupabaseDataStore implements DataStore {
     await this.refreshProductStock(input.product_id);
   }
 
-  async adjustDriverInventory(input: {
-    driver_id: string;
-    product_id: string;
-    quantity_change: number;
-    reason: string;
-    notes?: string;
-    zone_id?: string | null;
-  }): Promise<void> {
+  async adjustDriverInventory(input: DriverInventoryAdjustmentInput): Promise<void> {
+    const permissions = await this.getRolePermissions();
+    if (!permissions.can_adjust_inventory) {
+      throw new Error('אין לך הרשאה לעדכן מלאי נהגים');
+    }
+
     const now = new Date().toISOString();
 
     const { data: existing, error: fetchError } = await supabase
@@ -950,6 +1112,11 @@ export class SupabaseDataStore implements DataStore {
     location_id?: string;
     limit?: number;
   }): Promise<InventoryLog[]> {
+    const permissions = await this.getRolePermissions();
+    if (!permissions.can_view_movements) {
+      throw new Error('אין לך הרשאה לצפות ביומן התנועות');
+    }
+
     let query = supabase
       .from('inventory_logs')
       .select(
@@ -995,6 +1162,11 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async listSalesLogs(filters?: { product_id?: string; location_id?: string; limit?: number }): Promise<SalesLog[]> {
+    const permissions = await this.getRolePermissions();
+    if (!permissions.can_view_sales) {
+      throw new Error('אין לך הרשאה לצפות במכירות');
+    }
+
     let query = supabase
       .from('sales_logs')
       .select('id, product_id, location_id, quantity, total_amount, reference_id, recorded_by, sold_at, notes, product:products(*), location:inventory_locations(*)');
@@ -1032,7 +1204,49 @@ export class SupabaseDataStore implements DataStore {
     }));
   }
 
+  async recordSale(input: SalesLogInput): Promise<{ id: string }> {
+    const profile = await this.getProfile();
+    if (!['manager', 'sales'].includes(profile.role)) {
+      throw new Error('רק מנהלים או אנשי מכירות יכולים לדווח על מכירה');
+    }
+
+    if (input.quantity <= 0) {
+      throw new Error('כמות המכירה חייבת להיות גדולה מאפס');
+    }
+
+    const id = await this.recordSalesLog({
+      product_id: input.product_id,
+      location_id: input.location_id,
+      quantity: input.quantity,
+      total_amount: input.total_amount,
+      reference_id: input.reference_id ?? null,
+      sold_at: input.sold_at ?? null,
+      notes: input.notes ?? null
+    });
+
+    await this.recordInventoryLog({
+      product_id: input.product_id,
+      change_type: 'sale',
+      quantity_change: -Math.abs(input.quantity),
+      from_location_id: input.location_id,
+      metadata: {
+        reference_id: input.reference_id ?? null,
+        recorded_by: this.userTelegramId,
+        event: 'sale_recorded'
+      }
+    });
+
+    await this.refreshProductStock(input.product_id);
+
+    return { id };
+  }
+
   async getLowStockAlerts(filters?: { location_id?: string }): Promise<InventoryAlert[]> {
+    const permissions = await this.getRolePermissions();
+    if (!permissions.can_view_inventory) {
+      throw new Error('אין לך הרשאה לצפות בהתראות מלאי');
+    }
+
     let query = supabase.from('inventory_low_stock_alerts').select('*');
 
     if (filters?.location_id) {
@@ -1072,7 +1286,7 @@ export class SupabaseDataStore implements DataStore {
 
     const defaults: RolePermissions = {
       role: profile.role,
-      can_view_inventory: ['manager', 'warehouse', 'dispatcher'].includes(profile.role),
+      can_view_inventory: ['manager', 'warehouse', 'dispatcher', 'driver'].includes(profile.role),
       can_request_restock: ['manager', 'warehouse', 'dispatcher', 'driver'].includes(profile.role),
       can_approve_restock: ['manager', 'warehouse'].includes(profile.role),
       can_fulfill_restock: ['manager', 'warehouse'].includes(profile.role),

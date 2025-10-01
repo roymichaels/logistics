@@ -6,6 +6,7 @@ import {
   Order,
   DriverMovementAction
 } from '../../data/types';
+import { InventoryService } from './inventoryService';
 
 export interface DriverCandidate {
   driverId: string;
@@ -24,84 +25,30 @@ export interface DispatchEligibilityParams {
 }
 
 export class DispatchService {
-  constructor(private dataStore: DataStore) {}
+  private readonly inventoryService: InventoryService;
+
+  constructor(private dataStore: DataStore, inventoryService?: InventoryService) {
+    this.inventoryService = inventoryService ?? new InventoryService(dataStore);
+  }
 
   async getEligibleDrivers(params: DispatchEligibilityParams): Promise<DriverCandidate[]> {
-    if (!this.dataStore.listDriverStatuses) {
-      throw new Error('Data store does not support driver status queries');
-    }
-
-    const statuses = await this.dataStore.listDriverStatuses({
-      zone_id: params.zoneId,
+    const availability = await this.inventoryService.getDriverAvailability(params.items, {
+      zoneId: params.zoneId,
       onlyOnline: true
     });
 
-    if (statuses.length === 0) {
-      return [];
-    }
-
-    const driverIds = statuses.map(status => status.driver_id);
-
-    const [assignments, inventory] = await Promise.all([
-      this.dataStore.listDriverZones?.({
-        zone_id: params.zoneId,
-        activeOnly: true
-      }) ?? Promise.resolve([]),
-      this.dataStore.listDriverInventory?.({ driver_ids: driverIds }) ?? Promise.resolve([])
-    ]);
-
-    const inventoryByDriver = new Map<string, DriverInventoryRecord[]>();
-    inventory.forEach(record => {
-      const existing = inventoryByDriver.get(record.driver_id) || [];
-      existing.push(record);
-      inventoryByDriver.set(record.driver_id, existing);
-    });
-
-    const assignmentByDriver = new Map<string, DriverZoneAssignment[]>();
-    assignments.forEach(assignment => {
-      const existing = assignmentByDriver.get(assignment.driver_id) || [];
-      existing.push(assignment);
-      assignmentByDriver.set(assignment.driver_id, existing);
-    });
-
-    const candidates: DriverCandidate[] = statuses.map(status => {
-      const driverInventory = inventoryByDriver.get(status.driver_id) || [];
-      const driverAssignments = assignmentByDriver.get(status.driver_id) || [];
-      const totalInventory = driverInventory.reduce((sum, record) => sum + (record.quantity || 0), 0);
-      const isZonePreferred = params.zoneId
-        ? driverAssignments.some(assignment => assignment.zone_id === params.zoneId && assignment.active)
-        : true;
-
-      const missingItems = (params.items || []).map(item => {
-        const balance = driverInventory.find(record => record.product_id === item.product_id)?.quantity ?? 0;
-        return {
-          product_id: item.product_id,
-          missing: Math.max(0, (item.quantity || 0) - balance)
-        };
-      });
-
-      const matches = missingItems.every(item => item.missing === 0);
-      const totalMissing = missingItems.reduce((sum, item) => sum + item.missing, 0);
-      const statusWeight = status.status === 'available' ? 25 : status.status === 'on_break' ? 10 : 0;
-      const zoneWeight = isZonePreferred ? 50 : 10;
-      const inventoryWeight = Math.min(totalInventory, 40);
-      const fulfillmentWeight = matches ? 100 : Math.max(0, 80 - totalMissing * 20);
-      const score = zoneWeight + inventoryWeight + statusWeight + fulfillmentWeight;
-
-      return {
-        driverId: status.driver_id,
-        status,
-        zones: driverAssignments,
-        inventory: driverInventory,
-        missingItems,
-        matches,
-        totalInventory,
-        score
-      };
-    });
-
-    return candidates
+    return availability
       .filter(candidate => candidate.matches)
+      .map(candidate => ({
+        driverId: candidate.driver.driver_id,
+        status: candidate.driver,
+        zones: candidate.zones,
+        inventory: candidate.inventory,
+        missingItems: candidate.missing_items,
+        matches: candidate.matches,
+        totalInventory: candidate.total_inventory,
+        score: candidate.score
+      }))
       .sort((a, b) => b.score - a.score);
   }
 
