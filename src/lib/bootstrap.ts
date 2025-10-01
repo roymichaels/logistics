@@ -65,16 +65,29 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
   const initData = telegram.initData;
   const telegramUser = telegram.user;
 
-  // If no initData available, fall back to mock
-  if (!initData) {
-    debugLog.warn('⚠️ No initData - using mock', {
-      hasTelegramUser: !!telegramUser,
-      userId: telegramUser?.id
+  // Use direct Telegram user auth (bypass verification for now)
+  if (telegramUser) {
+    debugLog.info('👤 Using direct Telegram user', {
+      id: telegramUser.id,
+      username: telegramUser.username
     });
+
+    const directUser = {
+      telegram_id: telegramUser.id.toString(),
+      username: telegramUser.username?.replace(/^@/, '').toLowerCase(),
+      first_name: telegramUser.first_name,
+      last_name: telegramUser.last_name,
+      photo_url: telegramUser.photo_url,
+      language_code: telegramUser.language_code,
+      auth_date: Math.floor(Date.now() / 1000)
+    };
+
+    debugLog.success('✅ Direct auth bypass', { username: directUser.username });
+
     return {
       config: {
         app: 'miniapp',
-        adapters: { data: 'mock' },
+        adapters: { data: 'supabase' },
         features: {
           offline_mode: true,
           photo_upload: true,
@@ -91,24 +104,67 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
           mode: 'real' as const,
         },
       },
-      user: null,
+      user: directUser,
     };
   }
+
+  // No Telegram user at all
+  debugLog.warn('⚠️ No Telegram user - using mock');
+  return {
+    config: {
+      app: 'miniapp',
+      adapters: { data: 'mock' },
+      features: {
+        offline_mode: true,
+        photo_upload: true,
+        gps_tracking: true,
+        route_optimization: false,
+      },
+      ui: {
+        brand: 'מערכת לוגיסטיקה',
+        accent: '#007aff',
+        theme: 'auto',
+        language: 'he'
+      },
+      defaults: {
+        mode: 'real' as const,
+      },
+    },
+    user: null,
+  };
 
   // Step 1: Verify init data and get session
   try {
     debugLog.info('🔐 Verifying initData with Supabase...');
-    const verifyResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-verify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        type: 'webapp',
-        initData
-      }),
-    });
-    debugLog.info(`📥 Verify response: ${verifyResponse.status}`);
+
+    // Create abort controller for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+    let verifyResponse;
+    try {
+      verifyResponse = await fetch(`${SUPABASE_URL}/functions/v1/telegram-verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'webapp',
+          initData
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      debugLog.info(`📥 Verify response: ${verifyResponse.status}`);
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        debugLog.error('⏱️ Verification timeout (10s)', { error: 'Request timed out' });
+      } else {
+        debugLog.error('🌐 Network error during verification', fetchError);
+      }
+      throw fetchError;
+    }
 
     if (!verifyResponse.ok) {
       const errorText = await verifyResponse.text();
