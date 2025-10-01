@@ -396,24 +396,33 @@ export class SupabaseDataStore implements DataStore {
   private user: User | null = null;
   private subscriptions: Map<string, RealtimeChannel> = new Map();
   private eventListeners: Map<string, Set<Function>> = new Map();
+  private authInitialization: Promise<void> | null = null;
 
   constructor(private userTelegramId: string, authSession?: SupabaseAuthSessionPayload | null) {
     if (authSession?.access_token && authSession.refresh_token) {
-      void supabase.auth
-        .setSession({
-          access_token: authSession.access_token,
-          refresh_token: authSession.refresh_token,
-          expires_in: authSession.expires_in ?? undefined,
-          expires_at: authSession.expires_at ?? undefined,
-          token_type: authSession.token_type ?? 'bearer'
-        })
-        .catch((error) => {
-          console.error('Failed to establish Supabase session:', error);
-        });
+      this.authInitialization = this.initializeAuthSession(authSession);
     }
 
     // Initialize real-time subscriptions
     this.initializeRealTimeSubscriptions();
+  }
+
+  private async initializeAuthSession(authSession: SupabaseAuthSessionPayload) {
+    try {
+      const { error } = await supabase.auth.setSession({
+        access_token: authSession.access_token,
+        refresh_token: authSession.refresh_token,
+        expires_in: authSession.expires_in ?? undefined,
+        expires_at: authSession.expires_at ?? undefined,
+        token_type: authSession.token_type ?? 'bearer'
+      });
+
+      if (error) {
+        console.error('Failed to establish Supabase session:', error);
+      }
+    } catch (error) {
+      console.error('Unexpected Supabase auth error:', error);
+    }
   }
 
   private async refreshProductStock(productId: string) {

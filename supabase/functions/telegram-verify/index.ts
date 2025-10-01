@@ -282,6 +282,16 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    const sessionPayload = authSession
+      ? {
+          access_token: authSession.access_token,
+          refresh_token: authSession.refresh_token,
+          expires_in: authSession.expires_in ?? null,
+          expires_at: authSession.expires_at ?? null,
+          token_type: authSession.token_type ?? 'bearer'
+        }
+      : null;
+
     const sessionData = {
       telegram_id: user?.id.toString(),
       username: user?.username,
@@ -296,7 +306,7 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         ok: true,
         user: sessionData,
-        session: authSession ?? null,
+        session: sessionPayload,
         supabase_user: authUser ?? null
       }),
       {
