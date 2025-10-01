@@ -8,6 +8,35 @@ export interface User {
   phone?: string;
 }
 
+export type UserRegistrationStatus = 'pending' | 'approved' | 'rejected';
+
+export interface RegistrationApproval {
+  action: 'submitted' | 'updated' | 'approved' | 'rejected';
+  by: string;
+  at: string;
+  notes?: string | null;
+  assigned_role?: User['role'] | null;
+}
+
+export interface UserRegistration {
+  telegram_id: string;
+  first_name: string;
+  last_name?: string | null;
+  username?: string | null;
+  photo_url?: string | null;
+  department?: string | null;
+  phone?: string | null;
+  requested_role: User['role'];
+  assigned_role?: User['role'] | null;
+  status: UserRegistrationStatus;
+  approval_history: RegistrationApproval[];
+  approved_by?: string | null;
+  approved_at?: string | null;
+  approval_notes?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Product {
   id: string;
   name: string;

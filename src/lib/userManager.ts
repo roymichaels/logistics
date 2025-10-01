@@ -1,150 +1,134 @@
-import { DataStore, User } from '../../data/types';
+import type { User, UserRegistration } from '../../data/types';
+import {
+  approveUserRegistrationRecord,
+  ApproveUserRegistrationInput,
+  deleteUserRegistrationRecord,
+  fetchUserRegistrationRecord,
+  listUserRegistrationRecords,
+  updateUserRegistrationRoleRecord,
+  UpdateUserRegistrationRoleInput,
+  upsertUserRegistrationRecord,
+  UpsertUserRegistrationInput
+} from './supabaseDataStore';
 
-export interface UserRegistration {
-  telegram_id: string;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-  role: 'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service';
-  department?: string;
-  phone?: string;
-  approved: boolean;
-  created_at: string;
-  approved_by?: string;
-  approved_at?: string;
+const VALID_ROLES: User['role'][] = [
+  'user',
+  'manager',
+  'dispatcher',
+  'driver',
+  'warehouse',
+  'sales',
+  'customer_service'
+];
+
+function normalizeRole(role?: string | null): User['role'] {
+  if (role && (VALID_ROLES as string[]).includes(role)) {
+    return role as User['role'];
+  }
+  return 'user';
 }
 
 class UserManager {
-  private registeredUsers: Map<string, UserRegistration> = new Map();
   private adminTelegramId: string;
 
   constructor() {
-    // Get first admin from environment or default
     this.adminTelegramId = import.meta.env.VITE_FIRST_ADMIN_TELEGRAM_ID || '123456789';
-    this.loadRegisteredUsers();
-  }
-
-  private loadRegisteredUsers() {
-    try {
-      const stored = localStorage.getItem('registered_users');
-      if (stored) {
-        const users = JSON.parse(stored);
-        this.registeredUsers = new Map(Object.entries(users));
-      }
-    } catch (error) {
-      console.error('Failed to load registered users:', error);
-    }
-  }
-
-  private saveRegisteredUsers() {
-    try {
-      const users = Object.fromEntries(this.registeredUsers);
-      localStorage.setItem('registered_users', JSON.stringify(users));
-    } catch (error) {
-      console.error('Failed to save registered users:', error);
-    }
   }
 
   isFirstAdmin(telegramId: string): boolean {
     return telegramId === this.adminTelegramId;
   }
 
-  isUserRegistered(telegramId: string): boolean {
-    return this.registeredUsers.has(telegramId);
+  async isUserRegistered(telegramId: string): Promise<boolean> {
+    const registration = await fetchUserRegistrationRecord(telegramId);
+    return Boolean(registration);
   }
 
-  isUserApproved(telegramId: string): boolean {
-    const user = this.registeredUsers.get(telegramId);
-    return user?.approved || false;
+  async isUserApproved(telegramId: string): Promise<boolean> {
+    const registration = await fetchUserRegistrationRecord(telegramId);
+    return registration?.status === 'approved';
   }
 
-  registerUser(userData: any): UserRegistration {
-    const telegramId = userData.telegram_id.toString();
-    
-    // Check if user already exists
-    if (this.registeredUsers.has(telegramId)) {
-      return this.registeredUsers.get(telegramId)!;
+  async registerUser(userData: any): Promise<UserRegistration> {
+    const telegramId = userData.telegram_id?.toString();
+
+    if (!telegramId) {
+      throw new Error('Cannot register user without telegram_id');
     }
 
-    // Create new user registration
-    const registration: UserRegistration = {
+    const payload: UpsertUserRegistrationInput = {
       telegram_id: telegramId,
-      first_name: userData.first_name,
-      last_name: userData.last_name,
-      username: userData.username,
-      photo_url: userData.photo_url,
-      role: 'user', // Default role - limited access
-      approved: true, // Auto-approve all users for now
-      created_at: new Date().toISOString(),
-      approved_by: telegramId, // Self-approved for now
-      approved_at: new Date().toISOString()
+      first_name: userData.first_name || 'משתמש',
+      last_name: userData.last_name || null,
+      username: userData.username || null,
+      photo_url: userData.photo_url || null,
+      department: userData.department || null,
+      phone: userData.phone || null,
+      requested_role: normalizeRole(userData.requested_role)
     };
 
-    this.registeredUsers.set(telegramId, registration);
-    this.saveRegisteredUsers();
-
-    return registration;
+    return upsertUserRegistrationRecord(payload);
   }
 
-  approveUser(telegramId: string, role: string, approvedBy: string): boolean {
-    const user = this.registeredUsers.get(telegramId);
-    if (!user) return false;
+  async approveUser(
+    telegramId: string,
+    role: string,
+    approvedBy: string,
+    notes?: string
+  ): Promise<boolean> {
+    const assignedRole = normalizeRole(role);
+    const payload: ApproveUserRegistrationInput = {
+      approved_by: approvedBy,
+      assigned_role: assignedRole,
+      notes: notes ?? null
+    };
 
-    user.approved = true;
-    user.role = role as any;
-    user.approved_by = approvedBy;
-    user.approved_at = new Date().toISOString();
+    const registration = await approveUserRegistrationRecord(telegramId, payload);
+    return registration.status === 'approved';
+  }
 
-    this.registeredUsers.set(telegramId, user);
-    this.saveRegisteredUsers();
+  async updateUserRole(
+    telegramId: string,
+    role: string,
+    updatedBy: string,
+    notes?: string
+  ): Promise<boolean> {
+    const assignedRole = normalizeRole(role);
+    const payload: UpdateUserRegistrationRoleInput = {
+      assigned_role: assignedRole,
+      updated_by: updatedBy,
+      notes: notes ?? null
+    };
 
+    await updateUserRegistrationRoleRecord(telegramId, payload);
     return true;
   }
 
-  updateUserRole(telegramId: string, role: string, updatedBy: string): boolean {
-    const user = this.registeredUsers.get(telegramId);
-    if (!user || !user.approved) return false;
-
-    user.role = role as any;
-    this.registeredUsers.set(telegramId, user);
-    this.saveRegisteredUsers();
-
-    return true;
+  async getPendingUsers(): Promise<UserRegistration[]> {
+    return listUserRegistrationRecords({ status: 'pending' });
   }
 
-  getPendingUsers(): UserRegistration[] {
-    return Array.from(this.registeredUsers.values())
-      .filter(user => !user.approved)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  async getApprovedUsers(): Promise<UserRegistration[]> {
+    return listUserRegistrationRecords({ status: 'approved' });
   }
 
-  getAllUsers(): UserRegistration[] {
-    return Array.from(this.registeredUsers.values())
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  async getAllUsers(): Promise<UserRegistration[]> {
+    return listUserRegistrationRecords();
   }
 
-  getApprovedUsers(): UserRegistration[] {
-    return Array.from(this.registeredUsers.values())
-      .filter(user => user.approved)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  async getUserRegistration(telegramId: string): Promise<UserRegistration | null> {
+    return fetchUserRegistrationRecord(telegramId);
   }
 
-  getUserRegistration(telegramId: string): UserRegistration | null {
-    return this.registeredUsers.get(telegramId) || null;
-  }
-
-  deleteUser(telegramId: string): boolean {
+  async deleteUser(telegramId: string): Promise<boolean> {
     if (this.isFirstAdmin(telegramId)) {
-      return false; // Cannot delete first admin
+      return false;
     }
 
-    const deleted = this.registeredUsers.delete(telegramId);
-    if (deleted) {
-      this.saveRegisteredUsers();
-    }
-    return deleted;
+    return deleteUserRegistrationRecord(telegramId);
   }
 }
 
 export const userManager = new UserManager();
+
+export type { UserRegistration } from '../../data/types';
