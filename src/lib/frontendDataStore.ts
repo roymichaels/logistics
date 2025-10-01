@@ -18,7 +18,14 @@ import {
   DriverAvailabilityStatus,
   DriverMovementAction,
   DriverInventorySyncInput,
-  DriverInventorySyncResult
+  DriverInventorySyncResult,
+  RoyalDashboardSnapshot,
+  RoyalDashboardMetrics,
+  RoyalDashboardChartPoint,
+  RoyalDashboardAgent,
+  RoyalDashboardZoneCoverage,
+  RoyalDashboardLowStockAlert,
+  RoyalDashboardRestockRequest
 } from '../../data/types';
 
 // Mock data for Hebrew logistics company
@@ -1033,6 +1040,163 @@ class HebrewLogisticsDataStore implements DataStore {
     if (index !== -1) {
       this.notifications[index].read = true;
     }
+  }
+
+  async getRoyalDashboardSnapshot(): Promise<RoyalDashboardSnapshot> {
+    const now = new Date();
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const ACTIVE_ORDER_STATUSES: Order['status'][] = ['new', 'confirmed', 'preparing', 'ready', 'out_for_delivery'];
+    const orders = [...this.orders];
+    const outstandingOrders = orders.filter(order => ACTIVE_ORDER_STATUSES.includes(order.status));
+    const deliveredToday = orders.filter(order => order.status === 'delivered' && new Date(order.created_at) >= startOfDay);
+    const ordersToday = orders.filter(order => new Date(order.created_at) >= startOfDay && order.status !== 'cancelled');
+
+    const revenueToday = deliveredToday.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
+    const averageOrderValue = deliveredToday.length > 0 ? revenueToday / deliveredToday.length : 0;
+
+    const driverStatuses = [...this.driverStatuses];
+    const activeDrivers = driverStatuses.filter(status => status.is_online).length;
+
+    const driverZoneMap = new Map<string, string | null>();
+    driverStatuses.forEach(status => {
+      driverZoneMap.set(status.driver_id, status.current_zone_id ?? null);
+    });
+
+    const zonesCoverage: RoyalDashboardZoneCoverage[] = this.zones
+      .filter(zone => zone.active !== false)
+      .map(zone => {
+        const onlineDrivers = driverStatuses.filter(status => status.is_online && status.current_zone_id === zone.id);
+        const zoneOutstanding = outstandingOrders.filter(order => {
+          if (!order.assigned_driver) return false;
+          return driverZoneMap.get(order.assigned_driver) === zone.id;
+        });
+        let coveragePercent = onlineDrivers.length > 0 ? 100 : 0;
+        if (zoneOutstanding.length > 0) {
+          coveragePercent = onlineDrivers.length === 0
+            ? 0
+            : Math.min(100, Math.round((onlineDrivers.length / zoneOutstanding.length) * 100));
+        }
+
+        return {
+          zoneId: zone.id,
+          zoneName: zone.name,
+          activeDrivers: onlineDrivers.length,
+          outstandingOrders: zoneOutstanding.length,
+          coveragePercent,
+          color: zone.color
+        } as RoyalDashboardZoneCoverage;
+      });
+
+    const coveragePercent = zonesCoverage.length > 0
+      ? Math.round(
+          (zonesCoverage.filter(zone => zone.activeDrivers > 0).length / zonesCoverage.length) * 100
+        )
+      : 0;
+
+    const metrics: RoyalDashboardMetrics = {
+      revenueToday,
+      ordersToday: ordersToday.length,
+      deliveredToday: deliveredToday.length,
+      averageOrderValue,
+      pendingOrders: outstandingOrders.length,
+      activeDrivers,
+      coveragePercent,
+      outstandingDeliveries: outstandingOrders.filter(order => order.status !== 'new').length
+    };
+
+    const revenueTrend: RoyalDashboardChartPoint[] = [];
+    for (let dayOffset = 6; dayOffset >= 0; dayOffset--) {
+      const dayStart = new Date(startOfDay);
+      dayStart.setDate(startOfDay.getDate() - dayOffset);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+      const dayOrders = orders.filter(order => {
+        const createdAt = new Date(order.created_at);
+        return createdAt >= dayStart && createdAt < dayEnd && order.status === 'delivered';
+      });
+      const dayRevenue = dayOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
+      revenueTrend.push({
+        label: dayStart.toLocaleDateString('he-IL', { weekday: 'short' }),
+        value: Number(dayRevenue.toFixed(2))
+      });
+    }
+
+    const hoursWindow = 12;
+    const ordersPerHour: RoyalDashboardChartPoint[] = [];
+    const recentOrders = orders.filter(order => new Date(order.created_at) >= new Date(now.getTime() - hoursWindow * 60 * 60 * 1000));
+    for (let hour = hoursWindow - 1; hour >= 0; hour--) {
+      const bucketStart = new Date(now.getTime() - hour * 60 * 60 * 1000);
+      const bucketEnd = new Date(bucketStart.getTime() + 60 * 60 * 1000);
+      const count = recentOrders.filter(order => {
+        const createdAt = new Date(order.created_at);
+        return createdAt >= bucketStart && createdAt < bucketEnd;
+      }).length;
+      ordersPerHour.push({
+        label: bucketStart.toLocaleTimeString('he-IL', { hour: '2-digit' }),
+        value: count
+      });
+    }
+
+    const lowStockAlerts: RoyalDashboardLowStockAlert[] = this.products
+      .filter(product => (product.stock_quantity ?? 0) <= 20)
+      .slice(0, 8)
+      .map(product => ({
+        product_id: product.id,
+        product_name: product.name,
+        location_id: product.warehouse_location || 'central',
+        location_name: product.warehouse_location || 'מחסן מרכזי',
+        on_hand_quantity: product.stock_quantity ?? 0,
+        low_stock_threshold: 20,
+        triggered_at: now.toISOString()
+      }));
+
+    const restockQueue: RoyalDashboardRestockRequest[] = lowStockAlerts.slice(0, 5).map((alert, index) => ({
+      id: `restock-${alert.product_id}-${index}`,
+      product_id: alert.product_id,
+      product_name: alert.product_name,
+      requested_quantity: Math.max(alert.low_stock_threshold - alert.on_hand_quantity, 5),
+      status: index === 0 ? 'approved' : 'pending',
+      requested_at: new Date(now.getTime() - index * 30 * 60 * 1000).toISOString(),
+      to_location_name: alert.location_name
+    }));
+
+    const agentOrdersCount = outstandingOrders.reduce<Record<string, number>>((acc, order) => {
+      if (!order.assigned_driver) return acc;
+      acc[order.assigned_driver] = (acc[order.assigned_driver] || 0) + 1;
+      return acc;
+    }, {});
+
+    const agents: RoyalDashboardAgent[] = driverStatuses.map(status => ({
+      id: status.driver_id,
+      name: status.driver_id,
+      status: status.is_online ? status.status : 'offline',
+      zone: status.current_zone_id
+        ? this.zones.find(zone => zone.id === status.current_zone_id)?.name || null
+        : null,
+      ordersInProgress: agentOrdersCount[status.driver_id] || 0,
+      lastUpdated: status.last_updated,
+      avatarUrl: undefined
+    }));
+
+    agents.sort((a, b) => {
+      if (a.status === 'offline' && b.status !== 'offline') return 1;
+      if (b.status === 'offline' && a.status !== 'offline') return -1;
+      return b.ordersInProgress - a.ordersInProgress;
+    });
+
+    return {
+      metrics,
+      revenueTrend,
+      ordersPerHour,
+      agents,
+      zones: zonesCoverage,
+      lowStockAlerts,
+      restockQueue,
+      generatedAt: now.toISOString()
+    };
   }
 }
 

@@ -26,9 +26,7 @@ export interface RestockQueueEntry {
 export class InventoryService {
   constructor(private readonly dataStore: DataStore) {}
 
-  private ensureMethod<K extends keyof DataStore>(
-    method: K
-  ): asserts this['dataStore'] is DataStore & Record<K, (...args: any[]) => any> {
+  private ensureMethod<K extends keyof DataStore>(method: K): void {
     if (typeof this.dataStore[method] !== 'function') {
       throw new Error(`Data store does not implement ${String(method)}`);
     }
