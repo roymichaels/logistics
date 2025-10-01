@@ -29,14 +29,15 @@ function normalizeRole(role?: string | null): User['role'] {
 }
 
 class UserManager {
-  private adminTelegramId: string;
+  private adminUsername: string;
 
   constructor() {
-    this.adminTelegramId = import.meta.env.VITE_FIRST_ADMIN_TELEGRAM_ID || '123456789';
+    this.adminUsername = import.meta.env.VITE_FIRST_ADMIN_USERNAME?.toLowerCase().replace(/^@/, '') || 'dancohen';
   }
 
-  isFirstAdmin(telegramId: string): boolean {
-    return telegramId === this.adminTelegramId;
+  isFirstAdmin(username: string): boolean {
+    const normalizedUsername = username?.toLowerCase().replace(/^@/, '');
+    return normalizedUsername === this.adminUsername;
   }
 
   async isUserRegistered(telegramId: string): Promise<boolean> {

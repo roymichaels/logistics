@@ -21,6 +21,11 @@ interface TelegramUser {
   auth_date: number;
 }
 
+function normalizeUsername(username: string | null | undefined): string | null {
+  if (!username) return null;
+  return username.replace(/^@/, '').toLowerCase().trim();
+}
+
 function hexToBytes(hex: string): Uint8Array {
   const bytes = new Uint8Array(hex.length / 2);
   for (let i = 0; i < bytes.length; i++) {
@@ -208,12 +213,14 @@ Deno.serve(async (req: Request) => {
     let authSession;
 
     if (user) {
-      const email = `${user.id}@telegram.local`;
+      const normalizedUsername = normalizeUsername(user.username);
+      const email = normalizedUsername ? `${normalizedUsername}@telegram.local` : `${user.id}@telegram.local`;
+      
       const metadata = {
-        telegram_id: user.id,
+        telegram_id: user.id.toString(),
+        username: normalizedUsername,
         first_name: user.first_name,
         last_name: user.last_name,
-        username: user.username,
         photo_url: user.photo_url,
         provider: 'telegram'
       };
@@ -299,7 +306,7 @@ Deno.serve(async (req: Request) => {
 
     const sessionData = {
       telegram_id: user?.id.toString(),
-      username: user?.username,
+      username: normalizeUsername(user?.username),
       first_name: user?.first_name,
       last_name: user?.last_name,
       photo_url: user?.photo_url,
