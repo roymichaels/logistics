@@ -577,6 +577,75 @@ export interface DataStore {
   getNotifications?(): Promise<Notification[]>;
   markNotificationRead?(id: string): Promise<void>;
   createNotification?(input: CreateNotificationInput): Promise<{ id: string }>;
+
+  // Royal intelligence
+  getRoyalDashboardSnapshot?(): Promise<RoyalDashboardSnapshot>;
+}
+
+export interface RoyalDashboardMetrics {
+  revenueToday: number;
+  ordersToday: number;
+  deliveredToday: number;
+  averageOrderValue: number;
+  pendingOrders: number;
+  activeDrivers: number;
+  coveragePercent: number;
+  outstandingDeliveries: number;
+}
+
+export interface RoyalDashboardChartPoint {
+  label: string;
+  value: number;
+}
+
+export interface RoyalDashboardAgent {
+  id: string;
+  name: string;
+  status: string;
+  zone?: string | null;
+  ordersInProgress: number;
+  lastUpdated: string;
+  avatarUrl?: string | null;
+}
+
+export interface RoyalDashboardZoneCoverage {
+  zoneId: string;
+  zoneName: string;
+  activeDrivers: number;
+  outstandingOrders: number;
+  coveragePercent: number;
+  color?: string | null;
+}
+
+export interface RoyalDashboardLowStockAlert {
+  product_id: string;
+  product_name: string;
+  location_id: string;
+  location_name: string;
+  on_hand_quantity: number;
+  low_stock_threshold: number;
+  triggered_at: string;
+}
+
+export interface RoyalDashboardRestockRequest {
+  id: string;
+  product_id: string;
+  product_name?: string | null;
+  requested_quantity: number;
+  status: string;
+  requested_at: string;
+  to_location_name?: string | null;
+}
+
+export interface RoyalDashboardSnapshot {
+  metrics: RoyalDashboardMetrics;
+  revenueTrend: RoyalDashboardChartPoint[];
+  ordersPerHour: RoyalDashboardChartPoint[];
+  agents: RoyalDashboardAgent[];
+  zones: RoyalDashboardZoneCoverage[];
+  lowStockAlerts: RoyalDashboardLowStockAlert[];
+  restockQueue: RoyalDashboardRestockRequest[];
+  generatedAt: string;
 }
 
 export interface BootstrapConfig {
