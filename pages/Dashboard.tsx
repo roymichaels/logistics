@@ -21,6 +21,11 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     lowStock: 0,
     revenue: 0
   });
+  const [driverSnapshot, setDriverSnapshot] = useState({
+    online: 0,
+    activeZones: 0,
+    outstanding: 0
+  });
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const showSkeleton = useSkeleton(100);
@@ -46,19 +51,27 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
 
       // Load stats based on role
       if (role === 'manager') {
-        const [orders, products, tasks] = await Promise.all([
+        const [orders, products, tasks, driverStatuses] = await Promise.all([
           dataStore.listOrders?.() || [],
           dataStore.listProducts?.() || [],
-          dataStore.listAllTasks?.() || []
+          dataStore.listAllTasks?.() || [],
+          dataStore.listDriverStatuses ? dataStore.listDriverStatuses() : Promise.resolve([])
         ]);
-        
+
         const revenue = orders.reduce((sum, order) => sum + order.total_amount, 0);
-        
+        const outstanding = orders.filter(o => ['confirmed', 'preparing', 'ready', 'out_for_delivery'].includes(o.status)).length;
+        const onlineDrivers = (driverStatuses || []).filter(status => status.is_online).length;
+        const activeZones = new Set(
+          (driverStatuses || [])
+            .filter(status => status.is_online && status.current_zone_id)
+            .map(status => status.current_zone_id as string)
+        ).size;
+
         setStats({
           totalOrders: orders.length,
           pendingTasks: tasks.filter(t => t.status === 'pending').length,
-          completedToday: tasks.filter(t => 
-            t.status === 'completed' && 
+          completedToday: tasks.filter(t =>
+            t.status === 'completed' &&
             t.completed_at &&
             new Date(t.completed_at).toDateString() === new Date().toDateString()
           ).length,
@@ -66,22 +79,39 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
           lowStock: products.filter(p => p.stock_quantity < 10).length,
           revenue
         });
+        setDriverSnapshot({
+          online: onlineDrivers,
+          activeZones,
+          outstanding
+        });
       } else if (role === 'dispatcher') {
-        const [orders, tasks] = await Promise.all([
+        const [orders, tasks, driverStatuses] = await Promise.all([
           dataStore.listOrders?.() || [],
-          dataStore.listAllTasks?.() || []
+          dataStore.listAllTasks?.() || [],
+          dataStore.listDriverStatuses ? dataStore.listDriverStatuses({ onlyOnline: true }) : Promise.resolve([])
         ]);
-        
+        const outstanding = orders.filter(o => ['confirmed', 'preparing', 'ready', 'out_for_delivery'].includes(o.status)).length;
+        const activeZones = new Set(
+          (driverStatuses || [])
+            .filter(status => status.current_zone_id)
+            .map(status => status.current_zone_id as string)
+        ).size;
+
         setStats({
           totalOrders: orders.length,
           pendingTasks: orders.filter(o => o.status === 'new' || o.status === 'confirmed').length,
-          completedToday: orders.filter(o => 
-            o.status === 'delivered' && 
+          completedToday: orders.filter(o =>
+            o.status === 'delivered' &&
             new Date(o.updated_at).toDateString() === new Date().toDateString()
           ).length,
           totalProducts: 0,
           lowStock: 0,
           revenue: 0
+        });
+        setDriverSnapshot({
+          online: (driverStatuses || []).length,
+          activeZones,
+          outstanding
         });
       } else if (role !== 'user') {
         const tasks = await dataStore.listMyTasks?.() || [];
@@ -97,6 +127,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
           lowStock: 0,
           revenue: 0
         });
+        setDriverSnapshot({ online: 0, activeZones: 0, outstanding: 0 });
       } else {
         // Regular user role - load actual data
         setStats({
@@ -107,11 +138,13 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
           lowStock: 0,
           revenue: 0
         });
+        setDriverSnapshot({ online: 0, activeZones: 0, outstanding: 0 });
       }
 
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
       Toast.error('שגיאה בטעינת נתוני לוח הבקרה');
+      setDriverSnapshot({ online: 0, activeZones: 0, outstanding: 0 });
     } finally {
       setLoading(false);
     }
@@ -295,6 +328,24 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
               color="#ff3b30"
               theme={theme}
             />
+            <StatCard
+              title="נהגים מחוברים"
+              value={driverSnapshot.online}
+              color="#0a84ff"
+              theme={theme}
+            />
+            <StatCard
+              title="אזורי כיסוי פעילים"
+              value={driverSnapshot.activeZones}
+              color="#5856d6"
+              theme={theme}
+            />
+            <StatCard
+              title="משלוחים ממתינים"
+              value={driverSnapshot.outstanding}
+              color="#ffcc00"
+              theme={theme}
+            />
           </>
         ) : user?.role === 'dispatcher' ? (
           <>
@@ -314,6 +365,18 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
               title="נמסרו היום"
               value={stats.completedToday}
               color="#34c759"
+              theme={theme}
+            />
+            <StatCard
+              title="נהגים מחוברים"
+              value={driverSnapshot.online}
+              color="#0a84ff"
+              theme={theme}
+            />
+            <StatCard
+              title="משלוחים פתוחים"
+              value={driverSnapshot.outstanding}
+              color="#ffcc00"
               theme={theme}
             />
           </>

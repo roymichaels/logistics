@@ -14,6 +14,8 @@ export interface DriverCandidate {
   inventory: DriverInventoryRecord[];
   missingItems: { product_id: string; missing: number }[];
   matches: boolean;
+  totalInventory: number;
+  score: number;
 }
 
 export interface DispatchEligibilityParams {
@@ -65,6 +67,10 @@ export class DispatchService {
     const candidates: DriverCandidate[] = statuses.map(status => {
       const driverInventory = inventoryByDriver.get(status.driver_id) || [];
       const driverAssignments = assignmentByDriver.get(status.driver_id) || [];
+      const totalInventory = driverInventory.reduce((sum, record) => sum + (record.quantity || 0), 0);
+      const isZonePreferred = params.zoneId
+        ? driverAssignments.some(assignment => assignment.zone_id === params.zoneId && assignment.active)
+        : true;
 
       const missingItems = (params.items || []).map(item => {
         const balance = driverInventory.find(record => record.product_id === item.product_id)?.quantity ?? 0;
@@ -75,6 +81,12 @@ export class DispatchService {
       });
 
       const matches = missingItems.every(item => item.missing === 0);
+      const totalMissing = missingItems.reduce((sum, item) => sum + item.missing, 0);
+      const statusWeight = status.status === 'available' ? 25 : status.status === 'on_break' ? 10 : 0;
+      const zoneWeight = isZonePreferred ? 50 : 10;
+      const inventoryWeight = Math.min(totalInventory, 40);
+      const fulfillmentWeight = matches ? 100 : Math.max(0, 80 - totalMissing * 20);
+      const score = zoneWeight + inventoryWeight + statusWeight + fulfillmentWeight;
 
       return {
         driverId: status.driver_id,
@@ -82,11 +94,15 @@ export class DispatchService {
         zones: driverAssignments,
         inventory: driverInventory,
         missingItems,
-        matches
+        matches,
+        totalInventory,
+        score
       };
     });
 
-    return candidates.filter(candidate => candidate.matches);
+    return candidates
+      .filter(candidate => candidate.matches)
+      .sort((a, b) => b.score - a.score);
   }
 
   async assignOrder(order: Order, driverId: string, zoneId?: string): Promise<void> {

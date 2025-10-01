@@ -572,11 +572,12 @@ function OrderDetail({
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {candidates.map((candidate) => {
-                    const relevantInventory = candidate.inventory.filter((record) =>
-                      orderItems.some((item) => item.product_id === record.product_id)
-                    );
-                    const totalRelevant = relevantInventory.reduce((sum, record) => sum + record.quantity, 0);
                     const isSelected = selectedDriver === candidate.driverId;
+                    const assignedZones = candidate.zones
+                      .filter((assignment) => assignment.active)
+                      .map((assignment) => assignment.zone?.name || assignment.zone_id)
+                      .join(', ');
+
                     return (
                       <button
                         key={candidate.driverId}
@@ -591,13 +592,21 @@ function OrderDetail({
                           cursor: 'pointer'
                         }}
                       >
-                        <div style={{ fontWeight: 600 }}>נהג #{candidate.driverId}</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ fontWeight: 600 }}>נהג #{candidate.driverId}</div>
+                          <div style={{ fontSize: '12px', color: theme.hint_color }}>דירוג: {Math.round(candidate.score)}</div>
+                        </div>
                         <div style={{ color: theme.hint_color, fontSize: '14px' }}>
                           סטטוס: {candidate.status.status === 'available' ? 'זמין' : candidate.status.status === 'delivering' ? 'במשלוח' : candidate.status.status === 'on_break' ? 'בהפסקה' : 'סיום משמרת'}
                         </div>
                         <div style={{ color: theme.hint_color, fontSize: '12px', marginTop: '4px' }}>
-                          מלאי רלוונטי: {totalRelevant} יחידות
+                          מלאי כללי ברכב: {candidate.totalInventory} יחידות
                         </div>
+                        {assignedZones && (
+                          <div style={{ color: theme.hint_color, fontSize: '12px', marginTop: '2px' }}>
+                            אזורים: {assignedZones}
+                          </div>
+                        )}
                       </button>
                     );
                   })}

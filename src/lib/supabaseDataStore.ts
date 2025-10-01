@@ -12,6 +12,8 @@ import {
   BootstrapConfig,
   InventoryRecord,
   DriverInventoryRecord,
+  DriverInventorySyncInput,
+  DriverInventorySyncResult,
   RestockRequest,
   InventoryLog,
   InventoryAlert,
@@ -1243,6 +1245,40 @@ export class SupabaseDataStore implements DataStore {
     });
   }
 
+  async setDriverOnline(input?: {
+    driver_id?: string;
+    zone_id?: string | null;
+    status?: DriverAvailabilityStatus;
+    note?: string;
+  }): Promise<void> {
+    const driverId = input?.driver_id || this.userTelegramId;
+    const existingStatus = await this.getDriverStatus(driverId);
+    const hasZoneOverride = input && Object.prototype.hasOwnProperty.call(input, 'zone_id');
+    const zoneId = hasZoneOverride ? input?.zone_id ?? null : existingStatus?.current_zone_id ?? null;
+    const status: DriverAvailabilityStatus = input?.status || (existingStatus?.status === 'off_shift' ? 'available' : existingStatus?.status || 'available');
+
+    await this.updateDriverStatus({
+      driver_id: driverId,
+      status,
+      zone_id: zoneId,
+      is_online: true,
+      note: input?.note ?? existingStatus?.note ?? undefined
+    });
+  }
+
+  async setDriverOffline(input?: { driver_id?: string; note?: string }): Promise<void> {
+    const driverId = input?.driver_id || this.userTelegramId;
+    const existingStatus = await this.getDriverStatus(driverId);
+
+    await this.updateDriverStatus({
+      driver_id: driverId,
+      status: 'off_shift',
+      zone_id: null,
+      is_online: false,
+      note: input?.note ?? existingStatus?.note ?? undefined
+    });
+  }
+
   async getDriverStatus(driver_id?: string): Promise<DriverStatusRecord | null> {
     const targetDriver = driver_id || this.userTelegramId;
 
@@ -1325,6 +1361,123 @@ export class SupabaseDataStore implements DataStore {
       note: row.note,
       zone: row.current_zone_id ? zoneMap.get(row.current_zone_id) : undefined
     }));
+  }
+
+  async syncDriverInventory(input: DriverInventorySyncInput): Promise<DriverInventorySyncResult> {
+    const driverId = input.driver_id || this.userTelegramId;
+    const now = new Date().toISOString();
+
+    const normalizedEntries = new Map<string, { quantity: number; location_id?: string | null }>();
+    for (const entry of input.entries || []) {
+      if (!entry || !entry.product_id) continue;
+      const quantity = Math.max(0, Math.round(Number(entry.quantity) || 0));
+      const existing = normalizedEntries.get(entry.product_id) || { quantity: 0, location_id: entry.location_id };
+      existing.quantity = quantity;
+      if (typeof entry.location_id !== 'undefined') {
+        existing.location_id = entry.location_id;
+      }
+      normalizedEntries.set(entry.product_id, existing);
+    }
+
+    const { data: currentRows, error: currentError } = await supabase
+      .from('driver_inventory')
+      .select('id, product_id, quantity, location_id')
+      .eq('driver_id', driverId);
+
+    if (currentError) throw currentError;
+
+    const existingMap = new Map<string, { id: string; product_id: string; quantity: number; location_id?: string | null }>();
+    (currentRows || []).forEach((row: any) => {
+      existingMap.set(row.product_id, {
+        id: row.id,
+        product_id: row.product_id,
+        quantity: row.quantity ?? 0,
+        location_id: row.location_id ?? null
+      });
+    });
+
+    const upserts: any[] = [];
+    const deletions: { id: string; product_id: string; quantity: number }[] = [];
+    const movements: { product_id: string; delta: number }[] = [];
+
+    normalizedEntries.forEach((entry, productId) => {
+      const existing = existingMap.get(productId);
+      const locationId = entry.location_id ?? existing?.location_id ?? null;
+
+      if (entry.quantity === 0) {
+        if (existing) {
+          deletions.push({ id: existing.id, product_id: productId, quantity: existing.quantity });
+          movements.push({ product_id: productId, delta: -existing.quantity });
+        }
+        existingMap.delete(productId);
+        return;
+      }
+
+      upserts.push({
+        driver_id: driverId,
+        product_id: productId,
+        quantity: entry.quantity,
+        location_id: locationId,
+        updated_at: now
+      });
+
+      const previousQuantity = existing?.quantity ?? 0;
+      const delta = entry.quantity - previousQuantity;
+      if (delta !== 0) {
+        movements.push({ product_id: productId, delta });
+      }
+
+      existingMap.delete(productId);
+    });
+
+    existingMap.forEach((row) => {
+      deletions.push({ id: row.id, product_id: row.product_id, quantity: row.quantity });
+      if (row.quantity !== 0) {
+        movements.push({ product_id: row.product_id, delta: -row.quantity });
+      }
+    });
+
+    if (upserts.length > 0) {
+      const { error: upsertError } = await supabase
+        .from('driver_inventory')
+        .upsert(upserts, { onConflict: 'driver_id,product_id' });
+      if (upsertError) throw upsertError;
+    }
+
+    if (deletions.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('driver_inventory')
+        .delete()
+        .in('id', deletions.map((item) => item.id));
+      if (deleteError) throw deleteError;
+    }
+
+    const touchedProducts = new Set<string>();
+    upserts.forEach((item) => touchedProducts.add(item.product_id));
+    deletions.forEach((item) => touchedProducts.add(item.product_id));
+
+    for (const productId of touchedProducts) {
+      await this.refreshProductStock(productId);
+    }
+
+    if (movements.length > 0) {
+      const zoneId = typeof input.zone_id === 'undefined' ? null : input.zone_id;
+      const baseDetails = input.note || 'Driver inventory sync';
+
+      for (const movement of movements) {
+        if (!movement.delta) continue;
+        await this.recordDriverMovement({
+          driver_id: driverId,
+          zone_id: zoneId,
+          product_id: movement.product_id,
+          quantity_change: movement.delta,
+          action: movement.delta > 0 ? 'inventory_added' : 'inventory_removed',
+          details: `${baseDetails} (${movement.delta > 0 ? '+' : ''}${movement.delta})`
+        });
+      }
+    }
+
+    return { updated: upserts.length, removed: deletions.length };
   }
 
   async logDriverMovement(input: {

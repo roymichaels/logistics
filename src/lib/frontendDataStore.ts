@@ -16,7 +16,9 @@ import {
   DriverStatusRecord,
   DriverMovementLog,
   DriverAvailabilityStatus,
-  DriverMovementAction
+  DriverMovementAction,
+  DriverInventorySyncInput,
+  DriverInventorySyncResult
 } from '../../data/types';
 
 // Mock data for Hebrew logistics company
@@ -632,6 +634,34 @@ class HebrewLogisticsDataStore implements DataStore {
     });
   }
 
+  async setDriverOnline(input?: { driver_id?: string; zone_id?: string | null; status?: DriverAvailabilityStatus; note?: string }): Promise<void> {
+    const driverId = input?.driver_id || this.user.telegram_id;
+    const existing = await this.getDriverStatus(driverId);
+    const zoneId = input && Object.prototype.hasOwnProperty.call(input, 'zone_id')
+      ? input?.zone_id ?? undefined
+      : existing?.current_zone_id;
+    const status: DriverAvailabilityStatus = input?.status || (existing?.status === 'off_shift' ? 'available' : existing?.status || 'available');
+
+    await this.updateDriverStatus({
+      driver_id: driverId,
+      status,
+      zone_id: typeof zoneId === 'undefined' ? undefined : zoneId,
+      is_online: true,
+      note: input?.note ?? existing?.note
+    });
+  }
+
+  async setDriverOffline(input?: { driver_id?: string; note?: string }): Promise<void> {
+    const driverId = input?.driver_id || this.user.telegram_id;
+    await this.updateDriverStatus({
+      driver_id: driverId,
+      status: 'off_shift',
+      zone_id: null,
+      is_online: false,
+      note: input?.note
+    });
+  }
+
   async getDriverStatus(driver_id?: string): Promise<DriverStatusRecord | null> {
     const driverId = driver_id || this.user.telegram_id;
     const status = this.driverStatuses.find(record => record.driver_id === driverId);
@@ -692,6 +722,116 @@ class HebrewLogisticsDataStore implements DataStore {
     }
 
     return movements.map(movement => ({ ...movement }));
+  }
+
+  async syncDriverInventory(input: DriverInventorySyncInput): Promise<DriverInventorySyncResult> {
+    const driverId = input.driver_id || this.user.telegram_id;
+    const now = new Date().toISOString();
+    const normalizedEntries = new Map<string, { quantity: number; location_id?: string | null }>();
+
+    for (const entry of input.entries || []) {
+      if (!entry?.product_id) continue;
+      const quantity = Math.max(0, Math.round(Number(entry.quantity) || 0));
+      normalizedEntries.set(entry.product_id, {
+        quantity,
+        location_id: typeof entry.location_id === 'undefined' ? undefined : entry.location_id
+      });
+    }
+
+    const existingRecords = this.driverInventory.filter(record => record.driver_id === driverId);
+    const remainingRecords = this.driverInventory.filter(record => record.driver_id !== driverId);
+
+    const updatedRecords: DriverInventoryRecord[] = [];
+    let updatedCount = 0;
+    let removedCount = 0;
+
+    const movements: DriverMovementLog[] = [];
+
+    normalizedEntries.forEach((entry, productId) => {
+      const existing = existingRecords.find(record => record.product_id === productId);
+      if (entry.quantity === 0) {
+        if (existing) {
+          removedCount += 1;
+          movements.unshift({
+            id: `dm-${Date.now()}-${productId}`,
+            driver_id: driverId,
+            zone_id: input.zone_id ?? undefined,
+            product_id: productId,
+            quantity_change: -existing.quantity,
+            action: 'inventory_removed',
+            details: input.note || 'סנכרון מלאי נהג',
+            created_at: now,
+            zone: input.zone_id ? this.zones.find(zone => zone.id === input.zone_id) : undefined,
+            product: this.products.find(product => product.id === productId)
+          });
+        }
+        return;
+      }
+
+      const product = this.products.find(p => p.id === productId);
+      const quantityChange = entry.quantity - (existing?.quantity ?? 0);
+
+      const record: DriverInventoryRecord = existing
+        ? {
+            ...existing,
+            quantity: entry.quantity,
+            updated_at: now,
+            location_id: entry.location_id ?? existing.location_id,
+            product: product || existing.product
+          }
+        : {
+            id: `di-${Date.now()}-${productId}`,
+            driver_id: driverId,
+            product_id: productId,
+            quantity: entry.quantity,
+            updated_at: now,
+            location_id: entry.location_id,
+            product
+          };
+
+      updatedRecords.push(record);
+      updatedCount += 1;
+
+      if (quantityChange !== 0) {
+        movements.unshift({
+          id: `dm-${Date.now()}-${productId}-${Math.random().toString(16).slice(2, 6)}`,
+          driver_id: driverId,
+          zone_id: input.zone_id ?? undefined,
+          product_id: productId,
+          quantity_change: quantityChange,
+          action: quantityChange > 0 ? 'inventory_added' : 'inventory_removed',
+          details: input.note || 'סנכרון מלאי נהג',
+          created_at: now,
+          zone: input.zone_id ? this.zones.find(zone => zone.id === input.zone_id) : undefined,
+          product
+        });
+      }
+    });
+
+    for (const existing of existingRecords) {
+      if (!normalizedEntries.has(existing.product_id)) {
+        removedCount += 1;
+        movements.unshift({
+          id: `dm-${Date.now()}-${existing.product_id}-rm`,
+          driver_id: driverId,
+          zone_id: input.zone_id ?? undefined,
+          product_id: existing.product_id,
+          quantity_change: -existing.quantity,
+          action: 'inventory_removed',
+          details: input.note || 'סנכרון מלאי נהג',
+          created_at: now,
+          zone: input.zone_id ? this.zones.find(zone => zone.id === input.zone_id) : undefined,
+          product: existing.product
+        });
+      }
+    }
+
+    this.driverInventory = [...remainingRecords, ...updatedRecords];
+    if (movements.length > 0) {
+      this.driverMovements.unshift(...movements);
+    }
+
+    return { updated: updatedCount, removed: removedCount };
   }
 
   // Orders
