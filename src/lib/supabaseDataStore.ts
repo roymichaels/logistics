@@ -39,7 +39,10 @@ import {
   DriverAvailabilityStatus,
   DriverMovementAction,
   ZoneCoverageSnapshot,
-  CreateNotificationInput
+  CreateNotificationInput,
+  UserRegistration,
+  UserRegistrationStatus,
+  RegistrationApproval
 } from '../../data/types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -50,6 +53,329 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+const VALID_ROLES: User['role'][] = [
+  'user',
+  'manager',
+  'dispatcher',
+  'driver',
+  'warehouse',
+  'sales',
+  'customer_service'
+];
+
+export interface UpsertUserRegistrationInput {
+  telegram_id: string;
+  first_name: string;
+  last_name?: string | null;
+  username?: string | null;
+  photo_url?: string | null;
+  department?: string | null;
+  phone?: string | null;
+  requested_role?: User['role'];
+}
+
+export interface ApproveUserRegistrationInput {
+  approved_by: string;
+  assigned_role: User['role'];
+  notes?: string | null;
+}
+
+export interface UpdateUserRegistrationRoleInput {
+  assigned_role: User['role'];
+  updated_by: string;
+  notes?: string | null;
+}
+
+function normalizeRole(role?: string | null): User['role'] {
+  if (role && (VALID_ROLES as string[]).includes(role)) {
+    return role as User['role'];
+  }
+  return 'user';
+}
+
+function sanitizeValue<T>(value: T | null | undefined): T | null {
+  return value ?? null;
+}
+
+function normalizeHistory(history: RegistrationApproval[] | null | undefined): RegistrationApproval[] {
+  if (!Array.isArray(history)) return [];
+  return history.map((entry) => ({
+    action: entry.action,
+    by: entry.by,
+    at: entry.at,
+    notes: entry.notes ?? null,
+    assigned_role: entry.assigned_role ?? null
+  }));
+}
+
+function appendHistory(
+  history: RegistrationApproval[],
+  entry: RegistrationApproval
+): RegistrationApproval[] {
+  return [...history, entry];
+}
+
+async function upsertUserProfileFromRegistration(input: UpsertUserRegistrationInput) {
+  const fullName = [input.first_name, input.last_name].filter(Boolean).join(' ').trim();
+  const profileUpdate = {
+    name: fullName || input.first_name,
+    username: sanitizeValue(input.username),
+    photo_url: sanitizeValue(input.photo_url),
+    department: sanitizeValue(input.department),
+    phone: sanitizeValue(input.phone),
+    updated_at: new Date().toISOString()
+  };
+
+  const { data: existing, error: fetchError } = await supabase
+    .from('users')
+    .select('telegram_id')
+    .eq('telegram_id', input.telegram_id)
+    .maybeSingle();
+
+  if (fetchError) {
+    throw fetchError;
+  }
+
+  if (existing?.telegram_id) {
+    const { error: updateError } = await supabase
+      .from('users')
+      .update(profileUpdate)
+      .eq('telegram_id', input.telegram_id);
+
+    if (updateError) throw updateError;
+  } else {
+    const { error: insertError } = await supabase.from('users').insert({
+      telegram_id: input.telegram_id,
+      role: 'user',
+      ...profileUpdate
+    });
+
+    if (insertError) throw insertError;
+  }
+}
+
+async function updateUserRoleAssignment(telegramId: string, role: User['role']) {
+  const { error } = await supabase
+    .from('users')
+    .update({ role, updated_at: new Date().toISOString() })
+    .eq('telegram_id', telegramId);
+
+  if (error) throw error;
+}
+
+export async function fetchUserRegistrationRecord(telegramId: string): Promise<UserRegistration | null> {
+  const { data, error } = await supabase
+    .from('user_registrations')
+    .select('*')
+    .eq('telegram_id', telegramId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  if (!data) return null;
+
+  return {
+    ...data,
+    approval_history: normalizeHistory(data.approval_history as RegistrationApproval[] | null)
+  } as UserRegistration;
+}
+
+export async function listUserRegistrationRecords(filters?: {
+  status?: UserRegistrationStatus;
+}): Promise<UserRegistration[]> {
+  let query = supabase
+    .from('user_registrations')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (filters?.status) {
+    query = query.eq('status', filters.status);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    ...row,
+    approval_history: normalizeHistory(row.approval_history as RegistrationApproval[] | null)
+  })) as UserRegistration[];
+}
+
+export async function upsertUserRegistrationRecord(
+  input: UpsertUserRegistrationInput
+): Promise<UserRegistration> {
+  const telegramId = input.telegram_id;
+  const existing = await fetchUserRegistrationRecord(telegramId);
+  const requestedRole = normalizeRole(input.requested_role);
+  const now = new Date().toISOString();
+
+  await upsertUserProfileFromRegistration(input);
+
+  const history = normalizeHistory(existing?.approval_history);
+  let updatedHistory = history;
+
+  if (!existing) {
+    updatedHistory = appendHistory(history, {
+      action: 'submitted',
+      by: telegramId,
+      at: now,
+      notes: `בקשת תפקיד: ${requestedRole}`,
+      assigned_role: null
+    });
+  } else if (existing.requested_role !== requestedRole) {
+    updatedHistory = appendHistory(history, {
+      action: 'updated',
+      by: telegramId,
+      at: now,
+      notes: `עודכן תפקיד מבוקש ל-${requestedRole}`,
+      assigned_role: existing.assigned_role ?? null
+    });
+  }
+
+  const payload = {
+    telegram_id: telegramId,
+    first_name: input.first_name,
+    last_name: sanitizeValue(input.last_name),
+    username: sanitizeValue(input.username),
+    photo_url: sanitizeValue(input.photo_url),
+    department: sanitizeValue(input.department),
+    phone: sanitizeValue(input.phone),
+    requested_role: requestedRole,
+    approval_history: updatedHistory,
+    updated_at: now
+  };
+
+  if (existing) {
+    const { data, error } = await supabase
+      .from('user_registrations')
+      .update(payload)
+      .eq('telegram_id', telegramId)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    return {
+      ...data,
+      approval_history: normalizeHistory(data.approval_history as RegistrationApproval[] | null)
+    } as UserRegistration;
+  }
+
+  const { data, error } = await supabase
+    .from('user_registrations')
+    .insert({
+      ...payload,
+      status: 'pending',
+      created_at: now
+    })
+    .select('*')
+    .single();
+
+  if (error) throw error;
+
+  return {
+    ...data,
+    approval_history: normalizeHistory(data.approval_history as RegistrationApproval[] | null)
+  } as UserRegistration;
+}
+
+export async function approveUserRegistrationRecord(
+  telegramId: string,
+  input: ApproveUserRegistrationInput
+): Promise<UserRegistration> {
+  const registration = await fetchUserRegistrationRecord(telegramId);
+  if (!registration) {
+    throw new Error('User registration not found');
+  }
+
+  const now = new Date().toISOString();
+  const assignedRole = normalizeRole(input.assigned_role);
+  const history = appendHistory(normalizeHistory(registration.approval_history), {
+    action: 'approved',
+    by: input.approved_by,
+    at: now,
+    notes: input.notes ?? null,
+    assigned_role: assignedRole
+  });
+
+  const { data, error } = await supabase
+    .from('user_registrations')
+    .update({
+      status: 'approved',
+      approved_by: input.approved_by,
+      approved_at: now,
+      approval_notes: input.notes ?? null,
+      assigned_role: assignedRole,
+      approval_history: history,
+      updated_at: now
+    })
+    .eq('telegram_id', telegramId)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+
+  await updateUserRoleAssignment(telegramId, assignedRole);
+
+  return {
+    ...data,
+    approval_history: normalizeHistory(data.approval_history as RegistrationApproval[] | null)
+  } as UserRegistration;
+}
+
+export async function updateUserRegistrationRoleRecord(
+  telegramId: string,
+  input: UpdateUserRegistrationRoleInput
+): Promise<UserRegistration> {
+  const registration = await fetchUserRegistrationRecord(telegramId);
+  if (!registration) {
+    throw new Error('User registration not found');
+  }
+
+  const now = new Date().toISOString();
+  const assignedRole = normalizeRole(input.assigned_role);
+  const history = appendHistory(normalizeHistory(registration.approval_history), {
+    action: 'updated',
+    by: input.updated_by,
+    at: now,
+    notes: input.notes ?? null,
+    assigned_role: assignedRole
+  });
+
+  const { data, error } = await supabase
+    .from('user_registrations')
+    .update({
+      assigned_role: assignedRole,
+      approval_notes: input.notes ?? registration.approval_notes ?? null,
+      approval_history: history,
+      updated_at: now
+    })
+    .eq('telegram_id', telegramId)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+
+  await updateUserRoleAssignment(telegramId, assignedRole);
+
+  return {
+    ...data,
+    approval_history: normalizeHistory(data.approval_history as RegistrationApproval[] | null)
+  } as UserRegistration;
+}
+
+export async function deleteUserRegistrationRecord(telegramId: string): Promise<boolean> {
+  const { error, count } = await supabase
+    .from('user_registrations')
+    .delete({ count: 'exact' })
+    .eq('telegram_id', telegramId);
+
+  if (error) throw error;
+
+  return (count ?? 0) > 0;
+}
 
 export class SupabaseDataStore implements DataStore {
   private user: User | null = null;

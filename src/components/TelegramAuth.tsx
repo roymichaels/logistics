@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import type { UserRegistration } from '../../data/types';
 import { telegram } from '../../lib/telegram';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 
@@ -105,12 +106,18 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
 
     // Register user in local system
     const { userManager } = await import('../lib/userManager');
-    const registration = userManager.registerUser(userData);
-    
+    let registration: UserRegistration | null = null;
+
+    try {
+      registration = await userManager.registerUser(userData);
+    } catch (error) {
+      console.error('Failed to register user in Supabase:', error);
+    }
+
     // Add registration info to user data
     userData.registration = registration;
     userData.isFirstAdmin = userManager.isFirstAdmin(userData.telegram_id);
-    userData.isApproved = registration.approved;
+    userData.isApproved = registration?.status === 'approved';
 
     console.log('✅ Using Telegram user data');
     onAuth(userData);
@@ -161,12 +168,18 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
 
       // Register user in local system
       const { userManager } = await import('../lib/userManager');
-      const registration = userManager.registerUser(userData);
-      
+      let registration: UserRegistration | null = null;
+
+      try {
+        registration = await userManager.registerUser(userData);
+      } catch (error) {
+        console.error('Failed to register user in Supabase:', error);
+      }
+
       // Add registration info to user data
       userData.registration = registration;
       userData.isFirstAdmin = userManager.isFirstAdmin(userData.telegram_id);
-      userData.isApproved = registration.approved;
+      userData.isApproved = registration?.status === 'approved';
 
       console.log('✅ Using Telegram Login Widget data');
       onAuth(userData);

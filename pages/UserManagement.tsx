@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { telegram } from '../lib/telegram';
-import { userManager, UserRegistration } from '../src/lib/userManager';
+import { userManager } from '../src/lib/userManager';
+import type { UserRegistration } from '../data/types';
 import { TelegramModal } from '../src/components/TelegramModal';
 import { roleNames, roleIcons } from '../src/lib/hebrew';
 
@@ -20,7 +21,7 @@ export function UserManagement({ onNavigate, currentUser }: UserManagementProps)
   const theme = telegram.themeParams;
 
   useEffect(() => {
-    loadUsers();
+    void loadUsers();
   }, []);
 
   useEffect(() => {
@@ -28,28 +29,44 @@ export function UserManagement({ onNavigate, currentUser }: UserManagementProps)
     return () => telegram.hideBackButton();
   }, [onNavigate]);
 
-  const loadUsers = () => {
-    setPendingUsers(userManager.getPendingUsers());
-    setApprovedUsers(userManager.getApprovedUsers());
-    setLoading(false);
+  const loadUsers = async () => {
+    setLoading(true);
+    try {
+      const [pending, approved] = await Promise.all([
+        userManager.getPendingUsers(),
+        userManager.getApprovedUsers()
+      ]);
+      setPendingUsers(pending);
+      setApprovedUsers(approved);
+    } catch (error) {
+      console.error('Failed to load registrations', error);
+      telegram.showAlert('שגיאה בטעינת נתוני המשתמשים');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleApproveUser = async () => {
     if (!selectedUser) return;
 
-    const success = userManager.approveUser(
-      selectedUser.telegram_id,
-      selectedRole,
-      currentUser.telegram_id
-    );
+    try {
+      const success = await userManager.approveUser(
+        selectedUser.telegram_id,
+        selectedRole,
+        currentUser.telegram_id
+      );
 
-    if (success) {
-      telegram.hapticFeedback('notification', 'success');
-      telegram.showAlert(`משתמש אושר בהצלחה כ${roleNames[selectedRole as keyof typeof roleNames]}`);
-      loadUsers();
-      setShowApprovalModal(false);
-      setSelectedUser(null);
-    } else {
+      if (success) {
+        telegram.hapticFeedback('notification', 'success');
+        telegram.showAlert(`משתמש אושר בהצלחה כ${roleNames[selectedRole as keyof typeof roleNames]}`);
+        await loadUsers();
+        setShowApprovalModal(false);
+        setSelectedUser(null);
+      } else {
+        telegram.showAlert('שגיאה באישור המשתמש');
+      }
+    } catch (error) {
+      console.error('Failed to approve user', error);
       telegram.showAlert('שגיאה באישור המשתמש');
     }
   };
@@ -60,12 +77,17 @@ export function UserManagement({ onNavigate, currentUser }: UserManagementProps)
     );
 
     if (confirmed) {
-      const success = userManager.deleteUser(user.telegram_id);
-      if (success) {
-        telegram.hapticFeedback('notification', 'success');
-        loadUsers();
-      } else {
-        telegram.showAlert('לא ניתן למחוק את המשתמש הזה');
+      try {
+        const success = await userManager.deleteUser(user.telegram_id);
+        if (success) {
+          telegram.hapticFeedback('notification', 'success');
+          await loadUsers();
+        } else {
+          telegram.showAlert('לא ניתן למחוק את המשתמש הזה');
+        }
+      } catch (error) {
+        console.error('Failed to delete user registration', error);
+        telegram.showAlert('שגיאה במחיקת המשתמש');
       }
     }
   };
@@ -130,7 +152,7 @@ export function UserManagement({ onNavigate, currentUser }: UserManagementProps)
                   isPending={true}
                   onApprove={() => {
                     setSelectedUser(user);
-                    setSelectedRole('driver');
+                    setSelectedRole(user.requested_role);
                     setShowApprovalModal(true);
                   }}
                   onDelete={() => handleDeleteUser(user)}
@@ -281,6 +303,18 @@ function UserCard({ user, isPending, onApprove, onDelete, theme }: {
   theme: any;
 }) {
   const isFirstAdmin = userManager.isFirstAdmin(user.telegram_id);
+  const effectiveRole = (user.assigned_role ?? user.requested_role) as keyof typeof roleNames;
+  const statusLabels: Record<UserRegistration['status'], string> = {
+    pending: 'ממתין לאישור',
+    approved: 'מאושר',
+    rejected: 'נדחה'
+  };
+
+  const statusColors: Record<UserRegistration['status'], string> = {
+    pending: '#ff9500',
+    approved: '#34c759',
+    rejected: '#ff3b30'
+  };
 
   return (
     <div style={{
@@ -304,15 +338,15 @@ function UserCard({ user, isPending, onApprove, onDelete, theme }: {
         }}>
           {user.first_name[0]}
         </div>
-        
+
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: '16px', 
+            <h3 style={{
+              margin: 0,
+              fontSize: '16px',
               fontWeight: '600'
             }}>
-              {user.first_name} {user.last_name}
+              {user.first_name} {user.last_name || ''}
             </h3>
             {isFirstAdmin && (
               <span style={{
@@ -327,91 +361,110 @@ function UserCard({ user, isPending, onApprove, onDelete, theme }: {
               </span>
             )}
           </div>
-          
+
           {user.username && (
-            <p style={{ 
-              margin: '0 0 4px 0', 
-              fontSize: '14px', 
+            <p style={{
+              margin: '0 0 4px 0',
+              fontSize: '14px',
               color: theme.hint_color
             }}>
               @{user.username}
             </p>
           )}
-          
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '16px' }}>
-              {roleIcons[user.role]}
+              {roleIcons[effectiveRole]}
             </span>
             <span style={{ fontSize: '14px', fontWeight: '500' }}>
-              {roleNames[user.role]}
+              {roleNames[effectiveRole]}
             </span>
+            {user.assigned_role && user.assigned_role !== user.requested_role && (
+              <span style={{
+                fontSize: '12px',
+                color: theme.hint_color
+              }}>
+                (התפקיד המבוקש: {roleNames[user.requested_role]})
+              </span>
+            )}
           </div>
         </div>
       </div>
 
-      {/* User Info */}
-      <div style={{ 
-        fontSize: '12px', 
+      <div style={{
+        fontSize: '12px',
         color: theme.hint_color,
         marginBottom: isPending || onDelete ? '12px' : '0'
       }}>
         <p style={{ margin: '0 0 4px 0' }}>
           נרשם: {new Date(user.created_at).toLocaleDateString('he-IL')}
         </p>
-        {user.approved_at && (
-          <p style={{ margin: 0 }}>
-            אושר: {new Date(user.approved_at).toLocaleDateString('he-IL')}
+        <p style={{ margin: '0 0 4px 0', color: statusColors[user.status], fontWeight: 600 }}>
+          סטטוס: {statusLabels[user.status]}
+          {user.status === 'approved' && user.approved_at && (
+            <span style={{ color: theme.hint_color, fontWeight: 'normal', marginRight: '8px' }}>
+              ({new Date(user.approved_at).toLocaleDateString('he-IL')})
+            </span>
+          )}
+        </p>
+        {user.department && (
+          <p style={{ margin: '0 0 4px 0' }}>
+            מחלקה: {user.department}
+          </p>
+        )}
+        {user.phone && (
+          <p style={{ margin: '0 0 4px 0' }}>
+            טלפון: {user.phone}
+          </p>
+        )}
+        {user.approval_notes && (
+          <p style={{ margin: '0 0 4px 0' }}>
+            הערות: {user.approval_notes}
           </p>
         )}
       </div>
 
-      {/* Actions */}
-      {(isPending || onDelete) && (
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {isPending && onApprove && (
-            <button
-              onClick={() => {
-                telegram.hapticFeedback('selection');
-                onApprove();
-              }}
-              style={{
-                flex: 1,
-                padding: '8px 16px',
-                backgroundColor: '#34c759',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
-            >
-              ✅ אשר
-            </button>
-          )}
-          
-          {onDelete && (
-            <button
-              onClick={() => {
-                telegram.hapticFeedback('selection');
-                onDelete();
-              }}
-              style={{
-                flex: isPending ? 1 : 0,
-                padding: '8px 16px',
-                backgroundColor: '#ff3b30',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
-            >
-              🗑️ מחק
-            </button>
-          )}
-        </div>
+      {isPending && onApprove && (
+        <button
+          onClick={() => {
+            telegram.hapticFeedback('selection');
+            onApprove();
+          }}
+          style={{
+            width: '100%',
+            padding: '12px',
+            backgroundColor: theme.button_color,
+            color: theme.button_text_color,
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '16px',
+            cursor: 'pointer'
+          }}
+        >
+          אשר משתמש
+        </button>
+      )}
+
+      {!isPending && onDelete && (
+        <button
+          onClick={() => {
+            telegram.hapticFeedback('selection');
+            onDelete();
+          }}
+          style={{
+            marginTop: '12px',
+            width: '100%',
+            padding: '12px',
+            backgroundColor: '#ff3b30',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '16px',
+            cursor: 'pointer'
+          }}
+        >
+          מחק משתמש
+        </button>
       )}
     </div>
   );
