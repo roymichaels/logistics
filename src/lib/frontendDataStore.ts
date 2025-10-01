@@ -374,9 +374,13 @@ class HebrewLogisticsDataStore implements DataStore {
     return this.user;
   }
 
+  async getCurrentRole(): Promise<User['role']> {
+    return this.user.role;
+  }
+
   async updateProfile(updates: Partial<User>): Promise<void> {
-    this.user = { 
-      ...this.user, 
+    this.user = {
+      ...this.user,
       ...updates,
       department: updates.role ? getDepartmentByRole(updates.role) : this.user.department
     };

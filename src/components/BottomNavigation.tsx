@@ -59,9 +59,6 @@ export function BottomNavigation({
 }: BottomNavigationProps) {
   const { theme, haptic } = useTelegramUI();
 
-  const demoRole = localStorage.getItem('demo_role');
-  const effectiveRole: RoleKey | null = (demoRole || userRole || null) as RoleKey | null;
-
   const roleNavigation: Record<RoleKey, RoleNavigationConfig> = {
     user: {
       tabs: [
@@ -153,7 +150,7 @@ export function BottomNavigation({
     }
   };
 
-  const roleConfig = effectiveRole ? roleNavigation[effectiveRole] : roleNavigation.user;
+  const roleConfig = userRole ? roleNavigation[userRole] : roleNavigation.user;
   const tabs = roleConfig.tabs;
   const action = roleConfig.action;
 
@@ -249,9 +246,9 @@ export function BottomNavigation({
         {navItems}
       </div>
 
-      {effectiveRole && action && (
+      {userRole && action && (
         <FloatingCreateButton
-          userRole={effectiveRole}
+          userRole={userRole}
           businessId={businessId}
           actionLabel={action.label}
           actionIcon={action.icon}

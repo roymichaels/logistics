@@ -153,10 +153,10 @@ export default function App() {
       // Get user role from store
       if (store) {
         try {
-          const profile = await store.getProfile();
-          setUserRole(profile.role);
+          const role = (await store.getCurrentRole?.()) ?? (await store.getProfile()).role;
+          setUserRole(role ?? 'user');
         } catch (error) {
-          console.warn('Failed to get user profile:', error);
+          console.warn('Failed to resolve user role:', error);
           setUserRole('user'); // Default fallback
         }
       }
@@ -189,10 +189,10 @@ export default function App() {
       // Get user role from store
       if (store) {
         try {
-          const profile = await store.getProfile();
-          setUserRole(profile.role);
+          const role = (await store.getCurrentRole?.()) ?? (await store.getProfile()).role;
+          setUserRole(role ?? 'user');
         } catch (error) {
-          console.warn('Failed to get user profile:', error);
+          console.warn('Failed to resolve user role:', error);
           setUserRole('user'); // Default fallback
         }
       }
