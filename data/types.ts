@@ -317,6 +317,24 @@ export interface DriverAvailabilitySummary {
   score: number;
 }
 
+export interface ZoneCoverageSnapshot {
+  zone: Zone;
+  onlineDrivers: DriverStatusRecord[];
+  idleDrivers: DriverStatusRecord[];
+  assignments: DriverZoneAssignment[];
+  inventory: DriverInventoryRecord[];
+  outstandingOrders: Order[];
+}
+
+export interface DispatchAssignmentResult {
+  success: boolean;
+  driverId?: string;
+  zoneId?: string | null;
+  candidateScore?: number;
+  reason?: 'no_zone' | 'no_candidates' | 'permission_denied' | 'error';
+  notificationId?: string;
+}
+
 export type OrderEntryMode = 'dm' | 'storefront';
 
 export interface OrderItemInput {
@@ -409,6 +427,14 @@ export interface Notification {
   created_at: string;
 }
 
+export interface CreateNotificationInput {
+  recipient_id: string;
+  title: string;
+  message: string;
+  type?: Notification['type'];
+  action_url?: string | null;
+}
+
 export interface Route {
   id: string;
   driver_id: string;
@@ -465,6 +491,7 @@ export interface DataStore {
   getZone?(id: string): Promise<Zone | null>;
   listDriverZones?(filters?: { driver_id?: string; zone_id?: string; activeOnly?: boolean }): Promise<DriverZoneAssignment[]>;
   assignDriverToZone?(input: { zone_id: string; driver_id?: string; active?: boolean }): Promise<void>;
+  unassignDriverFromZone?(input: { zone_id: string; driver_id?: string }): Promise<void>;
   updateDriverStatus?(input: {
     status: DriverAvailabilityStatus;
     driver_id?: string;
@@ -472,10 +499,18 @@ export interface DataStore {
     is_online?: boolean;
     note?: string;
   }): Promise<void>;
+  toggleDriverOnline?(input: {
+    driver_id?: string;
+    zone_id?: string | null;
+    is_online: boolean;
+    status?: DriverAvailabilityStatus;
+    note?: string;
+  }): Promise<void>;
   setDriverOnline?(input?: { driver_id?: string; zone_id?: string | null; status?: DriverAvailabilityStatus; note?: string }): Promise<void>;
   setDriverOffline?(input?: { driver_id?: string; note?: string }): Promise<void>;
   getDriverStatus?(driver_id?: string): Promise<DriverStatusRecord | null>;
   listDriverStatuses?(filters?: { zone_id?: string; onlyOnline?: boolean }): Promise<DriverStatusRecord[]>;
+  getZoneCoverage?(filters?: { zone_id?: string; includeOrders?: boolean; onlyActive?: boolean }): Promise<ZoneCoverageSnapshot[]>;
   syncDriverInventory?(input: DriverInventorySyncInput): Promise<DriverInventorySyncResult>;
   logDriverMovement?(input: {
     driver_id: string;
@@ -511,6 +546,7 @@ export interface DataStore {
   // Notifications
   getNotifications?(): Promise<Notification[]>;
   markNotificationRead?(id: string): Promise<void>;
+  createNotification?(input: CreateNotificationInput): Promise<{ id: string }>;
 }
 
 export interface BootstrapConfig {
