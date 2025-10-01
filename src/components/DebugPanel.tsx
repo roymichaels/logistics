@@ -45,6 +45,7 @@ export function DebugPanel() {
   const [logs, setLogs] = useState<DebugLog[]>([...debugLogs]);
   const [isExpanded, setIsExpanded] = useState(true);
   const [showData, setShowData] = useState<number | null>(null);
+  const [isPinned, setIsPinned] = useState(true);
   const { theme } = useTelegramUI();
 
   useEffect(() => {
@@ -73,7 +74,7 @@ export function DebugPanel() {
     }
   };
 
-  if (!isExpanded) {
+  if (!isExpanded && !isPinned) {
     return (
       <div
         onClick={() => setIsExpanded(true)}
@@ -136,6 +137,21 @@ export function DebugPanel() {
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
+            onClick={() => setIsPinned(!isPinned)}
+            style={{
+              padding: '4px 8px',
+              backgroundColor: isPinned ? theme.button_color : 'transparent',
+              color: isPinned ? theme.button_text_color : theme.hint_color,
+              border: `1px solid ${theme.hint_color}30`,
+              borderRadius: '6px',
+              fontSize: '12px',
+              cursor: 'pointer'
+            }}
+            title={isPinned ? 'Pinned - stays open' : 'Click to pin'}
+          >
+            {isPinned ? '📌 Pinned' : '📍 Pin'}
+          </button>
+          <button
             onClick={() => debugLog.clear()}
             style={{
               padding: '4px 8px',
@@ -149,20 +165,22 @@ export function DebugPanel() {
           >
             Clear
           </button>
-          <button
-            onClick={() => setIsExpanded(false)}
-            style={{
-              padding: '4px 8px',
-              backgroundColor: 'transparent',
-              color: theme.hint_color,
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '16px',
-              cursor: 'pointer'
-            }}
-          >
-            ✕
-          </button>
+          {!isPinned && (
+            <button
+              onClick={() => setIsExpanded(false)}
+              style={{
+                padding: '4px 8px',
+                backgroundColor: 'transparent',
+                color: theme.hint_color,
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '16px',
+                cursor: 'pointer'
+              }}
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 
@@ -170,9 +188,11 @@ export function DebugPanel() {
         style={{
           flex: 1,
           overflowY: 'auto',
+          overflowX: 'hidden',
           padding: '8px',
           fontSize: '11px',
-          fontFamily: 'monospace'
+          fontFamily: 'monospace',
+          WebkitOverflowScrolling: 'touch'
         }}
       >
         {logs.length === 0 ? (
