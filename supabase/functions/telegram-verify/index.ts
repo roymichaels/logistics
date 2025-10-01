@@ -249,7 +249,21 @@ Deno.serve(async (req: Request) => {
       }
 
       authUser = linkData.user ?? null;
-      const emailOtp = linkData.properties?.email_otp;
+      const actionLink = linkData.properties?.action_link;
+      let magicLinkToken: string | null = null;
+
+      if (typeof actionLink === 'string') {
+        try {
+          const linkUrl = new URL(actionLink);
+          magicLinkToken = linkUrl.searchParams.get('token');
+        } catch (parseError) {
+          console.warn('Failed to parse magic link URL:', parseError);
+        }
+      }
+
+      if (!magicLinkToken) {
+        magicLinkToken = linkData.properties?.email_otp ?? null;
+      }
 
       if (authUser?.id) {
         const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, {
@@ -261,14 +275,14 @@ Deno.serve(async (req: Request) => {
         }
       }
 
-      if (!emailOtp) {
+      if (!magicLinkToken) {
         throw new Error('Unable to mint Supabase session');
       }
 
       const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
         type: 'magiclink',
         email,
-        token: emailOtp
+        token: magicLinkToken
       });
 
       if (verifyError) {
