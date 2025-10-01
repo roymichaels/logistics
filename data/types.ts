@@ -125,7 +125,7 @@ export interface DriverMovementLog {
   product?: Product;
 }
 
-export type RestockRequestStatus = 'pending' | 'approved' | 'fulfilled' | 'rejected';
+export type RestockRequestStatus = 'pending' | 'approved' | 'in_transit' | 'fulfilled' | 'rejected';
 
 export interface RestockRequest {
   id: string;
@@ -306,6 +306,53 @@ export interface Route {
   created_at: string;
 }
 
+export interface DashboardHourlyPoint {
+  hour: string;
+  orders: number;
+  revenue: number;
+  volume: number;
+}
+
+export interface DashboardDailyPoint {
+  date: string;
+  orders: number;
+  revenue: number;
+  volume: number;
+}
+
+export interface ZoneCoverageSnapshot {
+  zone_id: string;
+  zone_name: string;
+  coverage_percent: number;
+  active_drivers: number;
+  assigned_drivers: number;
+  open_orders: number;
+  unassigned_orders: number;
+}
+
+export interface ManagerDashboardSnapshot {
+  generated_at: string;
+  metrics: {
+    revenue_today: number;
+    revenue_change: number;
+    orders_today: number;
+    orders_change: number;
+    average_order_value: number;
+    volume_today: number;
+    active_drivers: number;
+    total_drivers: number;
+    online_ratio: number;
+    zone_coverage: number;
+    low_stock_count: number;
+    restock_pending: number;
+  };
+  hourly: DashboardHourlyPoint[];
+  trend: DashboardDailyPoint[];
+  zone_coverage: ZoneCoverageSnapshot[];
+  low_stock_alerts: InventoryAlert[];
+  restock_requests: RestockRequest[];
+}
+
 export interface DataStore {
   // Auth & Profile
   getProfile(): Promise<User>;
@@ -412,6 +459,13 @@ export interface DataStore {
   // Notifications
   getNotifications?(): Promise<Notification[]>;
   markNotificationRead?(id: string): Promise<void>;
+
+  // Aggregated dashboards
+  getManagerDashboardSnapshot?(): Promise<ManagerDashboardSnapshot>;
+
+  // Exports
+  exportOrdersToCSV?(filters?: any): Promise<string>;
+  exportProductsToCSV?(): Promise<string>;
 }
 
 export interface BootstrapConfig {

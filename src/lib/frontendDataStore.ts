@@ -16,7 +16,13 @@ import {
   DriverStatusRecord,
   DriverMovementLog,
   DriverAvailabilityStatus,
-  DriverMovementAction
+  DriverMovementAction,
+  ManagerDashboardSnapshot,
+  DashboardHourlyPoint,
+  DashboardDailyPoint,
+  ZoneCoverageSnapshot,
+  InventoryAlert,
+  RestockRequest
 } from '../../data/types';
 
 // Mock data for Hebrew logistics company
@@ -889,6 +895,265 @@ class HebrewLogisticsDataStore implements DataStore {
     if (index !== -1) {
       this.notifications[index].read = true;
     }
+  }
+
+  async getManagerDashboardSnapshot(): Promise<ManagerDashboardSnapshot> {
+    const now = new Date();
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const previousDayStart = new Date(startOfDay);
+    previousDayStart.setDate(previousDayStart.getDate() - 1);
+
+    const startOfWeek = new Date(startOfDay);
+    startOfWeek.setDate(startOfWeek.getDate() - 6);
+
+    const withinRange = (dateStr: string, from: Date, to: Date) => {
+      const value = new Date(dateStr);
+      return value >= from && value <= to;
+    };
+
+    const isOpenStatus = (status: Order['status']) =>
+      ['new', 'confirmed', 'preparing', 'ready', 'out_for_delivery'].includes(status);
+
+    const todaysOrders = this.orders.filter(order =>
+      withinRange(order.created_at, startOfDay, now) && order.status !== 'cancelled'
+    );
+    const yesterdaysOrders = this.orders.filter(order =>
+      withinRange(order.created_at, previousDayStart, startOfDay) && order.status !== 'cancelled'
+    );
+    const weekOrders = this.orders.filter(order =>
+      withinRange(order.created_at, startOfWeek, now)
+    );
+
+    const summarizeRevenue = (orders: Order[]) =>
+      orders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
+
+    const summarizeVolume = (orders: Order[]) =>
+      orders.reduce((total, order) => {
+        return total + (order.items || []).reduce((count, item) => count + Number(item.quantity || 0), 0);
+      }, 0);
+
+    const computeChange = (todayValue: number, previousValue: number) => {
+      if (previousValue === 0) {
+        return todayValue > 0 ? 100 : 0;
+      }
+      return ((todayValue - previousValue) / previousValue) * 100;
+    };
+
+    const revenueToday = summarizeRevenue(todaysOrders);
+    const revenueYesterday = summarizeRevenue(yesterdaysOrders);
+    const ordersTodayCount = todaysOrders.length;
+    const ordersYesterdayCount = yesterdaysOrders.length;
+    const volumeToday = summarizeVolume(todaysOrders);
+    const averageOrderValue = ordersTodayCount > 0 ? revenueToday / ordersTodayCount : 0;
+
+    const hourlyMap = new Map<string, DashboardHourlyPoint>();
+    todaysOrders.forEach(order => {
+      const hour = new Date(order.created_at).getHours();
+      const label = `${hour.toString().padStart(2, '0')}:00`;
+      if (!hourlyMap.has(label)) {
+        hourlyMap.set(label, { hour: label, orders: 0, revenue: 0, volume: 0 });
+      }
+      const bucket = hourlyMap.get(label)!;
+      bucket.orders += 1;
+      bucket.revenue += Number(order.total_amount || 0);
+      bucket.volume += (order.items || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+    });
+
+    const hourly: DashboardHourlyPoint[] = [];
+    for (let hour = 0; hour <= now.getHours(); hour += 1) {
+      const label = `${hour.toString().padStart(2, '0')}:00`;
+      hourly.push(hourlyMap.get(label) || { hour: label, orders: 0, revenue: 0, volume: 0 });
+    }
+
+    const trendBuckets = new Map<string, DashboardDailyPoint>();
+    const iterator = new Date(startOfWeek);
+    while (iterator <= now) {
+      const key = iterator.toISOString().slice(0, 10);
+      trendBuckets.set(key, { date: key, orders: 0, revenue: 0, volume: 0 });
+      iterator.setDate(iterator.getDate() + 1);
+    }
+
+    weekOrders.forEach(order => {
+      const key = new Date(order.created_at).toISOString().slice(0, 10);
+      if (!trendBuckets.has(key)) {
+        trendBuckets.set(key, { date: key, orders: 0, revenue: 0, volume: 0 });
+      }
+      const bucket = trendBuckets.get(key)!;
+      if (order.status !== 'cancelled') {
+        bucket.orders += 1;
+        bucket.revenue += Number(order.total_amount || 0);
+        bucket.volume += (order.items || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+      }
+    });
+
+    const trend = Array.from(trendBuckets.values()).sort((a, b) => a.date.localeCompare(b.date));
+
+    const driverStatuses = [...this.driverStatuses];
+    const activeAssignments = this.driverZones.filter(zone => zone.active);
+    const zones = [...this.zones];
+
+    const totalDrivers = driverStatuses.length;
+    const activeDrivers = driverStatuses.filter(status => status.is_online && status.status !== 'off_shift').length;
+    const onlineRatio = totalDrivers > 0 ? activeDrivers / totalDrivers : 0;
+
+    const assignmentMap = new Map<string, Set<string>>();
+    activeAssignments.forEach(assignment => {
+      if (!assignmentMap.has(assignment.zone_id)) {
+        assignmentMap.set(assignment.zone_id, new Set());
+      }
+      assignmentMap.get(assignment.zone_id)!.add(assignment.driver_id);
+    });
+
+    const activeMap = new Map<string, Set<string>>();
+    driverStatuses.forEach(status => {
+      if (!status.is_online || status.status === 'off_shift') {
+        return;
+      }
+      const resolvedZone = status.current_zone_id || activeAssignments.find(assignment => assignment.driver_id === status.driver_id)?.zone_id;
+      if (!resolvedZone) return;
+      if (!activeMap.has(resolvedZone)) {
+        activeMap.set(resolvedZone, new Set());
+      }
+      activeMap.get(resolvedZone)!.add(status.driver_id);
+    });
+
+    const openOrders = this.orders.filter(order => isOpenStatus(order.status));
+    const openOrderMap = new Map<string, number>();
+    let unassignedOrders = 0;
+    openOrders.forEach(order => {
+      const assignedDriver = order.assigned_driver;
+      if (assignedDriver) {
+        const status = driverStatuses.find(ds => ds.driver_id === assignedDriver);
+        const zoneId = status?.current_zone_id || activeAssignments.find(assignment => assignment.driver_id === assignedDriver)?.zone_id;
+        if (zoneId) {
+          openOrderMap.set(zoneId, (openOrderMap.get(zoneId) || 0) + 1);
+        } else {
+          unassignedOrders += 1;
+        }
+      } else {
+        unassignedOrders += 1;
+      }
+    });
+
+    const zoneSnapshots: ZoneCoverageSnapshot[] = zones.map(zone => {
+      const assigned = assignmentMap.get(zone.id) || new Set();
+      const active = activeMap.get(zone.id) || new Set();
+      const coverage = assigned.size === 0
+        ? (active.size > 0 ? 100 : 0)
+        : Math.round((active.size / assigned.size) * 100);
+
+      return {
+        zone_id: zone.id,
+        zone_name: zone.name,
+        coverage_percent: coverage,
+        active_drivers: active.size,
+        assigned_drivers: assigned.size,
+        open_orders: openOrderMap.get(zone.id) || 0,
+        unassigned_orders: 0
+      };
+    });
+
+    if (unassignedOrders > 0) {
+      zoneSnapshots.push({
+        zone_id: 'unassigned',
+        zone_name: 'ללא שיוך',
+        coverage_percent: 0,
+        active_drivers: 0,
+        assigned_drivers: 0,
+        open_orders: unassignedOrders,
+        unassigned_orders: unassignedOrders
+      });
+    }
+
+    const baseZoneCount = zoneSnapshots.filter(zone => zone.zone_id !== 'unassigned').length;
+    const zoneCoverageAverage = baseZoneCount > 0
+      ? zoneSnapshots
+          .filter(zone => zone.zone_id !== 'unassigned')
+          .reduce((sum, zone) => sum + zone.coverage_percent, 0) / baseZoneCount
+      : (activeDrivers > 0 ? 100 : 0);
+
+    const lowStockAlerts: InventoryAlert[] = this.products
+      .filter(product => product.stock_quantity < 25)
+      .map(product => ({
+        product_id: product.id,
+        product_name: product.name,
+        location_id: 'location-central',
+        location_name: 'מרכז הפצה ראשי',
+        on_hand_quantity: product.stock_quantity,
+        reserved_quantity: 0,
+        low_stock_threshold: 25,
+        triggered_at: now.toISOString()
+      }));
+
+    const restockRequests: RestockRequest[] = lowStockAlerts.slice(0, 5).map((alert, index) => ({
+      id: `restock-${index}`,
+      product_id: alert.product_id,
+      requested_by: this.user.telegram_id,
+      requested_quantity: Math.max(15, 60 - alert.on_hand_quantity),
+      status: 'pending',
+      from_location_id: null,
+      to_location_id: alert.location_id,
+      approved_by: null,
+      approved_quantity: null,
+      fulfilled_by: null,
+      fulfilled_quantity: null,
+      notes: 'חידוש מלאי אוטומטי',
+      created_at: new Date(now.getTime() - (index + 1) * 3600000).toISOString(),
+      updated_at: now.toISOString(),
+      product: this.products.find(product => product.id === alert.product_id)
+    }));
+
+    return {
+      generated_at: now.toISOString(),
+      metrics: {
+        revenue_today: revenueToday,
+        revenue_change: computeChange(revenueToday, revenueYesterday),
+        orders_today: ordersTodayCount,
+        orders_change: computeChange(ordersTodayCount, ordersYesterdayCount),
+        average_order_value: averageOrderValue,
+        volume_today: volumeToday,
+        active_drivers: activeDrivers,
+        total_drivers: totalDrivers,
+        online_ratio: onlineRatio,
+        zone_coverage: Math.round(zoneCoverageAverage),
+        low_stock_count: lowStockAlerts.length,
+        restock_pending: restockRequests.length
+      },
+      hourly,
+      trend,
+      zone_coverage: zoneSnapshots,
+      low_stock_alerts: lowStockAlerts.slice(0, 8),
+      restock_requests: restockRequests
+    };
+  }
+
+  async exportOrdersToCSV(): Promise<string> {
+    const headers = ['מספר הזמנה', 'לקוח', 'טלפון', 'כתובת', 'סטטוס', 'סכום', 'תאריך'];
+    const rows = this.orders.map(order => [
+      order.id,
+      order.customer_name,
+      order.customer_phone,
+      `"${order.customer_address}"`,
+      order.status,
+      order.total_amount,
+      order.created_at
+    ]);
+
+    return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+  }
+
+  async exportProductsToCSV(): Promise<string> {
+    const headers = ['מוצר', 'SKU', 'מחיר', 'מלאי'];
+    const rows = this.products.map(product => [
+      `"${product.name}"`,
+      product.sku,
+      product.price,
+      product.stock_quantity
+    ]);
+
+    return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
   }
 }
 
