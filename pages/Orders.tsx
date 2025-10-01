@@ -13,7 +13,8 @@ import {
 import { DmOrderParser } from '../src/components/DmOrderParser';
 import { StorefrontOrderBuilder } from '../src/components/StorefrontOrderBuilder';
 import { DraftOrderItem, ProductInventoryAvailability } from '../src/components/orderTypes';
-import { DispatchService, DriverCandidate } from '../src/lib/dispatchService';
+import { DriverCandidate } from '../src/lib/dispatchService';
+import { DispatchOrchestrator } from '../src/lib/dispatchOrchestrator';
 import { Toast } from '../src/components/Toast';
 
 interface OrdersProps {
@@ -31,7 +32,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   const theme = telegram.themeParams;
-  const dispatchService = useMemo(() => new DispatchService(dataStore), [dataStore]);
+  const dispatchOrchestrator = useMemo(() => new DispatchOrchestrator(dataStore), [dataStore]);
 
   useEffect(() => {
     loadData();
@@ -133,7 +134,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
         onUpdate={loadData}
         theme={theme}
         currentUser={user}
-        dispatchService={dispatchService}
+        dispatchOrchestrator={dispatchOrchestrator}
       />
     );
   }
@@ -308,7 +309,7 @@ function OrderDetail({
   onUpdate,
   theme,
   currentUser,
-  dispatchService
+  dispatchOrchestrator
 }: {
   order: Order;
   dataStore: DataStore;
@@ -316,7 +317,7 @@ function OrderDetail({
   onUpdate: () => void;
   theme: any;
   currentUser: User | null;
-  dispatchService: DispatchService;
+  dispatchOrchestrator: DispatchOrchestrator;
 }) {
   const [isAssigning, setIsAssigning] = useState(false);
   const [zoneOptions, setZoneOptions] = useState<Zone[]>([]);
@@ -397,7 +398,7 @@ function OrderDetail({
 
     try {
       setAssignLoading(true);
-      const drivers = await dispatchService.getEligibleDrivers({ zoneId, items: orderItems });
+      const drivers = await dispatchOrchestrator.getDriverCandidates(order, zoneId);
       setCandidates(drivers);
       setAssignError(drivers.length === 0 ? 'אין נהגים זמינים עם מלאי מתאים באזור זה' : null);
     } catch (err) {
@@ -406,7 +407,7 @@ function OrderDetail({
     } finally {
       setAssignLoading(false);
     }
-  }, [dispatchService, orderItems]);
+  }, [dispatchOrchestrator, orderItems, order]);
 
   useEffect(() => {
     if (isAssigning && selectedZone) {
@@ -423,7 +424,14 @@ function OrderDetail({
 
     try {
       setAssignLoading(true);
-      await dispatchService.assignOrder(order, selectedDriver, selectedZone || undefined);
+      const result = await dispatchOrchestrator.assignOrder(order, selectedZone || null);
+      if (!result.success) {
+        const reason = result.reason === 'no_candidates'
+          ? 'אין נהגים זמינים באזור זה'
+          : 'שגיאה בהקצאת ההזמנה. נסה שוב.';
+        setAssignError(reason);
+        return;
+      }
       telegram.hapticFeedback('notification', 'success');
       Toast.success('ההזמנה הוקצתה לנהג בהצלחה');
       onUpdate();

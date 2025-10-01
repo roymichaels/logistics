@@ -94,7 +94,12 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
   );
 
   const updateStatus = async (nextStatus: DriverAvailabilityStatus, zoneId?: string | null, onlineOverride?: boolean) => {
-    if (!dataStore.updateDriverStatus && !dataStore.setDriverOnline && !dataStore.setDriverOffline) {
+    if (
+      !dataStore.updateDriverStatus &&
+      !dataStore.setDriverOnline &&
+      !dataStore.setDriverOffline &&
+      !dataStore.toggleDriverOnline
+    ) {
       Toast.error('לא ניתן לעדכן סטטוס נהג במערכת הנוכחית');
       return;
     }
@@ -102,7 +107,14 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
     setUpdating(true);
     try {
       if (nextStatus === 'off_shift') {
-        if (dataStore.setDriverOffline) {
+        if (dataStore.toggleDriverOnline) {
+          await dataStore.toggleDriverOnline({
+            is_online: false,
+            zone_id: null,
+            status: 'off_shift',
+            note: 'נהג התנתק'
+          });
+        } else if (dataStore.setDriverOffline) {
           await dataStore.setDriverOffline({ note: 'נהג התנתק' });
         } else if (dataStore.updateDriverStatus) {
           await dataStore.updateDriverStatus({ status: 'off_shift', is_online: false, zone_id: null, note: 'נהג התנתק' });
@@ -111,7 +123,14 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
         if (zoneId) {
           await ensureAssignment(zoneId);
         }
-        if (dataStore.setDriverOnline) {
+        if (dataStore.toggleDriverOnline) {
+          await dataStore.toggleDriverOnline({
+            zone_id: typeof zoneId === 'undefined' ? undefined : zoneId,
+            is_online: true,
+            status: nextStatus,
+            note: 'עדכון סטטוס נהג'
+          });
+        } else if (dataStore.setDriverOnline) {
           await dataStore.setDriverOnline({
             status: nextStatus,
             zone_id: typeof zoneId === 'undefined' ? undefined : zoneId,
@@ -140,15 +159,24 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
   const handleZoneChange = async (zoneId: string) => {
     setSelectedZone(zoneId);
     if (!zoneId) {
-      if (!dataStore.updateDriverStatus) return;
+      if (!dataStore.updateDriverStatus && !dataStore.toggleDriverOnline) return;
       try {
         setUpdating(true);
-        await dataStore.updateDriverStatus({
-          status: status?.status || 'available',
-          zone_id: null,
-          is_online: status?.is_online,
-          note: 'הסרת שיוך אזור'
-        });
+        if (dataStore.toggleDriverOnline) {
+          await dataStore.toggleDriverOnline({
+            zone_id: null,
+            is_online: status?.is_online ?? false,
+            status: status?.status || 'available',
+            note: 'הסרת שיוך אזור'
+          });
+        } else if (dataStore.updateDriverStatus) {
+          await dataStore.updateDriverStatus({
+            status: status?.status || 'available',
+            zone_id: null,
+            is_online: status?.is_online,
+            note: 'הסרת שיוך אזור'
+          });
+        }
         await loadData();
       } catch (err) {
         console.error('Failed to clear zone', err);

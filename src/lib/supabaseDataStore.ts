@@ -37,7 +37,9 @@ import {
   DriverStatusRecord,
   DriverMovementLog,
   DriverAvailabilityStatus,
-  DriverMovementAction
+  DriverMovementAction,
+  ZoneCoverageSnapshot,
+  CreateNotificationInput
 } from '../../data/types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -1423,6 +1425,14 @@ export class SupabaseDataStore implements DataStore {
     }
   }
 
+  async unassignDriverFromZone(input: { zone_id: string; driver_id?: string }): Promise<void> {
+    await this.assignDriverToZone({
+      zone_id: input.zone_id,
+      driver_id: input.driver_id,
+      active: false
+    });
+  }
+
   async updateDriverStatus(input: {
     status: DriverAvailabilityStatus;
     driver_id?: string;
@@ -1491,6 +1501,28 @@ export class SupabaseDataStore implements DataStore {
       is_online: false,
       note: input?.note ?? existingStatus?.note ?? undefined
     });
+  }
+
+  async toggleDriverOnline(input: {
+    driver_id?: string;
+    zone_id?: string | null;
+    is_online: boolean;
+    status?: DriverAvailabilityStatus;
+    note?: string;
+  }): Promise<void> {
+    if (input.is_online) {
+      await this.setDriverOnline({
+        driver_id: input.driver_id,
+        zone_id: typeof input.zone_id === 'undefined' ? undefined : input.zone_id,
+        status: input.status,
+        note: input.note
+      });
+    } else {
+      await this.setDriverOffline({
+        driver_id: input.driver_id,
+        note: input.note
+      });
+    }
   }
 
   async getDriverStatus(driver_id?: string): Promise<DriverStatusRecord | null> {
@@ -1575,6 +1607,74 @@ export class SupabaseDataStore implements DataStore {
       note: row.note,
       zone: row.current_zone_id ? zoneMap.get(row.current_zone_id) : undefined
     }));
+  }
+
+  async getZoneCoverage(filters?: {
+    zone_id?: string;
+    includeOrders?: boolean;
+    onlyActive?: boolean;
+  }): Promise<ZoneCoverageSnapshot[]> {
+    const includeOrders = filters?.includeOrders !== false;
+    const onlyActive = filters?.onlyActive !== false;
+
+    const [zones, statuses, assignments] = await Promise.all([
+      this.listZones(),
+      this.listDriverStatuses({
+        zone_id: filters?.zone_id,
+        onlyOnline: true
+      }),
+      this.listDriverZones
+        ? this.listDriverZones({
+            zone_id: filters?.zone_id,
+            activeOnly: onlyActive
+          })
+        : Promise.resolve([])
+    ]);
+
+    const filteredZones = zones.filter((zone) => {
+      if (filters?.zone_id && zone.id !== filters.zone_id) {
+        return false;
+      }
+      if (onlyActive && zone.active === false) {
+        return false;
+      }
+      return true;
+    });
+
+    const driverIds = Array.from(
+      new Set(statuses.map((status) => status.driver_id))
+    );
+
+    const inventory = this.listDriverInventory
+      ? await this.listDriverInventory({ driver_ids: driverIds })
+      : [];
+
+    const outstandingOrders = includeOrders && this.listOrders
+      ? (await this.listOrders())
+          .filter((order) =>
+            ['confirmed', 'preparing', 'ready', 'out_for_delivery'].includes(order.status)
+          )
+      : [];
+
+    return filteredZones.map((zone) => {
+      const zoneStatuses = statuses.filter((status) => status.current_zone_id === zone.id);
+      const zoneAssignments = assignments.filter((assignment) => assignment.zone_id === zone.id);
+      const zoneDriverIds = new Set(zoneStatuses.map((status) => status.driver_id));
+      const zoneInventory = inventory.filter((record) => zoneDriverIds.has(record.driver_id));
+      const zoneOrders = outstandingOrders.filter((order) =>
+        order.assigned_driver ? zoneDriverIds.has(order.assigned_driver) : false
+      );
+      const idleDrivers = zoneStatuses.filter((status) => status.status === 'available');
+
+      return {
+        zone,
+        onlineDrivers: zoneStatuses,
+        idleDrivers,
+        assignments: zoneAssignments,
+        inventory: zoneInventory,
+        outstandingOrders: zoneOrders
+      } as ZoneCoverageSnapshot;
+    });
   }
 
   async syncDriverInventory(input: DriverInventorySyncInput): Promise<DriverInventorySyncResult> {
@@ -2155,6 +2255,27 @@ export class SupabaseDataStore implements DataStore {
   }
 
   // Notifications
+  async createNotification(input: CreateNotificationInput): Promise<{ id: string }> {
+    const payload = {
+      recipient_id: input.recipient_id,
+      title: input.title,
+      message: input.message,
+      type: input.type || 'info',
+      action_url: input.action_url ?? null,
+      read: false,
+      created_at: new Date().toISOString()
+    };
+
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert(payload)
+      .select('id')
+      .single();
+
+    if (error) throw error;
+    return { id: data.id };
+  }
+
   async getNotifications(): Promise<Notification[]> {
     const { data, error } = await supabase
       .from('notifications')

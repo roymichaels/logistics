@@ -1,83 +1,46 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTelegramUI } from '../src/hooks/useTelegramUI';
 import {
   DataStore,
-  Zone,
   DriverStatusRecord,
-  DriverZoneAssignment,
-  DriverInventoryRecord,
-  Order
+  Order,
+  ZoneCoverageSnapshot
 } from '../data/types';
 import { Toast } from '../src/components/Toast';
+import { DispatchOrchestrator, ZoneCoverageResult } from '../src/lib/dispatchOrchestrator';
 
 interface DispatchBoardProps {
   dataStore: DataStore;
   onNavigate: (page: string) => void;
 }
 
-interface ZoneCoverage {
-  zone: Zone;
-  onlineDrivers: DriverStatusRecord[];
-  assignments: DriverZoneAssignment[];
-  inventory: DriverInventoryRecord[];
-}
-
 export function DispatchBoard({ dataStore }: DispatchBoardProps) {
   const { theme, backButton, haptic } = useTelegramUI();
-  const [zones, setZones] = useState<ZoneCoverage[]>([]);
+  const [zones, setZones] = useState<ZoneCoverageSnapshot[]>([]);
   const [unassignedDrivers, setUnassignedDrivers] = useState<DriverStatusRecord[]>([]);
   const [outstandingOrders, setOutstandingOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const hintColor = theme.hint_color || '#999999';
   const accentColor = theme.button_color || '#007aff';
+  const orchestrator = useMemo(() => new DispatchOrchestrator(dataStore), [dataStore]);
 
   useEffect(() => {
     backButton.hide();
   }, [backButton]);
 
   const loadData = useCallback(async () => {
-    if (!dataStore.listZones || !dataStore.listDriverStatuses) {
+    if (!dataStore.listDriverStatuses) {
       setError('המערכת אינה תומכת במעקב אזורים עבור מוקדנים');
       setLoading(false);
       return;
     }
 
     try {
-      const [zoneList, statuses, assignments, orders] = await Promise.all([
-        dataStore.listZones(),
-        dataStore.listDriverStatuses(),
-        dataStore.listDriverZones ? dataStore.listDriverZones({ activeOnly: true }) : Promise.resolve([]),
-        dataStore.listOrders ? dataStore.listOrders() : Promise.resolve([])
-      ]);
-
-      const onlineDrivers = statuses.filter((status) => status.is_online);
-      const inventory = dataStore.listDriverInventory
-        ? await dataStore.listDriverInventory({ driver_ids: onlineDrivers.map((status) => status.driver_id) })
-        : [];
-
-      const outstanding = (orders || []).filter((order) =>
-        ['confirmed', 'preparing', 'ready', 'out_for_delivery'].includes(order.status)
-      );
-
-      const coverage: ZoneCoverage[] = zoneList.map((zone) => {
-        const zoneDrivers = onlineDrivers.filter((status) => status.current_zone_id === zone.id);
-        const zoneAssignments = assignments.filter((assignment) => assignment.zone_id === zone.id);
-        const zoneInventory = inventory.filter((record) => zoneDrivers.some((driver) => driver.driver_id === record.driver_id));
-
-        return {
-          zone,
-          onlineDrivers: zoneDrivers,
-          assignments: zoneAssignments,
-          inventory: zoneInventory
-        };
-      });
-
-      const driversWithoutZone = onlineDrivers.filter((status) => !status.current_zone_id);
-
-      setZones(coverage);
-      setUnassignedDrivers(driversWithoutZone);
-      setOutstandingOrders(outstanding);
+      const snapshot: ZoneCoverageResult = await orchestrator.getCoverage();
+      setZones(snapshot.coverage);
+      setUnassignedDrivers(snapshot.unassignedDrivers);
+      setOutstandingOrders(snapshot.outstandingOrders);
       setError(null);
     } catch (err) {
       console.error('Failed to load dispatch data', err);
@@ -86,7 +49,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
     } finally {
       setLoading(false);
     }
-  }, [dataStore]);
+  }, [dataStore, orchestrator]);
 
   useEffect(() => {
     loadData();
@@ -256,9 +219,11 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', color: hintColor }}>
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', color: hintColor, flexWrap: 'wrap' }}>
                 <span>נהגים זמינים: {coverage.onlineDrivers.length}</span>
+                <span>נהגים פנויים: {coverage.idleDrivers.length}</span>
                 <span>שיוכים פעילים: {coverage.assignments.length}</span>
+                <span>משלוחים באזור: {coverage.outstandingOrders.length}</span>
                 <span>יחידות מלאי ברכב: {inventoryCount}</span>
               </div>
 
@@ -275,8 +240,20 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                       }}
                     >
                       <div style={{ fontWeight: 600 }}>נהג #{driver.driver_id}</div>
-                      <div style={{ color: hintColor, fontSize: '14px' }}>
-                        סטטוס: {driver.status === 'available' ? 'זמין' : driver.status === 'delivering' ? 'במשלוח' : driver.status === 'on_break' ? 'בהפסקה' : 'סיום משמרת'}
+                      <div style={{ color: hintColor, fontSize: '14px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>
+                          סטטוס:{' '}
+                          {driver.status === 'available'
+                            ? 'זמין'
+                            : driver.status === 'delivering'
+                            ? 'במשלוח'
+                            : driver.status === 'on_break'
+                            ? 'בהפסקה'
+                            : 'סיום משמרת'}
+                        </span>
+                        {driver.current_zone_id && (
+                          <span style={{ fontSize: '12px' }}>אזור פעיל: {driver.current_zone_id}</span>
+                        )}
                       </div>
                     </div>
                   ))}
