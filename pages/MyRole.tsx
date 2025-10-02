@@ -330,6 +330,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
           }, 1000);
         }}
         userTelegramId={user?.telegram_id || ''}
+        dataStore={dataStore}
       />
     </div>
   );

@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Toast } from './Toast';
 import { telegram } from '../../lib/telegram';
+import { DataStore } from '../../data/types';
 
 interface ManagerLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
   userTelegramId: string;
+  dataStore: DataStore;
 }
 
 const ROYAL_COLORS = {
@@ -28,7 +30,8 @@ export function ManagerLoginModal({
   isOpen,
   onClose,
   onSuccess,
-  userTelegramId
+  userTelegramId,
+  dataStore
 }: ManagerLoginModalProps) {
   const [pin, setPin] = useState<string[]>(['', '', '', '', '', '']);
   const [attempts, setAttempts] = useState(0);
@@ -93,12 +96,22 @@ export function ManagerLoginModal({
       Toast.success('PIN אומת בהצלחה! משדרג גישה...');
 
       try {
-        // Here you would update the user role in the database
-        // For now, we'll just call the success callback
-        setTimeout(() => {
-          onSuccess();
-          onClose();
-        }, 500);
+        // Update user role in database to 'manager'
+        if (dataStore.updateProfile) {
+          await dataStore.updateProfile({
+            role: 'manager'
+          });
+
+          Toast.success('משדרג להרשאות מנהל...');
+
+          // Call success callback and close modal
+          setTimeout(() => {
+            onSuccess();
+            onClose();
+          }, 500);
+        } else {
+          throw new Error('updateProfile method not available');
+        }
       } catch (error) {
         console.error('Failed to promote user:', error);
         Toast.error('שגיאה בעדכון הרשאות');
