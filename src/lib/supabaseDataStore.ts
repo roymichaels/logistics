@@ -397,8 +397,11 @@ export class SupabaseDataStore implements DataStore {
   private subscriptions: Map<string, RealtimeChannel> = new Map();
   private eventListeners: Map<string, Set<Function>> = new Map();
   private authInitialization: Promise<void> | null = null;
+  private initialUserData: any = null;
 
-  constructor(private userTelegramId: string, authSession?: SupabaseAuthSessionPayload | null) {
+  constructor(private userTelegramId: string, authSession?: SupabaseAuthSessionPayload | null, initialUserData?: any) {
+    this.initialUserData = initialUserData;
+
     if (authSession?.access_token && authSession.refresh_token) {
       this.authInitialization = this.initializeAuthSession(authSession);
     }
@@ -711,10 +714,15 @@ export class SupabaseDataStore implements DataStore {
 
     if (!data) {
       // Create user if doesn't exist
+      const telegramUserData = this.initialUserData as any;
       const newUser: Omit<User, 'id'> = {
         telegram_id: this.userTelegramId,
+        username: telegramUserData?.username?.toLowerCase(),
         role: 'user',
-        name: 'משתמש חדש',
+        name: telegramUserData?.first_name
+          ? `${telegramUserData.first_name}${telegramUserData.last_name ? ' ' + telegramUserData.last_name : ''}`
+          : 'משתמש חדש',
+        photo_url: telegramUserData?.photo_url,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -3083,7 +3091,8 @@ export class SupabaseDataStore implements DataStore {
 
 export function createSupabaseDataStore(
   userTelegramId: string,
-  authSession?: SupabaseAuthSessionPayload | null
+  authSession?: SupabaseAuthSessionPayload | null,
+  initialUserData?: any
 ): DataStore {
-  return new SupabaseDataStore(userTelegramId, authSession ?? null);
+  return new SupabaseDataStore(userTelegramId, authSession ?? null, initialUserData);
 }
