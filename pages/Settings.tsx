@@ -101,13 +101,17 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
     );
   }
 
+  // 🔐 Check if user is unassigned
+  const isUnassignedUser = user?.role === 'user';
+
   return (
     <div style={{
       background: ROYAL_COLORS.background,
       color: ROYAL_COLORS.text,
       minHeight: '100vh',
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      paddingBottom: '100px'
     }}>
       <div
         style={{
@@ -146,7 +150,9 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
             </div>
             <div>
               <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>הגדרות</h1>
-              <p style={{ margin: '4px 0 0', color: ROYAL_COLORS.muted, fontSize: '14px' }}>מערכת ניהול אישית</p>
+              <p style={{ margin: '4px 0 0', color: ROYAL_COLORS.muted, fontSize: '14px' }}>
+                {isUnassignedUser ? 'הגדרות בסיסיות' : 'מערכת ניהול אישית'}
+              </p>
             </div>
           </div>
         </header>
@@ -221,99 +227,142 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
             </div>
           </section>
 
-          {/* System Info */}
-          <section
-            style={{
-              padding: '24px',
-              borderRadius: '22px',
-              background: ROYAL_COLORS.card,
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-              boxShadow: ROYAL_COLORS.shadow,
-              marginBottom: '24px'
-            }}
-          >
-            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '700' }}>📊 מידע מערכת</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <RoyalInfoRow label="מצב נוכחי" value="Real Mode" />
-              <RoyalInfoRow label="מתאם נתונים" value={config?.adapters?.data || 'Unknown'} />
-              <RoyalInfoRow label="גרסה" value="1.0.0 - Roy Michaels Command System" />
-              <RoyalInfoRow label="פלטפורמה" value={telegram.isAvailable ? 'Telegram Mini App' : 'Web Browser'} />
-            </div>
-          </section>
+          {/* 🔒 Only show System Info and Actions for assigned users */}
+          {!isUnassignedUser && (
+            <>
+              {/* System Info */}
+              <section
+                style={{
+                  padding: '24px',
+                  borderRadius: '22px',
+                  background: ROYAL_COLORS.card,
+                  border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                  boxShadow: ROYAL_COLORS.shadow,
+                  marginBottom: '24px'
+                }}
+              >
+                <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '700' }}>📊 מידע מערכת</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <RoyalInfoRow label="מצב נוכחי" value="Real Mode" />
+                  <RoyalInfoRow label="מתאם נתונים" value={config?.adapters?.data || 'Unknown'} />
+                  <RoyalInfoRow label="גרסה" value="1.0.0 - Roy Michaels Command System" />
+                  <RoyalInfoRow label="פלטפורמה" value={telegram.isAvailable ? 'Telegram Mini App' : 'Web Browser'} />
+                </div>
+              </section>
 
-          {/* Actions */}
-          <section
-            style={{
-              padding: '24px',
-              borderRadius: '22px',
-              background: ROYAL_COLORS.card,
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-              boxShadow: ROYAL_COLORS.shadow,
-              marginBottom: '24px'
-            }}
-          >
-            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '700' }}>⚡ פעולות</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {isFirstAdmin && (
+              {/* Actions */}
+              <section
+                style={{
+                  padding: '24px',
+                  borderRadius: '22px',
+                  background: ROYAL_COLORS.card,
+                  border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                  boxShadow: ROYAL_COLORS.shadow,
+                  marginBottom: '24px'
+                }}
+              >
+                <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '700' }}>⚡ פעולות</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {isFirstAdmin && (
+                    <RoyalActionButton
+                      title="ניהול משתמשים"
+                      subtitle="אישור וניהול משתמשים במערכת"
+                      icon="👥"
+                      onClick={() => {
+                        telegram.hapticFeedback('selection');
+                        onNavigate('users');
+                      }}
+                    />
+                  )}
+                  <RoyalActionButton
+                    title="החלף תפקיד"
+                    subtitle={`תפקיד נוכחי: ${roleNames[user?.role as keyof typeof roleNames] || 'לא ידוע'}`}
+                    icon="🔄"
+                    onClick={() => {
+                      telegram.hapticFeedback('selection');
+                      handleSwitchRole();
+                    }}
+                    disabled={switchingRole}
+                  />
+                  <RoyalActionButton
+                    title="נקה מטמון"
+                    subtitle="מחק נתונים מקומיים"
+                    icon="🗑️"
+                    onClick={() => {
+                      telegram.hapticFeedback('selection');
+                      telegram.showConfirm('למחוק את כל הנתונים השמורים?').then((confirmed) => {
+                        if (confirmed) {
+                          telegram.showAlert('המטמון נוקה בהצלחה');
+                        }
+                      });
+                    }}
+                  />
+                  <RoyalActionButton
+                    title="אודות"
+                    subtitle="מידע על האפליקציה"
+                    icon="ℹ️"
+                    onClick={() => {
+                      telegram.hapticFeedback('selection');
+                      telegram.showAlert(
+                        'Roy Michaels Command System v1.0.0\n\n' +
+                        'מערכת ניהול לוגיסטיקה מלכותית\n\n' +
+                        'נבנה עם React ו-Telegram WebApp SDK'
+                      );
+                    }}
+                  />
+                  {telegram.isAvailable && (
+                    <RoyalActionButton
+                      title="סגור אפליקציה"
+                      subtitle="חזור לטלגרם"
+                      icon="❌"
+                      onClick={() => {
+                        telegram.hapticFeedback('selection');
+                        telegram.close();
+                      }}
+                    />
+                  )}
+                </div>
+              </section>
+            </>
+          )}
+
+          {/* ⛔ Minimal Actions for Unassigned Users */}
+          {isUnassignedUser && (
+            <section
+              style={{
+                padding: '24px',
+                borderRadius: '22px',
+                background: ROYAL_COLORS.card,
+                border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                boxShadow: ROYAL_COLORS.shadow,
+                marginBottom: '24px'
+              }}
+            >
+              <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '700' }}>⚡ פעולות</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <RoyalActionButton
-                  title="ניהול משתמשים"
-                  subtitle="אישור וניהול משתמשים במערכת"
-                  icon="👥"
+                  title="בקש גישת מנהל"
+                  subtitle="הזן PIN למעבר לתפקיד מנהל"
+                  icon="🔐"
                   onClick={() => {
                     telegram.hapticFeedback('selection');
-                    onNavigate('users');
+                    onNavigate('my-role');
                   }}
                 />
-              )}
-              <RoyalActionButton
-                title="החלף תפקיד"
-                subtitle={`תפקיד נוכחי: ${roleNames[user?.role as keyof typeof roleNames] || 'לא ידוע'}`}
-                icon="🔄"
-                onClick={() => {
-                  telegram.hapticFeedback('selection');
-                  handleSwitchRole();
-                }}
-                disabled={switchingRole}
-              />
-              <RoyalActionButton
-                title="נקה מטמון"
-                subtitle="מחק נתונים מקומיים"
-                icon="🗑️"
-                onClick={() => {
-                  telegram.hapticFeedback('selection');
-                  telegram.showConfirm('למחוק את כל הנתונים השמורים?').then((confirmed) => {
-                    if (confirmed) {
-                      telegram.showAlert('המטמון נוקה בהצלחה');
-                    }
-                  });
-                }}
-              />
-              <RoyalActionButton
-                title="אודות"
-                subtitle="מידע על האפליקציה"
-                icon="ℹ️"
-                onClick={() => {
-                  telegram.hapticFeedback('selection');
-                  telegram.showAlert(
-                    'Roy Michaels Command System v1.0.0\n\n' +
-                    'מערכת ניהול לוגיסטיקה מלכותית\n\n' +
-                    'נבנה עם React ו-Telegram WebApp SDK'
-                  );
-                }}
-              />
-              {telegram.isAvailable && (
-                <RoyalActionButton
-                  title="סגור אפליקציה"
-                  subtitle="חזור לטלגרם"
-                  icon="❌"
-                  onClick={() => {
-                    telegram.hapticFeedback('selection');
-                    telegram.close();
-                  }}
-                />
-              )}
-            </div>
-          </section>
+                {telegram.isAvailable && (
+                  <RoyalActionButton
+                    title="סגור אפליקציה"
+                    subtitle="חזור לטלגרם"
+                    icon="❌"
+                    onClick={() => {
+                      telegram.hapticFeedback('selection');
+                      telegram.close();
+                    }}
+                  />
+                )}
+              </div>
+            </section>
+          )}
         </div>
       </div>
 
