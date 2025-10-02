@@ -76,6 +76,9 @@ const ManagerInventory = lazy(() =>
 const ZoneManagement = lazy(() =>
   import('./pages/ZoneManagement').then((module) => ({ default: module.ZoneManagement }))
 );
+const MyRole = lazy(() =>
+  import('./pages/MyRole').then((module) => ({ default: module.MyRole }))
+);
 
 type Page =
   | 'dashboard'
@@ -92,6 +95,7 @@ type Page =
   | 'stats'
   | 'partners'
   | 'my-stats'
+  | 'my-role'
   | 'inventory'
   | 'incoming'
   | 'restock-requests'
@@ -115,11 +119,9 @@ export default function App() {
   const [userRole, setUserRole] = useState<
     | 'owner'
     | 'manager'
-    | 'dispatcher'
     | 'driver'
     | 'warehouse'
     | 'sales'
-    | 'customer_service'
     | 'user'
     | null
   >(null);
@@ -166,16 +168,19 @@ export default function App() {
 
     let defaultPage: Page | null = null;
 
-    if (userRole === 'owner') {
-      defaultPage = 'stats';
+    // 🔐 MILITARIZED ROLE-BASED INITIAL PAGES
+    if (userRole === 'user') {
+      defaultPage = 'my-role';  // Unassigned users → My Role page
+    } else if (userRole === 'owner') {
+      defaultPage = 'dashboard';  // Owner → Dashboard
     } else if (userRole === 'manager') {
-      defaultPage = 'manager-inventory';
+      defaultPage = 'dashboard';  // Manager → Dashboard
     } else if (userRole === 'warehouse') {
-      defaultPage = 'warehouse-dashboard';
+      defaultPage = 'inventory';  // Warehouse → Inventory
     } else if (userRole === 'driver') {
-      defaultPage = 'my-deliveries';
+      defaultPage = 'my-deliveries';  // Driver → My Deliveries
     } else if (userRole === 'sales') {
-      defaultPage = 'orders';
+      defaultPage = 'orders';  // Sales → Orders
     }
 
     if (defaultPage && currentPage === 'dashboard') {
@@ -417,39 +422,14 @@ export default function App() {
   }
 
   const renderPage = () => {
-    // Role-based access control
+    // 🔐 MILITARIZED ROLE-BASED ACCESS CONTROL
     const isAdmin = userRole === 'owner' || userRole === 'manager';
-    const isOperational = isAdmin || userRole === 'dispatcher' || userRole === 'warehouse' || userRole === 'sales' || userRole === 'customer_service';
+    const isOperational = isAdmin || userRole === 'warehouse' || userRole === 'sales';
 
-    // Redirect unauthorized users to appropriate page
-    if (userRole === 'user' && currentPage !== 'dashboard' && currentPage !== 'settings') {
-      return (
-        <div style={{
-          padding: '40px 20px',
-          textAlign: 'center',
-          direction: 'rtl',
-          color: 'var(--tg-theme-text-color, #000)'
-        }}>
-          <h2 style={{ marginBottom: '16px' }}>גישה מוגבלת</h2>
-          <p style={{ marginBottom: '24px', color: 'var(--tg-theme-hint-color, #999)' }}>
-            אין לך הרשאה לצפות בדף זה. אנא פנה למנהל המערכת.
-          </p>
-          <button
-            onClick={() => setCurrentPage('dashboard')}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: 'var(--tg-theme-button-color, #3390ec)',
-              color: 'var(--tg-theme-button-text-color, #fff)',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              cursor: 'pointer'
-            }}
-          >
-            חזור לדף הבית
-          </button>
-        </div>
-      );
+    // 👤 USER (unassigned): Redirect to my-role page
+    if (userRole === 'user' && currentPage !== 'my-role' && currentPage !== 'settings') {
+      setCurrentPage('my-role');
+      return null;
     }
 
     switch (currentPage) {
@@ -470,6 +450,8 @@ export default function App() {
         return <Partners dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'my-stats':
         return <MyStats dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'my-role':
+        return <MyRole dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'inventory':
         if (!isOperational) break;
         return <Inventory dataStore={dataStore} onNavigate={handleNavigate} />;
