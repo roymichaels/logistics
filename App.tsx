@@ -394,61 +394,115 @@ export default function App() {
   }
 
   const renderPage = () => {
-    // Regular users go directly to dashboard
-    if (userRole === 'user') {
-      // Users can access dashboard and basic features
+    // Role-based access control
+    const isAdmin = userRole === 'owner' || userRole === 'manager';
+    const isOperational = isAdmin || userRole === 'dispatcher' || userRole === 'warehouse' || userRole === 'sales' || userRole === 'customer_service';
+
+    // Redirect unauthorized users to appropriate page
+    if (userRole === 'user' && currentPage !== 'dashboard' && currentPage !== 'settings') {
+      return (
+        <div style={{
+          padding: '40px 20px',
+          textAlign: 'center',
+          direction: 'rtl',
+          color: 'var(--tg-theme-text-color, #000)'
+        }}>
+          <h2 style={{ marginBottom: '16px' }}>גישה מוגבלת</h2>
+          <p style={{ marginBottom: '24px', color: 'var(--tg-theme-hint-color, #999)' }}>
+            אין לך הרשאה לצפות בדף זה. אנא פנה למנהל המערכת.
+          </p>
+          <button
+            onClick={() => setCurrentPage('dashboard')}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: 'var(--tg-theme-button-color, #3390ec)',
+              color: 'var(--tg-theme-button-text-color, #fff)',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              cursor: 'pointer'
+            }}
+          >
+            חזור לדף הבית
+          </button>
+        </div>
+      );
     }
-    
+
     switch (currentPage) {
       case 'orders':
+        if (!isOperational) break;
         return <Orders dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'tasks':
+        if (!isOperational) break;
         return <Tasks dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'products':
+        if (!isOperational) break;
         return <Products dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'stats':
+        if (!isAdmin) break;
         return <Stats dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'partners':
+        if (!isAdmin) break;
         return <Partners dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'my-stats':
         return <MyStats dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'inventory':
+        if (!isOperational) break;
         return <Inventory dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'incoming':
+        if (!isOperational) break;
         return <Incoming dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'restock-requests':
+        if (!isOperational) break;
         return <RestockRequests dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'logs':
+        if (!isAdmin) break;
         return <Logs dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'my-deliveries':
+        if (userRole !== 'driver') break;
         return <MyDeliveries dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'my-inventory':
+        if (userRole !== 'driver') break;
         return <MyInventory dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'my-zones':
+        if (userRole !== 'driver') break;
         return <MyZones dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'driver-status':
+        if (!isAdmin && userRole !== 'dispatcher') break;
         return <DriverStatus dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'dispatch-board':
+        if (!isAdmin && userRole !== 'dispatcher') break;
         return <DispatchBoard dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'warehouse-dashboard':
+        if (userRole !== 'warehouse' && !isAdmin) break;
         return <WarehouseDashboard dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'manager-inventory':
+        if (!isAdmin) break;
         return <ManagerInventory dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'chat':
+        if (!isOperational) break;
         return <Chat dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'channels':
+        if (!isOperational) break;
         return <Channels dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'reports':
+        if (!isAdmin) break;
         return <Reports dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'customers':
+        if (!isOperational) break;
         return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד לקוחות - בפיתוח</div>;
       case 'users':
+        if (!isAdmin) break;
         return <UserManagement onNavigate={handleNavigate} currentUser={user} />;
       case 'settings':
         return <Settings dataStore={dataStore} onNavigate={handleNavigate} config={config} currentUser={user} />;
       default:
         return <Dashboard dataStore={dataStore} onNavigate={handleNavigate} />;
     }
+
+    // Fallback if no case matched (unauthorized access attempt)
+    return <Dashboard dataStore={dataStore} onNavigate={handleNavigate} />;
   };
 
   return (

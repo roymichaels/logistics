@@ -63,7 +63,6 @@ export function BottomNavigation({
     user: {
       tabs: [
         { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
-        { id: 'demo', label: 'דמו', icon: '🎮' },
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
       ]
     },
