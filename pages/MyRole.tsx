@@ -27,12 +27,23 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
   const [showManagerLogin, setShowManagerLogin] = useState(false);
 
   useEffect(() => {
-    loadUser();
+    // Check if we need to force refresh (after manager promotion)
+    const params = new URLSearchParams(window.location.search);
+    const shouldRefresh = params.has('refresh');
+
+    loadUser(shouldRefresh);
+
+    // Clean up URL parameter
+    if (shouldRefresh) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, []);
 
-  const loadUser = async () => {
+  const loadUser = async (forceRefresh = false) => {
     try {
-      const profile = await dataStore.getProfile();
+      const profile = forceRefresh
+        ? await dataStore.getProfile(true)
+        : await dataStore.getProfile();
       setUser(profile);
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -326,7 +337,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         onSuccess={() => {
           Toast.success('משדרג להרשאות מנהל...');
           setTimeout(() => {
-            window.location.reload();
+            window.location.href = window.location.pathname + '?refresh=1';
           }, 300);
         }}
         userTelegramId={user?.telegram_id || ''}

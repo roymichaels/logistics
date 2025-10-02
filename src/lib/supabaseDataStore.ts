@@ -701,8 +701,8 @@ export class SupabaseDataStore implements DataStore {
   }
 
   // Auth & Profile
-  async getProfile(): Promise<User> {
-    if (this.user) return this.user;
+  async getProfile(forceRefresh = false): Promise<User> {
+    if (this.user && !forceRefresh) return this.user;
 
     const { data, error } = await supabase
       .from('users')
@@ -740,6 +740,10 @@ export class SupabaseDataStore implements DataStore {
 
     this.user = data;
     return data;
+  }
+
+  async refreshProfile(): Promise<User> {
+    return this.getProfile(true);
   }
 
   async getCurrentRole(): Promise<User['role'] | null> {
