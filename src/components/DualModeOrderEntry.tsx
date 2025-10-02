@@ -162,12 +162,13 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
           product_id: item.product.id,
           product_name: item.product.name,
           quantity: item.quantity,
-          unit_price: item.product.price,
-          subtotal: item.product.price * item.quantity
+          price: item.product.price
         })),
         total_amount: calculateTotal(),
         notes: notes || undefined,
-        status: 'new'
+        status: 'new',
+        entry_mode: mode === 'text' ? 'dm_text' : 'storefront',
+        raw_order_text: mode === 'text' ? textInput : undefined
       };
 
       const result = await dataStore.createOrder(orderInput);
