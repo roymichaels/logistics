@@ -29,8 +29,58 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
     isTelegramEnv: telegram.isTelegramEnv,
     hasUserData: !!userData
   });
-  
+
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
+  // Check for stored session first (for page refreshes)
+  if (!userData) {
+    try {
+      const storedSession = localStorage.getItem('user_session');
+      if (storedSession) {
+        const sessionData = JSON.parse(storedSession);
+        const sessionAge = Date.now() - sessionData.timestamp;
+
+        // Session valid for 24 hours
+        if (sessionAge < 24 * 60 * 60 * 1000) {
+          debugLog.info('📦 Restoring session from localStorage');
+          userData = sessionData.user;
+        } else {
+          debugLog.info('⏰ Stored session expired, clearing');
+          localStorage.removeItem('user_session');
+        }
+      }
+    } catch (error) {
+      debugLog.warn('⚠️ Failed to restore session', error);
+      localStorage.removeItem('user_session');
+    }
+  }
+
+  // If we have userData from stored session and Supabase is available, use it
+  if (userData && SUPABASE_URL) {
+    debugLog.info('✅ Using stored session with Supabase');
+    return {
+      config: {
+        app: 'miniapp',
+        adapters: { data: 'supabase' },
+        features: {
+          offline_mode: true,
+          photo_upload: true,
+          gps_tracking: true,
+          route_optimization: false,
+        },
+        ui: {
+          brand: 'מערכת לוגיסטיקה',
+          accent: '#007aff',
+          theme: 'auto',
+          language: 'he'
+        },
+        defaults: {
+          mode: 'real' as const,
+        },
+      },
+      user: userData,
+    };
+  }
 
   // If not in Telegram environment OR no Supabase URL, use mock config
   if (!telegram.isTelegramEnv || !SUPABASE_URL) {
@@ -81,6 +131,17 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
       language_code: telegramUser.language_code,
       auth_date: Math.floor(Date.now() / 1000)
     };
+
+    // Store session for page refreshes
+    try {
+      localStorage.setItem('user_session', JSON.stringify({
+        user: directUser,
+        timestamp: Date.now()
+      }));
+      debugLog.info('💾 Session stored to localStorage');
+    } catch (error) {
+      debugLog.warn('⚠️ Failed to store session', error);
+    }
 
     debugLog.success('✅ Telegram user authenticated', { username: directUser.username });
 

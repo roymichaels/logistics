@@ -298,6 +298,22 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
                     }}
                   />
                   <RoyalActionButton
+                    title="התנתק"
+                    subtitle="נקה הפעלה וחזור למסך התחברות"
+                    icon="🚪"
+                    onClick={() => {
+                      telegram.hapticFeedback('selection');
+                      telegram.showConfirm('האם אתה בטוח שברצונך להתנתק?').then((confirmed) => {
+                        if (confirmed) {
+                          localStorage.removeItem('user_session');
+                          localStorage.clear();
+                          telegram.hapticFeedback('notification', 'success');
+                          window.location.reload();
+                        }
+                      });
+                    }}
+                  />
+                  <RoyalActionButton
                     title="אודות"
                     subtitle="מידע על האפליקציה"
                     icon="ℹ️"
