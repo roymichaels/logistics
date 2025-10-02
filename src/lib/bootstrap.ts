@@ -108,12 +108,24 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
     };
   }
 
-  // No Telegram user at all
-  debugLog.warn('⚠️ No Telegram user - using mock');
+  // DEV MODE: Create test user for browser testing
+  debugLog.warn('⚠️ No Telegram user - creating DEV test user');
+  const devUser = {
+    telegram_id: '999999',
+    username: 'dev_manager',
+    first_name: 'Dev',
+    last_name: 'Manager',
+    photo_url: undefined,
+    language_code: 'he',
+    auth_date: Math.floor(Date.now() / 1000)
+  };
+
+  debugLog.info('🧪 DEV MODE: Using test manager account', { username: devUser.username });
+
   return {
     config: {
       app: 'miniapp',
-      adapters: { data: 'mock' },
+      adapters: { data: 'supabase' },
       features: {
         offline_mode: true,
         photo_upload: true,
@@ -130,7 +142,7 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
         mode: 'real' as const,
       },
     },
-    user: null,
+    user: devUser,
   };
 
   // Step 1: Verify init data and get session
