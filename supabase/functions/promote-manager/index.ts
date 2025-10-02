@@ -50,10 +50,10 @@ Deno.serve(async (req: Request) => {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // Check if user exists
+    // Check if user exists, create if not
     const { data: existingUser, error: selectError } = await supabase
       .from('users')
-      .select('id, role')
+      .select('id, role, telegram_id')
       .eq('telegram_id', telegram_id)
       .maybeSingle();
 
@@ -62,11 +62,26 @@ Deno.serve(async (req: Request) => {
       throw selectError;
     }
 
+    // If user doesn't exist, create them first
     if (!existingUser) {
-      return new Response(
-        JSON.stringify({ error: 'User not found in database' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      console.log(`Creating new user record for telegram_id: ${telegram_id}`);
+
+      const { error: insertError } = await supabase
+        .from('users')
+        .insert({
+          telegram_id: telegram_id,
+          username: null,
+          name: null,
+          role: 'user',
+          photo_url: null
+        });
+
+      if (insertError) {
+        console.error('Error creating user:', insertError);
+        throw insertError;
+      }
+
+      console.log(`✅ Created user record for ${telegram_id}`);
     }
 
     // Update user role to manager
