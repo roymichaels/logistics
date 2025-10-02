@@ -3,15 +3,20 @@ import { useTelegramUI } from '../hooks/useTelegramUI';
 import { hebrew } from '../lib/hebrew';
 import { FloatingCreateButton } from './FloatingCreateButton';
 
+/**
+ * 🧠 ROY MICHAELS MILITARIZED NAVIGATION
+ *
+ * Each role = isolated sandbox. Zero overlap. Full control.
+ * No ambiguity. No cross-contamination. Hardened by design.
+ */
+
 type RoleKey =
-  | 'user'
-  | 'owner'
-  | 'manager'
-  | 'dispatcher'
-  | 'driver'
-  | 'warehouse'
-  | 'sales'
-  | 'customer_service';
+  | 'user'           // Unassigned actor - view only, zero power
+  | 'owner'          // Platform owner - sees ALL businesses
+  | 'manager'        // Business manager - full command over their business
+  | 'sales'          // Sales agent - fast order creation, own stats
+  | 'warehouse'      // Warehouse operator - inventory only, no sales
+  | 'driver';        // Driver - deliveries, personal inventory, zones only
 
 interface TabDefinition {
   id: string;
@@ -59,19 +64,27 @@ export function BottomNavigation({
 }: BottomNavigationProps) {
   const { theme, haptic } = useTelegramUI();
 
+  /**
+   * 🔐 MILITARIZED ROLE-BASED SANDBOXES
+   * Each role has EXACTLY what they need. Nothing more.
+   */
   const roleNavigation: Record<RoleKey, RoleNavigationConfig> = {
+    // ⛔ USER: Unassigned - View Only, Zero Power
     user: {
       tabs: [
-        { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+        { id: 'my-role', label: 'תפקידי', icon: '👤' },
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
       ]
+      // NO ACTION BUTTON. No power. Contact manager.
     },
+
+    // 👑 OWNER: Full Platform Control - All Businesses
     owner: {
       tabs: [
-        { id: 'stats', label: hebrew.stats, icon: '📈' },
-        { id: 'partners', label: hebrew.partners, icon: '🤝' },
+        { id: 'dashboard', label: hebrew.dashboard, icon: '🏠' },
+        { id: 'stats', label: hebrew.stats, icon: '📊' },
+        { id: 'partners', label: hebrew.partners, icon: '👥' },
         { id: 'orders', label: hebrew.orders, icon: '🧾' },
-        { id: 'inventory', label: hebrew.inventory, icon: '📦' },
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
       ],
       action: {
@@ -79,12 +92,14 @@ export function BottomNavigation({
         icon: '✳️'
       }
     },
+
+    // 👑 MANAGER: Business Command Center
     manager: {
       tabs: [
-        { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
+        { id: 'dashboard', label: hebrew.dashboard, icon: '🏠' },
+        { id: 'stats', label: hebrew.stats, icon: '📊' },
+        { id: 'partners', label: hebrew.partners, icon: '👥' },
         { id: 'orders', label: hebrew.orders, icon: '🧾' },
-        { id: 'dispatch-board', label: hebrew.dispatch_board, icon: '🗺️' },
-        { id: 'manager-inventory', label: hebrew.manager_inventory, icon: '🏬' },
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
       ],
       action: {
@@ -92,45 +107,13 @@ export function BottomNavigation({
         icon: '✳️'
       }
     },
-    dispatcher: {
-      tabs: [
-        { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
-        { id: 'dispatch-board', label: hebrew.dispatch_board, icon: '🗺️' },
-        { id: 'orders', label: hebrew.orders, icon: '📋' },
-        { id: 'tasks', label: hebrew.tasks, icon: '✅' },
-        { id: 'chat', label: "צ'אט", icon: '💬' },
-        { id: 'settings', label: hebrew.settings, icon: '⚙️' }
-      ]
-    },
-    driver: {
-      tabs: [
-        { id: 'my-deliveries', label: hebrew.my_deliveries, icon: '🚚' },
-        { id: 'my-inventory', label: hebrew.my_inventory, icon: '📦' },
-        { id: 'my-zones', label: hebrew.my_zones, icon: '🗺️' },
-        { id: 'driver-status', label: hebrew.driver_status, icon: '📍' },
-        { id: 'settings', label: hebrew.settings, icon: '⚙️' }
-      ]
-    },
-    warehouse: {
-      tabs: [
-        { id: 'warehouse-dashboard', label: hebrew.warehouse_dashboard, icon: '🏭' },
-        { id: 'incoming', label: hebrew.incoming, icon: '🚚' },
-        { id: 'inventory', label: hebrew.inventory, icon: '📦' },
-        { id: 'restock-requests', label: hebrew.restock_requests, icon: '🔄' },
-        { id: 'logs', label: hebrew.logs, icon: '📝' },
-        { id: 'settings', label: hebrew.settings, icon: '⚙️' }
-      ],
-      action: {
-        label: 'פעולת מלאי',
-        icon: '🛠️'
-      }
-    },
+
+    // 🛒 SALES: Fast Order Entry + Personal Stats
     sales: {
       tabs: [
-        { id: 'orders', label: hebrew.orders, icon: '🧾' },
+        { id: 'orders', label: hebrew.orders, icon: '🛒' },
+        { id: 'products', label: hebrew.products, icon: '📦' },
         { id: 'my-stats', label: hebrew.my_stats, icon: '📈' },
-        { id: 'products', label: hebrew.products, icon: '🛒' },
-        { id: 'chat', label: "צ'אט", icon: '💬' },
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
       ],
       action: {
@@ -138,14 +121,32 @@ export function BottomNavigation({
         icon: '🆕'
       }
     },
-    customer_service: {
+
+    // 🏷️ WAREHOUSE: Inventory Operations Only
+    warehouse: {
       tabs: [
-        { id: 'dashboard', label: hebrew.dashboard, icon: '📊' },
-        { id: 'orders', label: hebrew.orders, icon: '📋' },
-        { id: 'customers', label: hebrew.customers, icon: '👥' },
-        { id: 'chat', label: "צ'אט", icon: '💬' },
+        { id: 'inventory', label: hebrew.inventory, icon: '📦' },
+        { id: 'incoming', label: hebrew.incoming, icon: '🚚' },
+        { id: 'restock-requests', label: hebrew.restock_requests, icon: '🏷️' },
+        { id: 'logs', label: hebrew.logs, icon: '📊' },
+        { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+      ],
+      action: {
+        label: 'פעולת מלאי',
+        icon: '📦'
+      }
+    },
+
+    // 🚚 DRIVER: Deliveries + Personal Inventory + Zones
+    driver: {
+      tabs: [
+        { id: 'my-deliveries', label: hebrew.my_deliveries, icon: '🚚' },
+        { id: 'my-inventory', label: hebrew.my_inventory, icon: '📦' },
+        { id: 'my-zones', label: hebrew.my_zones, icon: '🗺️' },
+        { id: 'driver-status', label: hebrew.driver_status, icon: '🟢' },
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
       ]
+      // NO ACTION BUTTON. Drivers execute, they don't create.
     }
   };
 

@@ -65,8 +65,23 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
         status: filter === 'all' ? undefined : filter,
         q: searchQuery || undefined
       }) || [];
-      
-      setOrders(ordersList);
+
+      // 🔐 MILITARIZED FILTERING: Role-based order visibility
+      let filteredOrders = ordersList;
+
+      if (profile.role === 'sales') {
+        // Sales: ONLY see orders they created
+        filteredOrders = ordersList.filter(o => o.created_by === profile.telegram_id);
+      } else if (profile.role === 'driver') {
+        // Driver: ONLY see orders assigned to them
+        filteredOrders = ordersList.filter(o => o.assigned_driver === profile.telegram_id);
+      } else if (profile.role === 'warehouse') {
+        // Warehouse: NO ACCESS to orders
+        filteredOrders = [];
+      }
+      // Owner/Manager: See all orders (no filter)
+
+      setOrders(filteredOrders);
     } catch (error) {
       console.error('Failed to load orders:', error);
       telegram.showAlert('Failed to load orders');
