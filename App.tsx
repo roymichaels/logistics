@@ -253,8 +253,10 @@ export default function App() {
         }
       }
 
-      // Always show superadmin setup after login (component will check if password is set)
-      setShowSuperadminSetup(true);
+      // Only show superadmin setup for owner role
+      if (role === 'owner') {
+        setShowSuperadminSetup(true);
+      }
     } catch (error) {
       console.error('Login failed:', error);
       setError(error instanceof Error ? error.message : 'שגיאה בהתחברות');
@@ -400,8 +402,8 @@ export default function App() {
     return <TelegramAuth onAuth={handleLogin} onError={handleAuthError} />;
   }
 
-  // Show superadmin setup if user just logged in and is not owner
-  if (showSuperadminSetup && user) {
+  // Show superadmin setup only for owner role
+  if (showSuperadminSetup && user && userRole === 'owner') {
     return <SuperadminSetup user={user} onSuccess={handleSuperadminSuccess} theme={theme} />;
   }
 
