@@ -63,7 +63,6 @@ export function ManagerLoginModal({
     }
 
     telegram.hapticFeedback('notification', 'success');
-    Toast.success('PIN אומת בהצלחה! משדרג גישה...');
 
     try {
       if (dataStore.updateProfile) {
@@ -71,12 +70,8 @@ export function ManagerLoginModal({
           role: 'manager'
         });
 
-        Toast.success('משדרג להרשאות מנהל...');
-
-        setTimeout(() => {
-          onSuccess();
-          onClose();
-        }, 500);
+        onClose();
+        onSuccess();
       } else {
         throw new Error('updateProfile method not available');
       }

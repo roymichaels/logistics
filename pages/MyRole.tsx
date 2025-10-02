@@ -324,10 +324,10 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         isOpen={showManagerLogin}
         onClose={() => setShowManagerLogin(false)}
         onSuccess={() => {
-          Toast.success('הרשאות מנהל הוענקו בהצלחה!');
+          Toast.success('משדרג להרשאות מנהל...');
           setTimeout(() => {
             window.location.reload();
-          }, 1000);
+          }, 300);
         }}
         userTelegramId={user?.telegram_id || ''}
         dataStore={dataStore}
