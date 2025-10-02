@@ -243,10 +243,8 @@ export default function App() {
         }
       }
 
-      // If user is not owner, show superadmin setup option
-      if (role !== 'owner') {
-        setShowSuperadminSetup(true);
-      }
+      // Always show superadmin setup after login (component will check if password is set)
+      setShowSuperadminSetup(true);
     } catch (error) {
       console.error('Login failed:', error);
       setError(error instanceof Error ? error.message : 'שגיאה בהתחברות');
