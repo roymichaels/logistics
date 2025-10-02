@@ -8,6 +8,7 @@ import { TelegramAuth } from './src/components/TelegramAuth';
 import { OrderCreationWizard } from './src/components/OrderCreationWizard';
 import { BusinessManager } from './src/components/BusinessManager';
 import { SecurityGate } from './src/components/SecurityGate';
+import { SuperadminSetup } from './src/components/SuperadminSetup';
 import { debugLog } from './src/components/DebugPanel';
 import { hebrew } from './src/lib/hebrew';
 
@@ -121,6 +122,7 @@ export default function App() {
   const [showBusinessManager, setShowBusinessManager] = useState(false);
   const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
   const [initialPageRole, setInitialPageRole] = useState<string | null>(null);
+  const [showSuperadminSetup, setShowSuperadminSetup] = useState(false);
 
   // Derived state for login status
   const isLoggedIn = user !== null;
@@ -222,33 +224,46 @@ export default function App() {
   const handleLogin = async (userData: any) => {
     try {
       console.log('Authenticating user:', userData);
-      
-      // Allow all users to log in for now
-      // TODO: Re-enable approval system when needed
-      // if (!userData.isFirstAdmin && !userData.isApproved) {
-      //   setError('חשבונך ממתין לאישור מהמנהל. אנא פנה למנהל המערכת.');
-      //   return;
-      // }
-      
+
       setUser(userData);
-      
+
       // Create data store in real mode
       const store = await createFrontendDataStore(config!, 'real', userData);
       setDataStore(store);
-      
+
       // Get user role from store
+      let role: any = 'user';
       if (store) {
         try {
-          const role = (await store.getCurrentRole?.()) ?? (await store.getProfile()).role;
+          role = (await store.getCurrentRole?.()) ?? (await store.getProfile()).role;
           setUserRole(role ?? 'user');
         } catch (error) {
           console.warn('Failed to resolve user role:', error);
-          setUserRole('user'); // Default fallback
+          setUserRole('user');
         }
+      }
+
+      // If user is not owner, show superadmin setup option
+      if (role !== 'owner') {
+        setShowSuperadminSetup(true);
       }
     } catch (error) {
       console.error('Login failed:', error);
       setError(error instanceof Error ? error.message : 'שגיאה בהתחברות');
+    }
+  };
+
+  const handleSuperadminSuccess = async () => {
+    setShowSuperadminSetup(false);
+
+    // Refresh user role from database
+    if (dataStore) {
+      try {
+        const role = (await dataStore.getCurrentRole?.()) ?? (await dataStore.getProfile()).role;
+        setUserRole(role ?? 'user');
+      } catch (error) {
+        console.warn('Failed to refresh user role:', error);
+      }
     }
   };
 
@@ -375,6 +390,11 @@ export default function App() {
   // Show login screen if not logged in
   if (!isLoggedIn) {
     return <TelegramAuth onAuth={handleLogin} onError={handleAuthError} />;
+  }
+
+  // Show superadmin setup if user just logged in and is not owner
+  if (showSuperadminSetup && user) {
+    return <SuperadminSetup user={user} onSuccess={handleSuperadminSuccess} theme={theme} />;
   }
 
   if (!dataStore) {
