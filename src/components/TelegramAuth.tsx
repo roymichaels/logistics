@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { UserRegistration } from '../../data/types';
 import { telegram } from '../../lib/telegram';
 import { useTelegramUI } from '../hooks/useTelegramUI';
-import { debugLog } from './DebugPanel';
+import { debugLog, DebugPanel } from './DebugPanel';
 
 interface TelegramAuthProps {
   onAuth: (userData: any) => void;
