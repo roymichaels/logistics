@@ -146,6 +146,38 @@ export default function App() {
     document.body.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
   }, [theme]);
 
+  // Handle role-based page routing
+  useEffect(() => {
+    if (!userRole) {
+      setInitialPageRole(null);
+      return;
+    }
+
+    if (initialPageRole === userRole) {
+      return;
+    }
+
+    let defaultPage: Page | null = null;
+
+    if (userRole === 'owner') {
+      defaultPage = 'stats';
+    } else if (userRole === 'manager') {
+      defaultPage = 'manager-inventory';
+    } else if (userRole === 'warehouse') {
+      defaultPage = 'warehouse-dashboard';
+    } else if (userRole === 'driver') {
+      defaultPage = 'my-deliveries';
+    } else if (userRole === 'sales') {
+      defaultPage = 'orders';
+    }
+
+    if (defaultPage && currentPage === 'dashboard') {
+      setCurrentPage(defaultPage);
+    }
+
+    setInitialPageRole(userRole);
+  }, [userRole, currentPage, initialPageRole]);
+
   const initializeApp = async () => {
     try {
       debugLog.info('🚀 Initializing app...');
@@ -432,37 +464,6 @@ export default function App() {
         return <Dashboard dataStore={dataStore} onNavigate={handleNavigate} />;
     }
   };
-
-  useEffect(() => {
-    if (!userRole) {
-      setInitialPageRole(null);
-      return;
-    }
-
-    if (initialPageRole === userRole) {
-      return;
-    }
-
-    let defaultPage: Page | null = null;
-
-    if (userRole === 'owner') {
-      defaultPage = 'stats';
-    } else if (userRole === 'manager') {
-      defaultPage = 'manager-inventory';
-    } else if (userRole === 'warehouse') {
-      defaultPage = 'warehouse-dashboard';
-    } else if (userRole === 'driver') {
-      defaultPage = 'my-deliveries';
-    } else if (userRole === 'sales') {
-      defaultPage = 'orders';
-    }
-
-    if (defaultPage && currentPage === 'dashboard') {
-      setCurrentPage(defaultPage);
-    }
-
-    setInitialPageRole(userRole);
-  }, [userRole, currentPage, initialPageRole]);
 
   return (
     <SecurityGate
