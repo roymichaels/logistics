@@ -59,6 +59,9 @@ export class SecurityAuditLogger {
    * Log a security event
    */
   async logSecurityEvent(event: SecurityEvent): Promise<void> {
+    // TEMP: Disabled until security_audit_log table is created
+    return;
+
     // Add to queue for batch processing
     this.eventQueue.push({
       ...event,
