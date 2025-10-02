@@ -65,9 +65,9 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
   const initData = telegram.initData;
   const telegramUser = telegram.user;
 
-  // Use direct Telegram user auth (bypass verification for now)
+  // Auto-authenticate users from Telegram app
   if (telegramUser) {
-    debugLog.info('👤 Using direct Telegram user', {
+    debugLog.info('👤 Telegram user detected - auto login', {
       id: telegramUser.id,
       username: telegramUser.username
     });
@@ -82,7 +82,7 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
       auth_date: Math.floor(Date.now() / 1000)
     };
 
-    debugLog.success('✅ Direct auth bypass', { username: directUser.username });
+    debugLog.success('✅ Telegram user authenticated', { username: directUser.username });
 
     return {
       config: {
@@ -108,20 +108,8 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
     };
   }
 
-  // DEV MODE: Create test user for browser testing
-  debugLog.warn('⚠️ No Telegram user - creating DEV test user');
-  const devUser = {
-    telegram_id: '999999',
-    username: 'dev_manager',
-    first_name: 'Dev',
-    last_name: 'Manager',
-    photo_url: undefined,
-    language_code: 'he',
-    auth_date: Math.floor(Date.now() / 1000)
-  };
-
-  debugLog.info('🧪 DEV MODE: Using test manager account', { username: devUser.username });
-
+  // Web users need to authenticate via Telegram SSO
+  debugLog.info('🌐 Web user - authentication required');
   return {
     config: {
       app: 'miniapp',
@@ -142,7 +130,7 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
         mode: 'real' as const,
       },
     },
-    user: devUser,
+    user: null,
   };
 
   // Step 1: Verify init data and get session

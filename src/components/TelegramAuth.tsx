@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { UserRegistration } from '../../data/types';
 import { telegram } from '../../lib/telegram';
 import { useTelegramUI } from '../hooks/useTelegramUI';
-import { debugLog, DebugPanel } from './DebugPanel';
+import { debugLog } from './DebugPanel';
 
 interface TelegramAuthProps {
   onAuth: (userData: any) => void;
@@ -239,62 +239,58 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
 
   if (loading) {
     return (
-      <>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        backgroundColor: theme.bg_color,
+        color: theme.text_color,
+        padding: '20px',
+        direction: 'rtl'
+      }}>
         <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100vh',
-          backgroundColor: theme.bg_color,
-          color: theme.text_color,
-          padding: '20px',
-          direction: 'rtl'
+          fontSize: '48px',
+          marginBottom: '24px',
+          animation: 'pulse 1.5s ease-in-out infinite'
         }}>
-          <div style={{
-            fontSize: '48px',
-            marginBottom: '24px',
-            animation: 'pulse 1.5s ease-in-out infinite'
-          }}>
-            🔐
-          </div>
-
-          <h1 style={{
-            fontSize: '24px',
-            fontWeight: '600',
-            marginBottom: '8px',
-            textAlign: 'center'
-          }}>
-            מערכת לוגיסטיקה
-          </h1>
-
-          <p style={{
-            fontSize: '16px',
-            color: theme.hint_color,
-            textAlign: 'center',
-            marginBottom: '32px'
-          }}>
-            מתחבר לטלגרם...
-          </p>
-
-          <div style={{
-            width: '40px',
-            height: '40px',
-            border: `3px solid ${theme.hint_color}30`,
-            borderTop: `3px solid ${theme.button_color}`,
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite'
-          }} />
+          🔐
         </div>
-        <DebugPanel />
-      </>
+
+        <h1 style={{
+          fontSize: '24px',
+          fontWeight: '600',
+          marginBottom: '8px',
+          textAlign: 'center'
+        }}>
+          מערכת לוגיסטיקה
+        </h1>
+
+        <p style={{
+          fontSize: '16px',
+          color: theme.hint_color,
+          textAlign: 'center',
+          marginBottom: '32px'
+        }}>
+          מתחבר לטלגרם...
+        </p>
+
+        <div style={{
+          width: '40px',
+          height: '40px',
+          border: `3px solid ${theme.hint_color}30`,
+          borderTop: `3px solid ${theme.button_color}`,
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }} />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <>
-        <div style={{
+      <div style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -351,9 +347,7 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
           >
             נסה שוב
           </button>
-        </div>
-        <DebugPanel />
-      </>
+      </div>
     );
   }
 
