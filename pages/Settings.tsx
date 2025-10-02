@@ -275,16 +275,6 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
                     />
                   )}
                   <RoyalActionButton
-                    title="החלף תפקיד"
-                    subtitle={`תפקיד נוכחי: ${roleNames[user?.role as keyof typeof roleNames] || 'לא ידוע'}`}
-                    icon="🔄"
-                    onClick={() => {
-                      telegram.hapticFeedback('selection');
-                      handleSwitchRole();
-                    }}
-                    disabled={switchingRole}
-                  />
-                  <RoyalActionButton
                     title="נקה מטמון"
                     subtitle="מחק נתונים מקומיים"
                     icon="🗑️"

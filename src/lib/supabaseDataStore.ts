@@ -774,6 +774,9 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async updateProfile(updates: Partial<User>): Promise<void> {
+    // First, ensure user exists in database
+    await this.ensureUserExists();
+
     const { error } = await supabase
       .from('users')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -785,6 +788,37 @@ export class SupabaseDataStore implements DataStore {
     if (this.user) {
       this.user = { ...this.user, ...updates };
     }
+  }
+
+  private async ensureUserExists(): Promise<void> {
+    // Check if user already exists
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('telegram_id', this.userTelegramId)
+      .maybeSingle();
+
+    if (existingUser) return;
+
+    // User doesn't exist, create them
+    const { error: insertError } = await supabase
+      .from('users')
+      .insert({
+        telegram_id: this.userTelegramId,
+        username: this.user?.username || null,
+        name: this.user?.first_name ?
+          [this.user.first_name, this.user.last_name].filter(Boolean).join(' ') :
+          null,
+        role: 'user',
+        photo_url: this.user?.photo_url || null
+      });
+
+    if (insertError) {
+      console.error('Failed to create user record:', insertError);
+      throw new Error('Failed to create user record');
+    }
+
+    console.log(`✅ Created user record for ${this.userTelegramId}`);
   }
 
   // Products
