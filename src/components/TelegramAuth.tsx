@@ -371,12 +371,20 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
 }) {
   const [widgetLoaded, setWidgetLoaded] = useState(false);
   const [widgetError, setWidgetError] = useState<string | null>(null);
+  const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME;
 
   useEffect(() => {
+    // Check if bot username is configured
+    if (!botUsername || botUsername === 'YOUR_BOT_USERNAME' || botUsername === 'your_bot_username_without_at_symbol') {
+      console.warn('⚠️ VITE_TELEGRAM_BOT_USERNAME not configured');
+      setWidgetError('Bot username not configured. Please add VITE_TELEGRAM_BOT_USERNAME to .env file');
+      return;
+    }
+
     // Set up global callback function BEFORE loading the script
     (window as any).onTelegramAuth = (user: any) => {
       console.log('🔐 Telegram Login Widget callback:', user);
-      
+
       // Verify the auth_date is recent (within 24 hours)
       const authDate = user.auth_date;
       const now = Math.floor(Date.now() / 1000);
@@ -384,7 +392,7 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
         onError('Authentication data is too old');
         return;
       }
-      
+
       onAuth(user);
     };
 
@@ -392,28 +400,26 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
     const script = document.createElement('script');
     script.src = 'https://telegram.org/js/telegram-widget.js?22';
     script.async = true;
-    
+
     // Widget configuration according to Telegram docs
-    const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'YOUR_BOT_USERNAME';
     script.setAttribute('data-telegram-login', botUsername);
     script.setAttribute('data-size', 'large');
     script.setAttribute('data-radius', '10');
     script.setAttribute('data-request-access', 'write');
     script.setAttribute('data-userpic', 'false');
-    script.setAttribute('data-lang', 'en'); // Use English for better compatibility
+    script.setAttribute('data-lang', 'he');
     script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-    
+
     script.onload = () => {
       setWidgetLoaded(true);
       console.log('✅ Telegram Login Widget loaded');
     };
-    
+
     script.onerror = () => {
       console.error('❌ Failed to load Telegram Login Widget');
       setWidgetError('Failed to load Telegram login widget');
-      onError('Failed to load Telegram login widget');
     };
-    
+
     const container = document.getElementById('telegram-login-container');
     if (container) {
       container.appendChild(script);
@@ -428,7 +434,7 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
       }
       delete (window as any).onTelegramAuth;
     };
-  }, [onAuth, onError]);
+  }, [onAuth, onError, botUsername]);
 
   return (
     <div style={{
@@ -497,16 +503,34 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
 
       {widgetError && (
         <div style={{
-          padding: '16px',
-          backgroundColor: '#ff3b30',
-          color: 'white',
-          borderRadius: '8px',
+          padding: '20px',
+          backgroundColor: '#fff3cd',
+          color: '#856404',
+          borderRadius: '12px',
           marginBottom: '24px',
           textAlign: 'center',
-          maxWidth: '320px'
+          maxWidth: '400px',
+          border: '1px solid #ffeeba'
         }}>
-          <p style={{ margin: '0 0 8px 0', fontWeight: '600' }}>שגיאה בטעינת כפתור הטלגרם</p>
-          <p style={{ margin: 0, fontSize: '14px' }}>{widgetError}</p>
+          <p style={{ margin: '0 0 12px 0', fontWeight: '600', fontSize: '16px' }}>⚙️ נדרשת הגדרת בוט</p>
+          <p style={{ margin: '0 0 16px 0', fontSize: '14px', lineHeight: '1.5' }}>
+            כדי להשתמש בכפתור התחברות טלגרם, יש להוסיף את שם הבוט לקובץ <code>.env</code>:
+          </p>
+          <code style={{
+            display: 'block',
+            padding: '8px 12px',
+            backgroundColor: '#fff',
+            borderRadius: '6px',
+            fontSize: '12px',
+            fontFamily: 'monospace',
+            marginBottom: '16px',
+            wordBreak: 'break-all'
+          }}>
+            VITE_TELEGRAM_BOT_USERNAME=your_bot_name
+          </code>
+          <p style={{ margin: 0, fontSize: '13px', color: '#6c757d' }}>
+            לאחר מכן, רענן את העמוד
+          </p>
         </div>
       )}
 
