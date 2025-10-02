@@ -8,7 +8,7 @@ import { TelegramAuth } from './src/components/TelegramAuth';
 import { OrderCreationWizard } from './src/components/OrderCreationWizard';
 import { BusinessManager } from './src/components/BusinessManager';
 import { SecurityGate } from './src/components/SecurityGate';
-import { DebugPanel, debugLog } from './src/components/DebugPanel';
+import { debugLog } from './src/components/DebugPanel';
 import { hebrew } from './src/lib/hebrew';
 
 // Pages (lazy loaded)
@@ -325,27 +325,23 @@ export default function App() {
 
   if (loading) {
     return (
-      <>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          backgroundColor: theme.bg_color,
-          color: theme.text_color,
-          fontSize: '16px'
-        }}>
-          {hebrew.loading}
-        </div>
-        <DebugPanel />
-      </>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        backgroundColor: theme.bg_color,
+        color: theme.text_color,
+        fontSize: '16px'
+      }}>
+        {hebrew.loading}
+      </div>
     );
   }
 
   if (error) {
     return (
-      <>
-        <div style={{
+      <div style={{
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
@@ -372,38 +368,28 @@ export default function App() {
           >
             נסה שוב
           </button>
-        </div>
-        <DebugPanel />
-      </>
+      </div>
     );
   }
 
   // Show login screen if not logged in
   if (!isLoggedIn) {
-    return (
-      <>
-        <TelegramAuth onAuth={handleLogin} onError={handleAuthError} />
-        <DebugPanel />
-      </>
-    );
+    return <TelegramAuth onAuth={handleLogin} onError={handleAuthError} />;
   }
 
   if (!dataStore) {
     return (
-      <>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          backgroundColor: theme.bg_color,
-          color: theme.text_color,
-          fontSize: '16px'
-        }}>
-          מכין את המערכת...
-        </div>
-        <DebugPanel />
-      </>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        backgroundColor: theme.bg_color,
+        color: theme.text_color,
+        fontSize: '16px'
+      }}>
+        מכין את המערכת...
+      </div>
     );
   }
 
@@ -532,7 +518,7 @@ export default function App() {
         )}
 
         {/* Debug Panel - Shows logs on screen */}
-        <DebugPanel />
+        
       </div>
     </SecurityGate>
   );
