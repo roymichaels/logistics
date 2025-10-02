@@ -54,27 +54,32 @@ export function ManagerLoginModal({
     setIsLoading(true);
     setError('');
 
-    if (enteredPin !== ADMIN_PIN) {
-      telegram.hapticFeedback('notification', 'error');
-      setError('Incorrect PIN');
-      setPin('');
-      setIsLoading(false);
-      return;
-    }
-
     telegram.hapticFeedback('notification', 'success');
 
     try {
-      if (dataStore.updateProfile) {
-        await dataStore.updateProfile({
-          role: 'manager'
-        });
+      // Call edge function to promote user (bypasses RLS)
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/promote-manager`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          telegram_id: userTelegramId,
+          pin: enteredPin
+        })
+      });
 
-        onClose();
-        onSuccess();
-      } else {
-        throw new Error('updateProfile method not available');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to promote user');
       }
+
+      const result = await response.json();
+      console.log('✅ Manager promotion successful:', result);
+
+      onClose();
+      onSuccess();
     } catch (error) {
       console.error('Failed to promote user:', error);
       Toast.error('שגיאה בעדכון הרשאות');
