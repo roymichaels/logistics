@@ -6,6 +6,7 @@ import { DataStore, BootstrapConfig } from './data/types';
 import { BottomNavigation } from './src/components/BottomNavigation';
 import { TelegramAuth } from './src/components/TelegramAuth';
 import { OrderCreationWizard } from './src/components/OrderCreationWizard';
+import { DualModeOrderEntry } from './src/components/DualModeOrderEntry';
 import { BusinessManager } from './src/components/BusinessManager';
 import { SecurityGate } from './src/components/SecurityGate';
 import { SuperadminSetup } from './src/components/SuperadminSetup';
@@ -72,6 +73,9 @@ const WarehouseDashboard = lazy(() =>
 const ManagerInventory = lazy(() =>
   import('./pages/ManagerInventory').then((module) => ({ default: module.ManagerInventory }))
 );
+const ZoneManagement = lazy(() =>
+  import('./pages/ZoneManagement').then((module) => ({ default: module.ZoneManagement }))
+);
 
 type Page =
   | 'dashboard'
@@ -98,7 +102,8 @@ type Page =
   | 'driver-status'
   | 'dispatch-board'
   | 'warehouse-dashboard'
-  | 'manager-inventory';
+  | 'manager-inventory'
+  | 'zone-management';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -498,6 +503,9 @@ export default function App() {
       case 'manager-inventory':
         if (!isAdmin) break;
         return <ManagerInventory dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'zone-management':
+        if (!isAdmin) break;
+        return <ZoneManagement dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'chat':
         if (!isOperational) break;
         return <Chat dataStore={dataStore} onNavigate={handleNavigate} />;
@@ -573,12 +581,20 @@ export default function App() {
 
         {/* Modals */}
         {showOrderWizard && dataStore && (
-          <OrderCreationWizard
-            dataStore={dataStore}
-            businessId={currentBusinessId || undefined}
-            onOrderCreated={handleOrderCreated}
-            onCancel={() => setShowOrderWizard(false)}
-          />
+          userRole === 'sales' ? (
+            <DualModeOrderEntry
+              dataStore={dataStore}
+              onOrderCreated={handleOrderCreated}
+              onCancel={() => setShowOrderWizard(false)}
+            />
+          ) : (
+            <OrderCreationWizard
+              dataStore={dataStore}
+              businessId={currentBusinessId || undefined}
+              onOrderCreated={handleOrderCreated}
+              onCancel={() => setShowOrderWizard(false)}
+            />
+          )
         )}
 
         {showBusinessManager && dataStore && (
