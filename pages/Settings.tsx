@@ -5,6 +5,17 @@ import { DataStore, User, BootstrapConfig } from '../data/types';
 import { roleNames, roleIcons } from '../src/lib/hebrew';
 import { userManager } from '../src/lib/userManager';
 
+const ROYAL_COLORS = {
+  background: 'radial-gradient(125% 125% at 50% 0%, rgba(95, 46, 170, 0.55) 0%, rgba(12, 2, 25, 0.95) 45%, #03000a 100%)',
+  card: 'rgba(24, 10, 45, 0.75)',
+  cardBorder: 'rgba(140, 91, 238, 0.45)',
+  muted: '#bfa9ff',
+  text: '#f4f1ff',
+  accent: '#9c6dff',
+  gold: '#f6c945',
+  shadow: '0 20px 40px rgba(20, 4, 54, 0.45)'
+};
+
 interface SettingsProps {
   dataStore: DataStore;
   onNavigate: (page: string) => void;
@@ -91,251 +102,221 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
   }
 
   return (
-    <div style={{ 
-      backgroundColor: theme.bg_color,
-      color: theme.text_color,
-      minHeight: '100vh'
+    <div style={{
+      background: ROYAL_COLORS.background,
+      color: ROYAL_COLORS.text,
+      minHeight: '100vh',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
-      {/* Header */}
-      <div style={{ padding: '16px', borderBottom: `1px solid ${theme.hint_color}20` }}>
-        <h1 style={{ 
-          margin: '0', 
-          fontSize: '24px', 
-          fontWeight: '600'
-        }}>
-          Settings
-        </h1>
-      </div>
-
-      <div style={{ padding: '16px' }}>
-        {/* Profile Section */}
-        <div style={{ marginBottom: '32px' }}>
-          <h2 style={{ 
-            margin: '0 0 16px 0', 
-            fontSize: '18px', 
-            fontWeight: '600'
-          }}>
-            Profile
-          </h2>
-          
-          <div style={{
-            padding: '16px',
-            backgroundColor: theme.secondary_bg_color || '#f1f1f1',
-            borderRadius: '12px',
-            marginBottom: '16px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '24px',
-                backgroundColor: theme.button_color,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '20px',
-                fontWeight: '600',
-                color: theme.button_text_color
-              }}>
-                {user?.name?.[0] || 'U'}
-              </div>
-              <div>
-                <h3 style={{ 
-                  margin: '0 0 4px 0', 
-                  fontSize: '16px', 
-                  fontWeight: '600'
-                }}>
-                  {user?.name || 'Unknown User'}
-                </h3>
-                <p style={{ 
-                  margin: 0, 
-                  fontSize: '14px', 
-                  color: theme.hint_color
-                }}>
-                  {user?.username ? `@${user.username}` : `ID: ${user?.telegram_id}`}
-                </p>
-                {user?.username && (
-                  <p style={{ 
-                    margin: '4px 0 0 0', 
-                    fontSize: '12px', 
-                    color: theme.hint_color,
-                    fontFamily: 'monospace'
-                  }}>
-                    ID: {user?.telegram_id}
-                  </p>
-                )}
-              </div>
-            </div>
-            
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'radial-gradient(80% 80% at 80% 10%, rgba(246, 201, 69, 0.08) 0%, rgba(20, 6, 58, 0) 60%), radial-gradient(65% 65% at 15% 20%, rgba(157, 78, 221, 0.18) 0%, rgba(38, 12, 85, 0) 70%)',
+          pointerEvents: 'none'
+        }}
+      />
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* Royal Header */}
+        <header
+          style={{
+            padding: '24px',
+            margin: '16px',
+            background: 'linear-gradient(120deg, rgba(82, 36, 142, 0.55), rgba(20, 9, 49, 0.8))',
+            borderRadius: '22px',
+            border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+            boxShadow: ROYAL_COLORS.shadow
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{
-              padding: '8px 12px',
-              backgroundColor: theme.button_color + '20',
-              borderRadius: '8px',
-              display: 'inline-block'
+              width: '56px',
+              height: '56px',
+              borderRadius: '16px',
+              background: 'linear-gradient(130deg, rgba(156, 109, 255, 0.7), rgba(82, 36, 142, 0.7))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '28px',
+              fontWeight: '700'
             }}>
-              <span style={{ 
-                fontSize: '14px', 
-                fontWeight: '600',
-                color: theme.button_color
-              }}>
-                {user?.role === 'user' ? '👤 משתמש' :
-                 user?.role === 'manager' ? '👔 Manager' : 
-                 user?.role === 'worker' ? '👷 Worker' :
-                 user?.role === 'dispatcher' ? '📋 Dispatcher' : '🚚 Courier'}
-              </span>
+              ⚙️
+            </div>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>הגדרות</h1>
+              <p style={{ margin: '4px 0 0', color: ROYAL_COLORS.muted, fontSize: '14px' }}>מערכת ניהול אישית</p>
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* App Info */}
-        <div style={{ marginBottom: '32px' }}>
-          <h2 style={{ 
-            margin: '0 0 16px 0', 
-            fontSize: '18px', 
-            fontWeight: '600'
-          }}>
-            App Information
-          </h2>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <InfoRow
-              label="Current Mode"
-              value="Real Mode"
-              theme={theme}
-            />
-            <InfoRow
-              label="Data Adapter"
-              value={config?.adapters?.data || 'Unknown'}
-              theme={theme}
-            />
-            <InfoRow
-              label="Version"
-              value="1.0.0"
-              theme={theme}
-            />
-            <InfoRow
-              label="Platform"
-              value={telegram.isAvailable ? 'Telegram Mini App' : 'Web Browser'}
-              theme={theme}
-            />
-          </div>
-        </div>
+        <div style={{ padding: '16px 24px' }}>
+          {/* Profile Section */}
+          <section
+            style={{
+              padding: '24px',
+              borderRadius: '22px',
+              background: ROYAL_COLORS.card,
+              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              boxShadow: ROYAL_COLORS.shadow,
+              marginBottom: '24px'
+            }}
+          >
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '700' }}>👤 פרופיל משתמש</h2>
+            <div style={{
+              padding: '20px',
+              background: 'rgba(20, 8, 46, 0.6)',
+              borderRadius: '18px',
+              border: '1px solid rgba(156, 109, 255, 0.25)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '16px',
+                  background: 'linear-gradient(130deg, rgba(246, 201, 69, 0.8), rgba(156, 109, 255, 0.8))',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  fontWeight: '700',
+                  boxShadow: '0 8px 16px rgba(156, 109, 255, 0.3)'
+                }}>
+                  {user?.name?.[0] || 'U'}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '700' }}>
+                    {user?.name || 'Unknown User'}
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                    {user?.username ? `@${user.username}` : `ID: ${user?.telegram_id}`}
+                  </p>
+                  {user?.username && (
+                    <p style={{
+                      margin: '4px 0 0 0',
+                      fontSize: '12px',
+                      color: ROYAL_COLORS.muted,
+                      fontFamily: 'monospace'
+                    }}>
+                      ID: {user?.telegram_id}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 16px',
+                background: `linear-gradient(120deg, ${ROYAL_COLORS.accent}40, rgba(82, 36, 142, 0.4))`,
+                borderRadius: '12px',
+                border: `1px solid ${ROYAL_COLORS.accent}60`
+              }}>
+                <span style={{ fontSize: '18px' }}>{roleIcons[user?.role as keyof typeof roleIcons] || '👤'}</span>
+                <span style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.accent }}>
+                  {roleNames[user?.role as keyof typeof roleNames] || 'משתמש'}
+                </span>
+              </div>
+            </div>
+          </section>
 
-        {/* Actions */}
-        <div style={{ marginBottom: '32px' }}>
-          <h2 style={{ 
-            margin: '0 0 16px 0', 
-            fontSize: '18px', 
-            fontWeight: '600'
-          }}>
-            Actions
-          </h2>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* Exit Demo Mode */}
-            {localStorage.getItem('demo_role') && (
-              <ActionButton
-                title="יציאה ממצב דמו"
-                subtitle="חזור למצב רגיל"
-                icon="🚪"
+          {/* System Info */}
+          <section
+            style={{
+              padding: '24px',
+              borderRadius: '22px',
+              background: ROYAL_COLORS.card,
+              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              boxShadow: ROYAL_COLORS.shadow,
+              marginBottom: '24px'
+            }}
+          >
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '700' }}>📊 מידע מערכת</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <RoyalInfoRow label="מצב נוכחי" value="Real Mode" />
+              <RoyalInfoRow label="מתאם נתונים" value={config?.adapters?.data || 'Unknown'} />
+              <RoyalInfoRow label="גרסה" value="1.0.0 - Roy Michaels Command System" />
+              <RoyalInfoRow label="פלטפורמה" value={telegram.isAvailable ? 'Telegram Mini App' : 'Web Browser'} />
+            </div>
+          </section>
+
+          {/* Actions */}
+          <section
+            style={{
+              padding: '24px',
+              borderRadius: '22px',
+              background: ROYAL_COLORS.card,
+              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              boxShadow: ROYAL_COLORS.shadow,
+              marginBottom: '24px'
+            }}
+          >
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '700' }}>⚡ פעולות</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {isFirstAdmin && (
+                <RoyalActionButton
+                  title="ניהול משתמשים"
+                  subtitle="אישור וניהול משתמשים במערכת"
+                  icon="👥"
+                  onClick={() => {
+                    telegram.hapticFeedback('selection');
+                    onNavigate('users');
+                  }}
+                />
+              )}
+              <RoyalActionButton
+                title="החלף תפקיד"
+                subtitle={`תפקיד נוכחי: ${roleNames[user?.role as keyof typeof roleNames] || 'לא ידוע'}`}
+                icon="🔄"
                 onClick={() => {
                   telegram.hapticFeedback('selection');
-                  localStorage.removeItem('demo_role');
-                  window.location.reload();
+                  handleSwitchRole();
                 }}
-                theme={theme}
+                disabled={switchingRole}
               />
-            )}
-            
-            {isFirstAdmin && (
-              <ActionButton
-                title="ניהול משתמשים"
-                subtitle="אישור וניהול משתמשים במערכת"
-                icon="👥"
+              <RoyalActionButton
+                title="נקה מטמון"
+                subtitle="מחק נתונים מקומיים"
+                icon="🗑️"
                 onClick={() => {
                   telegram.hapticFeedback('selection');
-                  onNavigate('users');
+                  telegram.showConfirm('למחוק את כל הנתונים השמורים?').then((confirmed) => {
+                    if (confirmed) {
+                      telegram.showAlert('המטמון נוקה בהצלחה');
+                    }
+                  });
                 }}
-                theme={theme}
               />
-            )}
-            
-            <ActionButton
-              title="Switch Role"
-              subtitle={`Current: ${user?.role || 'unknown'}`}
-              icon="🔄"
-              onClick={() => {
-                telegram.hapticFeedback('selection');
-                handleSwitchRole();
-              }}
-              theme={theme}
-              disabled={switchingRole}
-            />
-            
-            <ActionButton
-              title="Clear Cache"
-              subtitle="Remove offline data"
-              icon="🗑️"
-              onClick={() => {
-                telegram.hapticFeedback('selection');
-                telegram.showConfirm('Clear all cached data?').then((confirmed) => {
-                  if (confirmed) {
-                    // Clear cache logic would go here
-                    telegram.showAlert('Cache cleared successfully');
-                  }
-                });
-              }}
-              theme={theme}
-            />
-            
-            <ActionButton
-              title="About"
-              subtitle="App information and credits"
-              icon="ℹ️"
-              onClick={() => {
-                telegram.hapticFeedback('selection');
-                telegram.showAlert(
-                  'Logistics Mini App v1.0.0\n\n' +
-                  'A Telegram Mini App for managing deliveries and logistics operations.\n\n' +
-                  'Built with React and Telegram WebApp SDK.'
-                );
-              }}
-              theme={theme}
-            />
-
-            {telegram.isAvailable && (
-              <ActionButton
-                title="Close App"
-                subtitle="Exit to Telegram"
-                icon="❌"
+              <RoyalActionButton
+                title="אודות"
+                subtitle="מידע על האפליקציה"
+                icon="ℹ️"
                 onClick={() => {
                   telegram.hapticFeedback('selection');
-                  telegram.close();
+                  telegram.showAlert(
+                    'Roy Michaels Command System v1.0.0\n\n' +
+                    'מערכת ניהול לוגיסטיקה מלכותית\n\n' +
+                    'נבנה עם React ו-Telegram WebApp SDK'
+                  );
                 }}
-                theme={theme}
               />
-            )}
-          </div>
+              {telegram.isAvailable && (
+                <RoyalActionButton
+                  title="סגור אפליקציה"
+                  subtitle="חזור לטלגרם"
+                  icon="❌"
+                  onClick={() => {
+                    telegram.hapticFeedback('selection');
+                    telegram.close();
+                  }}
+                />
+              )}
+            </div>
+          </section>
         </div>
-
-        {/* Debug Info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div style={{ 
-            padding: '12px',
-            backgroundColor: theme.hint_color + '10',
-            borderRadius: '8px',
-            fontSize: '12px',
-            color: theme.hint_color
-          }}>
-            <strong>Debug Info:</strong><br />
-            Telegram ID: {user?.telegram_id}<br />
-            Role: {user?.role}<br />
-            Mode: real<br />
-            Adapter: {config?.adapters?.data}<br />
-            Platform: {telegram.isAvailable ? 'Telegram' : 'Browser'}
-          </div>
-        )}
       </div>
+
 
       {/* Role Selection Modal */}
       <TelegramModal
@@ -425,36 +406,28 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
   );
 }
 
-function InfoRow({ label, value, theme }: { 
-  label: string; 
-  value: string;
-  theme: any;
-}) {
+function RoyalInfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div style={{
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '12px 16px',
-      backgroundColor: theme.secondary_bg_color || '#f1f1f1',
-      borderRadius: '8px'
+      padding: '14px 18px',
+      background: 'rgba(20, 8, 46, 0.6)',
+      borderRadius: '12px',
+      border: '1px solid rgba(156, 109, 255, 0.2)'
     }}>
-      <span style={{ fontSize: '14px', color: theme.hint_color }}>
-        {label}
-      </span>
-      <span style={{ fontSize: '14px', fontWeight: '500', color: theme.text_color }}>
-        {value}
-      </span>
+      <span style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>{label}</span>
+      <span style={{ fontSize: '14px', fontWeight: '600', color: ROYAL_COLORS.text }}>{value}</span>
     </div>
   );
 }
 
-function ActionButton({ title, subtitle, icon, onClick, theme, disabled }: {
+function RoyalActionButton({ title, subtitle, icon, onClick, disabled }: {
   title: string;
   subtitle: string;
   icon: string;
   onClick: () => void;
-  theme: any;
   disabled?: boolean;
 }) {
   return (
@@ -464,31 +437,47 @@ function ActionButton({ title, subtitle, icon, onClick, theme, disabled }: {
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '12px',
-        padding: '16px',
-        backgroundColor: theme.secondary_bg_color || '#f1f1f1',
-        border: 'none',
-        borderRadius: '12px',
-        cursor: 'pointer',
+        gap: '16px',
+        padding: '18px 20px',
+        background: disabled ? 'rgba(20, 8, 46, 0.4)' : 'linear-gradient(120deg, rgba(156, 109, 255, 0.25), rgba(82, 36, 142, 0.25))',
+        border: `1px solid ${disabled ? 'rgba(156, 109, 255, 0.15)' : 'rgba(156, 109, 255, 0.35)'}`,
+        borderRadius: '16px',
+        cursor: disabled ? 'not-allowed' : 'pointer',
         width: '100%',
         textAlign: 'left',
-        opacity: disabled ? 0.6 : 1
+        opacity: disabled ? 0.5 : 1,
+        transition: 'all 0.2s ease'
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.background = 'linear-gradient(120deg, rgba(156, 109, 255, 0.35), rgba(82, 36, 142, 0.35))';
+          e.currentTarget.style.boxShadow = '0 8px 20px rgba(156, 109, 255, 0.3)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.background = 'linear-gradient(120deg, rgba(156, 109, 255, 0.25), rgba(82, 36, 142, 0.25))';
+          e.currentTarget.style.boxShadow = 'none';
+        }
       }}
     >
-      <div style={{ fontSize: '20px' }}>{icon}</div>
+      <div style={{
+        fontSize: '24px',
+        width: '40px',
+        height: '40px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(156, 109, 255, 0.2)',
+        borderRadius: '12px'
+      }}>
+        {icon}
+      </div>
       <div style={{ flex: 1 }}>
-        <div style={{ 
-          fontSize: '16px', 
-          fontWeight: '600', 
-          color: theme.text_color,
-          marginBottom: '2px'
-        }}>
+        <div style={{ fontSize: '16px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
           {title}
         </div>
-        <div style={{ 
-          fontSize: '14px', 
-          color: theme.hint_color
-        }}>
+        <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
           {subtitle}
         </div>
       </div>
