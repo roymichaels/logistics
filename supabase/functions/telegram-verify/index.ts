@@ -314,6 +314,39 @@ Deno.serve(async (req: Request) => {
       verified_at: new Date().toISOString()
     };
 
+    if (user && authUser?.id) {
+      const telegramIdStr = user.id.toString();
+      const usernameNormalized = normalizeUsername(user.username);
+      const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
+
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id, role')
+        .eq('telegram_id', telegramIdStr)
+        .single();
+
+      if (!existingUser) {
+        const firstAdminUsername = Deno.env.get("FIRST_ADMIN_USERNAME")?.toLowerCase().replace(/^@/, '') || 'dancohen';
+        const isFirstAdmin = usernameNormalized === firstAdminUsername;
+
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert({
+            telegram_id: telegramIdStr,
+            username: usernameNormalized,
+            name: fullName,
+            role: isFirstAdmin ? 'owner' : 'user',
+            photo_url: user.photo_url
+          });
+
+        if (insertError) {
+          console.error('Failed to create user in users table:', insertError);
+        } else {
+          console.log(`✅ Created user in users table: ${usernameNormalized} (role: ${isFirstAdmin ? 'owner' : 'user'})`);
+        }
+      }
+    }
+
     return new Response(
       JSON.stringify({
         ok: true,
