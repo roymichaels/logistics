@@ -24,42 +24,25 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
       debugLog.info('🔐 Starting authentication...', {
         isAvailable: telegram.isAvailable,
         hasInitData: !!telegram.initData,
-        initDataLength: telegram.initData?.length || 0,
-        hasUser: !!telegram.user,
-        hasInitDataUnsafe: !!telegram.initDataUnsafe,
-        userFromInitDataUnsafe: telegram.initDataUnsafe?.user
+        hasUser: !!telegram.user
       });
 
       // Check if we're in Telegram Mini App environment
-      if (telegram.isAvailable) {
-        // Try initData first (most reliable for Mini Apps)
-        if (telegram.initData && telegram.initData.length > 0) {
-          debugLog.info('📱 Telegram Mini App detected - using initData');
-          await authenticateWithInitData();
-          return;
-        }
+      if (telegram.isAvailable && telegram.initData) {
+        debugLog.info('📱 Telegram Mini App detected - using initData');
+        await authenticateWithInitData();
+        return;
+      }
 
-        // Fallback to user from initDataUnsafe
-        if (telegram.initDataUnsafe?.user) {
-          debugLog.info('👤 Telegram user from initDataUnsafe', telegram.initDataUnsafe.user);
-          await authenticateWithTelegramUser();
-          return;
-        }
-
-        // Last resort: check telegram.user
-        if (telegram.user) {
-          debugLog.info('👤 Telegram user from telegram.user', {
-            id: telegram.user.id,
-            username: telegram.user.username,
-            firstName: telegram.user.first_name
-          });
-          await authenticateWithTelegramUser();
-          return;
-        }
-
-        // If we're in Telegram but have no user data, this is an error
-        debugLog.error('❌ Telegram environment detected but no user data available');
-        throw new Error('לא ניתן לאתר מידע משתמש מטלגרם. נסה לפתוח את האפליקציה מחדש.');
+      // Check if we have Telegram user from WebApp
+      if (telegram.isAvailable && telegram.user) {
+        debugLog.info('👤 Telegram user available', {
+          id: telegram.user.id,
+          username: telegram.user.username,
+          firstName: telegram.user.first_name
+        });
+        await authenticateWithTelegramUser();
+        return;
       }
 
       // Show Telegram Login Widget for web browsers
@@ -134,25 +117,13 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
   };
 
   const authenticateWithTelegramUser = async () => {
-    // Try to get user from different sources
-    const telegramUser = telegram.user || telegram.initDataUnsafe?.user;
-
-    if (!telegramUser) {
-      debugLog.error('❌ No telegram user data available');
-      throw new Error('לא נמצא מידע משתמש');
-    }
-
-    debugLog.info('👤 Authenticating with telegram user:', {
-      id: telegramUser.id,
-      username: telegramUser.username,
-      firstName: telegramUser.first_name
-    });
+    const telegramUser = telegram.user;
 
     // Create user object from Telegram data
     const userData = {
       telegram_id: telegramUser.id.toString(),
       first_name: telegramUser.first_name,
-      last_name: telegramUser.last_name || '',
+      last_name: telegramUser.last_name,
       username: telegramUser.username || `user${telegramUser.id}`,
       photo_url: telegramUser.photo_url,
       language_code: telegramUser.language_code || 'he',
@@ -371,31 +342,11 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
               borderRadius: '8px',
               fontSize: '16px',
               fontWeight: '600',
-              cursor: 'pointer',
-              marginBottom: '16px'
+              cursor: 'pointer'
             }}
           >
             נסה שוב
           </button>
-
-          {/* Debug Info */}
-          <div style={{
-            marginTop: '20px',
-            padding: '16px',
-            backgroundColor: 'rgba(0,0,0,0.1)',
-            borderRadius: '8px',
-            fontSize: '12px',
-            textAlign: 'right',
-            direction: 'rtl',
-            maxWidth: '400px',
-            lineHeight: '1.6'
-          }}>
-            <div style={{ fontWeight: '600', marginBottom: '8px' }}>מידע לאבחון תקלות:</div>
-            <div>טלגרם זמין: {telegram.isAvailable ? '✅ כן' : '❌ לא'}</div>
-            <div>יש InitData: {telegram.initData ? '✅ כן' : '❌ לא'}</div>
-            <div>יש משתמש: {telegram.user ? '✅ כן' : '❌ לא'}</div>
-            <div>סביבת Telegram: {telegram.isAvailable ? 'Mini App' : 'דפדפן רגיל'}</div>
-          </div>
       </div>
     );
   }

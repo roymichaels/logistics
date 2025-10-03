@@ -206,7 +206,7 @@ Deno.serve(async (req: Request) => {
     const FIRST_ADMIN_USERNAME = Deno.env.get('FIRST_ADMIN_USERNAME');
     const firstAdminUsername = normalizeUsername(FIRST_ADMIN_USERNAME);
     const isFirstAdmin = usernameNormalized === firstAdminUsername;
-    const defaultRole = isFirstAdmin ? 'owner' : 'manager';
+    const defaultRole = isFirstAdmin ? 'owner' : 'user';
 
     // Check if user exists in users table
     const { data: existingUser } = await supabase
