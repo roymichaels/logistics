@@ -4,6 +4,40 @@ import App from './App';
 
 console.log('🚀 Starting app...');
 
+// FORCE CLEAR ALL CACHES AND UNREGISTER SERVICE WORKERS
+(async () => {
+  try {
+    // Unregister all service workers
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        await registration.unregister();
+        console.log('🗑️ Unregistered service worker');
+      }
+    }
+
+    // Clear all caches
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      for (const cacheName of cacheNames) {
+        await caches.delete(cacheName);
+        console.log(`🗑️ Deleted cache: ${cacheName}`);
+      }
+    }
+
+    // Clear localStorage (except user session)
+    const sessionData = localStorage.getItem('user_session');
+    localStorage.clear();
+    if (sessionData) {
+      localStorage.setItem('user_session', sessionData);
+    }
+
+    console.log('✅ All caches cleared');
+  } catch (error) {
+    console.error('⚠️ Failed to clear caches:', error);
+  }
+})();
+
 // Error boundary component
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },

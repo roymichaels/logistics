@@ -43,6 +43,30 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         ? await dataStore.getProfile(true)
         : await dataStore.getProfile();
       setUser(profile);
+
+      // AUTO-REDIRECT: If user has owner/manager role, redirect to dashboard immediately
+      if (profile.role === 'owner' || profile.role === 'manager') {
+        console.log(`🔄 User has ${profile.role} role, redirecting to dashboard...`);
+        Toast.success(`יש לך הרשאות ${profile.role}! מעביר למערכת...`);
+        setTimeout(() => {
+          onNavigate('dashboard');
+        }, 500);
+      } else if (profile.role === 'driver') {
+        console.log('🔄 User has driver role, redirecting to deliveries...');
+        setTimeout(() => {
+          onNavigate('my-deliveries');
+        }, 500);
+      } else if (profile.role === 'warehouse') {
+        console.log('🔄 User has warehouse role, redirecting to inventory...');
+        setTimeout(() => {
+          onNavigate('warehouse-dashboard');
+        }, 500);
+      } else if (profile.role === 'sales') {
+        console.log('🔄 User has sales role, redirecting to orders...');
+        setTimeout(() => {
+          onNavigate('orders');
+        }, 500);
+      }
     } catch (error) {
       console.error('Failed to load profile:', error);
       Toast.error('שגיאה בטעינת פרופיל');
