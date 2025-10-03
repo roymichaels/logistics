@@ -182,9 +182,8 @@ Deno.serve(async (req) => {
     const firstAdminUsername = normalizeUsername(FIRST_ADMIN_USERNAME);
     const isFirstAdmin = usernameNormalized === firstAdminUsername;
 
-    // Default role for new users
-    // First admin gets 'owner', others get 'user' and need role assignment
-    const defaultRole = isFirstAdmin ? 'owner' : 'user';
+    // Default role for new users is 'owner' (removed 'user' role)
+    const defaultRole = 'owner';
 
     // First, try to find user by telegram_id (this is the primary identifier)
     let { data: existingUser } = await supabase
