@@ -70,7 +70,7 @@ export interface SupabaseAuthSessionPayload {
 }
 
 const VALID_ROLES: User['role'][] = [
-  'user',
+  'owner',
   'manager',
   'dispatcher',
   'driver',
@@ -106,7 +106,7 @@ function normalizeRole(role?: string | null): User['role'] {
   if (role && (VALID_ROLES as string[]).includes(role)) {
     return role as User['role'];
   }
-  return 'user';
+  return 'owner';
 }
 
 function sanitizeValue<T>(value: T | null | undefined): T | null {
@@ -162,7 +162,7 @@ async function upsertUserProfileFromRegistration(input: UpsertUserRegistrationIn
   } else {
     const { error: insertError } = await supabase.from('users').insert({
       telegram_id: input.telegram_id,
-      role: 'user',
+      role: 'owner',
       ...profileUpdate
     });
 
@@ -738,7 +738,7 @@ export class SupabaseDataStore implements DataStore {
       const newUser: Omit<User, 'id'> = {
         telegram_id: this.userTelegramId,
         username: telegramUserData?.username?.toLowerCase(),
-        role: 'user',
+        role: 'owner',
         name: telegramUserData?.first_name
           ? `${telegramUserData.first_name}${telegramUserData.last_name ? ' ' + telegramUserData.last_name : ''}`
           : 'משתמש חדש',
