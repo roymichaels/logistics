@@ -1,6 +1,37 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
+import fs from 'fs';
+import path from 'path';
+
+const cacheBustPlugin = () => ({
+  name: 'cache-bust',
+  closeBundle() {
+    const indexPath = path.resolve(__dirname, 'dist/index.html');
+    if (fs.existsSync(indexPath)) {
+      let html = fs.readFileSync(indexPath, 'utf-8');
+      const timestamp = Date.now();
+
+      html = html.replace(
+        '<meta charset="UTF-8">',
+        `<meta charset="UTF-8">\n  <meta name="app-version" content="${timestamp}">`
+      );
+
+      html = html.replace(
+        /(<script[^>]+src=")([^"]+)(")/g,
+        `$1$2?v=${timestamp}$3`
+      );
+
+      html = html.replace(
+        /(<link[^>]+href=")([^"]+)(")/g,
+        `$1$2?v=${timestamp}$3`
+      );
+
+      fs.writeFileSync(indexPath, html);
+      console.log(`\n✅ Cache-busting added: version ${timestamp}`);
+    }
+  }
+});
 
 export default defineConfig({
   build: {
@@ -31,7 +62,8 @@ export default defineConfig({
       filename: 'dist/bundle-analysis.html',
       open: false,
       gzipSize: true
-    })
+    }),
+    cacheBustPlugin()
   ],
   server: {
     port: 3000,
