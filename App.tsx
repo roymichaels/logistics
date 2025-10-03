@@ -287,14 +287,6 @@ export default function App() {
             allParams: Array.from(params.entries())
           });
 
-          if (isRefresh) {
-            debugLog.info('🔄 Refresh parameter detected - forcing fresh role fetch');
-            console.log('⏱️ Waiting 1 second for DB replication to complete...');
-            // Add delay to ensure DB replication is complete
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            console.log('✅ Wait complete, fetching role...');
-          }
-
           // Always call getCurrentRole which fetches fresh from DB
           let role: any = null;
           if (store.getCurrentRole) {

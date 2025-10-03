@@ -340,25 +340,11 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
 
           Toast.success('שודרג למנהל! טוען מחדש...');
 
-          // The edge function returned success, so we trust it
-          // Give DB a moment to replicate, then force reload
-          console.log('⏱️ Waiting 2 seconds for DB replication...');
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          console.log('⏱️ Waiting 1 second for DB write to complete...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
 
-          console.log('🔄 Forcing full page reload...');
-
-          // Force a hard reload bypassing all caches
-          if (window.Telegram?.WebApp) {
-            console.log('📱 Telegram WebApp detected - closing to force fresh load...');
-            window.Telegram.WebApp.close();
-          } else {
-            console.log('🌐 Browser environment - forcing hard reload...');
-            // Use multiple techniques to force reload
-            window.location.href = window.location.origin + window.location.pathname + '?refresh=1&_=' + Date.now();
-            setTimeout(() => {
-              window.location.reload();
-            }, 100);
-          }
+          console.log('🔄 Forcing full page reload with cache bypass...');
+          window.location.href = window.location.origin + window.location.pathname + '?refresh=' + Date.now();
         }}
         userTelegramId={user?.telegram_id || ''}
         dataStore={dataStore}

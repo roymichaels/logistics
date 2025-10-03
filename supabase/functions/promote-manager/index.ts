@@ -84,27 +84,39 @@ Deno.serve(async (req: Request) => {
       console.log(`✅ Created user record for ${telegram_id}`);
     }
 
-    // Update user role to manager
-    const { error: updateError } = await supabase
+    // Update user role to manager and return the updated record
+    const { data: updatedUser, error: updateError } = await supabase
       .from('users')
       .update({
         role: 'manager',
         updated_at: new Date().toISOString()
       })
-      .eq('telegram_id', telegram_id);
+      .eq('telegram_id', telegram_id)
+      .select()
+      .maybeSingle();
 
     if (updateError) {
       console.error('Error updating user role:', updateError);
       throw updateError;
     }
 
-    console.log(`✅ Promoted user ${telegram_id} to manager`);
+    if (!updatedUser) {
+      console.error('User update returned no data');
+      throw new Error('Failed to verify user promotion');
+    }
+
+    console.log(`✅ Promoted user ${telegram_id} to manager, verified role: ${updatedUser.role}`);
 
     return new Response(
       JSON.stringify({
         success: true,
         message: 'User promoted to manager',
-        role: 'manager'
+        role: updatedUser.role,
+        user: {
+          telegram_id: updatedUser.telegram_id,
+          role: updatedUser.role,
+          updated_at: updatedUser.updated_at
+        }
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
