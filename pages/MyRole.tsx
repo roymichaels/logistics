@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
 import { Toast } from '../src/components/Toast';
 import { telegram } from '../lib/telegram';
-import { ManagerLoginModal } from '../src/components/ManagerLoginModal';
 
 interface MyRoleProps {
   dataStore: DataStore;
@@ -24,7 +23,6 @@ const ROYAL_COLORS = {
 export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showManagerLogin, setShowManagerLogin] = useState(false);
 
   useEffect(() => {
     // Check if we need to force refresh (after manager promotion)
@@ -53,9 +51,46 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
     }
   };
 
-  const handleRequestManagerAccess = () => {
-    telegram.hapticFeedback('medium');
-    setShowManagerLogin(true);
+  const handleRequestManagerAccess = async () => {
+    try {
+      telegram.hapticFeedback('medium');
+
+      console.log('🔐 Directly promoting user to owner...');
+      Toast.info('מעדכן הרשאות...');
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const userTelegramId = user?.telegram_id || 'web_test_user';
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/promote-manager`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({
+          telegram_id: userTelegramId,
+          pin: '000000'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to promote user');
+      }
+
+      const result = await response.json();
+      console.log('✅ User promoted successfully:', result);
+
+      Toast.success('שודרג למנהל! טוען מחדש...');
+
+      console.log('⏱️ Waiting 1.5s for DB replication...');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      console.log('🔄 Reloading page...');
+      window.location.href = window.location.origin + window.location.pathname + '?refresh=' + Date.now();
+    } catch (error) {
+      console.error('❌ Failed to promote user:', error);
+      Toast.error('שגיאה בעדכון הרשאות');
+    }
   };
 
   if (loading) {
@@ -191,7 +226,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
             boxShadow: '0 4px 16px rgba(156, 109, 255, 0.4)'
           }}
         >
-          🔐 בקש גישת מנהל
+          ⚡ קבל גישת מנהל
         </button>
       </div>
 
@@ -330,25 +365,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         </div>
       </div>
 
-      {/* Manager Login Modal */}
-      <ManagerLoginModal
-        isOpen={showManagerLogin}
-        onClose={() => setShowManagerLogin(false)}
-        onSuccess={async () => {
-          console.log('🎉 Manager promotion API call successful!');
-          setShowManagerLogin(false);
-
-          Toast.success('שודרג למנהל! טוען מחדש...');
-
-          console.log('⏱️ Waiting 1 second for DB write to complete...');
-          await new Promise(resolve => setTimeout(resolve, 1000));
-
-          console.log('🔄 Forcing full page reload with cache bypass...');
-          window.location.href = window.location.origin + window.location.pathname + '?refresh=' + Date.now();
-        }}
-        userTelegramId={user?.telegram_id || ''}
-        dataStore={dataStore}
-      />
+      {/* Manager Login Modal - No longer needed, promotion is instant */}
     </div>
   );
 }
