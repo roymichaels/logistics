@@ -387,12 +387,24 @@ export interface Order {
   notes?: string;
   delivery_date?: string;
   assigned_driver?: string;
+  assigned_at?: string;
+  accepted_at?: string;
+  picked_up_at?: string;
+  delivered_at?: string;
+  cancelled_at?: string;
+  estimated_delivery_time?: string;
+  actual_delivery_time?: string;
+  delivery_proof_url?: string;
+  customer_rating?: number;
+  customer_feedback?: string;
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
   created_by: string;
   salesperson_id?: string;
   entry_mode?: OrderEntryMode;
   raw_order_text?: string;
   created_at: string;
   updated_at: string;
+  eta?: string;
 }
 
 export interface CreateOrderInput {
