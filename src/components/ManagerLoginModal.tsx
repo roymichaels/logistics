@@ -35,6 +35,7 @@ export function ManagerLoginModal({
       setError('');
 
       if (newPin.length === PIN_LENGTH) {
+        console.log('🔑 PIN complete, verifying in 100ms...');
         setTimeout(() => verifyPin(newPin), 100);
       }
     }
@@ -54,16 +55,31 @@ export function ManagerLoginModal({
     setIsLoading(true);
     setError('');
 
-    telegram.hapticFeedback('notification', 'success');
+    // Safe haptic feedback (doesn't crash in web)
+    try {
+      telegram.hapticFeedback('notification', 'success');
+    } catch (e) {
+      console.log('⚠️ Haptic feedback not available (web browser)');
+    }
 
     try {
       // Call edge function to promote user (bypasses RLS)
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      console.log('🔐 Calling promote-manager edge function...', {
-        url: `${supabaseUrl}/functions/v1/promote-manager`,
-        telegram_id: userTelegramId,
-        pin_length: enteredPin.length
-      });
+
+      console.log('🔐 Calling promote-manager edge function...');
+      console.log('   URL:', `${supabaseUrl}/functions/v1/promote-manager`);
+      console.log('   telegram_id:', userTelegramId);
+      console.log('   telegram_id type:', typeof userTelegramId);
+      console.log('   telegram_id empty?:', !userTelegramId);
+      console.log('   PIN length:', enteredPin.length);
+
+      // Handle web browser mode: use a test telegram_id if none exists
+      const effectiveTelegramId = userTelegramId || 'web_test_user';
+
+      if (!userTelegramId) {
+        console.warn('⚠️ Running in web mode without Telegram ID');
+        console.warn('⚠️ Using fallback telegram_id:', effectiveTelegramId);
+      }
 
       const response = await fetch(`${supabaseUrl}/functions/v1/promote-manager`, {
         method: 'POST',
@@ -71,7 +87,7 @@ export function ManagerLoginModal({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          telegram_id: userTelegramId,
+          telegram_id: effectiveTelegramId,
           pin: enteredPin
         })
       });
@@ -114,6 +130,7 @@ export function ManagerLoginModal({
       window.location.reload();
     } catch (error) {
       console.error('❌ Failed to promote user:', error);
+      console.error('❌ Error stack:', error instanceof Error ? error.stack : 'no stack');
       const errorMessage = error instanceof Error ? error.message : 'שגיאה בעדכון הרשאות';
       Toast.error(errorMessage);
       setError(errorMessage);
