@@ -138,13 +138,27 @@ try {
 }
 
 // Handle Telegram WebApp lifecycle
-if (window.Telegram?.WebApp) {
+function initTelegramWebApp() {
+  console.log('🎬 Checking Telegram WebApp...');
+
+  if (!window.Telegram?.WebApp) {
+    console.log('⚠️ Telegram WebApp not available yet, will retry...');
+    return false;
+  }
+
   const tg = window.Telegram.WebApp;
-  
+  console.log('✅ Telegram WebApp found:', {
+    version: tg.version,
+    platform: tg.platform,
+    hasInitData: !!tg.initData,
+    initDataLength: tg.initData?.length || 0
+  });
+
   // Initialize Telegram WebApp
   tg.ready();
   tg.expand();
-  
+  console.log('✅ Telegram WebApp ready and expanded');
+
   // Set theme colors
   if (tg.themeParams) {
     const root = document.documentElement;
@@ -153,17 +167,18 @@ if (window.Telegram?.WebApp) {
         root.style.setProperty(`--tg-theme-${key.replace(/_/g, '-')}`, value);
       }
     });
+    console.log('✅ Theme colors applied');
   }
-  
+
   // Handle viewport changes
   const handleViewportChange = () => {
     const vh = tg.viewportStableHeight * 0.01;
     document.documentElement.style.setProperty('--vh', `${vh}px`);
   };
-  
+
   handleViewportChange();
   window.addEventListener('resize', handleViewportChange);
-  
+
   // Handle theme changes
   tg.onEvent('themeChanged', () => {
     if (tg.themeParams) {
@@ -175,4 +190,26 @@ if (window.Telegram?.WebApp) {
       });
     }
   });
+
+  return true;
+}
+
+// Try to initialize immediately
+if (!initTelegramWebApp()) {
+  // If not available, wait for script to load
+  console.log('⏳ Waiting for Telegram SDK to load...');
+  let retries = 0;
+  const maxRetries = 10;
+  const retryInterval = setInterval(() => {
+    retries++;
+    console.log(`🔄 Retry ${retries}/${maxRetries}...`);
+
+    if (initTelegramWebApp()) {
+      clearInterval(retryInterval);
+      console.log('✅ Telegram SDK loaded successfully');
+    } else if (retries >= maxRetries) {
+      clearInterval(retryInterval);
+      console.warn('⚠️ Telegram SDK failed to load after max retries - app will run in browser mode');
+    }
+  }, 100);
 }
