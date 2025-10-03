@@ -8,7 +8,6 @@ import { TelegramAuth } from './src/components/TelegramAuth';
 import { OrderCreationWizard } from './src/components/OrderCreationWizard';
 import { DualModeOrderEntry } from './src/components/DualModeOrderEntry';
 import { BusinessManager } from './src/components/BusinessManager';
-import { SecurityGate } from './src/components/SecurityGate';
 import { SuperadminSetup } from './src/components/SuperadminSetup';
 import { debugLog } from './src/components/DebugPanel';
 import { hebrew } from './src/lib/hebrew';
@@ -611,12 +610,7 @@ export default function App() {
   };
 
   return (
-    <SecurityGate
-      userId={user?.id || user?.telegram_id || 'unknown'}
-      telegramId={user?.telegram_id || ''}
-      onSecurityError={(error) => setError(`Security Error: ${error}`)}
-    >
-      <div style={{
+    <div style={{
         minHeight: '100vh',
         backgroundColor: theme.bg_color,
         color: theme.text_color,
@@ -685,9 +679,8 @@ export default function App() {
         )}
 
         {/* Debug Panel - Shows logs on screen */}
-        
+
       </div>
-    </SecurityGate>
   );
 }
 
