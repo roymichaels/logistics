@@ -70,13 +70,32 @@ class TelegramService {
   constructor() {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
       this.webApp = window.Telegram.WebApp;
+
+      console.log('🎬 Telegram WebApp initialized', {
+        version: this.webApp.version,
+        platform: this.webApp.platform,
+        hasInitData: !!this.webApp.initData,
+        initDataLength: this.webApp.initData?.length || 0,
+        hasInitDataUnsafe: !!this.webApp.initDataUnsafe,
+        hasUser: !!this.webApp.initDataUnsafe?.user
+      });
+
       this.webApp.ready();
       this.webApp.expand();
-      
+
       // Parse user data from initDataUnsafe
       if (this.webApp.initDataUnsafe?.user) {
         this.userData = this.webApp.initDataUnsafe.user;
+        console.log('✅ Telegram user data loaded:', {
+          id: this.userData.id,
+          username: this.userData.username,
+          firstName: this.userData.first_name
+        });
+      } else {
+        console.warn('⚠️ No user data in initDataUnsafe');
       }
+    } else {
+      console.log('🌐 Not running in Telegram WebApp environment');
     }
   }
 
