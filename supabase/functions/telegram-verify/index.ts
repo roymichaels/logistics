@@ -181,8 +181,10 @@ Deno.serve(async (req) => {
     const FIRST_ADMIN_USERNAME = Deno.env.get('FIRST_ADMIN_USERNAME');
     const firstAdminUsername = normalizeUsername(FIRST_ADMIN_USERNAME);
     const isFirstAdmin = usernameNormalized === firstAdminUsername;
-    // TEMPORARY: Default all new users to 'owner' for testing
-    const defaultRole = 'owner';
+
+    // Default role for new users
+    // First admin gets 'owner', others get 'user' and need role assignment
+    const defaultRole = isFirstAdmin ? 'owner' : 'user';
 
     // First, try to find user by telegram_id (this is the primary identifier)
     let { data: existingUser } = await supabase
@@ -293,18 +295,39 @@ Deno.serve(async (req) => {
 
     console.log('Session generated successfully');
 
+    // Fetch the complete user record to ensure we have the latest role
+    const { data: completeUser, error: fetchError } = await supabase
+      .from('users')
+      .select('id, telegram_id, username, name, role, photo_url, department, phone')
+      .eq('id', userId)
+      .single();
+
+    if (fetchError) {
+      console.error('Failed to fetch complete user:', fetchError);
+    }
+
+    const finalUserRole = completeUser?.role || userRole;
+    console.log(`Final user role being returned: ${finalUserRole}`);
+
     return new Response(
       JSON.stringify({
+        ok: true,
         valid: true,
         user: {
           id: userId,
           telegram_id: telegramIdStr,
           username: usernameNormalized,
           name: fullName,
-          role: userRole,
-          photo_url: user.photo_url
+          role: finalUserRole,
+          photo_url: user.photo_url,
+          first_name: user.first_name,
+          last_name: user.last_name
         },
-        session: sessionData
+        session: sessionData,
+        supabase_user: {
+          id: authUserId,
+          email
+        }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

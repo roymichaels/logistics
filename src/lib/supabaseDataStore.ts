@@ -702,7 +702,23 @@ export class SupabaseDataStore implements DataStore {
 
   // Auth & Profile
   async getProfile(forceRefresh = false): Promise<User> {
-    if (this.user && !forceRefresh) return this.user;
+    if (this.user && !forceRefresh) {
+      console.log('getProfile: Returning cached user', { role: this.user.role });
+      return this.user;
+    }
+
+    // Wait for auth session to be established if it's in progress
+    if (this.authInitialization) {
+      console.log('getProfile: Waiting for auth initialization...');
+      try {
+        await this.authInitialization;
+        console.log('getProfile: Auth initialization complete');
+      } catch (error) {
+        console.error('getProfile: Auth initialization failed:', error);
+      }
+    }
+
+    console.log(`getProfile: Fetching profile for telegram_id: ${this.userTelegramId}`);
 
     const { data, error } = await supabase
       .from('users')
@@ -710,9 +726,13 @@ export class SupabaseDataStore implements DataStore {
       .eq('telegram_id', this.userTelegramId)
       .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      console.error('getProfile: Database error:', error);
+      throw error;
+    }
 
     if (!data) {
+      console.log('getProfile: User not found, creating new user');
       // Create user if doesn't exist
       const telegramUserData = this.initialUserData as any;
       const newUser: Omit<User, 'id'> = {
@@ -733,11 +753,17 @@ export class SupabaseDataStore implements DataStore {
         .select()
         .single();
 
-      if (createError) throw createError;
+      if (createError) {
+        console.error('getProfile: Failed to create user:', createError);
+        throw createError;
+      }
+
+      console.log('getProfile: Created new user', { role: created.role });
       this.user = created;
       return created;
     }
 
+    console.log('getProfile: Successfully fetched profile', { role: data.role });
     this.user = data;
     return data;
   }
@@ -748,8 +774,22 @@ export class SupabaseDataStore implements DataStore {
 
   async getCurrentRole(): Promise<User['role'] | null> {
     if (!this.userTelegramId) {
+      console.warn('getCurrentRole: No userTelegramId provided');
       return null;
     }
+
+    // Wait for auth session to be established if it's in progress
+    if (this.authInitialization) {
+      console.log('getCurrentRole: Waiting for auth initialization...');
+      try {
+        await this.authInitialization;
+        console.log('getCurrentRole: Auth initialization complete');
+      } catch (error) {
+        console.error('getCurrentRole: Auth initialization failed:', error);
+      }
+    }
+
+    console.log(`getCurrentRole: Fetching role for telegram_id: ${this.userTelegramId}`);
 
     const { data, error } = await supabase
       .from('users')
@@ -757,12 +797,17 @@ export class SupabaseDataStore implements DataStore {
       .eq('telegram_id', this.userTelegramId)
       .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      console.error('getCurrentRole: Database error:', error);
+      throw error;
+    }
 
     if (!data) {
+      console.warn('getCurrentRole: No user found in database');
       return null;
     }
 
+    console.log(`getCurrentRole: Successfully fetched role: ${data.role}`);
     this.user = data;
     return data.role;
   }
