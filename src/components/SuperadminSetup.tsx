@@ -21,7 +21,7 @@ export function SuperadminSetup({ user, onSuccess, theme }: SuperadminSetupProps
   const checkPasswordStatus = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/superadmin-auth`,
+        `${import.meta.env.VITE_Bolt_Database_URL}/functions/v1/superadmin-auth`,
         {
           method: 'POST',
           headers: {
@@ -68,7 +68,7 @@ export function SuperadminSetup({ user, onSuccess, theme }: SuperadminSetupProps
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/superadmin-auth`,
+        `${import.meta.env.VITE_Bolt_Database_URL}/functions/v1/superadmin-auth`,
         {
           method: 'POST',
           headers: {

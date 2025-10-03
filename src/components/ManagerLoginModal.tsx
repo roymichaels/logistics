@@ -64,7 +64,7 @@ export function ManagerLoginModal({
 
     try {
       // Call edge function to promote user (bypasses RLS)
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseUrl = import.meta.env.VITE_Bolt_Database_URL;
 
       console.log('🔐 Calling promote-manager edge function...');
       console.log('   URL:', `${supabaseUrl}/functions/v1/promote-manager`);

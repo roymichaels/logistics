@@ -60,7 +60,7 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
   };
 
   const authenticateWithInitData = async () => {
-    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+    const SUPABASE_URL = import.meta.env.VITE_Bolt_Database_URL;
 
     // If no Supabase URL, fall back to client-side auth
     if (!SUPABASE_URL) {
@@ -184,7 +184,7 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
     try {
       setLoading(true);
       
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const SUPABASE_URL = import.meta.env.VITE_Bolt_Database_URL;
       
       if (SUPABASE_URL) {
         try {

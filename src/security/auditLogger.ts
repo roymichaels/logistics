@@ -44,8 +44,8 @@ export class SecurityAuditLogger {
 
   private initializeSupabase() {
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const supabaseUrl = import.meta.env.VITE_Bolt_Database_URL;
+      const supabaseKey = import.meta.env.VITE_Bolt_Database_ANON_KEY;
 
       if (supabaseUrl && supabaseKey) {
         this.supabase = createClient(supabaseUrl, supabaseKey);
