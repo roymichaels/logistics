@@ -162,6 +162,7 @@ export default function App() {
       return;
     }
 
+    // Only run this logic once per role change
     if (initialPageRole === userRole) {
       return;
     }
@@ -183,8 +184,13 @@ export default function App() {
       defaultPage = 'orders';  // Sales → Orders
     }
 
-    if (defaultPage && currentPage === 'dashboard') {
-      setCurrentPage(defaultPage);
+    // Navigate to role-specific page on role change
+    // Special case: if user was on 'my-role' and got promoted, always navigate to new role page
+    if (defaultPage) {
+      if (currentPage === 'dashboard' || currentPage === 'my-role') {
+        console.log(`🔄 Role changed from ${initialPageRole} to ${userRole}, navigating to ${defaultPage}`);
+        setCurrentPage(defaultPage);
+      }
     }
 
     setInitialPageRole(userRole);
@@ -212,9 +218,24 @@ export default function App() {
       if (store) {
         try {
           debugLog.info('👤 Getting user role...');
-          const role = (await store.getCurrentRole?.()) ?? (await store.getProfile()).role;
+
+          // Always call getCurrentRole which fetches fresh from DB
+          let role: any = null;
+          if (store.getCurrentRole) {
+            role = await store.getCurrentRole();
+            debugLog.info(`📊 getCurrentRole() returned: ${role}`);
+          }
+
+          // Fallback to getProfile if getCurrentRole not available or returned null
+          if (!role) {
+            debugLog.info('🔄 Falling back to getProfile()');
+            const profile = await store.getProfile();
+            role = profile.role;
+            debugLog.info(`📊 getProfile().role returned: ${role}`);
+          }
+
           setUserRole(role ?? 'user');
-          debugLog.success(`✅ User role: ${role ?? 'user'}`);
+          debugLog.success(`✅ User role set to: ${role ?? 'user'}`);
         } catch (error) {
           debugLog.warn('⚠️ Failed to resolve user role', error);
           setUserRole('user');
@@ -242,11 +263,25 @@ export default function App() {
       setDataStore(store);
 
       // Get user role from store
-      let role: any = 'user';
+      let role: any = null;
       if (store) {
         try {
-          role = (await store.getCurrentRole?.()) ?? (await store.getProfile()).role;
+          // Always call getCurrentRole which fetches fresh from DB
+          if (store.getCurrentRole) {
+            role = await store.getCurrentRole();
+            console.log(`📊 handleLogin: getCurrentRole() returned: ${role}`);
+          }
+
+          // Fallback to getProfile if getCurrentRole not available or returned null
+          if (!role) {
+            console.log('🔄 handleLogin: Falling back to getProfile()');
+            const profile = await store.getProfile();
+            role = profile.role;
+            console.log(`📊 handleLogin: getProfile().role returned: ${role}`);
+          }
+
           setUserRole(role ?? 'user');
+          console.log(`✅ handleLogin: User role set to: ${role ?? 'user'}`);
         } catch (error) {
           console.warn('Failed to resolve user role:', error);
           setUserRole('user');
@@ -269,8 +304,21 @@ export default function App() {
     // Refresh user role from database
     if (dataStore) {
       try {
-        const role = (await dataStore.getCurrentRole?.()) ?? (await dataStore.getProfile()).role;
+        // Force refresh by calling getCurrentRole which fetches fresh from DB
+        let role: any = null;
+        if (dataStore.getCurrentRole) {
+          role = await dataStore.getCurrentRole();
+          console.log(`📊 handleSuperadminSuccess: getCurrentRole() returned: ${role}`);
+        }
+
+        if (!role) {
+          const profile = await dataStore.getProfile(true); // Force refresh
+          role = profile.role;
+          console.log(`📊 handleSuperadminSuccess: getProfile(true).role returned: ${role}`);
+        }
+
         setUserRole(role ?? 'user');
+        console.log(`✅ handleSuperadminSuccess: User role set to: ${role ?? 'user'}`);
       } catch (error) {
         console.warn('Failed to refresh user role:', error);
       }
