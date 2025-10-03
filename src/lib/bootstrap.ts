@@ -30,6 +30,17 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
     hasUserData: !!userData
   });
 
+  // Clear all caches on startup to force fresh data
+  try {
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+      debugLog.info('🗑️ Cleared all caches');
+    }
+  } catch (error) {
+    debugLog.warn('⚠️ Failed to clear caches', error);
+  }
+
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
   // Check for stored session first (for page refreshes)

@@ -9,7 +9,10 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom'],
           telegram: ['./lib/telegram']
-        }
+        },
+        entryFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
+        chunkFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
+        assetFileNames: `assets/[name]-[hash]-${Date.now()}.[ext]`
       }
     },
     target: 'es2020',
@@ -34,7 +37,20 @@ export default defineConfig({
     port: 3000,
     host: true,
     headers: {
-      'X-Frame-Options': 'ALLOWALL'
+      'X-Frame-Options': 'ALLOWALL',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    }
+  },
+  preview: {
+    port: 3000,
+    host: true,
+    headers: {
+      'X-Frame-Options': 'ALLOWALL',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
     }
   },
   define: {

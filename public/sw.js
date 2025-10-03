@@ -1,6 +1,7 @@
 // Logistics App Service Worker
-const CACHE_NAME = 'logistics-app-v1';
-const OFFLINE_CACHE = 'logistics-offline-v1';
+const CACHE_VERSION = Date.now();
+const CACHE_NAME = `logistics-app-v${CACHE_VERSION}`;
+const OFFLINE_CACHE = `logistics-offline-v${CACHE_VERSION}`;
 
 // Files to cache for offline functionality
 const STATIC_ASSETS = [
@@ -179,33 +180,23 @@ function isAPIRequest(pathname) {
          pathname.includes('/functions/');
 }
 
-// Cache first strategy
+// Network first strategy (no caching for now)
 async function cacheFirst(request) {
   try {
+    // Always fetch from network to avoid caching issues
+    const response = await fetch(request);
+    return response;
+  } catch (error) {
+    console.error('Service Worker: Network request failed', error);
+
+    // Try cache as fallback
     const cache = await caches.open(CACHE_NAME);
     const cachedResponse = await cache.match(request);
 
     if (cachedResponse) {
-      // Update cache in background
-      fetch(request).then(response => {
-        if (response.status === 200) {
-          cache.put(request, response.clone());
-        }
-      }).catch(() => {}); // Ignore network errors
-
       return cachedResponse;
     }
 
-    // Not in cache, try network
-    const response = await fetch(request);
-
-    if (response.status === 200) {
-      cache.put(request, response.clone());
-    }
-
-    return response;
-  } catch (error) {
-    console.error('Service Worker: Cache first strategy failed', error);
     return new Response('Offline - Content not available', { status: 503 });
   }
 }
