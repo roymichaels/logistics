@@ -308,6 +308,27 @@ export default function App() {
           if (isRefresh) {
             window.history.replaceState({}, '', window.location.pathname);
             debugLog.info('🧹 Cleaned up refresh parameter from URL');
+
+            // Navigate to appropriate default page for the new role
+            if (role === 'manager' || role === 'owner') {
+              setCurrentPage('dashboard');
+              debugLog.info('📍 Navigated to dashboard for manager/owner role');
+            } else if (role === 'dispatcher') {
+              setCurrentPage('dispatch-board');
+              debugLog.info('📍 Navigated to dispatch-board for dispatcher role');
+            } else if (role === 'driver') {
+              setCurrentPage('my-deliveries');
+              debugLog.info('📍 Navigated to my-deliveries for driver role');
+            } else if (role === 'warehouse') {
+              setCurrentPage('warehouse-dashboard');
+              debugLog.info('📍 Navigated to warehouse-dashboard for warehouse role');
+            } else if (role === 'sales') {
+              setCurrentPage('orders');
+              debugLog.info('📍 Navigated to orders for sales role');
+            } else {
+              setCurrentPage('my-role');
+              debugLog.info('📍 Staying on my-role for user role');
+            }
           }
         } catch (error) {
           debugLog.warn('⚠️ Failed to resolve user role', error);
