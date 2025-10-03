@@ -123,7 +123,7 @@ Deno.serve(async (req: Request) => {
               username: normalizedUsername,
               name: user.first_name + (user.last_name ? ` ${user.last_name}` : ''),
               photo_url: user.photo_url,
-              role: user.role || 'manager',  // Changed default from 'user' to 'manager'
+              role: user.role || 'owner',  // Default to infrastructure owner
               updated_at: new Date().toISOString()
             }, {
               onConflict: 'telegram_id'

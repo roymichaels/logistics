@@ -16,6 +16,7 @@ import { DraftOrderItem, ProductInventoryAvailability } from '../src/components/
 import { DriverCandidate } from '../src/lib/dispatchService';
 import { DispatchOrchestrator } from '../src/lib/dispatchOrchestrator';
 import { Toast } from '../src/components/Toast';
+import { ROYAL_COLORS, ROYAL_STYLES } from '../src/styles/royalTheme';
 
 interface OrdersProps {
   dataStore: DataStore;
@@ -113,14 +114,11 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
 
   if (loading) {
     return (
-      <div style={{ 
-        padding: '20px', 
-        textAlign: 'center',
-        color: theme.text_color,
-        backgroundColor: theme.bg_color,
-        minHeight: '100vh'
-      }}>
-        Loading orders...
+      <div style={ROYAL_STYLES.pageContainer}>
+        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+          <p style={{ color: ROYAL_COLORS.muted }}>טוען הזמנות...</p>
+        </div>
       </div>
     );
   }
@@ -155,163 +153,186 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
   }
 
   return (
-    <div style={{ 
-      backgroundColor: theme.bg_color,
-      color: theme.text_color,
-      minHeight: '100vh'
-    }}>
+    <div style={ROYAL_STYLES.pageContainer}>
       {/* Header */}
-      <div style={{ padding: '16px', borderBottom: `1px solid ${theme.hint_color}20` }}>
-        <h1 style={{ 
-          margin: '0 0 16px 0', 
-          fontSize: '24px', 
-          fontWeight: '600'
-        }}>
-          Orders
-        </h1>
+      <div style={ROYAL_STYLES.pageHeader}>
+        <h1 style={ROYAL_STYLES.pageTitle}>📦 הזמנות</h1>
+        <p style={ROYAL_STYLES.pageSubtitle}>ניהול והזמנות בזמן אמת</p>
+      </div>
 
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Search orders..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '12px',
-            border: `1px solid ${theme.hint_color}40`,
-            borderRadius: '8px',
-            backgroundColor: theme.secondary_bg_color || '#f1f1f1',
-            color: theme.text_color,
-            fontSize: '16px',
-            marginBottom: '16px'
-          }}
-        />
+      {/* Search */}
+      <input
+        type="text"
+        placeholder="חיפוש לפי לקוח, טלפון או כתובת..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        style={{
+          ...ROYAL_STYLES.input,
+          marginBottom: '20px',
+          fontSize: '15px'
+        }}
+      />
 
-        {/* Filters */}
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
-          {['all', 'new', 'assigned', 'enroute', 'delivered'].map((status) => (
-            <button
-              key={status}
-              onClick={() => {
-                telegram.hapticFeedback('selection');
-                setFilter(status);
-              }}
-              style={{
-                padding: '8px 16px',
-                border: 'none',
-                borderRadius: '20px',
-                backgroundColor: filter === status ? theme.button_color : theme.secondary_bg_color,
-                color: filter === status ? theme.button_text_color : theme.text_color,
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </button>
-          ))}
-        </div>
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '24px', paddingBottom: '8px' }}>
+        {['all', 'new', 'assigned', 'enroute', 'delivered'].map((status) => (
+          <button
+            key={status}
+            onClick={() => {
+              telegram.hapticFeedback('selection');
+              setFilter(status);
+            }}
+            style={{
+              padding: '10px 20px',
+              border: `2px solid ${filter === status ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+              borderRadius: '20px',
+              background: filter === status ? ROYAL_COLORS.accent + '20' : 'transparent',
+              color: filter === status ? ROYAL_COLORS.accent : ROYAL_COLORS.text,
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            {status === 'all' ? 'הכל' : status === 'new' ? 'חדש' : status === 'assigned' ? 'הוקצה' : status === 'enroute' ? 'בדרך' : 'נמסר'}
+          </button>
+        ))}
       </div>
 
       {/* Orders List */}
-      <div style={{ padding: '16px' }}>
-        {orders.length === 0 ? (
-          <div style={{ 
-            textAlign: 'center', 
-            padding: '40px 20px',
-            color: theme.hint_color
-          }}>
-            No orders found
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {orders.map((order) => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                onClick={() => {
-                  telegram.hapticFeedback('selection');
-                  setSelectedOrder(order);
-                }}
-                theme={theme}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      {orders.length === 0 ? (
+        <div style={ROYAL_STYLES.emptyState}>
+          <div style={ROYAL_STYLES.emptyStateIcon}>📦</div>
+          <p style={ROYAL_STYLES.emptyStateText}>לא נמצאו הזמנות</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {orders.map((order) => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              onClick={() => {
+                telegram.hapticFeedback('selection');
+                setSelectedOrder(order);
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-function OrderCard({ order, onClick, theme }: { 
-  order: Order; 
+function OrderCard({ order, onClick }: {
+  order: Order;
   onClick: () => void;
-  theme: any;
 }) {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'new': return '#ff3b30';
-      case 'assigned': return '#ff9500';
-      case 'enroute': return '#007aff';
-      case 'delivered': return '#34c759';
-      case 'failed': return '#ff3b30';
-      default: return theme.hint_color;
+      case 'new': return ROYAL_COLORS.warning;
+      case 'assigned': return ROYAL_COLORS.info;
+      case 'enroute': return ROYAL_COLORS.accent;
+      case 'delivered': return ROYAL_COLORS.success;
+      case 'failed': return ROYAL_COLORS.crimson;
+      default: return ROYAL_COLORS.muted;
     }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      new: 'חדש',
+      assigned: 'הוקצה',
+      enroute: 'בדרך',
+      delivered: 'נמסר',
+      failed: 'נכשל'
+    };
+    return labels[status] || status;
   };
 
   return (
     <div
       onClick={onClick}
       style={{
-        padding: '16px',
-        backgroundColor: theme.secondary_bg_color || '#f1f1f1',
-        borderRadius: '12px',
+        ...ROYAL_STYLES.card,
         cursor: 'pointer',
-        border: `1px solid ${theme.hint_color}20`
+        transition: 'all 0.3s ease'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = ROYAL_COLORS.shadowStrong;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = ROYAL_COLORS.shadow;
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-        <div>
-          <h3 style={{ 
-            margin: '0 0 4px 0', 
-            fontSize: '16px', 
-            fontWeight: '600',
-            color: theme.text_color
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+        <div style={{ flex: 1 }}>
+          <h3 style={{
+            margin: '0 0 6px 0',
+            fontSize: '18px',
+            fontWeight: '700',
+            color: ROYAL_COLORS.text
           }}>
             {order.customer_name}
           </h3>
-          <p style={{ 
-            margin: 0, 
-            fontSize: '14px', 
-            color: theme.hint_color,
-            lineHeight: '1.4'
+          <p style={{
+            margin: '0 0 4px 0',
+            fontSize: '14px',
+            color: ROYAL_COLORS.muted,
+            lineHeight: '1.5'
           }}>
-            {order.customer_address}
+            📞 {order.customer_phone}
+          </p>
+          <p style={{
+            margin: 0,
+            fontSize: '14px',
+            color: ROYAL_COLORS.muted,
+            lineHeight: '1.5'
+          }}>
+            📍 {order.customer_address}
           </p>
         </div>
-        
+
         <div style={{
-          padding: '4px 8px',
+          padding: '6px 12px',
           borderRadius: '12px',
-          backgroundColor: getStatusColor(order.status) + '20',
+          background: getStatusColor(order.status) + '20',
+          border: `1px solid ${getStatusColor(order.status)}`,
           color: getStatusColor(order.status),
           fontSize: '12px',
-          fontWeight: '600'
+          fontWeight: '700',
+          whiteSpace: 'nowrap',
+          marginRight: '12px'
         }}>
-          {order.status.toUpperCase()}
+          {getStatusLabel(order.status)}
         </div>
       </div>
 
-      {order.eta && (
-        <p style={{ 
-          margin: '8px 0 0 0', 
-          fontSize: '12px', 
-          color: theme.hint_color
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '12px', borderTop: `1px solid ${ROYAL_COLORS.cardBorder}` }}>
+        <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
+          🕒 {new Date(order.created_at).toLocaleString('he-IL')}
+        </div>
+        {order.total_amount && (
+          <div style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.gold }}>
+            ₪{order.total_amount.toLocaleString()}
+          </div>
+        )}
+      </div>
+
+      {order.assigned_driver && (
+        <div style={{
+          marginTop: '12px',
+          padding: '8px 12px',
+          background: ROYAL_COLORS.info + '10',
+          border: `1px solid ${ROYAL_COLORS.info}30`,
+          borderRadius: '8px',
+          fontSize: '13px',
+          color: ROYAL_COLORS.info
         }}>
-          ETA: {new Date(order.eta).toLocaleString()}
-        </p>
+          🚗 נהג: {order.assigned_driver}
+        </div>
       )}
     </div>
   );
