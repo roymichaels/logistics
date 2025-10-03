@@ -280,10 +280,19 @@ export default function App() {
           const params = new URLSearchParams(window.location.search);
           const isRefresh = params.has('refresh');
 
+          console.log('🔍 URL Check:', {
+            href: window.location.href,
+            search: window.location.search,
+            hasRefresh: isRefresh,
+            allParams: Array.from(params.entries())
+          });
+
           if (isRefresh) {
             debugLog.info('🔄 Refresh parameter detected - forcing fresh role fetch');
-            // Add small delay to ensure DB transaction is complete
-            await new Promise(resolve => setTimeout(resolve, 300));
+            console.log('⏱️ Waiting 500ms for DB transaction to complete...');
+            // Add delay to ensure DB transaction is complete
+            await new Promise(resolve => setTimeout(resolve, 500));
+            console.log('✅ Wait complete, fetching role...');
           }
 
           // Always call getCurrentRole which fetches fresh from DB
