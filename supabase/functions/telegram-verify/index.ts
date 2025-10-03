@@ -208,11 +208,12 @@ Deno.serve(async (req: Request) => {
     const isFirstAdmin = usernameNormalized === firstAdminUsername;
     const defaultRole = isFirstAdmin ? 'owner' : 'user';
 
-    // Check if user exists in users table
+    // Check if user exists by telegram_id OR username
+    // This handles the case where web login and Mini App use different telegram_ids
     const { data: existingUser } = await supabase
       .from('users')
-      .select('id, telegram_id, role')
-      .eq('telegram_id', telegramIdStr)
+      .select('id, telegram_id, username, role')
+      .or(`telegram_id.eq.${telegramIdStr},username.eq.${usernameNormalized}`)
       .maybeSingle();
 
     let userId: string;
@@ -221,7 +222,16 @@ Deno.serve(async (req: Request) => {
     if (existingUser) {
       userId = existingUser.id;
       userRole = existingUser.role;
-      console.log(`✅ User exists: ${telegramIdStr} (role: ${userRole})`);
+      console.log(`✅ User exists: ${usernameNormalized} (role: ${userRole})`);
+
+      // Update telegram_id if it changed (web vs Mini App)
+      if (existingUser.telegram_id !== telegramIdStr) {
+        console.log(`📝 Updating telegram_id from ${existingUser.telegram_id} to ${telegramIdStr}`);
+        await supabase
+          .from('users')
+          .update({ telegram_id: telegramIdStr })
+          .eq('id', userId);
+      }
     } else {
       // Create new user in users table
       const { data: newUser, error: insertError } = await supabase
