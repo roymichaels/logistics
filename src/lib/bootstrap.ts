@@ -155,10 +155,13 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
 
   // If no Supabase URL at all, use mock config
   if (!SUPABASE_URL) {
-    debugLog.warn('⚠️ Using mock config - no Supabase URL', {
+    debugLog.error('🚨 CRITICAL: Missing VITE_SUPABASE_URL environment variable!', {
+      message: 'App running in MOCK MODE. Configure environment variables in Netlify!',
       isTelegramEnv: telegram.isTelegramEnv,
       hasSupabaseUrl: !!SUPABASE_URL
     });
+    debugLog.error('🚨 User role will be "user" instead of "owner" in mock mode!');
+    debugLog.error('🚨 TO FIX: Add VITE_SUPABASE_URL in Netlify dashboard → Site configuration → Environment variables');
     return {
       config: {
         app: 'miniapp',
