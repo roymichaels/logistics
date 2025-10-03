@@ -133,7 +133,7 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
     }
 
     // Create user object from Telegram data
-    const userData = {
+    const baseUserData = {
       telegram_id: telegramUser.id.toString(),
       first_name: telegramUser.first_name || 'User',
       last_name: telegramUser.last_name || '',
@@ -144,9 +144,9 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
     };
 
     debugLog.info('👤 Processing Telegram user', {
-      id: userData.telegram_id,
-      username: userData.username,
-      name: userData.first_name
+      id: baseUserData.telegram_id,
+      username: baseUserData.username,
+      name: baseUserData.first_name
     });
 
     // Register user in local system
@@ -155,17 +155,20 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
     let registration: UserRegistration | null = null;
 
     try {
-      registration = await userManager.registerUser(userData);
+      registration = await userManager.registerUser(baseUserData);
       debugLog.success('✅ User registered', { status: registration?.status });
     } catch (error) {
       debugLog.error('❌ Failed to register user', error);
       // Continue anyway - registration might fail but we can still auth
     }
 
-    // Add registration info to user data
-    userData.registration = registration;
-    userData.isFirstAdmin = userManager.isFirstAdmin(userData.username || '');
-    userData.isApproved = registration?.status === 'approved';
+    // Create enriched user data with registration info
+    const userData: any = {
+      ...baseUserData,
+      registration,
+      isFirstAdmin: userManager.isFirstAdmin(baseUserData.username || ''),
+      isApproved: registration?.status === 'approved'
+    };
 
     debugLog.success('✅ Authentication complete!', {
       telegram_id: userData.telegram_id,
@@ -218,7 +221,7 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
       }
 
       // Fallback to client-side data
-      const userData = {
+      const baseUserData = {
         telegram_id: user.id.toString(),
         first_name: user.first_name,
         last_name: user.last_name,
@@ -232,15 +235,18 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
       let registration: UserRegistration | null = null;
 
       try {
-        registration = await userManager.registerUser(userData);
+        registration = await userManager.registerUser(baseUserData);
       } catch (error) {
         console.error('Failed to register user in Supabase:', error);
       }
 
-      // Add registration info to user data
-      userData.registration = registration;
-      userData.isFirstAdmin = userManager.isFirstAdmin(userData.username || '');
-      userData.isApproved = registration?.status === 'approved';
+      // Create enriched user data with registration info
+      const userData: any = {
+        ...baseUserData,
+        registration,
+        isFirstAdmin: userManager.isFirstAdmin(baseUserData.username || ''),
+        isApproved: registration?.status === 'approved'
+      };
 
       console.log('✅ Using Telegram Login Widget data');
       onAuth(userData);
