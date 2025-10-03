@@ -110,9 +110,52 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
     };
   }
 
-  // If not in Telegram environment OR no Supabase URL, use mock config
-  if (!telegram.isTelegramEnv || !SUPABASE_URL) {
-    debugLog.warn('⚠️ Using mock config', {
+  // 🧪 BROWSER FALLBACK MODE FOR DEBUGGING
+  // If not in Telegram environment, create a test user
+  if (!telegram.isTelegramEnv && SUPABASE_URL) {
+    debugLog.warn('🌐 Running in BROWSER MODE - using test user', {
+      isTelegramEnv: telegram.isTelegramEnv,
+      hasSupabaseUrl: !!SUPABASE_URL,
+      note: 'This is for debugging only'
+    });
+
+    // Create a test user for browser mode
+    const testUser = {
+      telegram_id: '999999999', // Test ID
+      username: 'test_browser_user',
+      first_name: 'Test',
+      last_name: 'User',
+      language_code: 'he',
+      auth_date: Date.now()
+    };
+
+    return {
+      config: {
+        app: 'miniapp',
+        adapters: { data: 'supabase' },
+        features: {
+          offline_mode: true,
+          photo_upload: true,
+          gps_tracking: true,
+          route_optimization: false,
+        },
+        ui: {
+          brand: 'מערכת לוגיסטיקה (Browser Mode)',
+          accent: '#007aff',
+          theme: 'auto',
+          language: 'he'
+        },
+        defaults: {
+          mode: 'real' as const,
+        },
+      },
+      user: testUser,
+    };
+  }
+
+  // If no Supabase URL at all, use mock config
+  if (!SUPABASE_URL) {
+    debugLog.warn('⚠️ Using mock config - no Supabase URL', {
       isTelegramEnv: telegram.isTelegramEnv,
       hasSupabaseUrl: !!SUPABASE_URL
     });

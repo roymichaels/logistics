@@ -140,6 +140,12 @@ try {
 // Handle Telegram WebApp lifecycle
 function initTelegramWebApp() {
   console.log('🎬 Checking Telegram WebApp...');
+  console.log('📊 Environment Check:', {
+    hasTelegram: !!window.Telegram,
+    hasWebApp: !!window.Telegram?.WebApp,
+    userAgent: navigator.userAgent,
+    location: window.location.href
+  });
 
   if (!window.Telegram?.WebApp) {
     console.log('⚠️ Telegram WebApp not available yet, will retry...');
@@ -147,12 +153,63 @@ function initTelegramWebApp() {
   }
 
   const tg = window.Telegram.WebApp;
-  console.log('✅ Telegram WebApp found:', {
+
+  // CRITICAL DEBUG INFO
+  console.log('🔍 TELEGRAM WEBAPP DEBUG:', {
     version: tg.version,
     platform: tg.platform,
+    colorScheme: tg.colorScheme,
+    isExpanded: tg.isExpanded,
+    viewportHeight: tg.viewportHeight,
+    viewportStableHeight: tg.viewportStableHeight,
     hasInitData: !!tg.initData,
-    initDataLength: tg.initData?.length || 0
+    initDataLength: tg.initData?.length || 0,
+    initData: tg.initData || 'EMPTY',
+    hasInitDataUnsafe: !!tg.initDataUnsafe,
+    initDataUnsafe: tg.initDataUnsafe,
+    hasUser: !!tg.initDataUnsafe?.user,
+    user: tg.initDataUnsafe?.user || 'NO USER',
+    themeParams: tg.themeParams
   });
+
+  // CRITICAL: Check if initData is empty
+  if (!tg.initData || tg.initData.length === 0) {
+    console.error('🚨 CRITICAL: initData is EMPTY! This means:');
+    console.error('   1. Bot is not configured correctly in BotFather');
+    console.error('   2. App URL doesn\'t match BotFather settings');
+    console.error('   3. App is opened in wrong context');
+
+    // Show error to user
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+      rootElement.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; text-align: center; direction: rtl; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a1a; color: #fff;">
+          <div style="font-size: 64px; margin-bottom: 24px;">🚨</div>
+          <h1 style="font-size: 24px; margin-bottom: 16px; color: #ff3b30;">שגיאת אתחול Telegram</h1>
+          <p style="font-size: 16px; color: #999; margin-bottom: 24px; max-width: 400px;">
+            initData ריק - הבוט לא מוגדר כראוי ב-BotFather
+          </p>
+          <details style="background: #2a2a2a; padding: 16px; border-radius: 8px; text-align: left; font-family: monospace; font-size: 12px; max-width: 90%; overflow: auto;">
+            <summary style="cursor: pointer; color: #007aff; margin-bottom: 8px;">Debug Info</summary>
+            <pre style="white-space: pre-wrap; word-break: break-all;">${JSON.stringify({
+              version: tg.version,
+              platform: tg.platform,
+              initData: tg.initData || 'EMPTY',
+              initDataUnsafe: tg.initDataUnsafe,
+              location: window.location.href
+            }, null, 2)}</pre>
+          </details>
+        </div>
+      `;
+    }
+    return false;
+  }
+
+  // Check if user data exists
+  if (!tg.initDataUnsafe?.user) {
+    console.error('🚨 CRITICAL: No user in initDataUnsafe!');
+    console.error('   initDataUnsafe:', tg.initDataUnsafe);
+  }
 
   // Initialize Telegram WebApp
   tg.ready();
