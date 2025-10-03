@@ -183,13 +183,27 @@ Deno.serve(async (req) => {
     const isFirstAdmin = usernameNormalized === firstAdminUsername;
     const defaultRole = isFirstAdmin ? 'owner' : 'user';
 
-    // Check if user exists by telegram_id OR username
-    // This handles the case where web login and Mini App use different telegram_ids
-    const { data: existingUser } = await supabase
+    // First, try to find user by telegram_id (this is the primary identifier)
+    let { data: existingUser } = await supabase
       .from('users')
       .select('id, telegram_id, username, role')
-      .or(`telegram_id.eq.${telegramIdStr},username.eq.${usernameNormalized}`)
+      .eq('telegram_id', telegramIdStr)
       .maybeSingle();
+
+    // If not found by telegram_id AND we have a username, try to find by username
+    // This handles the case where web login and Mini App use different telegram_ids
+    if (!existingUser && usernameNormalized) {
+      const { data: userByUsername } = await supabase
+        .from('users')
+        .select('id, telegram_id, username, role')
+        .eq('username', usernameNormalized)
+        .maybeSingle();
+
+      if (userByUsername) {
+        existingUser = userByUsername;
+        console.log(`🔄 Found user by username, updating telegram_id from ${userByUsername.telegram_id} to ${telegramIdStr}`);
+      }
+    }
 
     let userId: string;
     let userRole: string = defaultRole;
@@ -201,7 +215,6 @@ Deno.serve(async (req) => {
 
       // Update telegram_id if it changed (web vs Mini App)
       if (existingUser.telegram_id !== telegramIdStr) {
-        console.log(`📝 Updating telegram_id from ${existingUser.telegram_id} to ${telegramIdStr}`);
         await supabase
           .from('users')
           .update({ telegram_id: telegramIdStr })
