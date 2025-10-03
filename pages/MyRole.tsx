@@ -139,20 +139,11 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
 
       Toast.success('שודרג לבעלים! טוען מחדש...');
 
-      console.log('⏱️ Waiting 1.5s for DB replication...');
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log('⏱️ Waiting 1s for DB replication...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      console.log('🔄 Force reloading page with cache bust...');
-
-      // Aggressive reload - clear everything first
-      if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        for (const cacheName of cacheNames) {
-          await caches.delete(cacheName);
-        }
-      }
-
-      window.location.href = window.location.origin + window.location.pathname + '?refresh=' + Date.now();
+      console.log('🔄 Reloading page...');
+      window.location.reload();
     } catch (error) {
       console.error('❌ Failed to promote user:', error);
       Toast.error(`שגיאה: ${error instanceof Error ? error.message : 'לא ניתן לעדכן הרשאות'}`);
