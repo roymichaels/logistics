@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTelegramUI } from '../src/hooks/useTelegramUI';
 import { useSkeleton } from '../src/hooks/useSkeleton';
 import { Toast } from '../src/components/Toast';
+import { OwnerDashboard } from '../src/components/OwnerDashboard';
+import { ManagerDashboard } from '../src/components/ManagerDashboard';
 import {
   DataStore,
   User,
@@ -53,6 +55,12 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     try {
       const profile = await dataStore.getProfile();
       setUser(profile);
+
+      // Owner and Manager get custom dashboards
+      if (profile.role === 'owner' || profile.role === 'manager') {
+        setLoading(false);
+        return;
+      }
 
       // Regular users don't need operational dashboard
       if (profile.role === 'user') {
@@ -110,6 +118,16 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
 
   if (loading || showSkeleton) {
     return <RoyalSkeleton />;
+  }
+
+  // Owner gets comprehensive system-wide dashboard
+  if (user?.role === 'owner') {
+    return <OwnerDashboard dataStore={dataStore} user={user} onNavigate={onNavigate} />;
+  }
+
+  // Manager gets department-specific dashboard
+  if (user?.role === 'manager') {
+    return <ManagerDashboard dataStore={dataStore} user={user} onNavigate={onNavigate} />;
   }
 
   // Simple welcome screen for regular users

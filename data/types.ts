@@ -1,11 +1,13 @@
 export interface User {
   telegram_id: string;
-  role: 'user' | 'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service';
+  role: 'user' | 'owner' | 'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service';
   name?: string;
   username?: string;
   photo_url?: string;
   department?: string;
   phone?: string;
+  business_id?: string;
+  last_active?: string;
 }
 
 export type UserRegistrationStatus = 'pending' | 'approved' | 'rejected';
