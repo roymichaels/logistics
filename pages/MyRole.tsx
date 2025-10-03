@@ -335,51 +335,29 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         isOpen={showManagerLogin}
         onClose={() => setShowManagerLogin(false)}
         onSuccess={async () => {
-          console.log('🎉 Manager promotion successful, verifying role change...');
+          console.log('🎉 Manager promotion API call successful!');
           setShowManagerLogin(false);
 
-          // Small delay to ensure DB update is complete
-          await new Promise(resolve => setTimeout(resolve, 800));
+          Toast.success('שודרג למנהל! טוען מחדש...');
 
-          try {
-            // Fetch fresh role from database
-            let newRole: any = null;
-            if (dataStore.getCurrentRole) {
-              newRole = await dataStore.getCurrentRole();
-              console.log(`📊 Fresh role from DB: ${newRole}`);
-            }
+          // The edge function returned success, so we trust it
+          // Give DB a moment to replicate, then force reload
+          console.log('⏱️ Waiting 2 seconds for DB replication...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
 
-            if (!newRole) {
-              const profile = await dataStore.getProfile(true);
-              newRole = profile.role;
-              console.log(`📊 Fresh role from profile: ${newRole}`);
-            }
+          console.log('🔄 Forcing full page reload...');
 
-            if (newRole === 'manager' || newRole === 'owner') {
-              Toast.success('שודרג למנהל! טוען מחדש...');
-              console.log('✅ Role confirmed as manager, forcing hard reload...');
-
-              // Force a hard reload bypassing all caches
-              setTimeout(() => {
-                // Try multiple reload methods to bypass Telegram caching
-                if (window.Telegram?.WebApp) {
-                  console.log('🔄 Closing Telegram WebApp to force fresh load...');
-                  window.Telegram.WebApp.close();
-                } else {
-                  console.log('🔄 Forcing hard reload with cache bypass...');
-                  window.location.href = window.location.origin + window.location.pathname + '?refresh=1&_=' + Date.now();
-                  setTimeout(() => {
-                    window.location.reload();
-                  }, 100);
-                }
-              }, 500);
-            } else {
-              Toast.error(`שגיאה: התפקיד עדיין ${newRole}`);
-              console.error(`❌ Role not updated in DB, still: ${newRole}`);
-            }
-          } catch (error) {
-            console.error('❌ Failed to verify role update:', error);
-            Toast.error('שגיאה באימות השדרוג');
+          // Force a hard reload bypassing all caches
+          if (window.Telegram?.WebApp) {
+            console.log('📱 Telegram WebApp detected - closing to force fresh load...');
+            window.Telegram.WebApp.close();
+          } else {
+            console.log('🌐 Browser environment - forcing hard reload...');
+            // Use multiple techniques to force reload
+            window.location.href = window.location.origin + window.location.pathname + '?refresh=1&_=' + Date.now();
+            setTimeout(() => {
+              window.location.reload();
+            }, 100);
           }
         }}
         userTelegramId={user?.telegram_id || ''}

@@ -289,9 +289,9 @@ export default function App() {
 
           if (isRefresh) {
             debugLog.info('🔄 Refresh parameter detected - forcing fresh role fetch');
-            console.log('⏱️ Waiting 500ms for DB transaction to complete...');
-            // Add delay to ensure DB transaction is complete
-            await new Promise(resolve => setTimeout(resolve, 500));
+            console.log('⏱️ Waiting 1 second for DB replication to complete...');
+            // Add delay to ensure DB replication is complete
+            await new Promise(resolve => setTimeout(resolve, 1000));
             console.log('✅ Wait complete, fetching role...');
           }
 
