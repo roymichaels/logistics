@@ -69,7 +69,8 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         },
         body: JSON.stringify({
           telegram_id: userTelegramId,
-          pin: '000000'
+          pin: '000000',
+          target_role: 'owner'
         })
       });
 
@@ -80,7 +81,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
       const result = await response.json();
       console.log('✅ User promoted successfully:', result);
 
-      Toast.success('שודרג למנהל! טוען מחדש...');
+      Toast.success('שודרג לבעלים! טוען מחדש...');
 
       console.log('⏱️ Waiting 1.5s for DB replication...');
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -226,7 +227,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
             boxShadow: '0 4px 16px rgba(156, 109, 255, 0.4)'
           }}
         >
-          ⚡ קבל גישת מנהל
+          🔑 קבל גישת אדמין
         </button>
       </div>
 

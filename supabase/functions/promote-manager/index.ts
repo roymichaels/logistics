@@ -21,7 +21,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { telegram_id, pin } = await req.json();
+    const { telegram_id, pin, target_role } = await req.json();
 
     if (!telegram_id || !pin) {
       return new Response(
@@ -84,11 +84,12 @@ Deno.serve(async (req: Request) => {
       console.log(`✅ Created user record for ${telegram_id}`);
     }
 
-    // Update user role to manager and return the updated record
-    const { data: updatedUser, error: updateError } = await supabase
+    // Update user role (default to owner for admin access)
+    const finalRole = target_role || 'owner';
+    const { data: updatedUser, error: updateError} = await supabase
       .from('users')
       .update({
-        role: 'manager',
+        role: finalRole,
         updated_at: new Date().toISOString()
       })
       .eq('telegram_id', telegram_id)
@@ -105,12 +106,12 @@ Deno.serve(async (req: Request) => {
       throw new Error('Failed to verify user promotion');
     }
 
-    console.log(`✅ Promoted user ${telegram_id} to manager, verified role: ${updatedUser.role}`);
+    console.log(`✅ Promoted user ${telegram_id} to ${finalRole}, verified role: ${updatedUser.role}`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'User promoted to manager',
+        message: `User promoted to ${finalRole}`,
         role: updatedUser.role,
         user: {
           telegram_id: updatedUser.telegram_id,
