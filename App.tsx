@@ -146,6 +146,44 @@ export default function App() {
     initializeApp();
   }, []);
 
+  // Listen for role refresh events (after manager promotion)
+  useEffect(() => {
+    const handleRoleRefresh = async () => {
+      if (dataStore) {
+        console.log('🔄 Role refresh requested, fetching fresh role from database...');
+        try {
+          let role: any = null;
+          if (dataStore.getCurrentRole) {
+            role = await dataStore.getCurrentRole();
+            console.log(`📊 Role refresh: getCurrentRole() returned: ${role}`);
+          }
+
+          if (!role) {
+            const profile = await dataStore.getProfile(true); // Force refresh
+            role = profile.role;
+            console.log(`📊 Role refresh: getProfile(true).role returned: ${role}`);
+          }
+
+          if (role && role !== userRole) {
+            console.log(`✅ Role changed from ${userRole} to ${role}, updating app state`);
+            setUserRole(role);
+          }
+        } catch (error) {
+          console.warn('Failed to refresh user role:', error);
+        }
+      }
+    };
+
+    // Check URL for refresh parameter
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('refresh')) {
+      console.log('🔄 Detected refresh parameter in URL');
+      handleRoleRefresh();
+      // Clean up URL parameter
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [dataStore, userRole]);
+
   // Apply theme to body
   useEffect(() => {
     document.body.style.backgroundColor = theme.bg_color || '#ffffff';
