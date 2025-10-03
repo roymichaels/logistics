@@ -184,7 +184,15 @@ export default function App() {
       }
     };
 
-    // Check URL for refresh parameter
+    // Listen for custom role refresh event
+    const handleCustomRefresh = () => {
+      console.log('🎯 Custom role-refresh event received!');
+      handleRoleRefresh();
+    };
+
+    window.addEventListener('role-refresh', handleCustomRefresh);
+
+    // Check URL for refresh parameter (legacy support)
     const params = new URLSearchParams(window.location.search);
     if (params.has('refresh') && dataStore) {
       console.log('🔄 Detected refresh parameter in URL, triggering role refresh');
@@ -192,6 +200,10 @@ export default function App() {
       // Clean up URL parameter
       window.history.replaceState({}, '', window.location.pathname);
     }
+
+    return () => {
+      window.removeEventListener('role-refresh', handleCustomRefresh);
+    };
   }, [dataStore, userRole]);
 
   // Apply theme to body

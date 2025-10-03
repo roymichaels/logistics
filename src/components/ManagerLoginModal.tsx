@@ -93,10 +93,25 @@ export function ManagerLoginModal({
 
       const result = JSON.parse(responseText);
       console.log('✅ Manager promotion successful:', result);
+      console.log('📊 Promoted user role:', result.role);
+      console.log('👤 Promoted user:', result.user);
 
       Toast.success('משודרג למנהל!');
+
       onClose();
+
+      // Give Supabase replication a moment to propagate (critical!)
+      console.log('⏳ Waiting 1.5s for Supabase replication...');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      console.log('🔄 Reloading page to refresh role...');
+
+      // Trigger success callback BEFORE reload
       onSuccess();
+
+      // Force full page reload to refresh role from database
+      // This is the most reliable way to ensure the new role is picked up
+      window.location.reload();
     } catch (error) {
       console.error('❌ Failed to promote user:', error);
       const errorMessage = error instanceof Error ? error.message : 'שגיאה בעדכון הרשאות';
