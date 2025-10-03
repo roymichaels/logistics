@@ -79,11 +79,30 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
     try {
       telegram.hapticFeedback('medium');
 
-      console.log('🔐 Directly promoting user to owner...');
+      console.log('🔐 Starting promotion process...');
+
+      // Try to get telegram_id from multiple sources
+      let userTelegramId = user?.telegram_id;
+
+      if (!userTelegramId && window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+        userTelegramId = String(window.Telegram.WebApp.initDataUnsafe.user.id);
+        console.log('📱 Got telegram_id from Telegram WebApp:', userTelegramId);
+      }
+
+      if (!userTelegramId) {
+        console.error('❌ No telegram_id available');
+        console.log('User object:', user);
+        console.log('Telegram WebApp data:', window.Telegram?.WebApp?.initDataUnsafe);
+        Toast.error('לא ניתן לזהות משתמש - אנא נסה שוב');
+        return;
+      }
+
+      console.log('🔐 Promoting user:', userTelegramId);
       Toast.info('מעדכן הרשאות...');
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const userTelegramId = user?.telegram_id || 'web_test_user';
+
+      console.log('📡 Calling edge function:', `${supabaseUrl}/functions/v1/promote-manager`);
 
       const response = await fetch(`${supabaseUrl}/functions/v1/promote-manager`, {
         method: 'POST',
@@ -98,11 +117,24 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         })
       });
 
+      console.log('📡 Response status:', response.status);
+
+      const responseText = await response.text();
+      console.log('📡 Response body:', responseText);
+
       if (!response.ok) {
-        throw new Error('Failed to promote user');
+        let errorMessage = 'Failed to promote user';
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.error || errorData.details || errorMessage;
+        } catch (e) {
+          errorMessage = responseText || errorMessage;
+        }
+        console.error('❌ Error response:', errorMessage);
+        throw new Error(errorMessage);
       }
 
-      const result = await response.json();
+      const result = JSON.parse(responseText);
       console.log('✅ User promoted successfully:', result);
 
       Toast.success('שודרג לבעלים! טוען מחדש...');
@@ -110,11 +142,20 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
       console.log('⏱️ Waiting 1.5s for DB replication...');
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      console.log('🔄 Reloading page...');
+      console.log('🔄 Force reloading page with cache bust...');
+
+      // Aggressive reload - clear everything first
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        for (const cacheName of cacheNames) {
+          await caches.delete(cacheName);
+        }
+      }
+
       window.location.href = window.location.origin + window.location.pathname + '?refresh=' + Date.now();
     } catch (error) {
       console.error('❌ Failed to promote user:', error);
-      Toast.error('שגיאה בעדכון הרשאות');
+      Toast.error(`שגיאה: ${error instanceof Error ? error.message : 'לא ניתן לעדכן הרשאות'}`);
     }
   };
 
