@@ -122,7 +122,8 @@ export default function App() {
     | 'driver'
     | 'warehouse'
     | 'sales'
-    | 'user'
+    | 'dispatcher'
+    | 'customer_service'
     | null
   >(null);
   const [showOrderWizard, setShowOrderWizard] = useState(false);
@@ -232,9 +233,7 @@ export default function App() {
     let defaultPage: Page | null = null;
 
     // 🔐 MILITARIZED ROLE-BASED INITIAL PAGES
-    if (userRole === 'user') {
-      defaultPage = 'my-role';  // Unassigned users → My Role page
-    } else if (userRole === 'owner') {
+    if (userRole === 'owner') {
       defaultPage = 'dashboard';  // Owner → Dashboard
     } else if (userRole === 'manager') {
       defaultPage = 'dashboard';  // Manager → Dashboard
@@ -247,18 +246,18 @@ export default function App() {
     }
 
     // Navigate to role-specific page on role change
-    // Special case: if user was promoted from 'user' role, always navigate to new role page
+    // Special case: if user role changed, navigate to appropriate page
     if (defaultPage) {
-      const wasUnassignedUser = initialPageRole === null || initialPageRole === 'user';
-      const isNowAssigned = userRole !== 'user';
+      const roleChanged = initialPageRole !== userRole;
+      const hasRole = userRole !== null;
 
-      // Force navigation if user was just promoted from 'user' to an actual role
-      if (wasUnassignedUser && isNowAssigned) {
-        console.log(`🔄 User promoted from ${initialPageRole} to ${userRole}, navigating to ${defaultPage}`);
+      // Force navigation if role changed
+      if (roleChanged && hasRole) {
+        console.log(`🔄 User role changed from ${initialPageRole} to ${userRole}, navigating to ${defaultPage}`);
         setCurrentPage(defaultPage);
       }
-      // Standard navigation when already on dashboard or my-role page
-      else if (currentPage === 'dashboard' || currentPage === 'my-role') {
+      // Standard navigation when already on dashboard
+      else if (currentPage === 'dashboard') {
         console.log(`🔄 Role changed from ${initialPageRole} to ${userRole}, navigating to ${defaultPage}`);
         setCurrentPage(defaultPage);
       }
@@ -316,8 +315,8 @@ export default function App() {
             debugLog.info(`📊 getProfile(true).role returned: ${role}`);
           }
 
-          setUserRole(role ?? 'user');
-          debugLog.success(`✅ User role set to: ${role ?? 'user'}`);
+          setUserRole(role ?? 'owner');
+          debugLog.success(`✅ User role set to: ${role ?? 'owner'}`);
 
           // Clean up refresh parameter after processing
           if (isRefresh) {
