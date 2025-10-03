@@ -154,50 +154,70 @@ class TelegramService {
 
   setBackButton(onClick: () => void): void {
     if (!this.webApp) return;
-    
-    this.webApp.BackButton.onClick(onClick);
-    this.webApp.BackButton.show();
+
+    try {
+      this.webApp.BackButton.onClick(onClick);
+      this.webApp.BackButton.show();
+    } catch (error) {
+      console.log('[Telegram] BackButton not supported in this version');
+    }
   }
 
   hideBackButton(): void {
     if (!this.webApp) return;
-    this.webApp.BackButton.hide();
+    try {
+      this.webApp.BackButton.hide();
+    } catch (error) {
+      console.log('[Telegram] BackButton not supported in this version');
+    }
   }
 
   hapticFeedback(type: 'selection' | 'impact' | 'notification', style?: 'light' | 'medium' | 'heavy' | 'error' | 'success' | 'warning'): void {
     if (!this.webApp) return;
 
-    switch (type) {
-      case 'selection':
-        this.webApp.HapticFeedback.selectionChanged();
-        break;
-      case 'impact':
-        this.webApp.HapticFeedback.impactOccurred(style as 'light' | 'medium' | 'heavy' || 'light');
-        break;
-      case 'notification':
-        this.webApp.HapticFeedback.notificationOccurred(style as 'error' | 'success' | 'warning' || 'success');
-        break;
+    try {
+      switch (type) {
+        case 'selection':
+          this.webApp.HapticFeedback.selectionChanged();
+          break;
+        case 'impact':
+          this.webApp.HapticFeedback.impactOccurred(style as 'light' | 'medium' | 'heavy' || 'light');
+          break;
+        case 'notification':
+          this.webApp.HapticFeedback.notificationOccurred(style as 'error' | 'success' | 'warning' || 'success');
+          break;
+      }
+    } catch (error) {
+      console.log('[Telegram] HapticFeedback not supported in this version');
     }
   }
 
   showAlert(message: string): void {
     if (this.webApp) {
-      this.webApp.showAlert(message);
+      try {
+        this.webApp.showAlert(message);
+      } catch (error) {
+        console.log('[Telegram] showAlert not supported, using fallback');
+        alert(message);
+      }
     } else {
-      // Fallback for non-Telegram environment
       console.log('Alert:', message);
+      alert(message);
     }
   }
 
   showConfirm(message: string): Promise<boolean> {
     return new Promise((resolve) => {
       if (this.webApp && this.webApp.showConfirm) {
-        // Use Telegram's built-in confirm dialog
-        this.webApp.showConfirm(message, (confirmed: boolean) => {
-          resolve(confirmed);
-        });
+        try {
+          this.webApp.showConfirm(message, (confirmed: boolean) => {
+            resolve(confirmed);
+          });
+        } catch (error) {
+          console.log('[Telegram] showConfirm not supported, using fallback');
+          resolve(confirm(message));
+        }
       } else {
-        // Fallback for non-Telegram environment
         console.log('Confirm:', message);
         resolve(confirm(message));
       }
