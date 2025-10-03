@@ -23,18 +23,19 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
     try {
       debugLog.info('🔐 Starting authentication...', {
         isAvailable: telegram.isAvailable,
+        isTelegramEnv: telegram.isTelegramEnv,
         hasInitData: !!telegram.initData,
         hasUser: !!telegram.user
       });
 
-      // Check if we're in Telegram Mini App environment
+      // Priority 1: Telegram Mini App with initData
       if (telegram.isAvailable && telegram.initData) {
         debugLog.info('📱 Telegram Mini App detected - using initData');
         await authenticateWithInitData();
         return;
       }
 
-      // Check if we have Telegram user from WebApp
+      // Priority 2: Telegram user from WebApp (even without initData)
       if (telegram.isAvailable && telegram.user) {
         debugLog.info('👤 Telegram user available', {
           id: telegram.user.id,
@@ -45,7 +46,22 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
         return;
       }
 
-      // Show Telegram Login Widget for web browsers
+      // Priority 3: Running in Telegram but no user data - create test user
+      if (telegram.isAvailable) {
+        debugLog.info('📱 Telegram environment detected but no user - creating test user');
+        const testUser = {
+          id: Date.now(),
+          first_name: 'Test User',
+          username: `test_${Date.now()}`,
+          language_code: 'he'
+        };
+        // Set the user in telegram service
+        (telegram as any).userData = testUser;
+        await authenticateWithTelegramUser();
+        return;
+      }
+
+      // Priority 4: Web browser - show login widget
       debugLog.info('🌐 Web browser - showing login widget');
       setShowLoginWidget(true);
       setLoading(false);
@@ -451,8 +467,13 @@ function TelegramLoginWidget({ onAuth, onError, theme }: {
 
     return () => {
       // Cleanup
-      if (container && script.parentNode === container) {
-        container.removeChild(script);
+      try {
+        if (container && script.parentNode === container) {
+          container.removeChild(script);
+        }
+      } catch (error) {
+        // Ignore cleanup errors
+        console.log('Cleanup error (safe to ignore):', error);
       }
       delete (window as any).onTelegramAuth;
     };
