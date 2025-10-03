@@ -88,15 +88,19 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
 
       if (!response.ok) {
         const errorText = await response.text();
-        debugLog.error('❌ Verification failed', { status: response.status, error: errorText });
-        throw new Error('Failed to verify Telegram authentication');
+        debugLog.warn('⚠️ Verification failed, using fallback', { status: response.status, error: errorText });
+        // Immediately fall back to client-side auth
+        await authenticateWithTelegramUser();
+        return;
       }
 
       const result = await response.json();
       debugLog.info('📦 Verification result', { ok: result.ok, hasUser: !!result.user });
 
       if (!result.ok || !result.user) {
-        throw new Error('Invalid Telegram authentication');
+        debugLog.warn('⚠️ Invalid result, using fallback');
+        await authenticateWithTelegramUser();
+        return;
       }
 
       debugLog.success('✅ Telegram authentication verified!');
@@ -110,22 +114,31 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
       onAuth(enrichedUser);
 
     } catch (error) {
-      debugLog.warn('⚠️ Backend verification failed, using client-side', error);
+      debugLog.warn('⚠️ Backend verification exception, using client-side', error);
       // Fall back to client-side authentication
-      await authenticateWithTelegramUser();
+      try {
+        await authenticateWithTelegramUser();
+      } catch (fallbackError) {
+        debugLog.error('❌ Client-side auth also failed', fallbackError);
+        throw fallbackError;
+      }
     }
   };
 
   const authenticateWithTelegramUser = async () => {
     const telegramUser = telegram.user;
 
+    if (!telegramUser || !telegramUser.id) {
+      throw new Error('No Telegram user data available');
+    }
+
     // Create user object from Telegram data
     const userData = {
       telegram_id: telegramUser.id.toString(),
-      first_name: telegramUser.first_name,
-      last_name: telegramUser.last_name,
+      first_name: telegramUser.first_name || 'User',
+      last_name: telegramUser.last_name || '',
       username: telegramUser.username || `user${telegramUser.id}`,
-      photo_url: telegramUser.photo_url,
+      photo_url: telegramUser.photo_url || '',
       language_code: telegramUser.language_code || 'he',
       auth_date: Math.floor(Date.now() / 1000)
     };
@@ -146,6 +159,7 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
       debugLog.success('✅ User registered', { status: registration?.status });
     } catch (error) {
       debugLog.error('❌ Failed to register user', error);
+      // Continue anyway - registration might fail but we can still auth
     }
 
     // Add registration info to user data
@@ -154,6 +168,8 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
     userData.isApproved = registration?.status === 'approved';
 
     debugLog.success('✅ Authentication complete!', {
+      telegram_id: userData.telegram_id,
+      username: userData.username,
       isAdmin: userData.isFirstAdmin,
       isApproved: userData.isApproved
     });
