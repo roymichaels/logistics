@@ -33,6 +33,9 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
   // Check for stored session first (for page refreshes)
+  // NOTE: We only restore telegram_id for session continuity, NOT the role
+  // The role will be fetched fresh from the database by the DataStore
+  let storedTelegramId: string | null = null;
   if (!userData) {
     try {
       const storedSession = localStorage.getItem('user_session');
@@ -43,7 +46,18 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
         // Session valid for 24 hours
         if (sessionAge < 24 * 60 * 60 * 1000) {
           debugLog.info('📦 Restoring session from localStorage');
-          userData = sessionData.user;
+          storedTelegramId = sessionData.user?.telegram_id || null;
+          // Only restore basic user data, role will be fetched fresh
+          userData = {
+            telegram_id: sessionData.user?.telegram_id,
+            username: sessionData.user?.username,
+            first_name: sessionData.user?.first_name,
+            last_name: sessionData.user?.last_name,
+            photo_url: sessionData.user?.photo_url,
+            language_code: sessionData.user?.language_code,
+            auth_date: sessionData.user?.auth_date,
+            // Explicitly DO NOT restore role - let DataStore fetch it fresh
+          };
         } else {
           debugLog.info('⏰ Stored session expired, clearing');
           localStorage.removeItem('user_session');
@@ -57,7 +71,10 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
 
   // If we have userData from stored session and Supabase is available, use it
   if (userData && SUPABASE_URL) {
-    debugLog.info('✅ Using stored session with Supabase');
+    debugLog.info('✅ Using stored session with Supabase', {
+      telegram_id: userData.telegram_id,
+      note: 'Role will be fetched fresh from database'
+    });
     return {
       config: {
         app: 'miniapp',
