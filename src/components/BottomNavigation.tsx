@@ -37,6 +37,7 @@ interface BottomNavigationProps {
   onNavigate: (page: string) => void;
   userRole?: RoleKey;
   businessId?: string;
+  onShowActionMenu?: () => void;
   onShowCreateOrder?: () => void;
   onShowCreateTask?: () => void;
   onShowScanBarcode?: () => void;
@@ -52,6 +53,7 @@ export function BottomNavigation({
   onNavigate,
   userRole,
   businessId,
+  onShowActionMenu,
   onShowCreateOrder,
   onShowCreateTask,
   onShowScanBarcode,
@@ -87,8 +89,8 @@ export function BottomNavigation({
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
       ],
       action: {
-        label: 'פקודה חדשה',
-        icon: '✳️'
+        label: 'פעולות מהירות',
+        icon: '⚡'
       }
     },
 
@@ -102,8 +104,8 @@ export function BottomNavigation({
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
       ],
       action: {
-        label: 'פקודה חדשה',
-        icon: '✳️'
+        label: 'פעולות מהירות',
+        icon: '⚡'
       }
     },
 
@@ -116,8 +118,8 @@ export function BottomNavigation({
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
       ],
       action: {
-        label: 'הזמנה חדשה',
-        icon: '🆕'
+        label: 'פעולות מהירות',
+        icon: '⚡'
       }
     },
 
@@ -131,8 +133,8 @@ export function BottomNavigation({
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
       ],
       action: {
-        label: 'פעולת מלאי',
-        icon: '📦'
+        label: 'פעולות מהירות',
+        icon: '⚡'
       }
     },
 
@@ -144,8 +146,11 @@ export function BottomNavigation({
         { id: 'my-zones', label: hebrew.my_zones, icon: '🗺️' },
         { id: 'driver-status', label: hebrew.driver_status, icon: '🟢' },
         { id: 'settings', label: hebrew.settings, icon: '⚙️' }
-      ]
-      // NO ACTION BUTTON. Drivers execute, they don't create.
+      ],
+      action: {
+        label: 'פעולות מהירות',
+        icon: '⚡'
+      }
     }
   };
 
@@ -156,14 +161,7 @@ export function BottomNavigation({
   const handleActionClick = () => {
     if (action?.disabled) return;
     haptic();
-
-    if (userRole === 'owner' || userRole === 'manager') {
-      onShowCreateOrder?.();
-    } else if (userRole === 'sales') {
-      onShowCreateOrder?.();
-    } else if (userRole === 'warehouse') {
-      onShowCheckInventory?.();
-    }
+    onShowActionMenu?.();
   };
 
   const renderActionSlot = () => (

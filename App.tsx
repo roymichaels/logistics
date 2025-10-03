@@ -9,6 +9,7 @@ import { OrderCreationWizard } from './src/components/OrderCreationWizard';
 import { DualModeOrderEntry } from './src/components/DualModeOrderEntry';
 import { BusinessManager } from './src/components/BusinessManager';
 import { SuperadminSetup } from './src/components/SuperadminSetup';
+import { FloatingActionMenu } from './src/components/FloatingActionButton';
 import { debugLog } from './src/components/DebugPanel';
 import { hebrew } from './src/lib/hebrew';
 
@@ -126,6 +127,7 @@ export default function App() {
   >(null);
   const [showOrderWizard, setShowOrderWizard] = useState(false);
   const [showBusinessManager, setShowBusinessManager] = useState(false);
+  const [showActionMenu, setShowActionMenu] = useState(false);
   const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
   const [initialPageRole, setInitialPageRole] = useState<string | null>(null);
   const [showSuperadminSetup, setShowSuperadminSetup] = useState(false);
@@ -702,6 +704,7 @@ export default function App() {
             onNavigate={handleNavigate}
             userRole={userRole}
             businessId={currentBusinessId || undefined}
+            onShowActionMenu={() => setShowActionMenu(true)}
             onShowCreateOrder={handleShowCreateOrder}
             onShowCreateTask={handleShowCreateTask}
             onShowScanBarcode={handleShowScanBarcode}
@@ -712,6 +715,15 @@ export default function App() {
             onShowCreateProduct={handleShowCreateProduct}
           />
         )}
+
+        {/* Floating Action Menu */}
+        <FloatingActionMenu
+          user={user}
+          onNavigate={handleNavigate}
+          onShowModeSelector={handleShowCreateOrder}
+          isOpen={showActionMenu}
+          onClose={() => setShowActionMenu(false)}
+        />
 
         {/* Modals */}
         {showOrderWizard && dataStore && (
