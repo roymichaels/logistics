@@ -356,20 +356,6 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'users:view_own',
     ],
   },
-
-  user: {
-    role: 'user',
-    label: 'Basic User',
-    level: 'business',
-    description: 'Limited access user awaiting role assignment',
-    permissions: [
-      // Users - Only own profile
-      'users:view_own',
-
-      // Products - Basic catalog view
-      'products:view',
-    ],
-  },
 };
 
 /**
@@ -454,7 +440,7 @@ export function canChangeUserRole(
     }
 
     // Can change other business roles
-    if (['manager', 'dispatcher', 'driver', 'warehouse', 'sales', 'customer_service', 'user'].includes(targetNewRole)) {
+    if (['manager', 'dispatcher', 'driver', 'warehouse', 'sales', 'customer_service'].includes(targetNewRole)) {
       return { allowed: true };
     }
   }
@@ -478,10 +464,8 @@ export function getDataAccessScope(role: User['role']): 'all' | 'business' | 'ow
       return 'own'; // Only their own data
     case 'driver':
       return 'assigned'; // Only assigned orders
-    case 'user':
-      return 'own'; // Only own profile
     default:
-      return 'own';
+      return 'all'; // Default to owner permissions
   }
 }
 

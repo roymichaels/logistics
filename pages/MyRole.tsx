@@ -227,7 +227,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
             boxShadow: '0 4px 16px rgba(156, 109, 255, 0.4)'
           }}
         >
-          🔑 קבל גישת אדמין
+          👑 קבל גישת בעלים
         </button>
       </div>
 

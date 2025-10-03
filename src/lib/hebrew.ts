@@ -117,7 +117,6 @@ export const hebrew = {
 };
 
 export const roleNames = {
-  user: hebrew.user,
   owner: hebrew.owner,
   manager: hebrew.manager,
   dispatcher: hebrew.dispatcher,
@@ -128,7 +127,6 @@ export const roleNames = {
 };
 
 export const roleIcons = {
-  user: '👤',
   owner: '👑',
   manager: '👔',
   dispatcher: '📋',

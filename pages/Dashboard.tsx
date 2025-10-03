@@ -62,12 +62,6 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
         return;
       }
 
-      // Regular users don't need operational dashboard
-      if (profile.role === 'user') {
-        setLoading(false);
-        return;
-      }
-
       const royalData = dataStore.getRoyalDashboardSnapshot
         ? await dataStore.getRoyalDashboardSnapshot()
         : createRoyalFallback();
