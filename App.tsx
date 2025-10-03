@@ -341,12 +341,12 @@ export default function App() {
               debugLog.info('📍 Navigated to orders for sales role');
             } else {
               setCurrentPage('my-role');
-              debugLog.info('📍 Staying on my-role for user role');
+              debugLog.info('📍 Staying on my-role for unknown role');
             }
           }
         } catch (error) {
           debugLog.warn('⚠️ Failed to resolve user role', error);
-          setUserRole('user');
+          setUserRole('owner');
         }
       }
 
@@ -362,7 +362,13 @@ export default function App() {
 
   const handleLogin = async (userData: any) => {
     try {
-      console.log('Authenticating user:', userData);
+      console.log('🔐 Authenticating user:', userData);
+      console.log('📋 userData contains:', {
+        telegram_id: userData.telegram_id,
+        username: userData.username,
+        role: userData.role,
+        name: userData.name || userData.first_name
+      });
 
       setUser(userData);
 
@@ -374,8 +380,14 @@ export default function App() {
       let role: any = null;
       if (store) {
         try {
+          // CRITICAL: Check if userData already has a role from edge function
+          if (userData.role) {
+            console.log(`✨ userData.role from edge function: ${userData.role}`);
+            role = userData.role;
+          }
+
           // Always call getCurrentRole which fetches fresh from DB
-          if (store.getCurrentRole) {
+          if (!role && store.getCurrentRole) {
             role = await store.getCurrentRole();
             console.log(`📊 handleLogin: getCurrentRole() returned: ${role}`);
           }
@@ -388,11 +400,12 @@ export default function App() {
             console.log(`📊 handleLogin: getProfile().role returned: ${role}`);
           }
 
-          setUserRole(role ?? 'user');
-          console.log(`✅ handleLogin: User role set to: ${role ?? 'user'}`);
+          // DEFAULT TO OWNER (not 'user')
+          setUserRole(role ?? 'owner');
+          console.log(`✅ handleLogin: User role set to: ${role ?? 'owner'}`);
         } catch (error) {
           console.warn('Failed to resolve user role:', error);
-          setUserRole('user');
+          setUserRole('owner');
         }
       }
 
@@ -425,8 +438,8 @@ export default function App() {
           console.log(`📊 handleSuperadminSuccess: getProfile(true).role returned: ${role}`);
         }
 
-        setUserRole(role ?? 'user');
-        console.log(`✅ handleSuperadminSuccess: User role set to: ${role ?? 'user'}`);
+        setUserRole(role ?? 'owner');
+        console.log(`✅ handleSuperadminSuccess: User role set to: ${role ?? 'owner'}`);
       } catch (error) {
         console.warn('Failed to refresh user role:', error);
       }
