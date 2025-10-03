@@ -46,6 +46,7 @@ export function DebugPanel() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [showData, setShowData] = useState<number | null>(null);
   const [isPinned, setIsPinned] = useState(true);
+  const [isMinimized, setIsMinimized] = useState(false);
   const { theme } = useTelegramUI();
 
   useEffect(() => {
@@ -73,6 +74,33 @@ export function DebugPanel() {
       default: return 'ℹ️';
     }
   };
+
+  if (isMinimized) {
+    return (
+      <div
+        onClick={() => setIsMinimized(false)}
+        style={{
+          position: 'fixed',
+          bottom: '80px',
+          right: '10px',
+          backgroundColor: theme.button_color,
+          color: theme.button_text_color,
+          padding: '10px 16px',
+          borderRadius: '20px',
+          fontSize: '13px',
+          fontWeight: '600',
+          cursor: 'pointer',
+          zIndex: 9999,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}
+      >
+        🐛 Debug ({logs.length})
+      </div>
+    );
+  }
 
   if (!isExpanded && !isPinned) {
     return (
@@ -137,21 +165,6 @@ export function DebugPanel() {
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
-            onClick={() => setIsPinned(!isPinned)}
-            style={{
-              padding: '4px 8px',
-              backgroundColor: isPinned ? theme.button_color : 'transparent',
-              color: isPinned ? theme.button_text_color : theme.hint_color,
-              border: `1px solid ${theme.hint_color}30`,
-              borderRadius: '6px',
-              fontSize: '12px',
-              cursor: 'pointer'
-            }}
-            title={isPinned ? 'Pinned - stays open' : 'Click to pin'}
-          >
-            {isPinned ? '📌 Pinned' : '📍 Pin'}
-          </button>
-          <button
             onClick={() => debugLog.clear()}
             style={{
               padding: '4px 8px',
@@ -159,28 +172,28 @@ export function DebugPanel() {
               color: theme.hint_color,
               border: `1px solid ${theme.hint_color}30`,
               borderRadius: '6px',
-              fontSize: '12px',
+              fontSize: '11px',
               cursor: 'pointer'
             }}
           >
             Clear
           </button>
-          {!isPinned && (
-            <button
-              onClick={() => setIsExpanded(false)}
-              style={{
-                padding: '4px 8px',
-                backgroundColor: 'transparent',
-                color: theme.hint_color,
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '16px',
-                cursor: 'pointer'
-              }}
-            >
-              ✕
-            </button>
-          )}
+          <button
+            onClick={() => setIsMinimized(true)}
+            style={{
+              padding: '4px 8px',
+              backgroundColor: 'transparent',
+              color: theme.hint_color,
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '16px',
+              cursor: 'pointer',
+              lineHeight: '1'
+            }}
+            title="Minimize"
+          >
+            −
+          </button>
         </div>
       </div>
 
