@@ -1,4 +1,47 @@
-// Logistics App Service Worker
+// Logistics App Service Worker - DISABLED TO PREVENT CACHING ISSUES
+// This service worker will unregister itself and clear all caches
+
+console.log('🗑️ Service Worker: Unregistering and clearing caches...');
+
+// Unregister this service worker
+self.addEventListener('install', (event) => {
+  console.log('Service Worker: Skipping install, will unregister');
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', async (event) => {
+  console.log('Service Worker: Activating only to clear caches and unregister');
+
+  event.waitUntil((async () => {
+    // Delete ALL caches
+    const cacheNames = await caches.keys();
+    await Promise.all(cacheNames.map(name => {
+      console.log('Deleting cache:', name);
+      return caches.delete(name);
+    }));
+
+    // Unregister this service worker
+    const registration = await self.registration;
+    await registration.unregister();
+
+    console.log('✅ Service Worker: Unregistered and caches cleared');
+
+    // Claim clients to apply immediately
+    await self.clients.claim();
+
+    // Reload all clients
+    const clients = await self.clients.matchAll({ type: 'window' });
+    clients.forEach(client => client.postMessage({ type: 'SW_UNREGISTERED' }));
+  })());
+});
+
+// Pass through all fetch requests - NO CACHING
+self.addEventListener('fetch', (event) => {
+  event.respondWith(fetch(event.request));
+});
+
+return; // Stop the rest of the service worker from loading
+
 const CACHE_VERSION = Date.now();
 const CACHE_NAME = `logistics-app-v${CACHE_VERSION}`;
 const OFFLINE_CACHE = `logistics-offline-v${CACHE_VERSION}`;
