@@ -148,35 +148,46 @@ export default function App() {
   // Listen for role refresh events (after manager promotion)
   useEffect(() => {
     const handleRoleRefresh = async () => {
-      if (dataStore) {
-        console.log('🔄 Role refresh requested, fetching fresh role from database...');
-        try {
-          let role: any = null;
-          if (dataStore.getCurrentRole) {
-            role = await dataStore.getCurrentRole();
-            console.log(`📊 Role refresh: getCurrentRole() returned: ${role}`);
-          }
+      console.log('🔄 Role refresh requested, fetching fresh role from database...');
 
-          if (!role) {
-            const profile = await dataStore.getProfile(true); // Force refresh
-            role = profile.role;
-            console.log(`📊 Role refresh: getProfile(true).role returned: ${role}`);
-          }
+      if (!dataStore) {
+        console.log('⚠️ DataStore not ready yet, waiting...');
+        return;
+      }
 
-          if (role && role !== userRole) {
-            console.log(`✅ Role changed from ${userRole} to ${role}, updating app state`);
-            setUserRole(role);
-          }
-        } catch (error) {
-          console.warn('Failed to refresh user role:', error);
+      try {
+        // Small delay to ensure DB transaction is complete
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        let role: any = null;
+        if (dataStore.getCurrentRole) {
+          role = await dataStore.getCurrentRole();
+          console.log(`📊 Role refresh: getCurrentRole() returned: ${role}`);
         }
+
+        if (!role) {
+          const profile = await dataStore.getProfile(true); // Force refresh
+          role = profile.role;
+          console.log(`📊 Role refresh: getProfile(true).role returned: ${role}`);
+        }
+
+        if (role && role !== userRole) {
+          console.log(`✅ Role changed from ${userRole} to ${role}, updating app state`);
+          setUserRole(role);
+          debugLog.success(`User promoted to ${role}!`);
+        } else {
+          console.log(`ℹ️ Role unchanged: current=${userRole}, fetched=${role}`);
+        }
+      } catch (error) {
+        console.error('❌ Failed to refresh user role:', error);
+        debugLog.error('Role refresh failed', error);
       }
     };
 
     // Check URL for refresh parameter
     const params = new URLSearchParams(window.location.search);
-    if (params.has('refresh')) {
-      console.log('🔄 Detected refresh parameter in URL');
+    if (params.has('refresh') && dataStore) {
+      console.log('🔄 Detected refresh parameter in URL, triggering role refresh');
       handleRoleRefresh();
       // Clean up URL parameter
       window.history.replaceState({}, '', window.location.pathname);
@@ -265,6 +276,16 @@ export default function App() {
         try {
           debugLog.info('👤 Getting user role...');
 
+          // Check if this is a refresh after manager promotion
+          const params = new URLSearchParams(window.location.search);
+          const isRefresh = params.has('refresh');
+
+          if (isRefresh) {
+            debugLog.info('🔄 Refresh parameter detected - forcing fresh role fetch');
+            // Add small delay to ensure DB transaction is complete
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+
           // Always call getCurrentRole which fetches fresh from DB
           let role: any = null;
           if (store.getCurrentRole) {
@@ -275,13 +296,19 @@ export default function App() {
           // Fallback to getProfile if getCurrentRole not available or returned null
           if (!role) {
             debugLog.info('🔄 Falling back to getProfile()');
-            const profile = await store.getProfile();
+            const profile = await store.getProfile(true); // Force refresh
             role = profile.role;
-            debugLog.info(`📊 getProfile().role returned: ${role}`);
+            debugLog.info(`📊 getProfile(true).role returned: ${role}`);
           }
 
           setUserRole(role ?? 'user');
           debugLog.success(`✅ User role set to: ${role ?? 'user'}`);
+
+          // Clean up refresh parameter after processing
+          if (isRefresh) {
+            window.history.replaceState({}, '', window.location.pathname);
+            debugLog.info('🧹 Cleaned up refresh parameter from URL');
+          }
         } catch (error) {
           debugLog.warn('⚠️ Failed to resolve user role', error);
           setUserRole('user');

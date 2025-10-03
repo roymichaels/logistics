@@ -336,9 +336,11 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         onClose={() => setShowManagerLogin(false)}
         onSuccess={() => {
           Toast.success('משדרג להרשאות מנהל...');
+          console.log('🎉 Manager promotion successful, reloading app in 1 second...');
           setTimeout(() => {
-            window.location.href = window.location.pathname + '?refresh=1';
-          }, 300);
+            console.log('🔄 Reloading app to refresh role...');
+            window.location.href = window.location.pathname + '?refresh=1&t=' + Date.now();
+          }, 1000);
         }}
         userTelegramId={user?.telegram_id || ''}
         dataStore={dataStore}
