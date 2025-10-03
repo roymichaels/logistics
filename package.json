@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "expo export --platform web",
-    "build:web": "vite build",
+    "build:web": "vite build && node scripts/post-build.js",
     "preview": "vite preview",
     "analyze": "node scripts/build-analyze.js",
     "qa": "node scripts/qa-check.js",
