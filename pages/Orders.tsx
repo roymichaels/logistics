@@ -31,6 +31,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showModeSelector, setShowModeSelector] = useState(false);
 
   const theme = telegram.themeParams;
   const dispatchOrchestrator = useMemo(() => new DispatchOrchestrator(dataStore), [dataStore]);
@@ -93,19 +94,19 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
 
   const handleCreateOrder = () => {
     // Check permissions
-    if (!user || !['manager', 'sales'].includes(user.role)) {
+    if (!user || !['owner', 'manager', 'sales'].includes(user.role)) {
       telegram.showAlert('אין לך הרשאה ליצור הזמנות');
       return;
     }
-    
+
     telegram.hapticFeedback('selection');
-    setShowCreateForm(true);
+    setShowModeSelector(true);
   };
 
   useEffect(() => {
     if (user?.role === 'dispatcher' && !selectedOrder && !showCreateForm) {
       telegram.setMainButton('Create Order', handleCreateOrder);
-    } else if (['manager', 'sales'].includes(user?.role || '') && !selectedOrder && !showCreateForm) {
+    } else if (['owner', 'manager', 'sales'].includes(user?.role || '') && !selectedOrder && !showCreateForm) {
       telegram.setMainButton('Create Order', handleCreateOrder);
     } else {
       telegram.hideMainButton();
@@ -154,6 +155,146 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
 
   return (
     <div style={ROYAL_STYLES.pageContainer}>
+      {/* Mode Selector Modal */}
+      {showModeSelector && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}
+          onClick={() => setShowModeSelector(false)}
+        >
+          <div
+            style={{
+              ...ROYAL_STYLES.card,
+              maxWidth: '400px',
+              width: '100%',
+              padding: '32px',
+              animation: 'slideUp 0.3s ease'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{
+              margin: '0 0 8px 0',
+              fontSize: '24px',
+              fontWeight: '700',
+              color: ROYAL_COLORS.text,
+              textAlign: 'center'
+            }}>
+              🎯 בחר סוג הזמנה
+            </h2>
+            <p style={{
+              margin: '0 0 24px 0',
+              fontSize: '14px',
+              color: ROYAL_COLORS.muted,
+              textAlign: 'center'
+            }}>
+              איך תרצה ליצור את ההזמנה?
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/* DM Mode */}
+              <button
+                onClick={() => {
+                  telegram.hapticFeedback('impact', 'medium');
+                  setShowModeSelector(false);
+                  setShowCreateForm(true);
+                }}
+                style={{
+                  padding: '20px',
+                  background: ROYAL_COLORS.gradientPurple,
+                  border: 'none',
+                  borderRadius: '16px',
+                  color: ROYAL_COLORS.textBright,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: ROYAL_COLORS.glowPurple
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                  e.currentTarget.style.boxShadow = ROYAL_COLORS.glowPurpleStrong;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = ROYAL_COLORS.glowPurple;
+                }}
+              >
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>💬</div>
+                <div style={{ fontSize: '18px', fontWeight: '700', marginBottom: '4px' }}>
+                  הדבק מטלגרם
+                </div>
+                <div style={{ fontSize: '13px', opacity: 0.9 }}>
+                  העתק הזמנה מהודעת לקוח
+                </div>
+              </button>
+
+              {/* Storefront Mode */}
+              <button
+                onClick={() => {
+                  telegram.hapticFeedback('impact', 'medium');
+                  setShowModeSelector(false);
+                  setShowCreateForm(true);
+                }}
+                style={{
+                  padding: '20px',
+                  background: ROYAL_COLORS.secondary,
+                  border: `2px solid ${ROYAL_COLORS.cardBorder}`,
+                  borderRadius: '16px',
+                  color: ROYAL_COLORS.text,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                  e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorderHover;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorder;
+                }}
+              >
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>🛒</div>
+                <div style={{ fontSize: '18px', fontWeight: '700', marginBottom: '4px' }}>
+                  בחירת מוצרים
+                </div>
+                <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
+                  בנה הזמנה עם ממשק מוצרים
+                </div>
+              </button>
+
+              {/* Cancel */}
+              <button
+                onClick={() => {
+                  telegram.hapticFeedback('selection');
+                  setShowModeSelector(false);
+                }}
+                style={{
+                  padding: '12px',
+                  background: 'transparent',
+                  border: 'none',
+                  borderRadius: '12px',
+                  color: ROYAL_COLORS.muted,
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  marginTop: '8px'
+                }}
+              >
+                ביטול
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div style={ROYAL_STYLES.pageHeader}>
         <h1 style={ROYAL_STYLES.pageTitle}>📦 הזמנות</h1>
@@ -207,7 +348,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
           <p style={ROYAL_STYLES.emptyStateText}>לא נמצאו הזמנות</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '80px' }}>
           {orders.map((order) => (
             <OrderCard
               key={order.id}
@@ -219,6 +360,39 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
             />
           ))}
         </div>
+      )}
+
+      {/* Floating Action Button */}
+      {user && ['owner', 'manager', 'sales', 'dispatcher'].includes(user.role) && (
+        <button
+          onClick={handleCreateOrder}
+          style={{
+            position: 'fixed',
+            bottom: '90px',
+            left: '20px',
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            background: ROYAL_COLORS.gradientPurple,
+            border: 'none',
+            boxShadow: ROYAL_COLORS.glowPurpleStrong,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '28px',
+            transition: 'all 0.3s ease',
+            zIndex: 100
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.1) rotate(90deg)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+          }}
+        >
+          ➕
+        </button>
       )}
     </div>
   );
