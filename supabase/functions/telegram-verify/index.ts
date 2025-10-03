@@ -44,7 +44,7 @@ async function hmacSha256(key: CryptoKey, data: string): Promise<string> {
 
 async function verifyLoginWidget(data: Record<string, string>, botToken: string): Promise<boolean> {
   const { hash, ...fields } = data;
-  
+
   if (!hash) {
     return false;
   }
@@ -71,14 +71,14 @@ async function verifyWebAppInitData(initData: string, botToken: string): Promise
   try {
     const urlParams = new URLSearchParams(initData);
     const hash = urlParams.get('hash');
-    
+
     if (!hash) {
       console.error('No hash in initData');
       return false;
     }
 
     urlParams.delete('hash');
-    
+
     const dataCheckString = Array.from(urlParams.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, value]) => `${key}=${value}`)
@@ -111,7 +111,7 @@ async function verifyWebAppInitData(initData: string, botToken: string): Promise
 
     const calculatedHash = await hmacSha256(finalKey, dataCheckString);
     const isValid = calculatedHash === hash;
-    
+
     console.log('Hash validation result:', isValid);
     return isValid;
   } catch (error) {
@@ -150,7 +150,7 @@ Deno.serve(async (req: Request) => {
     if (body.type === 'loginWidget' && body.data) {
       console.log('Verifying login widget data');
       isValid = await verifyLoginWidget(body.data, BOT_TOKEN);
-      
+
       if (isValid) {
         user = {
           id: parseInt(body.data.id),
@@ -164,11 +164,11 @@ Deno.serve(async (req: Request) => {
     } else if (body.type === 'webapp' && body.initData) {
       console.log('Verifying webapp initData');
       isValid = await verifyWebAppInitData(body.initData, BOT_TOKEN);
-      
+
       if (isValid) {
         const urlParams = new URLSearchParams(body.initData);
         const userJson = urlParams.get('user');
-        
+
         if (userJson) {
           const parsedUser = JSON.parse(userJson);
           user = {
@@ -203,83 +203,153 @@ Deno.serve(async (req: Request) => {
     const usernameNormalized = normalizeUsername(user.username);
     const fullName = user.first_name + (user.last_name ? ` ${user.last_name}` : '');
 
-    const sessionData = {
-      telegram_id: telegramIdStr,
-      username: usernameNormalized,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      name: fullName,
-      photo_url: user.photo_url,
-      auth_date: user.auth_date
-    };
-
-    let sessionPayload = null;
-
-    try {
-      const jwtSecret = Deno.env.get('SUPABASE_JWT_SECRET');
-      
-      if (jwtSecret) {
-        const payload = {
-          sub: telegramIdStr,
-          telegram_id: telegramIdStr,
-          username: usernameNormalized,
-          aud: 'authenticated',
-          role: 'authenticated',
-          iat: Math.floor(Date.now() / 1000),
-          exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24)
-        };
-
-        sessionPayload = payload;
-      }
-    } catch (error) {
-      console.warn('Failed to create session:', error);
-    }
-
     const FIRST_ADMIN_USERNAME = Deno.env.get('FIRST_ADMIN_USERNAME');
     const firstAdminUsername = normalizeUsername(FIRST_ADMIN_USERNAME);
+    const isFirstAdmin = usernameNormalized === firstAdminUsername;
+    const defaultRole = isFirstAdmin ? 'owner' : 'manager';
 
-    if (firstAdminUsername) {
-      const { data: existingUser } = await supabase
+    // Check if user exists in users table
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id, telegram_id, role')
+      .eq('telegram_id', telegramIdStr)
+      .maybeSingle();
+
+    let userId: string;
+    let userRole: string = defaultRole;
+
+    if (existingUser) {
+      userId = existingUser.id;
+      userRole = existingUser.role;
+      console.log(`✅ User exists: ${telegramIdStr} (role: ${userRole})`);
+    } else {
+      // Create new user in users table
+      const { data: newUser, error: insertError } = await supabase
         .from('users')
-        .select('telegram_id')
-        .eq('telegram_id', telegramIdStr)
-        .maybeSingle();
+        .insert({
+          telegram_id: telegramIdStr,
+          username: usernameNormalized,
+          name: fullName,
+          role: defaultRole,
+          photo_url: user.photo_url
+        })
+        .select('id')
+        .single();
 
-      if (!existingUser) {
-        const isFirstAdmin = usernameNormalized === firstAdminUsername;
-
-        const { error: insertError } = await supabase
-          .from('users')
-          .insert({
-            telegram_id: telegramIdStr,
-            username: usernameNormalized,
-            name: fullName,
-            role: isFirstAdmin ? 'owner' : 'manager',
-            photo_url: user.photo_url
-          });
-
-        if (insertError) {
-          console.error('Failed to create user in users table:', insertError);
-        } else {
-          console.log(`✅ Created user in users table: ${usernameNormalized} (role: ${isFirstAdmin ? 'owner' : 'manager'})`);
-        }
+      if (insertError || !newUser) {
+        console.error('Failed to create user in users table:', insertError);
+        throw new Error('Failed to create user');
       }
+
+      userId = newUser.id;
+      userRole = defaultRole;
+      console.log(`✅ Created user: ${usernameNormalized} (role: ${userRole})`);
     }
 
+    // Create or get Supabase Auth user
+    const email = `${telegramIdStr}@telegram.auth`;
+
+    // Check if auth user exists
+    const { data: { users: authUsers }, error: listError } = await supabase.auth.admin.listUsers();
+    const existingAuthUser = authUsers?.find(u => u.email === email);
+
+    let authUserId: string;
+
+    if (existingAuthUser) {
+      authUserId = existingAuthUser.id;
+      console.log(`✅ Auth user exists: ${email}`);
+
+      // Update user metadata with latest info
+      await supabase.auth.admin.updateUserById(authUserId, {
+        user_metadata: {
+          telegram_id: telegramIdStr,
+          username: usernameNormalized,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          photo_url: user.photo_url,
+          role: userRole,
+          full_name: fullName
+        }
+      });
+    } else {
+      // Create new auth user
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: email,
+        email_confirm: true,
+        user_metadata: {
+          telegram_id: telegramIdStr,
+          username: usernameNormalized,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          photo_url: user.photo_url,
+          role: userRole,
+          full_name: fullName
+        }
+      });
+
+      if (authError || !authData.user) {
+        console.error('Failed to create auth user:', authError);
+        throw new Error('Failed to create auth user');
+      }
+
+      authUserId = authData.user.id;
+      console.log(`✅ Created auth user: ${email} (id: ${authUserId})`);
+    }
+
+    // Generate session token
+    const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email: email,
+    });
+
+    if (sessionError || !sessionData) {
+      console.error('Failed to generate session:', sessionError);
+      throw new Error('Failed to generate session');
+    }
+
+    // Extract access and refresh tokens
+    // The properties structure returned by generateLink
+    const response = {
+      ok: true,
+      user: {
+        id: userId,
+        telegram_id: telegramIdStr,
+        username: usernameNormalized,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        name: fullName,
+        photo_url: user.photo_url,
+        role: userRole,
+        auth_date: user.auth_date
+      },
+      session: {
+        access_token: sessionData.properties?.access_token,
+        refresh_token: sessionData.properties?.refresh_token,
+        expires_in: 3600,
+        token_type: 'bearer',
+        user: {
+          id: authUserId,
+          email: email,
+          user_metadata: {
+            telegram_id: telegramIdStr,
+            username: usernameNormalized,
+            role: userRole
+          }
+        }
+      }
+    };
+
+    console.log('✅ Session created successfully');
+
     return new Response(
-      JSON.stringify({
-        ok: true,
-        user: sessionData,
-        session: sessionPayload,
-        supabase_user: null
-      }),
+      JSON.stringify(response),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Error:', error);
     return new Response(
-      JSON.stringify({ ok: false, error: 'Internal server error' }),
+      JSON.stringify({ ok: false, error: error.message || 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
