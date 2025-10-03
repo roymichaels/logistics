@@ -199,84 +199,84 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
         }}
       />
 
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', maxWidth: '100%' }}>
         <RoyalHeader user={user} metrics={metrics} onNavigate={onNavigate} />
 
-        <section>
-          <RoyalGrid columns="repeat(auto-fit, minmax(200px, 1fr))" gap="18px">
-            <RoyalMetricCard
-              label="הכנסות היום"
-              value={formatCurrency(metrics.revenueToday)}
-              subtitle={`נסגרו ${numberFormatter.format(metrics.deliveredToday)} משלוחים`}
-              tone="gold"
-              icon="₪"
-            />
-            <RoyalMetricCard
-              label="הזמנות פעילות"
-              value={numberFormatter.format(metrics.pendingOrders)}
-              subtitle={`${numberFormatter.format(metrics.outstandingDeliveries)} בדרך ליעד`}
-              tone="crimson"
-              icon="🚨"
-            />
-            <RoyalMetricCard
-              label="נהגים מחוברים"
-              value={numberFormatter.format(metrics.activeDrivers)}
-              subtitle={`כיסוי ${numberFormatter.format(metrics.coveragePercent)}% מהאזורים`}
-              tone="teal"
-              icon="🛰️"
-            />
-            <RoyalMetricCard
-              label="שווי משלוח ממוצע"
-              value={formatCurrency(metrics.averageOrderValue || 0)}
-              subtitle="עסקאות ברמת פרימיום"
-              tone="purple"
-              icon="💎"
-            />
-          </RoyalGrid>
-        </section>
+        {/* Metric Cards - Full Width Stack */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+          <RoyalMetricCard
+            label="הכנסות היום"
+            value={formatCurrency(metrics.revenueToday)}
+            subtitle={`נסגרו ${numberFormatter.format(metrics.deliveredToday)} משלוחים`}
+            tone="gold"
+            icon="₪"
+          />
+          <RoyalMetricCard
+            label="הזמנות פעילות"
+            value={numberFormatter.format(metrics.pendingOrders)}
+            subtitle={`${numberFormatter.format(metrics.outstandingDeliveries)} בדרך ליעד`}
+            tone="crimson"
+            icon="🚨"
+          />
+          <RoyalMetricCard
+            label="נהגים מחוברים"
+            value={numberFormatter.format(metrics.activeDrivers)}
+            subtitle={`כיסוי ${numberFormatter.format(metrics.coveragePercent)}% מהאזורים`}
+            tone="teal"
+            icon="🛰️"
+          />
+          <RoyalMetricCard
+            label="שווי משלוח ממוצע"
+            value={formatCurrency(metrics.averageOrderValue || 0)}
+            subtitle="עסקאות ברמת פרימיום"
+            tone="purple"
+            icon="💎"
+          />
+        </div>
 
-        <RoyalGrid columns="minmax(260px, 1fr) minmax(220px, 0.8fr)" gap="24px">
-          <RoyalSection title="עקומת הכנסות - 7 ימים" accent>
-            <RoyalLineChart data={revenueTrend} color={ROYAL_COLORS.gold} />
-          </RoyalSection>
-          <RoyalSection title="קצב הזמנות / שעה" accent>
-            <RoyalBarChart data={ordersPerHour} color={ROYAL_COLORS.accent} />
-          </RoyalSection>
-        </RoyalGrid>
+        {/* Charts - Full Width Stack */}
+        <RoyalSection title="עקומת הכנסות - 7 ימים" accent>
+          <RoyalLineChart data={revenueTrend} color={ROYAL_COLORS.gold} />
+        </RoyalSection>
 
-        <RoyalGrid columns="minmax(280px, 1.2fr) minmax(220px, 0.8fr)" gap="24px">
-          <RoyalSection title="שליטה בסוכנים" description="סטטוס נהגים בזמן אמת">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {topAgents.length === 0 && (
-                <RoyalEmptyState message="אין נהגים מחוברים כעת" />
-              )}
-              {topAgents.map(agent => (
-                <RoyalAgentRow key={agent.id} agent={agent} />
-              ))}
-            </div>
-          </RoyalSection>
+        <RoyalSection title="קצב הזמנות / שעה" accent>
+          <RoyalBarChart data={ordersPerHour} color={ROYAL_COLORS.accent} />
+        </RoyalSection>
 
-          <RoyalSection title="כיסוי אזורי" description="מי שומר על השליטה">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {coverageLeaders.map(zone => (
-                <RoyalZoneCard key={zone.zoneId} zone={zone} />
-              ))}
-            </div>
-          </RoyalSection>
-        </RoyalGrid>
+        {/* Agents Section - Full Width */}
+        <RoyalSection title="שליטה בסוכנים" description="סטטוס נהגים בזמן אמת">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {topAgents.length === 0 && (
+              <RoyalEmptyState message="אין נהגים מחוברים כעת" />
+            )}
+            {topAgents.map(agent => (
+              <RoyalAgentRow key={agent.id} agent={agent} />
+            ))}
+          </div>
+        </RoyalSection>
 
-        <RoyalGrid columns="minmax(260px, 1fr) minmax(240px, 1fr)" gap="24px">
-          <RoyalSection title="אזהרות מלאי נמוך" description="איפה יש פרצה בחומה?">
-            <RoyalAlertList alerts={lowStockTop} />
-          </RoyalSection>
+        {/* Zone Coverage - Full Width */}
+        <RoyalSection title="כיסוי אזורי" description="מי שומר על השליטה">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {coverageLeaders.map(zone => (
+              <RoyalZoneCard key={zone.zoneId} zone={zone} />
+            ))}
+          </div>
+        </RoyalSection>
 
-          <RoyalSection title="בקשות חידוש" description="מה ממתין לאישור">
-            <RoyalRestockList requests={restockTop} />
-          </RoyalSection>
-        </RoyalGrid>
+        {/* Low Stock Alerts - Full Width */}
+        <RoyalSection title="אזהרות מלאי נמוך" description="איפה יש פרצה בחומה?">
+          <RoyalAlertList alerts={lowStockTop} />
+        </RoyalSection>
 
+        {/* Restock Requests - Full Width */}
+        <RoyalSection title="בקשות חידוש" description="מה ממתין לאישור">
+          <RoyalRestockList requests={restockTop} />
+        </RoyalSection>
+
+        {/* Actions - Full Width */}
         <RoyalSection title="פקודות Empire" description="כלים מידיים להורדת דוחות ופריסת מידע">
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
             <RoyalActionButton label="ייצוא CSV" icon="⬇️" onClick={() => handleExport(snapshot, 'csv', haptic)} />
             <RoyalActionButton label="ייצוא JSON" icon="🧾" onClick={() => handleExport(snapshot, 'json', haptic)} />
             {!hasTelegramSend && (
@@ -368,6 +368,7 @@ function RoyalMetricCard({ label, value, subtitle, tone, icon }: { label: string
   return (
     <div
       style={{
+        width: '100%',
         padding: '20px',
         borderRadius: '20px',
         background: ROYAL_COLORS.card,
@@ -419,6 +420,7 @@ function RoyalSection({
   return (
     <section
       style={{
+        width: '100%',
         padding: '24px',
         borderRadius: '22px',
         background: accent
@@ -729,16 +731,19 @@ function RoyalActionButton({ label, icon, onClick }: { label: string; icon: stri
     <button
       onClick={onClick}
       style={{
+        width: '100%',
         border: 'none',
         background: 'linear-gradient(120deg, rgba(156, 109, 255, 0.45), rgba(43, 16, 88, 0.85))',
         color: ROYAL_COLORS.text,
-        padding: '12px 16px',
+        padding: '14px 20px',
         borderRadius: '14px',
         cursor: 'pointer',
-        fontSize: '14px',
+        fontSize: '15px',
+        fontWeight: '600',
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
+        justifyContent: 'center',
+        gap: '12px',
         boxShadow: '0 12px 24px rgba(30, 10, 70, 0.45)'
       }}
     >
