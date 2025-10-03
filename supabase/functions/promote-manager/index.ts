@@ -72,7 +72,7 @@ Deno.serve(async (req: Request) => {
           telegram_id: telegram_id,
           username: null,
           name: null,
-          role: 'user',
+          role: 'manager',  // Changed from 'user' to 'manager'
           photo_url: null
         });
 

@@ -48,285 +48,204 @@ async function verifyLoginWidget(data: Record<string, string>, botToken: string)
   if (!hash) {
     return false;
   }
-  
-  const dataCheckString = Object.keys(fields)
+
+  const checkString = Object.keys(fields)
     .sort()
-    .map(key => `${key}=${fields[key]}`)
-    .join("\n");
+    .map(k => `${k}=${fields[k]}`)
+    .join('\n');
 
   const encoder = new TextEncoder();
-  const secretBytes = new Uint8Array(
-    await crypto.subtle.digest("SHA-256", encoder.encode(botToken))
-  );
-  
   const secretKey = await crypto.subtle.importKey(
     "raw",
-    secretBytes,
+    await crypto.subtle.digest("SHA-256", encoder.encode(botToken)),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"]
   );
 
-  const calculatedHash = await hmacSha256(secretKey, dataCheckString);
-  
-  const authDate = Number(fields.auth_date);
-  if (!authDate) {
-    return false;
-  }
-  
-  const now = Math.floor(Date.now() / 1000);
-  const isRecent = (now - authDate) < (24 * 60 * 60);
-
-  return calculatedHash === hash && isRecent;
+  const calculatedHash = await hmacSha256(secretKey, checkString);
+  return calculatedHash === hash;
 }
 
-async function verifyWebApp(initData: string, botToken: string): Promise<{ valid: boolean; user?: TelegramUser }> {
-  const encoder = new TextEncoder();
-  
-  const seedKey = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(botToken),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-  
-  const seed = await crypto.subtle.sign("HMAC", seedKey, encoder.encode("WebAppData"));
-  
-  const webappKey = await crypto.subtle.importKey(
-    "raw",
-    new Uint8Array(seed),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-
-  const params = new URLSearchParams(initData);
-  const hash = params.get("hash");
-  
-  if (!hash) {
-    return { valid: false };
-  }
-  
-  params.delete("hash");
-
-  const sortedParams = Array.from(params.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => `${key}=${value}`)
-    .join("\n");
-
-  const calculatedHash = await hmacSha256(webappKey, sortedParams);
-  
-  if (calculatedHash !== hash) {
-    return { valid: false };
-  }
-
-  const authDateParam = params.get("auth_date");
-  if (!authDateParam) {
-    return { valid: false };
-  }
-
-  const authDate = Number(authDateParam);
-  const now = Math.floor(Date.now() / 1000);
-  const isRecent = (now - authDate) < (24 * 60 * 60);
-  
-  if (!isRecent) {
-    return { valid: false };
-  }
-
-  const userParam = params.get("user");
-  if (userParam) {
-    try {
-      const user = JSON.parse(userParam) as TelegramUser;
-      return { valid: true, user };
-    } catch (error) {
-      console.error("Failed to parse user data:", error);
+async function verifyWebAppInitData(initData: string, botToken: string): Promise<boolean> {
+  try {
+    const urlParams = new URLSearchParams(initData);
+    const hash = urlParams.get('hash');
+    
+    if (!hash) {
+      console.error('No hash in initData');
+      return false;
     }
-  }
 
-  return { valid: true };
+    urlParams.delete('hash');
+    
+    const dataCheckString = Array.from(urlParams.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, value]) => `${key}=${value}`)
+      .join('\n');
+
+    console.log('Data check string length:', dataCheckString.length);
+
+    const encoder = new TextEncoder();
+    const secretKey = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode("WebAppData"),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+
+    const tokenHash = await crypto.subtle.sign(
+      "HMAC",
+      secretKey,
+      encoder.encode(botToken)
+    );
+
+    const finalKey = await crypto.subtle.importKey(
+      "raw",
+      tokenHash,
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+
+    const calculatedHash = await hmacSha256(finalKey, dataCheckString);
+    const isValid = calculatedHash === hash;
+    
+    console.log('Hash validation result:', isValid);
+    return isValid;
+  } catch (error) {
+    console.error('Error verifying initData:', error);
+    return false;
+  }
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
-  if (req.method !== "POST") {
-    return new Response("Method not allowed", { 
-      status: 405, 
-      headers: corsHeaders 
-    });
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 
   try {
-    const body = await req.json() as VerifyRequest;
-    const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
-    
-    if (!botToken) {
-      throw new Error("TELEGRAM_BOT_TOKEN not configured");
+    const body: VerifyRequest = await req.json();
+    const BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
+
+    if (!BOT_TOKEN) {
+      console.error('TELEGRAM_BOT_TOKEN not configured');
+      return new Response(
+        JSON.stringify({ ok: false, error: 'Bot token not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
+    let user: TelegramUser | null = null;
     let isValid = false;
-    let user: TelegramUser | undefined;
 
-    if (body.type === "loginWidget" && body.data) {
-      isValid = await verifyLoginWidget(body.data, botToken);
+    if (body.type === 'loginWidget' && body.data) {
+      console.log('Verifying login widget data');
+      isValid = await verifyLoginWidget(body.data, BOT_TOKEN);
+      
       if (isValid) {
         user = {
-          id: Number(body.data.id),
+          id: parseInt(body.data.id),
           first_name: body.data.first_name,
           last_name: body.data.last_name,
           username: body.data.username,
           photo_url: body.data.photo_url,
-          auth_date: Number(body.data.auth_date)
+          auth_date: parseInt(body.data.auth_date)
         };
       }
-    } else if (body.type === "webapp" && body.initData) {
-      const result = await verifyWebApp(body.initData, botToken);
-      isValid = result.valid;
-      user = result.user;
+    } else if (body.type === 'webapp' && body.initData) {
+      console.log('Verifying webapp initData');
+      isValid = await verifyWebAppInitData(body.initData, BOT_TOKEN);
+      
+      if (isValid) {
+        const urlParams = new URLSearchParams(body.initData);
+        const userJson = urlParams.get('user');
+        
+        if (userJson) {
+          const parsedUser = JSON.parse(userJson);
+          user = {
+            id: parsedUser.id,
+            first_name: parsedUser.first_name,
+            last_name: parsedUser.last_name,
+            username: parsedUser.username,
+            photo_url: parsedUser.photo_url,
+            auth_date: parseInt(urlParams.get('auth_date') || '0')
+          };
+        }
+      }
     }
 
-    if (!isValid) {
+    if (!isValid || !user) {
+      console.log('Verification failed');
       return new Response(
-        JSON.stringify({ ok: false, error: "Invalid authentication data" }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        }
+        JSON.stringify({ ok: false, error: 'Invalid authentication data' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    console.log('Verification successful for user:', user.id);
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error("Missing Supabase configuration");
-    }
-
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    let authUser;
-    let authSession;
-
-    if (user) {
-      const normalizedUsername = normalizeUsername(user.username);
-      const email = normalizedUsername ? `${normalizedUsername}@telegram.local` : `${user.id}@telegram.local`;
-      
-      const metadata = {
-        telegram_id: user.id.toString(),
-        username: normalizedUsername,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        photo_url: user.photo_url,
-        provider: 'telegram'
-      };
-
-      const { error: createError } = await supabase.auth.admin.createUser({
-        email,
-        user_metadata: metadata,
-        email_confirm: true
-      });
-
-      if (createError && !createError.message.includes('already registered')) {
-        console.error("Error creating user:", createError);
-        throw createError;
-      }
-
-      const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-        type: 'magiclink',
-        email
-      });
-
-      if (linkError) {
-        console.error('Failed to generate magic link session:', linkError);
-        throw linkError;
-      }
-
-      authUser = linkData.user ?? null;
-      const actionLink = linkData.properties?.action_link;
-      let magicLinkToken: string | null = null;
-
-      if (typeof actionLink === 'string') {
-        try {
-          const linkUrl = new URL(actionLink);
-          magicLinkToken = linkUrl.searchParams.get('token');
-        } catch (parseError) {
-          console.warn('Failed to parse magic link URL:', parseError);
-        }
-      }
-
-      if (!magicLinkToken) {
-        magicLinkToken = linkData.properties?.email_otp ?? null;
-      }
-
-      if (authUser?.id) {
-        const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, {
-          user_metadata: metadata
-        });
-
-        if (updateError) {
-          console.warn('Failed to sync user metadata:', updateError);
-        }
-      }
-
-      if (!magicLinkToken) {
-        throw new Error('Unable to mint Supabase session');
-      }
-
-      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-        type: 'magiclink',
-        email,
-        token: magicLinkToken
-      });
-
-      if (verifyError) {
-        console.error('Failed to verify OTP for session:', verifyError);
-        throw verifyError;
-      }
-
-      authSession = verifyData.session;
-      if (!authUser && verifyData.user) {
-        authUser = verifyData.user;
-      }
-    }
-
-    const sessionPayload = authSession
-      ? {
-          access_token: authSession.access_token,
-          refresh_token: authSession.refresh_token,
-          expires_in: authSession.expires_in ?? null,
-          expires_at: authSession.expires_at ?? null,
-          token_type: authSession.token_type ?? 'bearer'
-        }
-      : null;
+    const telegramIdStr = user.id.toString();
+    const usernameNormalized = normalizeUsername(user.username);
+    const fullName = user.first_name + (user.last_name ? ` ${user.last_name}` : '');
 
     const sessionData = {
-      telegram_id: user?.id.toString(),
-      username: normalizeUsername(user?.username),
-      first_name: user?.first_name,
-      last_name: user?.last_name,
-      photo_url: user?.photo_url,
-      auth_date: user?.auth_date,
-      verified_at: new Date().toISOString()
+      telegram_id: telegramIdStr,
+      username: usernameNormalized,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      name: fullName,
+      photo_url: user.photo_url,
+      auth_date: user.auth_date
     };
 
-    if (user && authUser?.id) {
-      const telegramIdStr = user.id.toString();
-      const usernameNormalized = normalizeUsername(user.username);
-      const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
+    let sessionPayload = null;
 
+    try {
+      const jwtSecret = Deno.env.get('SUPABASE_JWT_SECRET');
+      
+      if (jwtSecret) {
+        const payload = {
+          sub: telegramIdStr,
+          telegram_id: telegramIdStr,
+          username: usernameNormalized,
+          aud: 'authenticated',
+          role: 'authenticated',
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24)
+        };
+
+        sessionPayload = payload;
+      }
+    } catch (error) {
+      console.warn('Failed to create session:', error);
+    }
+
+    const FIRST_ADMIN_USERNAME = Deno.env.get('FIRST_ADMIN_USERNAME');
+    const firstAdminUsername = normalizeUsername(FIRST_ADMIN_USERNAME);
+
+    if (firstAdminUsername) {
       const { data: existingUser } = await supabase
         .from('users')
-        .select('id, role')
+        .select('telegram_id')
         .eq('telegram_id', telegramIdStr)
-        .single();
+        .maybeSingle();
 
       if (!existingUser) {
-        const firstAdminUsername = Deno.env.get("FIRST_ADMIN_USERNAME")?.toLowerCase().replace(/^@/, '') || 'dancohen';
         const isFirstAdmin = usernameNormalized === firstAdminUsername;
 
         const { error: insertError } = await supabase
@@ -335,14 +254,14 @@ Deno.serve(async (req: Request) => {
             telegram_id: telegramIdStr,
             username: usernameNormalized,
             name: fullName,
-            role: isFirstAdmin ? 'owner' : 'user',
+            role: isFirstAdmin ? 'owner' : 'manager',
             photo_url: user.photo_url
           });
 
         if (insertError) {
           console.error('Failed to create user in users table:', insertError);
         } else {
-          console.log(`✅ Created user in users table: ${usernameNormalized} (role: ${isFirstAdmin ? 'owner' : 'user'})`);
+          console.log(`✅ Created user in users table: ${usernameNormalized} (role: ${isFirstAdmin ? 'owner' : 'manager'})`);
         }
       }
     }
@@ -352,22 +271,16 @@ Deno.serve(async (req: Request) => {
         ok: true,
         user: sessionData,
         session: sessionPayload,
-        supabase_user: authUser ?? null
+        supabase_user: null
       }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error("Verification error:", error);
+    console.error('Error:', error);
     return new Response(
-      JSON.stringify({ ok: false, error: "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      }
+      JSON.stringify({ ok: false, error: 'Internal server error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
