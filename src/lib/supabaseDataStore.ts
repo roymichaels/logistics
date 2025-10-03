@@ -848,7 +848,7 @@ export class SupabaseDataStore implements DataStore {
         name: this.user?.first_name ?
           [this.user.first_name, this.user.last_name].filter(Boolean).join(' ') :
           null,
-        role: 'user',
+        role: 'owner',
         photo_url: this.user?.photo_url || null
       });
 

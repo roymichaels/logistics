@@ -160,7 +160,7 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
       isTelegramEnv: telegram.isTelegramEnv,
       hasSupabaseUrl: !!SUPABASE_URL
     });
-    debugLog.error('🚨 User role will be "user" instead of "owner" in mock mode!');
+    debugLog.error('🚨 Mock mode has limited functionality!');
     debugLog.error('🚨 TO FIX: Add VITE_SUPABASE_URL in Netlify dashboard → Site configuration → Environment variables');
     return {
       config: {
