@@ -50,7 +50,7 @@ export default defineConfig({
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true,
+        drop_console: false, // KEEP console logs for Telegram debugging
         drop_debugger: true
       }
     },
