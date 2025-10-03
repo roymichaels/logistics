@@ -59,6 +59,12 @@ export function ManagerLoginModal({
     try {
       // Call edge function to promote user (bypasses RLS)
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      console.log('🔐 Calling promote-manager edge function...', {
+        url: `${supabaseUrl}/functions/v1/promote-manager`,
+        telegram_id: userTelegramId,
+        pin_length: enteredPin.length
+      });
+
       const response = await fetch(`${supabaseUrl}/functions/v1/promote-manager`, {
         method: 'POST',
         headers: {
@@ -70,19 +76,32 @@ export function ManagerLoginModal({
         })
       });
 
+      console.log('📡 Response status:', response.status);
+      const responseText = await response.text();
+      console.log('📡 Response body:', responseText);
+
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch {
+          errorData = { error: responseText || 'Failed to promote user' };
+        }
+        console.error('❌ Promotion failed:', errorData);
         throw new Error(errorData.error || 'Failed to promote user');
       }
 
-      const result = await response.json();
+      const result = JSON.parse(responseText);
       console.log('✅ Manager promotion successful:', result);
 
+      Toast.success('משודרג למנהל!');
       onClose();
       onSuccess();
     } catch (error) {
-      console.error('Failed to promote user:', error);
-      Toast.error('שגיאה בעדכון הרשאות');
+      console.error('❌ Failed to promote user:', error);
+      const errorMessage = error instanceof Error ? error.message : 'שגיאה בעדכון הרשאות';
+      Toast.error(errorMessage);
+      setError(errorMessage);
       setPin('');
       setIsLoading(false);
     }
