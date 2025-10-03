@@ -1,7 +1,6 @@
 import React from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { hebrew } from '../lib/hebrew';
-import { FloatingCreateButton } from './FloatingCreateButton';
 
 /**
  * 🧠 ROY MICHAELS MILITARIZED NAVIGATION
@@ -154,37 +153,82 @@ export function BottomNavigation({
   const tabs = roleConfig.tabs;
   const action = roleConfig.action;
 
+  const handleActionClick = () => {
+    if (action?.disabled) return;
+    haptic();
+
+    if (userRole === 'owner' || userRole === 'manager') {
+      onShowCreateOrder?.();
+    } else if (userRole === 'sales') {
+      onShowCreateOrder?.();
+    } else if (userRole === 'warehouse') {
+      onShowCheckInventory?.();
+    }
+  };
+
   const renderActionSlot = () => (
-    <div
+    <button
       key="action-slot"
+      onClick={handleActionClick}
+      disabled={action?.disabled}
       style={{
         flex: '0 0 80px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'flex-end',
-        pointerEvents: 'none'
+        justifyContent: 'center',
+        border: 'none',
+        background: 'transparent',
+        cursor: action?.disabled ? 'not-allowed' : 'pointer',
+        padding: '0',
+        position: 'relative',
+        marginTop: '-24px'
       }}
     >
       <div
         style={{
-          width: '56px',
-          height: '56px',
+          width: '64px',
+          height: '64px',
           borderRadius: '50%',
-          backgroundColor: action?.disabled ? `${theme.hint_color}30` : theme.button_color,
-          color: action?.disabled ? theme.hint_color : theme.button_text_color,
+          background: action?.disabled
+            ? `rgba(100, 100, 120, 0.3)`
+            : 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
+          color: action?.disabled ? theme.hint_color : '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '24px',
-          marginBottom: '4px',
-          boxShadow: action?.disabled ? 'none' : '0 4px 12px rgba(0,0,0,0.2)'
+          fontSize: '28px',
+          boxShadow: action?.disabled
+            ? 'none'
+            : '0 8px 24px rgba(156, 109, 255, 0.5), 0 0 40px rgba(156, 109, 255, 0.3)',
+          border: '3px solid rgba(25, 0, 80, 0.95)',
+          transform: action?.disabled ? 'scale(1)' : 'scale(1.1)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+        onMouseEnter={(e) => {
+          if (!action?.disabled) {
+            e.currentTarget.style.transform = 'scale(1.15)';
+            e.currentTarget.style.boxShadow = '0 12px 32px rgba(156, 109, 255, 0.6), 0 0 50px rgba(156, 109, 255, 0.4)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!action?.disabled) {
+            e.currentTarget.style.transform = 'scale(1.1)';
+            e.currentTarget.style.boxShadow = '0 8px 24px rgba(156, 109, 255, 0.5), 0 0 40px rgba(156, 109, 255, 0.3)';
+          }
         }}
       >
         {action?.icon}
       </div>
-      <span style={{ fontSize: '11px', color: theme.hint_color }}>{action?.label}</span>
-    </div>
+      <span style={{
+        fontSize: '10px',
+        color: action?.disabled ? theme.hint_color : '#bfa9ff',
+        marginTop: '6px',
+        fontWeight: '600'
+      }}>
+        {action?.label}
+      </span>
+    </button>
   );
 
   const navItems: React.ReactNode[] = [];
@@ -207,18 +251,40 @@ export function BottomNavigation({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '4px',
+          gap: '6px',
           padding: '8px 4px',
           border: 'none',
           backgroundColor: 'transparent',
-          color: currentPage === tab.id ? theme.button_color : theme.hint_color,
+          color: currentPage === tab.id ? '#9c6dff' : 'rgba(191, 169, 255, 0.6)',
           cursor: 'pointer',
-          fontSize: '12px',
-          fontWeight: currentPage === tab.id ? '600' : '400'
+          fontSize: '11px',
+          fontWeight: currentPage === tab.id ? '600' : '500',
+          position: 'relative',
+          transition: 'all 0.2s ease',
+          transform: currentPage === tab.id ? 'scale(1.05)' : 'scale(1)'
         }}
       >
-        <span style={{ fontSize: '20px' }}>{tab.icon}</span>
+        <span style={{
+          fontSize: currentPage === tab.id ? '24px' : '22px',
+          filter: currentPage === tab.id ? 'drop-shadow(0 0 8px rgba(156, 109, 255, 0.8))' : 'none',
+          transition: 'all 0.2s ease'
+        }}>
+          {tab.icon}
+        </span>
         <span>{tab.label}</span>
+        {currentPage === tab.id && (
+          <div style={{
+            position: 'absolute',
+            bottom: '4px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '32px',
+            height: '3px',
+            background: 'linear-gradient(90deg, transparent, #9c6dff, transparent)',
+            borderRadius: '2px',
+            boxShadow: '0 0 8px rgba(156, 109, 255, 0.6)'
+          }} />
+        )}
       </button>
     );
   });
@@ -235,35 +301,18 @@ export function BottomNavigation({
           bottom: 0,
           left: 0,
           right: 0,
-          backgroundColor: theme.secondary_bg_color || '#f1f1f1',
-          borderTop: `1px solid ${theme.hint_color}20`,
+          background: 'linear-gradient(180deg, rgba(25, 0, 80, 0.70) 0%, rgba(25, 0, 80, 0.95) 100%)',
+          backdropFilter: 'blur(10px)',
+          borderTop: '1px solid rgba(156, 109, 255, 0.2)',
+          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.3)',
           display: 'flex',
-          padding: '8px 0',
+          padding: '12px 8px 8px 8px',
           zIndex: 1000,
           direction: 'rtl'
         }}
       >
         {navItems}
       </div>
-
-      {userRole && action && (
-        <FloatingCreateButton
-          userRole={userRole}
-          businessId={businessId}
-          actionLabel={action.label}
-          actionIcon={action.icon}
-          disabled={action.disabled}
-          onCreateOrder={() => onShowCreateOrder?.()}
-          onCreateTask={() => onShowCreateTask?.()}
-          onScanBarcode={() => onShowScanBarcode?.()}
-          onContactCustomer={() => onShowContactCustomer?.()}
-          onCheckInventory={() => onShowCheckInventory?.()}
-          onCreateRoute={() => onShowCreateRoute?.()}
-          onCreateUser={() => onShowCreateUser?.()}
-          onCreateProduct={() => onShowCreateProduct?.()}
-          onNavigate={onNavigate}
-        />
-      )}
     </>
   );
 }
