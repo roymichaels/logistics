@@ -185,9 +185,18 @@ export default function App() {
     }
 
     // Navigate to role-specific page on role change
-    // Special case: if user was on 'my-role' and got promoted, always navigate to new role page
+    // Special case: if user was promoted from 'user' role, always navigate to new role page
     if (defaultPage) {
-      if (currentPage === 'dashboard' || currentPage === 'my-role') {
+      const wasUnassignedUser = initialPageRole === null || initialPageRole === 'user';
+      const isNowAssigned = userRole !== 'user';
+
+      // Force navigation if user was just promoted from 'user' to an actual role
+      if (wasUnassignedUser && isNowAssigned) {
+        console.log(`🔄 User promoted from ${initialPageRole} to ${userRole}, navigating to ${defaultPage}`);
+        setCurrentPage(defaultPage);
+      }
+      // Standard navigation when already on dashboard or my-role page
+      else if (currentPage === 'dashboard' || currentPage === 'my-role') {
         console.log(`🔄 Role changed from ${initialPageRole} to ${userRole}, navigating to ${defaultPage}`);
         setCurrentPage(defaultPage);
       }
