@@ -5,10 +5,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "npx vite",
     "build": "expo export --platform web",
-    "build:web": "vite build",
-    "preview": "vite preview",
+    "build:web": "npx vite build",
+    "preview": "npx vite preview",
     "analyze": "node scripts/build-analyze.js",
     "qa": "node scripts/qa-check.js",
     "migrate": "node scripts/migrate.js",
