@@ -77,22 +77,23 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
 
   const handleRequestManagerAccess = async () => {
     try {
-      telegram.hapticFeedback('medium');
+      telegram.hapticFeedback('impact', 'medium');
 
       console.log('🔐 Starting promotion process...');
 
-      // Try to get telegram_id from multiple sources
+      // Get telegram_id from user object or Telegram SDK
       let userTelegramId = user?.telegram_id;
 
-      if (!userTelegramId && window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
-        userTelegramId = String(window.Telegram.WebApp.initDataUnsafe.user.id);
-        console.log('📱 Got telegram_id from Telegram WebApp:', userTelegramId);
+      if (!userTelegramId && telegram.user?.id) {
+        userTelegramId = String(telegram.user.id);
+        console.log('📱 Got telegram_id from Telegram SDK:', userTelegramId);
       }
 
       if (!userTelegramId) {
         console.error('❌ No telegram_id available');
         console.log('User object:', user);
-        console.log('Telegram WebApp data:', window.Telegram?.WebApp?.initDataUnsafe);
+        console.log('Telegram user:', telegram.user);
+        console.log('Telegram initData:', telegram.initData);
         Toast.error('לא ניתן לזהות משתמש - אנא נסה שוב');
         return;
       }
