@@ -100,7 +100,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
       console.log('🔐 Promoting user:', userTelegramId);
       Toast.info('מעדכן הרשאות...');
 
-      const supabaseUrl = import.meta.env.VITE_Bolt_Database_URL;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
       console.log('📡 Calling edge function:', `${supabaseUrl}/functions/v1/promote-manager`);
 
@@ -108,7 +108,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_Bolt_Database_ANON_KEY}`
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
         },
         body: JSON.stringify({
           telegram_id: userTelegramId,

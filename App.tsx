@@ -143,7 +143,7 @@ export default function App() {
       isTelegram: telegram.isAvailable,
       hasInitData: !!telegram.initData,
       hasUser: !!telegram.user,
-      supabaseUrl: !!import.meta.env.VITE_Bolt_Database_URL
+      supabaseUrl: !!import.meta.env.VITE_SUPABASE_URL
     });
     initializeApp();
   }, []);

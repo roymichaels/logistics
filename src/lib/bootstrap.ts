@@ -41,7 +41,7 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
     debugLog.warn('⚠️ Failed to clear caches', error);
   }
 
-  const SUPABASE_URL = import.meta.env.VITE_Bolt_Database_URL;
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
   // Check for stored session first (for page refreshes)
   // NOTE: We only restore telegram_id for session continuity, NOT the role
