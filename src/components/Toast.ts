@@ -44,4 +44,8 @@ export class Toast {
   static error(message: string) {
     this.show(message, 'error');
   }
+
+  static info(message: string) {
+    this.show(message, 'info');
+  }
 }
