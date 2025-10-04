@@ -110,25 +110,9 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
     };
   }
 
-  // 🧪 BROWSER FALLBACK MODE FOR DEBUGGING
-  // If not in Telegram environment, create a test user
+  // If not in Telegram environment, user must authenticate
   if (!telegram.isTelegramEnv && SUPABASE_URL) {
-    debugLog.warn('🌐 Running in BROWSER MODE - using test user', {
-      isTelegramEnv: telegram.isTelegramEnv,
-      hasSupabaseUrl: !!SUPABASE_URL,
-      note: 'This is for debugging only'
-    });
-
-    // Create a test user for browser mode
-    const testUser = {
-      telegram_id: '999999999', // Test ID
-      username: 'test_browser_user',
-      first_name: 'Test',
-      last_name: 'User',
-      language_code: 'he',
-      auth_date: Date.now()
-    };
-
+    debugLog.warn('⚠️ Not running in Telegram environment - authentication required');
     return {
       config: {
         app: 'miniapp',
@@ -140,7 +124,7 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
           route_optimization: false,
         },
         ui: {
-          brand: 'מערכת לוגיסטיקה (Browser Mode)',
+          brand: 'מערכת לוגיסטיקה',
           accent: '#007aff',
           theme: 'auto',
           language: 'he'
@@ -149,7 +133,7 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
           mode: 'real' as const,
         },
       },
-      user: testUser,
+      user: null,
     };
   }
 
