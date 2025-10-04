@@ -155,9 +155,10 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
       // Wait a moment for the user to see the success message
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      console.log('✅ Role updated, navigating to dashboard...');
-      // Navigate directly to dashboard
-      onNavigate('dashboard');
+      console.log('✅ Role updated, forcing full page reload to reinitialize...');
+
+      // Force complete page reload to destroy and recreate dataStore with fresh data from database
+      window.location.reload();
     } catch (error) {
       console.error('❌ Failed to promote user:', error);
       Toast.error(`שגיאה: ${error instanceof Error ? error.message : 'לא ניתן לעדכן הרשאות'}`);
