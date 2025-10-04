@@ -137,30 +137,28 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
 
       const result = JSON.parse(responseText);
       console.log('✅ User promoted successfully:', result);
+      console.log('✅ New role:', result.role);
 
-      Toast.success('שודרג לבעלים! טוען מחדש...');
+      Toast.success('שודרג לבעלים! מעביר למערכת...');
 
-      // Clear localStorage cache to force fresh data fetch
-      console.log('🗑️ Clearing localStorage cache...');
-      localStorage.removeItem('user_session');
-
-      // Clear all caches
-      try {
-        if ('caches' in window) {
-          const cacheNames = await caches.keys();
-          await Promise.all(cacheNames.map(name => caches.delete(name)));
-          console.log('🗑️ Cleared all browser caches');
-        }
-      } catch (error) {
-        console.warn('⚠️ Failed to clear caches', error);
+      // Update the user object immediately with the new role
+      if (user) {
+        setUser({ ...user, role: 'owner' });
       }
 
-      console.log('⏱️ Waiting 1s for DB replication...');
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Clear cached data in the dataStore
+      console.log('🗑️ Clearing dataStore cache...');
+      if (dataStore) {
+        // Force refresh profile from database
+        await dataStore.refreshProfile();
+      }
 
-      console.log('🔄 Hard reloading page...');
-      // Use hard reload to bypass all caches
-      window.location.href = window.location.href.split('?')[0] + '?t=' + Date.now();
+      // Wait a moment for the user to see the success message
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      console.log('✅ Role updated, navigating to dashboard...');
+      // Navigate directly to dashboard
+      onNavigate('dashboard');
     } catch (error) {
       console.error('❌ Failed to promote user:', error);
       Toast.error(`שגיאה: ${error instanceof Error ? error.message : 'לא ניתן לעדכן הרשאות'}`);
