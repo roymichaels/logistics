@@ -86,6 +86,8 @@ export default defineConfig({
     }
   },
   define: {
-    __DEV__: JSON.stringify(process.env.NODE_ENV === 'development')
+    __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
+    'import.meta.env.VITE_SUPABASE_URL': JSON.stringify('https://drfpzclnutdldwomfsfz.supabase.co'),
+    'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRyZnB6Y2xudXRkbGR3b21mc2Z6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzNTI4OTQsImV4cCI6MjA3NDkyODg5NH0.IAAEoQWN8zrcUn4OVNAyWwbjfUQiiLo8Kdak8nRg9RI')
   }
 });
