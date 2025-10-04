@@ -718,7 +718,7 @@ export class SupabaseDataStore implements DataStore {
       }
     }
 
-    console.log(`getProfile: Fetching profile for telegram_id: ${this.userTelegramId}`);
+    console.log(`🔍 getProfile: Fetching profile for telegram_id: ${this.userTelegramId}`);
 
     const { data, error } = await supabase
       .from('users')
@@ -726,13 +726,20 @@ export class SupabaseDataStore implements DataStore {
       .eq('telegram_id', this.userTelegramId)
       .maybeSingle();
 
+    console.log('🔍 getProfile: RAW RESPONSE:', {
+      hasData: !!data,
+      hasError: !!error,
+      data: data ? JSON.stringify(data) : 'null',
+      error: error ? JSON.stringify(error) : 'null'
+    });
+
     if (error) {
-      console.error('getProfile: Database error:', error);
+      console.error('❌ getProfile: Database error:', error);
       throw error;
     }
 
     if (!data) {
-      console.log('getProfile: User not found, creating new user');
+      console.log('⚠️ getProfile: User not found, creating new user');
       // Create user if doesn't exist
       const telegramUserData = this.initialUserData as any;
       const newUser: Omit<User, 'id'> = {
@@ -758,12 +765,16 @@ export class SupabaseDataStore implements DataStore {
         throw createError;
       }
 
-      console.log('getProfile: Created new user', { role: created.role });
+      console.log('✅ getProfile: Created new user', { role: created.role });
       this.user = created;
       return created;
     }
 
-    console.log('getProfile: Successfully fetched profile', { role: data.role });
+    console.log('✅ getProfile: Successfully fetched profile from DB:', {
+      role: data.role,
+      telegram_id: data.telegram_id,
+      updated_at: data.updated_at
+    });
     this.user = data;
     return data;
   }
@@ -789,7 +800,7 @@ export class SupabaseDataStore implements DataStore {
       }
     }
 
-    console.log(`getCurrentRole: Fetching role for telegram_id: ${this.userTelegramId}`);
+    console.log(`🔍 getCurrentRole: Fetching role for telegram_id: ${this.userTelegramId}`);
 
     const { data, error } = await supabase
       .from('users')
@@ -797,17 +808,23 @@ export class SupabaseDataStore implements DataStore {
       .eq('telegram_id', this.userTelegramId)
       .maybeSingle();
 
+    console.log('🔍 getCurrentRole: RAW RESPONSE:', {
+      hasData: !!data,
+      hasError: !!error,
+      data: data ? JSON.stringify(data) : 'null',
+      error: error ? JSON.stringify(error) : 'null'
+    });
+
     if (error) {
-      console.error('getCurrentRole: Database error:', error);
+      console.error('❌ getCurrentRole: Database error:', error);
       throw error;
     }
 
     if (!data) {
-      console.warn('getCurrentRole: No user found in database');
+      console.warn('⚠️ getCurrentRole: No user found in database (RLS blocked?)');
       return null;
     }
 
-    console.log(`✅ getCurrentRole: RAW DATABASE RESPONSE [BUILD v2]:`, JSON.stringify(data));
     console.log(`✅ getCurrentRole: Successfully fetched role: ${data.role}`);
     this.user = data;
     return data.role;
