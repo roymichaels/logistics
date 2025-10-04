@@ -140,11 +140,27 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
 
       Toast.success('שודרג לבעלים! טוען מחדש...');
 
+      // Clear localStorage cache to force fresh data fetch
+      console.log('🗑️ Clearing localStorage cache...');
+      localStorage.removeItem('user_session');
+
+      // Clear all caches
+      try {
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map(name => caches.delete(name)));
+          console.log('🗑️ Cleared all browser caches');
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to clear caches', error);
+      }
+
       console.log('⏱️ Waiting 1s for DB replication...');
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      console.log('🔄 Reloading page...');
-      window.location.reload();
+      console.log('🔄 Hard reloading page...');
+      // Use hard reload to bypass all caches
+      window.location.href = window.location.href.split('?')[0] + '?t=' + Date.now();
     } catch (error) {
       console.error('❌ Failed to promote user:', error);
       Toast.error(`שגיאה: ${error instanceof Error ? error.message : 'לא ניתן לעדכן הרשאות'}`);
