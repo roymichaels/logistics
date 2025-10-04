@@ -807,13 +807,14 @@ export class SupabaseDataStore implements DataStore {
       return null;
     }
 
-    console.log(`getCurrentRole: Successfully fetched role: ${data.role}`);
+    console.log(`✅ getCurrentRole: RAW DATABASE RESPONSE [BUILD v2]:`, JSON.stringify(data));
+    console.log(`✅ getCurrentRole: Successfully fetched role: ${data.role}`);
     this.user = data;
     return data.role;
   }
 
   clearUserCache(): void {
-    console.log('clearUserCache: Clearing cached user data');
+    console.log('🗑️ clearUserCache: Clearing cached user data [BUILD v2]');
     this.user = null;
   }
 
