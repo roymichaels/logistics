@@ -720,7 +720,10 @@ export class SupabaseDataStore implements DataStore {
 
     console.log(`🔍 getProfile: Fetching profile for telegram_id: ${this.userTelegramId}`);
 
-    const { data, error } = await supabase
+    // Create fresh client to bypass any caching
+    const freshClient = createClient(supabaseUrl, supabaseKey);
+
+    const { data, error } = await freshClient
       .from('users')
       .select('*')
       .eq('telegram_id', this.userTelegramId)
@@ -730,7 +733,8 @@ export class SupabaseDataStore implements DataStore {
       hasData: !!data,
       hasError: !!error,
       data: data ? JSON.stringify(data) : 'null',
-      error: error ? JSON.stringify(error) : 'null'
+      error: error ? JSON.stringify(error) : 'null',
+      timestamp: new Date().toISOString()
     });
 
     if (error) {
@@ -802,7 +806,10 @@ export class SupabaseDataStore implements DataStore {
 
     console.log(`🔍 getCurrentRole: Fetching role for telegram_id: ${this.userTelegramId}`);
 
-    const { data, error } = await supabase
+    // Create fresh client to bypass any caching
+    const freshClient = createClient(supabaseUrl, supabaseKey);
+
+    const { data, error } = await freshClient
       .from('users')
       .select('*')
       .eq('telegram_id', this.userTelegramId)
@@ -812,7 +819,8 @@ export class SupabaseDataStore implements DataStore {
       hasData: !!data,
       hasError: !!error,
       data: data ? JSON.stringify(data) : 'null',
-      error: error ? JSON.stringify(error) : 'null'
+      error: error ? JSON.stringify(error) : 'null',
+      timestamp: new Date().toISOString()
     });
 
     if (error) {
