@@ -146,6 +146,12 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         setUser({ ...user, role: 'owner' });
       }
 
+      // Clear cached user data in the dataStore
+      console.log('🗑️ Clearing dataStore cache...');
+      if (dataStore?.clearUserCache) {
+        dataStore.clearUserCache();
+      }
+
       // Wait a moment for the user to see the success message
       await new Promise(resolve => setTimeout(resolve, 500));
 

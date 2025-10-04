@@ -494,6 +494,7 @@ export interface DataStore {
   getProfile(): Promise<User>;
   getCurrentRole?(): Promise<User['role'] | null>;
   updateProfile?(updates: Partial<User>): Promise<void>;
+  clearUserCache?(): void;
   
   // Products
   listProducts?(filters?: { category?: string; q?: string }): Promise<Product[]>;

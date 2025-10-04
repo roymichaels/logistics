@@ -812,6 +812,11 @@ export class SupabaseDataStore implements DataStore {
     return data.role;
   }
 
+  clearUserCache(): void {
+    console.log('clearUserCache: Clearing cached user data');
+    this.user = null;
+  }
+
   async updateProfile(updates: Partial<User>): Promise<void> {
     // First, ensure user exists in database
     await this.ensureUserExists();
