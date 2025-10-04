@@ -9,7 +9,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <title>מערכת לוגיסטיקה</title>
+  <title>מערכת לוגיסטיקה v1759615300</title>
 
   <!-- Telegram CSS Styles -->
   <link rel="stylesheet" href="/src/styles/telegram.css">
@@ -84,6 +84,34 @@
       </div>
     </div>
   </div>
+
+  <!-- Force clear all caches -->
+  <script>
+    (async function() {
+      console.log('🧹 CACHE CLEAR SCRIPT v1759615300');
+
+      // Unregister all service workers
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.unregister();
+          console.log('✅ Unregistered service worker');
+        }
+      }
+
+      // Clear all caches
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        for (const cacheName of cacheNames) {
+          await caches.delete(cacheName);
+          console.log('✅ Deleted cache:', cacheName);
+        }
+      }
+
+      console.log('✅ All caches cleared!');
+    })();
+  </script>
+
   <script type="module" src="/main.tsx"></script>
 </body>
 </html>
