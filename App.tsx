@@ -10,7 +10,7 @@ import { DualModeOrderEntry } from './src/components/DualModeOrderEntry';
 import { BusinessManager } from './src/components/BusinessManager';
 import { SuperadminSetup } from './src/components/SuperadminSetup';
 import { FloatingActionMenu } from './src/components/FloatingActionButton';
-import { debugLog, DebugPanel } from './src/components/DebugPanel';
+import { debugLog } from './src/components/DebugPanel';
 import { hebrew } from './src/lib/hebrew';
 
 // Pages (lazy loaded)
@@ -763,7 +763,6 @@ export default function App() {
           />
         )}
 
-        <DebugPanel />
 
       </div>
   );
