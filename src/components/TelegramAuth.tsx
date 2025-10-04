@@ -35,8 +35,8 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
         return;
       }
 
-      // Priority 2: Telegram user from WebApp (even without initData)
-      if (telegram.isAvailable && telegram.user) {
+      // Priority 2: Telegram user from WebApp (only if initData exists)
+      if (telegram.isAvailable && telegram.initData && telegram.user) {
         debugLog.info('👤 Telegram user available', {
           id: telegram.user.id,
           username: telegram.user.username,
@@ -46,22 +46,7 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
         return;
       }
 
-      // Priority 3: Running in Telegram but no user data - create test user
-      if (telegram.isAvailable) {
-        debugLog.info('📱 Telegram environment detected but no user - creating test user');
-        const testUser = {
-          id: Date.now(),
-          first_name: 'Test User',
-          username: `test_${Date.now()}`,
-          language_code: 'he'
-        };
-        // Set the user in telegram service
-        (telegram as any).userData = testUser;
-        await authenticateWithTelegramUser();
-        return;
-      }
-
-      // Priority 4: Web browser - show login widget
+      // No valid Telegram auth - show message that app must be opened from Telegram
       debugLog.info('🌐 Web browser - showing login widget');
       setShowLoginWidget(true);
       setLoading(false);
@@ -391,11 +376,64 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
 
   if (showLoginWidget) {
     return (
-      <TelegramLoginWidget
-        onAuth={handleTelegramLogin}
-        onError={onError}
-        theme={theme}
-      />
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        backgroundColor: theme.bg_color,
+        color: theme.text_color,
+        padding: '20px',
+        direction: 'rtl'
+      }}>
+        <div style={{
+          fontSize: '64px',
+          marginBottom: '32px'
+        }}>
+          📱
+        </div>
+
+        <h1 style={{
+          fontSize: '28px',
+          fontWeight: '600',
+          marginBottom: '16px',
+          textAlign: 'center'
+        }}>
+          יש לפתוח מטלגרם בלבד
+        </h1>
+
+        <p style={{
+          fontSize: '18px',
+          color: theme.hint_color,
+          textAlign: 'center',
+          marginBottom: '24px',
+          lineHeight: '1.6',
+          maxWidth: '400px'
+        }}>
+          האפליקציה הזו עובדת רק בתוך טלגרם.
+          <br /><br />
+          אנא פתח את הקישור של האפליקציה מתוך הצ'אט בטלגרם.
+        </p>
+
+        <div style={{
+          padding: '20px',
+          backgroundColor: theme.secondary_bg_color,
+          borderRadius: '12px',
+          maxWidth: '400px',
+          marginTop: '20px'
+        }}>
+          <p style={{
+            fontSize: '14px',
+            color: theme.hint_color,
+            textAlign: 'center',
+            margin: 0,
+            lineHeight: '1.5'
+          }}>
+            💡 אם אתה רואה את ההודעה הזו, זה אומר שפתחת את הקישור בדפדפן רגיל במקום בטלגרם.
+          </p>
+        </div>
+      </div>
     );
   }
 
