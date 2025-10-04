@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { telegram } from '../../lib/telegram';
 
+/**
+ * Telegram UI Hook
+ *
+ * Provides convenient access to Telegram Mini App UI features using @twa-dev/sdk.
+ * Automatically handles theme updates and provides helpers for buttons, haptics, and dialogs.
+ */
 interface TelegramUIState {
   theme: any;
   mainButton: {
@@ -21,6 +27,7 @@ export function useTelegramUI(): TelegramUIState {
   const [theme, setTheme] = useState(telegram.themeParams);
 
   useEffect(() => {
+    // Handle theme changes
     const handleThemeChange = () => {
       setTheme(telegram.themeParams);
     };
@@ -33,19 +40,21 @@ export function useTelegramUI(): TelegramUIState {
 
   return {
     theme,
+
     mainButton: {
       show: (text: string, onClick: () => void) => {
-        telegram.setMainButton(text, onClick);
+        telegram.setMainButton({ text, visible: true, onClick });
       },
       hide: () => {
         telegram.hideMainButton();
       },
       setLoading: (loading: boolean) => {
         if (loading) {
-          telegram.setMainButton('Loading...', () => {});
+          telegram.setMainButton({ text: 'Loading...', visible: true, onClick: () => {} });
         }
       }
     },
+
     backButton: {
       show: (onClick: () => void) => {
         telegram.setBackButton(onClick);
@@ -54,12 +63,19 @@ export function useTelegramUI(): TelegramUIState {
         telegram.hideBackButton();
       }
     },
+
     haptic: (type = 'light') => {
-      telegram.hapticFeedback(type === 'light' ? 'selection' : 'impact', type);
+      if (type === 'light') {
+        telegram.hapticFeedback('selection');
+      } else {
+        telegram.hapticFeedback('impact', type);
+      }
     },
+
     alert: (message: string) => {
       telegram.showAlert(message);
     },
+
     confirm: (message: string) => {
       return telegram.showConfirm(message);
     }
