@@ -12,7 +12,8 @@ import {
 } from './supabaseDataStore';
 
 const VALID_ROLES: User['role'][] = [
-  'user',
+  'infrastructure_owner',
+  'business_owner',
   'manager',
   'dispatcher',
   'driver',
@@ -25,7 +26,7 @@ function normalizeRole(role?: string | null): User['role'] {
   if (role && (VALID_ROLES as string[]).includes(role)) {
     return role as User['role'];
   }
-  return 'user';
+  return 'manager';
 }
 
 class UserManager {

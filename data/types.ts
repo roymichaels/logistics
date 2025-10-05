@@ -1,6 +1,6 @@
 export interface User {
   telegram_id: string;
-  role: 'owner' | 'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service';
+  role: 'infrastructure_owner' | 'business_owner' | 'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service';
   name?: string;
   username?: string;
   photo_url?: string;
@@ -621,10 +621,16 @@ export interface DataStore {
   listBusinesses?(): Promise<Business[]>;
   getBusiness?(id: string): Promise<Business | null>;
   listBusinessUsers?(filters?: { business_id?: string; user_id?: string; role?: string; active_only?: boolean }): Promise<BusinessUser[]>;
-  assignUserToBusiness?(input: { business_id: string; user_id: string; role: User['role']; is_primary?: boolean }): Promise<{ id: string }>;
-  updateBusinessUserRole?(business_id: string, user_id: string, role: User['role']): Promise<void>;
+  assignUserToBusiness?(input: { business_id: string; user_id: string; role: Exclude<User['role'], 'infrastructure_owner'>; is_primary?: boolean; ownership_percentage?: number; commission_percentage?: number }): Promise<{ id: string }>;
+  updateBusinessUserRole?(business_id: string, user_id: string, role: Exclude<User['role'], 'infrastructure_owner'>): Promise<void>;
+  updateBusinessUserOwnership?(business_id: string, user_id: string, ownership_percentage: number): Promise<void>;
   removeUserFromBusiness?(business_id: string, user_id: string): Promise<void>;
   listAllUsers?(): Promise<User[]>;
+
+  // Business Context Management
+  getUserBusinesses?(): Promise<UserBusinessAccess[]>;
+  getActiveBusinessContext?(): Promise<UserBusinessContext | null>;
+  setActiveBusinessContext?(business_id: string): Promise<void>;
 
   // Real-time subscriptions
   subscribeToChanges?(table: string, callback: (payload: any) => void): () => void;
@@ -755,12 +761,31 @@ export interface BusinessUser {
   id: string;
   business_id: string;
   user_id: string;
-  role: User['role'];
+  role: Exclude<User['role'], 'infrastructure_owner'>;
+  ownership_percentage?: number;
+  commission_percentage?: number;
   permissions?: any;
   is_primary: boolean;
   active: boolean;
   assigned_at: string;
   assigned_by?: string | null;
+  updated_at?: string;
   user?: User;
   business?: Business;
+}
+
+export interface UserBusinessContext {
+  id: string;
+  user_id: string;
+  active_business_id: string | null;
+  last_switched_at: string;
+  session_metadata?: Record<string, any>;
+}
+
+export interface UserBusinessAccess {
+  business_id: string;
+  business_name: string;
+  business_role: Exclude<User['role'], 'infrastructure_owner'> | 'infrastructure_owner';
+  ownership_pct: number;
+  is_primary: boolean;
 }

@@ -2,14 +2,21 @@
  * Role-Based Access Control (RBAC) Permissions Matrix
  *
  * This module defines comprehensive permissions for all user roles
- * across infrastructure and business levels.
+ * with clear separation between infrastructure-level and business-level access.
+ *
+ * KEY PRINCIPLES:
+ * 1. Infrastructure Owner: Full platform access but clearly distinguished from business ownership
+ * 2. Business Owner: Full access to their business data including financials, but sandboxed from other businesses
+ * 3. Complete financial data isolation between businesses
+ * 4. Multi-business users must have explicit business context
  */
 
 import type { User } from '../../data/types';
 
 export type Permission =
   // Orders
-  | 'orders:view_all'
+  | 'orders:view_all_infrastructure'
+  | 'orders:view_all_business'
   | 'orders:view_own'
   | 'orders:view_business'
   | 'orders:view_assigned'
@@ -25,7 +32,8 @@ export type Permission =
   | 'products:delete'
   | 'products:set_pricing'
   // Inventory
-  | 'inventory:view_all'
+  | 'inventory:view_all_infrastructure'
+  | 'inventory:view_all_business'
   | 'inventory:view_business'
   | 'inventory:view_own'
   | 'inventory:create'
@@ -36,7 +44,8 @@ export type Permission =
   | 'inventory:approve_restock'
   | 'inventory:fulfill_restock'
   // Users
-  | 'users:view_all'
+  | 'users:view_all_infrastructure'
+  | 'users:view_all_business'
   | 'users:view_business'
   | 'users:view_own'
   | 'users:create'
@@ -45,13 +54,15 @@ export type Permission =
   | 'users:change_role'
   | 'users:approve'
   | 'users:set_ownership'
+  | 'users:assign_to_business'
   // Financial
-  | 'financial:view_all'
-  | 'financial:view_business'
+  | 'financial:view_all_infrastructure'
+  | 'financial:view_own_business'
   | 'financial:view_own_earnings'
-  | 'financial:view_revenue'
-  | 'financial:view_costs'
-  | 'financial:view_profit'
+  | 'financial:view_business_revenue'
+  | 'financial:view_business_costs'
+  | 'financial:view_business_profit'
+  | 'financial:view_ownership_distribution'
   | 'financial:manage_distributions'
   | 'financial:export_reports'
   // Business Management
@@ -62,6 +73,7 @@ export type Permission =
   | 'business:delete'
   | 'business:manage_settings'
   | 'business:manage_ownership'
+  | 'business:switch_context'
   // System
   | 'system:view_audit_logs'
   | 'system:manage_config'
@@ -72,7 +84,8 @@ export type Permission =
   | 'zones:update'
   | 'zones:assign_drivers'
   // Analytics
-  | 'analytics:view_all'
+  | 'analytics:view_all_infrastructure'
+  | 'analytics:view_all_business'
   | 'analytics:view_business'
   | 'analytics:view_own'
   | 'analytics:export';
@@ -83,6 +96,8 @@ export interface RolePermissions {
   level: 'infrastructure' | 'business';
   description: string;
   permissions: Permission[];
+  canSeeFinancials: boolean;
+  canSeeCrossBusinessData: boolean;
 }
 
 /**
@@ -90,17 +105,19 @@ export interface RolePermissions {
  */
 export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
   // ========================================
-  // INFRASTRUCTURE LEVEL ROLES
+  // INFRASTRUCTURE LEVEL ROLE
   // ========================================
 
-  owner: {
-    role: 'owner',
+  infrastructure_owner: {
+    role: 'infrastructure_owner',
     label: 'Infrastructure Owner',
     level: 'infrastructure',
-    description: 'Platform super admin with full access to all businesses and system configuration',
+    description: 'Platform administrator with full system access including all businesses and financial data',
+    canSeeFinancials: true,
+    canSeeCrossBusinessData: true,
     permissions: [
-      // Orders - Full access across all businesses
-      'orders:view_all',
+      // Orders - Full cross-business access
+      'orders:view_all_infrastructure',
       'orders:create',
       'orders:update',
       'orders:delete',
@@ -114,8 +131,8 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'products:delete',
       'products:set_pricing',
 
-      // Inventory - Full access
-      'inventory:view_all',
+      // Inventory - Full cross-business access
+      'inventory:view_all_infrastructure',
       'inventory:create',
       'inventory:update',
       'inventory:delete',
@@ -124,20 +141,22 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'inventory:approve_restock',
       'inventory:fulfill_restock',
 
-      // Users - Full management
-      'users:view_all',
+      // Users - Full management across all businesses
+      'users:view_all_infrastructure',
       'users:create',
       'users:update',
       'users:delete',
       'users:change_role',
       'users:approve',
       'users:set_ownership',
+      'users:assign_to_business',
 
-      // Financial - Complete visibility
-      'financial:view_all',
-      'financial:view_revenue',
-      'financial:view_costs',
-      'financial:view_profit',
+      // Financial - Complete visibility across ALL businesses
+      'financial:view_all_infrastructure',
+      'financial:view_business_revenue',
+      'financial:view_business_costs',
+      'financial:view_business_profit',
+      'financial:view_ownership_distribution',
       'financial:manage_distributions',
       'financial:export_reports',
 
@@ -148,6 +167,7 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'business:delete',
       'business:manage_settings',
       'business:manage_ownership',
+      'business:switch_context',
 
       // System - Full control
       'system:view_audit_logs',
@@ -160,8 +180,8 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'zones:update',
       'zones:assign_drivers',
 
-      // Analytics - Complete access
-      'analytics:view_all',
+      // Analytics - Complete cross-business access
+      'analytics:view_all_infrastructure',
       'analytics:export',
     ],
   },
@@ -170,11 +190,86 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
   // BUSINESS LEVEL ROLES
   // ========================================
 
+  business_owner: {
+    role: 'business_owner',
+    label: 'Business Owner',
+    level: 'business',
+    description: 'Business equity holder with full access to their business including all financial data',
+    canSeeFinancials: true,
+    canSeeCrossBusinessData: false,
+    permissions: [
+      // Orders - Full business-scoped access
+      'orders:view_all_business',
+      'orders:create',
+      'orders:update',
+      'orders:delete',
+      'orders:assign_driver',
+      'orders:change_status',
+
+      // Products - Full CRUD within business
+      'products:view',
+      'products:create',
+      'products:update',
+      'products:delete',
+      'products:set_pricing',
+
+      // Inventory - Full business access
+      'inventory:view_all_business',
+      'inventory:create',
+      'inventory:update',
+      'inventory:delete',
+      'inventory:transfer',
+      'inventory:request_restock',
+      'inventory:approve_restock',
+      'inventory:fulfill_restock',
+
+      // Users - Full business team management
+      'users:view_all_business',
+      'users:create',
+      'users:update',
+      'users:delete',
+      'users:change_role',
+      'users:approve',
+      'users:set_ownership',
+      'users:assign_to_business',
+
+      // Financial - Complete visibility for OWN BUSINESS ONLY
+      'financial:view_own_business',
+      'financial:view_business_revenue',
+      'financial:view_business_costs',
+      'financial:view_business_profit',
+      'financial:view_ownership_distribution',
+      'financial:export_reports',
+
+      // Business - Own business management
+      'business:view_own',
+      'business:update',
+      'business:manage_settings',
+      'business:manage_ownership',
+      'business:switch_context',
+
+      // Zones - Management
+      'zones:view',
+      'zones:create',
+      'zones:update',
+      'zones:assign_drivers',
+
+      // Analytics - Business level
+      'analytics:view_all_business',
+      'analytics:export',
+
+      // System - Limited audit access
+      'system:view_audit_logs',
+    ],
+  },
+
   manager: {
     role: 'manager',
     label: 'Business Manager',
     level: 'business',
-    description: 'Day-to-day operations manager with team oversight and approval authority',
+    description: 'Operations manager with team oversight but limited financial visibility',
+    canSeeFinancials: false,
+    canSeeCrossBusinessData: false,
     permissions: [
       // Orders - Business scoped
       'orders:view_business',
@@ -190,17 +285,15 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'inventory:request_restock',
       'inventory:approve_restock',
 
-      // Users - Team management
+      // Users - Team management (no ownership changes)
       'users:view_business',
       'users:create',
       'users:update',
-      'users:change_role', // Limited to non-owner roles
+      'users:change_role',
       'users:approve',
 
-      // Financial - Revenue visibility
-      'financial:view_business',
-      'financial:view_revenue',
-      'financial:export_reports',
+      // Financial - NO ACCESS TO REVENUE/FINANCIALS
+      // Managers cannot see financial data
 
       // Business - View and limited settings
       'business:view_own',
@@ -211,9 +304,8 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'zones:update',
       'zones:assign_drivers',
 
-      // Analytics - Business level
+      // Analytics - Operational metrics only (no financials)
       'analytics:view_business',
-      'analytics:export',
 
       // System - Limited audit access
       'system:view_audit_logs',
@@ -225,6 +317,8 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
     label: 'Dispatcher',
     level: 'business',
     description: 'Order routing and driver assignment specialist',
+    canSeeFinancials: false,
+    canSeeCrossBusinessData: false,
     permissions: [
       // Orders - Full operational access
       'orders:view_business',
@@ -252,14 +346,16 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
     label: 'Driver',
     level: 'business',
     description: 'Delivery personnel with access to assigned orders only',
+    canSeeFinancials: false,
+    canSeeCrossBusinessData: false,
     permissions: [
       // Orders - Only assigned orders
       'orders:view_assigned',
-      'orders:change_status', // Only for assigned orders
+      'orders:change_status',
 
       // Inventory - Own inventory only
       'inventory:view_own',
-      'inventory:update', // Own inventory adjustments
+      'inventory:update',
       'inventory:request_restock',
 
       // Products - View for reference
@@ -268,7 +364,7 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       // Zones - View assigned zones
       'zones:view',
 
-      // Financial - Own earnings
+      // Financial - Own earnings only
       'financial:view_own_earnings',
 
       // Analytics - Own performance
@@ -284,6 +380,8 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
     label: 'Warehouse Worker',
     level: 'business',
     description: 'Inventory management specialist with full warehouse access',
+    canSeeFinancials: false,
+    canSeeCrossBusinessData: false,
     permissions: [
       // Orders - NO ACCESS (business rule)
 
@@ -312,7 +410,9 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
     role: 'sales',
     label: 'Sales Representative',
     level: 'business',
-    description: 'Order creation and customer service with limited permissions',
+    description: 'Order creation and customer service with commission tracking across multiple businesses',
+    canSeeFinancials: false,
+    canSeeCrossBusinessData: false,
     permissions: [
       // Orders - Create and view own
       'orders:view_own',
@@ -325,10 +425,13 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'inventory:view_business',
       'inventory:request_restock',
 
-      // Financial - Own commission
+      // Financial - Own commission across all businesses
       'financial:view_own_earnings',
 
-      // Analytics - Own performance
+      // Business - Switch context for multi-business salespeople
+      'business:switch_context',
+
+      // Analytics - Own performance across businesses
       'analytics:view_own',
 
       // Users - Own profile
@@ -341,10 +444,12 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
     label: 'Customer Service',
     level: 'business',
     description: 'Customer support with order viewing and status update capabilities',
+    canSeeFinancials: false,
+    canSeeCrossBusinessData: false,
     permissions: [
       // Orders - View business orders
       'orders:view_business',
-      'orders:update', // Limited to status and notes
+      'orders:update',
 
       // Products - View catalog
       'products:view',
@@ -406,6 +511,39 @@ export function getRoleInfo(role: User['role']): RolePermissions | null {
 }
 
 /**
+ * Check if user can see financial data
+ */
+export function canViewFinancials(user: User | null): boolean {
+  if (!user) return false;
+
+  const roleInfo = getRoleInfo(user.role);
+  return roleInfo?.canSeeFinancials || false;
+}
+
+/**
+ * Check if user can see data across multiple businesses
+ */
+export function canViewCrossBusinessData(user: User | null): boolean {
+  if (!user) return false;
+
+  const roleInfo = getRoleInfo(user.role);
+  return roleInfo?.canSeeCrossBusinessData || false;
+}
+
+/**
+ * Check if user needs business context to operate
+ */
+export function requiresBusinessContext(user: User | null): boolean {
+  if (!user) return false;
+
+  // Infrastructure owners don't need business context (they can see everything)
+  if (user.role === 'infrastructure_owner') return false;
+
+  // All other roles are business-scoped
+  return true;
+}
+
+/**
  * Check if user can change another user's role
  */
 export function canChangeUserRole(
@@ -423,20 +561,38 @@ export function canChangeUserRole(
   }
 
   // Infrastructure owner can change any role
-  if (actor.role === 'owner') {
+  if (actor.role === 'infrastructure_owner') {
     return { allowed: true };
   }
 
-  // Manager can change business-level roles (except owner)
-  if (actor.role === 'manager') {
-    // Cannot promote to owner
-    if (targetNewRole === 'owner') {
-      return { allowed: false, reason: 'Only platform owner can assign owner role' };
+  // Business owner can change business-level roles
+  if (actor.role === 'business_owner') {
+    // Cannot promote to infrastructure_owner
+    if (targetNewRole === 'infrastructure_owner') {
+      return { allowed: false, reason: 'Only infrastructure owner can assign infrastructure roles' };
     }
 
-    // Cannot demote current owners
-    if (targetCurrentRole === 'owner') {
-      return { allowed: false, reason: 'Cannot change owner role' };
+    // Cannot demote other business owners without ownership transfer
+    if (targetCurrentRole === 'business_owner' && targetNewRole !== 'business_owner') {
+      return { allowed: false, reason: 'Business owner role requires ownership transfer first' };
+    }
+
+    // Can change other business roles
+    if (['business_owner', 'manager', 'dispatcher', 'driver', 'warehouse', 'sales', 'customer_service'].includes(targetNewRole)) {
+      return { allowed: true };
+    }
+  }
+
+  // Manager can change non-owner business roles
+  if (actor.role === 'manager') {
+    // Cannot promote to any owner role
+    if (targetNewRole === 'infrastructure_owner' || targetNewRole === 'business_owner') {
+      return { allowed: false, reason: 'Only owners can assign ownership roles' };
+    }
+
+    // Cannot change current owners
+    if (targetCurrentRole === 'infrastructure_owner' || targetCurrentRole === 'business_owner') {
+      return { allowed: false, reason: 'Cannot change owner roles' };
     }
 
     // Can change other business roles
@@ -453,19 +609,20 @@ export function canChangeUserRole(
  */
 export function getDataAccessScope(role: User['role']): 'all' | 'business' | 'own' | 'assigned' {
   switch (role) {
-    case 'owner':
+    case 'infrastructure_owner':
       return 'all'; // All businesses
+    case 'business_owner':
     case 'manager':
     case 'dispatcher':
     case 'warehouse':
     case 'customer_service':
       return 'business'; // Own business only
     case 'sales':
-      return 'own'; // Only their own data
+      return 'own'; // Only their own data (but across multiple businesses)
     case 'driver':
       return 'assigned'; // Only assigned orders
     default:
-      return 'all'; // Default to owner permissions
+      return 'business';
   }
 }
 
@@ -473,9 +630,10 @@ export function getDataAccessScope(role: User['role']): 'all' | 'business' | 'ow
  * Permission descriptions for UI display
  */
 export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
-  'orders:view_all': 'View all orders across all businesses',
+  'orders:view_all_infrastructure': 'View all orders across all businesses (infrastructure)',
+  'orders:view_all_business': 'View all orders in your business',
   'orders:view_own': 'View only orders you created',
-  'orders:view_business': 'View all orders in your business',
+  'orders:view_business': 'View business orders (limited)',
   'orders:view_assigned': 'View only orders assigned to you',
   'orders:create': 'Create new orders',
   'orders:update': 'Update order details',
@@ -489,8 +647,9 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'products:delete': 'Delete products',
   'products:set_pricing': 'Set product pricing',
 
-  'inventory:view_all': 'View all inventory across businesses',
-  'inventory:view_business': 'View business inventory',
+  'inventory:view_all_infrastructure': 'View all inventory across all businesses',
+  'inventory:view_all_business': 'View all inventory in your business',
+  'inventory:view_business': 'View business inventory (limited)',
   'inventory:view_own': 'View only your own inventory',
   'inventory:create': 'Create inventory records',
   'inventory:update': 'Update inventory levels',
@@ -500,8 +659,9 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'inventory:approve_restock': 'Approve restock requests',
   'inventory:fulfill_restock': 'Fulfill restock requests',
 
-  'users:view_all': 'View all users across all businesses',
-  'users:view_business': 'View users in your business',
+  'users:view_all_infrastructure': 'View all users across all businesses',
+  'users:view_all_business': 'View all users in your business',
+  'users:view_business': 'View business users (limited)',
   'users:view_own': 'View your own profile',
   'users:create': 'Create new user accounts',
   'users:update': 'Update user information',
@@ -509,13 +669,15 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'users:change_role': 'Change user roles',
   'users:approve': 'Approve user registrations',
   'users:set_ownership': 'Set business ownership percentages',
+  'users:assign_to_business': 'Assign users to businesses',
 
-  'financial:view_all': 'View all financial data across businesses',
-  'financial:view_business': 'View business financial data',
+  'financial:view_all_infrastructure': 'View all financial data across businesses',
+  'financial:view_own_business': 'View your business financial data',
   'financial:view_own_earnings': 'View your own earnings',
-  'financial:view_revenue': 'View revenue reports',
-  'financial:view_costs': 'View cost reports',
-  'financial:view_profit': 'View profit reports',
+  'financial:view_business_revenue': 'View business revenue reports',
+  'financial:view_business_costs': 'View business cost reports',
+  'financial:view_business_profit': 'View business profit reports',
+  'financial:view_ownership_distribution': 'View ownership and profit distribution',
   'financial:manage_distributions': 'Manage profit distributions',
   'financial:export_reports': 'Export financial reports',
 
@@ -526,6 +688,7 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'business:delete': 'Delete businesses',
   'business:manage_settings': 'Manage business settings',
   'business:manage_ownership': 'Manage ownership structure',
+  'business:switch_context': 'Switch between businesses',
 
   'system:view_audit_logs': 'View system audit logs',
   'system:manage_config': 'Manage system configuration',
@@ -536,8 +699,9 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'zones:update': 'Update zone information',
   'zones:assign_drivers': 'Assign drivers to zones',
 
-  'analytics:view_all': 'View all analytics across businesses',
-  'analytics:view_business': 'View business analytics',
+  'analytics:view_all_infrastructure': 'View all analytics across businesses',
+  'analytics:view_all_business': 'View all business analytics',
+  'analytics:view_business': 'View business analytics (limited)',
   'analytics:view_own': 'View your own performance',
   'analytics:export': 'Export analytics reports',
 };

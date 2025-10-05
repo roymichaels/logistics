@@ -27,6 +27,8 @@ export const hebrew = {
   dispatch_board: 'מוקד תפעול',
   
   // Roles
+  infrastructureOwner: 'בעל תשתית',
+  businessOwner: 'בעל עסק',
   owner: 'בעלים',
   manager: 'מנהל',
   dispatcher: 'מוקדן',
@@ -35,6 +37,12 @@ export const hebrew = {
   sales_rep: 'איש מכירות',
   customer_service: 'שירות לקוחות',
   user: 'משתמש',
+
+  // Business context
+  switched: 'עבר אל',
+  selectBusiness: 'בחר עסק',
+  ownership: 'בעלות',
+  primary: 'ראשי',
   
   // Common actions
   create: 'צור',
@@ -113,7 +121,35 @@ export const hebrew = {
   channels: 'ערוצים',
   announcements: 'הודעות',
   updates: 'עדכונים',
-  alerts: 'התראות'
+  alerts: 'התראות',
+
+  // Errors
+  errors: {
+    loadFailed: 'טעינה נכשלה',
+    switchFailed: 'מעבר נכשל',
+    saveFailed: 'שמירה נכשלה'
+  },
+
+  // Common
+  common: {
+    loading: 'טוען...',
+    switched: 'עבר אל',
+    selectBusiness: 'בחר עסק',
+    ownership: 'בעלות',
+    primary: 'ראשי'
+  },
+
+  // Role labels
+  roles: {
+    infrastructureOwner: 'בעל תשתית',
+    businessOwner: 'בעל עסק',
+    manager: 'מנהל',
+    dispatcher: 'מוקדן',
+    driver: 'נהג',
+    warehouse: 'עובד מחסן',
+    sales: 'איש מכירות',
+    customerService: 'שירות לקוחות'
+  }
 };
 
 export const roleNames = {
