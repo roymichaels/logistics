@@ -300,23 +300,20 @@ export default function App() {
             allParams: Array.from(params.entries())
           });
 
-          // Always call getCurrentRole which fetches fresh from DB
-          let role: any = null;
-          if (store.getCurrentRole) {
-            role = await store.getCurrentRole();
-            debugLog.info(`📊 getCurrentRole() returned: ${role}`);
-          }
+          // Always fetch full profile from DB to get both role and user data
+          debugLog.info('👤 Fetching full user profile from database...');
+          const profile = await store.getProfile(true); // Force refresh
 
-          // Fallback to getProfile if getCurrentRole not available or returned null
-          if (!role) {
-            debugLog.info('🔄 Falling back to getProfile()');
-            const profile = await store.getProfile(true); // Force refresh
-            role = profile.role;
-            debugLog.info(`📊 getProfile(true).role returned: ${role}`);
-          }
+          debugLog.info(`📊 Profile fetched:`, {
+            role: profile.role,
+            name: profile.name || profile.first_name,
+            telegram_id: profile.telegram_id
+          });
 
-          setUserRole(role ?? 'owner');
-          debugLog.success(`✅ User role set to: ${role ?? 'owner'}`);
+          // Update user state with full profile data
+          setUser(profile);
+          setUserRole(profile.role ?? 'owner');
+          debugLog.success(`✅ User profile loaded: ${profile.name || profile.first_name} (${profile.role})`);
 
           // Clean up refresh parameter after processing
           if (isRefresh) {

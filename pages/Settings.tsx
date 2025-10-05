@@ -189,11 +189,11 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
                   fontWeight: '700',
                   boxShadow: '0 8px 16px rgba(156, 109, 255, 0.3)'
                 }}>
-                  {user?.name?.[0] || 'U'}
+                  {(user?.name?.[0] || (user as any)?.first_name?.[0] || 'U').toUpperCase()}
                 </div>
                 <div style={{ flex: 1 }}>
                   <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '700' }}>
-                    {user?.name || 'Unknown User'}
+                    {user?.name || (user as any)?.first_name || 'Unknown User'}
                   </h3>
                   <p style={{ margin: 0, fontSize: '14px', color: ROYAL_COLORS.muted }}>
                     {user?.username ? `@${user.username}` : `ID: ${user?.telegram_id}`}
