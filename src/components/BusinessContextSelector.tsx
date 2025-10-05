@@ -48,7 +48,10 @@ export function BusinessContextSelector({
       }
     } catch (error) {
       console.error('Failed to load business context:', error);
-      Toast.show(hebrew.errors.loadFailed, 'error');
+      // Only show error if datastore is initialized (not during initial app load)
+      if (dataStore && dataStore.supabase) {
+        Toast.show(hebrew.errors.loadFailed, 'error');
+      }
     } finally {
       setLoading(false);
     }

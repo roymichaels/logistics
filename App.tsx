@@ -285,6 +285,12 @@ export default function App() {
       const result = await bootstrap();
       debugLog.success('✅ Bootstrap complete', { hasUser: !!result.user, adapter: result.config.adapters.data });
 
+      // Validate user data before proceeding
+      if (!result.user || !result.user.telegram_id) {
+        debugLog.error('❌ Invalid user data from bootstrap', { user: result.user });
+        throw new Error('Cannot initialize app: Missing user Telegram ID');
+      }
+
       setConfig(result.config);
       setUser(result.user);
 

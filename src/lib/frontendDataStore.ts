@@ -1204,7 +1204,15 @@ export async function createFrontendDataStore(cfg: BootstrapConfig, mode: 'real'
   // Use Supabase for real mode if configured, otherwise fallback to mock
   if ((cfg.adapters.data === 'supabase' || cfg.adapters.data === 'postgres') && import.meta.env.VITE_SUPABASE_URL) {
     const { createSupabaseDataStore } = await import('./supabaseDataStore');
-    return createSupabaseDataStore(user?.telegram_id, user?.auth_session, user);
+
+    // Ensure we have telegram_id before creating datastore
+    const telegramId = user?.telegram_id || user?.id?.toString();
+    if (!telegramId) {
+      console.error('❌ Cannot create datastore: missing telegram_id', { user });
+      throw new Error('Cannot create datastore without telegram_id');
+    }
+
+    return createSupabaseDataStore(telegramId, user?.auth_session, user);
   }
 
   // Fallback to mock data store for development/demo
