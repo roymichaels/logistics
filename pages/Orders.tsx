@@ -1451,3 +1451,308 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
     </div>
   );
 }
+
+// Enhanced Order Detail with Chat Integration
+function OrderDetailEnhanced({
+  order,
+  dataStore,
+  onBack,
+  onUpdate,
+  currentUser,
+  onNavigate
+}: {
+  order: Order;
+  dataStore: DataStore;
+  onBack: () => void;
+  onUpdate: () => void;
+  currentUser: User | null;
+  onNavigate: (page: string) => void;
+}) {
+  const [assignedDriver, setAssignedDriver] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadDriverInfo();
+  }, [order.assigned_driver]);
+
+  const loadDriverInfo = async () => {
+    if (!order.assigned_driver) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // In a real app, you'd fetch driver details from dataStore
+      setAssignedDriver({
+        telegram_id: order.assigned_driver,
+        name: 'נהג',
+        role: 'driver'
+      } as User);
+    } catch (error) {
+      console.error('Failed to load driver info:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStartChat = (userId: string, userName: string) => {
+    // Navigate to chat with pre-selected user
+    // You would implement creating a direct chat here
+    telegram.showAlert(`פתיחת צ'אט עם ${userName}...`);
+    // In production: create direct chat and navigate to it
+    onNavigate('chat');
+  };
+
+  const handleStatusUpdate = async (newStatus: Order['status']) => {
+    try {
+      await dataStore.updateOrder?.(order.id, { status: newStatus });
+      
+      // Send notification if driver is assigned
+      if (order.assigned_driver && dataStore.createNotification) {
+        const statusMessages: Record<string, string> = {
+          confirmed: 'ההזמנה אושרה',
+          preparing: 'ההזמנה בהכנה',
+          ready: 'ההזמנה מוכנה למשלוח',
+          out_for_delivery: 'זמן לצאת למשלוח!',
+          delivered: 'תודה על המשלוח!',
+          cancelled: 'ההזמנה בוטלה'
+        };
+
+        await dataStore.createNotification({
+          recipient_id: order.assigned_driver,
+          title: 'עדכון סטטוס הזמנה',
+          message: statusMessages[newStatus] || 'סטטוס ההזמנה עודכן',
+          type: 'order_assigned',
+          action_url: `/orders/${order.id}`
+        });
+      }
+
+      telegram.hapticFeedback('notification', 'success');
+      onUpdate();
+      onBack();
+    } catch (error) {
+      console.error('Failed to update order:', error);
+      telegram.showAlert('Failed to update order status');
+    }
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: ROYAL_COLORS.background,
+      paddingTop: '16px',
+      paddingBottom: '80px',
+      direction: 'rtl'
+    }}>
+      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '0 16px' }}>
+        <button
+          onClick={onBack}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: ROYAL_COLORS.accent,
+            fontSize: '16px',
+            cursor: 'pointer',
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          ← חזרה
+        </button>
+
+        <h1 style={{
+          margin: '0 0 20px 0',
+          fontSize: '28px',
+          fontWeight: '700',
+          color: ROYAL_COLORS.text,
+          textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
+        }}>
+          📦 פרטי הזמנה
+        </h1>
+
+        {/* Order Info Card */}
+        <div style={{ ...ROYAL_STYLES.card, marginBottom: '16px' }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            marginBottom: '16px'
+          }}>
+            <div>
+              <h2 style={{
+                margin: '0 0 8px 0',
+                fontSize: '20px',
+                fontWeight: '600',
+                color: ROYAL_COLORS.text
+              }}>
+                {order.customer_name}
+              </h2>
+              <p style={{ margin: '0', color: ROYAL_COLORS.muted, fontSize: '14px' }}>
+                📍 {order.customer_address}
+              </p>
+            </div>
+            <div style={{
+              padding: '6px 12px',
+              borderRadius: '8px',
+              background: `${ROYAL_COLORS.emerald}20`,
+              color: ROYAL_COLORS.emerald,
+              fontSize: '12px',
+              fontWeight: '600'
+            }}>
+              {order.status}
+            </div>
+          </div>
+
+          {order.customer_phone && (
+            <div style={{
+              padding: '12px',
+              background: ROYAL_COLORS.card,
+              borderRadius: '8px',
+              marginBottom: '16px'
+            }}>
+              <div style={{ color: ROYAL_COLORS.muted, fontSize: '12px', marginBottom: '4px' }}>
+                טלפון לקוח
+              </div>
+              <div style={{ color: ROYAL_COLORS.text, fontSize: '16px', fontWeight: '600' }}>
+                📞 {order.customer_phone}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Assigned Driver Section */}
+        {assignedDriver && (
+          <div style={{ ...ROYAL_STYLES.card, marginBottom: '16px' }}>
+            <h3 style={{
+              margin: '0 0 12px 0',
+              fontSize: '16px',
+              fontWeight: '600',
+              color: ROYAL_COLORS.text
+            }}>
+              🚚 נהג משויך
+            </h3>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <div style={{ color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '4px' }}>
+                  {assignedDriver.name}
+                </div>
+                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px' }}>
+                  {assignedDriver.telegram_id}
+                </div>
+              </div>
+              <button
+                onClick={() => handleStartChat(assignedDriver.telegram_id, assignedDriver.name)}
+                style={{
+                  padding: '10px 16px',
+                  borderRadius: '12px',
+                  border: `1px solid ${ROYAL_COLORS.accent}40`,
+                  background: `${ROYAL_COLORS.accent}15`,
+                  color: ROYAL_COLORS.accent,
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <span>💬</span>
+                <span>שלח הודעה</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Order Items */}
+        {order.items && order.items.length > 0 && (
+          <div style={{ ...ROYAL_STYLES.card, marginBottom: '16px' }}>
+            <h3 style={{
+              margin: '0 0 12px 0',
+              fontSize: '16px',
+              fontWeight: '600',
+              color: ROYAL_COLORS.text
+            }}>
+              📋 פריטים בהזמנה
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {order.items.map((item: any, index: number) => (
+                <div key={index} style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '8px 0',
+                  borderBottom: index < order.items!.length - 1 ? `1px solid ${ROYAL_COLORS.cardBorder}` : 'none'
+                }}>
+                  <span style={{ color: ROYAL_COLORS.text }}>
+                    {item.product_name || item.name || 'פריט'}
+                  </span>
+                  <span style={{ color: ROYAL_COLORS.muted }}>
+                    ×{item.quantity}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Status Actions */}
+        {order.status !== 'delivered' && order.status !== 'cancelled' && currentUser && (
+          <div style={{ ...ROYAL_STYLES.card }}>
+            <h3 style={{
+              margin: '0 0 12px 0',
+              fontSize: '16px',
+              fontWeight: '600',
+              color: ROYAL_COLORS.text
+            }}>
+              ⚡ פעולות
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {currentUser.role === 'driver' && order.status === 'ready' && (
+                <button
+                  onClick={() => handleStatusUpdate('out_for_delivery')}
+                  style={{
+                    padding: '12px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
+                    color: '#fff',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(156, 109, 255, 0.3)'
+                  }}
+                >
+                  🚚 התחל משלוח
+                </button>
+              )}
+              {currentUser.role === 'driver' && order.status === 'out_for_delivery' && (
+                <button
+                  onClick={() => handleStatusUpdate('delivered')}
+                  style={{
+                    padding: '12px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    background: `linear-gradient(135deg, ${ROYAL_COLORS.emerald} 0%, #059669 100%)`,
+                    color: '#fff',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                  }}
+                >
+                  ✅ סמן כנמסר
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
