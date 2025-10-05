@@ -224,6 +224,44 @@ export function BottomNavigation({
   const navItems: React.ReactNode[] = [];
   const actionIndex = action ? Math.floor(tabs.length / 2) : null;
 
+  // Add תפקידי button on the far right (first in RTL layout)
+  if (userRole && userRole !== 'user' && onOpenSidebar) {
+    navItems.push(
+      <button
+        key="sidebar-menu"
+        onClick={() => {
+          haptic();
+          onOpenSidebar();
+        }}
+        style={{
+          flex: '0 0 70px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '8px 4px',
+          border: 'none',
+          backgroundColor: 'transparent',
+          color: 'rgba(191, 169, 255, 0.9)',
+          cursor: 'pointer',
+          fontSize: '11px',
+          fontWeight: '600',
+          position: 'relative',
+          transition: 'all 0.2s ease'
+        }}
+      >
+        <span style={{
+          fontSize: '22px',
+          filter: 'drop-shadow(0 0 6px rgba(156, 109, 255, 0.6))',
+          transition: 'all 0.2s ease'
+        }}>
+          📋
+        </span>
+        <span>תפקידי</span>
+      </button>
+    );
+  }
+
   tabs.forEach((tab, index) => {
     if (action && actionIndex !== null && index === actionIndex) {
       navItems.push(renderActionSlot());
@@ -281,44 +319,6 @@ export function BottomNavigation({
 
   if (action && actionIndex !== null && actionIndex >= tabs.length) {
     navItems.push(renderActionSlot());
-  }
-
-  // Add תפקידי button on the far right
-  if (userRole && userRole !== 'user' && onOpenSidebar) {
-    navItems.push(
-      <button
-        key="sidebar-menu"
-        onClick={() => {
-          haptic();
-          onOpenSidebar();
-        }}
-        style={{
-          flex: '0 0 70px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '8px 4px',
-          border: 'none',
-          backgroundColor: 'transparent',
-          color: 'rgba(191, 169, 255, 0.9)',
-          cursor: 'pointer',
-          fontSize: '11px',
-          fontWeight: '600',
-          position: 'relative',
-          transition: 'all 0.2s ease'
-        }}
-      >
-        <span style={{
-          fontSize: '22px',
-          filter: 'drop-shadow(0 0 6px rgba(156, 109, 255, 0.6))',
-          transition: 'all 0.2s ease'
-        }}>
-          📋
-        </span>
-        <span>תפקידי</span>
-      </button>
-    );
   }
 
   return (
