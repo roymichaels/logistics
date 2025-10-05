@@ -156,13 +156,17 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
         if (supabaseUrl && supabaseAnonKey) {
           const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-          const { error: sessionError } = await supabase.auth.setSession({
+          // Wait a bit to ensure the session is fully ready
+          await new Promise(resolve => setTimeout(resolve, 200));
+
+          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
             access_token: result.session.access_token,
             refresh_token: result.session.refresh_token
           });
 
           if (sessionError) {
             debugLog.error('❌ Failed to set Supabase session', sessionError);
+            throw new Error('Failed to establish session');
           } else {
             debugLog.success('✅ Supabase session established with JWT claims');
 
@@ -171,13 +175,27 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
             if (session) {
               debugLog.info('📋 Session verified - JWT claims:', {
                 user_id: session.user.id,
+                email: session.user.email,
                 role: session.user.app_metadata?.role,
                 app_role: session.user.app_metadata?.app_role,
-                workspace_id: session.user.app_metadata?.workspace_id
+                workspace_id: session.user.app_metadata?.workspace_id,
+                telegram_id: session.user.app_metadata?.telegram_id
               });
+
+              // Store in global context for debugging
+              (window as any).__SUPABASE_SESSION__ = session;
+              (window as any).__JWT_CLAIMS__ = session.user.app_metadata;
+            } else {
+              debugLog.error('❌ Session verification failed - no session found');
+              throw new Error('Session verification failed');
             }
           }
+        } else {
+          debugLog.error('❌ Missing Supabase configuration');
+          throw new Error('Missing Supabase configuration');
         }
+      } else {
+        debugLog.warn('⚠️ No session tokens received from backend');
       }
 
       const enrichedUser = {

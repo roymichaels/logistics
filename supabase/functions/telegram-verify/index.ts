@@ -362,7 +362,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Generate session token with proper claims
+    // Create a proper session for the user
+    // We need to generate access and refresh tokens with the updated metadata
     const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
       email,
@@ -373,7 +374,15 @@ Deno.serve(async (req) => {
       throw new Error('Failed to generate session');
     }
 
-    console.log('Session generated successfully with JWT claims');
+    // Extract the properties we need - generateLink returns an object with properties
+    // but we need to extract the session tokens properly
+    const session = sessionData?.properties;
+
+    console.log('Session generated successfully with JWT claims:', {
+      hasAccessToken: !!(session?.access_token),
+      hasRefreshToken: !!(session?.refresh_token),
+      email: email
+    });
 
     return new Response(
       JSON.stringify({
@@ -391,7 +400,10 @@ Deno.serve(async (req) => {
           workspace_id: workspaceId,
           app_role: businessRole
         },
-        session: sessionData,
+        session: session || sessionData?.properties || {
+          access_token: sessionData?.properties?.access_token,
+          refresh_token: sessionData?.properties?.refresh_token
+        },
         supabase_user: {
           id: authUserId,
           email
