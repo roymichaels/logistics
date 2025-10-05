@@ -832,12 +832,12 @@ export class SupabaseDataStore implements DataStore {
         throw new Error('Cannot create user without telegram_id');
       }
 
-      // Create user if doesn't exist
+      // Create user if doesn't exist - Auto-register new Telegram users
       const telegramUserData = this.initialUserData as any;
       const newUser: Omit<User, 'id'> = {
         telegram_id: this.userTelegramId,
         username: telegramUserData?.username?.toLowerCase() || null,
-        role: 'manager', // Default to manager role
+        role: 'driver', // Default to driver role (lowest privilege, can be promoted later)
         name: telegramUserData?.first_name
           ? `${telegramUserData.first_name}${telegramUserData.last_name ? ' ' + telegramUserData.last_name : ''}`
           : 'משתמש חדש',
@@ -845,6 +845,13 @@ export class SupabaseDataStore implements DataStore {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
+
+      console.log('📝 Creating new user with Telegram data:', {
+        telegram_id: newUser.telegram_id,
+        name: newUser.name,
+        username: newUser.username,
+        role: newUser.role
+      });
 
       const { data: created, error: createError } = await supabase
         .from('users')
