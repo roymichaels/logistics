@@ -557,6 +557,29 @@ function ProductDetail({
     }
   };
 
+  const handleDelete = async () => {
+    telegram.showPopup({
+      title: 'מחיקת מוצר',
+      message: `האם אתה בטוח שברצונך למחוק את "${product.name}"? פעולה זו אינה הפיכה.`,
+      buttons: [
+        { id: 'delete', type: 'destructive', text: 'מחק' },
+        { id: 'cancel', type: 'cancel' }
+      ]
+    }, async (buttonId) => {
+      if (buttonId === 'delete') {
+        try {
+          await dataStore.deleteProduct?.(product.id);
+          telegram.hapticFeedback('notification', 'success');
+          onUpdate();
+          onBack();
+        } catch (error) {
+          console.error('Failed to delete product:', error);
+          telegram.showAlert('שגיאה במחיקת המוצר');
+        }
+      }
+    });
+  };
+
   return (
     <div style={{
       padding: '16px',
@@ -803,9 +826,9 @@ function ProductDetail({
         )}
       </section>
 
-      <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '24px' }}>
         {editing ? (
-          <>
+          <div style={{ display: 'flex', gap: '12px' }}>
             <button
               onClick={handleUpdate}
               style={{
@@ -838,24 +861,44 @@ function ProductDetail({
             >
               ביטול
             </button>
-          </>
+          </div>
         ) : (
-          <button
-            onClick={() => setEditing(true)}
-            style={{
-              flex: 1,
-              padding: '12px',
-              backgroundColor: theme.button_color,
-              color: theme.button_text_color,
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
-            ערוך מוצר
-          </button>
+          <>
+            <button
+              onClick={() => setEditing(true)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: theme.button_color,
+                color: theme.button_text_color,
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              ערוך מוצר
+            </button>
+            {permissions?.can_delete_product && dataStore.deleteProduct && (
+              <button
+                onClick={handleDelete}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: 'transparent',
+                  color: '#ff3b30',
+                  border: '1px solid #ff3b30',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                🗑️ מחק מוצר
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

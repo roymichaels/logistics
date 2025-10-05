@@ -44,6 +44,17 @@ export function FloatingActionMenu({
         }
       });
       actions.push({
+        icon: '🏷️',
+        label: 'מוצר חדש',
+        description: 'הוסף מוצר לקטלוג',
+        color: ROYAL_COLORS.gradientSuccess,
+        onClick: () => {
+          onClose();
+          onNavigate('products');
+          telegram.hapticFeedback('success');
+        }
+      });
+      actions.push({
         icon: '📊',
         label: 'דוחות',
         description: 'צפה בדוחות והזמנות',
@@ -57,7 +68,7 @@ export function FloatingActionMenu({
         icon: '👥',
         label: 'ניהול נהגים',
         description: 'הקצאות ומעקב נהגים',
-        color: ROYAL_COLORS.gradientSuccess,
+        color: ROYAL_COLORS.gradientCrimson,
         onClick: () => {
           onClose();
           onNavigate('dispatch');
