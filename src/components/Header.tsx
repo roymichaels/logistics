@@ -149,7 +149,7 @@ export function Header({ user, onNavigate, onLogout }: HeaderProps) {
           <div style={{
             position: 'absolute',
             top: 'calc(100% + 8px)',
-            right: 0,
+            left: 0,
             width: '200px',
             background: ROYAL_COLORS.cardBg,
             border: `1px solid ${ROYAL_COLORS.border}`,
