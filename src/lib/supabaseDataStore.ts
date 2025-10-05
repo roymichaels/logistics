@@ -402,6 +402,19 @@ export class SupabaseDataStore implements DataStore {
   constructor(private userTelegramId: string, authSession?: SupabaseAuthSessionPayload | null, initialUserData?: any) {
     this.initialUserData = initialUserData;
 
+    console.log('🏗️ SupabaseDataStore: Constructor called with:', {
+      telegram_id: userTelegramId,
+      hasAuthSession: !!authSession,
+      hasInitialUserData: !!initialUserData,
+      initialUserData: initialUserData ? {
+        telegram_id: initialUserData.telegram_id,
+        username: initialUserData.username,
+        first_name: initialUserData.first_name,
+        last_name: initialUserData.last_name,
+        photo_url: initialUserData.photo_url
+      } : null
+    });
+
     if (authSession?.access_token && authSession.refresh_token) {
       this.authInitialization = this.initializeAuthSession(authSession);
     }

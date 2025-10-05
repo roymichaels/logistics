@@ -84,6 +84,9 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
   if (userData && SUPABASE_URL) {
     debugLog.info('✅ Using stored session with Supabase', {
       telegram_id: userData.telegram_id,
+      username: userData.username,
+      first_name: userData.first_name,
+      photo_url: userData.photo_url,
       note: 'Role will be fetched fresh from database'
     });
     return {
@@ -177,7 +180,10 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
   if (telegramUser) {
     debugLog.info('👤 Telegram user detected - auto login', {
       id: telegramUser.id,
-      username: telegramUser.username
+      username: telegramUser.username,
+      first_name: telegramUser.first_name,
+      last_name: telegramUser.last_name,
+      photo_url: telegramUser.photo_url
     });
 
     const directUser = {
