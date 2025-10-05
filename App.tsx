@@ -695,7 +695,7 @@ export default function App() {
         return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד לקוחות - בפיתוח</div>;
       case 'users':
         if (!isAdmin) break;
-        return <UserManagement onNavigate={handleNavigate} currentUser={user} />;
+        return <UserManagement onNavigate={handleNavigate} currentUser={user} dataStore={dataStore} />;
       case 'settings':
         return <Settings dataStore={dataStore} onNavigate={handleNavigate} config={config} currentUser={user} />;
       case 'profile':
