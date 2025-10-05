@@ -30,6 +30,9 @@ const UserManagement = lazy(() =>
   import('./pages/UserManagement').then((module) => ({ default: module.UserManagement }))
 );
 const Chat = lazy(() => import('./pages/Chat').then((module) => ({ default: module.Chat })));
+const Notifications = lazy(() =>
+  import('./pages/Notifications').then((module) => ({ default: module.Notifications }))
+);
 const Channels = lazy(() =>
   import('./pages/Channels').then((module) => ({ default: module.Channels }))
 );
@@ -673,6 +676,8 @@ export default function App() {
       case 'chat':
         if (!isOperational) break;
         return <Chat dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'notifications':
+        return <Notifications dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'channels':
         if (!isOperational) break;
         return <Channels dataStore={dataStore} onNavigate={handleNavigate} />;

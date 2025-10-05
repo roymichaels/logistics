@@ -68,24 +68,30 @@ export function BottomNavigation({
   const { theme, haptic } = useTelegramUI();
 
   /**
-   * 🔐 MILITARIZED ROLE-BASED SANDBOXES
-   * Each role has EXACTLY what they need. Nothing more.
+   * 🔐 UNIFIED BOTTOM NAVIGATION
+   * תפקידי | צ'אט | פעולות מהירות | התראות | משימות
+   * All role-specific pages accessible via תפקידי sidebar
    */
   const roleNavigation: Record<RoleKey, RoleNavigationConfig> = {
-    // ⛔ USER: Unassigned - View Only, Zero Power
+    // ⛔ USER: Unassigned - View Only
     user: {
       tabs: [
-        { id: 'my-role', label: 'תפקידי', icon: '👤' }
-      ]
-      // NO ACTION BUTTON. No power. Contact manager.
+        { id: 'chat', label: 'צ\'אט', icon: '💬' },
+        { id: 'notifications', label: 'התראות', icon: '🔔' },
+        { id: 'tasks', label: 'משימות', icon: '✅' }
+      ],
+      action: {
+        label: 'פעולות מהירות',
+        icon: '⚡'
+      }
     },
 
-    // 👑 OWNER: Essential tabs + Chat
+    // 👑 OWNER: Full access
     owner: {
       tabs: [
-        { id: 'dashboard', label: hebrew.dashboard, icon: '🏠' },
         { id: 'chat', label: 'צ\'אט', icon: '💬' },
-        { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+        { id: 'notifications', label: 'התראות', icon: '🔔' },
+        { id: 'tasks', label: 'משימות', icon: '✅' }
       ],
       action: {
         label: 'פעולות מהירות',
@@ -93,12 +99,12 @@ export function BottomNavigation({
       }
     },
 
-    // 👑 MANAGER: Essential tabs + Chat
+    // 👑 MANAGER: Full management
     manager: {
       tabs: [
-        { id: 'dashboard', label: hebrew.dashboard, icon: '🏠' },
         { id: 'chat', label: 'צ\'אט', icon: '💬' },
-        { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+        { id: 'notifications', label: 'התראות', icon: '🔔' },
+        { id: 'tasks', label: 'משימות', icon: '✅' }
       ],
       action: {
         label: 'פעולות מהירות',
@@ -106,12 +112,12 @@ export function BottomNavigation({
       }
     },
 
-    // 🛒 SALES: Orders + Chat + Stats
+    // 🛒 SALES: Order focused
     sales: {
       tabs: [
-        { id: 'orders', label: hebrew.orders, icon: '🛒' },
         { id: 'chat', label: 'צ\'אט', icon: '💬' },
-        { id: 'my-stats', label: hebrew.my_stats, icon: '📈' }
+        { id: 'notifications', label: 'התראות', icon: '🔔' },
+        { id: 'tasks', label: 'משימות', icon: '✅' }
       ],
       action: {
         label: 'פעולות מהירות',
@@ -119,12 +125,12 @@ export function BottomNavigation({
       }
     },
 
-    // 🏷️ WAREHOUSE: Inventory + Chat + Logs
+    // 🏷️ WAREHOUSE: Inventory focused
     warehouse: {
       tabs: [
-        { id: 'inventory', label: hebrew.inventory, icon: '📦' },
         { id: 'chat', label: 'צ\'אט', icon: '💬' },
-        { id: 'logs', label: hebrew.logs, icon: '📊' }
+        { id: 'notifications', label: 'התראות', icon: '🔔' },
+        { id: 'tasks', label: 'משימות', icon: '✅' }
       ],
       action: {
         label: 'פעולות מהירות',
@@ -132,12 +138,12 @@ export function BottomNavigation({
       }
     },
 
-    // 🚚 DRIVER: Deliveries + Chat + Status
+    // 🚚 DRIVER: Delivery focused
     driver: {
       tabs: [
-        { id: 'my-deliveries', label: hebrew.my_deliveries, icon: '🚚' },
         { id: 'chat', label: 'צ\'אט', icon: '💬' },
-        { id: 'driver-status', label: hebrew.driver_status, icon: '🟢' }
+        { id: 'notifications', label: 'התראות', icon: '🔔' },
+        { id: 'tasks', label: 'משימות', icon: '✅' }
       ],
       action: {
         label: 'פעולות מהירות',
