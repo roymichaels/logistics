@@ -114,7 +114,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         body: JSON.stringify({
           telegram_id: userTelegramId,
           pin: '000000',
-          target_role: 'owner'
+          target_role: 'manager'
         })
       });
 
@@ -139,11 +139,11 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
       console.log('✅ User promoted successfully:', result);
       console.log('✅ New role:', result.role);
 
-      Toast.success('שודרג לבעלים! מעביר למערכת...');
+      Toast.success('שודרג למנהל! מעביר למערכת...');
 
       // Update the user object immediately with the new role
       if (user) {
-        setUser({ ...user, role: 'owner' });
+        setUser({ ...user, role: 'manager' });
       }
 
       // Clear cached user data in the dataStore
@@ -298,7 +298,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
             boxShadow: '0 4px 16px rgba(156, 109, 255, 0.4)'
           }}
         >
-          👑 קבל גישת בעלים
+          👑 קבל גישת מנהל
         </button>
       </div>
 
