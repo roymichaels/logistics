@@ -22,6 +22,8 @@ import { roleNames, roleIcons } from '../src/lib/hebrew';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../src/styles/royalTheme';
 import { Toast } from '../src/components/Toast';
 import { logAuthDebug, validateUserManagementAccess } from '../src/lib/authDebug';
+import { sessionTracker } from '../src/lib/sessionTracker';
+import { SessionStatusIndicator } from '../src/components/SessionStatusIndicator';
 
 interface UserManagementProps {
   onNavigate: (page: string) => void;
@@ -83,13 +85,28 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
   const loadUsers = async () => {
     setLoading(true);
     try {
+      sessionTracker.log('USER_MGMT_LOAD_START', 'success', 'Starting user load');
       console.log('🔍 UserManagement - Starting user load with auth check');
+
+      // CRITICAL: Wait for session to be ready before proceeding
+      sessionTracker.log('USER_MGMT_WAIT_SESSION', 'success', 'Waiting for session readiness');
+      const sessionReady = await sessionTracker.waitForSession(3000);
+
+      if (!sessionReady) {
+        sessionTracker.log('USER_MGMT_SESSION_TIMEOUT', 'error', 'Session not ready');
+        Toast.error('חסרים claims: Session');
+        setLoading(false);
+        return;
+      }
+
+      sessionTracker.log('USER_MGMT_SESSION_READY', 'success', 'Session verified and ready');
 
       // Debug authentication state
       await logAuthDebug();
 
       // Verify authentication before querying
       if (!currentUser?.id) {
+        sessionTracker.log('USER_MGMT_NO_USER', 'error', 'No authenticated user');
         console.error('❌ UserManagement - No authenticated user found');
         Toast.error('שגיאה באימות - נסה להתחבר מחדש');
         setLoading(false);
@@ -98,6 +115,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
 
       // Validate user management access
       const accessCheck = await validateUserManagementAccess();
+      sessionTracker.log('USER_MGMT_ACCESS_CHECK', accessCheck.hasAccess ? 'success' : 'warning', 'Access validation', accessCheck);
       console.log('🔐 UserManagement - Access validation:', accessCheck);
 
       if (!accessCheck.hasAccess) {
@@ -107,6 +125,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
         });
 
         if (accessCheck.missingClaims.length > 0) {
+          sessionTracker.log('USER_MGMT_MISSING_CLAIMS', 'error', 'Missing claims', accessCheck.missingClaims);
           Toast.error(`חסרים claims: ${accessCheck.missingClaims.join(', ')}`);
         }
       }
@@ -345,7 +364,23 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
     if (!confirmed) return;
 
     try {
+      sessionTracker.log('ROLE_UPDATE_START', 'success', `Changing role to ${selectedRole}`, {
+        user: selectedUser.telegram_id,
+        newRole: selectedRole
+      });
+
+      // PRE-FLIGHT CHECK: Verify session is still valid
+      const verification = await sessionTracker.verifySession();
+      if (!verification.valid) {
+        sessionTracker.log('ROLE_UPDATE_NO_SESSION', 'error', 'Session invalid before update', verification.errors);
+        Toast.error('חסרים claims: ' + verification.errors.join(', '));
+        return;
+      }
+
+      sessionTracker.log('ROLE_UPDATE_SESSION_OK', 'success', 'Session verified for role update');
+
       const oldRole = selectedUser.assigned_role || selectedUser.requested_role;
+      sessionTracker.log('ROLE_UPDATE_EXEC', 'success', `Executing role change: ${oldRole} → ${selectedRole}`);
 
       // Update user role in database
       const { error } = await dataStore.supabase
@@ -353,8 +388,12 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
         .update({ role: selectedRole })
         .eq('telegram_id', selectedUser.telegram_id);
 
-      if (error) throw error;
+      if (error) {
+        sessionTracker.log('ROLE_UPDATE_ERROR', 'error', 'Database update failed', error);
+        throw error;
+      }
 
+      sessionTracker.log('ROLE_UPDATE_SUCCESS', 'success', 'Role updated successfully');
       telegram.hapticFeedback('notification', 'success');
       Toast.success(`תפקיד עודכן בהצלחה ל${roleNames[selectedRole]}`);
 
@@ -362,6 +401,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       setShowRoleModal(false);
       setSelectedUser(null);
     } catch (error) {
+      sessionTracker.log('ROLE_UPDATE_EXCEPTION', 'error', 'Role update exception', error);
       console.error('Failed to change role', error);
       Toast.error('שגיאה בשינוי התפקיד');
     }
@@ -438,6 +478,9 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
 
   return (
     <div style={ROYAL_STYLES.pageContainer}>
+      {/* Session Status Indicator - Always visible in dev/debug */}
+      <SessionStatusIndicator showDetails={true} />
+
       {/* Header */}
       <div style={ROYAL_STYLES.pageHeader}>
         <h1 style={ROYAL_STYLES.pageTitle}>👥 ניהול משתמשים</h1>

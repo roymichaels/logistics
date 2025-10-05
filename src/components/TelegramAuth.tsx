@@ -4,6 +4,8 @@ import { telegram } from '../../lib/telegram';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { debugLog } from './DebugPanel';
 import { RoleSelectionModal } from './RoleSelectionModal';
+import { sessionTracker } from '../lib/sessionTracker';
+import { supabase } from '../lib/supabaseDataStore';
 
 interface TelegramAuthProps {
   onAuth: (userData: any) => void;
@@ -147,54 +149,45 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
       // CRITICAL: Set Supabase session BEFORE calling onAuth
       // This ensures JWT claims are available for all subsequent queries
       if (result.session?.access_token && result.session?.refresh_token) {
+        sessionTracker.log('AUTH_SET_SESSION', 'success', 'Setting Supabase session');
         debugLog.info('🔑 Setting Supabase session with JWT claims...');
 
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+          access_token: result.session.access_token,
+          refresh_token: result.session.refresh_token
+        });
 
-        if (supabaseUrl && supabaseAnonKey) {
-          const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-          // Wait a bit to ensure the session is fully ready
-          await new Promise(resolve => setTimeout(resolve, 200));
-
-          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-            access_token: result.session.access_token,
-            refresh_token: result.session.refresh_token
-          });
-
-          if (sessionError) {
-            debugLog.error('❌ Failed to set Supabase session', sessionError);
-            throw new Error('Failed to establish session');
-          } else {
-            debugLog.success('✅ Supabase session established with JWT claims');
-
-            // Verify session was set correctly
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-              debugLog.info('📋 Session verified - JWT claims:', {
-                user_id: session.user.id,
-                email: session.user.email,
-                role: session.user.app_metadata?.role,
-                app_role: session.user.app_metadata?.app_role,
-                workspace_id: session.user.app_metadata?.workspace_id,
-                telegram_id: session.user.app_metadata?.telegram_id
-              });
-
-              // Store in global context for debugging
-              (window as any).__SUPABASE_SESSION__ = session;
-              (window as any).__JWT_CLAIMS__ = session.user.app_metadata;
-            } else {
-              debugLog.error('❌ Session verification failed - no session found');
-              throw new Error('Session verification failed');
-            }
-          }
-        } else {
-          debugLog.error('❌ Missing Supabase configuration');
-          throw new Error('Missing Supabase configuration');
+        if (sessionError) {
+          sessionTracker.log('AUTH_SESSION_ERROR', 'error', 'Failed to set session', sessionError);
+          debugLog.error('❌ Failed to set Supabase session', sessionError);
+          throw new Error('Failed to establish session');
         }
+
+        sessionTracker.log('AUTH_SESSION_SET', 'success', 'Session set, waiting for propagation');
+
+        // BLOCKING WAIT: Ensure session is fully propagated and claims are accessible
+        const sessionReady = await sessionTracker.waitForSession(5000);
+
+        if (!sessionReady) {
+          sessionTracker.log('AUTH_SESSION_TIMEOUT', 'error', 'Session not ready after 5s');
+          throw new Error('Session establishment timeout');
+        }
+
+        // Verify one final time
+        const verification = await sessionTracker.verifySession();
+        if (!verification.valid) {
+          sessionTracker.log('AUTH_VERIFY_FAILED', 'error', 'Final verification failed', verification.errors);
+          throw new Error('Session verification failed: ' + verification.errors.join(', '));
+        }
+
+        debugLog.success('✅ Supabase session fully established and verified');
+        sessionTracker.log('AUTH_COMPLETE', 'success', 'Authentication complete with verified claims', verification.claims);
+
+        // Store in global context for debugging
+        (window as any).__SUPABASE_SESSION__ = sessionData.session;
+        (window as any).__JWT_CLAIMS__ = verification.claims;
       } else {
+        sessionTracker.log('AUTH_NO_TOKENS', 'warning', 'No session tokens from backend');
         debugLog.warn('⚠️ No session tokens received from backend');
       }
 
