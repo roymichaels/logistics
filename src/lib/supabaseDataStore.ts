@@ -171,12 +171,45 @@ async function upsertUserProfileFromRegistration(input: UpsertUserRegistrationIn
 }
 
 async function updateUserRoleAssignment(telegramId: string, role: User['role']) {
-  const { error } = await supabase
+  // Check if user exists
+  const { data: existingUser } = await supabase
     .from('users')
-    .update({ role, updated_at: new Date().toISOString() })
-    .eq('telegram_id', telegramId);
+    .select('telegram_id')
+    .eq('telegram_id', telegramId)
+    .maybeSingle();
 
-  if (error) throw error;
+  const now = new Date().toISOString();
+
+  if (existingUser) {
+    // Update existing user
+    const { error } = await supabase
+      .from('users')
+      .update({ role, updated_at: now })
+      .eq('telegram_id', telegramId);
+
+    if (error) throw error;
+  } else {
+    // Create new user from registration data
+    const registration = await fetchUserRegistrationRecord(telegramId);
+    if (!registration) {
+      throw new Error('Cannot create user: registration not found');
+    }
+
+    const { error } = await supabase
+      .from('users')
+      .insert({
+        telegram_id: telegramId,
+        username: registration.username || null,
+        name: `${registration.first_name}${registration.last_name ? ' ' + registration.last_name : ''}`,
+        role: role,
+        phone: registration.phone || null,
+        active: true,
+        created_at: now,
+        updated_at: now
+      });
+
+    if (error) throw error;
+  }
 }
 
 export async function fetchUserRegistrationRecord(telegramId: string): Promise<UserRegistration | null> {
