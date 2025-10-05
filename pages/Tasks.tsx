@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { telegram } from '../lib/telegram';
-import { DataStore, Task, Order, Route } from '../data/types';
-import { cache } from '../lib/cache';
-import { TaskProofSubmission } from '../src/components/TaskProofSubmission';
+import { DataStore, Task, User } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../src/styles/royalTheme';
+import { hebrew } from '../src/lib/hebrew';
 
 interface TasksProps {
   dataStore: DataStore;
@@ -12,616 +11,708 @@ interface TasksProps {
 
 export function Tasks({ dataStore, onNavigate }: TasksProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [orders, setOrders] = useState<{ [key: string]: Order }>({});
-  const [route, setRoute] = useState<Route | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [showProofSubmission, setShowProofSubmission] = useState(false);
-  const [taskForProof, setTaskForProof] = useState<Task | null>(null);
-
-  const theme = telegram.themeParams;
 
   useEffect(() => {
     loadData();
-
-    let unsubscribe: (() => void) | undefined;
-    if (dataStore.subscribeToChanges) {
-      unsubscribe = dataStore.subscribeToChanges('tasks', (payload) => {
-        if (payload.new || payload.old) {
-          loadData();
-        }
-      });
-    }
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
   }, []);
 
-  useEffect(() => {
-    telegram.setBackButton(() => {
-      if (showProofSubmission) {
-        setShowProofSubmission(false);
-        setTaskForProof(null);
-      } else if (selectedTask) {
-        setSelectedTask(null);
-      } else {
-        // Don't navigate back to dashboard, let bottom nav handle it
-        return;
-      }
-    });
-
-    // Only show back button when in task detail or proof submission
-    if (!selectedTask && !showProofSubmission) {
-      telegram.hideBackButton();
-    }
-  }, [selectedTask, onNavigate]);
-
   const loadData = async () => {
+    setLoading(true);
     try {
-      // Try to load from cache first for offline support
-      const cachedTasks = await cache.getTasks();
-      if (cachedTasks.length > 0) {
-        setTasks(cachedTasks);
+      const profile = await dataStore.getProfile();
+      setCurrentUser(profile);
+
+      // Load tasks based on role
+      let tasksList: Task[] = [];
+      if (profile.role === 'owner' || profile.role === 'manager' || profile.role === 'dispatcher') {
+        // Admins see all tasks
+        if (dataStore.supabase) {
+          const { data, error } = await dataStore.supabase
+            .from('tasks')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (!error && data) {
+            tasksList = data;
+          }
+        }
+      } else {
+        // Regular users see their tasks
+        tasksList = await dataStore.listMyTasks?.() || [];
       }
 
-      // Load fresh data
-      const tasksList = await dataStore.listMyTasks?.() || [];
       setTasks(tasksList);
-      await cache.setTasks(tasksList);
 
-      // Load related orders
-      const orderIds = [...new Set(tasksList.map(t => t.order_id))];
-      const ordersMap: { [key: string]: Order } = {};
-      
-      for (const orderId of orderIds) {
-        try {
-          const order = await dataStore.getOrder?.(orderId);
-          if (order) {
-            ordersMap[orderId] = order;
+      // Load users for assignment (if admin)
+      if (profile.role === 'owner' || profile.role === 'manager' || profile.role === 'dispatcher') {
+        if (dataStore.supabase) {
+          const { data: usersData } = await dataStore.supabase
+            .from('users')
+            .select('*')
+            .eq('active', true)
+            .order('name');
+
+          if (usersData) {
+            setUsers(usersData);
           }
-        } catch (error) {
-          console.error(`Failed to load order ${orderId}:`, error);
         }
       }
-      setOrders(ordersMap);
-
-      // Load today's route
-      const today = new Date().toISOString().split('T')[0];
-      const todayRoute = await dataStore.getMyRoute?.(today);
-      setRoute(todayRoute);
-
     } catch (error) {
       console.error('Failed to load tasks:', error);
-      telegram.showAlert('Failed to load tasks');
+      telegram.showAlert('שגיאה בטעינת משימות');
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div style={{ 
-        padding: '20px', 
-        textAlign: 'center',
-        color: theme.text_color,
-        backgroundColor: theme.bg_color,
-        minHeight: '100vh'
-      }}>
-        Loading tasks...
-      </div>
-    );
-  }
+  const handleCreateTask = async (taskData: Partial<Task>) => {
+    try {
+      if (!dataStore.createTask) {
+        telegram.showAlert('פעולה זו אינה נתמכת');
+        return;
+      }
 
-  if (showProofSubmission && taskForProof) {
-    return (
-      <TaskProofSubmission
-        task={taskForProof}
-        onSubmit={async (proof) => {
-          try {
-            if (!dataStore.completeTask) {
-              telegram.showAlert('פעולה זו אינה נתמכת');
-              return;
-            }
-
-            await dataStore.completeTask(proof.taskId, {
-              photo: proof.images?.[0],
-              notes: proof.notes,
-              location: proof.location ? JSON.stringify(proof.location) : undefined
-            });
-            setShowProofSubmission(false);
-            setTaskForProof(null);
-            loadData();
-            telegram.hapticFeedback('notification', 'success');
-          } catch (error) {
-            console.error('Failed to submit proof:', error);
-            telegram.showAlert('שליחת הוכחת הביצוע נכשלה');
-          }
-        }}
-        onCancel={() => {
-          setShowProofSubmission(false);
-          setTaskForProof(null);
-        }}
-      />
-    );
-  }
-
-  if (selectedTask) {
-    return (
-      <TaskDetail
-        task={selectedTask}
-        order={orders[selectedTask.order_id]}
-        dataStore={dataStore}
-        onBack={() => setSelectedTask(null)}
-        onComplete={() => {
-          setSelectedTask(null);
-          loadData();
-        }}
-        onSubmitProof={(task) => {
-          setTaskForProof(task);
-          setSelectedTask(null);
-          setShowProofSubmission(true);
-        }}
-        theme={theme}
-      />
-    );
-  }
-
-  const pendingTasks = tasks.filter(t => t.status === 'pending' || t.status === 'enroute');
-  const completedTasks = tasks.filter(t => t.status === 'done');
-
-  return (
-    <div style={{ 
-      backgroundColor: theme.bg_color,
-      color: theme.text_color,
-      minHeight: '100vh'
-    }}>
-      {/* Header */}
-      <div style={{ padding: '16px', borderBottom: `1px solid ${theme.hint_color}20` }}>
-        <h1 style={{ 
-          margin: '0 0 8px 0', 
-          fontSize: '24px', 
-          fontWeight: '600'
-        }}>
-          My Tasks
-        </h1>
-        <p style={{ 
-          margin: 0, 
-          color: theme.hint_color,
-          fontSize: '14px'
-        }}>
-          {new Date().toLocaleDateString()} • {pendingTasks.length} pending
-        </p>
-      </div>
-
-      {/* Route Summary */}
-      {route && (
-        <div style={{ 
-          padding: '16px',
-          backgroundColor: theme.secondary_bg_color || '#f1f1f1',
-          borderBottom: `1px solid ${theme.hint_color}20`
-        }}>
-          <h2 style={{ 
-            margin: '0 0 8px 0', 
-            fontSize: '16px', 
-            fontWeight: '600'
-          }}>
-            Today's Route
-          </h2>
-          <p style={{ 
-            margin: 0, 
-            color: theme.hint_color,
-            fontSize: '14px'
-          }}>
-            {route.stops.length} stops planned
-          </p>
-        </div>
-      )}
-
-      <div style={{ padding: '16px' }}>
-        {/* Pending Tasks */}
-        {pendingTasks.length > 0 && (
-          <div style={{ marginBottom: '24px' }}>
-            <h2 style={{ 
-              margin: '0 0 16px 0', 
-              fontSize: '18px', 
-              fontWeight: '600'
-            }}>
-              Pending ({pendingTasks.length})
-            </h2>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {pendingTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  order={orders[task.order_id]}
-                  onClick={() => {
-                    telegram.hapticFeedback('selection');
-                    setSelectedTask(task);
-                  }}
-                  theme={theme}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Completed Tasks */}
-        {completedTasks.length > 0 && (
-          <div>
-            <h2 style={{ 
-              margin: '0 0 16px 0', 
-              fontSize: '18px', 
-              fontWeight: '600'
-            }}>
-              Completed ({completedTasks.length})
-            </h2>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {completedTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  order={orders[task.order_id]}
-                  onClick={() => {
-                    telegram.hapticFeedback('selection');
-                    setSelectedTask(task);
-                  }}
-                  theme={theme}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {tasks.length === 0 && (
-          <div style={{ 
-            textAlign: 'center', 
-            padding: '40px 20px',
-            color: theme.hint_color
-          }}>
-            No tasks assigned for today
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function TaskCard({ task, order, onClick, theme }: { 
-  task: Task; 
-  order?: Order;
-  onClick: () => void;
-  theme: any;
-}) {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return '#ff9500';
-      case 'enroute': return '#007aff';
-      case 'done': return '#34c759';
-      case 'failed': return '#ff3b30';
-      default: return theme.hint_color;
+      await dataStore.createTask(taskData as any);
+      telegram.hapticFeedback('notification', 'success');
+      telegram.showAlert('המשימה נוצרה בהצלחה');
+      setShowCreateModal(false);
+      loadData();
+    } catch (error) {
+      console.error('Failed to create task:', error);
+      telegram.showAlert('שגיאה ביצירת המשימה');
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending': return '⏳';
-      case 'enroute': return '🚚';
-      case 'done': return '✅';
-      case 'failed': return '❌';
-      default: return '📦';
+  const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
+    try {
+      if (!dataStore.updateTask) {
+        telegram.showAlert('פעולה זו אינה נתמכת');
+        return;
+      }
+
+      await dataStore.updateTask(taskId, updates);
+      telegram.hapticFeedback('notification', 'success');
+      telegram.showAlert('המשימה עודכנה בהצלחה');
+      setShowEditModal(false);
+      setSelectedTask(null);
+      loadData();
+    } catch (error) {
+      console.error('Failed to update task:', error);
+      telegram.showAlert('שגיאה בעדכון המשימה');
     }
   };
 
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        padding: '16px',
-        backgroundColor: theme.secondary_bg_color || '#f1f1f1',
-        borderRadius: '12px',
-        cursor: 'pointer',
-        border: `1px solid ${theme.hint_color}20`,
-        opacity: task.status === 'done' ? 0.7 : 1
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-        <div style={{ flex: 1 }}>
-          <h3 style={{ 
-            margin: '0 0 4px 0', 
-            fontSize: '16px', 
-            fontWeight: '600',
-            color: theme.text_color
-          }}>
-            {order?.customer || 'Unknown Customer'}
-          </h3>
-          <p style={{ 
-            margin: 0, 
-            fontSize: '14px', 
-            color: theme.hint_color,
-            lineHeight: '1.4'
-          }}>
-            {order?.address || 'No address available'}
-          </p>
-        </div>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '20px' }}>
-            {getStatusIcon(task.status)}
-          </span>
-          <div style={{
-            padding: '4px 8px',
-            borderRadius: '12px',
-            backgroundColor: getStatusColor(task.status) + '20',
-            color: getStatusColor(task.status),
-            fontSize: '12px',
-            fontWeight: '600'
-          }}>
-            {task.status.toUpperCase()}
-          </div>
-        </div>
-      </div>
-
-      {order?.eta && (
-        <p style={{ 
-          margin: '8px 0 0 0', 
-          fontSize: '12px', 
-          color: theme.hint_color
-        }}>
-          ETA: {new Date(order.eta).toLocaleString()}
-        </p>
-      )}
-
-      {task.completed_at && (
-        <p style={{ 
-          margin: '8px 0 0 0', 
-          fontSize: '12px', 
-          color: getStatusColor(task.status)
-        }}>
-          Completed: {new Date(task.completed_at).toLocaleString()}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function TaskDetail({ task, order, dataStore, onBack, onComplete, onSubmitProof, theme }: {
-  task: Task;
-  order?: Order;
-  dataStore: DataStore;
-  onBack: () => void;
-  onComplete: () => void;
-  onSubmitProof?: (task: Task) => void;
-  theme: any;
-}) {
-  const [completing, setCompleting] = useState(false);
-  const [photo, setPhoto] = useState<string | null>(null);
-
-  const handleComplete = async () => {
-    const confirmed = await telegram.showConfirm('Mark this task as completed?');
+  const handleDeleteTask = async (taskId: string) => {
+    const confirmed = window.confirm('האם אתה בטוח שברצונך למחוק משימה זו?');
     if (!confirmed) return;
 
-    setCompleting(true);
     try {
-      await dataStore.completeTask?.(task.id, {
-        photo: photo || undefined,
-        gps: { lat: 0, lng: 0 } // In real app, get actual GPS coordinates
-      });
-      
+      if (!dataStore.supabase) return;
+
+      await dataStore.supabase
+        .from('tasks')
+        .delete()
+        .eq('id', taskId);
+
       telegram.hapticFeedback('notification', 'success');
-      onComplete();
+      telegram.showAlert('המשימה נמחקה');
+      loadData();
     } catch (error) {
-      console.error('Failed to complete task:', error);
-      telegram.showAlert('Failed to complete task');
-    } finally {
-      setCompleting(false);
+      console.error('Failed to delete task:', error);
+      telegram.showAlert('שגיאה במחיקת המשימה');
     }
   };
 
-  const handleTakePhoto = () => {
-    // In a real app, this would open camera
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.capture = 'environment';
-    
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setPhoto(e.target?.result as string);
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-    
-    input.click();
+  const filteredTasks = filter === 'all'
+    ? tasks
+    : tasks.filter(t => t.status === filter);
+
+  const canManageTasks = currentUser?.role === 'owner' ||
+                         currentUser?.role === 'manager' ||
+                         currentUser?.role === 'dispatcher';
+
+  const statusCounts = {
+    all: tasks.length,
+    pending: tasks.filter(t => t.status === 'pending').length,
+    in_progress: tasks.filter(t => t.status === 'in_progress').length,
+    completed: tasks.filter(t => t.status === 'completed').length
   };
 
-  useEffect(() => {
-    if (task.status === 'pending' || task.status === 'enroute') {
-      telegram.setMainButton(
-        completing ? 'Completing...' : 'Complete Task',
-        handleComplete
-      );
-    } else {
-      telegram.hideMainButton();
-    }
-
-    return () => telegram.hideMainButton();
-  }, [task.status, completing]);
+  if (loading) {
+    return (
+      <div style={ROYAL_STYLES.pageContainer}>
+        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
+          <p style={{ color: ROYAL_COLORS.muted }}>טוען משימות...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ 
-      padding: '16px',
-      backgroundColor: theme.bg_color,
-      color: theme.text_color,
-      minHeight: '100vh'
-    }}>
-      <h1 style={{ 
-        margin: '0 0 24px 0', 
-        fontSize: '24px', 
-        fontWeight: '600'
-      }}>
-        Task Details
-      </h1>
-
-      <div style={{ marginBottom: '24px' }}>
-        <h2 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '600' }}>
-          {order?.customer || 'Unknown Customer'}
-        </h2>
-        <p style={{ margin: '0 0 16px 0', color: theme.hint_color }}>
-          {order?.address || 'No address available'}
+    <div style={ROYAL_STYLES.pageContainer}>
+      <div style={ROYAL_STYLES.pageHeader}>
+        <div style={{ fontSize: '64px', marginBottom: '16px' }}>📋</div>
+        <h1 style={ROYAL_STYLES.pageTitle}>משימות</h1>
+        <p style={ROYAL_STYLES.pageSubtitle}>
+          ניהול ומעקב אחר משימות
         </p>
-        
-        <div style={{
-          padding: '8px 12px',
-          borderRadius: '8px',
-          backgroundColor: theme.secondary_bg_color,
-          display: 'inline-block',
-          marginBottom: '16px'
-        }}>
-          Status: <strong>{task.status.toUpperCase()}</strong>
-        </div>
-
-        {order?.eta && (
-          <p style={{ margin: '0 0 16px 0', color: theme.hint_color }}>
-            ETA: {new Date(order.eta).toLocaleString()}
-          </p>
-        )}
-
-        {order?.notes && (
-          <div style={{ marginBottom: '16px' }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '600' }}>
-              Delivery Notes
-            </h3>
-            <p style={{ margin: 0, color: theme.hint_color }}>
-              {order.notes}
-            </p>
-          </div>
-        )}
-
-        {order?.items && order.items.length > 0 && (
-          <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '600' }}>
-              Items to Deliver
-            </h3>
-            {order.items.map((item, index) => (
-              <div key={index} style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between',
-                padding: '8px 0',
-                borderBottom: index < order.items!.length - 1 ? `1px solid ${theme.hint_color}20` : 'none'
-              }}>
-                <span>{item.name}</span>
-                <span>×{item.quantity}</span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Photo Section */}
-      {(task.status === 'pending' || task.status === 'enroute') && (
-        <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '600' }}>
-            Proof of Delivery
-          </h3>
-          
-          <button
-            onClick={() => onSubmitProof?.(task)}
-            style={{
-              padding: '16px',
-              backgroundColor: theme.button_color || '#007aff',
-              color: theme.button_text_color || 'white',
-              border: 'none',
-              borderRadius: '12px',
-              fontSize: '16px',
-              cursor: 'pointer',
-              width: '100%',
-              marginBottom: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px'
-            }}
-          >
-            📷 שלח הוכחת ביצוע
-          </button>
+      {/* Stats */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+        gap: '12px',
+        marginBottom: '24px'
+      }}>
+        <div style={{
+          ...ROYAL_STYLES.card,
+          background: filter === 'all' ? ROYAL_COLORS.gradientCard : ROYAL_COLORS.cardBg,
+          cursor: 'pointer'
+        }} onClick={() => setFilter('all')}>
+          <div style={ROYAL_STYLES.statValue}>{statusCounts.all}</div>
+          <div style={ROYAL_STYLES.statLabel}>כל המשימות</div>
+        </div>
+        <div style={{
+          ...ROYAL_STYLES.card,
+          background: filter === 'pending' ? ROYAL_COLORS.gradientCard : ROYAL_COLORS.cardBg,
+          cursor: 'pointer'
+        }} onClick={() => setFilter('pending')}>
+          <div style={ROYAL_STYLES.statValue}>{statusCounts.pending}</div>
+          <div style={ROYAL_STYLES.statLabel}>ממתינות</div>
+        </div>
+        <div style={{
+          ...ROYAL_STYLES.card,
+          background: filter === 'in_progress' ? ROYAL_COLORS.gradientCard : ROYAL_COLORS.cardBg,
+          cursor: 'pointer'
+        }} onClick={() => setFilter('in_progress')}>
+          <div style={ROYAL_STYLES.statValue}>{statusCounts.in_progress}</div>
+          <div style={ROYAL_STYLES.statLabel}>בביצוע</div>
+        </div>
+        <div style={{
+          ...ROYAL_STYLES.card,
+          background: filter === 'completed' ? ROYAL_COLORS.gradientCard : ROYAL_COLORS.cardBg,
+          cursor: 'pointer'
+        }} onClick={() => setFilter('completed')}>
+          <div style={ROYAL_STYLES.statValue}>{statusCounts.completed}</div>
+          <div style={ROYAL_STYLES.statLabel}>הושלמו</div>
+        </div>
+      </div>
 
-          {photo && (
-            <div style={{ marginBottom: '16px' }}>
-              <img
-                src={photo}
-                alt="Proof of delivery"
-                style={{
-                  width: '100%',
-                  maxWidth: '300px',
-                  height: 'auto',
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.hint_color}40`
-                }}
-              />
+      {/* Create Task Button (for admins) */}
+      {canManageTasks && (
+        <button
+          onClick={() => setShowCreateModal(true)}
+          style={{
+            ...ROYAL_STYLES.buttonPrimary,
+            width: '100%',
+            marginBottom: '24px'
+          }}
+        >
+          + צור משימה חדשה
+        </button>
+      )}
+
+      {/* Tasks List */}
+      {filteredTasks.length === 0 ? (
+        <div style={ROYAL_STYLES.emptyState}>
+          <div style={ROYAL_STYLES.emptyStateIcon}>📋</div>
+          <div style={ROYAL_STYLES.emptyStateText}>
+            אין משימות להצגה
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {filteredTasks.map((task) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              canManage={canManageTasks}
+              onEdit={() => {
+                setSelectedTask(task);
+                setShowEditModal(true);
+              }}
+              onDelete={() => handleDeleteTask(task.id)}
+              onStatusChange={(status) => handleUpdateTask(task.id, { status })}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Create Task Modal */}
+      {showCreateModal && (
+        <TaskModal
+          users={users}
+          currentUserId={currentUser?.id || ''}
+          onClose={() => setShowCreateModal(false)}
+          onSubmit={handleCreateTask}
+        />
+      )}
+
+      {/* Edit Task Modal */}
+      {showEditModal && selectedTask && (
+        <TaskModal
+          task={selectedTask}
+          users={users}
+          currentUserId={currentUser?.id || ''}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedTask(null);
+          }}
+          onSubmit={(updates) => handleUpdateTask(selectedTask.id, updates)}
+        />
+      )}
+    </div>
+  );
+}
+
+function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
+  task: Task;
+  canManage: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+  onStatusChange: (status: Task['status']) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  const statusColors = {
+    pending: { bg: 'rgba(255, 193, 7, 0.2)', border: 'rgba(255, 193, 7, 0.4)', text: '#FFC107' },
+    in_progress: { bg: 'rgba(3, 169, 244, 0.2)', border: 'rgba(3, 169, 244, 0.4)', text: '#03A9F4' },
+    completed: { bg: 'rgba(76, 175, 80, 0.2)', border: 'rgba(76, 175, 80, 0.4)', text: '#4CAF50' },
+    cancelled: { bg: 'rgba(244, 67, 54, 0.2)', border: 'rgba(244, 67, 54, 0.4)', text: '#F44336' }
+  };
+
+  const priorityColors = {
+    low: ROYAL_COLORS.muted,
+    normal: ROYAL_COLORS.text,
+    high: '#FFC107',
+    urgent: '#F44336'
+  };
+
+  const statusLabels = {
+    pending: 'ממתין',
+    in_progress: 'בביצוע',
+    completed: 'הושלם',
+    cancelled: 'בוטל'
+  };
+
+  const priorityLabels = {
+    low: 'נמוך',
+    normal: 'רגיל',
+    high: 'גבוה',
+    urgent: 'דחוף'
+  };
+
+  const color = statusColors[task.status];
+
+  return (
+    <div style={{
+      ...ROYAL_STYLES.card,
+      cursor: 'pointer'
+    }}>
+      <div onClick={() => setExpanded(!expanded)}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
+          <div style={{ flex: 1 }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: ROYAL_COLORS.text, fontWeight: '600' }}>
+              {task.title}
+            </h3>
+            {task.description && (
+              <p style={{ margin: 0, fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                {task.description}
+              </p>
+            )}
+          </div>
+          <div style={{ fontSize: '20px', marginLeft: '12px' }}>
+            {expanded ? '▼' : '◀'}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{
+            padding: '4px 12px',
+            borderRadius: '12px',
+            background: color.bg,
+            border: `1px solid ${color.border}`,
+            fontSize: '12px',
+            fontWeight: '600',
+            color: color.text
+          }}>
+            {statusLabels[task.status]}
+          </div>
+
+          {task.priority && (
+            <div style={{
+              padding: '4px 12px',
+              borderRadius: '12px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: `1px solid rgba(255, 255, 255, 0.2)`,
+              fontSize: '12px',
+              fontWeight: '600',
+              color: priorityColors[task.priority]
+            }}>
+              {priorityLabels[task.priority]}
+            </div>
+          )}
+
+          {task.due_date && (
+            <div style={{
+              padding: '4px 12px',
+              borderRadius: '12px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: `1px solid rgba(255, 255, 255, 0.2)`,
+              fontSize: '12px',
+              color: ROYAL_COLORS.muted
+            }}>
+              📅 {new Date(task.due_date).toLocaleDateString('he-IL')}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {expanded && (
+        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: `1px solid ${ROYAL_COLORS.border}` }}>
+          {task.notes && (
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>הערות</div>
+              <div style={{ fontSize: '14px', color: ROYAL_COLORS.text }}>{task.notes}</div>
+            </div>
+          )}
+
+          {canManage && (
+            <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
               <button
-                onClick={() => setPhoto(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit();
+                }}
                 style={{
-                  marginTop: '8px',
-                  padding: '8px 16px',
-                  backgroundColor: 'transparent',
-                  color: theme.link_color,
-                  border: `1px solid ${theme.link_color}`,
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  cursor: 'pointer'
+                  ...ROYAL_STYLES.buttonSecondary,
+                  flex: 1
                 }}
               >
-                הסר תמונה
+                ערוך
+              </button>
+
+              {task.status === 'pending' && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onStatusChange('in_progress');
+                  }}
+                  style={{
+                    ...ROYAL_STYLES.buttonPrimary,
+                    flex: 1
+                  }}
+                >
+                  התחל
+                </button>
+              )}
+
+              {task.status === 'in_progress' && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onStatusChange('completed');
+                  }}
+                  style={{
+                    ...ROYAL_STYLES.buttonPrimary,
+                    flex: 1,
+                    background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)'
+                  }}
+                >
+                  סיים
+                </button>
+              )}
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+                style={{
+                  ...ROYAL_STYLES.buttonDanger,
+                  flex: 0.5
+                }}
+              >
+                🗑️
               </button>
             </div>
           )}
         </div>
       )}
+    </div>
+  );
+}
 
-      {/* Completed Task Info */}
-      {task.status === 'done' && (
+function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
+  task?: Task;
+  users: User[];
+  currentUserId: string;
+  onClose: () => void;
+  onSubmit: (data: Partial<Task>) => void;
+}) {
+  const [formData, setFormData] = useState({
+    title: task?.title || '',
+    description: task?.description || '',
+    status: task?.status || 'pending' as Task['status'],
+    priority: task?.priority || 'normal' as Task['priority'],
+    assigned_to: task?.assigned_to || '',
+    due_date: task?.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '',
+    notes: task?.notes || ''
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.title) {
+      telegram.showAlert('אנא הזן כותרת למשימה');
+      return;
+    }
+
+    onSubmit({
+      ...formData,
+      assigned_by: task?.assigned_by || currentUserId,
+      due_date: formData.due_date || undefined
+    });
+  };
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        padding: '20px',
+        direction: 'rtl',
+        overflowY: 'auto'
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          backgroundColor: ROYAL_COLORS.cardBg,
+          borderRadius: '20px',
+          border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+          maxWidth: '500px',
+          width: '100%',
+          maxHeight: '90vh',
+          overflow: 'auto',
+          boxShadow: ROYAL_COLORS.shadowStrong
+        }}
+      >
         <div style={{
-          padding: '16px',
-          backgroundColor: '#34c759' + '20',
-          borderRadius: '8px',
-          marginBottom: '16px'
+          padding: '24px',
+          borderBottom: `1px solid ${ROYAL_COLORS.border}`
         }}>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '600', color: '#34c759' }}>
-            ✅ Task Completed
-          </h3>
-          {task.completed_at && (
-            <p style={{ margin: 0, fontSize: '14px', color: theme.hint_color }}>
-              Completed: {new Date(task.completed_at).toLocaleString()}
-            </p>
-          )}
+          <h2 style={{
+            margin: 0,
+            fontSize: '24px',
+            fontWeight: '700',
+            color: ROYAL_COLORS.text
+          }}>
+            {task ? 'ערוך משימה' : 'צור משימה חדשה'}
+          </h2>
         </div>
-      )}
 
-      {task.proof_url && (
-        <div style={{ marginTop: '16px' }}>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '600' }}>
-            Proof of Delivery
-          </h3>
-          <img 
-            src={task.proof_url} 
-            alt="Proof of delivery"
-            style={{ 
-              width: '100%', 
-              maxWidth: '300px',
-              height: 'auto',
-              borderRadius: '8px',
-              border: `1px solid ${theme.hint_color}40`
-            }}
-          />
-        </div>
-      )}
+        <form onSubmit={handleSubmit} style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: ROYAL_COLORS.text
+              }}>
+                כותרת *
+              </label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                style={ROYAL_STYLES.input}
+                placeholder="כותרת המשימה"
+              />
+            </div>
+
+            <div>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: ROYAL_COLORS.text
+              }}>
+                תיאור
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+                style={{
+                  ...ROYAL_STYLES.input,
+                  resize: 'vertical'
+                }}
+                placeholder="תיאור המשימה"
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: ROYAL_COLORS.text
+                }}>
+                  סטטוס
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value as Task['status'] })}
+                  style={ROYAL_STYLES.input}
+                >
+                  <option value="pending">ממתין</option>
+                  <option value="in_progress">בביצוע</option>
+                  <option value="completed">הושלם</option>
+                  <option value="cancelled">בוטל</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: ROYAL_COLORS.text
+                }}>
+                  עדיפות
+                </label>
+                <select
+                  value={formData.priority}
+                  onChange={(e) => setFormData({ ...formData, priority: e.target.value as Task['priority'] })}
+                  style={ROYAL_STYLES.input}
+                >
+                  <option value="low">נמוך</option>
+                  <option value="normal">רגיל</option>
+                  <option value="high">גבוה</option>
+                  <option value="urgent">דחוף</option>
+                </select>
+              </div>
+            </div>
+
+            {users.length > 0 && (
+              <div>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: ROYAL_COLORS.text
+                }}>
+                  הקצה למשתמש
+                </label>
+                <select
+                  value={formData.assigned_to}
+                  onChange={(e) => setFormData({ ...formData, assigned_to: e.target.value })}
+                  style={ROYAL_STYLES.input}
+                >
+                  <option value="">בחר משתמש...</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name || user.username} ({user.role})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: ROYAL_COLORS.text
+              }}>
+                תאריך יעד
+              </label>
+              <input
+                type="date"
+                value={formData.due_date}
+                onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                style={ROYAL_STYLES.input}
+              />
+            </div>
+
+            <div>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: ROYAL_COLORS.text
+              }}>
+                הערות
+              </label>
+              <textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                rows={3}
+                style={{
+                  ...ROYAL_STYLES.input,
+                  resize: 'vertical'
+                }}
+                placeholder="הערות נוספות"
+              />
+            </div>
+          </div>
+
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            marginTop: '24px'
+          }}>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                ...ROYAL_STYLES.buttonSecondary,
+                flex: 1
+              }}
+            >
+              ביטול
+            </button>
+            <button
+              type="submit"
+              style={{
+                ...ROYAL_STYLES.buttonPrimary,
+                flex: 2
+              }}
+            >
+              {task ? 'עדכן' : 'צור משימה'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
