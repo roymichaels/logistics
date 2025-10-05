@@ -88,27 +88,40 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
         userManager.getApprovedUsers()
       ]);
 
+      console.log('📊 UserManagement - Loaded registrations:', {
+        pending: pending.length,
+        approved: approved.length,
+        hasDataStore: !!dataStore
+      });
+
       // Also load all actual users from users table
       let allSystemUsers: UserRegistration[] = [];
       if (dataStore?.listAllUsers) {
-        const systemUsers = await dataStore.listAllUsers();
+        try {
+          const systemUsers = await dataStore.listAllUsers();
+          console.log('📊 UserManagement - Loaded system users:', systemUsers.length, systemUsers);
 
-        // Transform User[] to UserRegistration[] format
-        allSystemUsers = systemUsers.map((user: any) => ({
-          telegram_id: user.telegram_id,
-          first_name: user.name?.split(' ')[0] || 'משתמש',
-          last_name: user.name?.split(' ').slice(1).join(' ') || null,
-          username: user.username,
-          photo_url: user.photo_url || null,
-          department: user.department || null,
-          phone: user.phone || null,
-          requested_role: user.role,
-          assigned_role: user.role,
-          status: 'approved' as const,
-          approval_history: [],
-          created_at: user.created_at,
-          updated_at: user.updated_at
-        }));
+          // Transform User[] to UserRegistration[] format
+          allSystemUsers = systemUsers.map((user: any) => ({
+            telegram_id: user.telegram_id,
+            first_name: user.name?.split(' ')[0] || 'משתמש',
+            last_name: user.name?.split(' ').slice(1).join(' ') || null,
+            username: user.username,
+            photo_url: user.photo_url || null,
+            department: user.department || null,
+            phone: user.phone || null,
+            requested_role: user.role,
+            assigned_role: user.role,
+            status: 'approved' as const,
+            approval_history: [],
+            created_at: user.created_at,
+            updated_at: user.updated_at
+          }));
+        } catch (err) {
+          console.error('❌ Failed to load system users:', err);
+        }
+      } else {
+        console.warn('⚠️ dataStore or listAllUsers not available');
       }
 
       setPendingUsers(pending);
@@ -118,10 +131,12 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       [...approved, ...allSystemUsers].forEach(user => {
         approvedMap.set(user.telegram_id, user);
       });
-      setApprovedUsers(Array.from(approvedMap.values()));
+      const mergedApproved = Array.from(approvedMap.values());
+      console.log('📊 UserManagement - Final merged users:', mergedApproved.length);
+      setApprovedUsers(mergedApproved);
 
     } catch (error) {
-      console.error('Failed to load users', error);
+      console.error('❌ Failed to load users', error);
       Toast.error('שגיאה בטעינת נתוני המשתמשים');
     } finally {
       setLoading(false);
@@ -158,6 +173,13 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       ? approvedUsers
       : [...pendingUsers, ...approvedUsers];
 
+    console.log('📊 UserManagement - Before filters:', {
+      filterStatus,
+      pendingCount: pendingUsers.length,
+      approvedCount: approvedUsers.length,
+      totalUsers: users.length
+    });
+
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -166,6 +188,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
         user.last_name?.toLowerCase().includes(query) ||
         user.username?.toLowerCase().includes(query)
       );
+      console.log('📊 After search filter:', users.length);
     }
 
     // Apply role filter
@@ -173,6 +196,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       users = users.filter(user =>
         (user.assigned_role || user.requested_role) === filterRole
       );
+      console.log('📊 After role filter:', users.length);
     }
 
     return users;
