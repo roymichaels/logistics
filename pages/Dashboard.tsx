@@ -102,13 +102,14 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     }
   }, [snapshot, summaryText, haptic]);
 
-  useEffect(() => {
-    if (!snapshot) return;
-    mainButton.show('שלח סיכום לטלגרם', handleSendSummary);
-    return () => {
-      mainButton.hide();
-    };
-  }, [snapshot, handleSendSummary, mainButton]);
+  // Main button disabled - removed per user request
+  // useEffect(() => {
+  //   if (!snapshot) return;
+  //   mainButton.show('שלח סיכום לטלגרם', handleSendSummary);
+  //   return () => {
+  //     mainButton.hide();
+  //   };
+  // }, [snapshot, handleSendSummary, mainButton]);
 
   if (loading || showSkeleton) {
     return <RoyalSkeleton />;
@@ -291,12 +292,6 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
             <RoyalActionButton label="ייצוא CSV" icon="⬇️" onClick={() => handleExport(snapshot, 'csv', haptic)} />
             <RoyalActionButton label="ייצוא JSON" icon="🧾" onClick={() => handleExport(snapshot, 'json', haptic)} />
-            {!hasTelegramSend && (
-              <RoyalActionButton label="העתק סיכום" icon="📋" onClick={handleSendSummary} />
-            )}
-          </div>
-          <div style={{ marginTop: '12px', color: ROYAL_COLORS.muted, fontSize: '13px' }}>
-            לחיצה על הכפתור הראשי תשדר את תקציר העל למרכז השליטה בטלגרם.
           </div>
         </RoyalSection>
       </div>

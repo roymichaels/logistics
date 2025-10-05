@@ -735,8 +735,8 @@ export default function App() {
           {renderPage()}
         </Suspense>
 
-        {/* Bottom Navigation */}
-        {dataStore && userRole && (
+        {/* Bottom Navigation - Hidden for 'user' role */}
+        {dataStore && userRole && userRole !== 'user' && (
           <BottomNavigation
             currentPage={currentPage}
             onNavigate={handleNavigate}
