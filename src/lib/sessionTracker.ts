@@ -78,7 +78,27 @@ class SessionTracker {
         expires_at: session.expires_at
       });
 
-      const claims = session.user.app_metadata || {};
+      // Check claims in both app_metadata (old format) and direct JWT payload (new format)
+      const appMetadata = session.user.app_metadata || {};
+
+      // Decode JWT to check for custom claims at root level
+      let jwtClaims = {};
+      try {
+        const payload = JSON.parse(atob(session.access_token.split('.')[1]));
+        jwtClaims = {
+          user_id: payload.user_id,
+          telegram_id: payload.telegram_id,
+          role: payload.user_role || payload.role,
+          app_role: payload.app_role,
+          workspace_id: payload.workspace_id
+        };
+      } catch (e) {
+        this.log('JWT_DECODE', 'warning', 'Could not decode JWT payload');
+      }
+
+      // Merge claims from both sources (JWT claims take precedence)
+      const claims = { ...appMetadata, ...jwtClaims };
+
       const requiredClaims = ['role', 'telegram_id', 'user_id'];
       const missingClaims = requiredClaims.filter(c => !claims[c]);
 

@@ -222,21 +222,23 @@ export async function ensureTwaSession(): Promise<TwaAuthResult> {
     console.log('📦 ensureTwaSession: Backend response received', {
       ok: result.ok,
       has_session: !!result.session,
-      has_tokens: !!(result.session?.access_token && result.session?.refresh_token),
+      has_access_token: !!result.session?.access_token,
+      has_claims: !!result.claims,
     });
 
-    const { access_token, refresh_token } = result.session || {};
+    const { access_token } = result.session || {};
 
-    if (!access_token || !refresh_token) {
-      console.error('❌ ensureTwaSession: Missing tokens in response');
+    if (!access_token) {
+      console.error('❌ ensureTwaSession: Missing access_token in response');
       return { ok: false, reason: 'tokens_missing' };
     }
 
-    console.log('🔑 ensureTwaSession: Setting session with received tokens');
+    console.log('🔑 ensureTwaSession: Setting session with received JWT token');
+    console.log('📋 Claims included:', result.claims);
 
     const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
       access_token,
-      refresh_token,
+      refresh_token: '', // No refresh token - re-authenticate via Telegram
     });
 
     if (sessionError || !sessionData?.session) {
