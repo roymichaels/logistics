@@ -287,81 +287,38 @@ function SystemOverview({ stats, theme }: { stats: any; theme: any }) {
 }
 
 function UserManagement({ theme }: { theme: any }) {
-  const mockUsers = [
-    { id: '1', name: 'דן כהן', role: 'manager', status: 'active', lastSeen: '2 דקות' },
-    { id: '2', name: 'שרה לוי', role: 'dispatcher', status: 'active', lastSeen: '15 דקות' },
-    { id: '3', name: 'יוסי מור', role: 'driver', status: 'offline', lastSeen: '2 שעות' },
-    { id: '4', name: 'רחל גולן', role: 'warehouse', status: 'active', lastSeen: '1 דקה' }
-  ];
-
   return (
     <div>
       <h2 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: '600' }}>
         ניהול משתמשים
       </h2>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {mockUsers.map(user => (
-          <div
-            key={user.id}
-            style={{
-              padding: '16px',
-              backgroundColor: theme.secondary_bg_color,
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '20px',
-                backgroundColor: user.status === 'active' ? '#34c759' : theme.hint_color,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '18px'
-              }}>
-                👤
-              </div>
-              <div>
-                <div style={{ fontSize: '16px', fontWeight: '600', color: theme.text_color }}>
-                  {user.name}
-                </div>
-                <div style={{ fontSize: '14px', color: theme.hint_color }}>
-                  {user.role} • פעיל לפני {user.lastSeen}
-                </div>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button style={{
-                padding: '6px 12px',
-                backgroundColor: theme.button_color + '20',
-                color: theme.button_color,
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '12px',
-                cursor: 'pointer'
-              }}>
-                ערוך
-              </button>
-              <button style={{
-                padding: '6px 12px',
-                backgroundColor: '#ff3b30' + '20',
-                color: '#ff3b30',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '12px',
-                cursor: 'pointer'
-              }}>
-                חסום
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      <p style={{
+        fontSize: '14px',
+        color: theme.hint_color,
+        marginBottom: '16px',
+        lineHeight: '1.6'
+      }}>
+        לניהול מלא של משתמשים, אישורים והרשאות, עבור לעמוד ניהול משתמשים המתקדם.
+      </p>
+      <a
+        href="#users"
+        onClick={(e) => {
+          e.preventDefault();
+          window.location.hash = 'users';
+        }}
+        style={{
+          display: 'inline-block',
+          padding: '12px 24px',
+          backgroundColor: theme.button_color,
+          color: theme.button_text_color,
+          borderRadius: '12px',
+          textDecoration: 'none',
+          fontSize: '16px',
+          fontWeight: '600'
+        }}
+      >
+        👥 פתח ניהול משתמשים
+      </a>
     </div>
   );
 }

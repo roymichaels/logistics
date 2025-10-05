@@ -43,58 +43,30 @@ export function Channels({ dataStore, onNavigate }: ChannelsProps) {
     }
   };
 
-  const loadUpdates = (channelId: string) => {
-    // Demo updates based on channel type
-    const demoUpdates = channelId === '1' ? [
-      {
-        id: '1',
-        title: 'שעות פעילות מעודכנות',
-        content: 'החל מיום ראשון הבא, שעות הפעילות יהיו 08:00-18:00',
-        type: 'announcement',
-        timestamp: new Date(Date.now() - 7200000).toISOString(),
-        author: 'הנהלה',
-        priority: 'high'
-      },
-      {
-        id: '2',
-        title: 'הוספת אזור משלוחים חדש',
-        content: 'אנו שמחים להודיע על הרחבת השירות לאזור פתח תקווה',
-        type: 'announcement',
-        timestamp: new Date(Date.now() - 86400000).toISOString(),
-        author: 'מנהל תפעול',
-        priority: 'medium'
-      },
-      {
-        id: '3',
-        title: 'הדרכה על מערכת חדשה',
-        content: 'מחר בשעה 10:00 תתקיים הדרכה על המערכת החדשה - חובה להשתתף',
-        type: 'announcement',
-        timestamp: new Date(Date.now() - 172800000).toISOString(),
-        author: 'משאבי אנוש',
-        priority: 'high'
+  const loadUpdates = async (channelId: string) => {
+    try {
+      if (!dataStore.supabase) {
+        console.log('No Supabase client available');
+        return;
       }
-    ] : [
-      {
-        id: '4',
-        title: 'עדכון גרסה 2.1.0',
-        content: 'שיפורים בממשק המשתמש ותיקון באגים קטנים',
-        type: 'update',
-        timestamp: new Date(Date.now() - 3600000).toISOString(),
-        author: 'צוות פיתוח',
-        priority: 'low'
-      },
-      {
-        id: '5',
-        title: 'תכונה חדשה: מעקב GPS משופר',
-        content: 'כעת ניתן לראות מיקום מדויק יותר של הנהגים בזמן אמת',
-        type: 'update',
-        timestamp: new Date(Date.now() - 10800000).toISOString(),
-        author: 'צוות פיתוח',
-        priority: 'medium'
+
+      const { data, error } = await dataStore.supabase
+        .from('channel_updates')
+        .select('*')
+        .eq('channel_id', channelId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) {
+        console.error('Failed to load channel updates:', error);
+        setUpdates([]);
+      } else {
+        setUpdates(data || []);
       }
-    ];
-    
-    setUpdates(demoUpdates);
+    } catch (error) {
+      console.error('Failed to load updates:', error);
+      setUpdates([]);
+    }
   };
 
   if (loading) {
