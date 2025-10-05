@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { PINEntry } from './PINEntry';
 import { SecurityManager, AuthenticationState, initializeGlobalSecurityManager } from '../security/securityManager';
+import { SecurityAuditLogger } from '../security/auditLogger';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { hebrew } from '../lib/hebrew';
 
@@ -31,6 +32,7 @@ export function SecurityGate({
   const [showChangePinPrompt, setShowChangePinPrompt] = useState(false);
 
   const { theme, haptic } = useTelegramUI();
+  const auditLogger = new SecurityAuditLogger();
 
   useEffect(() => {
     initializeSecurity();
@@ -84,7 +86,20 @@ export function SecurityGate({
     try {
       const result = await securityManager.setupPIN(pin);
 
+      // Log PIN setup attempt
+      await auditLogger.logSecurityEvent({
+        eventType: 'pin_setup',
+        userId: telegramId,
+        details: {
+          timestamp: new Date().toISOString(),
+          setupMode: 'first_time'
+        },
+        success: result.success,
+        riskLevel: 'medium'
+      });
+
       if (result.success) {
+        console.log('\u2705 PIN setup successful - logged to audit');
         haptic();
         setShowPinEntry(false);
         setAuthState(securityManager.getAuthenticationState());
@@ -103,7 +118,15 @@ export function SecurityGate({
     try {
       const result = await securityManager.authenticateWithPIN(pin);
 
+      // Log PIN verification attempt
+      await auditLogger.logPINAttempt(
+        telegramId,
+        result.success,
+        result.failureCount || 0
+      );
+
       if (result.success) {
+        console.log('\u2705 PIN verified successfully - logged to audit');
         haptic();
         setShowPinEntry(false);
         setAuthState(securityManager.getAuthenticationState());
@@ -112,6 +135,7 @@ export function SecurityGate({
           setShowChangePinPrompt(true);
         }
       } else {
+        console.log('\u274c PIN verification failed - logged to audit');
         setError(result.error || 'Authentication failed');
         // Refresh auth state to get updated lockout info
         setAuthState(securityManager.getAuthenticationState());

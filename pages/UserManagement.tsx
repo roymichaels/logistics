@@ -56,8 +56,8 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
-  // View Mode State
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+  // View Mode State - Cards only
+  const viewMode = 'cards';
 
   // Audit Log State
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
@@ -484,43 +484,8 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
           </div>
         </div>
 
-        {/* View Toggle & Clear */}
-        <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              onClick={() => {
-                telegram.hapticFeedback('selection');
-                setViewMode('table');
-              }}
-              aria-label="Table view"
-              style={{
-                ...ROYAL_STYLES.buttonSecondary,
-                padding: '8px 16px',
-                fontSize: '14px',
-                background: viewMode === 'table' ? ROYAL_COLORS.gradientPurple : 'transparent',
-                color: viewMode === 'table' ? '#fff' : ROYAL_COLORS.accent
-              }}
-            >
-              📋 טבלה
-            </button>
-            <button
-              onClick={() => {
-                telegram.hapticFeedback('selection');
-                setViewMode('cards');
-              }}
-              aria-label="Card view"
-              style={{
-                ...ROYAL_STYLES.buttonSecondary,
-                padding: '8px 16px',
-                fontSize: '14px',
-                background: viewMode === 'cards' ? ROYAL_COLORS.gradientPurple : 'transparent',
-                color: viewMode === 'cards' ? '#fff' : ROYAL_COLORS.accent
-              }}
-            >
-              🃏 כרטיסים
-            </button>
-          </div>
-
+        {/* Clear Filters */}
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
           {(searchQuery || filterRole !== 'all' || filterStatus !== 'all') && (
             <button
               onClick={() => {
@@ -555,26 +520,6 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
             </p>
           </div>
         </div>
-      ) : viewMode === 'table' ? (
-        <UserTable
-          users={paginatedUsers}
-          sortField={sortField}
-          sortDirection={sortDirection}
-          onSort={handleSort}
-          onEditRole={(user) => {
-            setSelectedUser(user);
-            setSelectedRole((user.assigned_role || user.requested_role) as User['role']);
-            setShowRoleModal(true);
-          }}
-          onApprove={(user) => {
-            setSelectedUser(user);
-            setSelectedRole(user.requested_role as User['role']);
-            setShowApprovalModal(true);
-          }}
-          onDelete={handleDeleteUser}
-          onViewAudit={handleViewAudit}
-          currentUser={currentUser}
-        />
       ) : (
         <div style={{ display: 'grid', gap: '16px' }}>
           {paginatedUsers.map((user) => (
