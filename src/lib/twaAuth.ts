@@ -71,12 +71,9 @@ async function clientSideAuth(): Promise<TwaAuthResult> {
         .insert({
           id: authUserId,
           telegram_id: user.id.toString(),
-          username: user.username || null,
-          first_name: user.first_name || 'User',
-          last_name: user.last_name || null,
+          username: user.username || `user_${user.id}`,
+          name: user.first_name || 'User',
           role: 'user', // Default role
-          language_code: user.language_code || 'he',
-          is_premium: user.is_premium || false,
           photo_url: user.photo_url || null
         });
 
@@ -118,12 +115,9 @@ async function clientSideAuth(): Promise<TwaAuthResult> {
         .insert({
           id: authUserId,
           telegram_id: user.id.toString(),
-          username: user.username || null,
-          first_name: user.first_name || 'User',
-          last_name: user.last_name || null,
+          username: user.username || `user_${user.id}`,
+          name: user.first_name || 'User',
           role: 'user', // Default role
-          language_code: user.language_code || 'he',
-          is_premium: user.is_premium || false,
           photo_url: user.photo_url || null
         });
 
