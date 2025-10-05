@@ -60,9 +60,9 @@ function verifyTelegramWebApp(initData: string, botToken: string): boolean {
     console.log('📝 dataCheckString length:', dataCheckString.length);
     console.log('📝 dataCheckString preview:', dataCheckString.substring(0, 150));
 
-    // Step 3: Calculate secret_key = HMAC-SHA256(bot_token, "WebAppData")
-    // WAIT - Telegram's algorithm uses SHA256 hash of bot token as the secret key
-    const secretKey = createHash('sha256')
+    // Step 3: Calculate secret_key = HMAC-SHA256("WebAppData", bot_token)
+    // For Telegram Mini Apps (WebApp), the secret key is: HMAC_SHA256("WebAppData", bot_token)
+    const secretKey = createHmac('sha256', 'WebAppData')
       .update(botToken)
       .digest();
 
