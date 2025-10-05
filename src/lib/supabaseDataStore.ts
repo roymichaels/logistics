@@ -779,6 +779,51 @@ export class SupabaseDataStore implements DataStore {
       telegram_id: data.telegram_id,
       updated_at: data.updated_at
     });
+
+    // Update user with latest Telegram data if available
+    const telegramUserData = this.initialUserData as any;
+    if (telegramUserData && (telegramUserData.first_name || telegramUserData.username || telegramUserData.photo_url)) {
+      const updates: any = {};
+
+      // Update name if we have first_name
+      if (telegramUserData.first_name) {
+        const newName = `${telegramUserData.first_name}${telegramUserData.last_name ? ' ' + telegramUserData.last_name : ''}`;
+        if (newName !== data.name) {
+          updates.name = newName;
+        }
+      }
+
+      // Update username if different
+      if (telegramUserData.username && telegramUserData.username.toLowerCase() !== data.username) {
+        updates.username = telegramUserData.username.toLowerCase();
+      }
+
+      // Update photo_url if different
+      if (telegramUserData.photo_url && telegramUserData.photo_url !== data.photo_url) {
+        updates.photo_url = telegramUserData.photo_url;
+      }
+
+      // Apply updates if any
+      if (Object.keys(updates).length > 0) {
+        console.log('🔄 getProfile: Updating user with latest Telegram data:', updates);
+        const { data: updated, error: updateError } = await supabase
+          .from('users')
+          .update(updates)
+          .eq('telegram_id', this.userTelegramId)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error('⚠️ getProfile: Failed to update user data:', updateError);
+          // Continue with existing data
+        } else {
+          console.log('✅ getProfile: User data updated successfully');
+          this.user = updated;
+          return updated;
+        }
+      }
+    }
+
     this.user = data;
     return data;
   }
