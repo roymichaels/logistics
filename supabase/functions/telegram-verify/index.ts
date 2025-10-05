@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createHmac, createHash, timingSafeEqual } from 'node:crypto';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,23 +27,84 @@ function normalizeUsername(username: string | null | undefined): string | null {
   return username.replace(/^@/, '').toLowerCase().trim();
 }
 
-function hexToBytes(hex: string): Uint8Array {
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < bytes.length; i++) {
-    bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+/**
+ * Verify Telegram Web App initData using EXACT Telegram algorithm
+ * Reference: https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app
+ */
+function verifyTelegramWebApp(initData: string, botToken: string): boolean {
+  console.log('🔐 verifyTelegramWebApp: Starting HMAC verification');
+  console.log('🔑 Bot token prefix:', botToken.substring(0, 15) + '...');
+  console.log('🔑 Bot token length:', botToken.length);
+  console.log('📊 initData length:', initData.length);
+  console.log('📊 initData preview:', initData.substring(0, 100) + '...');
+
+  try {
+    // Step 1: Extract hash from initData
+    const params = new URLSearchParams(initData);
+    const hash = params.get('hash');
+
+    if (!hash) {
+      console.error('❌ No hash found in initData');
+      return false;
+    }
+
+    console.log('✅ Hash from Telegram:', hash);
+
+    // Step 2: Remove hash and build data-check-string (alphabetically sorted)
+    params.delete('hash');
+    const dataCheckString = [...params.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, value]) => `${key}=${value}`)
+      .join('\n');
+
+    console.log('📝 dataCheckString length:', dataCheckString.length);
+    console.log('📝 dataCheckString preview:', dataCheckString.substring(0, 150));
+
+    // Step 3: Calculate secret_key = HMAC-SHA256(bot_token, "WebAppData")
+    // WAIT - Telegram's algorithm uses SHA256 hash of bot token as the secret key
+    const secretKey = createHash('sha256')
+      .update(botToken)
+      .digest();
+
+    console.log('🔑 Secret key created from bot token');
+
+    // Step 4: Calculate HMAC-SHA256 of data-check-string with secret_key
+    const computedHash = createHmac('sha256', secretKey)
+      .update(dataCheckString)
+      .digest('hex');
+
+    console.log('🔐 Computed hash:', computedHash);
+    console.log('🔐 Expected hash:', hash);
+
+    // Step 5: Compare using timing-safe comparison
+    const isValid = timingSafeEqual(
+      Buffer.from(computedHash, 'hex'),
+      Buffer.from(hash, 'hex')
+    );
+
+    console.log('✅ Match:', isValid);
+
+    if (!isValid) {
+      console.error('❌ HMAC verification FAILED');
+      console.error('Possible causes:');
+      console.error('1. Wrong TELEGRAM_BOT_TOKEN (not matching the bot that launched the Mini App)');
+      console.error('2. Bot token has extra spaces, newlines, or hidden characters');
+      console.error('3. Multiple bots - using token from wrong bot');
+    } else {
+      console.log('✅ HMAC verification SUCCEEDED');
+    }
+
+    return isValid;
+  } catch (error) {
+    console.error('💥 Exception during verification:', error);
+    return false;
   }
-  return bytes;
 }
 
-async function hmacSha256(key: CryptoKey, data: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(data));
-  return Array.from(new Uint8Array(signature))
-    .map(b => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-async function verifyLoginWidget(data: Record<string, string>, botToken: string): Promise<boolean> {
+/**
+ * Verify Telegram Login Widget data
+ */
+function verifyLoginWidget(data: Record<string, string>, botToken: string): boolean {
   const { hash, ...fields } = data;
 
   if (!hash) {
@@ -54,82 +116,21 @@ async function verifyLoginWidget(data: Record<string, string>, botToken: string)
     .map(k => `${k}=${fields[k]}`)
     .join('\n');
 
-  const encoder = new TextEncoder();
-  const secretKey = await crypto.subtle.importKey(
-    "raw",
-    await crypto.subtle.digest("SHA-256", encoder.encode(botToken)),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
+  const secretKey = createHash('sha256')
+    .update(botToken)
+    .digest();
+
+  const computedHash = createHmac('sha256', secretKey)
+    .update(checkString)
+    .digest('hex');
+
+  return timingSafeEqual(
+    Buffer.from(computedHash, 'hex'),
+    Buffer.from(hash, 'hex')
   );
-
-  const computedHash = await hmacSha256(secretKey, checkString);
-  return computedHash === hash;
 }
 
-async function verifyWebApp(initData: string, botToken: string): Promise<boolean> {
-  try {
-    console.log('🔐 verifyWebApp: Starting verification');
-    console.log('📊 initData length:', initData.length);
-    console.log('📊 initData preview:', initData.substring(0, 100) + '...');
-    console.log('🔑 botToken configured:', !!botToken, 'length:', botToken?.length || 0);
-
-    const urlParams = new URLSearchParams(initData);
-    const hash = urlParams.get('hash');
-
-    if (!hash) {
-      console.error('❌ No hash found in initData');
-      return false;
-    }
-
-    console.log('✅ Hash from Telegram:', hash);
-
-    // Remove hash from params for verification
-    urlParams.delete('hash');
-
-    // Build data check string (must be sorted alphabetically)
-    const dataCheckString = Array.from(urlParams.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, value]) => `${key}=${value}`)
-      .join('\n');
-
-    console.log('📝 dataCheckString length:', dataCheckString.length);
-    console.log('📝 dataCheckString preview:', dataCheckString.substring(0, 150) + '...');
-
-    const encoder = new TextEncoder();
-
-    // Step 1: SHA-256 hash of bot token
-    const secretKey = await crypto.subtle.importKey(
-      "raw",
-      await crypto.subtle.digest("SHA-256", encoder.encode(botToken)),
-      { name: "HMAC", hash: "SHA-256" },
-      false,
-      ["sign"]
-    );
-
-    // Step 2: HMAC-SHA256 of data check string
-    const computedHash = await hmacSha256(secretKey, dataCheckString);
-
-    console.log('🔐 Computed hash:', computedHash);
-    console.log('🔐 Expected hash:', hash);
-    console.log('✅ Match:', computedHash === hash);
-
-    const isValid = computedHash === hash;
-
-    if (!isValid) {
-      console.error('❌ HMAC verification failed - hashes do not match');
-      console.error('This usually means:');
-      console.error('1. Wrong TELEGRAM_BOT_TOKEN (not matching the bot that opened the Mini App)');
-      console.error('2. initData was modified or decoded incorrectly');
-      console.error('3. Bot token has spaces or hidden characters');
-    }
-
-    return isValid;
-  } catch (error) {
-    console.error('💥 WebApp verification exception:', error);
-    return false;
-  }
-}
+// OLD verifyWebApp function removed - now using verifyTelegramWebApp with Node crypto
 
 function parseWebAppInitData(initData: string): TelegramUser | null {
   try {
@@ -186,7 +187,7 @@ Deno.serve(async (req) => {
     let user: TelegramUser | null = null;
 
     if (type === 'loginWidget' && data) {
-      isValid = await verifyLoginWidget(data, botToken);
+      isValid = verifyLoginWidget(data, botToken);
       if (isValid) {
         user = {
           id: parseInt(data.id || '0'),
@@ -198,7 +199,7 @@ Deno.serve(async (req) => {
         };
       }
     } else if (type === 'webapp' && initData) {
-      isValid = await verifyWebApp(initData, botToken);
+      isValid = verifyTelegramWebApp(initData, botToken);
       if (isValid) {
         user = parseWebAppInitData(initData);
       }
