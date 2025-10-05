@@ -78,13 +78,12 @@ export function BottomNavigation({
       // NO ACTION BUTTON. No power. Contact manager.
     },
 
-    // 👑 OWNER: Full Platform Control - All Businesses
+    // 👑 OWNER: Essential tabs + Chat
     owner: {
       tabs: [
         { id: 'dashboard', label: hebrew.dashboard, icon: '🏠' },
-        { id: 'stats', label: hebrew.stats, icon: '📊' },
-        { id: 'partners', label: hebrew.partners, icon: '👥' },
-        { id: 'orders', label: hebrew.orders, icon: '🧾' }
+        { id: 'chat', label: 'צ\'אט', icon: '💬' },
+        { id: 'settings', label: hebrew.settings, icon: '⚙️' }
       ],
       action: {
         label: 'פעולות מהירות',
@@ -92,13 +91,12 @@ export function BottomNavigation({
       }
     },
 
-    // 👑 MANAGER: Business Command Center
+    // 👑 MANAGER: Essential tabs + Chat
     manager: {
       tabs: [
         { id: 'dashboard', label: hebrew.dashboard, icon: '🏠' },
-        { id: 'stats', label: hebrew.stats, icon: '📊' },
-        { id: 'partners', label: hebrew.partners, icon: '👥' },
-        { id: 'orders', label: hebrew.orders, icon: '🧾' }
+        { id: 'chat', label: 'צ\'אט', icon: '💬' },
+        { id: 'settings', label: hebrew.settings, icon: '⚙️' }
       ],
       action: {
         label: 'פעולות מהירות',
@@ -106,11 +104,11 @@ export function BottomNavigation({
       }
     },
 
-    // 🛒 SALES: Fast Order Entry + Personal Stats
+    // 🛒 SALES: Orders + Chat + Stats
     sales: {
       tabs: [
         { id: 'orders', label: hebrew.orders, icon: '🛒' },
-        { id: 'products', label: hebrew.products, icon: '📦' },
+        { id: 'chat', label: 'צ\'אט', icon: '💬' },
         { id: 'my-stats', label: hebrew.my_stats, icon: '📈' }
       ],
       action: {
@@ -119,12 +117,11 @@ export function BottomNavigation({
       }
     },
 
-    // 🏷️ WAREHOUSE: Inventory Operations Only
+    // 🏷️ WAREHOUSE: Inventory + Chat + Logs
     warehouse: {
       tabs: [
         { id: 'inventory', label: hebrew.inventory, icon: '📦' },
-        { id: 'incoming', label: hebrew.incoming, icon: '🚚' },
-        { id: 'restock-requests', label: hebrew.restock_requests, icon: '🏷️' },
+        { id: 'chat', label: 'צ\'אט', icon: '💬' },
         { id: 'logs', label: hebrew.logs, icon: '📊' }
       ],
       action: {
@@ -133,12 +130,11 @@ export function BottomNavigation({
       }
     },
 
-    // 🚚 DRIVER: Deliveries + Personal Inventory + Zones
+    // 🚚 DRIVER: Deliveries + Chat + Status
     driver: {
       tabs: [
         { id: 'my-deliveries', label: hebrew.my_deliveries, icon: '🚚' },
-        { id: 'my-inventory', label: hebrew.my_inventory, icon: '📦' },
-        { id: 'my-zones', label: hebrew.my_zones, icon: '🗺️' },
+        { id: 'chat', label: 'צ\'אט', icon: '💬' },
         { id: 'driver-status', label: hebrew.driver_status, icon: '🟢' }
       ],
       action: {

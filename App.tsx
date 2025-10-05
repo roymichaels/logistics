@@ -12,6 +12,8 @@ import { SuperadminSetup } from './src/components/SuperadminSetup';
 import { FloatingActionMenu } from './src/components/FloatingActionButton';
 import { Header } from './src/components/Header';
 import { SecurityGate } from './src/components/SecurityGate';
+import { RightSidebarMenu } from './src/components/RightSidebarMenu';
+import { SidebarToggleButton } from './src/components/SidebarToggleButton';
 import { debugLog } from './src/components/DebugPanel';
 import { hebrew } from './src/lib/hebrew';
 
@@ -37,7 +39,6 @@ const Products = lazy(() =>
 const Reports = lazy(() =>
   import('./pages/Reports').then((module) => ({ default: module.Reports }))
 );
-const Stats = lazy(() => import('./pages/Stats').then((module) => ({ default: module.Stats })));
 const Partners = lazy(() =>
   import('./pages/Partners').then((module) => ({ default: module.Partners }))
 );
@@ -98,7 +99,6 @@ type Page =
   | 'users'
   | 'chat'
   | 'channels'
-  | 'stats'
   | 'partners'
   | 'my-stats'
   | 'my-role'
@@ -135,6 +135,7 @@ export default function App() {
   const [showOrderWizard, setShowOrderWizard] = useState(false);
   const [showBusinessManager, setShowBusinessManager] = useState(false);
   const [showActionMenu, setShowActionMenu] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
   const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
   const [initialPageRole, setInitialPageRole] = useState<string | null>(null);
   const [showSuperadminSetup, setShowSuperadminSetup] = useState(false);
@@ -457,6 +458,7 @@ export default function App() {
 
   const handleNavigate = (page: Page) => {
     setCurrentPage(page);
+    setShowSidebar(false); // Close sidebar when navigating
     telegram.hapticFeedback('selection');
   };
 
@@ -625,9 +627,6 @@ export default function App() {
       case 'products':
         if (!isOperational) break;
         return <Products dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'stats':
-        if (!isAdmin) break;
-        return <Stats dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'partners':
         if (!isAdmin) break;
         return <Partners dataStore={dataStore} onNavigate={handleNavigate} />;
@@ -747,6 +746,23 @@ export default function App() {
             onShowCreateProduct={handleShowCreateProduct}
           />
         )}
+
+        {/* Sidebar Toggle Button - Hidden for 'user' role */}
+        {userRole && userRole !== 'user' && (
+          <SidebarToggleButton
+            onClick={() => setShowSidebar(true)}
+            hasNotifications={false}
+          />
+        )}
+
+        {/* Right Sidebar Menu */}
+        <RightSidebarMenu
+          isOpen={showSidebar}
+          onClose={() => setShowSidebar(false)}
+          userRole={userRole}
+          currentPage={currentPage}
+          onNavigate={handleNavigate}
+        />
 
         {/* Floating Action Menu */}
         <FloatingActionMenu
