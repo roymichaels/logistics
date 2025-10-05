@@ -182,12 +182,12 @@ Deno.serve(async (req) => {
     const firstAdminUsername = normalizeUsername(FIRST_ADMIN_USERNAME);
     const isFirstAdmin = usernameNormalized === firstAdminUsername;
 
-    // Check if user should be app_owner (platform developer)
+    // Check if user is the platform owner
     const APP_OWNER_TELEGRAM_ID = Deno.env.get('APP_OWNER_TELEGRAM_ID');
-    const isAppOwner = APP_OWNER_TELEGRAM_ID && telegramIdStr === APP_OWNER_TELEGRAM_ID;
+    const isPlatformOwner = APP_OWNER_TELEGRAM_ID && telegramIdStr === APP_OWNER_TELEGRAM_ID;
 
-    // Default role for new users is 'owner'
-    const defaultRole = isAppOwner ? 'app_owner' : 'owner';
+    // Default role for new users is 'manager', but platform owner gets 'owner'
+    const defaultRole = isPlatformOwner ? 'owner' : 'manager';
 
     // First, try to find user by telegram_id (this is the primary identifier)
     let { data: existingUser } = await supabase
@@ -227,14 +227,14 @@ Deno.serve(async (req) => {
           .eq('id', userId);
       }
 
-      // Auto-promote to app_owner if they're the designated platform owner
-      if (isAppOwner && userRole !== 'app_owner') {
+      // Auto-promote to owner if they're the designated platform owner
+      if (isPlatformOwner && userRole !== 'owner') {
         await supabase
           .from('users')
-          .update({ role: 'app_owner' })
+          .update({ role: 'owner' })
           .eq('id', userId);
-        userRole = 'app_owner';
-        console.log(`⚡ Auto-promoted user to app_owner: ${telegramIdStr}`);
+        userRole = 'owner';
+        console.log(`👑 Auto-promoted user to owner: ${telegramIdStr}`);
       }
     } else {
       // Create new user in users table
