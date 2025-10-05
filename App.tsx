@@ -736,6 +736,7 @@ export default function App() {
             userRole={userRole}
             businessId={currentBusinessId || undefined}
             onShowActionMenu={() => setShowActionMenu(true)}
+            onOpenSidebar={() => setShowSidebar(true)}
             onShowCreateOrder={handleShowCreateOrder}
             onShowCreateTask={handleShowCreateTask}
             onShowScanBarcode={handleShowScanBarcode}
@@ -744,14 +745,6 @@ export default function App() {
             onShowCreateRoute={handleShowCreateRoute}
             onShowCreateUser={handleShowCreateUser}
             onShowCreateProduct={handleShowCreateProduct}
-          />
-        )}
-
-        {/* Sidebar Toggle Button - Hidden for 'user' role */}
-        {userRole && userRole !== 'user' && (
-          <SidebarToggleButton
-            onClick={() => setShowSidebar(true)}
-            hasNotifications={false}
           />
         )}
 
