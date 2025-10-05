@@ -95,13 +95,18 @@ export function RoleChangeWorkflow({
     setShowConfirmation(false);
 
     try {
-      const targetUserId = 'telegram_id' in targetUser ? targetUser.telegram_id : targetUser.id;
+      const targetUserId = 'id' in targetUser && targetUser.id ? targetUser.id :
+                           'telegram_id' in targetUser ? targetUser.telegram_id : null;
 
-      // Update role in database
+      if (!targetUserId) {
+        throw new Error('No user ID found');
+      }
+
+      // Update role in database using id field (primary key)
       const { error } = await dataStore.supabase
         .from('users')
         .update({ role: selectedRole })
-        .eq('telegram_id', targetUserId);
+        .eq('id', targetUserId);
 
       if (error) throw error;
 
@@ -110,7 +115,7 @@ export function RoleChangeWorkflow({
         await dataStore.supabase.rpc('log_user_role_change', {
           p_target_user_id: targetUserId,
           p_target_username: ('username' in targetUser ? targetUser.username : null) || null,
-          p_performed_by: currentUser.telegram_id,
+          p_performed_by: currentUser.id,
           p_performed_by_username: currentUser.username || null,
           p_old_role: currentRole,
           p_new_role: selectedRole,
