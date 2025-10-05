@@ -46,7 +46,7 @@ export function Header({ user, onNavigate, onLogout }: HeaderProps) {
 
     switch (action) {
       case 'profile':
-        onNavigate('my-role');
+        onNavigate('profile');
         break;
       case 'settings':
         onNavigate('settings');

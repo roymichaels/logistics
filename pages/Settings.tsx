@@ -227,29 +227,9 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
             </div>
           </section>
 
-          {/* 🔒 Only show System Info and Actions for assigned users */}
+          {/* 🔒 Only show Actions for assigned users */}
           {!isUnassignedUser && (
             <>
-              {/* System Info */}
-              <section
-                style={{
-                  padding: '24px',
-                  borderRadius: '22px',
-                  background: ROYAL_COLORS.card,
-                  border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-                  boxShadow: ROYAL_COLORS.shadow,
-                  marginBottom: '24px'
-                }}
-              >
-                <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '700' }}>📊 מידע מערכת</h2>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <RoyalInfoRow label="מצב נוכחי" value="Real Mode" />
-                  <RoyalInfoRow label="מתאם נתונים" value={config?.adapters?.data || 'Unknown'} />
-                  <RoyalInfoRow label="גרסה" value="1.0.0 - Roy Michaels Command System" />
-                  <RoyalInfoRow label="פלטפורמה" value={telegram.isAvailable ? 'Telegram Mini App' : 'Web Browser'} />
-                </div>
-              </section>
-
               {/* Actions */}
               <section
                 style={{

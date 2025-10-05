@@ -80,6 +80,9 @@ const ZoneManagement = lazy(() =>
 const MyRole = lazy(() =>
   import('./pages/MyRole').then((module) => ({ default: module.MyRole }))
 );
+const Profile = lazy(() =>
+  import('./pages/Profile').then((module) => ({ default: module.Profile }))
+);
 
 type Page =
   | 'dashboard'
@@ -87,6 +90,7 @@ type Page =
   | 'orders'
   | 'tasks'
   | 'settings'
+  | 'profile'
   | 'products'
   | 'customers'
   | 'reports'
@@ -683,6 +687,8 @@ export default function App() {
         return <UserManagement onNavigate={handleNavigate} currentUser={user} />;
       case 'settings':
         return <Settings dataStore={dataStore} onNavigate={handleNavigate} config={config} currentUser={user} />;
+      case 'profile':
+        return <Profile dataStore={dataStore} onNavigate={handleNavigate} />;
       default:
         return <Dashboard dataStore={dataStore} onNavigate={handleNavigate} />;
     }
