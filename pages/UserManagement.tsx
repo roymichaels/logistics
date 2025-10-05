@@ -94,18 +94,8 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       if (quickCheck.valid) {
         sessionTracker.log('USER_MGMT_SESSION_READY', 'success', 'Session already ready');
       } else {
-        // CRITICAL: Wait for session to be ready before proceeding
-        sessionTracker.log('USER_MGMT_WAIT_SESSION', 'success', 'Waiting for session readiness');
-        const sessionReady = await sessionTracker.waitForSession(5000);
-
-        if (!sessionReady) {
-          sessionTracker.log('USER_MGMT_SESSION_TIMEOUT', 'error', 'Session not ready');
-          Toast.error('Session not ready. Please refresh the page.');
-          setLoading(false);
-          return;
-        }
-
-        sessionTracker.log('USER_MGMT_SESSION_READY', 'success', 'Session verified and ready');
+        console.warn('⚠️ No valid session found, attempting to load users anyway (service role query)');
+        sessionTracker.log('USER_MGMT_NO_SESSION', 'warning', 'No session but attempting query anyway');
       }
 
       // Debug authentication state

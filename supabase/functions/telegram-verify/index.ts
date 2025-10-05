@@ -329,10 +329,13 @@ Deno.serve(async (req) => {
       console.log('No business associations found - user may be infrastructure_owner or needs business assignment');
     }
 
-    // Update auth user metadata with role and workspace claims
-    const { error: updateMetadataError } = await supabase.auth.admin.updateUserById(
+    // CRITICAL: Update auth user with password AND metadata in ONE operation
+    // This ensures JWT claims are present when we sign in
+    const { error: updateUserError } = await supabase.auth.admin.updateUserById(
       authUserId,
       {
+        password: telegramIdStr,
+        email_confirm: true,
         app_metadata: {
           telegram_id: telegramIdStr,
           user_id: userId,
@@ -351,66 +354,46 @@ Deno.serve(async (req) => {
       }
     );
 
-    if (updateMetadataError) {
-      console.error('Failed to update auth metadata:', updateMetadataError);
-    } else {
-      console.log('Auth metadata updated with JWT claims:', {
-        user_id: userId,
-        role: finalUserRole,
-        app_role: businessRole,
-        workspace_id: workspaceId
-      });
+    if (updateUserError) {
+      console.error('Failed to update auth user:', updateUserError);
+      throw new Error('Failed to update user authentication');
     }
 
-    // CRITICAL: Create a proper session using signInWithPassword or custom JWT
-    // We need to actually sign the user in to get valid access/refresh tokens
-    // The generateLink method doesn't create a session, it creates a magic link
-
-    // Sign in as the user using admin API to get actual session tokens
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password: telegramIdStr // Use telegram_id as password (consistent)
+    console.log('Auth user updated with password and JWT claims:', {
+      user_id: userId,
+      role: finalUserRole,
+      app_role: businessRole,
+      workspace_id: workspaceId
     });
 
-    let session = signInData?.session;
-
-    // If sign in failed (user doesn't have password set), update user and try again
-    if (signInError || !session) {
-      console.log('Setting password for user and retrying sign in...');
-
-      // Update user to have a password
-      const { error: updateError } = await supabase.auth.admin.updateUserById(
-        authUserId,
-        {
-          password: telegramIdStr,
-          email_confirm: true
-        }
-      );
-
-      if (updateError) {
-        console.error('Failed to set password:', updateError);
-        throw new Error('Failed to set user password');
+    // Create a regular (non-admin) supabase client to sign in as the user
+    const userSupabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
       }
+    });
 
-      // Retry sign in
-      const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
-        email,
-        password: telegramIdStr
-      });
+    // Sign in as the user to get valid session tokens
+    const { data: signInData, error: signInError } = await userSupabase.auth.signInWithPassword({
+      email,
+      password: telegramIdStr
+    });
 
-      if (retryError || !retryData?.session) {
-        console.error('Failed to sign in after password set:', retryError);
-        throw new Error('Failed to create session');
-      }
-
-      session = retryData.session;
+    if (signInError || !signInData?.session) {
+      console.error('Failed to create user session:', signInError);
+      throw new Error('Failed to create session: ' + (signInError?.message || 'Unknown error'));
     }
+
+    const session = signInData.session;
 
     console.log('Session created successfully with JWT claims:', {
       hasAccessToken: !!session.access_token,
       hasRefreshToken: !!session.refresh_token,
       expiresAt: session.expires_at,
-      user_id: session.user.id
+      user_id: session.user.id,
+      hasAppMetadata: !!session.user.app_metadata,
+      appMetadata: session.user.app_metadata
     });
 
     return new Response(
