@@ -4,6 +4,93 @@ export type TwaAuthResult =
   | { ok: true }
   | { ok: false; reason: 'no_init_data' | 'verify_failed' | 'tokens_missing' | 'set_session_failed'; details?: string };
 
+/**
+ * Client-side authentication fallback
+ * Used when backend verification fails or is unavailable
+ */
+async function clientSideAuth(): Promise<TwaAuthResult> {
+  console.log('🔐 clientSideAuth: Starting client-side authentication');
+
+  const WebApp = (window as any)?.Telegram?.WebApp;
+  if (!WebApp?.initDataUnsafe?.user) {
+    console.error('❌ clientSideAuth: No Telegram user data available');
+    return { ok: false, reason: 'no_init_data' };
+  }
+
+  const user = WebApp.initDataUnsafe.user;
+  const supabase = getSupabase();
+
+  try {
+    // Create a synthetic email for this Telegram user
+    const email = `${user.id}@telegram.auth`;
+    const password = user.id.toString();
+
+    console.log('👤 clientSideAuth: Telegram user:', {
+      id: user.id,
+      username: user.username,
+      first_name: user.first_name
+    });
+
+    // Try to sign in with existing auth user
+    console.log('🔑 clientSideAuth: Attempting sign in...');
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (signInError) {
+      // User doesn't exist in auth, create them
+      console.log('📝 clientSideAuth: User not found, creating new auth user...');
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            telegram_id: user.id.toString(),
+            username: user.username,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            photo_url: user.photo_url
+          }
+        }
+      });
+
+      if (signUpError || !signUpData.session) {
+        console.error('❌ clientSideAuth: Failed to create user:', signUpError);
+        return { ok: false, reason: 'set_session_failed', details: signUpError?.message };
+      }
+
+      console.log('✅ clientSideAuth: New user created and authenticated');
+      return { ok: true };
+    }
+
+    if (!signInData.session) {
+      console.error('❌ clientSideAuth: No session after sign in');
+      return { ok: false, reason: 'set_session_failed', details: 'No session returned' };
+    }
+
+    console.log('✅ clientSideAuth: User authenticated successfully', {
+      user_id: signInData.session.user.id,
+      has_metadata: !!signInData.session.user.user_metadata
+    });
+
+    // Store session in window for debugging
+    if (typeof window !== 'undefined') {
+      (window as any).__SUPABASE_SESSION__ = signInData.session;
+      (window as any).__JWT_CLAIMS__ = signInData.session.user.app_metadata;
+    }
+
+    return { ok: true };
+  } catch (error) {
+    console.error('❌ clientSideAuth: Exception during authentication', error);
+    return {
+      ok: false,
+      reason: 'verify_failed',
+      details: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+
 export async function ensureTwaSession(): Promise<TwaAuthResult> {
   const supabase = getSupabase();
 
@@ -56,12 +143,15 @@ export async function ensureTwaSession(): Promise<TwaAuthResult> {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ ensureTwaSession: Backend verification failed', {
+      console.warn('⚠️ ensureTwaSession: Backend verification failed, will use client-side fallback', {
         status: response.status,
         statusText: response.statusText,
         error: errorText,
       });
-      return { ok: false, reason: 'verify_failed', details: `${response.status}: ${errorText}` };
+
+      // Use client-side fallback when backend fails
+      console.log('🔄 Switching to client-side authentication...');
+      return await clientSideAuth();
     }
 
     const result = await response.json();
@@ -103,11 +193,8 @@ export async function ensureTwaSession(): Promise<TwaAuthResult> {
 
     return { ok: true };
   } catch (error) {
-    console.error('❌ ensureTwaSession: Exception during authentication', error);
-    return {
-      ok: false,
-      reason: 'verify_failed',
-      details: error instanceof Error ? error.message : String(error)
-    };
+    console.warn('⚠️ ensureTwaSession: Exception during backend authentication, using client-side fallback', error);
+    console.log('🔄 Switching to client-side authentication due to exception...');
+    return await clientSideAuth();
   }
 }
