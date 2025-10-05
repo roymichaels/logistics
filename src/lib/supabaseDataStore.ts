@@ -762,7 +762,7 @@ export class SupabaseDataStore implements DataStore {
       const newUser: Omit<User, 'id'> = {
         telegram_id: this.userTelegramId,
         username: telegramUserData?.username?.toLowerCase(),
-        role: 'owner',
+        role: 'user', // Default to unassigned user role
         name: telegramUserData?.first_name
           ? `${telegramUserData.first_name}${telegramUserData.last_name ? ' ' + telegramUserData.last_name : ''}`
           : 'משתמש חדש',
@@ -819,20 +819,24 @@ export class SupabaseDataStore implements DataStore {
       // Apply updates if any
       if (Object.keys(updates).length > 0) {
         console.log('🔄 getProfile: Updating user with latest Telegram data:', updates);
+        updates.updated_at = new Date().toISOString();
+
         const { data: updated, error: updateError } = await supabase
           .from('users')
           .update(updates)
           .eq('telegram_id', this.userTelegramId)
           .select()
-          .single();
+          .maybeSingle();
 
         if (updateError) {
           console.error('⚠️ getProfile: Failed to update user data:', updateError);
           // Continue with existing data
-        } else {
+        } else if (updated) {
           console.log('✅ getProfile: User data updated successfully');
           this.user = updated;
           return updated;
+        } else {
+          console.warn('⚠️ getProfile: Update succeeded but no data returned');
         }
       }
     }
