@@ -25,6 +25,19 @@ export function Header({ user, onNavigate, onLogout }: HeaderProps) {
     }
   }, [dropdownOpen]);
 
+  // Debug: Log user data
+  useEffect(() => {
+    console.log('🔍 Header: User data received:', {
+      hasUser: !!user,
+      name: user?.name,
+      first_name: (user as any)?.first_name,
+      username: user?.username,
+      photo_url: user?.photo_url,
+      role: user?.role,
+      fullUser: user
+    });
+  }, [user]);
+
   const userName = user?.name || (user as any)?.first_name || 'משתמש';
   const userInitial = userName[0]?.toUpperCase() || 'U';
 
