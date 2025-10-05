@@ -42,8 +42,8 @@ const Products = lazy(() =>
 const Reports = lazy(() =>
   import('./pages/Reports').then((module) => ({ default: module.Reports }))
 );
-const Partners = lazy(() =>
-  import('./pages/Partners').then((module) => ({ default: module.Partners }))
+const Businesses = lazy(() =>
+  import('./pages/Businesses').then((module) => ({ default: module.Businesses }))
 );
 const MyStats = lazy(() =>
   import('./pages/MyStats').then((module) => ({ default: module.MyStats }))
@@ -102,7 +102,7 @@ type Page =
   | 'users'
   | 'chat'
   | 'channels'
-  | 'partners'
+  | 'businesses'
   | 'my-stats'
   | 'my-role'
   | 'inventory'
@@ -630,9 +630,9 @@ export default function App() {
       case 'products':
         if (!isOperational) break;
         return <Products dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'partners':
+      case 'businesses':
         if (!isAdmin) break;
-        return <Partners dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <Businesses dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'my-stats':
         return <MyStats dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'my-role':

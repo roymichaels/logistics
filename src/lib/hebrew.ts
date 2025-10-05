@@ -12,7 +12,7 @@ export const hebrew = {
   customers: 'לקוחות',
   reports: 'דוחות',
   settings: 'הגדרות',
-  partners: 'שותפים',
+  businesses: 'עסקים',
   my_stats: 'הנתונים שלי',
   inventory: 'מלאי',
   incoming: 'כניסות',

@@ -29,7 +29,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
         { id: 'inventory', label: 'מלאי', icon: '📊', page: 'manager-inventory' },
         { id: 'products', label: 'מוצרים', icon: '🏷️', page: 'products' },
         { id: 'reports', label: 'דוחות', icon: '📈', page: 'reports' },
-        { id: 'partners', label: 'שותפים', icon: '👥', page: 'partners' },
+        { id: 'businesses', label: 'עסקים', icon: '🏢', page: 'businesses' },
         { id: 'zones', label: 'ניהול אזורים', icon: '🗺️', page: 'zone-management' },
         { id: 'dispatch', label: 'לוח משלוחים', icon: '📋', page: 'dispatch-board' },
         { id: 'users', label: 'ניהול משתמשים', icon: '👤', page: 'users' }
@@ -41,7 +41,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
         { id: 'inventory', label: 'מלאי', icon: '📊', page: 'manager-inventory' },
         { id: 'products', label: 'מוצרים', icon: '🏷️', page: 'products' },
         { id: 'reports', label: 'דוחות', icon: '📈', page: 'reports' },
-        { id: 'partners', label: 'שותפים', icon: '👥', page: 'partners' },
+        { id: 'businesses', label: 'עסקים', icon: '🏢', page: 'businesses' },
         { id: 'zones', label: 'ניהול אזורים', icon: '🗺️', page: 'zone-management' },
         { id: 'dispatch', label: 'לוח משלוחים', icon: '📋', page: 'dispatch-board' }
       ],
