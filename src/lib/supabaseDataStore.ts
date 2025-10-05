@@ -1,4 +1,4 @@
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { RealtimeChannel, createClient } from '@supabase/supabase-js';
 import { getSupabase } from './supabaseClient';
 import {
   DataStore,
@@ -58,6 +58,10 @@ import {
 } from '../../data/types';
 
 const supabase = getSupabase();
+
+// Environment variables for fresh client creation
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export { supabase };
 

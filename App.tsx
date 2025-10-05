@@ -292,14 +292,29 @@ export default function App() {
         debugLog.error('❌ Failed to establish TWA session', authResult);
         console.error('TWA auth failed:', authResult);
 
-        // Show more detailed error in console
-        const reasons: Record<string, string> = {
-          'no_init_data': 'אין נתוני Telegram - יש לפתוח מתוך טלגרם',
-          'verify_failed': `אימות Telegram נכשל${authResult.details ? ': ' + authResult.details : ''}`,
-          'tokens_missing': 'חסרים tokens מהשרת',
-          'set_session_failed': `שגיאה בהקמת Session${authResult.details ? ': ' + authResult.details : ''}`
+        const reasons: Record<string, { message: string; hint: string }> = {
+          'no_init_data': {
+            message: 'אין נתוני Telegram',
+            hint: 'יש לפתוח את האפליקציה מתוך צ\'אט טלגרם'
+          },
+          'verify_failed': {
+            message: 'אימות Telegram נכשל',
+            hint: authResult.details || 'נסה לסגור ולפתוח את האפליקציה מחדש'
+          },
+          'tokens_missing': {
+            message: 'שגיאת תקשורת עם השרת',
+            hint: 'בדוק את החיבור לאינטרנט ונסה שוב'
+          },
+          'set_session_failed': {
+            message: 'שגיאה בהתחברות למערכת',
+            hint: authResult.details || 'נסה לסגור ולפתוח את האפליקציה מחדש'
+          }
         };
-        throw new Error(reasons[authResult.reason] || 'שגיאה באימות');
+        const errorInfo = reasons[authResult.reason] || {
+          message: 'שגיאה באימות',
+          hint: 'נסה שוב מאוחר יותר'
+        };
+        throw new Error(`${errorInfo.message}\n${errorInfo.hint}`);
       }
 
       debugLog.success('✅ TWA session established with JWT claims');
@@ -534,6 +549,7 @@ export default function App() {
   }
 
   if (error) {
+    const [errorMessage, errorHint] = error.split('\n');
     return (
       <div style={{
           display: 'flex',
@@ -544,10 +560,29 @@ export default function App() {
           backgroundColor: theme.bg_color,
           color: theme.text_color,
           padding: '20px',
-          textAlign: 'center'
+          textAlign: 'center',
+          direction: 'rtl'
         }}>
-          <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>⚠️ Error</h1>
-          <p style={{ fontSize: '16px', marginBottom: '24px', direction: 'rtl' }}>{error}</p>
+          <div style={{ fontSize: '64px', marginBottom: '24px' }}>⚠️</div>
+          <h1 style={{
+            fontSize: '24px',
+            fontWeight: '600',
+            marginBottom: '12px',
+            color: theme.text_color
+          }}>
+            {errorMessage || 'שגיאה באתחול'}
+          </h1>
+          {errorHint && (
+            <p style={{
+              fontSize: '16px',
+              marginBottom: '24px',
+              color: theme.hint_color,
+              lineHeight: '1.6',
+              maxWidth: '400px'
+            }}>
+              {errorHint}
+            </p>
+          )}
           <button
             onClick={() => window.location.reload()}
             style={{
@@ -555,9 +590,11 @@ export default function App() {
               backgroundColor: theme.button_color,
               color: theme.button_text_color,
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '12px',
               fontSize: '16px',
-              cursor: 'pointer'
+              fontWeight: '500',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}
           >
             נסה שוב

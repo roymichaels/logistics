@@ -66,14 +66,18 @@ async function clientSideAuth(): Promise<TwaAuthResult> {
       const authUserId = signUpData.session.user.id;
       console.log('📝 clientSideAuth: Creating user record in database...');
 
+      const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ').trim();
+
       const { error: insertError } = await supabase
         .from('users')
         .insert({
           id: authUserId,
           telegram_id: user.id.toString(),
           username: user.username || `user_${user.id}`,
-          name: user.first_name || 'User',
-          role: 'user', // Default role
+          name: fullName || user.first_name || 'User',
+          first_name: user.first_name || null,
+          last_name: user.last_name || null,
+          role: 'manager', // Default role for new users
           photo_url: user.photo_url || null
         });
 
@@ -110,14 +114,18 @@ async function clientSideAuth(): Promise<TwaAuthResult> {
     if (!existingUser) {
       // User authenticated but no database record - create it
       console.log('📝 clientSideAuth: User record not found, creating...');
+      const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ').trim();
+
       const { error: insertError } = await supabase
         .from('users')
         .insert({
           id: authUserId,
           telegram_id: user.id.toString(),
           username: user.username || `user_${user.id}`,
-          name: user.first_name || 'User',
-          role: 'user', // Default role
+          name: fullName || user.first_name || 'User',
+          first_name: user.first_name || null,
+          last_name: user.last_name || null,
+          role: 'manager', // Default role for new users
           photo_url: user.photo_url || null
         });
 

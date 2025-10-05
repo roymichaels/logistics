@@ -164,11 +164,21 @@ Deno.serve(async (req) => {
     const { type, data, initData }: VerifyRequest = await req.json();
     console.log('📱 Telegram verify request:', { type, hasData: !!data, hasInitData: !!initData });
 
-    const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
+    let botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
     if (!botToken) {
       console.error('❌ TELEGRAM_BOT_TOKEN environment variable not set');
-      throw new Error('TELEGRAM_BOT_TOKEN not configured');
+      return new Response(
+        JSON.stringify({
+          valid: false,
+          error: 'TELEGRAM_BOT_TOKEN not configured on server',
+          hint: 'Please set the TELEGRAM_BOT_TOKEN environment variable in Supabase Edge Function secrets'
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    // CRITICAL: Trim whitespace from bot token
+    botToken = botToken.trim();
 
     // Log bot token info (masked for security)
     const tokenMasked = botToken.substring(0, 10) + '...' + botToken.substring(botToken.length - 4);
@@ -177,10 +187,20 @@ Deno.serve(async (req) => {
     // Check for common token issues
     if (botToken.includes(' ') || botToken.includes('\n') || botToken.includes('\r')) {
       console.warn('⚠️ WARNING: Bot token contains whitespace characters! This will cause verification to fail.');
+      console.warn('⚠️ Trimming token automatically...');
+      botToken = botToken.replace(/[\s\n\r]/g, '');
     }
 
     if (botToken.length < 40) {
       console.warn('⚠️ WARNING: Bot token seems too short. Expected ~45 characters.');
+      return new Response(
+        JSON.stringify({
+          valid: false,
+          error: 'Bot token appears invalid (too short)',
+          hint: 'Please verify TELEGRAM_BOT_TOKEN is correctly set'
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     let isValid = false;
@@ -206,9 +226,14 @@ Deno.serve(async (req) => {
     }
 
     if (!isValid || !user) {
-      console.log('Telegram verification failed');
+      console.log('❌ Telegram verification failed');
       return new Response(
-        JSON.stringify({ valid: false, error: 'Invalid signature' }),
+        JSON.stringify({
+          valid: false,
+          error: 'Invalid signature',
+          hint: 'The initData signature could not be verified. This usually means: 1) Wrong TELEGRAM_BOT_TOKEN (not matching the bot that launched the app), 2) initData has been modified, or 3) initData has expired. The client will automatically fall back to client-side authentication.',
+          will_use_fallback: true
+        }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
