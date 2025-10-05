@@ -281,19 +281,6 @@ Deno.serve(async (req) => {
       console.log('Created auth user:', authUserId);
     }
 
-    // Generate session token
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email,
-    });
-
-    if (sessionError || !sessionData) {
-      console.error('Failed to generate session:', sessionError);
-      throw new Error('Failed to generate session');
-    }
-
-    console.log('Session generated successfully');
-
     // Fetch the complete user record to ensure we have the latest role
     const { data: completeUser, error: fetchError } = await supabase
       .from('users')
@@ -308,6 +295,72 @@ Deno.serve(async (req) => {
     const finalUserRole = completeUser?.role || userRole;
     console.log(`Final user role being returned: ${finalUserRole}`);
 
+    // Fetch user's business associations to determine workspace_id
+    const { data: businessAssociations, error: businessError } = await supabase
+      .from('business_users')
+      .select('business_id, role, is_primary')
+      .eq('user_id', userId)
+      .eq('active', true)
+      .order('is_primary', { ascending: false })
+      .limit(1);
+
+    let workspaceId = null;
+    let businessRole = finalUserRole;
+
+    if (businessAssociations && businessAssociations.length > 0) {
+      workspaceId = businessAssociations[0].business_id;
+      businessRole = businessAssociations[0].role;
+      console.log(`User has business association: workspace=${workspaceId}, business_role=${businessRole}`);
+    } else {
+      console.log('No business associations found - user may be infrastructure_owner or needs business assignment');
+    }
+
+    // Update auth user metadata with role and workspace claims
+    const { error: updateMetadataError } = await supabase.auth.admin.updateUserById(
+      authUserId,
+      {
+        app_metadata: {
+          telegram_id: telegramIdStr,
+          user_id: userId,
+          role: finalUserRole,
+          app_role: businessRole,
+          workspace_id: workspaceId,
+          updated_at: new Date().toISOString()
+        },
+        user_metadata: {
+          telegram_id: telegramIdStr,
+          username: user.username,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          photo_url: user.photo_url
+        }
+      }
+    );
+
+    if (updateMetadataError) {
+      console.error('Failed to update auth metadata:', updateMetadataError);
+    } else {
+      console.log('Auth metadata updated with JWT claims:', {
+        user_id: userId,
+        role: finalUserRole,
+        app_role: businessRole,
+        workspace_id: workspaceId
+      });
+    }
+
+    // Generate session token with proper claims
+    const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email,
+    });
+
+    if (sessionError || !sessionData) {
+      console.error('Failed to generate session:', sessionError);
+      throw new Error('Failed to generate session');
+    }
+
+    console.log('Session generated successfully with JWT claims');
+
     return new Response(
       JSON.stringify({
         ok: true,
@@ -320,12 +373,21 @@ Deno.serve(async (req) => {
           role: finalUserRole,
           photo_url: user.photo_url,
           first_name: user.first_name,
-          last_name: user.last_name
+          last_name: user.last_name,
+          workspace_id: workspaceId,
+          app_role: businessRole
         },
         session: sessionData,
         supabase_user: {
           id: authUserId,
           email
+        },
+        claims: {
+          user_id: userId,
+          telegram_id: telegramIdStr,
+          role: finalUserRole,
+          app_role: businessRole,
+          workspace_id: workspaceId
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

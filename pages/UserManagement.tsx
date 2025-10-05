@@ -21,6 +21,7 @@ import { TelegramModal } from '../src/components/TelegramModal';
 import { roleNames, roleIcons } from '../src/lib/hebrew';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../src/styles/royalTheme';
 import { Toast } from '../src/components/Toast';
+import { logAuthDebug, validateUserManagementAccess } from '../src/lib/authDebug';
 
 interface UserManagementProps {
   onNavigate: (page: string) => void;
@@ -82,6 +83,34 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
   const loadUsers = async () => {
     setLoading(true);
     try {
+      console.log('🔍 UserManagement - Starting user load with auth check');
+
+      // Debug authentication state
+      await logAuthDebug();
+
+      // Verify authentication before querying
+      if (!currentUser?.id) {
+        console.error('❌ UserManagement - No authenticated user found');
+        Toast.error('שגיאה באימות - נסה להתחבר מחדש');
+        setLoading(false);
+        return;
+      }
+
+      // Validate user management access
+      const accessCheck = await validateUserManagementAccess();
+      console.log('🔐 UserManagement - Access validation:', accessCheck);
+
+      if (!accessCheck.hasAccess) {
+        console.warn('⚠️ UserManagement - Insufficient access:', {
+          role: accessCheck.role,
+          missingClaims: accessCheck.missingClaims
+        });
+
+        if (accessCheck.missingClaims.length > 0) {
+          Toast.error(`חסרים claims: ${accessCheck.missingClaims.join(', ')}`);
+        }
+      }
+
       // Load from user_registrations table
       const [pending, approved] = await Promise.all([
         userManager.getPendingUsers(),
@@ -91,15 +120,17 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       console.log('📊 UserManagement - Loaded registrations:', {
         pending: pending.length,
         approved: approved.length,
-        hasDataStore: !!dataStore
+        hasDataStore: !!dataStore,
+        currentUserRole: currentUser.role
       });
 
       // Also load all actual users from users table
       let allSystemUsers: UserRegistration[] = [];
       if (dataStore?.listAllUsers) {
         try {
+          console.log('🔎 UserManagement - Querying users table with role:', currentUser.role);
           const systemUsers = await dataStore.listAllUsers();
-          console.log('📊 UserManagement - Loaded system users:', systemUsers.length, systemUsers);
+          console.log('✅ UserManagement - Loaded system users:', systemUsers.length, systemUsers);
 
           // Transform User[] to UserRegistration[] format
           allSystemUsers = systemUsers.map((user: any) => ({
@@ -119,6 +150,12 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
           }));
         } catch (err) {
           console.error('❌ Failed to load system users:', err);
+          // If RLS policy blocks the query, show helpful error
+          if (err?.message?.includes('policy')) {
+            console.error('🚫 RLS Policy blocked user query. This usually means JWT claims are missing.');
+            console.error('📝 Expected JWT claims: role, workspace_id, user_id');
+            console.error('👉 Current user data:', currentUser);
+          }
         }
       } else {
         console.warn('⚠️ dataStore or listAllUsers not available');

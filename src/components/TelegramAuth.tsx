@@ -30,7 +30,24 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
   const { theme } = useTelegramUI();
 
   useEffect(() => {
-    authenticateUser();
+    // Wait for Telegram WebApp to be fully ready before authenticating
+    // This prevents race conditions with initData availability
+    const initAuth = async () => {
+      debugLog.info('⏳ Waiting for Telegram WebApp to be ready...');
+
+      // Give Telegram SDK time to initialize
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (!telegram.isAvailable || !telegram.initData) {
+        debugLog.warn('⚠️ Telegram not ready on first check, waiting longer...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      debugLog.info('🚀 Starting authentication flow');
+      await authenticateUser();
+    };
+
+    void initAuth();
   }, []);
 
   const authenticateUser = async () => {
@@ -127,14 +144,52 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
       // Backend verification successful
       debugLog.success('✅ Backend authentication verified!');
 
+      // CRITICAL: Set Supabase session BEFORE calling onAuth
+      // This ensures JWT claims are available for all subsequent queries
+      if (result.session?.access_token && result.session?.refresh_token) {
+        debugLog.info('🔑 Setting Supabase session with JWT claims...');
+
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+        if (supabaseUrl && supabaseAnonKey) {
+          const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: result.session.access_token,
+            refresh_token: result.session.refresh_token
+          });
+
+          if (sessionError) {
+            debugLog.error('❌ Failed to set Supabase session', sessionError);
+          } else {
+            debugLog.success('✅ Supabase session established with JWT claims');
+
+            // Verify session was set correctly
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              debugLog.info('📋 Session verified - JWT claims:', {
+                user_id: session.user.id,
+                role: session.user.app_metadata?.role,
+                app_role: session.user.app_metadata?.app_role,
+                workspace_id: session.user.app_metadata?.workspace_id
+              });
+            }
+          }
+        }
+      }
+
       const enrichedUser = {
         ...result.user,
         supabase_user: result.supabase_user ?? null,
         auth_token: result.session?.access_token ?? null,
         refresh_token: result.session?.refresh_token ?? null,
-        auth_session: result.session ?? null
+        auth_session: result.session ?? null,
+        claims: result.claims ?? null
       };
 
+      debugLog.success('✅ Authentication complete - calling onAuth');
       onAuth(enrichedUser);
       setLoading(false);
 
