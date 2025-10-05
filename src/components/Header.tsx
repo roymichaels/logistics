@@ -1,14 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
-import { User } from '../../data/types';
+import { User, DataStore } from '../../data/types';
 import { ROYAL_COLORS } from '../styles/royalTheme';
+import { BusinessContextSelector } from './BusinessContextSelector';
+import { requiresBusinessContext } from '../lib/rolePermissions';
 
 interface HeaderProps {
   user: User | null;
+  dataStore: DataStore;
   onNavigate: (page: string) => void;
   onLogout: () => void;
 }
 
-export function Header({ user, onNavigate, onLogout }: HeaderProps) {
+export function Header({ user, dataStore, onNavigate, onLogout }: HeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -116,6 +119,25 @@ export function Header({ user, onNavigate, onLogout }: HeaderProps) {
             Logistics
           </div>
         </div>
+      </div>
+
+      {/* Center Section - Business Context Selector */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        justifyContent: 'center',
+        padding: '0 20px'
+      }}>
+        {user && requiresBusinessContext(user) && (
+          <BusinessContextSelector
+            dataStore={dataStore}
+            user={user}
+            onContextChanged={() => {
+              // Optionally reload current page or refresh data
+              console.log('Business context changed');
+            }}
+          />
+        )}
       </div>
 
       {/* User Avatar Dropdown */}

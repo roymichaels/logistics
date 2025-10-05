@@ -713,7 +713,7 @@ export default function App() {
           paddingTop: '60px' // Space for header
         }}>
           {/* Header */}
-          <Header user={user} onNavigate={handleNavigate} onLogout={handleLogout} />
+          <Header user={user} dataStore={dataStore} onNavigate={handleNavigate} onLogout={handleLogout} />
 
         <Suspense
           fallback={

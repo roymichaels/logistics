@@ -49,7 +49,11 @@ import {
   RoyalDashboardLowStockAlert,
   RoyalDashboardRestockRequest,
   RoyalDashboardChartPoint,
-  RoyalDashboardMetrics
+  RoyalDashboardMetrics,
+  UserBusinessContext,
+  UserBusinessAccess,
+  BusinessUser,
+  Business
 } from '../../data/types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -70,7 +74,8 @@ export interface SupabaseAuthSessionPayload {
 }
 
 const VALID_ROLES: User['role'][] = [
-  'owner',
+  'infrastructure_owner',
+  'business_owner',
   'manager',
   'dispatcher',
   'driver',
@@ -106,7 +111,7 @@ function normalizeRole(role?: string | null): User['role'] {
   if (role && (VALID_ROLES as string[]).includes(role)) {
     return role as User['role'];
   }
-  return 'owner';
+  return 'manager';
 }
 
 function sanitizeValue<T>(value: T | null | undefined): T | null {
@@ -2502,6 +2507,17 @@ export class SupabaseDataStore implements DataStore {
 
     // Apply role-based filtering
     const profile = await this.getProfile();
+
+    // Infrastructure owner can see all businesses
+    if (profile.role !== 'infrastructure_owner') {
+      // Business-scoped users must filter by active business context
+      const businessContext = await this.getActiveBusinessContext();
+      if (businessContext?.active_business_id) {
+        query = query.eq('business_id', businessContext.active_business_id);
+      }
+    }
+
+    // Sales role sees only their own orders within the business
     if (profile.role === 'sales') {
       query = query.eq('created_by', this.userTelegramId);
     }
@@ -2562,6 +2578,15 @@ export class SupabaseDataStore implements DataStore {
   async createOrder(input: CreateOrderInput): Promise<{ id: string }> {
     if (!input.items || input.items.length === 0) {
       throw new Error('Order must include at least one item');
+    }
+
+    // Get active business context
+    const businessContext = await this.getActiveBusinessContext();
+    if (!businessContext?.active_business_id) {
+      const profile = await this.getProfile();
+      if (profile.role !== 'infrastructure_owner') {
+        throw new Error('\u05d0\u05d9\u05df \u05d4\u05e7\u05e9\u05e8 \u05e2\u05e1\u05e7\u05d9 \u05e4\u05e2\u05d9\u05dc - \u05d1\u05d7\u05e8 \u05e2\u05e1\u05e7 \u05db\u05d3\u05d9 \u05dc\u05d9\u05e6\u05d5\u05e8 \u05d4\u05d6\u05de\u05e0\u05d4');
+      }
     }
 
     const salespersonId = input.salesperson_id || this.userTelegramId;
@@ -2636,6 +2661,7 @@ export class SupabaseDataStore implements DataStore {
       raw_order_text: input.raw_order_text || null,
       created_by: this.userTelegramId,
       salesperson_id: salespersonId,
+      business_id: businessContext?.active_business_id || null,
       created_at: now,
       updated_at: now
     };
@@ -2986,25 +3012,6 @@ export class SupabaseDataStore implements DataStore {
       .eq('sender_telegram_id', this.userTelegramId);
 
     if (error) throw error;
-  }
-
-  subscribeToChanges(table: string, callback: (payload: any) => void): () => void {
-    const channel = supabase
-      .channel(`${table}-changes`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: table
-        },
-        callback
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }
 
   async getRoyalDashboardSnapshot(): Promise<RoyalDashboardSnapshot> {
@@ -3622,6 +3629,83 @@ export class SupabaseDataStore implements DataStore {
     if (error) throw error;
 
     return data || [];
+  }
+
+  // Business Context Management Methods
+  async getUserBusinesses(): Promise<any[]> {
+    const { data, error } = await supabase
+      .rpc('get_user_businesses');
+
+    if (error) {
+      console.error('Failed to get user businesses:', error);
+      throw error;
+    }
+
+    return data || [];
+  }
+
+  async getActiveBusinessContext(): Promise<any | null> {
+    const profile = await this.getProfile();
+
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('telegram_id', profile.telegram_id)
+      .maybeSingle();
+
+    if (userError) throw userError;
+    if (!user) return null;
+
+    const { data, error } = await supabase
+      .from('user_business_context')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Failed to get active business context:', error);
+      return null;
+    }
+
+    return data;
+  }
+
+  async setActiveBusinessContext(business_id: string): Promise<void> {
+    const { error } = await supabase
+      .rpc('set_user_active_business', {
+        p_business_id: business_id
+      });
+
+    if (error) {
+      console.error('Failed to set active business context:', error);
+      throw error;
+    }
+  }
+
+  async updateBusinessUserOwnership(
+    business_id: string,
+    user_id: string,
+    ownership_percentage: number
+  ): Promise<void> {
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('telegram_id', user_id)
+      .maybeSingle();
+
+    if (userError) throw userError;
+    if (!user) throw new Error('המשתמש לא נמצא');
+
+    const { error } = await supabase
+      .from('business_users')
+      .update({
+        ownership_percentage,
+        updated_at: new Date().toISOString()
+      })
+      .eq('business_id', business_id)
+      .eq('user_id', user.id);
+
+    if (error) throw error;
   }
 }
 
