@@ -595,6 +595,18 @@ export interface DataStore {
 
   // Royal intelligence
   getRoyalDashboardSnapshot?(): Promise<RoyalDashboardSnapshot>;
+
+  // Business Management
+  listBusinesses?(): Promise<Business[]>;
+  getBusiness?(id: string): Promise<Business | null>;
+  listBusinessUsers?(filters?: { business_id?: string; user_id?: string; role?: string; active_only?: boolean }): Promise<BusinessUser[]>;
+  assignUserToBusiness?(input: { business_id: string; user_id: string; role: User['role']; is_primary?: boolean }): Promise<{ id: string }>;
+  updateBusinessUserRole?(business_id: string, user_id: string, role: User['role']): Promise<void>;
+  removeUserFromBusiness?(business_id: string, user_id: string): Promise<void>;
+  listAllUsers?(): Promise<User[]>;
+
+  // Real-time subscriptions
+  subscribeToChanges?(table: string, callback: (payload: any) => void): () => void;
 }
 
 export interface RoyalDashboardMetrics {
@@ -697,4 +709,37 @@ export interface AppConfig {
   app: string;
   config: BootstrapConfig;
   updated_at: string;
+}
+
+export interface Business {
+  id: string;
+  name: string;
+  name_hebrew: string;
+  business_type: string;
+  logo_url?: string | null;
+  primary_color: string;
+  secondary_color: string;
+  default_currency: 'ILS' | 'USD' | 'EUR';
+  order_number_prefix: string;
+  order_number_sequence: number;
+  address?: any;
+  contact_info?: any;
+  business_settings?: any;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BusinessUser {
+  id: string;
+  business_id: string;
+  user_id: string;
+  role: User['role'];
+  permissions?: any;
+  is_primary: boolean;
+  active: boolean;
+  assigned_at: string;
+  assigned_by?: string | null;
+  user?: User;
+  business?: Business;
 }

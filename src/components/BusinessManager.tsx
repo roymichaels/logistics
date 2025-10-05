@@ -46,72 +46,53 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
 
   useEffect(() => {
     loadData();
+
+    // Subscribe to real-time changes
+    let unsubscribeBusinesses: (() => void) | undefined;
+    let unsubscribeBusinessUsers: (() => void) | undefined;
+
+    if (dataStore.subscribeToChanges) {
+      unsubscribeBusinesses = dataStore.subscribeToChanges('businesses', () => {
+        loadData();
+      });
+
+      unsubscribeBusinessUsers = dataStore.subscribeToChanges('business_users', () => {
+        loadData();
+      });
+    }
+
+    return () => {
+      if (unsubscribeBusinesses) unsubscribeBusinesses();
+      if (unsubscribeBusinessUsers) unsubscribeBusinessUsers();
+    };
   }, []);
 
   const loadData = async () => {
     try {
       setLoading(true);
 
-      // Load businesses from database
-      // For now, using mock data since we need to implement the DataStore methods
-      const mockBusinesses: Business[] = [
-        {
-          id: '1',
-          name: 'Fresh Flowers Ltd',
-          name_hebrew: 'פרש פלאוור בע"מ',
-          business_type: 'retail',
-          primary_color: '#ff69b4',
-          secondary_color: '#32cd32',
-          default_currency: 'ILS',
-          order_number_prefix: 'FF',
-          active: true,
-          address: { street: 'רחוב הפרחים 15', city: 'תל אביב' },
-          contact_info: { phone: '03-1234567' },
-          business_settings: {}
-        },
-        {
-          id: '2',
-          name: 'Healthy Food Co',
-          name_hebrew: 'מזון בריא בע"מ',
-          business_type: 'food_delivery',
-          primary_color: '#4caf50',
-          secondary_color: '#8bc34a',
-          default_currency: 'ILS',
-          order_number_prefix: 'HF',
-          active: true,
-          address: { street: 'שדרות רוטשילד 42', city: 'תל אביב' },
-          contact_info: { phone: '03-7654321' },
-          business_settings: {}
-        }
-      ];
+      // Load businesses from Supabase
+      if (dataStore.listBusinesses) {
+        const businessData = await dataStore.listBusinesses();
+        setBusinesses(businessData);
+      }
 
-      setBusinesses(mockBusinesses);
-
-      // Load business user assignments
-      const mockBusinessUsers: BusinessUser[] = [
-        {
-          id: '1',
-          business_id: '1',
-          user_id: 'user1',
-          role: 'manager',
-          is_primary: true,
-          active: true,
-          user_name: 'דני כהן',
-          business_name: 'פרש פלאוור בע"מ'
-        },
-        {
-          id: '2',
-          business_id: '2',
-          user_id: 'user1',
-          role: 'sales',
-          is_primary: false,
-          active: true,
-          user_name: 'דני כהן',
-          business_name: 'מזון בריא בע"מ'
-        }
-      ];
-
-      setBusinessUsers(mockBusinessUsers);
+      // Load business user assignments from Supabase
+      if (dataStore.listBusinessUsers) {
+        const businessUserData = await dataStore.listBusinessUsers({ active_only: true });
+        // Transform the data to match our interface
+        const transformedData = businessUserData.map((bu: any) => ({
+          id: bu.id,
+          business_id: bu.business_id,
+          user_id: bu.user?.telegram_id || bu.user_id,
+          role: bu.role,
+          is_primary: bu.is_primary,
+          active: bu.active,
+          user_name: bu.user?.name || 'משתמש לא ידוע',
+          business_name: bu.business?.name_hebrew || 'עסק לא ידוע'
+        }));
+        setBusinessUsers(transformedData);
+      }
 
     } catch (error) {
       console.error('Failed to load business data:', error);

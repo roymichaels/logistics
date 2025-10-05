@@ -712,6 +712,33 @@ export class SupabaseDataStore implements DataStore {
       .subscribe();
 
     this.subscriptions.set('driver_movements', driverMovementsChannel);
+
+    // Subscribe to business changes
+    const businessChannel = supabase.channel('businesses')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'businesses' }, (payload) => {
+        this.notifyListeners('businesses', payload);
+      })
+      .subscribe();
+
+    this.subscriptions.set('businesses', businessChannel);
+
+    // Subscribe to business_users changes
+    const businessUsersChannel = supabase.channel('business_users')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'business_users' }, (payload) => {
+        this.notifyListeners('business_users', payload);
+      })
+      .subscribe();
+
+    this.subscriptions.set('business_users', businessUsersChannel);
+
+    // Subscribe to users table changes
+    const usersChannel = supabase.channel('users')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, (payload) => {
+        this.notifyListeners('users', payload);
+      })
+      .subscribe();
+
+    this.subscriptions.set('users', usersChannel);
   }
 
   private notifyListeners(table: string, payload: any) {
@@ -3285,6 +3312,218 @@ export class SupabaseDataStore implements DataStore {
       .map(([id, data]) => ({ id, ...data }))
       .sort((a, b) => b.count - a.count)
       .slice(0, limit);
+  }
+
+  // Business Management Methods
+  async listBusinesses(): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('businesses')
+      .select('*')
+      .eq('active', true)
+      .order('name_hebrew', { ascending: true });
+
+    if (error) throw error;
+
+    return data || [];
+  }
+
+  async getBusiness(id: string): Promise<any | null> {
+    const { data, error } = await supabase
+      .from('businesses')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    return data;
+  }
+
+  async listBusinessUsers(filters?: {
+    business_id?: string;
+    user_id?: string;
+    role?: string;
+    active_only?: boolean;
+  }): Promise<any[]> {
+    let query = supabase
+      .from('business_users')
+      .select(`
+        *,
+        user:users!business_users_user_id_fkey(telegram_id, name, username, photo_url, phone, role, department),
+        business:businesses!business_users_business_id_fkey(id, name, name_hebrew, business_type, primary_color, secondary_color)
+      `);
+
+    if (filters?.business_id) {
+      query = query.eq('business_id', filters.business_id);
+    }
+
+    if (filters?.user_id) {
+      query = query.eq('user_id', filters.user_id);
+    }
+
+    if (filters?.role) {
+      query = query.eq('role', filters.role);
+    }
+
+    if (filters?.active_only) {
+      query = query.eq('active', true);
+    }
+
+    query = query.order('assigned_at', { ascending: false });
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      business_id: row.business_id,
+      user_id: row.user_id,
+      role: row.role,
+      permissions: row.permissions,
+      is_primary: row.is_primary,
+      active: row.active,
+      assigned_at: row.assigned_at,
+      assigned_by: row.assigned_by,
+      user: row.user ? {
+        telegram_id: row.user.telegram_id,
+        name: row.user.name,
+        username: row.user.username,
+        photo_url: row.user.photo_url,
+        phone: row.user.phone,
+        role: row.user.role,
+        department: row.user.department
+      } : undefined,
+      business: row.business ? {
+        id: row.business.id,
+        name: row.business.name,
+        name_hebrew: row.business.name_hebrew,
+        business_type: row.business.business_type,
+        primary_color: row.business.primary_color,
+        secondary_color: row.business.secondary_color
+      } : undefined
+    }));
+  }
+
+  async assignUserToBusiness(input: {
+    business_id: string;
+    user_id: string;
+    role: any;
+    is_primary?: boolean;
+  }): Promise<{ id: string }> {
+    const profile = await this.getProfile();
+
+    // Check if user exists
+    const { data: userExists, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('telegram_id', input.user_id)
+      .maybeSingle();
+
+    if (userError) throw userError;
+    if (!userExists) throw new Error('המשתמש לא נמצא במערכת');
+
+    // Check if assignment already exists
+    const { data: existing, error: existingError } = await supabase
+      .from('business_users')
+      .select('id')
+      .eq('business_id', input.business_id)
+      .eq('user_id', userExists.id)
+      .eq('role', input.role)
+      .maybeSingle();
+
+    if (existingError) throw existingError;
+
+    if (existing) {
+      // Reactivate if exists
+      const { error: updateError } = await supabase
+        .from('business_users')
+        .update({ active: true })
+        .eq('id', existing.id);
+
+      if (updateError) throw updateError;
+
+      return { id: existing.id };
+    }
+
+    // Get current user's ID for assigned_by
+    const { data: currentUser, error: currentUserError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('telegram_id', profile.telegram_id)
+      .maybeSingle();
+
+    if (currentUserError) throw currentUserError;
+
+    // Create new assignment
+    const { data, error } = await supabase
+      .from('business_users')
+      .insert({
+        business_id: input.business_id,
+        user_id: userExists.id,
+        role: input.role,
+        is_primary: input.is_primary || false,
+        active: true,
+        assigned_by: currentUser?.id,
+        assigned_at: new Date().toISOString()
+      })
+      .select('id')
+      .single();
+
+    if (error) throw error;
+
+    return { id: data.id };
+  }
+
+  async updateBusinessUserRole(business_id: string, user_id: string, role: any): Promise<void> {
+    // Get user's UUID from telegram_id
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('telegram_id', user_id)
+      .maybeSingle();
+
+    if (userError) throw userError;
+    if (!user) throw new Error('המשתמש לא נמצא');
+
+    const { error } = await supabase
+      .from('business_users')
+      .update({ role })
+      .eq('business_id', business_id)
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+  }
+
+  async removeUserFromBusiness(business_id: string, user_id: string): Promise<void> {
+    // Get user's UUID from telegram_id
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('telegram_id', user_id)
+      .maybeSingle();
+
+    if (userError) throw userError;
+    if (!user) throw new Error('המשתמש לא נמצא');
+
+    const { error } = await supabase
+      .from('business_users')
+      .update({ active: false })
+      .eq('business_id', business_id)
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+  }
+
+  async listAllUsers(): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('telegram_id, name, username, photo_url, role, department, phone, created_at, updated_at')
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+
+    return data || [];
   }
 }
 
