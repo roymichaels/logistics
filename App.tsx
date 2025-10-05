@@ -11,6 +11,7 @@ import { BusinessManager } from './src/components/BusinessManager';
 import { SuperadminSetup } from './src/components/SuperadminSetup';
 import { FloatingActionMenu } from './src/components/FloatingActionButton';
 import { Header } from './src/components/Header';
+import { SecurityGate } from './src/components/SecurityGate';
 import { debugLog } from './src/components/DebugPanel';
 import { hebrew } from './src/lib/hebrew';
 
@@ -698,15 +699,23 @@ export default function App() {
   };
 
   return (
-    <div style={{
-        minHeight: '100vh',
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
-        paddingBottom: '80px', // Space for bottom nav
-        paddingTop: '60px' // Space for header
-      }}>
-        {/* Header */}
-        <Header user={user} onNavigate={handleNavigate} onLogout={handleLogout} />
+    <SecurityGate
+      userId={user?.id || user?.telegram_id || ''}
+      telegramId={user?.telegram_id || ''}
+      onSecurityError={(error) => {
+        console.error('Security gate error:', error);
+        setError(error);
+      }}
+    >
+      <div style={{
+          minHeight: '100vh',
+          backgroundColor: theme.bg_color,
+          color: theme.text_color,
+          paddingBottom: '80px', // Space for bottom nav
+          paddingTop: '60px' // Space for header
+        }}>
+          {/* Header */}
+          <Header user={user} onNavigate={handleNavigate} onLogout={handleLogout} />
 
         <Suspense
           fallback={
@@ -779,9 +788,8 @@ export default function App() {
             onClose={() => setShowBusinessManager(false)}
           />
         )}
-
-
       </div>
+    </SecurityGate>
   );
 }
 

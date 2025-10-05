@@ -75,7 +75,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
     }
   };
 
-  const handleRequestManagerAccess = async () => {
+  const handleRequestRoleAccess = async () => {
     try {
       telegram.hapticFeedback('impact', 'medium');
 
@@ -113,8 +113,8 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         },
         body: JSON.stringify({
           telegram_id: userTelegramId,
-          pin: '000000',
-          target_role: 'manager'
+          pin: '000000'
+          // No target_role - let admin assign appropriate role
         })
       });
 
@@ -139,11 +139,13 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
       console.log('✅ User promoted successfully:', result);
       console.log('✅ New role:', result.role);
 
-      Toast.success('שודרג למנהל! מעביר למערכת...');
+      Toast.success('בקשה נשלחה בהצלחה! מנהל יאשר בקרוב...');
 
+      // Don't update role - wait for admin approval
       // Update the user object immediately with the new role
       if (user) {
-        setUser({ ...user, role: 'manager' });
+        // Keep existing role until approved
+        // setUser({ ...user, role: 'manager' });
       }
 
       // Clear cached user data in the dataStore
@@ -152,13 +154,8 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         dataStore.clearUserCache();
       }
 
-      // Wait a moment for the user to see the success message
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      console.log('✅ Role updated, forcing full page reload to reinitialize...');
-
-      // Force complete page reload to destroy and recreate dataStore with fresh data from database
-      window.location.reload();
+      // Wait for admin approval - no need to reload
+      console.log('✅ Role request submitted, waiting for approval');
     } catch (error) {
       console.error('❌ Failed to promote user:', error);
       Toast.error(`שגיאה: ${error instanceof Error ? error.message : 'לא ניתן לעדכן הרשאות'}`);
@@ -280,7 +277,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         </div>
 
         <button
-          onClick={handleRequestManagerAccess}
+          onClick={handleRequestRoleAccess}
           style={{
             width: '100%',
             padding: '14px',
@@ -298,7 +295,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
             boxShadow: '0 4px 16px rgba(156, 109, 255, 0.4)'
           }}
         >
-          👑 קבל גישת מנהל
+          🎯 בקש תפקיד
         </button>
       </div>
 
