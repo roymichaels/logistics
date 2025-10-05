@@ -153,7 +153,10 @@ export const hebrew = {
 };
 
 export const roleNames = {
+  user: hebrew.user,
   owner: hebrew.owner,
+  infrastructure_owner: hebrew.infrastructureOwner,
+  business_owner: hebrew.businessOwner,
   manager: hebrew.manager,
   dispatcher: hebrew.dispatcher,
   driver: hebrew.driver,
@@ -163,7 +166,10 @@ export const roleNames = {
 };
 
 export const roleIcons = {
+  user: '👤',
   owner: '👑',
+  infrastructure_owner: '🏛️',
+  business_owner: '💎',
   manager: '👔',
   dispatcher: '📋',
   driver: '🚚',

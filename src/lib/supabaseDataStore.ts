@@ -837,7 +837,7 @@ export class SupabaseDataStore implements DataStore {
       const newUser: Omit<User, 'id'> = {
         telegram_id: this.userTelegramId,
         username: telegramUserData?.username?.toLowerCase() || null,
-        role: 'driver', // Default to driver role (lowest privilege, can be promoted later)
+        role: 'user', // Default to 'user' role (can be promoted to driver/manager/owner later)
         name: telegramUserData?.first_name
           ? `${telegramUserData.first_name}${telegramUserData.last_name ? ' ' + telegramUserData.last_name : ''}`
           : 'משתמש חדש',
@@ -846,7 +846,7 @@ export class SupabaseDataStore implements DataStore {
         updated_at: new Date().toISOString()
       };
 
-      console.log('📝 Creating new user with Telegram data:', {
+      console.log('📝 Auto-registering new Telegram user:', {
         telegram_id: newUser.telegram_id,
         name: newUser.name,
         username: newUser.username,
@@ -3638,13 +3638,19 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async listAllUsers(): Promise<any[]> {
+    console.log('📋 listAllUsers: Fetching all users from database...');
+
     const { data, error } = await supabase
       .from('users')
       .select('telegram_id, name, username, photo_url, role, department, phone, created_at, updated_at')
       .order('name', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ listAllUsers: Error fetching users:', error);
+      throw error;
+    }
 
+    console.log(`✅ listAllUsers: Loaded ${data?.length || 0} users from database:`, data);
     return data || [];
   }
 

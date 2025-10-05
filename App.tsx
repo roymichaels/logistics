@@ -126,6 +126,9 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<
+    | 'user'
+    | 'infrastructure_owner'
+    | 'business_owner'
     | 'owner'
     | 'manager'
     | 'driver'
