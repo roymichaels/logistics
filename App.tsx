@@ -4,7 +4,7 @@ import { bootstrap } from './src/lib/bootstrap';
 import { createFrontendDataStore } from './src/lib/frontendDataStore';
 import { DataStore, BootstrapConfig } from './data/types';
 import { BottomNavigation } from './src/components/BottomNavigation';
-import { TelegramAuth } from './src/components/TelegramAuth';
+// TelegramAuth component removed - authentication now handled by ensureTwaSession() in initializeApp()
 import { OrderCreationWizard } from './src/components/OrderCreationWizard';
 import { DualModeOrderEntry } from './src/components/DualModeOrderEntry';
 import { BusinessManager } from './src/components/BusinessManager';
@@ -397,81 +397,13 @@ export default function App() {
     }
   };
 
+  // LEGACY: handleLogin is no longer used - authentication now handled by ensureTwaSession() in initializeApp()
+  // Kept for reference only - can be deleted in future cleanup
+  /*
   const handleLogin = async (userData: any) => {
-    try {
-      console.log('🔐 Authenticating user:', userData);
-      console.log('📋 userData contains:', {
-        telegram_id: userData.telegram_id,
-        username: userData.username,
-        role: userData.role,
-        name: userData.name || userData.first_name,
-        hasAuthSession: !!userData.auth_session
-      });
-
-      setUser(userData);
-
-      // CRITICAL: If auth_session exists, verify it's properly established
-      if (userData.auth_session?.access_token) {
-        debugLog.info('🔍 Verifying Supabase session is established...');
-        const { sessionTracker } = await import('./src/lib/sessionTracker');
-
-        // Wait for session to be ready (max 5 seconds)
-        const sessionReady = await sessionTracker.waitForSession(5000);
-
-        if (!sessionReady) {
-          debugLog.error('❌ Session not ready after authentication');
-          throw new Error('Failed to establish authenticated session');
-        }
-
-        debugLog.success('✅ Session verified and ready for queries');
-      }
-
-      // Create data store in real mode
-      const store = await createFrontendDataStore(config!, 'real', userData);
-      setDataStore(store);
-
-      // Get user role from store
-      let role: any = null;
-      if (store) {
-        try {
-          // CRITICAL: Check if userData already has a role from edge function
-          if (userData.role) {
-            console.log(`✨ userData.role from edge function: ${userData.role}`);
-            role = userData.role;
-          }
-
-          // Always call getCurrentRole which fetches fresh from DB
-          if (!role && store.getCurrentRole) {
-            role = await store.getCurrentRole();
-            console.log(`📊 handleLogin: getCurrentRole() returned: ${role}`);
-          }
-
-          // Fallback to getProfile if getCurrentRole not available or returned null
-          if (!role) {
-            console.log('🔄 handleLogin: Falling back to getProfile()');
-            const profile = await store.getProfile();
-            role = profile.role;
-            console.log(`📊 handleLogin: getProfile().role returned: ${role}`);
-          }
-
-          // DEFAULT TO OWNER (not 'user')
-          setUserRole(role ?? 'owner');
-          console.log(`✅ handleLogin: User role set to: ${role ?? 'owner'}`);
-        } catch (error) {
-          console.warn('Failed to resolve user role:', error);
-          setUserRole('owner');
-        }
-      }
-
-      // Only show superadmin setup for owner role
-      if (role === 'owner') {
-        setShowSuperadminSetup(true);
-      }
-    } catch (error) {
-      console.error('Login failed:', error);
-      setError(error instanceof Error ? error.message : 'שגיאה בהתחברות');
-    }
+    ...
   };
+  */
 
   const handleSuperadminSuccess = async () => {
     setShowSuperadminSetup(false);
@@ -500,11 +432,15 @@ export default function App() {
     }
   };
 
+  // LEGACY: handleAuthError is no longer used
+  // Errors are now caught in initializeApp() and displayed via the error state
+  /*
   const handleAuthError = (error: string) => {
     console.error('Authentication error:', error);
     setError(error);
     setLoading(false);
   };
+  */
 
   const handleNavigate = (page: Page) => {
     setCurrentPage(page);
@@ -630,9 +566,36 @@ export default function App() {
     );
   }
 
-  // Show login screen if not logged in
+  // Show loading while authentication is in progress
+  // ensureTwaSession() handles all authentication - no separate login component needed
   if (!isLoggedIn) {
-    return <TelegramAuth onAuth={handleLogin} onError={handleAuthError} />;
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        backgroundColor: theme.bg_color,
+        color: theme.text_color,
+        padding: '20px',
+        textAlign: 'center'
+      }}>
+        <div style={{
+          fontSize: '48px',
+          marginBottom: '20px',
+          animation: 'pulse 2s ease-in-out infinite'
+        }}>
+          🔐
+        </div>
+        <div style={{ fontSize: '18px', marginBottom: '10px' }}>
+          מאמת זהות...
+        </div>
+        <div style={{ fontSize: '14px', opacity: 0.7 }}>
+          Authenticating via Telegram
+        </div>
+      </div>
+    );
   }
 
   // Show superadmin setup only for owner role
