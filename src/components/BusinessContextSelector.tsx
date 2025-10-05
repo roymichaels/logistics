@@ -204,14 +204,14 @@ const styles = {
   },
   loader: {
     padding: '12px 16px',
-    color: ROYAL_COLORS.text.secondary,
+    color: ROYAL_COLORS.muted,
     fontSize: '14px'
   },
   singleBusiness: {
     display: 'flex',
     alignItems: 'center',
     padding: '8px 12px',
-    backgroundColor: ROYAL_COLORS.surface,
+    backgroundColor: ROYAL_COLORS.cardBg,
     borderRadius: '8px',
     border: `1px solid ${ROYAL_COLORS.border}`
   },
@@ -219,15 +219,11 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     padding: '8px 12px',
-    backgroundColor: ROYAL_COLORS.surface,
+    backgroundColor: ROYAL_COLORS.cardBg,
     borderRadius: '8px',
     border: `1px solid ${ROYAL_COLORS.border}`,
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    ':hover': {
-      borderColor: ROYAL_COLORS.gold,
-      boxShadow: `0 0 0 3px ${ROYAL_COLORS.gold}20`
-    }
+    transition: 'all 0.2s ease'
   },
   businessIcon: {
     fontSize: '20px',
@@ -240,14 +236,14 @@ const styles = {
   businessName: {
     fontSize: '14px',
     fontWeight: 600,
-    color: ROYAL_COLORS.text.primary,
+    color: ROYAL_COLORS.text,
     whiteSpace: 'nowrap' as const,
     overflow: 'hidden',
     textOverflow: 'ellipsis'
   },
   businessRole: {
     fontSize: '12px',
-    color: ROYAL_COLORS.text.secondary,
+    color: ROYAL_COLORS.muted,
     marginTop: '2px'
   },
   ownership: {
@@ -256,7 +252,7 @@ const styles = {
   },
   arrow: {
     fontSize: '10px',
-    color: ROYAL_COLORS.text.secondary,
+    color: ROYAL_COLORS.muted,
     marginLeft: '8px'
   },
   dropdown: {
@@ -264,10 +260,10 @@ const styles = {
     top: 'calc(100% + 4px)',
     left: 0,
     right: 0,
-    backgroundColor: ROYAL_COLORS.surface,
+    backgroundColor: ROYAL_COLORS.cardBg,
     borderRadius: '8px',
     border: `1px solid ${ROYAL_COLORS.border}`,
-    boxShadow: ROYAL_COLORS.shadows.large,
+    boxShadow: ROYAL_COLORS.shadowStrong,
     maxHeight: '300px',
     overflowY: 'auto' as const,
     zIndex: 1000
@@ -279,19 +275,10 @@ const styles = {
     padding: '12px 16px',
     cursor: 'pointer',
     transition: 'background-color 0.2s ease',
-    borderBottom: `1px solid ${ROYAL_COLORS.border}`,
-    ':hover': {
-      backgroundColor: `${ROYAL_COLORS.gold}10`
-    },
-    ':last-child': {
-      borderBottom: 'none'
-    }
+    borderBottom: `1px solid ${ROYAL_COLORS.border}`
   },
   dropdownItemActive: {
-    backgroundColor: `${ROYAL_COLORS.gold}15`,
-    ':hover': {
-      backgroundColor: `${ROYAL_COLORS.gold}20`
-    }
+    backgroundColor: `rgba(246, 201, 69, 0.15)`
   },
   dropdownItemContent: {
     flex: 1,
@@ -300,7 +287,7 @@ const styles = {
   dropdownBusinessName: {
     fontSize: '14px',
     fontWeight: 600,
-    color: ROYAL_COLORS.text.primary,
+    color: ROYAL_COLORS.text,
     marginBottom: '4px',
     display: 'flex',
     alignItems: 'center',
@@ -308,13 +295,13 @@ const styles = {
   },
   dropdownBusinessRole: {
     fontSize: '12px',
-    color: ROYAL_COLORS.text.secondary
+    color: ROYAL_COLORS.muted
   },
   primaryBadge: {
     fontSize: '10px',
     padding: '2px 6px',
     backgroundColor: ROYAL_COLORS.gold,
-    color: ROYAL_COLORS.background,
+    color: ROYAL_COLORS.backgroundSolid,
     borderRadius: '4px',
     fontWeight: 600
   },
