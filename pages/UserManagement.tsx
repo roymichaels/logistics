@@ -82,12 +82,44 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
   const loadUsers = async () => {
     setLoading(true);
     try {
+      // Load from user_registrations table
       const [pending, approved] = await Promise.all([
         userManager.getPendingUsers(),
         userManager.getApprovedUsers()
       ]);
+
+      // Also load all actual users from users table
+      let allSystemUsers: UserRegistration[] = [];
+      if (dataStore?.listAllUsers) {
+        const systemUsers = await dataStore.listAllUsers();
+
+        // Transform User[] to UserRegistration[] format
+        allSystemUsers = systemUsers.map((user: any) => ({
+          telegram_id: user.telegram_id,
+          first_name: user.name?.split(' ')[0] || 'משתמש',
+          last_name: user.name?.split(' ').slice(1).join(' ') || null,
+          username: user.username,
+          photo_url: user.photo_url || null,
+          department: user.department || null,
+          phone: user.phone || null,
+          requested_role: user.role,
+          assigned_role: user.role,
+          status: 'approved' as const,
+          approval_history: [],
+          created_at: user.created_at,
+          updated_at: user.updated_at
+        }));
+      }
+
       setPendingUsers(pending);
-      setApprovedUsers(approved);
+
+      // Merge approved registrations with system users, removing duplicates
+      const approvedMap = new Map();
+      [...approved, ...allSystemUsers].forEach(user => {
+        approvedMap.set(user.telegram_id, user);
+      });
+      setApprovedUsers(Array.from(approvedMap.values()));
+
     } catch (error) {
       console.error('Failed to load users', error);
       Toast.error('שגיאה בטעינת נתוני המשתמשים');
