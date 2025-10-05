@@ -290,11 +290,14 @@ export default function App() {
 
       if (!authResult.ok) {
         debugLog.error('❌ Failed to establish TWA session', authResult);
+        console.error('TWA auth failed:', authResult);
+
+        // Show more detailed error in console
         const reasons: Record<string, string> = {
           'no_init_data': 'אין נתוני Telegram - יש לפתוח מתוך טלגרם',
-          'verify_failed': 'אימות Telegram נכשל - נסה שוב',
+          'verify_failed': `אימות Telegram נכשל${authResult.details ? ': ' + authResult.details : ''}`,
           'tokens_missing': 'חסרים tokens מהשרת',
-          'set_session_failed': 'שגיאה בהקמת Session'
+          'set_session_failed': `שגיאה בהקמת Session${authResult.details ? ': ' + authResult.details : ''}`
         };
         throw new Error(reasons[authResult.reason] || 'שגיאה באימות');
       }

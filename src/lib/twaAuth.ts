@@ -36,19 +36,32 @@ export async function ensureTwaSession(): Promise<TwaAuthResult> {
   }
 
   try {
+    console.log('📡 Calling telegram-verify:', {
+      url: `${supabaseUrl}/functions/v1/telegram-verify`,
+      hasInitData: initData.length > 0,
+      initDataPreview: initData.substring(0, 50) + '...'
+    });
+
     const response = await fetch(`${supabaseUrl}/functions/v1/telegram-verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 'webapp', initData }),
     });
 
+    console.log('📥 telegram-verify response:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok
+    });
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ ensureTwaSession: Backend verification failed', {
         status: response.status,
+        statusText: response.statusText,
         error: errorText,
       });
-      return { ok: false, reason: 'verify_failed', details: errorText };
+      return { ok: false, reason: 'verify_failed', details: `${response.status}: ${errorText}` };
     }
 
     const result = await response.json();
