@@ -1,409 +1,511 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTelegramUI } from '../src/hooks/useTelegramUI';
-import {
-  DataStore,
-  Product,
-  InventoryRecord,
-  DriverInventoryRecord,
-  RestockRequest,
-  InventoryAlert
-} from '../data/types';
+import { DataStore, Product, InventoryRecord, InventoryAlert, InventoryLocation } from '../data/types';
+import { ROYAL_COLORS, ROYAL_STYLES } from '../src/styles/royalTheme';
+import { Toast } from '../src/components/Toast';
+import { formatCurrency } from '../src/lib/hebrew';
 
 interface InventoryProps {
   dataStore: DataStore;
   onNavigate: (page: string) => void;
 }
 
-interface InventoryItem {
-  id: string;
-  name: string;
-  sku: string;
-  onHand: number;
-  reserved: number;
-  damaged: number;
-  driver: number;
-  total: number;
-  threshold: number;
+interface AggregatedInventory {
+  product: Product;
+  totalOnHand: number;
+  totalReserved: number;
+  totalDamaged: number;
   locations: {
-    id: string;
-    name: string;
-    onHand: number;
-    reserved: number;
-    damaged: number;
-    threshold: number;
+    location: InventoryLocation;
+    record: InventoryRecord;
   }[];
   status: 'in_stock' | 'low' | 'out';
-  pendingRequests: number;
 }
 
-export function Inventory({ dataStore }: InventoryProps) {
-  const { theme, backButton } = useTelegramUI();
-  const [items, setItems] = useState<InventoryItem[]>([]);
+export function Inventory({ dataStore, onNavigate }: InventoryProps) {
+  const { theme, backButton, haptic } = useTelegramUI();
+  const [inventory, setInventory] = useState<AggregatedInventory[]>([]);
   const [alerts, setAlerts] = useState<InventoryAlert[]>([]);
   const [loading, setLoading] = useState(true);
-  const accentColor = theme.button_color || '#007aff';
-  const hintColor = theme.hint_color || '#999999';
-  const subtleBackground = theme.secondary_bg_color || '#f5f5f5';
+  const [selectedProduct, setSelectedProduct] = useState<AggregatedInventory | null>(null);
+  const [showAdjustForm, setShowAdjustForm] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'low' | 'out'>('all');
 
   useEffect(() => {
     backButton.hide();
   }, [backButton]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    const loadInventory = async () => {
-      setLoading(true);
-
-      const fallback: InventoryItem[] = [
-        {
-          id: 'fallback-1',
-          name: 'ארגז ירקות עונתי',
-          sku: 'BX-VEG-001',
-          onHand: 86,
-          reserved: 0,
-          damaged: 0,
-          driver: 0,
-          total: 86,
-          threshold: 10,
-          locations: [
-            { id: 'fallback-1-main', name: 'מדף A3', onHand: 86, reserved: 0, damaged: 0, threshold: 10 }
-          ],
-          status: 'in_stock',
-          pendingRequests: 0
-        },
-        {
-          id: 'fallback-2',
-          name: 'גבינת עזים',
-          sku: 'CH-GL-204',
-          onHand: 18,
-          reserved: 0,
-          damaged: 0,
-          driver: 0,
-          total: 18,
-          threshold: 10,
-          locations: [
-            { id: 'fallback-2-main', name: 'קירור B1', onHand: 18, reserved: 0, damaged: 0, threshold: 10 }
-          ],
-          status: 'low',
-          pendingRequests: 0
-        },
-        {
-          id: 'fallback-3',
-          name: 'קפה אורגני 1ק"ג',
-          sku: 'CF-OR-552',
-          onHand: 0,
-          reserved: 0,
-          damaged: 0,
-          driver: 0,
-          total: 0,
-          threshold: 10,
-          locations: [
-            { id: 'fallback-3-main', name: 'מדף D4', onHand: 0, reserved: 0, damaged: 0, threshold: 10 }
-          ],
-          status: 'out',
-          pendingRequests: 0
-        }
-      ];
-
-      try {
-        if (!dataStore.listInventory || !dataStore.listDriverInventory) {
-          if (!cancelled) {
-            if (dataStore.listProducts) {
-              const products = await dataStore.listProducts({});
-              if (cancelled) return;
-              if (products && products.length) {
-                const mapped = products.slice(0, 10).map<InventoryItem>((product: Product) => ({
-                  id: product.id,
-                  name: product.name,
-                  sku: product.sku,
-                  onHand: product.stock_quantity,
-                  reserved: 0,
-                  damaged: 0,
-                  driver: 0,
-                  total: product.stock_quantity,
-                  threshold: 10,
-                  locations: [
-                    {
-                      id: `${product.id}-primary`,
-                      name: product.warehouse_location || 'לא הוגדר',
-                      onHand: product.stock_quantity,
-                      reserved: 0,
-                      damaged: 0,
-                      threshold: 10
-                    }
-                  ],
-                  status: product.stock_quantity === 0 ? 'out' : product.stock_quantity < 25 ? 'low' : 'in_stock',
-                  pendingRequests: 0
-                }));
-                setItems(mapped);
-              } else {
-                setItems(fallback);
-              }
-            } else {
-              setItems(fallback);
-            }
-            setAlerts([]);
-          }
-          return;
-        }
-
-        const [inventoryList, driverInventoryList, restockRequests, alertList] = await Promise.all([
-          dataStore.listInventory(),
-          dataStore.listDriverInventory(),
-          dataStore.listRestockRequests ? dataStore.listRestockRequests({ status: 'pending' }) : Promise.resolve([] as RestockRequest[]),
-          dataStore.getLowStockAlerts ? dataStore.getLowStockAlerts() : Promise.resolve([] as InventoryAlert[])
-        ]);
-
-        if (cancelled) return;
-
-        const driverTotals: Record<string, number> = {};
-        driverInventoryList.forEach((row: DriverInventoryRecord) => {
-          driverTotals[row.product_id] = (driverTotals[row.product_id] || 0) + row.quantity;
-        });
-
-        const restockLookup: Record<string, number> = {};
-        restockRequests.forEach((request) => {
-          restockLookup[request.product_id] = (restockLookup[request.product_id] || 0) + 1;
-        });
-
-        const groupedRecords = inventoryList.reduce<Record<string, InventoryRecord[]>>((acc, record) => {
-          if (!acc[record.product_id]) {
-            acc[record.product_id] = [];
-          }
-          acc[record.product_id].push(record);
-          return acc;
-        }, {});
-
-        const computed = Object.entries(groupedRecords).map<InventoryItem>(([productId, records]) => {
-          const onHand = records.reduce((sum, r) => sum + r.on_hand_quantity, 0);
-          const reserved = records.reduce((sum, r) => sum + r.reserved_quantity, 0);
-          const damaged = records.reduce((sum, r) => sum + r.damaged_quantity, 0);
-          const driver = driverTotals[productId] || 0;
-          const total = onHand + reserved + driver;
-          const thresholds = records.map((r) => r.low_stock_threshold);
-          const threshold = thresholds.length > 0 ? Math.min(...thresholds) : 0;
-          const status: InventoryItem['status'] =
-            total === 0 ? 'out' : onHand <= Math.max(1, threshold) ? 'low' : 'in_stock';
-          const product = records[0]?.product;
-
-          const locations = records
-            .map((record) => ({
-              id: record.location_id,
-              name: record.location?.name || 'ללא מיקום',
-              onHand: record.on_hand_quantity,
-              reserved: record.reserved_quantity,
-              damaged: record.damaged_quantity,
-              threshold: record.low_stock_threshold
-            }))
-            .sort((a, b) => b.onHand - a.onHand || a.name.localeCompare(b.name));
-
-          return {
-            id: productId,
-            name: product?.name || productId,
-            sku: product?.sku || productId,
-            onHand,
-            reserved,
-            damaged,
-            driver,
-            total,
-            threshold,
-            locations,
-            status,
-            pendingRequests: restockLookup[productId] || 0
-          };
-        });
-
-        setItems(computed);
-        setAlerts(alertList);
-      } catch (error) {
-        console.warn('Failed to load inventory data:', error);
-        if (!cancelled) {
-          setItems(fallback);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
     loadInventory();
 
+    let unsubscribe: (() => void) | undefined;
+    if (dataStore.subscribeToChanges) {
+      unsubscribe = dataStore.subscribeToChanges('inventory', () => {
+        loadInventory();
+      });
+    }
+
     return () => {
-      cancelled = true;
+      if (unsubscribe) unsubscribe();
     };
-  }, [dataStore]);
+  }, [filter]);
 
-  const summary = useMemo(
-    () => ({
-      totalSku: items.length,
-      lowStock: items.filter((item) => item.status === 'low').length,
-      outOfStock: items.filter((item) => item.status === 'out').length
-    }),
-    [items]
-  );
+  const loadInventory = async () => {
+    try {
+      setLoading(true);
 
-  const alertSet = useMemo(() => new Set(alerts.map((alert) => alert.product_id)), [alerts]);
+      const [products, inventoryRecords, locations, lowStockAlerts] = await Promise.all([
+        dataStore.listProducts?.() || [],
+        dataStore.listInventory?.() || [],
+        dataStore.listInventoryLocations?.() || [],
+        dataStore.getLowStockAlerts?.() || []
+      ]);
 
-  return (
-    <div
-      style={{
+      const locationsMap = new Map(locations.map(loc => [loc.id, loc]));
+      const inventoryMap = new Map<string, InventoryRecord[]>();
+
+      inventoryRecords.forEach(record => {
+        const existing = inventoryMap.get(record.product_id) || [];
+        existing.push(record);
+        inventoryMap.set(record.product_id, existing);
+      });
+
+      const aggregated: AggregatedInventory[] = products.map(product => {
+        const productInventory = inventoryMap.get(product.id) || [];
+        const totalOnHand = productInventory.reduce((sum, r) => sum + (r.on_hand_quantity || 0), 0);
+        const totalReserved = productInventory.reduce((sum, r) => sum + (r.reserved_quantity || 0), 0);
+        const totalDamaged = productInventory.reduce((sum, r) => sum + (r.damaged_quantity || 0), 0);
+
+        const hasLowStock = productInventory.some(r =>
+          r.on_hand_quantity <= (r.low_stock_threshold || 0)
+        );
+
+        const status = totalOnHand === 0 ? 'out' : hasLowStock ? 'low' : 'in_stock';
+
+        return {
+          product,
+          totalOnHand,
+          totalReserved,
+          totalDamaged,
+          locations: productInventory.map(record => ({
+            location: locationsMap.get(record.location_id)!,
+            record
+          })).filter(l => l.location),
+          status
+        };
+      });
+
+      const filtered = aggregated.filter(item => {
+        if (filter === 'all') return true;
+        return item.status === filter;
+      });
+
+      setInventory(filtered);
+      setAlerts(lowStockAlerts);
+    } catch (error) {
+      console.error('Failed to load inventory:', error);
+      Toast.error('שגיאה בטעינת מלאי');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdjustInventory = async (productId: string, locationId: string, quantity: number, type: 'add' | 'remove' | 'damaged') => {
+    try {
+      if (!dataStore.adjustDriverInventory) {
+        Toast.error('פעולה זו אינה נתמכת');
+        return;
+      }
+
+      await dataStore.adjustDriverInventory({
+        product_id: productId,
+        quantity: type === 'add' ? quantity : type === 'remove' ? -quantity : 0,
+        reason: type === 'damaged' ? 'Damaged goods' : type === 'add' ? 'Stock added' : 'Stock removed'
+      });
+
+      Toast.success('המלאי עודכן בהצלחה');
+      haptic();
+      loadInventory();
+      setShowAdjustForm(false);
+    } catch (error) {
+      console.error('Failed to adjust inventory:', error);
+      Toast.error('שגיאה בעדכון מלאי');
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'in_stock': return ROYAL_COLORS.emerald;
+      case 'low': return ROYAL_COLORS.gold;
+      case 'out': return ROYAL_COLORS.crimson;
+      default: return ROYAL_COLORS.muted;
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'in_stock': return '✅';
+      case 'low': return '⚠️';
+      case 'out': return '❌';
+      default: return '📦';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'in_stock': return 'במלאי';
+      case 'low': return 'מלאי נמוך';
+      case 'out': return 'אזל מהמלאי';
+      default: return '';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{
         minHeight: '100vh',
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
-        padding: '20px',
+        background: ROYAL_COLORS.background,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         direction: 'rtl'
-      }}
-    >
-      <h1 style={{ fontSize: '24px', margin: '0 0 16px' }}>ניהול מלאי</h1>
-      <p style={{ margin: '0 0 24px', color: hintColor }}>
-        בקרה חכמה על רמות מלאי, התראות על חוסרים ופעולות חידוש מהירות.
-      </p>
-
-      <section style={{ display: 'grid', gap: '12px', marginBottom: '28px' }}>
-        <div style={{ backgroundColor: subtleBackground, borderRadius: '12px', padding: '16px' }}>
-          <div style={{ fontSize: '14px', color: hintColor }}>סה"כ מק"טים במעקב</div>
-          <div style={{ fontSize: '22px', fontWeight: 600 }}>{summary.totalSku}</div>
-        </div>
-        <div style={{ backgroundColor: subtleBackground, borderRadius: '12px', padding: '16px' }}>
-          <div style={{ fontSize: '14px', color: hintColor }}>חוסרים מתקרבים</div>
-          <div style={{ fontSize: '22px', fontWeight: 600, color: summary.lowStock ? '#ff9500' : theme.text_color }}>
-            {summary.lowStock}
-          </div>
-        </div>
-      <div style={{ backgroundColor: subtleBackground, borderRadius: '12px', padding: '16px' }}>
-        <div style={{ fontSize: '14px', color: hintColor }}>חוסר מלאי</div>
-        <div style={{ fontSize: '22px', fontWeight: 600, color: summary.outOfStock ? '#ff3b30' : theme.text_color }}>
-          {summary.outOfStock}
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
+          <div style={{ color: ROYAL_COLORS.text, fontSize: '18px' }}>טוען מלאי...</div>
         </div>
       </div>
-    </section>
+    );
+  }
 
-    {loading && (
-      <div style={{ marginBottom: '12px', color: hintColor }}>טוען נתוני מלאי...</div>
-    )}
+  if (selectedProduct) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: ROYAL_COLORS.background,
+        paddingTop: '16px',
+        paddingBottom: '80px',
+        direction: 'rtl'
+      }}>
+        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '0 16px' }}>
+          <button
+            onClick={() => {
+              setSelectedProduct(null);
+              backButton.hide();
+            }}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: ROYAL_COLORS.accent,
+              fontSize: '16px',
+              cursor: 'pointer',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            ← חזרה
+          </button>
 
-      <section style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {items.length === 0 && !loading ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '24px',
-            borderRadius: '12px',
-            backgroundColor: theme.secondary_bg_color || '#ffffff',
-            color: hintColor
+          <h1 style={{
+            margin: '0 0 20px 0',
+            fontSize: '28px',
+            fontWeight: '700',
+            color: ROYAL_COLORS.text,
+            textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
           }}>
-            אין נתוני מלאי זמינים.
-          </div>
-        ) : (
-          items.map((item) => {
-            const statusColor =
-              item.status === 'out' ? '#ff3b30' : item.status === 'low' ? '#ff9500' : accentColor;
-            const statusLabel =
-              item.status === 'out' ? 'חסר במלאי' : item.status === 'low' ? 'מלאי נמוך' : 'במלאי';
-            const isAlert = alertSet.has(item.id);
+            {selectedProduct.product.name}
+          </h1>
 
-            return (
-              <div
-                key={item.id}
-              style={{
-                backgroundColor: theme.secondary_bg_color || '#ffffff',
-                borderRadius: '14px',
-                padding: '16px',
-                border: `1px solid ${hintColor}30`,
-                boxShadow: isAlert ? `0 0 0 2px ${statusColor}40` : 'none'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontWeight: 600 }}>{item.name}</span>
-                <span style={{ fontSize: '12px', color: hintColor }}>SKU: {item.sku}</span>
-              </div>
-
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-                gap: '8px',
-                fontSize: '12px',
-                marginBottom: '8px'
-              }}>
-                <div>זמין במחסנים: <strong style={{ color: theme.text_color }}>{item.onHand}</strong></div>
-                <div>בהקצאה: <strong style={{ color: theme.text_color }}>{item.reserved}</strong></div>
-                <div>לנהגים: <strong style={{ color: theme.text_color }}>{item.driver}</strong></div>
-                <div>סה"כ: <strong style={{ color: theme.text_color }}>{item.total}</strong></div>
-              </div>
-
-              {item.damaged > 0 && (
-                <div style={{ fontSize: '12px', color: hintColor, marginBottom: '8px' }}>
-                  פגומים: <strong style={{ color: theme.text_color }}>{item.damaged}</strong>
+          <div style={{
+            ...ROYAL_STYLES.card,
+            marginBottom: '20px'
+          }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+              <div>
+                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '4px' }}>מק"ט</div>
+                <div style={{ color: ROYAL_COLORS.text, fontSize: '18px', fontWeight: '600' }}>
+                  {selectedProduct.product.sku}
                 </div>
-              )}
-
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '8px'
-              }}>
-                <span style={{ fontSize: '12px', color: hintColor }}>
-                  {item.locations.length} מיקומים פעילים
-                </span>
-                {item.pendingRequests > 0 && (
-                  <span
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: '12px',
-                      backgroundColor: '#ff950020',
-                      color: '#ff9500',
-                      fontSize: '11px',
-                      fontWeight: 600
-                    }}
-                  >
-                    {item.pendingRequests} בקשות חידוש
-                  </span>
-                )}
               </div>
+              <div>
+                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '4px' }}>מחיר</div>
+                <div style={{ color: ROYAL_COLORS.gold, fontSize: '18px', fontWeight: '600' }}>
+                  {formatCurrency(selectedProduct.product.price)}
+                </div>
+              </div>
+              <div>
+                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '4px' }}>במלאי</div>
+                <div style={{ color: ROYAL_COLORS.emerald, fontSize: '18px', fontWeight: '600' }}>
+                  {selectedProduct.totalOnHand}
+                </div>
+              </div>
+              <div>
+                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '4px' }}>שמור</div>
+                <div style={{ color: ROYAL_COLORS.gold, fontSize: '18px', fontWeight: '600' }}>
+                  {selectedProduct.totalReserved}
+                </div>
+              </div>
+            </div>
+          </div>
 
-              {item.locations.length > 0 && (
+          <h2 style={{
+            margin: '24px 0 16px 0',
+            fontSize: '20px',
+            fontWeight: '600',
+            color: ROYAL_COLORS.text
+          }}>
+            מיקומים
+          </h2>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {selectedProduct.locations.map(({ location, record }) => (
+              <div key={location.id} style={{
+                ...ROYAL_STYLES.card,
+                padding: '16px'
+              }}>
                 <div style={{
                   display: 'flex',
-                  flexDirection: 'column',
-                  gap: '6px',
-                  fontSize: '12px',
-                  backgroundColor: theme.bg_color,
-                  borderRadius: '10px',
-                  padding: '10px',
-                  marginBottom: '8px'
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '12px'
                 }}>
-                  {item.locations.map((location) => (
-                    <div key={`${item.id}-${location.id}`} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: theme.text_color }}>{location.name}</span>
-                      <span>
-                        זמין {location.onHand} • בהקצאה {location.reserved}
-                        {location.damaged > 0 ? ` • פגומים ${location.damaged}` : ''}
-                      </span>
+                  <div>
+                    <div style={{ color: ROYAL_COLORS.text, fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
+                      {location.name}
                     </div>
-                  ))}
+                    <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px' }}>
+                      {location.type}
+                    </div>
+                  </div>
                 </div>
-              )}
 
-              <div style={{ marginTop: '12px' }}>
-                <span
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: '999px',
-                    backgroundColor: `${statusColor}20`,
-                    color: statusColor,
-                    fontSize: '12px'
-                  }}
-                >
-                  {statusLabel}
-                </span>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                  <div>
+                    <div style={{ color: ROYAL_COLORS.muted, fontSize: '12px' }}>זמין</div>
+                    <div style={{ color: ROYAL_COLORS.emerald, fontSize: '20px', fontWeight: '600' }}>
+                      {record.on_hand_quantity}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ color: ROYAL_COLORS.muted, fontSize: '12px' }}>שמור</div>
+                    <div style={{ color: ROYAL_COLORS.gold, fontSize: '20px', fontWeight: '600' }}>
+                      {record.reserved_quantity || 0}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ color: ROYAL_COLORS.muted, fontSize: '12px' }}>פגום</div>
+                    <div style={{ color: ROYAL_COLORS.crimson, fontSize: '20px', fontWeight: '600' }}>
+                      {record.damaged_quantity || 0}
+                    </div>
+                  </div>
+                </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: ROYAL_COLORS.background,
+      paddingTop: '16px',
+      paddingBottom: '80px',
+      direction: 'rtl'
+    }}>
+      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '0 16px' }}>
+        <h1 style={{
+          margin: '0 0 20px 0',
+          fontSize: '28px',
+          fontWeight: '700',
+          color: ROYAL_COLORS.text,
+          textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
+        }}>
+          📦 מלאי
+        </h1>
+
+        {alerts.length > 0 && (
+          <div style={{
+            ...ROYAL_STYLES.card,
+            marginBottom: '20px',
+            background: `${ROYAL_COLORS.crimson}15`,
+            borderColor: `${ROYAL_COLORS.crimson}40`
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              marginBottom: '12px'
+            }}>
+              <div style={{ fontSize: '24px' }}>⚠️</div>
+              <div>
+                <div style={{ color: ROYAL_COLORS.text, fontWeight: '600', fontSize: '16px' }}>
+                  התראות מלאי נמוך
+                </div>
+                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px' }}>
+                  {alerts.length} מוצרים דורשים תשומת לב
+                </div>
               </div>
-            );
-          })
+            </div>
+          </div>
         )}
-      </section>
+
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          marginBottom: '20px',
+          overflowX: 'auto'
+        }}>
+          {[
+            { id: 'all', label: 'הכל' },
+            { id: 'low', label: 'מלאי נמוך' },
+            { id: 'out', label: 'אזל' }
+          ].map(f => (
+            <button
+              key={f.id}
+              onClick={() => {
+                setFilter(f.id as any);
+                haptic();
+              }}
+              style={{
+                padding: '10px 20px',
+                borderRadius: '12px',
+                border: 'none',
+                background: filter === f.id
+                  ? 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)'
+                  : ROYAL_COLORS.card,
+                color: filter === f.id ? '#fff' : ROYAL_COLORS.text,
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                boxShadow: filter === f.id ? '0 4px 12px rgba(156, 109, 255, 0.3)' : 'none',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {inventory.length === 0 ? (
+          <div style={{
+            ...ROYAL_STYLES.emptyState,
+            padding: '60px 20px',
+            borderRadius: '16px',
+            background: ROYAL_COLORS.card
+          }}>
+            <div style={{ fontSize: '64px', marginBottom: '16px' }}>📦</div>
+            <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text, fontSize: '20px' }}>
+              אין פריטים להצגה
+            </h3>
+            <div style={{ ...ROYAL_STYLES.emptyStateText, fontSize: '15px' }}>
+              {filter !== 'all' ? 'נסה לשנות את הסינון' : 'לא נמצאו פריטי מלאי'}
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {inventory.map(item => (
+              <div
+                key={item.product.id}
+                onClick={() => {
+                  setSelectedProduct(item);
+                  haptic();
+                  backButton.show(() => {
+                    setSelectedProduct(null);
+                    backButton.hide();
+                  });
+                }}
+                style={{
+                  ...ROYAL_STYLES.card,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(156, 109, 255, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = ROYAL_COLORS.shadow;
+                }}
+              >
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: '12px'
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{
+                      fontSize: '18px',
+                      fontWeight: '700',
+                      color: ROYAL_COLORS.text,
+                      marginBottom: '4px'
+                    }}>
+                      {item.product.name}
+                    </div>
+                    <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                      {item.product.sku} • {item.locations.length} מיקומים
+                    </div>
+                  </div>
+                  <div style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    background: `${getStatusColor(item.status)}20`,
+                    color: getStatusColor(item.status),
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    <span>{getStatusIcon(item.status)}</span>
+                    <span>{getStatusLabel(item.status)}</span>
+                  </div>
+                </div>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '12px',
+                  paddingTop: '12px',
+                  borderTop: `1px solid ${ROYAL_COLORS.cardBorder}`
+                }}>
+                  <div>
+                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                      זמין
+                    </div>
+                    <div style={{ fontSize: '20px', fontWeight: '600', color: ROYAL_COLORS.emerald }}>
+                      {item.totalOnHand}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                      שמור
+                    </div>
+                    <div style={{ fontSize: '20px', fontWeight: '600', color: ROYAL_COLORS.gold }}>
+                      {item.totalReserved}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                      פגום
+                    </div>
+                    <div style={{ fontSize: '20px', fontWeight: '600', color: ROYAL_COLORS.crimson }}>
+                      {item.totalDamaged}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,20 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { telegram } from '../lib/telegram';
 import { useTelegramUI } from '../src/hooks/useTelegramUI';
-import { DataStore, User } from '../data/types';
-import { hebrew, formatCurrency } from '../src/lib/hebrew';
+import { DataStore, User, Order } from '../data/types';
+import { ROYAL_COLORS, ROYAL_STYLES } from '../src/styles/royalTheme';
+import { formatCurrency } from '../src/lib/hebrew';
+import { Toast } from '../src/components/Toast';
 
 interface ReportsProps {
   dataStore: DataStore;
   onNavigate: (page: string) => void;
 }
 
+interface ReportData {
+  totalOrders: number;
+  completedOrders: number;
+  cancelledOrders: number;
+  totalRevenue: number;
+  averageOrderValue: number;
+  revenueByDay: { date: string; amount: number }[];
+  ordersByStatus: { status: string; count: number }[];
+  topProducts: { name: string; sales: number; revenue: number }[];
+}
+
 export function Reports({ dataStore, onNavigate }: ReportsProps) {
   const [user, setUser] = useState<User | null>(null);
   const [selectedReport, setSelectedReport] = useState<string>('overview');
-  const [dateRange, setDateRange] = useState('week');
+  const [dateRange, setDateRange] = useState<'day' | 'week' | 'month' | 'year'>('week');
   const [loading, setLoading] = useState(true);
-  const [reportData, setReportData] = useState<any>({});
+  const [reportData, setReportData] = useState<ReportData | null>(null);
   const { theme, haptic, backButton } = useTelegramUI();
 
   useEffect(() => {
@@ -27,563 +40,435 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
 
   const loadData = async () => {
     try {
+      setLoading(true);
       const profile = await dataStore.getProfile();
       setUser(profile);
 
-      // Generate demo report data
-      const data = generateReportData(selectedReport, dateRange);
+      const data = await generateReportData(dateRange);
       setReportData(data);
     } catch (error) {
       console.error('Failed to load reports:', error);
+      Toast.error('שגיאה בטעינת דוחות');
     } finally {
       setLoading(false);
     }
   };
 
-  const generateReportData = (reportType: string, range: string) => {
-    const multiplier = range === 'day' ? 1 : range === 'week' ? 7 : range === 'month' ? 30 : 365;
-    
-    switch (reportType) {
-      case 'overview':
-        return {
-          totalOrders: 45 * multiplier,
-          completedOrders: 38 * multiplier,
-          revenue: 125000 * multiplier,
-          averageDeliveryTime: 2.5,
-          customerSatisfaction: 4.7,
-          topProducts: [
-            { name: 'מחשב נייד Dell', sales: 12 * multiplier, revenue: 42000 * multiplier },
-            { name: 'עכבר אלחוטי', sales: 25 * multiplier, revenue: 3000 * multiplier },
-            { name: 'מקלדת מכנית', sales: 8 * multiplier, revenue: 4800 * multiplier }
-          ]
-        };
-      case 'sales':
-        return {
-          totalSales: 125000 * multiplier,
-          ordersCount: 45 * multiplier,
-          averageOrderValue: 2778,
-          topSalesperson: 'שרה כהן',
-          salesByCategory: [
-            { category: 'מחשבים', amount: 65000 * multiplier, percentage: 52 },
-            { category: 'אביזרים', amount: 35000 * multiplier, percentage: 28 },
-            { category: 'ציוד משרדי', amount: 25000 * multiplier, percentage: 20 }
-          ]
-        };
-      case 'delivery':
-        return {
-          totalDeliveries: 38 * multiplier,
-          onTimeDeliveries: 35 * multiplier,
-          averageDeliveryTime: 2.5,
-          failedDeliveries: 3 * multiplier,
-          topDrivers: [
-            { name: 'דני מור', deliveries: 15 * multiplier, rating: 4.9 },
-            { name: 'יוסי לוי', deliveries: 12 * multiplier, rating: 4.7 },
-            { name: 'רחל גולן', deliveries: 11 * multiplier, rating: 4.8 }
-          ]
-        };
-      case 'inventory':
-        return {
-          totalProducts: 156,
-          lowStockItems: 12,
-          outOfStockItems: 3,
-          totalValue: 450000,
-          topMovingProducts: [
-            { name: 'עכבר אלחוטי', moved: 25 * multiplier, remaining: 125 },
-            { name: 'מחשב נייד Dell', moved: 12 * multiplier, remaining: 13 },
-            { name: 'מקלדת מכנית', moved: 8 * multiplier, remaining: 42 }
-          ]
-        };
-      default:
-        return {};
+  const generateReportData = async (range: string): Promise<ReportData> => {
+    try {
+      const orders = await dataStore.listOrders?.() || [];
+      const now = new Date();
+      let startDate = new Date();
+
+      switch (range) {
+        case 'day':
+          startDate.setHours(0, 0, 0, 0);
+          break;
+        case 'week':
+          startDate.setDate(now.getDate() - 7);
+          break;
+        case 'month':
+          startDate.setMonth(now.getMonth() - 1);
+          break;
+        case 'year':
+          startDate.setFullYear(now.getFullYear() - 1);
+          break;
+      }
+
+      const filteredOrders = orders.filter(order => {
+        const orderDate = new Date(order.created_at);
+        return orderDate >= startDate && orderDate <= now;
+      });
+
+      const totalOrders = filteredOrders.length;
+      const completedOrders = filteredOrders.filter(o => o.status === 'delivered').length;
+      const cancelledOrders = filteredOrders.filter(o => o.status === 'cancelled').length;
+      const totalRevenue = filteredOrders
+        .filter(o => o.status === 'delivered')
+        .reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
+      const averageOrderValue = completedOrders > 0 ? totalRevenue / completedOrders : 0;
+
+      const revenueByDay: { [key: string]: number } = {};
+      filteredOrders
+        .filter(o => o.status === 'delivered')
+        .forEach(order => {
+          const date = new Date(order.created_at).toISOString().split('T')[0];
+          revenueByDay[date] = (revenueByDay[date] || 0) + Number(order.total_amount);
+        });
+
+      const statusCounts: { [key: string]: number } = {};
+      filteredOrders.forEach(order => {
+        statusCounts[order.status] = (statusCounts[order.status] || 0) + 1;
+      });
+
+      const productSales: { [key: string]: { sales: number; revenue: number } } = {};
+      filteredOrders
+        .filter(o => o.status === 'delivered')
+        .forEach(order => {
+          if (order.items && Array.isArray(order.items)) {
+            order.items.forEach((item: any) => {
+              const name = item.product?.name || item.name || 'Unknown';
+              if (!productSales[name]) {
+                productSales[name] = { sales: 0, revenue: 0 };
+              }
+              productSales[name].sales += item.quantity || 1;
+              productSales[name].revenue += (item.price || 0) * (item.quantity || 1);
+            });
+          }
+        });
+
+      return {
+        totalOrders,
+        completedOrders,
+        cancelledOrders,
+        totalRevenue,
+        averageOrderValue,
+        revenueByDay: Object.entries(revenueByDay).map(([date, amount]) => ({ date, amount })),
+        ordersByStatus: Object.entries(statusCounts).map(([status, count]) => ({ status, count })),
+        topProducts: Object.entries(productSales)
+          .map(([name, data]) => ({ name, ...data }))
+          .sort((a, b) => b.revenue - a.revenue)
+          .slice(0, 5)
+      };
+    } catch (error) {
+      console.error('Error generating report data:', error);
+      return {
+        totalOrders: 0,
+        completedOrders: 0,
+        cancelledOrders: 0,
+        totalRevenue: 0,
+        averageOrderValue: 0,
+        revenueByDay: [],
+        ordersByStatus: [],
+        topProducts: []
+      };
     }
   };
 
   const reportTypes = [
-    { id: 'overview', name: 'סקירה כללית', icon: '📊' },
-    { id: 'sales', name: 'מכירות', icon: '💰' },
-    { id: 'delivery', name: 'משלוחים', icon: '🚚' },
-    { id: 'inventory', name: 'מלאי', icon: '📦' }
+    { id: 'overview', label: 'סקירה כללית', icon: '📊' },
+    { id: 'sales', label: 'מכירות', icon: '💰' },
+    { id: 'delivery', label: 'משלוחים', icon: '🚚' },
+    { id: 'inventory', label: 'מלאי', icon: '📦' }
   ];
 
   const dateRanges = [
-    { id: 'day', name: 'היום' },
-    { id: 'week', name: 'השבוע' },
-    { id: 'month', name: 'החודש' },
-    { id: 'year', name: 'השנה' }
+    { id: 'day', label: 'יום' },
+    { id: 'week', label: 'שבוע' },
+    { id: 'month', label: 'חודש' },
+    { id: 'year', label: 'שנה' }
   ];
+
+  const getStatusLabel = (status: string) => {
+    const labels: { [key: string]: string } = {
+      new: 'חדש',
+      confirmed: 'אושר',
+      preparing: 'בהכנה',
+      ready: 'מוכן',
+      out_for_delivery: 'במשלוח',
+      delivered: 'נמסר',
+      cancelled: 'בוטל'
+    };
+    return labels[status] || status;
+  };
+
+  const getStatusColor = (status: string) => {
+    const colors: { [key: string]: string } = {
+      new: ROYAL_COLORS.accent,
+      confirmed: ROYAL_COLORS.teal,
+      preparing: ROYAL_COLORS.gold,
+      ready: ROYAL_COLORS.emerald,
+      out_for_delivery: ROYAL_COLORS.accent,
+      delivered: ROYAL_COLORS.emerald,
+      cancelled: ROYAL_COLORS.crimson
+    };
+    return colors[status] || ROYAL_COLORS.muted;
+  };
 
   if (loading) {
     return (
-      <div style={{ 
-        padding: '20px', 
-        textAlign: 'center',
-        color: theme.text_color,
-        backgroundColor: theme.bg_color,
-        minHeight: '100vh'
+      <div style={{
+        minHeight: '100vh',
+        background: ROYAL_COLORS.background,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        direction: 'rtl'
       }}>
-        טוען דוחות...
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
+          <div style={{ color: ROYAL_COLORS.text, fontSize: '18px' }}>טוען דוחות...</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ 
-      backgroundColor: theme.bg_color,
-      color: theme.text_color,
+    <div style={{
       minHeight: '100vh',
+      background: ROYAL_COLORS.background,
+      paddingTop: '16px',
+      paddingBottom: '80px',
       direction: 'rtl'
     }}>
-      {/* Header */}
-      <div style={{ padding: '16px', borderBottom: `1px solid ${theme.hint_color}20` }}>
-        <h1 style={{ 
-          margin: '0 0 16px 0', 
-          fontSize: '24px', 
-          fontWeight: '600'
+      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '0 16px' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '20px'
         }}>
-          📈 דוחות ואנליטיקה
-        </h1>
+          <h1 style={{
+            margin: 0,
+            fontSize: '28px',
+            fontWeight: '700',
+            color: ROYAL_COLORS.text,
+            textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
+          }}>
+            📊 דוחות
+          </h1>
+        </div>
 
-        {/* Report Type Selector */}
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px' }}>
-          {reportTypes.map((type) => (
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          marginBottom: '20px',
+          overflowX: 'auto',
+          paddingBottom: '8px'
+        }}>
+          {reportTypes.map(type => (
             <button
               key={type.id}
               onClick={() => {
-                haptic();
                 setSelectedReport(type.id);
+                haptic();
               }}
               style={{
-                padding: '8px 16px',
+                padding: '10px 16px',
+                borderRadius: '12px',
                 border: 'none',
-                borderRadius: '20px',
-                backgroundColor: selectedReport === type.id ? theme.button_color : theme.secondary_bg_color,
-                color: selectedReport === type.id ? theme.button_text_color : theme.text_color,
+                background: selectedReport === type.id
+                  ? 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)'
+                  : ROYAL_COLORS.card,
+                color: selectedReport === type.id ? '#fff' : ROYAL_COLORS.text,
                 fontSize: '14px',
-                fontWeight: '500',
+                fontWeight: '600',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
+                boxShadow: selectedReport === type.id ? '0 4px 12px rgba(156, 109, 255, 0.3)' : 'none',
+                transition: 'all 0.3s ease',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px'
+                gap: '6px'
               }}
             >
               <span>{type.icon}</span>
-              <span>{type.name}</span>
+              <span>{type.label}</span>
             </button>
           ))}
         </div>
 
-        {/* Date Range Selector */}
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {dateRanges.map((range) => (
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          marginBottom: '24px'
+        }}>
+          {dateRanges.map(range => (
             <button
               key={range.id}
               onClick={() => {
+                setDateRange(range.id as any);
                 haptic();
-                setDateRange(range.id);
               }}
               style={{
-                padding: '6px 12px',
-                border: `1px solid ${theme.hint_color}40`,
-                borderRadius: '16px',
-                backgroundColor: dateRange === range.id ? theme.button_color + '20' : 'transparent',
-                color: dateRange === range.id ? theme.button_color : theme.text_color,
-                fontSize: '12px',
-                fontWeight: '500',
-                cursor: 'pointer'
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: `1px solid ${dateRange === range.id ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+                background: dateRange === range.id ? `${ROYAL_COLORS.accent}20` : ROYAL_COLORS.card,
+                color: dateRange === range.id ? ROYAL_COLORS.accent : ROYAL_COLORS.text,
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
               }}
             >
-              {range.name}
+              {range.label}
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Report Content */}
-      <div style={{ padding: '16px' }}>
-        {selectedReport === 'overview' && (
-          <OverviewReport data={reportData} theme={theme} />
-        )}
-        {selectedReport === 'sales' && (
-          <SalesReport data={reportData} theme={theme} />
-        )}
-        {selectedReport === 'delivery' && (
-          <DeliveryReport data={reportData} theme={theme} />
-        )}
-        {selectedReport === 'inventory' && (
-          <InventoryReport data={reportData} theme={theme} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function OverviewReport({ data, theme }: { data: any; theme: any }) {
-  return (
-    <div>
-      {/* Key Metrics */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
-        gap: '12px',
-        marginBottom: '24px'
-      }}>
-        <MetricCard
-          title="סה״כ הזמנות"
-          value={data.totalOrders?.toString() || '0'}
-          icon="📋"
-          color="#007aff"
-          theme={theme}
-        />
-        <MetricCard
-          title="הזמנות שהושלמו"
-          value={data.completedOrders?.toString() || '0'}
-          icon="✅"
-          color="#34c759"
-          theme={theme}
-        />
-        <MetricCard
-          title="הכנסות"
-          value={formatCurrency(data.revenue || 0)}
-          icon="💰"
-          color="#ff9500"
-          theme={theme}
-          isText={true}
-        />
-        <MetricCard
-          title="זמן משלוח ממוצע"
-          value={`${data.averageDeliveryTime || 0} שעות`}
-          icon="⏱️"
-          color="#5856d6"
-          theme={theme}
-          isText={true}
-        />
-      </div>
-
-      {/* Top Products */}
-      <div style={{ marginBottom: '24px' }}>
-        <h3 style={{ 
-          margin: '0 0 16px 0', 
-          fontSize: '18px', 
-          fontWeight: '600'
-        }}>
-          מוצרים מובילים
-        </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {data.topProducts?.map((product: any, index: number) => (
-            <div
-              key={index}
-              style={{
-                padding: '12px',
-                backgroundColor: theme.secondary_bg_color,
-                borderRadius: '8px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: '600', marginBottom: '2px' }}>
-                  {product.name}
+        {reportData && (
+          <>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '12px',
+              marginBottom: '24px'
+            }}>
+              <div style={{ ...ROYAL_STYLES.card, padding: '16px' }}>
+                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '8px' }}>
+                  סה"כ הזמנות
                 </div>
-                <div style={{ fontSize: '12px', color: theme.hint_color }}>
-                  {product.sales} מכירות
+                <div style={{ color: ROYAL_COLORS.text, fontSize: '28px', fontWeight: '700' }}>
+                  {reportData.totalOrders}
                 </div>
               </div>
-              <div style={{ fontWeight: '600', color: theme.button_color }}>
-                {formatCurrency(product.revenue)}
-              </div>
-            </div>
-          )) || []}
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function SalesReport({ data, theme }: { data: any; theme: any }) {
-  return (
-    <div>
-      {/* Sales Metrics */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
-        gap: '12px',
-        marginBottom: '24px'
-      }}>
-        <MetricCard
-          title="סה״כ מכירות"
-          value={formatCurrency(data.totalSales || 0)}
-          icon="💰"
-          color="#34c759"
-          theme={theme}
-          isText={true}
-        />
-        <MetricCard
-          title="מספר הזמנות"
-          value={data.ordersCount?.toString() || '0'}
-          icon="📋"
-          color="#007aff"
-          theme={theme}
-        />
-        <MetricCard
-          title="ממוצע להזמנה"
-          value={formatCurrency(data.averageOrderValue || 0)}
-          icon="📊"
-          color="#ff9500"
-          theme={theme}
-          isText={true}
-        />
-      </div>
-
-      {/* Sales by Category */}
-      <div style={{ marginBottom: '24px' }}>
-        <h3 style={{ 
-          margin: '0 0 16px 0', 
-          fontSize: '18px', 
-          fontWeight: '600'
-        }}>
-          מכירות לפי קטגוריה
-        </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {data.salesByCategory?.map((category: any, index: number) => (
-            <div
-              key={index}
-              style={{
-                padding: '12px',
-                backgroundColor: theme.secondary_bg_color,
-                borderRadius: '8px'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontWeight: '600' }}>{category.category}</span>
-                <span style={{ fontWeight: '600', color: theme.button_color }}>
-                  {formatCurrency(category.amount)}
-                </span>
-              </div>
-              <div style={{
-                width: '100%',
-                height: '6px',
-                backgroundColor: theme.hint_color + '30',
-                borderRadius: '3px',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  width: `${category.percentage}%`,
-                  height: '100%',
-                  backgroundColor: theme.button_color,
-                  borderRadius: '3px'
-                }} />
-              </div>
-              <div style={{ 
-                fontSize: '12px', 
-                color: theme.hint_color,
-                marginTop: '4px'
-              }}>
-                {category.percentage}% מסך המכירות
-              </div>
-            </div>
-          )) || []}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DeliveryReport({ data, theme }: { data: any; theme: any }) {
-  const onTimePercentage = data.totalDeliveries ? 
-    Math.round((data.onTimeDeliveries / data.totalDeliveries) * 100) : 0;
-
-  return (
-    <div>
-      {/* Delivery Metrics */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
-        gap: '12px',
-        marginBottom: '24px'
-      }}>
-        <MetricCard
-          title="סה״כ משלוחים"
-          value={data.totalDeliveries?.toString() || '0'}
-          icon="🚚"
-          color="#007aff"
-          theme={theme}
-        />
-        <MetricCard
-          title="משלוחים בזמן"
-          value={`${onTimePercentage}%`}
-          icon="✅"
-          color="#34c759"
-          theme={theme}
-          isText={true}
-        />
-        <MetricCard
-          title="זמן ממוצע"
-          value={`${data.averageDeliveryTime || 0} שעות`}
-          icon="⏱️"
-          color="#ff9500"
-          theme={theme}
-          isText={true}
-        />
-        <MetricCard
-          title="משלוחים כושלים"
-          value={data.failedDeliveries?.toString() || '0'}
-          icon="❌"
-          color="#ff3b30"
-          theme={theme}
-        />
-      </div>
-
-      {/* Top Drivers */}
-      <div style={{ marginBottom: '24px' }}>
-        <h3 style={{ 
-          margin: '0 0 16px 0', 
-          fontSize: '18px', 
-          fontWeight: '600'
-        }}>
-          נהגים מובילים
-        </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {data.topDrivers?.map((driver: any, index: number) => (
-            <div
-              key={index}
-              style={{
-                padding: '12px',
-                backgroundColor: theme.secondary_bg_color,
-                borderRadius: '8px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: '600', marginBottom: '2px' }}>
-                  🚚 {driver.name}
+              <div style={{ ...ROYAL_STYLES.card, padding: '16px' }}>
+                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '8px' }}>
+                  הזמנות הושלמו
                 </div>
-                <div style={{ fontSize: '12px', color: theme.hint_color }}>
-                  {driver.deliveries} משלוחים
+                <div style={{ color: ROYAL_COLORS.emerald, fontSize: '28px', fontWeight: '700' }}>
+                  {reportData.completedOrders}
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span>⭐</span>
-                <span style={{ fontWeight: '600' }}>{driver.rating}</span>
+
+              <div style={{ ...ROYAL_STYLES.card, padding: '16px' }}>
+                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '8px' }}>
+                  הכנסות
+                </div>
+                <div style={{ color: ROYAL_COLORS.gold, fontSize: '24px', fontWeight: '700' }}>
+                  {formatCurrency(reportData.totalRevenue)}
+                </div>
+              </div>
+
+              <div style={{ ...ROYAL_STYLES.card, padding: '16px' }}>
+                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '8px' }}>
+                  ממוצע הזמנה
+                </div>
+                <div style={{ color: ROYAL_COLORS.teal, fontSize: '24px', fontWeight: '700' }}>
+                  {formatCurrency(reportData.averageOrderValue)}
+                </div>
               </div>
             </div>
-          )) || []}
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function InventoryReport({ data, theme }: { data: any; theme: any }) {
-  return (
-    <div>
-      {/* Inventory Metrics */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
-        gap: '12px',
-        marginBottom: '24px'
-      }}>
-        <MetricCard
-          title="סה״כ מוצרים"
-          value={data.totalProducts?.toString() || '0'}
-          icon="📦"
-          color="#007aff"
-          theme={theme}
-        />
-        <MetricCard
-          title="מלאי נמוך"
-          value={data.lowStockItems?.toString() || '0'}
-          icon="⚠️"
-          color="#ff9500"
-          theme={theme}
-        />
-        <MetricCard
-          title="אזל מהמלאי"
-          value={data.outOfStockItems?.toString() || '0'}
-          icon="❌"
-          color="#ff3b30"
-          theme={theme}
-        />
-        <MetricCard
-          title="ערך כולל"
-          value={formatCurrency(data.totalValue || 0)}
-          icon="💰"
-          color="#34c759"
-          theme={theme}
-          isText={true}
-        />
-      </div>
-
-      {/* Top Moving Products */}
-      <div style={{ marginBottom: '24px' }}>
-        <h3 style={{ 
-          margin: '0 0 16px 0', 
-          fontSize: '18px', 
-          fontWeight: '600'
-        }}>
-          מוצרים נמכרים
-        </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {data.topMovingProducts?.map((product: any, index: number) => (
-            <div
-              key={index}
-              style={{
-                padding: '12px',
-                backgroundColor: theme.secondary_bg_color,
-                borderRadius: '8px'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ fontWeight: '600' }}>{product.name}</span>
-                <span style={{ fontSize: '12px', color: theme.hint_color }}>
-                  נותרו: {product.remaining}
-                </span>
+            {reportData.ordersByStatus.length > 0 && (
+              <div style={{ ...ROYAL_STYLES.card, marginBottom: '24px' }}>
+                <h3 style={{
+                  margin: '0 0 16px 0',
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: ROYAL_COLORS.text
+                }}>
+                  התפלגות לפי סטטוס
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {reportData.ordersByStatus.map(item => (
+                    <div key={item.status} style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      background: `${getStatusColor(item.status)}10`,
+                      border: `1px solid ${getStatusColor(item.status)}30`
+                    }}>
+                      <span style={{ color: ROYAL_COLORS.text, fontWeight: '600' }}>
+                        {getStatusLabel(item.status)}
+                      </span>
+                      <span style={{
+                        color: getStatusColor(item.status),
+                        fontSize: '20px',
+                        fontWeight: '700'
+                      }}>
+                        {item.count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div style={{ fontSize: '12px', color: theme.hint_color }}>
-                נמכרו: {product.moved} יחידות
-              </div>
-            </div>
-          )) || []}
-        </div>
-      </div>
-    </div>
-  );
-}
+            )}
 
-function MetricCard({ title, value, icon, color, theme, isText = false }: { 
-  title: string; 
-  value: string; 
-  icon: string;
-  color: string;
-  theme: any;
-  isText?: boolean;
-}) {
-  return (
-    <div style={{
-      padding: '16px',
-      backgroundColor: theme.secondary_bg_color || '#f1f1f1',
-      borderRadius: '12px',
-      textAlign: 'center'
-    }}>
-      <div style={{ fontSize: '24px', marginBottom: '8px' }}>{icon}</div>
-      <div style={{ 
-        fontSize: isText ? '14px' : '20px', 
-        fontWeight: '700', 
-        color,
-        marginBottom: '4px'
-      }}>
-        {value}
-      </div>
-      <div style={{ 
-        fontSize: '12px', 
-        color: theme.hint_color,
-        fontWeight: '500'
-      }}>
-        {title}
+            {reportData.topProducts.length > 0 && (
+              <div style={{ ...ROYAL_STYLES.card, marginBottom: '24px' }}>
+                <h3 style={{
+                  margin: '0 0 16px 0',
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: ROYAL_COLORS.text
+                }}>
+                  מוצרים מובילים
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {reportData.topProducts.map((product, index) => (
+                    <div key={product.name} style={{
+                      padding: '12px',
+                      borderRadius: '8px',
+                      background: index === 0 ? `${ROYAL_COLORS.gold}10` : ROYAL_COLORS.card,
+                      border: `1px solid ${index === 0 ? ROYAL_COLORS.gold : ROYAL_COLORS.cardBorder}40`
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '8px'
+                      }}>
+                        <span style={{
+                          color: ROYAL_COLORS.text,
+                          fontWeight: '600',
+                          fontSize: '15px'
+                        }}>
+                          {index === 0 && '👑 '}{product.name}
+                        </span>
+                        <span style={{
+                          color: ROYAL_COLORS.gold,
+                          fontWeight: '700',
+                          fontSize: '16px'
+                        }}>
+                          {formatCurrency(product.revenue)}
+                        </span>
+                      </div>
+                      <div style={{
+                        color: ROYAL_COLORS.muted,
+                        fontSize: '13px'
+                      }}>
+                        {product.sales} מכירות
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {reportData.revenueByDay.length > 0 && (
+              <div style={{ ...ROYAL_STYLES.card }}>
+                <h3 style={{
+                  margin: '0 0 16px 0',
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: ROYAL_COLORS.text
+                }}>
+                  מגמת הכנסות
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {reportData.revenueByDay.slice(-7).map(item => (
+                    <div key={item.date} style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '8px 0'
+                    }}>
+                      <span style={{ color: ROYAL_COLORS.muted, fontSize: '14px' }}>
+                        {new Date(item.date).toLocaleDateString('he-IL', {
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </span>
+                      <span style={{
+                        color: ROYAL_COLORS.emerald,
+                        fontWeight: '600',
+                        fontSize: '15px'
+                      }}>
+                        {formatCurrency(item.amount)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
