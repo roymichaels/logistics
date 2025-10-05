@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Mini App Test</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            direction: rtl;
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 { font-size: 24px; margin-bottom: 16px; color: #333; }
+        h2 { font-size: 18px; margin-bottom: 12px; color: #555; }
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            margin: 4px;
+        }
+        .success { background: #34c759; color: white; }
+        .error { background: #ff3b30; color: white; }
+        .info { background: #007aff; color: white; }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .label { font-weight: 600; color: #666; }
+        .value { font-family: monospace; direction: ltr; }
+        button {
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 8px;
+        }
+        button:hover { background: #0056b3; }
+        .code {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            direction: ltr;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>🔍 Telegram Mini App - בדיקה מהירה</h1>
+            <p style="color: #666;">בודק אם האפליקציה פועלת רק מתוך Telegram</p>
+        </div>
+
+        <div class="card">
+            <h2>📱 סטטוס Telegram</h2>
+            <div id="telegram-status"></div>
+        </div>
+
+        <div class="card">
+            <h2>🔐 בדיקת אימות</h2>
+            <div id="auth-result"></div>
+            <button onclick="testAuth()">בדוק אימות</button>
+        </div>
+
+        <div class="card">
+            <h2>📋 פרטים טכניים</h2>
+            <div id="details" class="code"></div>
+        </div>
+    </div>
+
+    <script>
+        // Check Telegram status immediately
+        window.addEventListener('load', () => {
+            checkTelegramStatus();
+        });
+
+        function checkTelegramStatus() {
+            const statusDiv = document.getElementById('telegram-status');
+            const detailsDiv = document.getElementById('details');
+            const WebApp = window.Telegram?.WebApp;
+
+            if (!WebApp) {
+                statusDiv.innerHTML = `
+                    <span class="status error">❌ לא זמין</span>
+                    <p style="margin-top: 12px; color: #ff3b30;">
+                        אפליקציה זו חייבת להיפתח מתוך Telegram Mini App.<br>
+                        פתח את הבוט ב-Telegram ולחץ על כפתור המיני-אפ.
+                    </p>
+                `;
+                detailsDiv.textContent = 'window.Telegram.WebApp לא זמין - זה תקין כאשר פותחים בדפדפן רגיל';
+                return false;
+            }
+
+            const hasInitData = !!WebApp.initData;
+            const hasUser = !!WebApp.initDataUnsafe?.user;
+
+            if (hasInitData && hasUser) {
+                statusDiv.innerHTML = `
+                    <span class="status success">✅ פועל מתוך Telegram</span>
+                    <div class="row">
+                        <span class="label">משתמש</span>
+                        <span class="value">${WebApp.initDataUnsafe.user.first_name}</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">ID</span>
+                        <span class="value">${WebApp.initDataUnsafe.user.id}</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Username</span>
+                        <span class="value">${WebApp.initDataUnsafe.user.username || '(ללא)'}</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">פלטפורמה</span>
+                        <span class="value">${WebApp.platform}</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">גרסה</span>
+                        <span class="value">${WebApp.version}</span>
+                    </div>
+                `;
+
+                detailsDiv.textContent = JSON.stringify({
+                    platform: WebApp.platform,
+                    version: WebApp.version,
+                    initDataLength: WebApp.initData.length,
+                    userId: WebApp.initDataUnsafe.user.id,
+                    username: WebApp.initDataUnsafe.user.username,
+                    hasInitData: true,
+                    hasUser: true
+                }, null, 2);
+
+                return true;
+            } else {
+                statusDiv.innerHTML = `
+                    <span class="status error">❌ נתונים חסרים</span>
+                    <p style="margin-top: 12px; color: #ff9500;">
+                        Telegram SDK זמין אבל חסרים נתונים.<br>
+                        נסה לסגור ולפתוח מחדש את המיני-אפ.
+                    </p>
+                `;
+                detailsDiv.textContent = JSON.stringify({
+                    hasWebApp: true,
+                    hasInitData,
+                    hasUser,
+                    issue: 'Missing initData or user'
+                }, null, 2);
+                return false;
+            }
+        }
+
+        async function testAuth() {
+            const resultDiv = document.getElementById('auth-result');
+            const WebApp = window.Telegram?.WebApp;
+
+            if (!WebApp?.initData) {
+                resultDiv.innerHTML = `
+                    <span class="status error">❌ אין initData</span>
+                    <p style="margin-top: 8px; color: #666;">
+                        לא ניתן לבדוק אימות ללא Telegram initData
+                    </p>
+                `;
+                return;
+            }
+
+            resultDiv.innerHTML = `
+                <span class="status info">🔄 בודק...</span>
+            `;
+
+            try {
+                const url = 'https://0ec90b57d6e95fcbda19832f.supabase.co/functions/v1/telegram-verify';
+
+                console.log('Testing authentication with:', {
+                    url,
+                    hasInitData: !!WebApp.initData,
+                    initDataLength: WebApp.initData.length
+                });
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type: 'webapp',
+                        initData: WebApp.initData
+                    })
+                });
+
+                console.log('Response status:', response.status);
+
+                const result = await response.json();
+                console.log('Response data:', result);
+
+                if (response.ok && result.ok) {
+                    resultDiv.innerHTML = `
+                        <span class="status success">✅ אימות הצליח!</span>
+                        <div class="row">
+                            <span class="label">סטטוס</span>
+                            <span class="value">Backend verification successful</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">משתמש ID</span>
+                            <span class="value">${result.user?.id || 'N/A'}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">תפקיד</span>
+                            <span class="value">${result.user?.role || 'N/A'}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Session</span>
+                            <span class="value">${result.session ? 'Created' : 'N/A'}</span>
+                        </div>
+                        <p style="margin-top: 12px; color: #34c759; font-weight: 600;">
+                            Backend authentication is working correctly! ✅
+                        </p>
+                    `;
+                } else if (response.status === 401) {
+                    resultDiv.innerHTML = `
+                        <span class="status error">❌ אימות נכשל - 401</span>
+                        <div class="row">
+                            <span class="label">שגיאה</span>
+                            <span class="value">${result.error || 'Invalid signature'}</span>
+                        </div>
+                        <p style="margin-top: 12px; color: #ff3b30;">
+                            <strong>HMAC signature verification failed</strong><br><br>
+                            הסיבה: TELEGRAM_BOT_TOKEN שגוי או לא מוגדר ב-Supabase<br><br>
+                            פתרון:<br>
+                            1. לך ל-@BotFather ב-Telegram<br>
+                            2. שלח /mybots ובחר את הבוט שלך<br>
+                            3. לחץ "API Token" והעתק<br>
+                            4. לך ל-Supabase Dashboard → Edge Functions → Configuration<br>
+                            5. הוסף/עדכן TELEGRAM_BOT_TOKEN<br>
+                            6. הפעל מחדש את telegram-verify edge function
+                        </p>
+                    `;
+                } else if (response.status === 404) {
+                    resultDiv.innerHTML = `
+                        <span class="status error">❌ Edge function לא נמצא</span>
+                        <p style="margin-top: 12px; color: #ff9500;">
+                            telegram-verify edge function לא מותקן.<br><br>
+                            פתרון: העלה את ה-edge function ל-Supabase
+                        </p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <span class="status error">❌ שגיאה (${response.status})</span>
+                        <div class="row">
+                            <span class="label">Response</span>
+                            <span class="value">${JSON.stringify(result)}</span>
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('Test error:', error);
+
+                resultDiv.innerHTML = `
+                    <span class="status error">❌ שגיאת רשת</span>
+                    <p style="margin-top: 12px; color: #ff3b30;">
+                        <strong>Could not connect to backend</strong><br><br>
+                        ${error.message}<br><br>
+                        <span style="color: #34c759;">
+                        ✅ This is OK! The app will use client-side authentication fallback.<br>
+                        האפליקציה תעבוד עם אימות צד-לקוח.
+                        </span>
+                    </p>
+                `;
+            }
+        }
+
+        // Auto-test if in Telegram
+        if (window.Telegram?.WebApp?.initData) {
+            setTimeout(() => {
+                testAuth();
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
