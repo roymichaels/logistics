@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import type { UserRegistration } from '../../data/types';
+import type { UserRegistration, User } from '../../data/types';
 import { telegram } from '../../lib/telegram';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { debugLog } from './DebugPanel';
+import { RoleSelectionModal } from './RoleSelectionModal';
 
 interface TelegramAuthProps {
   onAuth: (userData: any) => void;
@@ -24,6 +25,8 @@ interface TelegramAuthProps {
 export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
+  const [pendingUserData, setPendingUserData] = useState<any>(null);
   const { theme } = useTelegramUI();
 
   useEffect(() => {
@@ -170,17 +173,33 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
       name: baseUserData.first_name
     });
 
-    // Register user in local system
-    debugLog.info('📝 Registering user...');
+    // Check if user exists first
+    debugLog.info('📝 Checking user registration...');
     const { userManager } = await import('../lib/userManager');
     let registration: UserRegistration | null = null;
 
     try {
-      registration = await userManager.registerUser(baseUserData);
-      debugLog.success('✅ User registered', { status: registration?.status });
+      // Try to fetch existing registration
+      const existingRegistration = await userManager.getUserRegistration(baseUserData.telegram_id);
+
+      if (!existingRegistration || existingRegistration.status === 'rejected') {
+        // New user or rejected user - show role selection
+        debugLog.info('🎯 New user detected - showing role selection');
+        setPendingUserData(baseUserData);
+        setShowRoleSelection(true);
+        setLoading(false);
+        return;
+      }
+
+      registration = existingRegistration;
+      debugLog.success('✅ Existing user found', { status: registration?.status });
     } catch (error) {
-      debugLog.error('❌ Failed to register user', error);
-      // Continue anyway - registration might fail but we can still auth
+      debugLog.error('❌ Failed to check user registration', error);
+      // If check fails, show role selection to be safe
+      setPendingUserData(baseUserData);
+      setShowRoleSelection(true);
+      setLoading(false);
+      return;
     }
 
     // Create enriched user data with registration info
@@ -201,6 +220,56 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
     onAuth(userData);
     setLoading(false);
   };
+
+  const handleRoleSelect = async (role: User['role']) => {
+    if (!pendingUserData) return;
+
+    try {
+      setShowRoleSelection(false);
+      setLoading(true);
+
+      debugLog.info('📝 Registering user with selected role', { role });
+
+      const { userManager } = await import('../lib/userManager');
+      const registrationData = {
+        ...pendingUserData,
+        requested_role: role
+      };
+
+      const registration = await userManager.registerUser(registrationData);
+      debugLog.success('✅ User registered with role', { role, status: registration?.status });
+
+      // Create enriched user data
+      const userData: any = {
+        ...pendingUserData,
+        registration,
+        isFirstAdmin: userManager.isFirstAdmin(pendingUserData.username || ''),
+        isApproved: registration?.status === 'approved'
+      };
+
+      debugLog.success('✅ Authentication complete with selected role!', {
+        telegram_id: userData.telegram_id,
+        username: userData.username,
+        requested_role: role,
+        isApproved: userData.isApproved
+      });
+
+      onAuth(userData);
+      setLoading(false);
+    } catch (error) {
+      debugLog.error('❌ Failed to register with role', error);
+      setError('שגיאה ברישום - נסה שוב');
+      setLoading(false);
+    }
+  };
+
+  if (showRoleSelection && pendingUserData) {
+    return (
+      <RoleSelectionModal
+        onRoleSelect={handleRoleSelect}
+      />
+    );
+  }
 
   if (loading) {
     return (

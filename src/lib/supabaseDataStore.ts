@@ -822,16 +822,26 @@ export class SupabaseDataStore implements DataStore {
 
     if (!data) {
       console.log('⚠️ getProfile: User not found, creating new user');
+
+      // Validate telegram_id before creating user
+      if (!this.userTelegramId) {
+        console.error('❌ Cannot create user: telegram_id is missing', {
+          userTelegramId: this.userTelegramId,
+          initialUserData: this.initialUserData
+        });
+        throw new Error('Cannot create user without telegram_id');
+      }
+
       // Create user if doesn't exist
       const telegramUserData = this.initialUserData as any;
       const newUser: Omit<User, 'id'> = {
         telegram_id: this.userTelegramId,
-        username: telegramUserData?.username?.toLowerCase(),
-        role: 'user', // Default to unassigned user role
+        username: telegramUserData?.username?.toLowerCase() || null,
+        role: 'manager', // Default to manager role
         name: telegramUserData?.first_name
           ? `${telegramUserData.first_name}${telegramUserData.last_name ? ' ' + telegramUserData.last_name : ''}`
           : 'משתמש חדש',
-        photo_url: telegramUserData?.photo_url,
+        photo_url: telegramUserData?.photo_url || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
