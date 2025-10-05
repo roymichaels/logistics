@@ -46,7 +46,7 @@ export function Header({ user, onNavigate, onLogout }: HeaderProps) {
 
   return (
     <header style={{
-      position: 'sticky',
+      position: 'fixed',
       top: 0,
       left: 0,
       right: 0,
@@ -162,7 +162,7 @@ export function Header({ user, onNavigate, onLogout }: HeaderProps) {
             <div style={{
               padding: '16px',
               borderBottom: `1px solid ${ROYAL_COLORS.border}`,
-              background: 'linear-gradient(135deg, rgba(156, 109, 255, 0.1) 0%, rgba(123, 63, 242, 0.1) 100%)'
+              background: 'linear-gradient(135deg, rgba(156, 109, 255, 0.2) 0%, rgba(123, 63, 242, 0.2) 100%)'
             }}>
               <div style={{
                 fontSize: '14px',

@@ -104,15 +104,6 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
     setShowModeSelector(true);
   };
 
-  useEffect(() => {
-    if (user?.role === 'dispatcher' && !selectedOrder && !showCreateForm) {
-      telegram.setMainButton('Create Order', handleCreateOrder);
-    } else if (['owner', 'manager', 'sales'].includes(user?.role || '') && !selectedOrder && !showCreateForm) {
-      telegram.setMainButton('Create Order', handleCreateOrder);
-    } else {
-      telegram.hideMainButton();
-    }
-  }, [user, selectedOrder, showCreateForm]);
 
   if (loading) {
     return (
@@ -1001,21 +992,6 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
     };
   }, [dataStore, enforceInventoryChecks]);
 
-  const handleMainButtonClick = useCallback(() => {
-    const form = document.getElementById('create-order-form') as HTMLFormElement | null;
-    form?.requestSubmit();
-  }, []);
-
-  useEffect(() => {
-    telegram.setMainButton({
-      text: loading ? 'שולח הזמנה…' : 'Create Order',
-      onClick: handleMainButtonClick
-    });
-  }, [handleMainButtonClick, loading]);
-
-  useEffect(() => () => {
-    telegram.hideMainButton();
-  }, []);
 
   const inventoryAvailability = useMemo(() => {
     const map: Record<string, ProductInventoryAvailability> = {};

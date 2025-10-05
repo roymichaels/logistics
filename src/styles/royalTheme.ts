@@ -13,9 +13,11 @@ export const ROYAL_COLORS = {
 
   // Cards & Surfaces
   card: 'rgba(24, 10, 45, 0.75)',
+  cardBg: '#180a2d',
   cardHover: 'rgba(34, 15, 60, 0.85)',
   cardBorder: 'rgba(140, 91, 238, 0.45)',
   cardBorderHover: 'rgba(156, 109, 255, 0.65)',
+  border: 'rgba(140, 91, 238, 0.3)',
 
   // Secondary surfaces
   secondary: 'rgba(35, 15, 65, 0.7)',
@@ -29,9 +31,11 @@ export const ROYAL_COLORS = {
   hint: 'rgba(191, 169, 255, 0.4)',
 
   // Accent Colors
+  primary: '#9c6dff',
   accent: '#9c6dff',
   accentBright: '#b589ff',
   accentDark: '#7c3aed',
+  white: '#ffffff',
 
   // Status Colors
   gold: '#f6c945',
