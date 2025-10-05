@@ -340,7 +340,7 @@ export function BottomNavigation({
           borderTop: '1px solid rgba(156, 109, 255, 0.2)',
           boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.3)',
           display: 'flex',
-          padding: '12px 8px 8px 8px',
+          padding: '12px 8px 18px 8px',
           zIndex: 1000,
           direction: 'rtl'
         }}
