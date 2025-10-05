@@ -9,6 +9,7 @@ import {
 import { useTelegramUI } from '../src/hooks/useTelegramUI';
 import { Toast } from '../src/components/Toast';
 import { hebrew } from '../src/lib/hebrew';
+import { ROYAL_COLORS, ROYAL_STYLES } from '../src/styles/royalTheme';
 
 interface DriverStatusProps {
   dataStore: DataStore;

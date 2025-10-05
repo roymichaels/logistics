@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { ROYAL_COLORS, ROYAL_STYLES } from '../src/styles/royalTheme';
 import { useTelegramUI } from '../src/hooks/useTelegramUI';
 import { DataStore } from '../data/types';
 

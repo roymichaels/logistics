@@ -13,6 +13,7 @@ import {
   RolePermissions
 } from '../data/types';
 import { hebrew, formatCurrency } from '../src/lib/hebrew';
+import { ROYAL_COLORS, ROYAL_STYLES } from '../src/styles/royalTheme';
 
 interface ProductsProps {
   dataStore: DataStore;

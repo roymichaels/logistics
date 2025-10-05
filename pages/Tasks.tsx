@@ -3,6 +3,7 @@ import { telegram } from '../lib/telegram';
 import { DataStore, Task, Order, Route } from '../data/types';
 import { cache } from '../lib/cache';
 import { TaskProofSubmission } from '../src/components/TaskProofSubmission';
+import { ROYAL_COLORS, ROYAL_STYLES } from '../src/styles/royalTheme';
 
 interface TasksProps {
   dataStore: DataStore;
