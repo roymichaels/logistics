@@ -65,6 +65,9 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// Export the supabase client for use in other modules
+export { supabase };
+
 export interface SupabaseAuthSessionPayload {
   access_token: string;
   refresh_token: string;

@@ -4,10 +4,7 @@
  * Helper functions to inspect and troubleshoot JWT claims and Supabase sessions
  */
 
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+import { supabase } from './supabaseDataStore';
 
 export interface AuthDebugInfo {
   hasSession: boolean;
@@ -31,22 +28,6 @@ export interface AuthDebugInfo {
  * Get current Supabase session and decode JWT claims
  */
 export async function getAuthDebugInfo(): Promise<AuthDebugInfo> {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('⚠️ Supabase credentials not configured');
-    return {
-      hasSession: false,
-      sessionValid: false,
-      userId: null,
-      email: null,
-      appMetadata: {},
-      userMetadata: {},
-      claims: {},
-      accessToken: null,
-      expiresAt: null
-    };
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
   const { data: { session }, error } = await supabase.auth.getSession();
 
   if (error || !session) {
@@ -154,12 +135,6 @@ export async function validateUserManagementAccess(): Promise<{
  * Test RLS access by calling debug function from database
  */
 export async function testRLSAccess(): Promise<any> {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return { error: 'Supabase not configured' };
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
   try {
     const { data, error } = await supabase.rpc('debug_auth_claims');
 
@@ -180,13 +155,6 @@ export async function testRLSAccess(): Promise<any> {
  * Set Supabase session from auth tokens
  */
 export async function setSupabaseSession(accessToken: string, refreshToken: string): Promise<boolean> {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('❌ Supabase credentials not configured');
-    return false;
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
   try {
     const { error } = await supabase.auth.setSession({
       access_token: accessToken,
