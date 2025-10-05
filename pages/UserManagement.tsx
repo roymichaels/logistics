@@ -82,12 +82,48 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const [pending, approved] = await Promise.all([
-        userManager.getPendingUsers(),
-        userManager.getApprovedUsers()
-      ]);
-      setPendingUsers(pending);
-      setApprovedUsers(approved);
+      // First, check if we have dataStore with supabase
+      if (dataStore?.supabase) {
+        // Fetch real users from the users table instead of user_registrations
+        const { data: usersData, error } = await dataStore.supabase
+          .from('users')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Transform users data to match UserRegistration interface
+        const transformedUsers: UserRegistration[] = (usersData || []).map((user: any) => ({
+          telegram_id: user.telegram_id,
+          first_name: user.name || user.username || 'משתמש',
+          last_name: null,
+          username: user.username,
+          photo_url: null,
+          department: null,
+          phone: null,
+          requested_role: user.role,
+          assigned_role: user.role,
+          status: 'approved' as const,
+          created_at: user.created_at,
+          updated_at: user.updated_at || user.created_at,
+          approved_by: null,
+          approved_at: user.created_at,
+          notes: null,
+          approval_history: []
+        }));
+
+        // All users from users table are already approved
+        setPendingUsers([]);
+        setApprovedUsers(transformedUsers);
+      } else {
+        // Fallback to user_registrations table
+        const [pending, approved] = await Promise.all([
+          userManager.getPendingUsers(),
+          userManager.getApprovedUsers()
+        ]);
+        setPendingUsers(pending);
+        setApprovedUsers(approved);
+      }
     } catch (error) {
       console.error('Failed to load users', error);
       Toast.error('שגיאה בטעינת נתוני המשתמשים');
