@@ -69,17 +69,36 @@ async function verifyLoginWidget(data: Record<string, string>, botToken: string)
 
 async function verifyWebApp(initData: string, botToken: string): Promise<boolean> {
   try {
+    console.log('🔐 verifyWebApp: Starting verification');
+    console.log('📊 initData length:', initData.length);
+    console.log('📊 initData preview:', initData.substring(0, 100) + '...');
+    console.log('🔑 botToken configured:', !!botToken, 'length:', botToken?.length || 0);
+
     const urlParams = new URLSearchParams(initData);
     const hash = urlParams.get('hash');
-    if (!hash) return false;
 
+    if (!hash) {
+      console.error('❌ No hash found in initData');
+      return false;
+    }
+
+    console.log('✅ Hash from Telegram:', hash);
+
+    // Remove hash from params for verification
     urlParams.delete('hash');
+
+    // Build data check string (must be sorted alphabetically)
     const dataCheckString = Array.from(urlParams.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, value]) => `${key}=${value}`)
       .join('\n');
 
+    console.log('📝 dataCheckString length:', dataCheckString.length);
+    console.log('📝 dataCheckString preview:', dataCheckString.substring(0, 150) + '...');
+
     const encoder = new TextEncoder();
+
+    // Step 1: SHA-256 hash of bot token
     const secretKey = await crypto.subtle.importKey(
       "raw",
       await crypto.subtle.digest("SHA-256", encoder.encode(botToken)),
@@ -88,10 +107,26 @@ async function verifyWebApp(initData: string, botToken: string): Promise<boolean
       ["sign"]
     );
 
+    // Step 2: HMAC-SHA256 of data check string
     const computedHash = await hmacSha256(secretKey, dataCheckString);
-    return computedHash === hash;
+
+    console.log('🔐 Computed hash:', computedHash);
+    console.log('🔐 Expected hash:', hash);
+    console.log('✅ Match:', computedHash === hash);
+
+    const isValid = computedHash === hash;
+
+    if (!isValid) {
+      console.error('❌ HMAC verification failed - hashes do not match');
+      console.error('This usually means:');
+      console.error('1. Wrong TELEGRAM_BOT_TOKEN (not matching the bot that opened the Mini App)');
+      console.error('2. initData was modified or decoded incorrectly');
+      console.error('3. Bot token has spaces or hidden characters');
+    }
+
+    return isValid;
   } catch (error) {
-    console.error('WebApp verification error:', error);
+    console.error('💥 WebApp verification exception:', error);
     return false;
   }
 }
@@ -126,11 +161,25 @@ Deno.serve(async (req) => {
 
   try {
     const { type, data, initData }: VerifyRequest = await req.json();
-    console.log('Telegram verify request:', { type, hasData: !!data, hasInitData: !!initData });
+    console.log('📱 Telegram verify request:', { type, hasData: !!data, hasInitData: !!initData });
 
     const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
     if (!botToken) {
+      console.error('❌ TELEGRAM_BOT_TOKEN environment variable not set');
       throw new Error('TELEGRAM_BOT_TOKEN not configured');
+    }
+
+    // Log bot token info (masked for security)
+    const tokenMasked = botToken.substring(0, 10) + '...' + botToken.substring(botToken.length - 4);
+    console.log('🔑 Using bot token:', tokenMasked, `(length: ${botToken.length})`);
+
+    // Check for common token issues
+    if (botToken.includes(' ') || botToken.includes('\n') || botToken.includes('\r')) {
+      console.warn('⚠️ WARNING: Bot token contains whitespace characters! This will cause verification to fail.');
+    }
+
+    if (botToken.length < 40) {
+      console.warn('⚠️ WARNING: Bot token seems too short. Expected ~45 characters.');
     }
 
     let isValid = false;
