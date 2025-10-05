@@ -104,20 +104,29 @@ class SessionTracker {
     this.log('WAIT_START', 'success', `Waiting for session (max ${maxWaitMs}ms)`);
 
     const startTime = Date.now();
-    const checkInterval = 100;
+    let checkInterval = 100;
+    let attempts = 0;
 
     while (Date.now() - startTime < maxWaitMs) {
       const result = await this.verifySession();
+      attempts++;
 
       if (result.valid) {
-        this.log('WAIT_SUCCESS', 'success', `Session ready after ${Date.now() - startTime}ms`);
+        this.log('WAIT_SUCCESS', 'success', `Session ready after ${Date.now() - startTime}ms (${attempts} attempts)`);
         return true;
       }
 
+      // Exponential backoff: start with 100ms, increase to max 500ms
+      checkInterval = Math.min(500, checkInterval * 1.2);
       await new Promise(resolve => setTimeout(resolve, checkInterval));
+
+      // After 10 attempts without success, log a warning
+      if (attempts === 10) {
+        this.log('WAIT_EXTENDED', 'warning', 'Session still not ready after 10 attempts');
+      }
     }
 
-    this.log('WAIT_TIMEOUT', 'error', `Session not ready after ${maxWaitMs}ms`);
+    this.log('WAIT_TIMEOUT', 'error', `Session not ready after ${maxWaitMs}ms (${attempts} attempts)`);
     return false;
   }
 

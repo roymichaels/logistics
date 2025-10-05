@@ -383,10 +383,27 @@ export default function App() {
         telegram_id: userData.telegram_id,
         username: userData.username,
         role: userData.role,
-        name: userData.name || userData.first_name
+        name: userData.name || userData.first_name,
+        hasAuthSession: !!userData.auth_session
       });
 
       setUser(userData);
+
+      // CRITICAL: If auth_session exists, verify it's properly established
+      if (userData.auth_session?.access_token) {
+        debugLog.info('🔍 Verifying Supabase session is established...');
+        const { sessionTracker } = await import('./src/lib/sessionTracker');
+
+        // Wait for session to be ready (max 5 seconds)
+        const sessionReady = await sessionTracker.waitForSession(5000);
+
+        if (!sessionReady) {
+          debugLog.error('❌ Session not ready after authentication');
+          throw new Error('Failed to establish authenticated session');
+        }
+
+        debugLog.success('✅ Session verified and ready for queries');
+      }
 
       // Create data store in real mode
       const store = await createFrontendDataStore(config!, 'real', userData);

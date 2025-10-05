@@ -88,18 +88,25 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       sessionTracker.log('USER_MGMT_LOAD_START', 'success', 'Starting user load');
       console.log('🔍 UserManagement - Starting user load with auth check');
 
-      // CRITICAL: Wait for session to be ready before proceeding
-      sessionTracker.log('USER_MGMT_WAIT_SESSION', 'success', 'Waiting for session readiness');
-      const sessionReady = await sessionTracker.waitForSession(3000);
+      // Quick session check - don't wait if session already exists
+      const quickCheck = await sessionTracker.verifySession();
 
-      if (!sessionReady) {
-        sessionTracker.log('USER_MGMT_SESSION_TIMEOUT', 'error', 'Session not ready');
-        Toast.error('חסרים claims: Session');
-        setLoading(false);
-        return;
+      if (quickCheck.valid) {
+        sessionTracker.log('USER_MGMT_SESSION_READY', 'success', 'Session already ready');
+      } else {
+        // CRITICAL: Wait for session to be ready before proceeding
+        sessionTracker.log('USER_MGMT_WAIT_SESSION', 'success', 'Waiting for session readiness');
+        const sessionReady = await sessionTracker.waitForSession(5000);
+
+        if (!sessionReady) {
+          sessionTracker.log('USER_MGMT_SESSION_TIMEOUT', 'error', 'Session not ready');
+          Toast.error('Session not ready. Please refresh the page.');
+          setLoading(false);
+          return;
+        }
+
+        sessionTracker.log('USER_MGMT_SESSION_READY', 'success', 'Session verified and ready');
       }
-
-      sessionTracker.log('USER_MGMT_SESSION_READY', 'success', 'Session verified and ready');
 
       // Debug authentication state
       await logAuthDebug();

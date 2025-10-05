@@ -362,26 +362,55 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create a proper session for the user
-    // We need to generate access and refresh tokens with the updated metadata
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
+    // CRITICAL: Create a proper session using signInWithPassword or custom JWT
+    // We need to actually sign the user in to get valid access/refresh tokens
+    // The generateLink method doesn't create a session, it creates a magic link
+
+    // Sign in as the user using admin API to get actual session tokens
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
+      password: telegramIdStr // Use telegram_id as password (consistent)
     });
 
-    if (sessionError || !sessionData) {
-      console.error('Failed to generate session:', sessionError);
-      throw new Error('Failed to generate session');
+    let session = signInData?.session;
+
+    // If sign in failed (user doesn't have password set), update user and try again
+    if (signInError || !session) {
+      console.log('Setting password for user and retrying sign in...');
+
+      // Update user to have a password
+      const { error: updateError } = await supabase.auth.admin.updateUserById(
+        authUserId,
+        {
+          password: telegramIdStr,
+          email_confirm: true
+        }
+      );
+
+      if (updateError) {
+        console.error('Failed to set password:', updateError);
+        throw new Error('Failed to set user password');
+      }
+
+      // Retry sign in
+      const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+        email,
+        password: telegramIdStr
+      });
+
+      if (retryError || !retryData?.session) {
+        console.error('Failed to sign in after password set:', retryError);
+        throw new Error('Failed to create session');
+      }
+
+      session = retryData.session;
     }
 
-    // Extract the properties we need - generateLink returns an object with properties
-    // but we need to extract the session tokens properly
-    const session = sessionData?.properties;
-
-    console.log('Session generated successfully with JWT claims:', {
-      hasAccessToken: !!(session?.access_token),
-      hasRefreshToken: !!(session?.refresh_token),
-      email: email
+    console.log('Session created successfully with JWT claims:', {
+      hasAccessToken: !!session.access_token,
+      hasRefreshToken: !!session.refresh_token,
+      expiresAt: session.expires_at,
+      user_id: session.user.id
     });
 
     return new Response(
@@ -400,9 +429,12 @@ Deno.serve(async (req) => {
           workspace_id: workspaceId,
           app_role: businessRole
         },
-        session: session || sessionData?.properties || {
-          access_token: sessionData?.properties?.access_token,
-          refresh_token: sessionData?.properties?.refresh_token
+        session: {
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+          expires_in: session.expires_in,
+          expires_at: session.expires_at,
+          token_type: session.token_type || 'bearer'
         },
         supabase_user: {
           id: authUserId,
