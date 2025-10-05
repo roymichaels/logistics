@@ -21,8 +21,21 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
 
   useEffect(() => {
     loadNotifications();
+
+    let unsubscribe: (() => void) | undefined;
+    if (dataStore.subscribeToChanges) {
+      unsubscribe = dataStore.subscribeToChanges('notifications', (payload) => {
+        if (payload.new || payload.old) {
+          loadNotifications();
+        }
+      });
+    }
+
     const interval = setInterval(loadNotifications, 30000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (unsubscribe) unsubscribe();
+    };
   }, [filter]);
 
   const loadNotifications = async () => {
@@ -32,13 +45,18 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
         return;
       }
 
-      const allNotifications = await dataStore.listNotifications({ limit: 100 });
+      const fetchFilters: any = { limit: 100 };
+      if (filter === 'unread') {
+        fetchFilters.unreadOnly = true;
+      }
+
+      const allNotifications = await dataStore.listNotifications(fetchFilters);
 
       const filteredNotifications = filter === 'all'
         ? allNotifications
-        : filter === 'unread'
-        ? allNotifications.filter(n => !n.read_at)
-        : allNotifications.filter(n => n.read_at);
+        : filter === 'read'
+        ? allNotifications.filter(n => n.read_at)
+        : allNotifications;
 
       setNotifications(filteredNotifications);
     } catch (error) {

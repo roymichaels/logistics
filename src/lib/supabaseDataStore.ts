@@ -2902,11 +2902,109 @@ export class SupabaseDataStore implements DataStore {
   async markNotificationRead(id: string): Promise<void> {
     const { error } = await supabase
       .from('notifications')
-      .update({ read: true })
+      .update({ read: true, read_at: new Date().toISOString() })
       .eq('id', id)
       .eq('recipient_id', this.userTelegramId);
 
     if (error) throw error;
+  }
+
+  async markNotificationAsRead(id: string): Promise<void> {
+    return this.markNotificationRead(id);
+  }
+
+  async listNotifications(filters?: { limit?: number; unreadOnly?: boolean }): Promise<Notification[]> {
+    let query = supabase
+      .from('notifications')
+      .select('*')
+      .eq('recipient_id', this.userTelegramId)
+      .order('created_at', { ascending: false });
+
+    if (filters?.unreadOnly) {
+      query = query.is('read_at', null);
+    }
+
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async listMessages(chatId: string, limit: number = 100): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('chat_id', chatId)
+      .eq('is_deleted', false)
+      .order('sent_at', { ascending: true })
+      .limit(limit);
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async sendMessage(chatId: string, content: string, messageType: string = 'text'): Promise<{ id: string }> {
+    const { data, error } = await supabase
+      .from('messages')
+      .insert({
+        chat_id: chatId,
+        sender_telegram_id: this.userTelegramId,
+        content,
+        message_type: messageType,
+        sent_at: new Date().toISOString(),
+        is_deleted: false
+      })
+      .select('id')
+      .single();
+
+    if (error) throw error;
+    return { id: data.id };
+  }
+
+  async editMessage(messageId: string, content: string): Promise<void> {
+    const { error } = await supabase
+      .from('messages')
+      .update({
+        content,
+        edited_at: new Date().toISOString()
+      })
+      .eq('id', messageId)
+      .eq('sender_telegram_id', this.userTelegramId);
+
+    if (error) throw error;
+  }
+
+  async deleteMessage(messageId: string): Promise<void> {
+    const { error } = await supabase
+      .from('messages')
+      .update({ is_deleted: true })
+      .eq('id', messageId)
+      .eq('sender_telegram_id', this.userTelegramId);
+
+    if (error) throw error;
+  }
+
+  subscribeToChanges(table: string, callback: (payload: any) => void): () => void {
+    const channel = supabase
+      .channel(`${table}-changes`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: table
+        },
+        callback
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }
 
   async getRoyalDashboardSnapshot(): Promise<RoyalDashboardSnapshot> {

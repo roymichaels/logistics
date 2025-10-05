@@ -26,7 +26,20 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
   useEffect(() => {
     initializeEncryption();
     loadChats();
-  }, []);
+
+    let unsubscribe: (() => void) | undefined;
+    if (selectedChat && selectedChat.type !== 'encrypted' && dataStore.subscribeToChanges) {
+      unsubscribe = dataStore.subscribeToChanges('messages', (payload) => {
+        if (payload.new && payload.new.chat_id === selectedChat.id) {
+          loadMessages(selectedChat.id);
+        }
+      });
+    }
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [selectedChat]);
 
   const initializeEncryption = async () => {
     try {
@@ -102,34 +115,49 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
 
   const loadMessages = async (chatId: string) => {
     try {
-      // Load messages from dataStore for regular (non-encrypted) chats
-      if (dataStore.listMessages) {
-        const chatMessages = await dataStore.listMessages(chatId);
-        setMessages(chatMessages || []);
-      } else {
-        // If no messages exist, show empty state
+      if (!dataStore.listMessages) {
         setMessages([]);
+        return;
       }
+
+      const chatMessages = await dataStore.listMessages(chatId, 100);
+      const formattedMessages = chatMessages.map(msg => ({
+        id: msg.id,
+        user: msg.sender_telegram_id,
+        message: msg.content,
+        timestamp: msg.sent_at,
+        avatar: '👤'
+      }));
+      setMessages(formattedMessages || []);
     } catch (error) {
       console.error('Failed to load messages:', error);
       setMessages([]);
     }
   };
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!newMessage.trim() || !selectedChat) return;
-    
-    const message = {
-      id: Date.now().toString(),
-      user: 'אתה',
-      message: newMessage,
-      timestamp: new Date().toISOString(),
-      avatar: '👤'
-    };
-    
-    setMessages(prev => [...prev, message]);
-    setNewMessage('');
-    haptic();
+
+    try {
+      if (dataStore.sendMessage) {
+        await dataStore.sendMessage(selectedChat.id, newMessage, 'text');
+        await loadMessages(selectedChat.id);
+      } else {
+        const message = {
+          id: Date.now().toString(),
+          user: 'אתה',
+          message: newMessage,
+          timestamp: new Date().toISOString(),
+          avatar: '👤'
+        };
+        setMessages(prev => [...prev, message]);
+      }
+      setNewMessage('');
+      haptic();
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      telegram.showAlert('שליחת ההודעה נכשלה');
+    }
   };
 
   const filteredChats = chats.filter(chat =>

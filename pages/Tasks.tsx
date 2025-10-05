@@ -22,6 +22,19 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
 
   useEffect(() => {
     loadData();
+
+    let unsubscribe: (() => void) | undefined;
+    if (dataStore.subscribeToChanges) {
+      unsubscribe = dataStore.subscribeToChanges('tasks', (payload) => {
+        if (payload.new || payload.old) {
+          loadData();
+        }
+      });
+    }
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -105,12 +118,15 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
         task={taskForProof}
         onSubmit={async (proof) => {
           try {
-            // Handle proof submission
-            await dataStore.completeTask?.(proof.taskId, {
-              proof_images: proof.images,
-              proof_notes: proof.notes,
-              completion_location: proof.location,
-              completed_at: proof.timestamp.toISOString()
+            if (!dataStore.completeTask) {
+              telegram.showAlert('פעולה זו אינה נתמכת');
+              return;
+            }
+
+            await dataStore.completeTask(proof.taskId, {
+              photo: proof.images?.[0],
+              notes: proof.notes,
+              location: proof.location ? JSON.stringify(proof.location) : undefined
             });
             setShowProofSubmission(false);
             setTaskForProof(null);

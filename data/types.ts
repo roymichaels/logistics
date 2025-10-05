@@ -463,11 +463,26 @@ export interface Notification {
   id: string;
   title: string;
   message: string;
-  type: 'info' | 'warning' | 'error' | 'success';
+  type?: 'info' | 'warning' | 'error' | 'success' | 'order_assigned' | 'order_completed' | 'low_stock' | 'restock_approved' | 'user_registered' | 'system_alert';
   recipient_id: string;
   read: boolean;
+  read_at?: string;
   action_url?: string;
+  metadata?: Record<string, any>;
   created_at: string;
+}
+
+export interface Message {
+  id: string;
+  chat_id: string;
+  sender_telegram_id: string;
+  content: string;
+  message_type: 'text' | 'image' | 'file' | 'system' | 'notification';
+  sent_at: string;
+  edited_at?: string;
+  is_deleted: boolean;
+  reply_to_message_id?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface CreateNotificationInput {
@@ -587,10 +602,16 @@ export interface DataStore {
   // Communications
   listGroupChats?(): Promise<GroupChat[]>;
   listChannels?(): Promise<Channel[]>;
-  
+  listMessages?(chatId: string, limit?: number): Promise<Message[]>;
+  sendMessage?(chatId: string, content: string, messageType?: Message['message_type']): Promise<{ id: string }>;
+  editMessage?(messageId: string, content: string): Promise<void>;
+  deleteMessage?(messageId: string): Promise<void>;
+
   // Notifications
   getNotifications?(): Promise<Notification[]>;
+  listNotifications?(filters?: { limit?: number; unreadOnly?: boolean }): Promise<Notification[]>;
   markNotificationRead?(id: string): Promise<void>;
+  markNotificationAsRead?(id: string): Promise<void>;
   createNotification?(input: CreateNotificationInput): Promise<{ id: string }>;
 
   // Royal intelligence
