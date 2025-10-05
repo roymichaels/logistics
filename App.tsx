@@ -10,6 +10,7 @@ import { DualModeOrderEntry } from './src/components/DualModeOrderEntry';
 import { BusinessManager } from './src/components/BusinessManager';
 import { SuperadminSetup } from './src/components/SuperadminSetup';
 import { FloatingActionMenu } from './src/components/FloatingActionButton';
+import { Header } from './src/components/Header';
 import { debugLog } from './src/components/DebugPanel';
 import { hebrew } from './src/lib/hebrew';
 
@@ -514,6 +515,15 @@ export default function App() {
     telegram.showAlert('ההזמנה נוצרה בהצלחה!');
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('user_session');
+    localStorage.removeItem('onx_session');
+    setUser(null);
+    setIsLoggedIn(false);
+    setDataStore(null);
+    telegram.showAlert('התנתקת בהצלחה');
+  };
+
   if (loading) {
     return (
       <div style={{
@@ -686,8 +696,12 @@ export default function App() {
         minHeight: '100vh',
         backgroundColor: theme.bg_color,
         color: theme.text_color,
-        paddingBottom: '80px' // Space for bottom nav
+        paddingBottom: '80px', // Space for bottom nav
+        paddingTop: '60px' // Space for header
       }}>
+        {/* Header */}
+        <Header user={user} onNavigate={handleNavigate} onLogout={handleLogout} />
+
         <Suspense
           fallback={
             <div
