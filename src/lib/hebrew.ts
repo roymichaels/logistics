@@ -27,9 +27,9 @@ export const hebrew = {
   dispatch_board: 'מוקד תפעול',
   
   // Roles
-  infrastructureOwner: 'בעל תשתית',
-  businessOwner: 'בעל עסק',
+  appOwner: 'מפתח האפליקציה',
   owner: 'בעלים',
+  businessOwner: 'בעל עסק',
   manager: 'מנהל',
   dispatcher: 'מוקדן',
   driver: 'נהג',
@@ -154,8 +154,8 @@ export const hebrew = {
 
 export const roleNames = {
   user: hebrew.user,
+  app_owner: hebrew.appOwner,
   owner: hebrew.owner,
-  infrastructure_owner: hebrew.infrastructureOwner,
   business_owner: hebrew.businessOwner,
   manager: hebrew.manager,
   dispatcher: hebrew.dispatcher,
@@ -167,8 +167,8 @@ export const roleNames = {
 
 export const roleIcons = {
   user: '👤',
+  app_owner: '⚡',
   owner: '👑',
-  infrastructure_owner: '🏛️',
   business_owner: '💎',
   manager: '👔',
   dispatcher: '📋',
