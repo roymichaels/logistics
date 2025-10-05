@@ -1,4 +1,5 @@
-import { createClient, RealtimeChannel } from '@supabase/supabase-js';
+import { RealtimeChannel } from '@supabase/supabase-js';
+import { getSupabase } from './supabaseClient';
 import {
   DataStore,
   User,
@@ -56,16 +57,8 @@ import {
   Business
 } from '../../data/types';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = getSupabase();
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase configuration. Please check your environment variables.');
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-// Export the supabase client for use in other modules
 export { supabase };
 
 export interface SupabaseAuthSessionPayload {

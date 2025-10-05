@@ -85,47 +85,31 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
   const loadUsers = async () => {
     setLoading(true);
     try {
-      sessionTracker.log('USER_MGMT_LOAD_START', 'success', 'Starting user load');
-      console.log('🔍 UserManagement - Starting user load with auth check');
+      console.log('🔍 UserManagement - Starting user load');
 
-      // Quick session check - don't wait if session already exists
-      const quickCheck = await sessionTracker.verifySession();
+      // Simple session check - no polling, just verify once
+      const { getSupabase } = await import('../src/lib/supabaseClient');
+      const supabase = getSupabase();
+      const { data: sessionData } = await supabase.auth.getSession();
 
-      if (quickCheck.valid) {
-        sessionTracker.log('USER_MGMT_SESSION_READY', 'success', 'Session already ready');
-      } else {
-        console.warn('⚠️ No valid session found, attempting to load users anyway (service role query)');
-        sessionTracker.log('USER_MGMT_NO_SESSION', 'warning', 'No session but attempting query anyway');
+      if (!sessionData?.session) {
+        console.warn('⚠️ No active session - pull down to refresh');
+        Toast.error('אין Session פעיל - יש למשוך למטה לרענן');
+        setLoading(false);
+        return;
       }
 
-      // Debug authentication state
-      await logAuthDebug();
+      console.log('✅ Session verified, proceeding with queries');
 
-      // Verify authentication before querying
+      // Verify current user
       if (!currentUser?.id) {
-        sessionTracker.log('USER_MGMT_NO_USER', 'error', 'No authenticated user');
-        console.error('❌ UserManagement - No authenticated user found');
+        console.error('❌ No authenticated user found');
         Toast.error('שגיאה באימות - נסה להתחבר מחדש');
         setLoading(false);
         return;
       }
 
-      // Validate user management access
-      const accessCheck = await validateUserManagementAccess();
-      sessionTracker.log('USER_MGMT_ACCESS_CHECK', accessCheck.hasAccess ? 'success' : 'warning', 'Access validation', accessCheck);
-      console.log('🔐 UserManagement - Access validation:', accessCheck);
-
-      if (!accessCheck.hasAccess) {
-        console.warn('⚠️ UserManagement - Insufficient access:', {
-          role: accessCheck.role,
-          missingClaims: accessCheck.missingClaims
-        });
-
-        if (accessCheck.missingClaims.length > 0) {
-          sessionTracker.log('USER_MGMT_MISSING_CLAIMS', 'error', 'Missing claims', accessCheck.missingClaims);
-          Toast.error(`חסרים claims: ${accessCheck.missingClaims.join(', ')}`);
-        }
-      }
+      console.log('👤 Current user:', currentUser.role);
 
       // Load from user_registrations table
       const [pending, approved] = await Promise.all([
@@ -352,7 +336,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
   };
 
   const handleChangeRole = async () => {
-    if (!selectedUser || !dataStore) return;
+    if (!selectedUser) return;
 
     const confirmed = await telegram.showConfirm(
       `האם אתה בטוח שברצונך לשנות את התפקיד של ${selectedUser.first_name} ל${roleNames[selectedRole]}?`
@@ -361,36 +345,42 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
     if (!confirmed) return;
 
     try {
-      sessionTracker.log('ROLE_UPDATE_START', 'success', `Changing role to ${selectedRole}`, {
-        user: selectedUser.telegram_id,
-        newRole: selectedRole
+      console.log('🔄 Role update via edge function:', {
+        user_id: selectedUser.id,
+        new_role: selectedRole
       });
 
-      // PRE-FLIGHT CHECK: Verify session is still valid
-      const verification = await sessionTracker.verifySession();
-      if (!verification.valid) {
-        sessionTracker.log('ROLE_UPDATE_NO_SESSION', 'error', 'Session invalid before update', verification.errors);
-        Toast.error('חסרים claims: ' + verification.errors.join(', '));
+      const { getSupabase } = await import('../src/lib/supabaseClient');
+      const supabase = getSupabase();
+      const { data: sessionData } = await supabase.auth.getSession();
+
+      if (!sessionData?.session) {
+        Toast.error('אין Session פעיל - יש לרענן');
         return;
       }
 
-      sessionTracker.log('ROLE_UPDATE_SESSION_OK', 'success', 'Session verified for role update');
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/set-role`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionData.session.access_token}`,
+        },
+        body: JSON.stringify({
+          user_id: selectedUser.id,
+          new_role: selectedRole
+        })
+      });
 
-      const oldRole = selectedUser.assigned_role || selectedUser.requested_role;
-      sessionTracker.log('ROLE_UPDATE_EXEC', 'success', `Executing role change: ${oldRole} → ${selectedRole}`);
-
-      // Update user role in database
-      const { error } = await dataStore.supabase
-        .from('users')
-        .update({ role: selectedRole })
-        .eq('telegram_id', selectedUser.telegram_id);
-
-      if (error) {
-        sessionTracker.log('ROLE_UPDATE_ERROR', 'error', 'Database update failed', error);
-        throw error;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Edge function error:', errorText);
+        throw new Error(errorText || 'Role update failed');
       }
 
-      sessionTracker.log('ROLE_UPDATE_SUCCESS', 'success', 'Role updated successfully');
+      const result = await response.json();
+      console.log('✅ Role updated successfully:', result);
+
       telegram.hapticFeedback('notification', 'success');
       Toast.success(`תפקיד עודכן בהצלחה ל${roleNames[selectedRole]}`);
 
@@ -398,9 +388,8 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       setShowRoleModal(false);
       setSelectedUser(null);
     } catch (error) {
-      sessionTracker.log('ROLE_UPDATE_EXCEPTION', 'error', 'Role update exception', error);
       console.error('Failed to change role', error);
-      Toast.error('שגיאה בשינוי התפקיד');
+      Toast.error('שגיאה בשינוי התפקיד: ' + (error instanceof Error ? error.message : String(error)));
     }
   };
 

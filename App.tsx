@@ -283,6 +283,24 @@ export default function App() {
     try {
       debugLog.info('🚀 Initializing app...');
 
+      // CRITICAL: Ensure TWA session is established BEFORE any database operations
+      debugLog.info('🔐 Ensuring Telegram WebApp session...');
+      const { ensureTwaSession } = await import('./src/lib/twaAuth');
+      const authResult = await ensureTwaSession();
+
+      if (!authResult.ok) {
+        debugLog.error('❌ Failed to establish TWA session', authResult);
+        const reasons: Record<string, string> = {
+          'no_init_data': 'אין נתוני Telegram - יש לפתוח מתוך טלגרם',
+          'verify_failed': 'אימות Telegram נכשל - נסה שוב',
+          'tokens_missing': 'חסרים tokens מהשרת',
+          'set_session_failed': 'שגיאה בהקמת Session'
+        };
+        throw new Error(reasons[authResult.reason] || 'שגיאה באימות');
+      }
+
+      debugLog.success('✅ TWA session established with JWT claims');
+
       // Bootstrap from server
       debugLog.info('📡 Calling bootstrap...');
       const result = await bootstrap();
@@ -297,7 +315,7 @@ export default function App() {
       setConfig(result.config);
       setUser(result.user);
 
-      // Create data store in real mode
+      // Create data store in real mode (now with guaranteed session)
       debugLog.info('💾 Creating data store...');
       const store = await createFrontendDataStore(result.config, 'real', result.user);
       setDataStore(store);

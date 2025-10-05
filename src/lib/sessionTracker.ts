@@ -5,7 +5,9 @@
  * Every checkpoint logs to console and stores in a trackable history.
  */
 
-import { supabase } from './supabaseDataStore';
+import { getSupabase } from './supabaseClient';
+
+const supabase = getSupabase();
 
 export interface SessionCheckpoint {
   timestamp: number;

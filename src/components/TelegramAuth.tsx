@@ -5,7 +5,9 @@ import { useTelegramUI } from '../hooks/useTelegramUI';
 import { debugLog } from './DebugPanel';
 import { RoleSelectionModal } from './RoleSelectionModal';
 import { sessionTracker } from '../lib/sessionTracker';
-import { supabase } from '../lib/supabaseDataStore';
+import { getSupabase } from '../lib/supabaseClient';
+
+const supabase = getSupabase();
 
 interface TelegramAuthProps {
   onAuth: (userData: any) => void;
