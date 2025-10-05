@@ -1,0 +1,45 @@
+═══════════════════════════════════════════════════════════════
+ DEPLOY TELEGRAM-VERIFY FUNCTION - 3 SIMPLE STEPS
+═══════════════════════════════════════════════════════════════
+
+STEP 1: Go to Supabase Dashboard
+→ https://supabase.com/dashboard/project/0ec90b57d6e95fcbda19832f/functions
+
+STEP 2: Click "telegram-verify" (or create if missing)
+
+STEP 3: Copy the code from:
+→ /tmp/cc-agent/57871658/project/supabase/functions/telegram-verify/index.ts
+
+OR use the clean version at:
+→ /tmp/telegram-verify-ready-to-deploy.ts
+
+Then click "Deploy"
+
+═══════════════════════════════════════════════════════════════
+ WHAT'S FIXED
+═══════════════════════════════════════════════════════════════
+
+Line 65-67 changed from:
+  ❌ const secretKey = createHash('sha256').update(botToken).digest()
+
+To:
+  ✅ const secretKey = createHmac('sha256', 'WebAppData').update(botToken).digest()
+
+This matches Telegram's official Mini App verification algorithm.
+
+═══════════════════════════════════════════════════════════════
+ VERIFY IT WORKS
+═══════════════════════════════════════════════════════════════
+
+After deployment:
+1. Open your Mini App in Telegram
+2. Try to log in
+3. Check logs at:
+   https://supabase.com/dashboard/project/0ec90b57d6e95fcbda19832f/logs/edge-functions
+
+You should see:
+  ✅ "HMAC verification SUCCEEDED"
+  ✅ "Session created successfully"
+  ✅ No 401 errors
+
+═══════════════════════════════════════════════════════════════
