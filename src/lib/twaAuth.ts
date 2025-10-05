@@ -60,7 +60,33 @@ async function clientSideAuth(): Promise<TwaAuthResult> {
         return { ok: false, reason: 'set_session_failed', details: signUpError?.message };
       }
 
-      console.log('✅ clientSideAuth: New user created and authenticated');
+      console.log('✅ clientSideAuth: New user created in auth');
+
+      // Create user record in users table
+      const authUserId = signUpData.session.user.id;
+      console.log('📝 clientSideAuth: Creating user record in database...');
+
+      const { error: insertError } = await supabase
+        .from('users')
+        .insert({
+          id: authUserId,
+          telegram_id: user.id.toString(),
+          username: user.username || null,
+          first_name: user.first_name || 'User',
+          last_name: user.last_name || null,
+          role: 'user', // Default role
+          language_code: user.language_code || 'he',
+          is_premium: user.is_premium || false,
+          photo_url: user.photo_url || null
+        });
+
+      if (insertError) {
+        console.error('❌ clientSideAuth: Failed to create user record:', insertError);
+        // Continue anyway - auth user exists, they can still use the app
+      } else {
+        console.log('✅ clientSideAuth: User record created in database');
+      }
+
       return { ok: true };
     }
 
@@ -69,10 +95,46 @@ async function clientSideAuth(): Promise<TwaAuthResult> {
       return { ok: false, reason: 'set_session_failed', details: 'No session returned' };
     }
 
+    const authUserId = signInData.session.user.id;
+
     console.log('✅ clientSideAuth: User authenticated successfully', {
-      user_id: signInData.session.user.id,
+      user_id: authUserId,
       has_metadata: !!signInData.session.user.user_metadata
     });
+
+    // Check if user record exists in database
+    console.log('🔍 clientSideAuth: Checking if user exists in database...');
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id, role')
+      .eq('id', authUserId)
+      .maybeSingle();
+
+    if (!existingUser) {
+      // User authenticated but no database record - create it
+      console.log('📝 clientSideAuth: User record not found, creating...');
+      const { error: insertError } = await supabase
+        .from('users')
+        .insert({
+          id: authUserId,
+          telegram_id: user.id.toString(),
+          username: user.username || null,
+          first_name: user.first_name || 'User',
+          last_name: user.last_name || null,
+          role: 'user', // Default role
+          language_code: user.language_code || 'he',
+          is_premium: user.is_premium || false,
+          photo_url: user.photo_url || null
+        });
+
+      if (insertError) {
+        console.error('❌ clientSideAuth: Failed to create user record:', insertError);
+      } else {
+        console.log('✅ clientSideAuth: User record created');
+      }
+    } else {
+      console.log('✅ clientSideAuth: User record exists', { role: existingUser.role });
+    }
 
     // Store session in window for debugging
     if (typeof window !== 'undefined') {
