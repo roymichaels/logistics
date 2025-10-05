@@ -22,7 +22,10 @@ const ALLOWED_TO_UPDATE_ROLES = new Set(['owner', 'business_owner', 'manager']);
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, {
+      status: 200,
+      headers: corsHeaders
+    });
   }
 
   try {
