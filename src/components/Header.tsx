@@ -62,14 +62,47 @@ export function Header({ user, onNavigate, onLogout }: HeaderProps) {
     }}>
       {/* Logo/Brand */}
       <div style={{
-        fontSize: '20px',
-        fontWeight: '700',
-        background: 'linear-gradient(135deg, #9C6DFF 0%, #7B3FF2 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text'
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px'
       }}>
-        מערכת לוגיסטיקה
+        {/* Twitter-style Blue Circle */}
+        <div style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '50%',
+          background: '#1DA1F2',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontWeight: '900',
+          fontSize: '18px',
+          boxShadow: '0 2px 8px rgba(29, 161, 242, 0.3)'
+        }}>
+          UL
+        </div>
+
+        {/* Brand Text */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <div style={{
+            fontSize: '16px',
+            fontWeight: '700',
+            color: ROYAL_COLORS.text,
+            letterSpacing: '0.5px'
+          }}>
+            UndergroundLab
+          </div>
+          <div style={{
+            fontSize: '13px',
+            fontFamily: 'cursive',
+            color: ROYAL_COLORS.muted,
+            fontStyle: 'italic',
+            opacity: 0.7
+          }}>
+            Logistics
+          </div>
+        </div>
       </div>
 
       {/* User Avatar Dropdown */}

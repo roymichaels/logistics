@@ -73,8 +73,7 @@ export function BottomNavigation({
     // ⛔ USER: Unassigned - View Only, Zero Power
     user: {
       tabs: [
-        { id: 'my-role', label: 'תפקידי', icon: '👤' },
-        { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+        { id: 'my-role', label: 'תפקידי', icon: '👤' }
       ]
       // NO ACTION BUTTON. No power. Contact manager.
     },
@@ -85,8 +84,7 @@ export function BottomNavigation({
         { id: 'dashboard', label: hebrew.dashboard, icon: '🏠' },
         { id: 'stats', label: hebrew.stats, icon: '📊' },
         { id: 'partners', label: hebrew.partners, icon: '👥' },
-        { id: 'orders', label: hebrew.orders, icon: '🧾' },
-        { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+        { id: 'orders', label: hebrew.orders, icon: '🧾' }
       ],
       action: {
         label: 'פעולות מהירות',
@@ -100,8 +98,7 @@ export function BottomNavigation({
         { id: 'dashboard', label: hebrew.dashboard, icon: '🏠' },
         { id: 'stats', label: hebrew.stats, icon: '📊' },
         { id: 'partners', label: hebrew.partners, icon: '👥' },
-        { id: 'orders', label: hebrew.orders, icon: '🧾' },
-        { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+        { id: 'orders', label: hebrew.orders, icon: '🧾' }
       ],
       action: {
         label: 'פעולות מהירות',
@@ -114,8 +111,7 @@ export function BottomNavigation({
       tabs: [
         { id: 'orders', label: hebrew.orders, icon: '🛒' },
         { id: 'products', label: hebrew.products, icon: '📦' },
-        { id: 'my-stats', label: hebrew.my_stats, icon: '📈' },
-        { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+        { id: 'my-stats', label: hebrew.my_stats, icon: '📈' }
       ],
       action: {
         label: 'פעולות מהירות',
@@ -129,8 +125,7 @@ export function BottomNavigation({
         { id: 'inventory', label: hebrew.inventory, icon: '📦' },
         { id: 'incoming', label: hebrew.incoming, icon: '🚚' },
         { id: 'restock-requests', label: hebrew.restock_requests, icon: '🏷️' },
-        { id: 'logs', label: hebrew.logs, icon: '📊' },
-        { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+        { id: 'logs', label: hebrew.logs, icon: '📊' }
       ],
       action: {
         label: 'פעולות מהירות',
@@ -144,8 +139,7 @@ export function BottomNavigation({
         { id: 'my-deliveries', label: hebrew.my_deliveries, icon: '🚚' },
         { id: 'my-inventory', label: hebrew.my_inventory, icon: '📦' },
         { id: 'my-zones', label: hebrew.my_zones, icon: '🗺️' },
-        { id: 'driver-status', label: hebrew.driver_status, icon: '🟢' },
-        { id: 'settings', label: hebrew.settings, icon: '⚙️' }
+        { id: 'driver-status', label: hebrew.driver_status, icon: '🟢' }
       ],
       action: {
         label: 'פעולות מהירות',
