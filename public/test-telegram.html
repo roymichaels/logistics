@@ -52,7 +52,11 @@
             width: 100%;
             margin-top: 8px;
         }
+        button.secondary {
+            background: #5856d6;
+        }
         button:hover { background: #0056b3; }
+        button.secondary:hover { background: #3c3aad; }
         .code {
             background: #1e1e1e;
             color: #d4d4d4;
@@ -64,6 +68,18 @@
             direction: ltr;
             text-align: left;
         }
+        .hint {
+            margin-top: 12px;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        ul.instructions {
+            margin-top: 8px;
+            margin-right: 16px;
+            color: #444;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
@@ -71,6 +87,26 @@
         <div class="card">
             <h1>🔍 Telegram Mini App - בדיקה מהירה</h1>
             <p style="color: #666;">בודק אם האפליקציה פועלת רק מתוך Telegram</p>
+        </div>
+
+        <div class="card">
+            <h2>⚙️ הגדרת Supabase</h2>
+            <p class="hint">
+                כדי שהבדיקה תעבוד מול הפרויקט הנכון, ספק את כתובת Supabase (לדוגמה <code>https://xyzcompany.supabase.co</code>) באחת מהדרכים הבאות:
+            </p>
+            <ul class="instructions">
+                <li>הוסף <code>?supabaseUrl=&lt;supabase-url&gt;</code> לכתובת הדף.</li>
+                <li>הגדר <code>window.__SUPABASE_URL__</code> לפני הטעינה (לדוגמה באמצעות קובץ <code>test-telegram-config.js</code> שמוזרק בבילד).</li>
+                <li>לחץ על הכפתור מטה והזֵן את הכתובת ידנית – היא תישמר ב-localStorage לטעינות עתידיות.</li>
+            </ul>
+            <div class="row">
+                <span class="label">כתובת פעילה</span>
+                <span class="value" id="supabase-url-value">(לא הוגדר)</span>
+            </div>
+            <p class="hint" id="supabase-config-hint">
+                טרם הוגדרה כתובת Supabase. הזן אותה כדי לבצע בקשת אימות לבקאנד הנכון.
+            </p>
+            <button class="secondary" onclick="configureSupabase()">עדכן כתובת Supabase</button>
         </div>
 
         <div class="card">
@@ -91,8 +127,146 @@
     </div>
 
     <script>
+        const SUPABASE_URL_STORAGE_KEY = 'test-telegram.supabaseUrl';
+        const SUPABASE_PLACEHOLDER = '__SUPABASE_URL__';
+        const supabaseState = {
+            url: null,
+            set(url, { persist = true } = {}) {
+                this.url = url;
+                if (persist && url) {
+                    try {
+                        localStorage.setItem(SUPABASE_URL_STORAGE_KEY, url);
+                    } catch (error) {
+                        console.warn('Could not persist Supabase URL:', error);
+                    }
+                }
+                updateSupabaseDisplay();
+            }
+        };
+
+        function sanitizeSupabaseUrl(value) {
+            if (!value || typeof value !== 'string') {
+                return null;
+            }
+
+            const trimmed = value.trim();
+            if (!trimmed || trimmed === SUPABASE_PLACEHOLDER) {
+                return null;
+            }
+
+            try {
+                const url = new URL(trimmed);
+                if (!/^https?:$/.test(url.protocol)) {
+                    return null;
+                }
+                return url.origin.replace(/\/$/, '');
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function detectSupabaseUrl() {
+            try {
+                const searchParams = new URLSearchParams(window.location.search);
+                const fromQuery = sanitizeSupabaseUrl(searchParams.get('supabaseUrl'));
+                if (fromQuery) {
+                    return fromQuery;
+                }
+            } catch (error) {
+                console.warn('Could not read query parameters:', error);
+            }
+
+            const globalCandidate = sanitizeSupabaseUrl(window.__SUPABASE_URL__ || window.SUPABASE_URL || window.TEST_TELEGRAM_SUPABASE_URL);
+            if (globalCandidate) {
+                return globalCandidate;
+            }
+
+            const metaCandidate = sanitizeSupabaseUrl(document.querySelector('meta[name="supabase-url"]')?.content);
+            if (metaCandidate) {
+                return metaCandidate;
+            }
+
+            try {
+                const storedCandidate = sanitizeSupabaseUrl(localStorage.getItem(SUPABASE_URL_STORAGE_KEY));
+                if (storedCandidate) {
+                    return storedCandidate;
+                }
+            } catch (error) {
+                console.warn('Could not access localStorage:', error);
+            }
+
+            return null;
+        }
+
+        function updateSupabaseDisplay() {
+            const valueElement = document.getElementById('supabase-url-value');
+            const hintElement = document.getElementById('supabase-config-hint');
+
+            if (valueElement) {
+                valueElement.textContent = supabaseState.url || '(לא הוגדר)';
+            }
+
+            if (hintElement) {
+                hintElement.style.display = supabaseState.url ? 'none' : 'block';
+            }
+        }
+
+        function configureSupabase(forcePrompt = true) {
+            let current = supabaseState.url || detectSupabaseUrl();
+            if (!forcePrompt && current) {
+                supabaseState.set(current, { persist: true });
+                return current;
+            }
+
+            let attempts = 0;
+            while (true) {
+                const input = prompt(
+                    attempts === 0
+                        ? 'הזן את כתובת Supabase (לדוגמה https://xyzcompany.supabase.co)'
+                        : 'הכתובת אינה תקינה. נסה שוב עם כתובת Supabase מלאה',
+                    current || ''
+                );
+
+                if (input === null) {
+                    // User cancelled
+                    if (!supabaseState.url) {
+                        updateSupabaseDisplay();
+                    }
+                    return supabaseState.url;
+                }
+
+                const sanitized = sanitizeSupabaseUrl(input);
+                if (sanitized) {
+                    supabaseState.set(sanitized, { persist: true });
+                    return sanitized;
+                }
+
+                attempts += 1;
+            }
+        }
+
+        function ensureSupabaseUrl() {
+            if (supabaseState.url) {
+                return supabaseState.url;
+            }
+
+            const detected = detectSupabaseUrl();
+            if (detected) {
+                supabaseState.set(detected, { persist: true });
+                return detected;
+            }
+
+            return configureSupabase(true);
+        }
+
         // Check Telegram status immediately
         window.addEventListener('load', () => {
+            const initialUrl = detectSupabaseUrl();
+            if (initialUrl) {
+                supabaseState.set(initialUrl, { persist: true });
+            } else {
+                updateSupabaseDisplay();
+            }
             checkTelegramStatus();
         });
 
@@ -189,7 +363,18 @@
             `;
 
             try {
-                const url = 'https://0ec90b57d6e95fcbda19832f.supabase.co/functions/v1/telegram-verify';
+                const supabaseUrl = ensureSupabaseUrl();
+                if (!supabaseUrl) {
+                    resultDiv.innerHTML = `
+                        <span class="status error">❌ אין כתובת Supabase</span>
+                        <p style="margin-top: 8px; color: #666;">
+                            הגדר את כתובת Supabase כדי להמשיך בבדיקה.
+                        </p>
+                    `;
+                    return;
+                }
+
+                const url = `${supabaseUrl}/functions/v1/telegram-verify`;
 
                 console.log('Testing authentication with:', {
                     url,
