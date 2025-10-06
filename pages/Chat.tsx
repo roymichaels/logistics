@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { telegram } from '../lib/telegram';
 import { useTelegramUI } from '../src/hooks/useTelegramUI';
 import { DataStore, GroupChat, User } from '../data/types';
@@ -6,50 +6,48 @@ import { hebrew } from '../src/lib/hebrew';
 import { EncryptedChatComponent } from '../src/components/EncryptedChat';
 import { initializeEncryptedChatService } from '../src/security/encryptedChatService';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../src/styles/royalTheme';
+import { UserListView } from '../src/components/UserListView';
+import { UserProfileModal } from '../src/components/UserProfileModal';
 
 interface ChatProps {
   dataStore: DataStore;
   onNavigate: (page: string) => void;
+  currentUser?: User;
 }
 
-export function Chat({ dataStore, onNavigate }: ChatProps) {
-  const [chats, setChats] = useState<GroupChat[]>([]);
-  const [selectedChat, setSelectedChat] = useState<GroupChat | null>(null);
+type ChatTab = 'conversations' | 'groups' | 'users';
+
+export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
+  const [activeTab, setActiveTab] = useState<ChatTab>('conversations');
+  const [directMessageRooms, setDirectMessageRooms] = useState<any[]>([]);
+  const [groupChats, setGroupChats] = useState<GroupChat[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedChat, setSelectedChat] = useState<any | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [encryptedChatId, setEncryptedChatId] = useState<string | null>(null);
   const [encryptionEnabled, setEncryptionEnabled] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme, haptic, backButton } = useTelegramUI();
 
   useEffect(() => {
     initializeEncryption();
-    loadChats();
+    loadData();
 
-    let unsubscribe: (() => void) | undefined;
-    if (selectedChat && selectedChat.type !== 'encrypted' && dataStore.subscribeToChanges) {
-      unsubscribe = dataStore.subscribeToChanges('messages', (payload) => {
-        if (payload.new && payload.new.chat_id === selectedChat.id) {
-          loadMessages(selectedChat.id);
-        }
-      });
+    // Update presence to online
+    if (dataStore.updateUserPresence) {
+      dataStore.updateUserPresence('online');
     }
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      // Set presence to offline when leaving
+      if (dataStore.updateUserPresence) {
+        dataStore.updateUserPresence('offline');
+      }
     };
-  }, [selectedChat]);
-
-  const initializeEncryption = async () => {
-    try {
-      await initializeEncryptedChatService();
-      setEncryptionEnabled(true);
-    } catch (error) {
-      console.error('Failed to initialize encrypted chat:', error);
-      setEncryptionEnabled(false);
-    }
-  };
+  }, []);
 
   useEffect(() => {
     if (selectedChat || encryptedChatId) {
@@ -62,13 +60,67 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
     }
   }, [selectedChat, encryptedChatId]);
 
-  const loadChats = async () => {
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const initializeEncryption = async () => {
+    try {
+      await initializeEncryptedChatService();
+      setEncryptionEnabled(true);
+    } catch (error) {
+      console.error('Failed to initialize encrypted chat:', error);
+      setEncryptionEnabled(false);
+    }
+  };
+
+  const loadData = async () => {
+    try {
+      await Promise.all([loadDirectMessages(), loadGroupChats(), loadUsers()]);
+    } catch (error) {
+      console.error('Failed to load chat data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadDirectMessages = async () => {
+    try {
+      if (dataStore.listDirectMessageRooms) {
+        const dms = await dataStore.listDirectMessageRooms();
+
+        // Enhance DMs with user info
+        const enhancedDMs = await Promise.all(
+          dms.map(async (dm) => {
+            let otherUserInfo: User | null = null;
+            if (dataStore.getUserByTelegramId) {
+              try {
+                otherUserInfo = await dataStore.getUserByTelegramId(dm.other_telegram_id);
+              } catch (e) {
+                console.warn('Could not fetch user info for', dm.other_telegram_id);
+              }
+            }
+            return {
+              ...dm,
+              type: 'direct' as const,
+              otherUser: otherUserInfo
+            };
+          })
+        );
+
+        setDirectMessageRooms(enhancedDMs);
+      }
+    } catch (error) {
+      console.error('Failed to load direct messages:', error);
+    }
+  };
+
+  const loadGroupChats = async () => {
     try {
       const chatsList = await dataStore.listGroupChats?.() || [];
 
-      // Add encrypted chat options if encryption is enabled
       if (encryptionEnabled) {
-        const encryptedChats = [
+        const encryptedChats: GroupChat[] = [
           {
             id: 'encrypted_general',
             name: '🔐 צ\'אט כללי מוצפן',
@@ -77,43 +129,29 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
             members: [],
             createdAt: new Date().toISOString(),
             isActive: true
-          },
-          {
-            id: 'encrypted_management',
-            name: '🔐 הנהלה',
-            description: 'תקשורת מאובטחת להנהלה',
-            type: 'encrypted',
-            members: [],
-            createdAt: new Date().toISOString(),
-            isActive: true
-          },
-          {
-            id: 'encrypted_logistics',
-            name: '🔐 צוות לוגיסטיקה',
-            description: 'תיאום מוצפן למשלוחים',
-            type: 'encrypted',
-            members: [],
-            createdAt: new Date().toISOString(),
-            isActive: true
           }
         ];
-        setChats([...encryptedChats, ...chatsList]);
+        setGroupChats([...encryptedChats, ...chatsList]);
       } else {
-        setChats(chatsList);
-      }
-
-      // Load messages for selected chat
-      if (selectedChat && selectedChat.type !== 'encrypted') {
-        loadMessages(selectedChat.id);
+        setGroupChats(chatsList);
       }
     } catch (error) {
-      console.error('Failed to load chats:', error);
-    } finally {
-      setLoading(false);
+      console.error('Failed to load group chats:', error);
     }
   };
 
-  const loadMessages = async (chatId: string) => {
+  const loadUsers = async () => {
+    try {
+      if (dataStore.listAllUsersForMessaging) {
+        const usersList = await dataStore.listAllUsersForMessaging();
+        setUsers(usersList.filter(u => u.telegram_id !== currentUser?.telegram_id));
+      }
+    } catch (error) {
+      console.error('Failed to load users:', error);
+    }
+  };
+
+  const loadMessages = async (chatId: string, isDirect: boolean = false) => {
     try {
       if (!dataStore.listMessages) {
         setMessages([]);
@@ -129,6 +167,12 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
         avatar: '👤'
       }));
       setMessages(formattedMessages || []);
+
+      // Mark as read if it's a DM
+      if (isDirect && dataStore.markDirectMessageAsRead) {
+        await dataStore.markDirectMessageAsRead(chatId);
+        await loadDirectMessages(); // Refresh to update unread counts
+      }
     } catch (error) {
       console.error('Failed to load messages:', error);
       setMessages([]);
@@ -140,17 +184,8 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
 
     try {
       if (dataStore.sendMessage) {
-        await dataStore.sendMessage(selectedChat.id, newMessage, 'text');
-        await loadMessages(selectedChat.id);
-      } else {
-        const message = {
-          id: Date.now().toString(),
-          user: 'אתה',
-          message: newMessage,
-          timestamp: new Date().toISOString(),
-          avatar: '👤'
-        };
-        setMessages(prev => [...prev, message]);
+        await dataStore.sendMessage(selectedChat.id || selectedChat.room_id, newMessage, 'text');
+        await loadMessages(selectedChat.id || selectedChat.room_id, selectedChat.type === 'direct');
       }
       setNewMessage('');
       haptic();
@@ -160,15 +195,70 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
     }
   };
 
-  const filteredChats = chats.filter(chat =>
+  const handleUserSelect = async (user: User) => {
+    // User selection handled by profile modal
+  };
+
+  const handleSendMessageToUser = async (userId: string) => {
+    try {
+      if (!dataStore.getOrCreateDirectMessageRoom) {
+        telegram.showAlert('תכונת הודעות ישירות לא זמינה');
+        return;
+      }
+
+      haptic();
+      const roomId = await dataStore.getOrCreateDirectMessageRoom(userId);
+
+      // Find or create the DM object
+      let dm = directMessageRooms.find(d => d.room_id === roomId);
+      if (!dm) {
+        // Load the user info
+        let otherUser: User | null = null;
+        if (dataStore.getUserByTelegramId) {
+          otherUser = await dataStore.getUserByTelegramId(userId);
+        }
+
+        dm = {
+          room_id: roomId,
+          other_telegram_id: userId,
+          type: 'direct',
+          otherUser,
+          unread_count: 0
+        };
+      }
+
+      setSelectedChat(dm);
+      setActiveTab('conversations');
+      await loadMessages(roomId, true);
+    } catch (error) {
+      console.error('Failed to create/open direct message:', error);
+      telegram.showAlert('לא ניתן לפתוח שיחה');
+    }
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const filteredConversations = directMessageRooms.filter(dm => {
+    if (!searchQuery) return true;
+    const otherUser = dm.otherUser;
+    const query = searchQuery.toLowerCase();
+    return (
+      otherUser?.name?.toLowerCase().includes(query) ||
+      otherUser?.username?.toLowerCase().includes(query)
+    );
+  });
+
+  const filteredGroups = groupChats.filter(chat =>
     chat.name.includes(searchQuery) ||
     chat.description?.includes(searchQuery)
   );
 
   if (loading) {
     return (
-      <div style={{ 
-        padding: '20px', 
+      <div style={{
+        padding: '20px',
         textAlign: 'center',
         color: theme.text_color,
         backgroundColor: theme.bg_color,
@@ -179,7 +269,6 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
     );
   }
 
-  // Show encrypted chat if selected
   if (encryptedChatId) {
     return (
       <EncryptedChatComponent
@@ -197,8 +286,10 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
         newMessage={newMessage}
         setNewMessage={setNewMessage}
         onSendMessage={sendMessage}
+        currentUser={currentUser}
         theme={theme}
         haptic={haptic}
+        messagesEndRef={messagesEndRef}
       />
     );
   }
@@ -219,69 +310,360 @@ export function Chat({ dataStore, onNavigate }: ChatProps) {
           color: ROYAL_COLORS.text,
           textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
         }}>
-          💬 צ'אטים קבוצתיים
+          💬 הודעות
         </h1>
 
-        <input
-          type="text"
-          placeholder="חפש צ'אטים..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '14px 16px',
-            border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-            borderRadius: '12px',
-            background: ROYAL_COLORS.card,
-            color: ROYAL_COLORS.text,
-            fontSize: '16px',
-            marginBottom: '20px'
-          }}
-        />
+        {/* Tabs */}
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          marginBottom: '20px',
+          borderBottom: `2px solid ${ROYAL_COLORS.cardBorder}`,
+          paddingBottom: '12px'
+        }}>
+          <TabButton
+            label="שיחות"
+            icon="💬"
+            active={activeTab === 'conversations'}
+            count={directMessageRooms.reduce((sum, dm) => sum + (dm.unread_count || 0), 0)}
+            onClick={() => {
+              haptic();
+              setActiveTab('conversations');
+            }}
+          />
+          <TabButton
+            label="קבוצות"
+            icon="👥"
+            active={activeTab === 'groups'}
+            onClick={() => {
+              haptic();
+              setActiveTab('groups');
+            }}
+          />
+          <TabButton
+            label="משתמשים"
+            icon="🔍"
+            active={activeTab === 'users'}
+            onClick={() => {
+              haptic();
+              setActiveTab('users');
+            }}
+          />
+        </div>
 
-        {filteredChats.length === 0 ? (
-          <div style={{
-            ...ROYAL_STYLES.emptyState,
-            padding: '60px 20px',
-            borderRadius: '16px',
-            background: ROYAL_COLORS.card
-          }}>
-            <div style={{ fontSize: '64px', marginBottom: '16px' }}>💬</div>
-            <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text, fontSize: '20px' }}>
-              אין צ'אטים זמינים
-            </h3>
-            <div style={{ ...ROYAL_STYLES.emptyStateText, fontSize: '15px' }}>
-              צ'אטים קבוצתיים יופיעו כאן
-            </div>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {filteredChats.map((chat) => (
-              <ChatCard
-                key={chat.id}
-                chat={chat}
-                onClick={() => {
-                  haptic();
-                  if (chat.type === 'encrypted') {
-                    setEncryptedChatId(chat.id);
-                  } else {
-                    setSelectedChat(chat);
-                    loadMessages(chat.id);
-                  }
-                }}
-              />
-            ))}
-          </div>
+        {/* Search */}
+        {activeTab !== 'users' && (
+          <input
+            type="text"
+            placeholder={activeTab === 'conversations' ? 'חפש שיחות...' : 'חפש קבוצות...'}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '14px 16px',
+              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              borderRadius: '12px',
+              background: ROYAL_COLORS.card,
+              color: ROYAL_COLORS.text,
+              fontSize: '16px',
+              marginBottom: '20px'
+            }}
+          />
+        )}
+
+        {/* Content */}
+        {activeTab === 'conversations' && (
+          <ConversationsList
+            conversations={filteredConversations}
+            onSelect={(dm) => {
+              haptic();
+              setSelectedChat(dm);
+              loadMessages(dm.room_id, true);
+            }}
+          />
+        )}
+
+        {activeTab === 'groups' && (
+          <GroupsList
+            groups={filteredGroups}
+            onSelect={(chat) => {
+              haptic();
+              if (chat.type === 'encrypted') {
+                setEncryptedChatId(chat.id);
+              } else {
+                setSelectedChat(chat);
+                loadMessages(chat.id);
+              }
+            }}
+          />
+        )}
+
+        {activeTab === 'users' && (
+          <UserListView
+            users={users}
+            currentUser={currentUser}
+            onSendMessage={handleSendMessageToUser}
+            onUserSelect={handleUserSelect}
+            showOnlineStatus={true}
+            searchPlaceholder="חפש משתמש להתכתבות..."
+          />
         )}
       </div>
     </div>
   );
 }
 
-function ChatCard({ chat, onClick }: {
-  chat: GroupChat;
+function TabButton({
+  label,
+  icon,
+  active,
+  count,
+  onClick
+}: {
+  label: string;
+  icon: string;
+  active: boolean;
+  count?: number;
   onClick: () => void;
 }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        flex: 1,
+        padding: '12px 16px',
+        background: active ? ROYAL_COLORS.gradientPurple : 'transparent',
+        border: 'none',
+        borderRadius: '12px',
+        color: active ? '#fff' : ROYAL_COLORS.muted,
+        fontSize: '15px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        transition: 'all 0.3s ease',
+        boxShadow: active ? ROYAL_COLORS.glowPurple : 'none',
+        position: 'relative'
+      }}
+    >
+      <span style={{ fontSize: '18px' }}>{icon}</span>
+      <span>{label}</span>
+      {count && count > 0 ? (
+        <span style={{
+          padding: '2px 8px',
+          borderRadius: '12px',
+          background: '#ff3b30',
+          color: '#fff',
+          fontSize: '12px',
+          fontWeight: '700',
+          minWidth: '20px',
+          textAlign: 'center'
+        }}>
+          {count > 99 ? '99+' : count}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+function ConversationsList({
+  conversations,
+  onSelect
+}: {
+  conversations: any[];
+  onSelect: (dm: any) => void;
+}) {
+  if (conversations.length === 0) {
+    return (
+      <div style={{
+        ...ROYAL_STYLES.emptyState,
+        padding: '60px 20px',
+        borderRadius: '16px',
+        background: ROYAL_COLORS.card
+      }}>
+        <div style={{ fontSize: '64px', marginBottom: '16px' }}>💬</div>
+        <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text, fontSize: '20px' }}>
+          אין שיחות פעילות
+        </h3>
+        <div style={{ ...ROYAL_STYLES.emptyStateText, fontSize: '15px' }}>
+          לחץ על "משתמשים" כדי להתחיל שיחה חדשה
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      {conversations.map((dm) => (
+        <ConversationCard key={dm.room_id} conversation={dm} onClick={() => onSelect(dm)} />
+      ))}
+    </div>
+  );
+}
+
+function ConversationCard({ conversation, onClick }: { conversation: any; onClick: () => void }) {
+  const otherUser = conversation.otherUser;
+  const userName = otherUser?.name || otherUser?.username || 'משתמש';
+  const userInitial = userName[0]?.toUpperCase() || 'U';
+  const hasUnread = conversation.unread_count > 0;
+
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        padding: '16px',
+        background: ROYAL_COLORS.card,
+        borderRadius: '16px',
+        cursor: 'pointer',
+        border: `1px solid ${hasUnread ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+        transition: 'all 0.3s ease',
+        boxShadow: hasUnread ? ROYAL_COLORS.glowPurple : '0 2px 8px rgba(0, 0, 0, 0.2)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '14px'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(156, 109, 255, 0.3)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = hasUnread ? ROYAL_COLORS.glowPurple : '0 2px 8px rgba(0, 0, 0, 0.2)';
+      }}
+    >
+      {/* Avatar with online status */}
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <div
+          style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: otherUser?.photo_url
+              ? `url(${otherUser.photo_url}) center/cover`
+              : 'linear-gradient(135deg, rgba(156, 109, 255, 0.8), rgba(123, 63, 242, 0.8))',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '24px',
+            fontWeight: '700',
+            color: '#fff',
+            border: `2px solid ${hasUnread ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`
+          }}
+        >
+          {!otherUser?.photo_url && userInitial}
+        </div>
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '0',
+            right: '0',
+            width: '16px',
+            height: '16px',
+            borderRadius: '50%',
+            backgroundColor: '#34c759',
+            border: '3px solid ' + ROYAL_COLORS.card,
+            boxShadow: '0 2px 4px rgba(52, 199, 89, 0.4)'
+          }}
+        />
+      </div>
+
+      {/* Message Info */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+          <h3
+            style={{
+              margin: 0,
+              fontSize: '17px',
+              fontWeight: hasUnread ? '700' : '600',
+              color: ROYAL_COLORS.text,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {userName}
+          </h3>
+          {conversation.room?.last_message_at && (
+            <span style={{ fontSize: '13px', color: ROYAL_COLORS.muted, flexShrink: 0, marginLeft: '8px' }}>
+              {formatTime(conversation.room.last_message_at)}
+            </span>
+          )}
+        </div>
+
+        {conversation.room?.last_message_preview && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: '14px',
+              color: hasUnread ? ROYAL_COLORS.text : ROYAL_COLORS.muted,
+              fontWeight: hasUnread ? '500' : '400',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {conversation.room.last_message_preview}
+          </p>
+        )}
+      </div>
+
+      {/* Unread Badge */}
+      {hasUnread && (
+        <div
+          style={{
+            minWidth: '24px',
+            height: '24px',
+            padding: '0 8px',
+            borderRadius: '12px',
+            background: ROYAL_COLORS.accent,
+            color: '#fff',
+            fontSize: '13px',
+            fontWeight: '700',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(156, 109, 255, 0.4)'
+          }}
+        >
+          {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function GroupsList({ groups, onSelect }: { groups: GroupChat[]; onSelect: (chat: GroupChat) => void }) {
+  if (groups.length === 0) {
+    return (
+      <div style={{
+        ...ROYAL_STYLES.emptyState,
+        padding: '60px 20px',
+        borderRadius: '16px',
+        background: ROYAL_COLORS.card
+      }}>
+        <div style={{ fontSize: '64px', marginBottom: '16px' }}>👥</div>
+        <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text, fontSize: '20px' }}>
+          אין קבוצות זמינות
+        </h3>
+        <div style={{ ...ROYAL_STYLES.emptyStateText, fontSize: '15px' }}>
+          קבוצות צ'אט יופיעו כאן
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      {groups.map((chat) => (
+        <ChatCard key={chat.id} chat={chat} onClick={() => onSelect(chat)} />
+      ))}
+    </div>
+  );
+}
+
+function ChatCard({ chat, onClick }: { chat: GroupChat; onClick: () => void }) {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'department': return '🏢';
@@ -362,15 +744,32 @@ function ChatCard({ chat, onClick }: {
   );
 }
 
-function ChatView({ chat, messages, newMessage, setNewMessage, onSendMessage, theme, haptic }: {
-  chat: GroupChat;
+function ChatView({
+  chat,
+  messages,
+  newMessage,
+  setNewMessage,
+  onSendMessage,
+  currentUser,
+  theme,
+  haptic,
+  messagesEndRef
+}: {
+  chat: any;
   messages: any[];
   newMessage: string;
   setNewMessage: (msg: string) => void;
   onSendMessage: () => void;
+  currentUser?: User;
   theme: any;
   haptic: () => void;
+  messagesEndRef: React.RefObject<HTMLDivElement>;
 }) {
+  const isDirectMessage = chat.type === 'direct';
+  const chatName = isDirectMessage
+    ? (chat.otherUser?.name || chat.otherUser?.username || 'משתמש')
+    : chat.name;
+
   return (
     <div style={{
       background: 'linear-gradient(135deg, #1a0033 0%, #0a001a 100%)',
@@ -384,45 +783,100 @@ function ChatView({ chat, messages, newMessage, setNewMessage, onSendMessage, th
         padding: '16px',
         borderBottom: `2px solid ${ROYAL_COLORS.cardBorder}`,
         background: ROYAL_COLORS.card,
-        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.3)'
+        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.3)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px'
       }}>
-        <h2 style={{
-          margin: 0,
-          fontSize: '22px',
-          fontWeight: '700',
-          color: ROYAL_COLORS.text,
-          textShadow: '0 0 15px rgba(156, 109, 255, 0.4)'
-        }}>
-          {chat.name}
-        </h2>
-        <p style={{
-          margin: '6px 0 0 0',
-          fontSize: '14px',
-          color: ROYAL_COLORS.muted,
-          fontWeight: '500'
-        }}>
-          {chat.members.length} חברים פעילים
-        </p>
+        {isDirectMessage && chat.otherUser && (
+          <div style={{ position: 'relative' }}>
+            <div
+              style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '50%',
+                background: chat.otherUser.photo_url
+                  ? `url(${chat.otherUser.photo_url}) center/cover`
+                  : 'linear-gradient(135deg, rgba(156, 109, 255, 0.8), rgba(123, 63, 242, 0.8))',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '18px',
+                fontWeight: '700',
+                color: '#fff',
+                border: `2px solid ${ROYAL_COLORS.cardBorder}`
+              }}
+            >
+              {!chat.otherUser.photo_url && (chat.otherUser.name?.[0] || '?')}
+            </div>
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '0',
+                right: '0',
+                width: '12px',
+                height: '12px',
+                borderRadius: '50%',
+                backgroundColor: '#34c759',
+                border: '2px solid ' + ROYAL_COLORS.card
+              }}
+            />
+          </div>
+        )}
+
+        <div style={{ flex: 1 }}>
+          <h2 style={{
+            margin: 0,
+            fontSize: '18px',
+            fontWeight: '700',
+            color: ROYAL_COLORS.text
+          }}>
+            {chatName}
+          </h2>
+          {!isDirectMessage && (
+            <p style={{
+              margin: '4px 0 0 0',
+              fontSize: '13px',
+              color: ROYAL_COLORS.muted,
+              fontWeight: '500'
+            }}>
+              {chat.members?.length || 0} חברים פעילים
+            </p>
+          )}
+          {isDirectMessage && (
+            <p style={{
+              margin: '4px 0 0 0',
+              fontSize: '13px',
+              color: '#34c759',
+              fontWeight: '500'
+            }}>
+              פעיל עכשיו
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
-      <div style={{ 
-        flex: 1, 
+      <div style={{
+        flex: 1,
         padding: '16px',
         overflowY: 'auto',
-        maxHeight: 'calc(100vh - 140px)'
+        maxHeight: 'calc(100vh - 180px)'
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {messages.map((message) => (
             <MessageBubble
               key={message.id}
               message={message}
+              isMe={message.user === currentUser?.telegram_id}
               theme={theme}
             />
           ))}
+          <div ref={messagesEndRef} />
         </div>
       </div>
 
+      {/* Input */}
       <div style={{
         position: 'fixed',
         bottom: '60px',
@@ -484,12 +938,7 @@ function ChatView({ chat, messages, newMessage, setNewMessage, onSendMessage, th
   );
 }
 
-function MessageBubble({ message, theme }: {
-  message: any;
-  theme: any;
-}) {
-  const isMe = message.user === 'אתה';
-
+function MessageBubble({ message, isMe, theme }: { message: any; isMe: boolean; theme: any }) {
   return (
     <div style={{
       display: 'flex',
@@ -553,10 +1002,7 @@ function MessageBubble({ message, theme }: {
           textAlign: isMe ? 'left' : 'right',
           color: isMe ? '#fff' : ROYAL_COLORS.muted
         }}>
-          {new Date(message.timestamp).toLocaleTimeString('he-IL', {
-            hour: '2-digit',
-            minute: '2-digit'
-          })}
+          {formatTime(message.timestamp)}
         </div>
       </div>
 
@@ -578,4 +1024,30 @@ function MessageBubble({ message, theme }: {
       )}
     </div>
   );
+}
+
+function formatTime(timestamp: string): string {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) {
+    return 'עכשיו';
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60);
+    return `לפני ${minutes} דק'`;
+  } else if (diffInSeconds < 86400) {
+    return date.toLocaleTimeString('he-IL', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } else if (diffInSeconds < 604800) {
+    const days = Math.floor(diffInSeconds / 86400);
+    return `לפני ${days} ימים`;
+  } else {
+    return date.toLocaleDateString('he-IL', {
+      day: '2-digit',
+      month: '2-digit'
+    });
+  }
 }

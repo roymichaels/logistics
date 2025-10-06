@@ -3730,6 +3730,130 @@ export class SupabaseDataStore implements DataStore {
 
     if (error) throw error;
   }
+
+  // Direct Messaging and User Presence Functions
+
+  async listAllUsersForMessaging(): Promise<User[]> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+
+    return (data || []).map((row: any) => ({
+      telegram_id: row.telegram_id,
+      role: row.role,
+      name: row.name,
+      username: row.username,
+      photo_url: row.photo_url,
+      department: row.department,
+      phone: row.phone,
+      business_id: row.business_id,
+      last_active: row.last_active,
+      online_status: row.online_status,
+      last_seen: row.last_seen
+    }));
+  }
+
+  async getOrCreateDirectMessageRoom(otherUserTelegramId: string): Promise<string> {
+    const businessContext = await this.getActiveBusinessContext();
+    const businessId = businessContext?.active_business_id || null;
+
+    const { data, error } = await supabase.rpc('get_or_create_dm_room', {
+      p_user1_telegram_id: this.userTelegramId,
+      p_user2_telegram_id: otherUserTelegramId,
+      p_business_id: businessId
+    });
+
+    if (error) throw error;
+    return data;
+  }
+
+  async listDirectMessageRooms(): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('direct_message_participants')
+      .select(`
+        *,
+        room:chat_rooms(
+          id,
+          name,
+          last_message_at,
+          last_message_preview,
+          last_message_sender
+        )
+      `)
+      .eq('telegram_id', this.userTelegramId)
+      .order('updated_at', { ascending: false });
+
+    if (error) throw error;
+
+    return (data || []).map((row: any) => ({
+      room_id: row.room_id,
+      other_telegram_id: row.other_telegram_id,
+      unread_count: row.unread_count,
+      last_read_at: row.last_read_at,
+      room: row.room
+    }));
+  }
+
+  async markDirectMessageAsRead(roomId: string): Promise<void> {
+    const { error } = await supabase.rpc('reset_dm_unread_count', {
+      p_room_id: roomId,
+      p_telegram_id: this.userTelegramId
+    });
+
+    if (error) throw error;
+  }
+
+  async updateUserPresence(status: 'online' | 'away' | 'busy' | 'offline'): Promise<void> {
+    const { error } = await supabase
+      .from('user_presence')
+      .upsert({
+        telegram_id: this.userTelegramId,
+        status,
+        last_activity: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+
+    if (error) throw error;
+  }
+
+  async getUserPresence(telegramId: string): Promise<any> {
+    const { data, error } = await supabase
+      .from('user_presence')
+      .select('*')
+      .eq('telegram_id', telegramId)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async createMessageReadReceipt(messageId: string): Promise<void> {
+    const { error } = await supabase
+      .from('message_read_receipts')
+      .insert({
+        message_id: messageId,
+        telegram_id: this.userTelegramId,
+        read_at: new Date().toISOString()
+      });
+
+    if (error && !error.message.includes('duplicate')) {
+      throw error;
+    }
+  }
+
+  async getMessageReadReceipts(messageId: string): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('message_read_receipts')
+      .select('*')
+      .eq('message_id', messageId)
+      .order('read_at', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  }
 }
 
 export function createSupabaseDataStore(
