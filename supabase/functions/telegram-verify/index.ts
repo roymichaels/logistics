@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { createHmac, createHash, timingSafeEqual } from 'node:crypto';
+import { Buffer } from 'node:buffer';
 import { SignJWT } from 'npm:jose@5';
 
 const corsHeaders = {
