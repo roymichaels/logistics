@@ -160,17 +160,30 @@ export async function ensureTwaSession(): Promise<TwaAuthResult> {
 
   console.log('🔐 ensureTwaSession: Starting authentication check');
 
+  // Check existing session
   const { data: sessionCheck } = await supabase.auth.getSession();
   if (sessionCheck?.session) {
-    console.log('✅ ensureTwaSession: Session already exists', {
+    const hasCustomClaims = !!(sessionCheck.session as any).user_id ||
+                            !!(sessionCheck.session as any).telegram_id;
+    const provider = sessionCheck.session.user.app_metadata?.provider;
+
+    console.log('✅ ensureTwaSession: Session exists', {
       user_id: sessionCheck.session.user.id,
-      has_app_metadata: !!sessionCheck.session.user.app_metadata,
+      provider,
+      has_custom_claims: hasCustomClaims,
       role: sessionCheck.session.user.app_metadata?.role,
     });
-    return { ok: true };
+
+    // If session exists with telegram provider and custom claims, we're good
+    if (provider === 'telegram' && hasCustomClaims) {
+      return { ok: true };
+    }
+
+    // If we have an email-based session without custom claims, try to upgrade it
+    console.log('⚠️ Session exists but missing custom claims, attempting upgrade...');
   }
 
-  console.log('⚠️ ensureTwaSession: No session found, attempting to create one');
+  console.log('🔑 ensureTwaSession: No valid session found, creating new one');
 
   const initData = (window as any)?.Telegram?.WebApp?.initData || '';
   if (!initData) {
@@ -207,15 +220,32 @@ export async function ensureTwaSession(): Promise<TwaAuthResult> {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.warn('⚠️ ensureTwaSession: Backend verification failed, will use client-side fallback', {
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { error: errorText };
+      }
+
+      console.error('❌ ensureTwaSession: Backend verification failed', {
         status: response.status,
         statusText: response.statusText,
-        error: errorText,
+        error: errorData.error,
+        will_use_fallback: errorData.will_use_fallback
       });
 
-      // Use client-side fallback when backend fails
-      console.log('🔄 Switching to client-side authentication...');
-      return await clientSideAuth();
+      // Only use fallback if backend explicitly says it's ok
+      if (errorData.will_use_fallback) {
+        console.log('🔄 Backend allows fallback, switching to client-side authentication...');
+        return await clientSideAuth();
+      }
+
+      // Otherwise, treat as fatal - signature verification should work
+      return {
+        ok: false,
+        reason: 'verify_failed',
+        details: `Signature verification failed: ${errorData.error}`
+      };
     }
 
     const result = await response.json();
@@ -235,10 +265,12 @@ export async function ensureTwaSession(): Promise<TwaAuthResult> {
 
     console.log('🔑 ensureTwaSession: Setting session with received JWT token');
     console.log('📋 Claims included:', result.claims);
+    console.log('🔐 Access token preview:', access_token.substring(0, 20) + '...');
 
+    // Set session with the JWT from backend
     const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
       access_token,
-      refresh_token: '', // No refresh token - re-authenticate via Telegram
+      refresh_token: access_token, // Use same token for refresh to maintain claims
     });
 
     if (sessionError || !sessionData?.session) {
@@ -246,21 +278,42 @@ export async function ensureTwaSession(): Promise<TwaAuthResult> {
       return { ok: false, reason: 'set_session_failed', details: sessionError?.message };
     }
 
+    // Verify the session was set correctly with custom claims
+    const customClaims = {
+      user_id: (sessionData.session as any).user_id || result.claims?.user_id,
+      telegram_id: (sessionData.session as any).telegram_id || result.claims?.telegram_id,
+      role: (sessionData.session as any).user_role || sessionData.session.user.app_metadata?.role,
+      workspace_id: (sessionData.session as any).workspace_id || result.claims?.workspace_id
+    };
+
     console.log('✅ ensureTwaSession: Session established successfully', {
       user_id: sessionData.session.user.id,
-      role: sessionData.session.user.app_metadata?.role,
-      workspace_id: sessionData.session.user.app_metadata?.workspace_id,
+      provider: sessionData.session.user.app_metadata?.provider,
+      custom_claims: customClaims,
     });
 
+    // Store session and claims for debugging
     if (typeof window !== 'undefined') {
       (window as any).__SUPABASE_SESSION__ = sessionData.session;
-      (window as any).__JWT_CLAIMS__ = sessionData.session.user.app_metadata;
+      (window as any).__JWT_CLAIMS__ = customClaims;
+      console.log('📊 Debug: Access window.__SUPABASE_SESSION__ and window.__JWT_CLAIMS__ for inspection');
     }
 
     return { ok: true };
   } catch (error) {
-    console.warn('⚠️ ensureTwaSession: Exception during backend authentication, using client-side fallback', error);
-    console.log('🔄 Switching to client-side authentication due to exception...');
-    return await clientSideAuth();
+    console.error('❌ ensureTwaSession: Exception during backend authentication', error);
+
+    // Only use fallback for network errors, not for validation failures
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.log('🔄 Network error detected, switching to client-side fallback...');
+      return await clientSideAuth();
+    }
+
+    // For other errors, fail explicitly
+    return {
+      ok: false,
+      reason: 'verify_failed',
+      details: error instanceof Error ? error.message : String(error)
+    };
   }
 }

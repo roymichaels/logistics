@@ -90,10 +90,19 @@ class SessionTracker {
           telegram_id: payload.telegram_id,
           role: payload.user_role || payload.role,
           app_role: payload.app_role,
-          workspace_id: payload.workspace_id
+          workspace_id: payload.workspace_id,
+          provider: payload.app_metadata?.provider
         };
+
+        this.log('JWT_DECODE', 'success', 'JWT payload decoded', {
+          has_user_id: !!payload.user_id,
+          has_telegram_id: !!payload.telegram_id,
+          has_role: !!(payload.user_role || payload.role),
+          provider: payload.app_metadata?.provider,
+          sub: payload.sub
+        });
       } catch (e) {
-        this.log('JWT_DECODE', 'warning', 'Could not decode JWT payload');
+        this.log('JWT_DECODE', 'error', 'Could not decode JWT payload', e);
       }
 
       // Merge claims from both sources (JWT claims take precedence)

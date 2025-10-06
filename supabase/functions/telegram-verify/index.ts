@@ -32,15 +32,23 @@ function verifyTelegramWebApp(initData: string, botToken: string): boolean {
   console.log('🔐 verifyTelegramWebApp: Starting HMAC verification');
 
   try {
-    const params = new URLSearchParams(initData);
+    // Clean possible wrappers (Telegram sometimes sends full URL fragment)
+    let cleanedInitData = initData;
+    if (initData.startsWith('tgWebAppData=')) {
+      console.log('🧹 Cleaning tgWebAppData wrapper');
+      cleanedInitData = decodeURIComponent(initData.replace('tgWebAppData=', '').split('#')[0]);
+    }
+
+    const params = new URLSearchParams(cleanedInitData);
     const hash = params.get('hash');
 
     if (!hash) {
       console.error('❌ No hash found in initData');
+      console.error('initData preview:', cleanedInitData.substring(0, 100));
       return false;
     }
 
-    console.log('✅ Hash from Telegram:', hash);
+    console.log('✅ Hash from Telegram:', hash.substring(0, 10) + '...');
 
     params.delete('hash');
     const dataCheckString = [...params.entries()]
@@ -49,18 +57,23 @@ function verifyTelegramWebApp(initData: string, botToken: string): boolean {
       .join('\n');
 
     console.log('📝 dataCheckString length:', dataCheckString.length);
+    console.log('📝 dataCheckString keys:', [...params.keys()].join(', '));
 
     // CRITICAL: Use correct Telegram Mini App algorithm
+    // Reference: https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app
+    console.log('🔑 Creating secret key with WebAppData constant');
     const secretKey = createHmac('sha256', 'WebAppData')
       .update(botToken)
       .digest();
 
+    console.log('🔐 Computing HMAC-SHA256 of data-check-string');
     const computedHash = createHmac('sha256', secretKey)
       .update(dataCheckString)
       .digest('hex');
 
-    console.log('🔐 Computed hash:', computedHash);
-    console.log('🔐 Expected hash:', hash);
+    console.log('🔐 Computed hash:', computedHash.substring(0, 16) + '...');
+    console.log('🔐 Expected hash:', hash.substring(0, 16) + '...');
+    console.log('🔐 Hash lengths:', { computed: computedHash.length, expected: hash.length });
 
     const isValid = timingSafeEqual(
       Buffer.from(computedHash, 'hex'),

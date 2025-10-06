@@ -16,6 +16,7 @@ import { RightSidebarMenu } from './src/components/RightSidebarMenu';
 import { SidebarToggleButton } from './src/components/SidebarToggleButton';
 import { debugLog } from './src/components/DebugPanel';
 import { hebrew } from './src/lib/hebrew';
+import './src/lib/authDiagnostics'; // Load auth diagnostics for console debugging
 
 // Pages (lazy loaded)
 const Dashboard = lazy(() =>
