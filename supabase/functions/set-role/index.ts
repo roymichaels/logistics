@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 const ALLOWED_ROLES = new Set([
+  'user',
   'owner',
   'infrastructure_owner',
   'business_owner',
@@ -56,13 +57,10 @@ Deno.serve(async (req) => {
     }
 
     // Check for custom claims at root level (from telegram-verify)
-    // or fallback to app_metadata (for other auth methods)
     const callerRole = callerClaims?.user_role || callerClaims?.app_metadata?.role;
-    const callerWorkspaceId = callerClaims?.workspace_id || callerClaims?.app_metadata?.workspace_id;
 
     console.log('Caller info:', {
       role: callerRole,
-      workspace_id: callerWorkspaceId,
       has_custom_claims: !!(callerClaims?.user_role && callerClaims?.telegram_id),
       provider: callerClaims?.app_metadata?.provider
     });

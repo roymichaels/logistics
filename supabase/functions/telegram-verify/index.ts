@@ -236,9 +236,8 @@ Deno.serve(async (req) => {
     const usernameNormalized = normalizeUsername(user.username);
     const fullName = user.first_name + (user.last_name ? ` ${user.last_name}` : '');
 
-    const APP_OWNER_TELEGRAM_ID = Deno.env.get('APP_OWNER_TELEGRAM_ID');
-    const isPlatformOwner = APP_OWNER_TELEGRAM_ID && telegramIdStr === APP_OWNER_TELEGRAM_ID;
-    const defaultRole = isPlatformOwner ? 'owner' : 'manager';
+    // All new users default to 'user' role
+    const defaultRole = 'user';
 
     // Find or create user in users table
     let { data: existingUser } = await supabase
@@ -261,11 +260,11 @@ Deno.serve(async (req) => {
     }
 
     let userId: string;
-    let userRole: string = defaultRole;
+    let userRole: string;
 
     if (existingUser) {
       userId = existingUser.id;
-      userRole = existingUser.role;
+      userRole = existingUser.role || defaultRole;
       console.log(`✅ User exists: ${usernameNormalized} (role: ${userRole})`);
 
       if (existingUser.telegram_id !== telegramIdStr) {
@@ -273,15 +272,6 @@ Deno.serve(async (req) => {
           .from('users')
           .update({ telegram_id: telegramIdStr })
           .eq('id', userId);
-      }
-
-      if (isPlatformOwner && userRole !== 'owner') {
-        await supabase
-          .from('users')
-          .update({ role: 'owner' })
-          .eq('id', userId);
-        userRole = 'owner';
-        console.log(`👑 Auto-promoted user to owner: ${telegramIdStr}`);
       }
     } else {
       const { data: newUser, error: insertError } = await supabase
@@ -315,25 +305,7 @@ Deno.serve(async (req) => {
 
     const finalUserRole = completeUser?.role || userRole;
 
-    // Get business associations for workspace_id
-    const { data: businessAssociations } = await supabase
-      .from('business_users')
-      .select('business_id, role, is_primary')
-      .eq('user_id', userId)
-      .eq('active', true)
-      .order('is_primary', { ascending: false })
-      .limit(1);
-
-    let workspaceId = null;
-    let businessRole = finalUserRole;
-
-    if (businessAssociations && businessAssociations.length > 0) {
-      workspaceId = businessAssociations[0].business_id;
-      businessRole = businessAssociations[0].role;
-      console.log(`User has business association: workspace=${workspaceId}, business_role=${businessRole}`);
-    }
-
-    // Generate custom JWT with claims
+    // Generate custom JWT with simplified claims
     console.log('🔐 Generating custom JWT with claims');
 
     const jwtSecretKey = new TextEncoder().encode(jwtSecret);
@@ -365,9 +337,7 @@ Deno.serve(async (req) => {
       // Custom claims for RLS and frontend
       user_id: userId,
       telegram_id: telegramIdStr,
-      user_role: finalUserRole,
-      app_role: businessRole,
-      workspace_id: workspaceId
+      user_role: finalUserRole
     };
 
     const access_token = await new SignJWT(payload)
@@ -377,9 +347,7 @@ Deno.serve(async (req) => {
     console.log('✅ Custom JWT generated with claims:', {
       user_id: userId,
       telegram_id: telegramIdStr,
-      user_role: finalUserRole,
-      app_role: businessRole,
-      workspace_id: workspaceId
+      user_role: finalUserRole
     });
 
     return new Response(
@@ -394,9 +362,7 @@ Deno.serve(async (req) => {
           role: finalUserRole,
           photo_url: user.photo_url,
           first_name: user.first_name,
-          last_name: user.last_name,
-          workspace_id: workspaceId,
-          app_role: businessRole
+          last_name: user.last_name
         },
         session: {
           access_token,
@@ -418,9 +384,7 @@ Deno.serve(async (req) => {
         claims: {
           user_id: userId,
           telegram_id: telegramIdStr,
-          role: finalUserRole,
-          app_role: businessRole,
-          workspace_id: workspaceId
+          role: finalUserRole
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
