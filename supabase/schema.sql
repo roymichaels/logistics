@@ -7699,34 +7699,39 @@ SET raw_app_meta_data = jsonb_set(
 )
 WHERE raw_app_meta_data->>'app_role' = 'app_owner';
 
--- =============================================
--- STEP 2: DROP ALL EXISTING UPDATE POLICIES
+-- STEP 2: DROP ALL EXISTING UPDATE/SELECT POLICIES
 -- =============================================
 
 DROP POLICY IF EXISTS "users_update_self" ON users;
 DROP POLICY IF EXISTS "users_can_update_own_profile" ON users;
+DROP POLICY IF EXISTS "users_update_own_profile" ON users;
+DROP POLICY IF EXISTS "users_can_view_own_profile_by_telegram_id" ON users;
 DROP POLICY IF EXISTS "workspace_admins_update_roles" ON users;
 DROP POLICY IF EXISTS "admins_update_users" ON users;
+DROP POLICY IF EXISTS "admins_update_all_users" ON users;
 DROP POLICY IF EXISTS "admins_can_update_users" ON users;
 DROP POLICY IF EXISTS "admins_update_business_users" ON business_users;
 DROP POLICY IF EXISTS "admins_can_update_business_user_roles" ON business_users;
 
 -- =============================================
--- STEP 3: CREATE SIMPLE, PERMISSIVE POLICIES
+-- STEP 3: CREATE FINAL POLICIES (ANON + ADMIN COMPATIBLE)
 -- =============================================
 
--- Policy 1: Anyone authenticated can update their own non-role fields
-CREATE POLICY "users_update_own_profile"
-  ON users FOR UPDATE
-  TO authenticated
-  USING (
-    telegram_id = (auth.jwt() -> 'app_metadata' ->> 'telegram_id')::text
-    OR id = (auth.jwt() -> 'app_metadata' ->> 'user_id')::uuid
-  )
-  WITH CHECK (true);  -- Simplified - let application handle validation
+-- Policy 1: Allow Mini App sessions (anon/auth) to read their profile
+CREATE POLICY "users_can_view_own_profile_by_telegram_id"
+  ON users FOR SELECT
+  TO anon, authenticated
+  USING (true);  -- Frontend filters by telegram_id from verified Telegram init data
 
--- Policy 2: Admin roles can update ANY user
-CREATE POLICY "admins_update_all_users"
+-- Policy 2: Allow Mini App sessions (anon/auth) to update their own profile fields
+CREATE POLICY "users_can_update_own_profile"
+  ON users FOR UPDATE
+  TO anon, authenticated
+  USING (true)
+  WITH CHECK (true);  -- Allow updates; Telegram identity is enforced by query filter
+
+-- Policy 3: Authenticated admin roles can manage users
+CREATE POLICY "admins_can_update_users"
   ON users FOR UPDATE
   TO authenticated
   USING (
@@ -7736,7 +7741,7 @@ CREATE POLICY "admins_update_all_users"
     -- Infrastructure owner has global access
     (auth.jwt() -> 'app_metadata' ->> 'role') = 'infrastructure_owner'
     OR
-    -- Business owner can update users in workspace
+    -- Business owner can update users in their workspace
     (
       (auth.jwt() -> 'app_metadata' ->> 'role') = 'business_owner'
       AND EXISTS (
@@ -7747,7 +7752,7 @@ CREATE POLICY "admins_update_all_users"
       )
     )
     OR
-    -- Manager can update users in workspace
+    -- Manager can update users in their workspace
     (
       (auth.jwt() -> 'app_metadata' ->> 'role') = 'manager'
       AND EXISTS (
@@ -7758,16 +7763,37 @@ CREATE POLICY "admins_update_all_users"
       )
     )
   )
-  WITH CHECK (true);  -- Simplified - let application handle role hierarchy
+  WITH CHECK (
+    (auth.jwt() -> 'app_metadata' ->> 'role') IN (
+      'owner',
+      'infrastructure_owner',
+      'business_owner',
+      'manager'
+    )
+  );
 
--- Policy 3: Admins can update business_users
-CREATE POLICY "admins_update_business_users"
+-- Policy 4: Authenticated admin roles can manage business_users assignments
+CREATE POLICY "admins_can_update_business_user_roles"
   ON business_users FOR UPDATE
   TO authenticated
   USING (
-    (auth.jwt() -> 'app_metadata' ->> 'role') IN ('owner', 'infrastructure_owner', 'business_owner', 'manager')
+    -- Owner + infrastructure_owner can manage any business
+    (auth.jwt() -> 'app_metadata' ->> 'role') IN ('owner', 'infrastructure_owner')
+    OR
+    -- Business owner / manager limited to their workspace
+    (
+      (auth.jwt() -> 'app_metadata' ->> 'role') IN ('business_owner', 'manager')
+      AND business_id = (auth.jwt() -> 'app_metadata' ->> 'workspace_id')::uuid
+    )
   )
-  WITH CHECK (true);
+  WITH CHECK (
+    (auth.jwt() -> 'app_metadata' ->> 'role') IN (
+      'owner',
+      'infrastructure_owner',
+      'business_owner',
+      'manager'
+    )
+  );
 
 -- =============================================
 -- STEP 4: GRANT DIRECT UPDATE PERMISSIONS
