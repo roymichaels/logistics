@@ -55,10 +55,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    const callerRole = callerClaims?.app_metadata?.role;
-    const callerWorkspaceId = callerClaims?.app_metadata?.workspace_id;
+    // Check for custom claims at root level (from telegram-verify)
+    // or fallback to app_metadata (for other auth methods)
+    const callerRole = callerClaims?.user_role || callerClaims?.app_metadata?.role;
+    const callerWorkspaceId = callerClaims?.workspace_id || callerClaims?.app_metadata?.workspace_id;
 
-    console.log('Caller info:', { role: callerRole, workspace_id: callerWorkspaceId });
+    console.log('Caller info:', {
+      role: callerRole,
+      workspace_id: callerWorkspaceId,
+      has_custom_claims: !!(callerClaims?.user_role && callerClaims?.telegram_id),
+      provider: callerClaims?.app_metadata?.provider
+    });
 
     if (!callerRole || !ALLOWED_TO_UPDATE_ROLES.has(callerRole)) {
       return new Response(JSON.stringify({ error: 'Forbidden - insufficient role' }), {

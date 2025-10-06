@@ -267,6 +267,23 @@ export async function ensureTwaSession(): Promise<TwaAuthResult> {
     console.log('📋 Claims included:', result.claims);
     console.log('🔐 Access token preview:', access_token.substring(0, 20) + '...');
 
+    // Decode and verify JWT before setting session
+    try {
+      const jwtPayload = JSON.parse(atob(access_token.split('.')[1]));
+      console.log('🔍 JWT Payload decoded:', {
+        sub: jwtPayload.sub,
+        user_id: jwtPayload.user_id,
+        telegram_id: jwtPayload.telegram_id,
+        user_role: jwtPayload.user_role,
+        app_role: jwtPayload.app_role,
+        workspace_id: jwtPayload.workspace_id,
+        provider: jwtPayload.app_metadata?.provider,
+        exp: jwtPayload.exp ? new Date(jwtPayload.exp * 1000).toISOString() : 'none'
+      });
+    } catch (e) {
+      console.error('⚠️ Could not decode JWT for verification:', e);
+    }
+
     // Set session with the JWT from backend
     const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
       access_token,
@@ -278,25 +295,45 @@ export async function ensureTwaSession(): Promise<TwaAuthResult> {
       return { ok: false, reason: 'set_session_failed', details: sessionError?.message };
     }
 
-    // Verify the session was set correctly with custom claims
-    const customClaims = {
-      user_id: (sessionData.session as any).user_id || result.claims?.user_id,
-      telegram_id: (sessionData.session as any).telegram_id || result.claims?.telegram_id,
-      role: (sessionData.session as any).user_role || sessionData.session.user.app_metadata?.role,
-      workspace_id: (sessionData.session as any).workspace_id || result.claims?.workspace_id
-    };
+    // Decode the actual JWT from the session to verify claims
+    let decodedClaims = {};
+    try {
+      const sessionToken = sessionData.session.access_token;
+      const payload = JSON.parse(atob(sessionToken.split('.')[1]));
+      decodedClaims = {
+        user_id: payload.user_id,
+        telegram_id: payload.telegram_id,
+        user_role: payload.user_role,
+        app_role: payload.app_role,
+        workspace_id: payload.workspace_id,
+        provider: payload.app_metadata?.provider
+      };
 
-    console.log('✅ ensureTwaSession: Session established successfully', {
-      user_id: sessionData.session.user.id,
-      provider: sessionData.session.user.app_metadata?.provider,
-      custom_claims: customClaims,
-    });
+      console.log('✅ ensureTwaSession: Session established successfully', {
+        user_id: sessionData.session.user.id,
+        provider: payload.app_metadata?.provider,
+        decoded_claims: decodedClaims,
+        has_all_claims: !!(payload.user_id && payload.telegram_id && payload.user_role)
+      });
+
+      // Verify the JWT has required claims
+      if (!payload.user_id || !payload.telegram_id || !payload.user_role) {
+        console.error('⚠️ WARNING: JWT is missing required custom claims!', {
+          has_user_id: !!payload.user_id,
+          has_telegram_id: !!payload.telegram_id,
+          has_user_role: !!payload.user_role
+        });
+      }
+    } catch (e) {
+      console.error('❌ Failed to decode session JWT:', e);
+    }
 
     // Store session and claims for debugging
     if (typeof window !== 'undefined') {
       (window as any).__SUPABASE_SESSION__ = sessionData.session;
-      (window as any).__JWT_CLAIMS__ = customClaims;
-      console.log('📊 Debug: Access window.__SUPABASE_SESSION__ and window.__JWT_CLAIMS__ for inspection');
+      (window as any).__JWT_CLAIMS__ = decodedClaims;
+      (window as any).__JWT_RAW_PAYLOAD__ = JSON.parse(atob(sessionData.session.access_token.split('.')[1]));
+      console.log('📊 Debug: Access window.__SUPABASE_SESSION__, window.__JWT_CLAIMS__, and window.__JWT_RAW_PAYLOAD__ for inspection');
     }
 
     return { ok: true };
