@@ -5,50 +5,32 @@ import { SignJWT } from 'npm:jose@5';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
 };
 
-interface VerifyRequest {
-  type: 'loginWidget' | 'webapp';
-  data?: Record<string, string>;
-  initData?: string;
-}
-
-interface TelegramUser {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-  auth_date: number;
-}
-
-function normalizeUsername(username: string | null | undefined): string | null {
+function normalizeUsername(username) {
   if (!username) return null;
   return username.replace(/^@/, '').toLowerCase().trim();
 }
 
-function verifyTelegramWebApp(initData: string, botToken: string): boolean {
-  console.log('🔐 verifyTelegramWebApp: Starting HMAC verification');
-
+/**
+ * ✅ Correct Telegram WebApp verification algorithm
+ * Reference: https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app
+ */
+function verifyTelegramWebApp(initData, botToken) {
+  console.log('🔐 verifyTelegramWebApp: Starting verification');
   try {
-    // Clean possible wrappers (Telegram sometimes sends full URL fragment)
     let cleanedInitData = initData;
     if (initData.startsWith('tgWebAppData=')) {
-      console.log('🧹 Cleaning tgWebAppData wrapper');
       cleanedInitData = decodeURIComponent(initData.replace('tgWebAppData=', '').split('#')[0]);
     }
 
     const params = new URLSearchParams(cleanedInitData);
     const hash = params.get('hash');
-
     if (!hash) {
       console.error('❌ No hash found in initData');
-      console.error('initData preview:', cleanedInitData.substring(0, 100));
       return false;
     }
-
-    console.log('✅ Hash from Telegram:', hash.substring(0, 10) + '...');
 
     params.delete('hash');
     const dataCheckString = [...params.entries()]
@@ -56,82 +38,38 @@ function verifyTelegramWebApp(initData: string, botToken: string): boolean {
       .map(([key, value]) => `${key}=${value}`)
       .join('\n');
 
-    console.log('📝 dataCheckString length:', dataCheckString.length);
-    console.log('📝 dataCheckString keys:', [...params.keys()].join(', '));
+    // ✅ Correct: HMAC_SHA256(bot_token, "WebAppData")
+    const secretKey = createHmac('sha256', botToken).update('WebAppData').digest();
+    const computedHash = createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
 
-    // CRITICAL: Use correct Telegram Mini App algorithm
-    // Reference: https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app
-    console.log('🔑 Creating secret key with WebAppData constant');
-    const secretKey = createHmac('sha256', 'WebAppData')
-      .update(botToken)
-      .digest();
-
-    console.log('🔐 Computing HMAC-SHA256 of data-check-string');
-    const computedHash = createHmac('sha256', secretKey)
-      .update(dataCheckString)
-      .digest('hex');
-
-    console.log('🔐 Computed hash:', computedHash.substring(0, 16) + '...');
-    console.log('🔐 Expected hash:', hash.substring(0, 16) + '...');
-    console.log('🔐 Hash lengths:', { computed: computedHash.length, expected: hash.length });
-
-    const isValid = timingSafeEqual(
-      Buffer.from(computedHash, 'hex'),
-      Buffer.from(hash, 'hex')
-    );
-
-    console.log('✅ Match:', isValid);
-
-    if (!isValid) {
-      console.error('❌ HMAC verification FAILED');
-      console.error('Possible causes:');
-      console.error('1. Wrong TELEGRAM_BOT_TOKEN (not matching the bot that launched the Mini App)');
-      console.error('2. Bot token has extra spaces, newlines, or hidden characters');
-      console.error('3. Multiple bots - using token from wrong bot');
-    } else {
-      console.log('✅ HMAC verification SUCCEEDED');
-    }
-
+    const isValid = timingSafeEqual(Buffer.from(computedHash, 'hex'), Buffer.from(hash, 'hex'));
+    console.log('✅ HMAC match:', isValid);
     return isValid;
   } catch (error) {
-    console.error('💥 Exception during verification:', error);
+    console.error('💥 Exception in verifyTelegramWebApp:', error);
     return false;
   }
 }
 
-function verifyLoginWidget(data: Record<string, string>, botToken: string): boolean {
+function verifyLoginWidget(data, botToken) {
   const { hash, ...fields } = data;
-
   if (!hash) return false;
-
   const checkString = Object.keys(fields)
     .sort()
-    .map(k => `${k}=${fields[k]}`)
+    .map((k) => `${k}=${fields[k]}`)
     .join('\n');
-
-  const secretKey = createHash('sha256')
-    .update(botToken)
-    .digest();
-
-  const computedHash = createHmac('sha256', secretKey)
-    .update(checkString)
-    .digest('hex');
-
-  return timingSafeEqual(
-    Buffer.from(computedHash, 'hex'),
-    Buffer.from(hash, 'hex')
-  );
+  const secretKey = createHash('sha256').update(botToken).digest();
+  const computedHash = createHmac('sha256', secretKey).update(checkString).digest('hex');
+  return timingSafeEqual(Buffer.from(computedHash, 'hex'), Buffer.from(hash, 'hex'));
 }
 
-function parseWebAppInitData(initData: string): TelegramUser | null {
+function parseWebAppInitData(initData) {
   try {
     const params = new URLSearchParams(initData);
     const userParam = params.get('user');
     if (!userParam) return null;
-
     const userData = JSON.parse(userParam);
     const authDate = parseInt(params.get('auth_date') || '0');
-
     return {
       id: userData.id,
       first_name: userData.first_name,
@@ -148,48 +86,24 @@ function parseWebAppInitData(initData: string): TelegramUser | null {
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 200,
-      headers: corsHeaders
-    });
+    return new Response(null, { status: 200, headers: corsHeaders });
   }
 
   try {
-    const { type, data, initData }: VerifyRequest = await req.json();
+    const { type, data, initData } = await req.json();
     console.log('📱 Telegram verify request:', { type, hasData: !!data, hasInitData: !!initData });
 
     let botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
     if (!botToken) {
-      console.error('❌ TELEGRAM_BOT_TOKEN environment variable not set');
       return new Response(
-        JSON.stringify({
-          valid: false,
-          error: 'TELEGRAM_BOT_TOKEN not configured on server'
-        }),
+        JSON.stringify({ valid: false, error: 'TELEGRAM_BOT_TOKEN not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    botToken = botToken.trim();
-
-    if (botToken.includes(' ') || botToken.includes('\n') || botToken.includes('\r')) {
-      console.warn('⚠️ WARNING: Bot token contains whitespace characters! Trimming...');
-      botToken = botToken.replace(/[\s\n\r]/g, '');
-    }
-
-    if (botToken.length < 40) {
-      console.warn('⚠️ WARNING: Bot token seems too short. Expected ~45 characters.');
-      return new Response(
-        JSON.stringify({
-          valid: false,
-          error: 'Bot token appears invalid (too short)'
-        }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
+    botToken = botToken.trim().replace(/[\s\n\r]/g, '');
     let isValid = false;
-    let user: TelegramUser | null = null;
+    let user = null;
 
     if (type === 'loginWidget' && data) {
       isValid = verifyLoginWidget(data, botToken);
@@ -199,35 +113,27 @@ Deno.serve(async (req) => {
           first_name: data.first_name || '',
           last_name: data.last_name,
           username: data.username,
-          photo_url: data.photo_url,
-          auth_date: parseInt(data.auth_date || '0')
+          photo_url: data.photo_url
         };
       }
     } else if (type === 'webapp' && initData) {
       isValid = verifyTelegramWebApp(initData, botToken);
-      if (isValid) {
-        user = parseWebAppInitData(initData);
-      }
+      if (isValid) user = parseWebAppInitData(initData);
     }
 
     if (!isValid || !user) {
       console.log('❌ Telegram verification failed');
-      return new Response(
-        JSON.stringify({
-          valid: false,
-          error: 'Invalid signature',
-          will_use_fallback: true
-        }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ valid: false, error: 'Invalid signature' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
     console.log('✅ Telegram verification succeeded for user:', user.id);
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const jwtSecret = Deno.env.get('SUPABASE_JWT_SECRET')!;
-
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const jwtSecret = Deno.env.get('SUPABASE_JWT_SECRET');
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
@@ -235,11 +141,9 @@ Deno.serve(async (req) => {
     const telegramIdStr = user.id.toString();
     const usernameNormalized = normalizeUsername(user.username);
     const fullName = user.first_name + (user.last_name ? ` ${user.last_name}` : '');
-
-    // All new users default to 'user' role
     const defaultRole = 'user';
 
-    // Find or create user in users table
+    // Find or create user
     let { data: existingUser } = await supabase
       .from('users')
       .select('id, telegram_id, username, role')
@@ -252,29 +156,18 @@ Deno.serve(async (req) => {
         .select('id, telegram_id, username, role')
         .eq('username', usernameNormalized)
         .maybeSingle();
-
-      if (userByUsername) {
-        existingUser = userByUsername;
-        console.log(`🔄 Found user by username, updating telegram_id from ${userByUsername.telegram_id} to ${telegramIdStr}`);
-      }
+      if (userByUsername) existingUser = userByUsername;
     }
 
-    let userId: string;
-    let userRole: string;
+    let userId;
+    let userRole = defaultRole;
 
     if (existingUser) {
       userId = existingUser.id;
       userRole = existingUser.role || defaultRole;
-      console.log(`✅ User exists: ${usernameNormalized} (role: ${userRole})`);
-
-      if (existingUser.telegram_id !== telegramIdStr) {
-        await supabase
-          .from('users')
-          .update({ telegram_id: telegramIdStr })
-          .eq('id', userId);
-      }
+      await supabase.from('users').update({ telegram_id: telegramIdStr }).eq('id', userId);
     } else {
-      const { data: newUser, error: insertError } = await supabase
+      const { data: newUser, error } = await supabase
         .from('users')
         .insert({
           telegram_id: telegramIdStr,
@@ -285,70 +178,32 @@ Deno.serve(async (req) => {
         })
         .select('id')
         .single();
-
-      if (insertError || !newUser) {
-        console.error('Failed to create user in users table:', insertError);
-        throw new Error('Failed to create user');
-      }
-
+      if (error) throw new Error(error.message);
       userId = newUser.id;
-      userRole = defaultRole;
-      console.log(`✅ Created user: ${usernameNormalized} (role: ${userRole})`);
     }
 
-    // Get complete user data
-    const { data: completeUser } = await supabase
-      .from('users')
-      .select('id, telegram_id, username, name, role, photo_url')
-      .eq('id', userId)
-      .single();
-
-    const finalUserRole = completeUser?.role || userRole;
-
-    // Generate custom JWT with simplified claims
-    console.log('🔐 Generating custom JWT with claims');
-
+    // Generate JWT with custom claims
     const jwtSecretKey = new TextEncoder().encode(jwtSecret);
     const now = Math.floor(Date.now() / 1000);
 
     const payload = {
       aud: 'authenticated',
-      exp: now + (7 * 24 * 60 * 60), // 7 days
+      exp: now + 7 * 24 * 60 * 60,
       iat: now,
       iss: supabaseUrl,
       sub: userId,
       email: `${telegramIdStr}@telegram.auth`,
-      phone: '',
-      app_metadata: {
-        provider: 'telegram',
-        providers: ['telegram']
-      },
-      user_metadata: {
-        telegram_id: telegramIdStr,
-        username: user.username,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        photo_url: user.photo_url
-      },
       role: 'authenticated',
-      aal: 'aal1',
-      amr: [{ method: 'telegram', timestamp: now }],
-      session_id: crypto.randomUUID(),
-      // Custom claims for RLS and frontend
       user_id: userId,
       telegram_id: telegramIdStr,
-      user_role: finalUserRole
+      user_role: userRole
     };
 
     const access_token = await new SignJWT(payload)
       .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
       .sign(jwtSecretKey);
 
-    console.log('✅ Custom JWT generated with claims:', {
-      user_id: userId,
-      telegram_id: telegramIdStr,
-      user_role: finalUserRole
-    });
+    console.log('✅ Custom JWT generated with claims for user:', userId);
 
     return new Response(
       JSON.stringify({
@@ -359,37 +214,24 @@ Deno.serve(async (req) => {
           telegram_id: telegramIdStr,
           username: usernameNormalized,
           name: fullName,
-          role: finalUserRole,
-          photo_url: user.photo_url,
-          first_name: user.first_name,
-          last_name: user.last_name
+          role: userRole,
+          photo_url: user.photo_url
         },
         session: {
           access_token,
-          refresh_token: '', // No refresh for now - client can re-verify with Telegram
-          expires_in: 604800, // 7 days
+          refresh_token: '',
+          expires_in: 604800,
           expires_at: now + 604800,
-          token_type: 'bearer',
-          user: {
-            id: userId,
-            aud: 'authenticated',
-            role: 'authenticated',
-            email: `${telegramIdStr}@telegram.auth`,
-            app_metadata: payload.app_metadata,
-            user_metadata: payload.user_metadata,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
+          token_type: 'bearer'
         },
         claims: {
           user_id: userId,
           telegram_id: telegramIdStr,
-          role: finalUserRole
+          role: userRole
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
     console.error('❌ Telegram verify error:', error);
     return new Response(
