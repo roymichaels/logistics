@@ -102,10 +102,13 @@ Deno.serve(async (req) => {
     }
 
     botToken = botToken.trim().replace(/[\s\n\r]/g, '');
+    console.log('🔑 Bot token loaded, length:', botToken.length, 'first 10 chars:', botToken.substring(0, 10));
+
     let isValid = false;
     let user = null;
 
     if (type === 'loginWidget' && data) {
+      console.log('🔐 Verifying login widget...');
       isValid = verifyLoginWidget(data, botToken);
       if (isValid) {
         user = {
@@ -117,7 +120,10 @@ Deno.serve(async (req) => {
         };
       }
     } else if (type === 'webapp' && initData) {
+      console.log('🔐 Verifying webapp initData, length:', initData.length);
+      console.log('🔐 First 100 chars of initData:', initData.substring(0, 100));
       isValid = verifyTelegramWebApp(initData, botToken);
+      console.log('✅ Verification result:', isValid);
       if (isValid) user = parseWebAppInitData(initData);
     }
 
