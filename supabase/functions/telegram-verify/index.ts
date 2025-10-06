@@ -147,6 +147,11 @@ Deno.serve(async req => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const jwtSecret = Deno.env.get('SUPABASE_JWT_SECRET');
+
+    if (!supabaseUrl || !supabaseServiceKey || !jwtSecret) {
+      throw new Error('Missing Supabase configuration. Ensure SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and SUPABASE_JWT_SECRET are set.');
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
@@ -183,6 +188,32 @@ Deno.serve(async req => {
       userId = created.id;
     }
 
+    // Determine workspace context (primary business if exists)
+    let workspaceId: string | null = null;
+    const { data: memberships } = await supabase
+      .from('business_users')
+      .select('business_id, is_primary')
+      .eq('user_id', userId)
+      .eq('active', true)
+      .order('is_primary', { ascending: false });
+
+    if (memberships && memberships.length > 0) {
+      workspaceId = memberships[0].business_id;
+    }
+
+    const claims = {
+      user_id: userId,
+      telegram_id: telegramId,
+      user_role: userRole,
+      role: userRole,
+      workspace_id: workspaceId,
+      app_metadata: {
+        provider: 'telegram',
+        role: userRole,
+        workspace_id: workspaceId,
+      },
+    };
+
     // Generate JWT
     const jwtKey = new TextEncoder().encode(jwtSecret);
     const now = Math.floor(Date.now() / 1000);
@@ -192,8 +223,7 @@ Deno.serve(async req => {
       iat: now,
       iss: supabaseUrl,
       sub: userId,
-      telegram_id: telegramId,
-      role: userRole,
+      ...claims,
     };
 
     const access_token = await new SignJWT(payload)
@@ -216,9 +246,11 @@ Deno.serve(async req => {
         },
         session: {
           access_token,
+          refresh_token: access_token,
           expires_in: 604800,
           token_type: 'bearer',
         },
+        claims,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
