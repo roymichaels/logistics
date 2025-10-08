@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DataStore, User, UserBusinessAccess } from '../../data/types';
+import { DataStore, User, UserBusinessAccess } from '../data/types';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { hebrew } from '../lib/hebrew';
 import { Toast } from './Toast';

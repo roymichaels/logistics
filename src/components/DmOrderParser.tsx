@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Product } from '../../data/types';
+import { Product } from '../data/types';
 import { DraftOrderItem, ProductInventoryAvailability } from './orderTypes';
 
 interface DmOrderParserChangeContext {

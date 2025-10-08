@@ -5,8 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { PINEntry } from './PINEntry';
-import { SecurityManager, AuthenticationState, initializeGlobalSecurityManager } from '../security/securityManager';
-import { SecurityAuditLogger } from '../security/auditLogger';
+import { SecurityManager, AuthenticationState, initializeGlobalSecurityManager } from '../utils/security/securityManager';
+import { SecurityAuditLogger } from '../utils/security/auditLogger';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { hebrew } from '../lib/hebrew';
 

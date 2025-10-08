@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { User, DataStore } from '../../data/types';
+import { User, DataStore } from '../data/types';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { BusinessContextSelector } from './BusinessContextSelector';
 import { requiresBusinessContext } from '../lib/rolePermissions';

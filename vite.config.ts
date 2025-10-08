@@ -44,7 +44,7 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             vendor: ['react', 'react-dom'],
-            telegram: ['./lib/telegram']
+            telegram: ['./src/lib/telegram']
           },
           entryFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
           chunkFileNames: `assets/[name]-[hash]-${Date.now()}.js`,

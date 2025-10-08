@@ -1,4 +1,4 @@
-import { DataStore, User, Notification } from '../../data/types';
+import { DataStore, User, Notification } from '../data/types';
 
 export interface PushNotificationPayload {
   title: string;

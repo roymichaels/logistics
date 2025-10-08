@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { roleNames, roleIcons } from '../lib/hebrew';
-import type { User } from '../../data/types';
+import type { User } from '../data/types';
 import { UserProfileModal } from './UserProfileModal';
 
 interface UserListViewProps {

@@ -55,7 +55,7 @@ import {
   UserBusinessAccess,
   BusinessUser,
   Business
-} from '../../data/types';
+} from '../data/types';
 
 const supabase = getSupabase();
 

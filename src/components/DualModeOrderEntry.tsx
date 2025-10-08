@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { DataStore, Product, CreateOrderInput } from '../../data/types';
+import { DataStore, Product, CreateOrderInput } from '../data/types';
 import { Toast } from './Toast';
-import { telegram } from '../../lib/telegram';
+import { telegram } from '../lib/telegram';
 import { TelegramModal } from './TelegramModal';
 
 interface DualModeOrderEntryProps {

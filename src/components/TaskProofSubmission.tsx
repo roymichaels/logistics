@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ImageUpload } from './ImageUpload';
 import { useTelegramUI } from '../hooks/useTelegramUI';
-import { Task } from '../../data/types';
+import { Task } from '../data/types';
 
 interface TaskProofSubmissionProps {
   task: Task;

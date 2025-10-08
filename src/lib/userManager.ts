@@ -1,4 +1,4 @@
-import type { User, UserRegistration } from '../../data/types';
+import type { User, UserRegistration } from '../data/types';
 import {
   approveUserRegistrationRecord,
   ApproveUserRegistrationInput,
@@ -133,4 +133,4 @@ class UserManager {
 
 export const userManager = new UserManager();
 
-export type { UserRegistration } from '../../data/types';
+export type { UserRegistration } from '../data/types';

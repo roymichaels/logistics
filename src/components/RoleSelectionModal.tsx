@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User } from '../../data/types';
+import { User } from '../data/types';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { hebrew } from '../lib/hebrew';
 

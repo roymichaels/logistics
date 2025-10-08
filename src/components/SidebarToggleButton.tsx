@@ -1,5 +1,5 @@
 import React from 'react';
-import { telegram } from '../../lib/telegram';
+import { telegram } from '../lib/telegram';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 
 interface SidebarToggleButtonProps {
