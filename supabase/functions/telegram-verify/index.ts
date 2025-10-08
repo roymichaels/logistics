@@ -2,6 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { createHmac, createHash, timingSafeEqual } from 'node:crypto';
 import { Buffer } from 'node:buffer';
 import { SignJWT } from 'npm:jose@5';
+import { corsHeaders } from '../_shared/cors.ts';
 
 /**
  * ✅ Optional local .env loader (for Bolt / non-Supabase CLI)
@@ -18,12 +19,6 @@ try {
 } catch {
   console.warn("⚠️ No .env file found, relying on Supabase secrets");
 }
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-};
 
 function normalizeUsername(username?: string) {
   if (!username) return null;

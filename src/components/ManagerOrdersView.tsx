@@ -11,8 +11,8 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { telegram } from '../../lib/telegram';
-import type { DataStore, Order, User, Zone, DriverStatusRecord } from '../../data/types';
+import { telegram } from '../lib/telegram';
+import type { DataStore, Order, User, Zone, DriverStatusRecord } from '../data/types';
 import { hasPermission } from '../lib/rolePermissions';
 import { Toast } from './Toast';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';

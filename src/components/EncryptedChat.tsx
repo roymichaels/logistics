@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
-import { getEncryptedChatService, EncryptedChat, EncryptedMessage } from '../security/encryptedChatService';
+import { getEncryptedChatService, EncryptedChat, EncryptedMessage } from '../utils/security/encryptedChatService';
 
 interface EncryptedChatComponentProps {
   chatId: string;

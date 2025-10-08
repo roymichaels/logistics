@@ -4,7 +4,7 @@ import {
   ZoneCoverageSnapshot,
   DriverStatusRecord,
   DispatchAssignmentResult
-} from '../../data/types';
+} from '../data/types';
 import { DispatchService, DriverCandidate } from './dispatchService';
 
 export interface ZoneCoverageResult {

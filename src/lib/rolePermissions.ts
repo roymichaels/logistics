@@ -11,7 +11,7 @@
  * 4. Multi-business users must have explicit business context
  */
 
-import type { User } from '../../data/types';
+import type { User } from '../data/types';
 
 export type Permission =
   // Orders

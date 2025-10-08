@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DataStore } from '../../data/types';
+import { DataStore } from '../data/types';
 
 interface LiveDashboardProps {
   dataStore: DataStore & {

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { HebrewOrderParser, parseHebrewOrder, ParsingResult, ParsedOrder } from '../lib/orderTextParser';
-import { DataStore } from '../../data/types';
+import { DataStore } from '../data/types';
 
 interface OrderCreationWizardProps {
   dataStore: DataStore;

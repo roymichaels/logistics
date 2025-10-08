@@ -26,7 +26,7 @@ import {
   RoyalDashboardZoneCoverage,
   RoyalDashboardLowStockAlert,
   RoyalDashboardRestockRequest
-} from '../../data/types';
+} from '../data/types';
 
 // Mock data for Hebrew logistics company
 const mockProducts: Product[] = [

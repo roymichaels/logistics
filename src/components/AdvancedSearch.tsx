@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DataStore, User } from '../../data/types';
+import { DataStore, User } from '../data/types';
 
 interface AdvancedSearchProps {
   dataStore: DataStore;

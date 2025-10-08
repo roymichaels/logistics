@@ -1,5 +1,5 @@
-import { BootstrapConfig } from '../../data/types';
-import { telegram } from '../../lib/telegram';
+import { BootstrapConfig } from '../data/types';
+import { telegram } from './telegram';
 
 interface BootstrapResult {
   config: BootstrapConfig;

@@ -5,7 +5,7 @@ import {
   DriverStatusRecord,
   Order,
   DriverMovementAction
-} from '../../data/types';
+} from '../data/types';
 import { InventoryService } from './inventoryService';
 
 export interface DriverCandidate {

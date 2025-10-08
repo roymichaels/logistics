@@ -1,4 +1,4 @@
-import { Task, Route } from '../../data/types';
+import { Task, Route } from '../data/types';
 
 export interface Location {
   id: string;

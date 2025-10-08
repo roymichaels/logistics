@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { telegram } from '../../lib/telegram';
-import { User } from '../../data/types';
+import { telegram } from '../lib/telegram';
+import { User } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 
 interface FloatingActionMenuProps {

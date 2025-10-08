@@ -1,4 +1,4 @@
-import { DataStore } from '../../data/types';
+import { DataStore } from '../data/types';
 
 export interface ParsedOrderItem {
   quantity: number;

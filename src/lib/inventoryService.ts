@@ -14,7 +14,7 @@ import {
   DriverZoneAssignment,
   DriverInventoryRecord,
   DriverStatusRecord
-} from '../../data/types';
+} from '../data/types';
 
 export interface RestockQueueEntry {
   request: RestockRequest;

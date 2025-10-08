@@ -1,3 +1,4 @@
+-- === BEGIN supabase/schema.sql (from /_archive/cleanup-20251006-2333/supabase/schema.sql) ===
 -- Consolidated Supabase schema generated from migrations
 -- DO NOT EDIT INDIVIDUAL MIGRATIONS; update this file instead.
 
@@ -8385,3 +8386,4 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
+-- === END supabase/schema.sql (from /_archive/cleanup-20251006-2333/supabase/schema.sql) ===

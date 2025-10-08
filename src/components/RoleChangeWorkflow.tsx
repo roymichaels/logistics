@@ -10,8 +10,8 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { telegram } from '../../lib/telegram';
-import type { User, UserRegistration } from '../../data/types';
+import { telegram } from '../lib/telegram';
+import type { User, UserRegistration } from '../data/types';
 import { TelegramModal } from './TelegramModal';
 import { Toast } from './Toast';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';

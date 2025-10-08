@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
-import { DataStore } from '../../data/types';
+import { DataStore } from '../data/types';
 
 interface Business {
   id: string;

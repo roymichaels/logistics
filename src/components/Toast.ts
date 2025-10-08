@@ -1,4 +1,4 @@
-import { telegram } from '../../lib/telegram';
+import { telegram } from '../lib/telegram';
 
 export class Toast {
   static show(message: string, type: 'success' | 'error' | 'info' = 'info') {

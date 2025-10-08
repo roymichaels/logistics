@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import type { UserRegistration, User } from '../../data/types';
-import { telegram } from '../../lib/telegram';
+import type { UserRegistration, User } from '../data/types';
+import { telegram } from '../lib/telegram';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { debugLog } from './DebugPanel';
 import { RoleSelectionModal } from './RoleSelectionModal';

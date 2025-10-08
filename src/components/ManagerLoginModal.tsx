@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Toast } from './Toast';
-import { telegram } from '../../lib/telegram';
-import { DataStore } from '../../data/types';
+import { telegram } from '../lib/telegram';
+import { DataStore } from '../data/types';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 
 interface ManagerLoginModalProps {

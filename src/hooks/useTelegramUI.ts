@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { telegram } from '../../lib/telegram';
+import { telegram } from '../lib/telegram';
 
 /**
  * Telegram UI Hook
