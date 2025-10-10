@@ -15,6 +15,7 @@ import { debugLog } from './components/DebugPanel';
 import { hebrew } from './lib/hebrew';
 import './lib/authDiagnostics'; // Load auth diagnostics for console debugging
 import { useAppServices } from './context/AppServicesContext';
+import { offlineStore } from './utils/offlineStore';
 
 // Pages (lazy loaded)
 const Dashboard = lazy(() =>
@@ -179,6 +180,76 @@ export default function App() {
     document.body.style.padding = '0';
     document.body.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
   }, [theme]);
+
+  useEffect(() => {
+    if (!dataStore) {
+      return;
+    }
+
+    const unregisterHandlers: Array<() => void> = [];
+
+    if (typeof dataStore.createOrder === 'function') {
+      const unregisterCreateOrder = offlineStore.registerMutationHandler('createOrder', async mutation => {
+        if (!dataStore.createOrder) {
+          return { status: 'discard', message: 'createOrder unavailable' };
+        }
+
+        try {
+          await dataStore.createOrder(mutation.payload.input);
+          return { status: 'success' as const };
+        } catch (error) {
+          if (offlineStore.isOfflineError(error)) {
+            return {
+              status: 'retry' as const,
+              message: error instanceof Error ? error.message : 'Network error'
+            };
+          }
+
+          console.error('Failed to replay offline order mutation, discarding', error);
+          return {
+            status: 'discard' as const,
+            message: error instanceof Error ? error.message : 'Unknown error'
+          };
+        }
+      });
+
+      unregisterHandlers.push(unregisterCreateOrder);
+    }
+
+    if (typeof dataStore.submitRestockRequest === 'function') {
+      const unregisterRestock = offlineStore.registerMutationHandler('submitRestock', async mutation => {
+        if (!dataStore.submitRestockRequest) {
+          return { status: 'discard', message: 'submitRestock unavailable' };
+        }
+
+        try {
+          await dataStore.submitRestockRequest(mutation.payload.input);
+          return { status: 'success' as const };
+        } catch (error) {
+          if (offlineStore.isOfflineError(error)) {
+            return {
+              status: 'retry' as const,
+              message: error instanceof Error ? error.message : 'Network error'
+            };
+          }
+
+          console.error('Failed to replay offline restock mutation, discarding', error);
+          return {
+            status: 'discard' as const,
+            message: error instanceof Error ? error.message : 'Unknown error'
+          };
+        }
+      });
+
+      unregisterHandlers.push(unregisterRestock);
+    }
+
+    void offlineStore.flushMutations();
+
+    return () => {
+      unregisterHandlers.forEach(unregister => unregister());
+    };
+  }, [dataStore]);
 
   // Handle role-based page routing
   useEffect(() => {

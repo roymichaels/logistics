@@ -198,6 +198,13 @@ The app includes offline functionality:
 - **Offline task completion** with sync on reconnect
 - **Cache management** in settings
 
+### Offline Behaviour
+
+- The app persists tasks, orders, restock requests and pending mutations in IndexedDB via the `offlineStore` utility. This allows previously viewed data to remain available when the network drops.
+- When creating an order in the dual-mode entry form or submitting a restock request, any network or API failure automatically enqueues the mutation for retry. You will see an acknowledgement toast and the action will be replayed once connectivity returns.
+- Mutation replay happens automatically on reconnect and is also triggered on app start. Operators can monitor the queue, review the last sync attempt and clear cached data from **Settings → נתונים לא מקוונים (Offline Data)**.
+- Clearing offline data removes cached collections and pending mutations, letting operators recover from corrupted state without a full localStorage wipe.
+
 ## Development
 
 ### Adding New Features

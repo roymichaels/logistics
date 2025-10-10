@@ -15,6 +15,7 @@ import {
   DriverInventoryRecord,
   DriverStatusRecord
 } from '../data/types';
+import { offlineStore } from '../utils/offlineStore';
 
 export interface RestockQueueEntry {
   request: RestockRequest;
@@ -59,7 +60,23 @@ export class InventoryService {
 
   async submitRestock(input: RestockRequestInput): Promise<{ id: string }> {
     this.ensureMethod('submitRestockRequest');
-    return this.dataStore.submitRestockRequest!(input);
+    try {
+      return await this.dataStore.submitRestockRequest!(input);
+    } catch (error) {
+      if (offlineStore.isOfflineError(error)) {
+        const queued = await offlineStore.queueMutation('submitRestock', { input }, {
+          meta: {
+            summary: `בקשת חידוש ל-${input.product_id} (${input.requested_quantity})`,
+            entityType: 'restock',
+            entityId: input.product_id
+          }
+        });
+        console.warn('Restock request queued for offline retry', queued);
+        return { id: queued.id };
+      }
+
+      throw error;
+    }
   }
 
   async approveRestock(id: string, input: RestockApprovalInput): Promise<void> {
