@@ -4,6 +4,7 @@ import { TelegramModal } from '../components/TelegramModal';
 import { DataStore, User, BootstrapConfig } from '../data/types';
 import { roleNames, roleIcons } from '../lib/hebrew';
 import { userManager } from '../lib/userManager';
+import { offlineStore, type OfflineDiagnostics } from '../utils/offlineStore';
 
 const ROYAL_COLORS = {
   background: 'radial-gradient(125% 125% at 50% 0%, rgba(95, 46, 170, 0.55) 0%, rgba(12, 2, 25, 0.95) 45%, #03000a 100%)',
@@ -31,7 +32,11 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showCacheModal, setShowCacheModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
+  const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>('');
+  const [offlineDiagnostics, setOfflineDiagnostics] = useState<OfflineDiagnostics | null>(null);
+  const [loadingOfflineDiagnostics, setLoadingOfflineDiagnostics] = useState(false);
+  const [clearingOfflineData, setClearingOfflineData] = useState(false);
 
   const isFirstAdmin = currentUser && userManager.isFirstAdmin(currentUser.telegram_id);
   const theme = telegram.themeParams;
@@ -84,6 +89,45 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
     } finally {
       setSwitchingRole(false);
       setShowRoleModal(false);
+    }
+  };
+
+  const refreshOfflineDiagnostics = async () => {
+    setLoadingOfflineDiagnostics(true);
+    try {
+      const diagnostics = await offlineStore.getDiagnostics();
+      setOfflineDiagnostics(diagnostics);
+    } catch (error) {
+      console.error('Failed to load offline diagnostics:', error);
+      telegram.showAlert('שגיאה בטעינת נתוני מצב לא מקוון');
+    } finally {
+      setLoadingOfflineDiagnostics(false);
+    }
+  };
+
+  const handleOpenOfflineModal = async () => {
+    telegram.hapticFeedback('selection');
+    setShowOfflineModal(true);
+    await refreshOfflineDiagnostics();
+  };
+
+  const handleClearOfflineData = async () => {
+    if (clearingOfflineData) {
+      return;
+    }
+
+    setClearingOfflineData(true);
+    try {
+      await offlineStore.clearAll();
+      await offlineStore.flushMutations();
+      await refreshOfflineDiagnostics();
+      telegram.hapticFeedback('notification', 'success');
+      telegram.showAlert('הנתונים הלא מקוונים נוקו בהצלחה');
+    } catch (error) {
+      console.error('Failed to clear offline data:', error);
+      telegram.showAlert('שגיאה בניקוי נתונים לא מקוונים');
+    } finally {
+      setClearingOfflineData(false);
     }
   };
 
@@ -268,6 +312,14 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
                     }}
                   />
                   <RoyalActionButton
+                    title="נתונים לא מקוונים"
+                    subtitle="בדוק בקשות מושהות ונקה אותן"
+                    icon="📡"
+                    onClick={() => {
+                      void handleOpenOfflineModal();
+                    }}
+                  />
+                  <RoyalActionButton
                     title="התנתק"
                     subtitle="נקה הפעלה וחזור למסך התחברות"
                     icon="🚪"
@@ -436,6 +488,69 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
             נבנה עם React ו-Telegram WebApp SDK
           </p>
         </div>
+      </TelegramModal>
+
+      <TelegramModal
+        isOpen={showOfflineModal}
+        onClose={() => setShowOfflineModal(false)}
+        title="ניהול נתונים לא מקוונים"
+        primaryButton={{
+          text: clearingOfflineData ? 'מנקה...' : 'נקה הכל',
+          onClick: () => {
+            if (!clearingOfflineData) {
+              void handleClearOfflineData();
+            }
+          }
+        }}
+        secondaryButton={{
+          text: 'רענן',
+          onClick: () => {
+            if (!loadingOfflineDiagnostics) {
+              void refreshOfflineDiagnostics();
+            }
+          }
+        }}
+      >
+        {loadingOfflineDiagnostics ? (
+          <p style={{ margin: 0, color: theme.hint_color }}>טוען נתונים לא מקוונים...</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <RoyalInfoRow
+              label="הזמנות במטמון"
+              value={`${offlineDiagnostics?.collections.orders.count ?? 0}`}
+            />
+            <RoyalInfoRow
+              label="משימות במטמון"
+              value={`${offlineDiagnostics?.collections.tasks.count ?? 0}`}
+            />
+            <RoyalInfoRow
+              label="בקשות חידוש במטמון"
+              value={`${offlineDiagnostics?.collections.restockRequests.count ?? 0}`}
+            />
+            <RoyalInfoRow
+              label="פעולות ממתינות"
+              value={`${offlineDiagnostics?.mutations.pending ?? 0}`}
+            />
+            {offlineDiagnostics?.mutations.lastError && (
+              <div style={{
+                padding: '12px',
+                borderRadius: '12px',
+                background: 'rgba(255, 59, 48, 0.12)',
+                border: '1px solid rgba(255, 59, 48, 0.3)',
+                color: theme.text_color,
+                fontSize: '13px'
+              }}>
+                <strong>שגיאה אחרונה:</strong>
+                <div>{offlineDiagnostics.mutations.lastError}</div>
+              </div>
+            )}
+            {offlineDiagnostics?.mutations.lastAttemptAt && (
+              <p style={{ margin: 0, fontSize: '12px', color: theme.hint_color }}>
+                ניסיון אחרון: {new Date(offlineDiagnostics.mutations.lastAttemptAt).toLocaleString('he-IL')}
+              </p>
+            )}
+          </div>
+        )}
       </TelegramModal>
     </div>
   );

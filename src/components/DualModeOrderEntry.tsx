@@ -3,6 +3,7 @@ import { DataStore, Product, CreateOrderInput } from '../data/types';
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
 import { TelegramModal } from './TelegramModal';
+import { offlineStore } from '../utils/offlineStore';
 
 interface DualModeOrderEntryProps {
   dataStore: DataStore;
@@ -152,32 +153,49 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
       return;
     }
 
+    const orderInput: CreateOrderInput = {
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_address: customerAddress,
+      items: cart.map(item => ({
+        product_id: item.product.id,
+        product_name: item.product.name,
+        quantity: item.quantity,
+        price: item.product.price
+      })),
+      total_amount: calculateTotal(),
+      notes: notes || undefined,
+      status: 'new',
+      entry_mode: mode === 'text' ? 'dm_text' : 'storefront',
+      raw_order_text: mode === 'text' ? textInput : undefined
+    };
+
     setLoading(true);
     try {
-      const orderInput: CreateOrderInput = {
-        customer_name: customerName,
-        customer_phone: customerPhone,
-        customer_address: customerAddress,
-        items: cart.map(item => ({
-          product_id: item.product.id,
-          product_name: item.product.name,
-          quantity: item.quantity,
-          price: item.product.price
-        })),
-        total_amount: calculateTotal(),
-        notes: notes || undefined,
-        status: 'new',
-        entry_mode: mode === 'text' ? 'dm_text' : 'storefront',
-        raw_order_text: mode === 'text' ? textInput : undefined
-      };
-
       const result = await dataStore.createOrder(orderInput);
       telegram.hapticFeedback('notification', 'success');
       Toast.success('הזמנה נוצרה בהצלחה!');
       onOrderCreated(result.id);
     } catch (error) {
       console.error('Failed to create order:', error);
-      Toast.error('שגיאה ביצירת הזמנה');
+      if (offlineStore.isOfflineError(error)) {
+        try {
+          const queued = await offlineStore.queueMutation('createOrder', { input: orderInput }, {
+            meta: {
+              summary: `הזמנה עבור ${customerName || 'לקוח ללא שם'}`,
+              entityType: 'order'
+            }
+          });
+          telegram.hapticFeedback('notification', 'success');
+          Toast.info('הזמנה נשמרה ותישלח כשנחזור לרשת.');
+          onOrderCreated(queued.id);
+        } catch (queueError) {
+          console.error('Failed to queue offline order:', queueError);
+          Toast.error('שגיאה ביצירת הזמנה');
+        }
+      } else {
+        Toast.error('שגיאה ביצירת הזמנה');
+      }
     } finally {
       setLoading(false);
     }
