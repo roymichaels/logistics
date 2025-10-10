@@ -6,6 +6,16 @@ const { execSync } = require('child_process');
 
 console.log('🔍 PRODUCTION QA CHECKS\n');
 
+// 0. Run automated tests
+console.log('🧪 Running unit tests...');
+try {
+  execSync('npm test -- --run', { stdio: 'inherit' });
+  console.log('✅ Tests passed\n');
+} catch (error) {
+  console.error('❌ Tests failed');
+  process.exit(1);
+}
+
 // 1. Build and analyze bundle
 console.log('📦 Building production bundle...');
 try {
