@@ -1,8 +1,13 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { BusinessContextSelector } from './BusinessContextSelector';
 import { requiresBusinessContext } from '../lib/rolePermissions';
 import { useAppServices } from '../context/AppServicesContext';
+import {
+  useDashboardRefetch,
+  useInventoryRefetch,
+  useOrdersRefetch
+} from '../hooks/useBusinessDataRefetch';
 
 interface HeaderProps {
   onNavigate: (page: string) => void;
@@ -10,9 +15,12 @@ interface HeaderProps {
 }
 
 export function Header({ onNavigate, onLogout }: HeaderProps) {
-  const { user, dataStore } = useAppServices();
+  const { user, dataStore, currentBusinessId, setBusinessId } = useAppServices();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const refetchOrders = useOrdersRefetch();
+  const refetchInventory = useInventoryRefetch();
+  const refetchDashboard = useDashboardRefetch();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -58,6 +66,23 @@ export function Header({ onNavigate, onLogout }: HeaderProps) {
         break;
     }
   };
+
+  const handleBusinessContextChange = useCallback(
+    (businessId: string) => {
+      if (businessId === currentBusinessId) {
+        return;
+      }
+
+      setBusinessId(businessId);
+
+      void Promise.all([
+        refetchOrders(businessId),
+        refetchInventory(businessId),
+        refetchDashboard(businessId)
+      ]);
+    },
+    [currentBusinessId, setBusinessId, refetchOrders, refetchInventory, refetchDashboard]
+  );
 
   return (
     <header style={{
@@ -131,10 +156,7 @@ export function Header({ onNavigate, onLogout }: HeaderProps) {
           <BusinessContextSelector
             dataStore={dataStore}
             user={user}
-            onContextChanged={() => {
-              // Optionally reload current page or refresh data
-              console.log('Business context changed');
-            }}
+            onContextChanged={handleBusinessContextChange}
           />
         )}
       </div>

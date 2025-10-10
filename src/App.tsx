@@ -119,14 +119,22 @@ type Page =
   | 'zone-management';
 
 export default function App() {
-  const { user, userRole, dataStore, config, loading, error, refreshUserRole, logout } =
-    useAppServices();
+  const {
+    user,
+    userRole,
+    dataStore,
+    config,
+    loading,
+    error,
+    refreshUserRole,
+    logout,
+    currentBusinessId
+  } = useAppServices();
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [showOrderWizard, setShowOrderWizard] = useState(false);
   const [showBusinessManager, setShowBusinessManager] = useState(false);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
-  const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
   const [initialPageRole, setInitialPageRole] = useState<string | null>(null);
   const [showSuperadminSetup, setShowSuperadminSetup] = useState(false);
 
@@ -646,7 +654,6 @@ export default function App() {
             currentPage={currentPage}
             onNavigate={handleNavigate}
             userRole={userRole}
-            businessId={currentBusinessId || undefined}
             onShowActionMenu={() => setShowActionMenu(true)}
             onOpenSidebar={() => setShowSidebar(true)}
             onShowCreateOrder={handleShowCreateOrder}
@@ -688,7 +695,6 @@ export default function App() {
           ) : (
             <OrderCreationWizard
               dataStore={dataStore}
-              businessId={currentBusinessId || undefined}
               onOrderCreated={handleOrderCreated}
               onCancel={() => setShowOrderWizard(false)}
             />

@@ -33,6 +33,8 @@ export interface AppServicesContextValue {
   error: string | null;
   refreshUserRole: (options?: { forceRefresh?: boolean }) => Promise<void>;
   logout: () => void;
+  currentBusinessId: string | null;
+  setBusinessId: (businessId: string | null) => void;
 }
 
 const AppServicesContext = createContext<AppServicesContextValue | undefined>(undefined);
@@ -54,6 +56,11 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   const [config, setConfig] = useState<BootstrapConfig | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
+
+  const setBusinessId = useCallback((businessId: string | null) => {
+    setCurrentBusinessId(prev => (prev === businessId ? prev : businessId));
+  }, []);
 
   const logout = useCallback(() => {
     debugLog.info('🚪 Logging out user from AppServicesProvider');
@@ -62,6 +69,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     setUser(null);
     setUserRole(null);
     setDataStore(null);
+    setCurrentBusinessId(null);
   }, []);
 
   const refreshUserRole = useCallback(
@@ -219,6 +227,31 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     };
   }, [value]);
 
+  useEffect(() => {
+    if (value || !dataStore?.getActiveBusinessContext) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const syncBusinessContext = async () => {
+      try {
+        const context = await dataStore.getActiveBusinessContext?.();
+        if (!cancelled) {
+          setCurrentBusinessId(context?.active_business_id ?? null);
+        }
+      } catch (err) {
+        debugLog.warn('⚠️ Failed to load active business context', err);
+      }
+    };
+
+    syncBusinessContext();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [value, dataStore]);
+
   const contextValue = useMemo<AppServicesContextValue>(() => {
     if (value) {
       return value;
@@ -232,9 +265,23 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       loading,
       error,
       refreshUserRole,
-      logout
+      logout,
+      currentBusinessId,
+      setBusinessId
     };
-  }, [value, user, userRole, dataStore, config, loading, error, refreshUserRole, logout]);
+  }, [
+    value,
+    user,
+    userRole,
+    dataStore,
+    config,
+    loading,
+    error,
+    refreshUserRole,
+    logout,
+    currentBusinessId,
+    setBusinessId
+  ]);
 
   return <AppServicesContext.Provider value={contextValue}>{children}</AppServicesContext.Provider>;
 }
