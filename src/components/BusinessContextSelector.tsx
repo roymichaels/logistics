@@ -40,10 +40,13 @@ export function BusinessContextSelector({
         const context = await dataStore.getActiveBusinessContext();
         if (context?.active_business_id) {
           setActiveBusinessId(context.active_business_id);
+          if (onContextChanged) {
+            onContextChanged(context.active_business_id);
+          }
         } else if (userBusinesses.length > 0) {
           const primaryBusiness = userBusinesses.find(b => b.is_primary);
           const defaultBusiness = primaryBusiness || userBusinesses[0];
-          await switchBusiness(defaultBusiness.business_id);
+          await switchBusiness(defaultBusiness.business_id, userBusinesses);
         }
       }
     } catch (error) {
@@ -57,12 +60,23 @@ export function BusinessContextSelector({
     }
   };
 
-  const switchBusiness = async (businessId: string) => {
+  const switchBusiness = async (
+    businessId: string,
+    availableBusinesses: UserBusinessAccess[] = businesses
+  ) => {
     if (!dataStore.setActiveBusinessContext) {
       return;
     }
 
     try {
+      if (businessId === activeBusinessId) {
+        if (onContextChanged) {
+          onContextChanged(businessId);
+        }
+        setShowDropdown(false);
+        return;
+      }
+
       await dataStore.setActiveBusinessContext(businessId);
       setActiveBusinessId(businessId);
       setShowDropdown(false);
@@ -71,7 +85,8 @@ export function BusinessContextSelector({
         onContextChanged(businessId);
       }
 
-      const business = businesses.find(b => b.business_id === businessId);
+      const lookupBusinesses = availableBusinesses.length > 0 ? availableBusinesses : businesses;
+      const business = lookupBusinesses.find(b => b.business_id === businessId);
       Toast.show(
         hebrew.common.switched + ': ' + (business?.business_name || ''),
         'success'

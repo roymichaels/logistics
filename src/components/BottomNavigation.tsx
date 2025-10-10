@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { hebrew } from '../lib/hebrew';
+import { useAppServices } from '../context/AppServicesContext';
 
 /**
  * 🧠 ROY MICHAELS MILITARIZED NAVIGATION
@@ -36,7 +37,6 @@ interface BottomNavigationProps {
   currentPage: string;
   onNavigate: (page: string) => void;
   userRole?: RoleKey;
-  businessId?: string;
   onShowActionMenu?: () => void;
   onOpenSidebar?: () => void;
   onShowCreateOrder?: () => void;
@@ -53,7 +53,6 @@ export function BottomNavigation({
   currentPage,
   onNavigate,
   userRole,
-  businessId,
   onShowActionMenu,
   onOpenSidebar,
   onShowCreateOrder,
@@ -66,6 +65,7 @@ export function BottomNavigation({
   onShowCreateProduct
 }: BottomNavigationProps) {
   const { theme, haptic } = useTelegramUI();
+  const { currentBusinessId } = useAppServices();
 
   /**
    * 🔐 UNIFIED BOTTOM NAVIGATION
@@ -344,6 +344,7 @@ export function BottomNavigation({
           zIndex: 1000,
           direction: 'rtl'
         }}
+        data-business-id={currentBusinessId ?? undefined}
       >
         {navItems}
       </div>

@@ -2,10 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { HebrewOrderParser, parseHebrewOrder, ParsingResult, ParsedOrder } from '../lib/orderTextParser';
 import { DataStore } from '../data/types';
+import { useAppServices } from '../context/AppServicesContext';
 
 interface OrderCreationWizardProps {
   dataStore: DataStore;
-  businessId?: string;
   onOrderCreated: (order: any) => void;
   onCancel: () => void;
 }
@@ -14,7 +14,6 @@ type Step = 'input' | 'preview' | 'confirm' | 'success';
 
 export function OrderCreationWizard({
   dataStore,
-  businessId,
   onOrderCreated,
   onCancel
 }: OrderCreationWizardProps) {
@@ -25,6 +24,8 @@ export function OrderCreationWizard({
   const [editedOrder, setEditedOrder] = useState<ParsedOrder | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { theme, haptic } = useTelegramUI();
+  const { currentBusinessId } = useAppServices();
+  const businessId = currentBusinessId ?? undefined;
 
   useEffect(() => {
     if (currentStep === 'input' && textareaRef.current) {

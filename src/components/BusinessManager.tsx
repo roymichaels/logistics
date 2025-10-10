@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { DataStore } from '../data/types';
+import { useAppServices } from '../context/AppServicesContext';
 
 interface Business {
   id: string;
@@ -43,6 +44,7 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
   const [activeTab, setActiveTab] = useState<'businesses' | 'assignments'>('businesses');
   const [showCreateBusiness, setShowCreateBusiness] = useState(false);
   const { theme, haptic } = useTelegramUI();
+  const { currentBusinessId } = useAppServices();
 
   useEffect(() => {
     loadData();
@@ -66,6 +68,21 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
       if (unsubscribeBusinessUsers) unsubscribeBusinessUsers();
     };
   }, []);
+
+  useEffect(() => {
+    if (!currentBusinessId) {
+      return;
+    }
+
+    setSelectedBusiness(prev => {
+      if (prev?.id === currentBusinessId) {
+        return prev;
+      }
+
+      const activeBusiness = businesses.find(b => b.id === currentBusinessId) || null;
+      return activeBusiness ?? prev;
+    });
+  }, [currentBusinessId, businesses]);
 
   const loadData = async () => {
     try {
@@ -135,29 +152,34 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
     return labels[role as keyof typeof labels] || role;
   };
 
-  const renderBusinessCard = (business: Business) => (
-    <div
-      key={business.id}
-      style={{
-        padding: '16px',
-        backgroundColor: theme.secondary_bg_color,
-        borderRadius: '12px',
-        marginBottom: '12px',
-        border: selectedBusiness?.id === business.id
-          ? `2px solid ${business.primary_color}`
-          : `1px solid ${theme.hint_color}20`,
-        cursor: 'pointer'
-      }}
-      onClick={() => {
-        setSelectedBusiness(business);
-        haptic();
-      }}
-    >
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '8px'
+  const renderBusinessCard = (business: Business) => {
+    const isContextBusiness = currentBusinessId === business.id;
+    const isSelected = selectedBusiness?.id === business.id;
+
+    return (
+      <div
+        key={business.id}
+        style={{
+          padding: '16px',
+          backgroundColor: theme.secondary_bg_color,
+          borderRadius: '12px',
+          marginBottom: '12px',
+          border: isSelected || isContextBusiness
+            ? `2px solid ${business.primary_color}`
+            : `1px solid ${theme.hint_color}20`,
+          cursor: 'pointer'
+        }}
+        data-business-id={isContextBusiness ? 'active' : undefined}
+        onClick={() => {
+          setSelectedBusiness(business);
+          haptic();
+        }}
+      >
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '8px'
       }}>
         <div style={{
           display: 'flex',
@@ -242,7 +264,8 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
         </div>
       )}
     </div>
-  );
+    );
+  };
 
   const renderUserAssignmentCard = (assignment: BusinessUser) => (
     <div
