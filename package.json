@@ -29,7 +29,7 @@
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.0.0",
     "@vitest/environment-jsdom": "file:packages/vitest-environment-jsdom",
-    "expo": "^50.0.0",
+    "expo": "^54.0.13",
     "jsdom": "^27.0.0",
     "rollup-plugin-visualizer": "^6.0.3",
     "terser": "^5.44.0",
