@@ -6,9 +6,9 @@ import React, {
   useMemo,
   useState
 } from 'react';
-import { DataStore, BootstrapConfig, User } from '../data/types';
+import { BootstrapConfig, User } from '../data/types';
 import { bootstrap } from '../lib/bootstrap';
-import { createFrontendDataStore } from '../lib/frontendDataStore';
+import { createFrontendDataStore, FrontendDataStore } from '../lib/frontendDataStore';
 import { debugLog } from '../components/DebugPanel';
 
 export type AppUserRole =
@@ -27,7 +27,7 @@ export type AppUserRole =
 export interface AppServicesContextValue {
   user: User | null;
   userRole: AppUserRole;
-  dataStore: DataStore | null;
+  dataStore: FrontendDataStore | null;
   config: BootstrapConfig | null;
   loading: boolean;
   error: string | null;
@@ -50,7 +50,7 @@ interface AppServicesProviderProps {
 export function AppServicesProvider({ children, value }: AppServicesProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<AppUserRole>(null);
-  const [dataStore, setDataStore] = useState<DataStore | null>(null);
+  const [dataStore, setDataStore] = useState<FrontendDataStore | null>(null);
   const [config, setConfig] = useState<BootstrapConfig | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

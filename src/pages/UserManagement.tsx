@@ -13,10 +13,12 @@
  * - Accessibility (ARIA labels, keyboard navigation)
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { telegram } from '../lib/telegram';
 import { userManager } from '../lib/userManager';
 import type { UserRegistration, User } from '../data/types';
+import type { FrontendDataStore } from '../lib/frontendDataStore';
+import { registerUserManagementSubscriptions } from './subscriptionHelpers';
 import { TelegramModal } from '../components/TelegramModal';
 import { roleNames, roleIcons } from '../lib/hebrew';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
@@ -28,7 +30,7 @@ import { SessionStatusIndicator } from '../components/SessionStatusIndicator';
 interface UserManagementProps {
   onNavigate: (page: string) => void;
   currentUser: any;
-  dataStore?: any;
+  dataStore?: FrontendDataStore;
 }
 
 type SortField = 'name' | 'username' | 'role' | 'created_at' | 'status';
@@ -75,14 +77,31 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
     if (hasManagementPermission) {
       void loadUsers();
     }
-  }, [hasManagementPermission]);
+  }, [hasManagementPermission, loadUsers]);
 
   useEffect(() => {
     telegram.setBackButton(() => onNavigate('settings'));
     return () => telegram.hideBackButton();
   }, [onNavigate]);
 
-  const loadUsers = async () => {
+  useEffect(() => {
+    if (!hasManagementPermission || !dataStore) {
+      return;
+    }
+
+    const cleanup = registerUserManagementSubscriptions(dataStore, () => {
+      void loadUsers();
+    });
+
+    return cleanup;
+  }, [dataStore, hasManagementPermission, loadUsers]);
+
+  const loadUsers = useCallback(async () => {
+    if (!hasManagementPermission) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       console.log('🔍 UserManagement - Starting user load');
@@ -178,7 +197,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
     } finally {
       setLoading(false);
     }
-  };
+  }, [hasManagementPermission, currentUser, dataStore]);
 
   const loadAuditLogs = async (userId: string) => {
     if (!dataStore) return;

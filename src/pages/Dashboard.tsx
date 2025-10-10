@@ -4,8 +4,9 @@ import { useSkeleton } from '../hooks/useSkeleton';
 import { Toast } from '../components/Toast';
 import { OwnerDashboard } from '../components/OwnerDashboard';
 import { ManagerDashboard } from '../components/ManagerDashboard';
+import type { FrontendDataStore } from '../lib/frontendDataStore';
+import { registerDashboardSubscriptions } from './subscriptionHelpers';
 import {
-  DataStore,
   User,
   RoyalDashboardSnapshot,
   RoyalDashboardMetrics,
@@ -18,7 +19,7 @@ import {
 import { formatCurrency, hebrew } from '../lib/hebrew';
 
 interface DashboardProps {
-  dataStore: DataStore;
+  dataStore: FrontendDataStore;
   onNavigate: (page: string) => void;
 }
 
@@ -46,12 +47,11 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   const showSkeleton = useSkeleton(220);
   const hasTelegramSend = typeof window !== 'undefined' && !!window.Telegram?.WebApp?.sendData;
 
-  useEffect(() => {
-    backButton.hide();
-    loadDashboard();
-  }, []);
+  const loadDashboard = useCallback(async () => {
+    if (!dataStore) {
+      return;
+    }
 
-  const loadDashboard = async () => {
     try {
       const profile = await dataStore.getProfile();
       setUser(profile);
@@ -73,7 +73,12 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dataStore]);
+
+  useEffect(() => {
+    backButton.hide();
+    void loadDashboard();
+  }, [backButton, loadDashboard]);
 
   const summaryText = useMemo(() => {
     if (!snapshot) return '';
@@ -101,6 +106,69 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
       Toast.error('לא הצלחנו לשדר את הסיכום');
     }
   }, [snapshot, summaryText, haptic]);
+
+  const handleInventoryAlert = useCallback(
+    (payload: unknown) => {
+      const event = (payload ?? {}) as InventoryAlertPayload;
+
+      setSnapshot(prev => {
+        if (!prev) {
+          void loadDashboard();
+          return prev;
+        }
+
+        if (isInventoryAlertRemoval(event)) {
+          const oldAlert = normalizeInventoryAlert(event.old ?? event.record ?? null);
+          if (!oldAlert) {
+            return prev;
+          }
+
+          const updatedAlerts = prev.lowStockAlerts.filter(
+            alert => alert.product_id !== oldAlert.product_id || alert.location_id !== oldAlert.location_id
+          );
+
+          if (updatedAlerts.length === prev.lowStockAlerts.length) {
+            return prev;
+          }
+
+          return {
+            ...prev,
+            lowStockAlerts: updatedAlerts
+          };
+        }
+
+        const nextAlert = normalizeInventoryAlert(event.new ?? event.record ?? event);
+        if (!nextAlert) {
+          return prev;
+        }
+
+        const remainingAlerts = prev.lowStockAlerts.filter(
+          alert => alert.product_id !== nextAlert.product_id || alert.location_id !== nextAlert.location_id
+        );
+
+        return {
+          ...prev,
+          lowStockAlerts: [nextAlert, ...remainingAlerts]
+        };
+      });
+    },
+    [loadDashboard]
+  );
+
+  useEffect(() => {
+    if (!dataStore) {
+      return;
+    }
+
+    const cleanup = registerDashboardSubscriptions(dataStore, {
+      onSnapshotRefresh: () => {
+        void loadDashboard();
+      },
+      onInventoryAlert: handleInventoryAlert
+    });
+
+    return cleanup;
+  }, [dataStore, loadDashboard, handleInventoryAlert]);
 
   // Main button disabled - removed per user request
   // useEffect(() => {
@@ -831,6 +899,52 @@ function buildCsvRows(snapshot: RoyalDashboardSnapshot) {
   });
 
   return rows;
+}
+
+type InventoryAlertPayload = {
+  new?: unknown;
+  old?: unknown;
+  record?: unknown;
+  eventType?: string;
+  type?: string;
+  action?: string;
+};
+
+function isInventoryAlertRemoval(payload: InventoryAlertPayload): boolean {
+  const action = (payload.eventType ?? payload.type ?? payload.action ?? '').toString().toUpperCase();
+  return action === 'DELETE' || (payload.new == null && payload.old != null);
+}
+
+function normalizeInventoryAlert(record: unknown): RoyalDashboardLowStockAlert | null {
+  if (!record || typeof record !== 'object') {
+    return null;
+  }
+
+  const source = record as Record<string, unknown>;
+  const productId = source.product_id ?? source.productId ?? source.productID;
+  const locationId = source.location_id ?? source.locationId ?? source.locationID;
+
+  if (!productId || !locationId) {
+    return null;
+  }
+
+  const toNumber = (value: unknown, fallback: number) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+
+  return {
+    product_id: String(productId),
+    product_name: String(source.product_name ?? source.productName ?? 'מוצר ללא שם'),
+    location_id: String(locationId),
+    location_name: String(source.location_name ?? source.locationName ?? 'לא ידוע'),
+    on_hand_quantity: toNumber(source.on_hand_quantity ?? source.onHandQuantity ?? source.quantity, 0),
+    low_stock_threshold: toNumber(
+      source.low_stock_threshold ?? source.lowStockThreshold ?? source.threshold,
+      0
+    ),
+    triggered_at: String(source.triggered_at ?? source.triggeredAt ?? new Date().toISOString())
+  };
 }
 
 function buildSummary(snapshot: RoyalDashboardSnapshot, user?: User | null) {
