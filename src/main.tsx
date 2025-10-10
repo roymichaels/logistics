@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { AppServicesProvider } from './context/AppServicesContext';
 
 console.log('🚀 Starting app...');
 
@@ -111,7 +112,9 @@ try {
   console.log('✅ Rendering App component...');
   root.render(
     <ErrorBoundary>
-      <App />
+      <AppServicesProvider>
+        <App />
+      </AppServicesProvider>
     </ErrorBoundary>
   );
   console.log('✅ App rendered successfully');

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { telegram } from '../lib/telegram';
-import { User } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { useAppServices } from '../context/AppServicesContext';
 
 interface FloatingActionMenuProps {
-  user: User | null;
   onNavigate: (page: string) => void;
   onShowModeSelector: () => void;
   isOpen: boolean;
@@ -20,12 +19,12 @@ interface RoleAction {
 }
 
 export function FloatingActionMenu({
-  user,
   onNavigate,
   onShowModeSelector,
   isOpen,
   onClose
 }: FloatingActionMenuProps) {
+  const { user } = useAppServices();
   const getRoleActions = (): RoleAction[] => {
     if (!user) return [];
 
