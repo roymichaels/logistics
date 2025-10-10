@@ -1,17 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
-import { User, DataStore } from '../data/types';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { BusinessContextSelector } from './BusinessContextSelector';
 import { requiresBusinessContext } from '../lib/rolePermissions';
+import { useAppServices } from '../context/AppServicesContext';
 
 interface HeaderProps {
-  user: User | null;
-  dataStore: DataStore;
   onNavigate: (page: string) => void;
   onLogout: () => void;
 }
 
-export function Header({ user, dataStore, onNavigate, onLogout }: HeaderProps) {
+export function Header({ onNavigate, onLogout }: HeaderProps) {
+  const { user, dataStore } = useAppServices();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -128,7 +127,7 @@ export function Header({ user, dataStore, onNavigate, onLogout }: HeaderProps) {
         justifyContent: 'center',
         padding: '0 20px'
       }}>
-        {user && requiresBusinessContext(user) && (
+        {user && dataStore && requiresBusinessContext(user) && (
           <BusinessContextSelector
             dataStore={dataStore}
             user={user}

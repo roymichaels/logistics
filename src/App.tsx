@@ -1,8 +1,5 @@
 import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { telegram } from './lib/telegram';
-import { bootstrap } from './lib/bootstrap';
-import { createFrontendDataStore } from './lib/frontendDataStore';
-import { DataStore, BootstrapConfig } from './data/types';
 import { BottomNavigation } from './components/BottomNavigation';
 // TelegramAuth component removed - authentication now handled by ensureTwaSession() in initializeApp()
 import { OrderCreationWizard } from './components/OrderCreationWizard';
@@ -17,6 +14,7 @@ import { SidebarToggleButton } from './components/SidebarToggleButton';
 import { debugLog } from './components/DebugPanel';
 import { hebrew } from './lib/hebrew';
 import './lib/authDiagnostics'; // Load auth diagnostics for console debugging
+import { useAppServices } from './context/AppServicesContext';
 
 // Pages (lazy loaded)
 const Dashboard = lazy(() =>
@@ -120,25 +118,9 @@ type Page =
   | 'zone-management';
 
 export default function App() {
+  const { user, userRole, dataStore, config, loading, error, refreshUserRole, logout } =
+    useAppServices();
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
-  const [dataStore, setDataStore] = useState<DataStore | null>(null);
-  const [config, setConfig] = useState<BootstrapConfig | null>(null);
-  const [user, setUser] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<
-    | 'user'
-    | 'infrastructure_owner'
-    | 'business_owner'
-    | 'owner'
-    | 'manager'
-    | 'driver'
-    | 'warehouse'
-    | 'sales'
-    | 'dispatcher'
-    | 'customer_service'
-    | null
-  >(null);
   const [showOrderWizard, setShowOrderWizard] = useState(false);
   const [showBusinessManager, setShowBusinessManager] = useState(false);
   const [showActionMenu, setShowActionMenu] = useState(false);
@@ -152,49 +134,15 @@ export default function App() {
 
   const theme = telegram.themeParams;
 
-  useEffect(() => {
-    debugLog.info('🎬 App component mounted', {
-      isTelegram: telegram.isAvailable,
-      hasInitData: !!telegram.initData,
-      hasUser: !!telegram.user,
-      supabaseUrl: !!import.meta.env.VITE_SUPABASE_URL
-    });
-    initializeApp();
-  }, []);
-
   // Listen for role refresh events (after manager promotion)
   useEffect(() => {
     const handleRoleRefresh = async () => {
       console.log('🔄 Role refresh requested, fetching fresh role from database...');
 
-      if (!dataStore) {
-        console.log('⚠️ DataStore not ready yet, waiting...');
-        return;
-      }
-
       try {
         // Small delay to ensure DB transaction is complete
         await new Promise(resolve => setTimeout(resolve, 500));
-
-        let role: any = null;
-        if (dataStore.getCurrentRole) {
-          role = await dataStore.getCurrentRole();
-          console.log(`📊 Role refresh: getCurrentRole() returned: ${role}`);
-        }
-
-        if (!role) {
-          const profile = await dataStore.getProfile(true); // Force refresh
-          role = profile.role;
-          console.log(`📊 Role refresh: getProfile(true).role returned: ${role}`);
-        }
-
-        if (role && role !== userRole) {
-          console.log(`✅ Role changed from ${userRole} to ${role}, updating app state`);
-          setUserRole(role);
-          debugLog.success(`User promoted to ${role}!`);
-        } else {
-          console.log(`ℹ️ Role unchanged: current=${userRole}, fetched=${role}`);
-        }
+        await refreshUserRole({ forceRefresh: true });
       } catch (error) {
         console.error('❌ Failed to refresh user role:', error);
         debugLog.error('Role refresh failed', error);
@@ -221,7 +169,7 @@ export default function App() {
     return () => {
       window.removeEventListener('role-refresh', handleCustomRefresh);
     };
-  }, [dataStore, userRole]);
+  }, [dataStore, refreshUserRole]);
 
   // Apply theme to body
   useEffect(() => {
@@ -244,20 +192,19 @@ export default function App() {
       return;
     }
 
-    let defaultPage: Page | null = null;
+    const roleDefaultPageMap: Record<string, Page> = {
+      owner: 'dashboard',
+      manager: 'dashboard',
+      business_owner: 'dashboard',
+      infrastructure_owner: 'dashboard',
+      warehouse: 'inventory',
+      driver: 'my-deliveries',
+      sales: 'orders',
+      dispatcher: 'dispatch-board',
+      customer_service: 'orders'
+    };
 
-    // 🔐 MILITARIZED ROLE-BASED INITIAL PAGES
-    if (userRole === 'owner') {
-      defaultPage = 'dashboard';  // Owner → Dashboard
-    } else if (userRole === 'manager') {
-      defaultPage = 'dashboard';  // Manager → Dashboard
-    } else if (userRole === 'warehouse') {
-      defaultPage = 'inventory';  // Warehouse → Inventory
-    } else if (userRole === 'driver') {
-      defaultPage = 'my-deliveries';  // Driver → My Deliveries
-    } else if (userRole === 'sales') {
-      defaultPage = 'orders';  // Sales → Orders
-    }
+    const defaultPage: Page | null = roleDefaultPageMap[userRole] ?? null;
 
     // Navigate to role-specific page on role change
     // Special case: if user role changed, navigate to appropriate page
@@ -280,140 +227,7 @@ export default function App() {
     setInitialPageRole(userRole);
   }, [userRole, currentPage, initialPageRole]);
 
-  const initializeApp = async () => {
-    try {
-      debugLog.info('🚀 Initializing app...');
-
-      // CRITICAL: Ensure TWA session is established BEFORE any database operations
-      debugLog.info('🔐 Ensuring Telegram WebApp session...');
-      const { ensureTwaSession } = await import('./lib/twaAuth');
-      const authResult = await ensureTwaSession();
-
-      if (!authResult.ok) {
-        debugLog.error('❌ Failed to establish TWA session', authResult);
-        console.error('TWA auth failed:', authResult);
-
-        const reasons: Record<string, { message: string; hint: string }> = {
-          'no_init_data': {
-            message: 'אין נתוני Telegram',
-            hint: 'יש לפתוח את האפליקציה מתוך צ\'אט טלגרם'
-          },
-          'verify_failed': {
-            message: 'אימות Telegram נכשל',
-            hint: authResult.details || 'נסה לסגור ולפתוח את האפליקציה מחדש'
-          },
-          'tokens_missing': {
-            message: 'שגיאת תקשורת עם השרת',
-            hint: 'בדוק את החיבור לאינטרנט ונסה שוב'
-          },
-          'set_session_failed': {
-            message: 'שגיאה בהתחברות למערכת',
-            hint: authResult.details || 'נסה לסגור ולפתוח את האפליקציה מחדש'
-          }
-        };
-        const errorInfo = reasons[authResult.reason] || {
-          message: 'שגיאה באימות',
-          hint: 'נסה שוב מאוחר יותר'
-        };
-        throw new Error(`${errorInfo.message}\n${errorInfo.hint}`);
-      }
-
-      debugLog.success('✅ TWA session established with JWT claims');
-
-      // Bootstrap from server
-      debugLog.info('📡 Calling bootstrap...');
-      const result = await bootstrap();
-      debugLog.success('✅ Bootstrap complete', { hasUser: !!result.user, adapter: result.config.adapters.data });
-
-      // Validate user data before proceeding
-      if (!result.user || !result.user.telegram_id) {
-        debugLog.error('❌ Invalid user data from bootstrap', { user: result.user });
-        throw new Error('Cannot initialize app: Missing user Telegram ID');
-      }
-
-      setConfig(result.config);
-      setUser(result.user);
-
-      // Create data store in real mode (now with guaranteed session)
-      debugLog.info('💾 Creating data store...');
-      const store = await createFrontendDataStore(result.config, 'real', result.user);
-      setDataStore(store);
-      debugLog.success('✅ Data store created');
-
-      // Get user role from store
-      if (store) {
-        try {
-          debugLog.info('👤 Getting user role...');
-
-          // Check if this is a refresh after manager promotion
-          const params = new URLSearchParams(window.location.search);
-          const isRefresh = params.has('refresh');
-
-          console.log('🔍 URL Check:', {
-            href: window.location.href,
-            search: window.location.search,
-            hasRefresh: isRefresh,
-            allParams: Array.from(params.entries())
-          });
-
-          // Always fetch full profile from DB to get both role and user data
-          debugLog.info('👤 Fetching full user profile from database...');
-          const profile = await store.getProfile(true); // Force refresh
-
-          debugLog.info(`📊 Profile fetched:`, {
-            role: profile.role,
-            name: profile.name || profile.first_name,
-            telegram_id: profile.telegram_id
-          });
-
-          // Update user state with full profile data
-          setUser(profile);
-          setUserRole(profile.role ?? 'owner');
-          debugLog.success(`✅ User profile loaded: ${profile.name || profile.first_name} (${profile.role})`);
-
-          // Clean up refresh parameter after processing
-          if (isRefresh) {
-            window.history.replaceState({}, '', window.location.pathname);
-            debugLog.info('🧹 Cleaned up refresh parameter from URL');
-
-            // Navigate to appropriate default page for the new role
-            if (role === 'manager' || role === 'owner') {
-              setCurrentPage('dashboard');
-              debugLog.info('📍 Navigated to dashboard for manager/owner role');
-            } else if (role === 'dispatcher') {
-              setCurrentPage('dispatch-board');
-              debugLog.info('📍 Navigated to dispatch-board for dispatcher role');
-            } else if (role === 'driver') {
-              setCurrentPage('my-deliveries');
-              debugLog.info('📍 Navigated to my-deliveries for driver role');
-            } else if (role === 'warehouse') {
-              setCurrentPage('warehouse-dashboard');
-              debugLog.info('📍 Navigated to warehouse-dashboard for warehouse role');
-            } else if (role === 'sales') {
-              setCurrentPage('orders');
-              debugLog.info('📍 Navigated to orders for sales role');
-            } else {
-              setCurrentPage('my-role');
-              debugLog.info('📍 Staying on my-role for unknown role');
-            }
-          }
-        } catch (error) {
-          debugLog.warn('⚠️ Failed to resolve user role', error);
-          setUserRole('owner');
-        }
-      }
-
-      setLoading(false);
-      debugLog.success('🎉 App initialized successfully!');
-    } catch (error) {
-      debugLog.error('❌ App initialization failed', error);
-      console.error('App initialization failed:', error);
-      setError(error instanceof Error ? error.message : 'Failed to initialize app');
-      setLoading(false);
-    }
-  };
-
-  // LEGACY: handleLogin is no longer used - authentication now handled by ensureTwaSession() in initializeApp()
+  // LEGACY: handleLogin is no longer used - authentication now handled inside AppServicesProvider
   // Kept for reference only - can be deleted in future cleanup
   /*
   const handleLogin = async (userData: any) => {
@@ -425,36 +239,14 @@ export default function App() {
     setShowSuperadminSetup(false);
 
     // Refresh user role from database
-    if (dataStore) {
-      try {
-        // Force refresh by calling getCurrentRole which fetches fresh from DB
-        let role: any = null;
-        if (dataStore.getCurrentRole) {
-          role = await dataStore.getCurrentRole();
-          console.log(`📊 handleSuperadminSuccess: getCurrentRole() returned: ${role}`);
-        }
-
-        if (!role) {
-          const profile = await dataStore.getProfile(true); // Force refresh
-          role = profile.role;
-          console.log(`📊 handleSuperadminSuccess: getProfile(true).role returned: ${role}`);
-        }
-
-        setUserRole(role ?? 'owner');
-        console.log(`✅ handleSuperadminSuccess: User role set to: ${role ?? 'owner'}`);
-      } catch (error) {
-        console.warn('Failed to refresh user role:', error);
-      }
-    }
+    await refreshUserRole({ forceRefresh: true });
   };
 
   // LEGACY: handleAuthError is no longer used
-  // Errors are now caught in initializeApp() and displayed via the error state
+  // Errors are now handled by AppServicesProvider during initialization
   /*
   const handleAuthError = (error: string) => {
     console.error('Authentication error:', error);
-    setError(error);
-    setLoading(false);
   };
   */
 
@@ -525,11 +317,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user_session');
-    localStorage.removeItem('onx_session');
-    setUser(null);
-    setIsLoggedIn(false);
-    setDataStore(null);
+    logout();
     telegram.showAlert('התנתקת בהצלחה');
   };
 
@@ -761,7 +549,7 @@ export default function App() {
           paddingTop: '60px' // Space for header
         }}>
           {/* Header */}
-          <Header user={user} dataStore={dataStore} onNavigate={handleNavigate} onLogout={handleLogout} />
+          <Header onNavigate={handleNavigate} onLogout={handleLogout} />
 
         <Suspense
           fallback={
@@ -812,7 +600,6 @@ export default function App() {
 
         {/* Floating Action Menu */}
         <FloatingActionMenu
-          user={user}
           onNavigate={handleNavigate}
           onShowModeSelector={handleShowCreateOrder}
           isOpen={showActionMenu}
