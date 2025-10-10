@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { telegram } from '../lib/telegram';
+import type { FrontendDataStore } from '../lib/frontendDataStore';
+import { registerOrdersSubscriptions } from './subscriptionHelpers';
 import {
-  DataStore,
   Order,
   Product,
   User,
@@ -19,7 +20,7 @@ import { Toast } from '../components/Toast';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 
 interface OrdersProps {
-  dataStore: DataStore;
+  dataStore: FrontendDataStore;
   onNavigate: (page: string) => void;
 }
 
@@ -35,10 +36,6 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
 
   const theme = telegram.themeParams;
   const dispatchOrchestrator = useMemo(() => new DispatchOrchestrator(dataStore), [dataStore]);
-
-  useEffect(() => {
-    loadData();
-  }, [filter, searchQuery]);
 
   useEffect(() => {
     telegram.setBackButton(() => {
@@ -58,7 +55,11 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
     }
   }, [selectedOrder, showCreateForm, onNavigate]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
+    if (!dataStore) {
+      return;
+    }
+
     try {
       const profile = await dataStore.getProfile();
       setUser(profile);
@@ -90,7 +91,23 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dataStore, filter, searchQuery]);
+
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    if (!dataStore) {
+      return;
+    }
+
+    const unsubscribe = registerOrdersSubscriptions(dataStore, () => {
+      void loadData();
+    });
+
+    return unsubscribe;
+  }, [dataStore, loadData]);
 
 
   const handleCreateOrder = () => {

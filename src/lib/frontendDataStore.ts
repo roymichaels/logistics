@@ -28,6 +28,44 @@ import {
   RoyalDashboardRestockRequest
 } from '../data/types';
 
+export type DataStoreSubscriptionTopic =
+  | 'orders'
+  | 'products'
+  | 'tasks'
+  | 'inventory'
+  | 'inventory_alerts'
+  | 'notifications'
+  | 'businesses'
+  | 'business_users'
+  | 'users'
+  | 'user_registrations'
+  | 'driver_status'
+  | 'driver_movements'
+  | 'driver_zones';
+
+export type DataStoreSubscriptionHandler<T extends DataStoreSubscriptionTopic> = (payload: unknown) => void;
+
+export interface FrontendDataStore extends DataStore {
+  subscribe: <T extends DataStoreSubscriptionTopic>(
+    topic: T,
+    callback: DataStoreSubscriptionHandler<T>
+  ) => () => void;
+}
+
+export function attachSubscriptionHelpers<T extends DataStore>(store: T): T & FrontendDataStore {
+  const enhanced = store as T & FrontendDataStore;
+
+  enhanced.subscribe = ((topic, callback) => {
+    if (typeof store.subscribeToChanges === 'function') {
+      return store.subscribeToChanges(topic, callback);
+    }
+
+    return () => {};
+  }) as FrontendDataStore['subscribe'];
+
+  return enhanced;
+}
+
 // Mock data for Hebrew logistics company
 const mockProducts: Product[] = [
   {
@@ -1200,7 +1238,11 @@ class HebrewLogisticsDataStore implements DataStore {
   }
 }
 
-export async function createFrontendDataStore(cfg: BootstrapConfig, mode: 'real', user?: any): Promise<DataStore> {
+export async function createFrontendDataStore(
+  cfg: BootstrapConfig,
+  mode: 'real',
+  user?: any
+): Promise<FrontendDataStore> {
   // Use Supabase for real mode if configured, otherwise fallback to mock
   if ((cfg.adapters.data === 'supabase' || cfg.adapters.data === 'postgres') && import.meta.env.VITE_SUPABASE_URL) {
     const { createSupabaseDataStore } = await import('./supabaseDataStore');
@@ -1212,9 +1254,10 @@ export async function createFrontendDataStore(cfg: BootstrapConfig, mode: 'real'
       throw new Error('Cannot create datastore without telegram_id');
     }
 
-    return createSupabaseDataStore(telegramId, user?.auth_session, user);
+    const store = await createSupabaseDataStore(telegramId, user?.auth_session, user);
+    return attachSubscriptionHelpers(store);
   }
 
   // Fallback to mock data store for development/demo
-  return new HebrewLogisticsDataStore(user);
+  return attachSubscriptionHelpers(new HebrewLogisticsDataStore(user));
 }
