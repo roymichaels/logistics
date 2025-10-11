@@ -12,6 +12,7 @@ The root-level status memos have been consolidated into maintained documentation
 - [Superadmin Operations](docs/superadmin-guide.md)
 - [Deployment Runbook](docs/deployment-runbook.md)
 - [Operations & Feature Handbook](docs/operations-handbook.md)
+- **[Netlify Deployment Setup](NETLIFY_SETUP.md)** - Required reading for production deployments
 
 ## Features
 

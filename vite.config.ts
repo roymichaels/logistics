@@ -38,6 +38,24 @@ export default defineConfig(({ mode }) => {
   const supabaseUrl = env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
   const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
+  // Validate critical environment variables at build time
+  if (mode === 'production' && (!supabaseUrl || !supabaseAnonKey)) {
+    console.error('\n❌ ERROR: Missing required Supabase environment variables!');
+    console.error('\nRequired variables:');
+    console.error(`  - VITE_SUPABASE_URL: ${supabaseUrl ? '✅ Present' : '❌ Missing'}`);
+    console.error(`  - VITE_SUPABASE_ANON_KEY: ${supabaseAnonKey ? '✅ Present' : '❌ Missing'}`);
+    console.error('\nFor Netlify deployments, add these variables in:');
+    console.error('  Site Settings > Environment Variables\n');
+    throw new Error('Missing required Supabase environment variables');
+  }
+
+  // Log environment variable status during build
+  if (supabaseUrl && supabaseAnonKey) {
+    console.log('\n✅ Environment variables loaded successfully');
+    console.log(`   VITE_SUPABASE_URL: ${supabaseUrl.substring(0, 30)}...`);
+    console.log(`   VITE_SUPABASE_ANON_KEY: ${supabaseAnonKey.substring(0, 20)}...\n`);
+  }
+
   return {
     build: {
       rollupOptions: {
