@@ -191,24 +191,27 @@ Your stable HTTPS endpoints (replace `<database-function-host>` with your provid
 ## Project Structure
 
 ```
+src/
+├── App.tsx                 # Main app component
+├── main.tsx                # React entry point
+├── components/             # Shared UI building blocks
+├── context/                # React context providers
 ├── data/
-│   ├── types.ts          # TypeScript interfaces
-│   ├── mock.ts           # Mock data adapter
-│   ├── neon.ts           # PostgreSQL/Neon adapter
-│   ├── d1.ts             # Cloudflare D1 adapter
-│   └── firestore.ts      # Firestore adapter
+│   ├── index.ts            # DataStore factory exports
+│   └── types.ts            # Domain models and DTOs
+├── hooks/                  # Reusable logic hooks
 ├── lib/
-│   ├── telegram.ts       # Telegram WebApp SDK wrapper
-│   ├── auth.ts           # Authentication service
-│   └── cache.ts          # Offline caching
-├── pages/
-│   ├── Dashboard.tsx     # Role-based dashboard
-│   ├── Orders.tsx        # Order management
-│   ├── Tasks.tsx         # Courier tasks
-│   └── Settings.tsx      # App settings
-├── App.tsx               # Main app component
-├── main.tsx              # React entry point
-└── index.html            # HTML template
+│   ├── frontendDataStore.ts    # Client-side data orchestration layer
+│   ├── supabaseDataStore.ts    # Supabase-backed adapter implementation
+│   ├── dispatchService.ts      # Domain-specific services
+│   └── ...                     # Additional services and helpers
+├── pages/                  # Route-level screens
+├── styles/                 # Global styles and theme tokens
+├── utils/
+│   ├── offlineStore.ts         # IndexedDB-backed offline cache
+│   └── ...                     # Shared utilities
+├── test/                   # Browser integration harness and mocks
+└── ...
 ```
 
 ## User Roles
@@ -235,7 +238,7 @@ The app includes offline functionality:
 
 ### Offline Behaviour
 
-- The app persists tasks, orders, restock requests and pending mutations in IndexedDB via the `offlineStore` utility. This allows previously viewed data to remain available when the network drops.
+- The app persists tasks, orders, restock requests and pending mutations in IndexedDB via the `offlineStore` utility (`src/utils/offlineStore.ts`). This allows previously viewed data to remain available when the network drops.
 - When creating an order in the dual-mode entry form or submitting a restock request, any network or API failure automatically enqueues the mutation for retry. You will see an acknowledgement toast and the action will be replayed once connectivity returns.
 - Mutation replay happens automatically on reconnect and is also triggered on app start. Operators can monitor the queue, review the last sync attempt and clear cached data from **Settings → נתונים לא מקוונים (Offline Data)**.
 - Clearing offline data removes cached collections and pending mutations, letting operators recover from corrupted state without a full localStorage wipe.
@@ -244,11 +247,11 @@ The app includes offline functionality:
 
 ### Adding New Features
 
-1. **Update data types** in `data/types.ts`
-2. **Extend DataStore interface** with new methods
-3. **Implement in all adapters** (mock, neon, d1, firestore)
-4. **Add UI components** in relevant pages
-5. **Update offline cache** if needed
+1. **Update domain types** in `src/data/types.ts` (and re-export from `src/data/index.ts` when necessary)
+2. **Extend the shared interface** in `src/lib/frontendDataStore.ts`
+3. **Implement the change across adapters/services** in `src/lib/` (e.g., `supabaseDataStore.ts`, `dispatchService.ts`, `inventoryService.ts`)
+4. **Add or update UI** under `src/components/` and `src/pages/`
+5. **Revise offline persistence** in `src/utils/offlineStore.ts` or related helpers if the data shape changes
 
 ### Testing
 
