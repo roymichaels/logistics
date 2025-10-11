@@ -1,7 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { createHmac, createHash, timingSafeEqual } from 'node:crypto';
 import { Buffer } from 'node:buffer';
-import { SignJWT } from 'npm:jose@5';
 import { corsHeaders } from '../_shared/cors.ts';
 
 /**
@@ -141,10 +140,9 @@ Deno.serve(async req => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const jwtSecret = Deno.env.get('SUPABASE_JWT_SECRET');
 
-    if (!supabaseUrl || !supabaseServiceKey || !jwtSecret) {
-      throw new Error('Missing Supabase configuration. Ensure SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and SUPABASE_JWT_SECRET are set.');
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Missing Supabase configuration. Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.');
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
@@ -156,7 +154,7 @@ Deno.serve(async req => {
     const fullName = `${user.first_name || ''}${user.last_name ? ' ' + user.last_name : ''}`;
     const defaultRole = 'user';
 
-    // Find or create user
+    // Find or create user in custom users table
     let { data: existing } = await supabase
       .from('users')
       .select('id, telegram_id, role')
@@ -196,6 +194,74 @@ Deno.serve(async req => {
       workspaceId = memberships[0].business_id;
     }
 
+    // Create or update auth.users with Supabase Auth Admin API
+    const email = `telegram_${telegramId}@telegram-auth.local`;
+    const password = crypto.randomUUID();
+
+    let authUser;
+    const { data: existingAuthUser } = await supabase.auth.admin.listUsers();
+    const foundAuthUser = existingAuthUser?.users?.find(u => u.email === email);
+
+    if (foundAuthUser) {
+      // Update existing auth user metadata
+      const { data: updatedUser, error: updateError } = await supabase.auth.admin.updateUserById(
+        foundAuthUser.id,
+        {
+          user_metadata: {
+            telegram_id: telegramId,
+            username,
+            name: fullName,
+            photo_url: user.photo_url,
+          },
+          app_metadata: {
+            provider: 'telegram',
+            role: userRole,
+            workspace_id: workspaceId,
+            user_id: userId,
+            telegram_id: telegramId,
+            user_role: userRole,
+          },
+        }
+      );
+      if (updateError) throw updateError;
+      authUser = updatedUser.user;
+    } else {
+      // Create new auth user
+      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          telegram_id: telegramId,
+          username,
+          name: fullName,
+          photo_url: user.photo_url,
+        },
+        app_metadata: {
+          provider: 'telegram',
+          role: userRole,
+          workspace_id: workspaceId,
+          user_id: userId,
+          telegram_id: telegramId,
+          user_role: userRole,
+        },
+      });
+      if (createError) throw createError;
+      authUser = newUser.user;
+    }
+
+    // Generate session token using Supabase Auth API
+    const { data: sessionData, error: sessionError } = await supabase.auth.admin.createSession({
+      user_id: authUser.id,
+    });
+
+    if (sessionError || !sessionData) {
+      throw new Error('Failed to create session: ' + sessionError?.message);
+    }
+
+    console.log('✅ Session created for user:', userId);
+
+    // Build claims object for backwards compatibility
     const claims = {
       user_id: userId,
       telegram_id: telegramId,
@@ -208,24 +274,6 @@ Deno.serve(async req => {
         workspace_id: workspaceId,
       },
     };
-
-    // Generate JWT
-    const jwtKey = new TextEncoder().encode(jwtSecret);
-    const now = Math.floor(Date.now() / 1000);
-    const payload = {
-      aud: 'authenticated',
-      exp: now + 7 * 24 * 60 * 60,
-      iat: now,
-      iss: supabaseUrl,
-      sub: userId,
-      ...claims,
-    };
-
-    const access_token = await new SignJWT(payload)
-      .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
-      .sign(jwtKey);
-
-    console.log('✅ JWT issued for user:', userId);
 
     return new Response(
       JSON.stringify({
@@ -240,9 +288,9 @@ Deno.serve(async req => {
           photo_url: user.photo_url,
         },
         session: {
-          access_token,
-          refresh_token: access_token,
-          expires_in: 604800,
+          access_token: sessionData.access_token,
+          refresh_token: sessionData.refresh_token,
+          expires_in: sessionData.expires_in || 3600,
           token_type: 'bearer',
         },
         claims,

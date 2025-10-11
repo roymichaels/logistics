@@ -68,7 +68,6 @@ The root-level status memos have been consolidated into maintained documentation
    # Set secrets
    supabase secrets set TELEGRAM_BOT_TOKEN=your_bot_token
    supabase secrets set TELEGRAM_WEBHOOK_SECRET=your_webhook_secret
-   supabase secrets set JWT_SECRET=your_jwt_secret
    
    # Deploy functions
    supabase functions deploy bootstrap
