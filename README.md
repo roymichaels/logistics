@@ -10,6 +10,8 @@ The root-level status memos have been consolidated into maintained documentation
 - [Session Stability Playbook](docs/session-management.md)
 - [User Role & Access Control Guide](docs/user-roles.md)
 - [Superadmin Operations](docs/superadmin-guide.md)
+- [Deployment Runbook](docs/deployment-runbook.md)
+- [Operations & Feature Handbook](docs/operations-handbook.md)
 
 ## Features
 
