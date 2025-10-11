@@ -1,200 +1,234 @@
 # Netlify Deployment Setup Guide
 
-This guide explains how to properly configure environment variables for deploying this Telegram Mini App to Netlify.
+This guide explains how environment variables work for deploying this Telegram Mini App to Netlify.
 
-## The Issue
+## ✅ Good News - You're Already Set Up!
 
-If you see the error "Missing Supabase environment variables" in your deployed application, it means the environment variables are not configured in Netlify's dashboard.
+**Your existing Supabase environment variables are already configured!**
 
-**Important:** The `.env` file in your project is only used for local development. Netlify deployments require environment variables to be configured through the Netlify dashboard.
+The build system has been updated to automatically read from your existing `SUPABASE_URL` and `SUPABASE_ANON_KEY` variables. You don't need to add any new environment variables with `VITE_` prefix.
 
-## Required Environment Variables
+## Current Configuration
 
-The following environment variables **must** be configured in Netlify:
+Your Netlify environment already has these variables:
+- ✅ `SUPABASE_URL` - Your Supabase project URL
+- ✅ `SUPABASE_ANON_KEY` - Your Supabase anonymous key
+- ✅ `SUPABASE_SERVICE_ROLE_KEY` - For backend operations
+- ✅ `TELEGRAM_BOT_TOKEN` - Your Telegram bot token
+- ✅ `TELEGRAM_WEBHOOK_SECRET` - For webhook verification
+- ✅ `WEBAPP_URL` - Your deployed app URL
+- ✅ `SUPABASE_DB_URL` - Database connection string
 
-### Frontend Variables (Required)
+## How It Works
 
-1. **VITE_SUPABASE_URL**
-   - Description: Your Supabase project URL
-   - Example: `https://ncuyyjvvzeaqqjganbzz.supabase.co`
-   - Find it: Supabase Dashboard > Settings > API > Project URL
+The build system supports **both** naming conventions automatically:
 
-2. **VITE_SUPABASE_ANON_KEY**
-   - Description: Your Supabase anonymous/public key
-   - Example: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
-   - Find it: Supabase Dashboard > Settings > API > Project API keys > `anon` `public`
-
-### Optional Variables
-
-3. **VITE_TELEGRAM_BOT_USERNAME** (optional)
-   - Your Telegram bot username (without @)
-   - Example: `mybot`
-
-4. **VITE_FIRST_ADMIN_USERNAME** (optional)
-   - Initial admin username for bootstrapping
-
-5. **VITE_ADMIN_PIN** (optional)
-   - Admin PIN for secure operations
-
-## How to Add Environment Variables in Netlify
-
-### Method 1: Via Netlify Dashboard (Recommended)
-
-1. **Login to Netlify**
-   - Go to https://app.netlify.com
-   - Navigate to your site
-
-2. **Open Environment Variables Settings**
-   - Click on "Site settings" in the top navigation
-   - In the left sidebar, click "Environment variables"
-   - Or go directly to: `Site settings > Build & deploy > Environment variables`
-
-3. **Add Each Variable**
-   - Click "Add a variable" or "Add environment variable"
-   - For **VITE_SUPABASE_URL**:
-     - Key: `VITE_SUPABASE_URL`
-     - Value: Your Supabase project URL (e.g., `https://ncuyyjvvzeaqqjganbzz.supabase.co`)
-     - Scope: Select "All" or "Production"
-   - Click "Save"
-
-   - For **VITE_SUPABASE_ANON_KEY**:
-     - Key: `VITE_SUPABASE_ANON_KEY`
-     - Value: Your Supabase anon key (the long JWT token)
-     - Scope: Select "All" or "Production"
-   - Click "Save"
-
-4. **Verify Variables Are Added**
-   - You should see both variables listed in the Environment variables page
-   - The values will be partially masked for security
-
-### Method 2: Via Netlify CLI
-
+### Local Development
+Uses `VITE_` prefixed variables from your `.env` file:
 ```bash
-# Install Netlify CLI if you haven't already
-npm install -g netlify-cli
-
-# Login to Netlify
-netlify login
-
-# Link your site (if not already linked)
-netlify link
-
-# Set environment variables
-netlify env:set VITE_SUPABASE_URL "https://your-project.supabase.co"
-netlify env:set VITE_SUPABASE_ANON_KEY "your-anon-key-here"
+VITE_SUPABASE_URL=https://ncuyyjvvzeaqqjganbzz.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGci...
 ```
 
-## Trigger a New Deployment
+### Production (Netlify/Supabase)
+Uses your existing non-prefixed variables (already configured):
+```bash
+SUPABASE_URL=https://ncuyyjvvzeaqqjganbzz.supabase.co
+SUPABASE_ANON_KEY=eyJhbGci...
+```
 
-After adding the environment variables, you need to trigger a new deployment:
+The `vite.config.ts` automatically checks **both** naming conventions with this priority:
+1. First tries `VITE_SUPABASE_URL` (for local development)
+2. Falls back to `SUPABASE_URL` (for Netlify/production)
 
-### Option 1: Clear Cache and Rebuild
-1. Go to your site in Netlify dashboard
-2. Click "Deploys" in the top navigation
-3. Click "Trigger deploy" dropdown
-4. Select "Clear cache and deploy site"
-5. Wait for the build to complete
+Same for the anon key.
+
+## Deploy Now!
+
+Since your environment variables are already configured, you just need to:
+
+### Option 1: Trigger Netlify Deployment (Recommended)
+
+1. **Clear Cache and Rebuild**
+   - Go to your Netlify dashboard
+   - Click "Deploys" tab
+   - Click "Trigger deploy" dropdown
+   - Select **"Clear cache and deploy site"**
+   - Wait for build to complete
+
+2. **Monitor Build Logs**
+   - Watch for this message:
+     ```
+     ✅ Environment variables loaded successfully
+        Supabase URL: https://ncuyyjvvzea...
+        Supabase Key: eyJhbGciOiJIUzI1...
+     ```
+   - If you see this, the build is working correctly!
 
 ### Option 2: Git Push
+
 ```bash
-# Make a small change or use --allow-empty
-git commit --allow-empty -m "Trigger rebuild with env vars"
+git add .
+git commit -m "Update env var handling to support both naming conventions"
 git push
 ```
 
-## Verify the Deployment
+Netlify will automatically deploy the new version.
 
-After the new deployment completes:
+## Verification
 
-1. **Check Build Logs**
-   - In Netlify dashboard, click on the latest deploy
-   - Look for the message: `✅ Environment variables loaded successfully`
-   - Verify you see your Supabase URL printed (first 30 characters)
+After deployment completes:
 
-2. **Test the Application**
-   - Open your deployed app in a Telegram Mini App context
-   - The app should load without the "Missing Supabase environment variables" error
-   - Check browser console - you should see successful Supabase initialization
+### 1. Check Build Logs
+In Netlify dashboard under "Deploys" > latest deploy > "Deploy log":
+- ✅ Should see "Environment variables loaded successfully"
+- ✅ Should see your Supabase URL (first 30 chars)
+- ❌ Should NOT see "Missing Supabase environment variables" error
 
-3. **Run Diagnostics** (optional)
-   - Open browser developer console
-   - Run: `window.runAuthDiagnostics()`
-   - Verify Supabase client is properly initialized
+### 2. Test the App
+Open your deployed app:
+- ✅ App should load without errors
+- ✅ No "Missing Supabase environment variables" in browser console
+- ✅ Telegram WebApp initializes properly
+- ✅ Authentication flow works
+
+### 3. Run Diagnostics
+In browser console of deployed app:
+```javascript
+window.runAuthDiagnostics()
+```
+Should show successful Supabase connection.
 
 ## Troubleshooting
 
-### Build Still Fails with Missing Variables
+### Build Still Fails
 
-**Problem:** Build logs show the error even after adding variables.
+If the build fails with "Missing Supabase environment variables":
 
-**Solution:**
-1. Double-check variable names are exact: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
-2. Ensure they're set for the correct scope (Production or All)
-3. Try "Clear cache and deploy site" instead of regular deploy
-4. Check for typos in the variable keys (they're case-sensitive)
+1. **Verify Variables Exist**
+   - Go to Netlify: Site settings > Environment variables
+   - Confirm `SUPABASE_URL` and `SUPABASE_ANON_KEY` are listed
+   - Verify they're set for "All" or "Production" scope
 
-### Variables Added But App Still Shows Error
+2. **Check Variable Values**
+   - Click on each variable to view (partially masked)
+   - Ensure URL starts with `https://`
+   - Ensure anon key is a long JWT string starting with `eyJ`
 
-**Problem:** Netlify build succeeds but the deployed app still shows the error.
+3. **Clear Cache**
+   - Use "Clear cache and deploy site" option
+   - Don't use regular "Trigger deploy"
 
-**Solution:**
-1. This shouldn't happen if build validation passes (since we added build-time checks)
-2. Clear your browser cache and hard reload (Ctrl+Shift+R or Cmd+Shift+R)
-3. Check if you're viewing an old deployment
-4. Open browser console and check what error is actually showing
+### App Loads But Shows Runtime Error
 
-### Wrong Variable Values
+If build succeeds but app shows environment variable error:
 
-**Problem:** Variables are set but with incorrect values.
+1. **Hard Refresh Browser**
+   - Press Ctrl+Shift+R (Windows/Linux) or Cmd+Shift+R (Mac)
+   - This clears cached JavaScript files
 
-**Solution:**
-1. Go to Site settings > Environment variables
-2. Find the variable you need to update
-3. Click the "Options" (three dots) next to it
-4. Select "Edit" and update the value
-5. Save and trigger a new deployment
+2. **Check Deployed Files**
+   - In Netlify deploy log, find the asset with "index-[hash].js"
+   - Verify it was built with new configuration
 
-### Can't Find Environment Variables Page
+3. **Verify Build Output**
+   - Check that build shows environment variables loaded
+   - If not, the `.env` file or vite.config might have issues
 
-**Problem:** The Netlify UI has changed and you can't find where to add variables.
+## Understanding the Fix
 
-**Solution:**
-1. Make sure you're in the correct site
-2. Look for: Site settings > Environment variables (or Build & deploy > Environment)
-3. Alternatively, use Netlify CLI: `netlify env:set VARIABLE_NAME "value"`
+### What Was the Problem?
 
-## Security Notes
+The original code only checked for `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. Your Netlify environment has `SUPABASE_URL` and `SUPABASE_ANON_KEY` (without the `VITE_` prefix).
 
-1. **Never commit `.env` file to git** - It's already in `.gitignore`
-2. **Anon key is public** - It's safe to expose in client-side code, but keep service role key secret
-3. **Use RLS policies** - Supabase Row Level Security protects your data
-4. **Rotate keys if exposed** - If you accidentally expose keys, rotate them in Supabase
+Vite requires the `VITE_` prefix to expose variables to client-side code, BUT you can work around this using the `define` option in `vite.config.ts`.
 
-## Additional Resources
+### What Changed?
 
-- [Netlify Environment Variables Documentation](https://docs.netlify.com/configure-builds/environment-variables/)
-- [Vite Environment Variables Guide](https://vitejs.dev/guide/env-and-mode.html)
-- [Supabase API Keys Documentation](https://supabase.com/docs/guides/api/api-keys)
+**vite.config.ts** now:
+```javascript
+// Support both naming conventions
+const supabaseUrl =
+  env.VITE_SUPABASE_URL ||
+  process.env.VITE_SUPABASE_URL ||
+  env.SUPABASE_URL ||           // ← Added this
+  process.env.SUPABASE_URL ||   // ← Added this
+  '';
+
+// Then injects them at build time
+define: {
+  'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(supabaseUrl),
+  'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(supabaseAnonKey)
+}
+```
+
+This means:
+- ✅ Local development works with `VITE_` prefix in `.env`
+- ✅ Netlify deployment works with your existing `SUPABASE_*` variables
+- ✅ No need to duplicate or rename environment variables
+
+## Optional: Add VITE_ Prefixed Variables
+
+If you want to be extra explicit, you can add the `VITE_` prefixed versions in Netlify:
+
+```bash
+netlify env:set VITE_SUPABASE_URL "https://ncuyyjvvzeaqqjganbzz.supabase.co"
+netlify env:set VITE_SUPABASE_ANON_KEY "your-anon-key"
+```
+
+But this is **not required** - the build system will use your existing `SUPABASE_*` variables.
+
+## Environment Variable Reference
+
+### Required for Frontend (Auto-detected)
+- `SUPABASE_URL` or `VITE_SUPABASE_URL` - Supabase project URL
+- `SUPABASE_ANON_KEY` or `VITE_SUPABASE_ANON_KEY` - Public API key
+
+### Used by Edge Functions (Already Set)
+- `SUPABASE_SERVICE_ROLE_KEY` - For admin operations
+- `TELEGRAM_BOT_TOKEN` - Bot authentication
+- `TELEGRAM_WEBHOOK_SECRET` - Webhook security
+- `SUPABASE_DB_URL` - Direct database access
+
+### Optional Frontend Variables
+- `VITE_TELEGRAM_BOT_USERNAME` - Bot username for UI
+- `VITE_FIRST_ADMIN_USERNAME` - Bootstrap admin user
+- `VITE_ADMIN_PIN` - Admin authentication PIN
 
 ## Quick Reference
 
+### Verify Current Variables
 ```bash
-# Your environment variables should look like this in Netlify:
-
-VITE_SUPABASE_URL = https://ncuyyjvvzeaqqjganbzz.supabase.co
-VITE_SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jdXl5anZ2emVhcXFqZ2FuYnp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyMDg5NTQsImV4cCI6MjA3NTc4NDk1NH0.8SXNqMlqOrKle20Eyko4lnSfz7DBCuWJf4lpYvmzVSo
-
-# Optional:
-VITE_TELEGRAM_BOT_USERNAME = yourbot
-VITE_FIRST_ADMIN_USERNAME = admin
-VITE_ADMIN_PIN = 000000
+netlify env:list
 ```
 
-## Need Help?
+### Trigger Clean Deployment
+In Netlify dashboard:
+1. Deploys tab
+2. Trigger deploy dropdown
+3. "Clear cache and deploy site"
 
-If you're still having issues after following this guide:
+### Check Build Success
+Look for in deploy logs:
+```
+✅ Environment variables loaded successfully
+   Supabase URL: https://ncuyyjvvzea...
+   Supabase Key: eyJhbGciOiJIUzI1...
+```
 
-1. Check the build logs in Netlify for specific error messages
-2. Run `npm run build:web` locally to test if environment variables work
-3. Verify your Supabase project is active and accessible
-4. Check that your `.env.example` file lists all required variables
+### Test Deployed App
+```javascript
+// In browser console
+window.runAuthDiagnostics()
+```
+
+## Summary
+
+- ✅ Your environment variables are already configured
+- ✅ Build system updated to read from both naming conventions
+- ✅ No new variables needed
+- ✅ Just trigger a new deployment with "Clear cache and deploy site"
+- ✅ Build logs should show "Environment variables loaded successfully"
+- ✅ App should work without errors
+
+The "Missing Supabase environment variables" error should now be resolved!
