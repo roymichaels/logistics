@@ -2,6 +2,15 @@
 
 A Telegram Mini App for managing logistics operations, orders, and deliveries. Built with React, TypeScript, and the Telegram WebApp SDK.
 
+## Operational Guides
+
+The root-level status memos have been consolidated into maintained documentation under `docs/`. Start here when deploying or diagnosing production issues:
+
+- [Telegram Authentication Recovery Guide](docs/telegram-authentication.md)
+- [Session Stability Playbook](docs/session-management.md)
+- [User Role & Access Control Guide](docs/user-roles.md)
+- [Superadmin Operations](docs/superadmin-guide.md)
+
 ## Features
 
 - **Role-based Access**: Dispatcher and Courier roles with different interfaces
