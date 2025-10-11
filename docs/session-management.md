@@ -41,6 +41,18 @@ This document captures the final, working approach for making Telegram-authentic
 - Persistent banner that reports session readiness (🟢 Ready / 🟡 Warning / 🔴 Error) and lists the available claims.
 - Includes a "Print report" button that calls `sessionTracker.getReport()`.
 
+### JWT Claim Propagation
+
+- `twaAuth.ts` always prefers the backend-issued session and reuses the access token as the refresh token, which prevents GoTrue from dropping custom claims on refresh.
+- `sessionTracker` decodes both the JWT payload and `app_metadata` to verify `telegram_id`, `user_id`, `role`, `app_role`, and `workspace_id` before the UI renders sensitive screens.
+- The diagnostics banner links to `window.runAuthDiagnostics()` so operators can export a JSON report that mirrors the historical `DEBUG_AUTH_ERROR.md` walkthrough.
+
+### Hardened Role Updates
+
+- Promotion and demotion requests always go through the `set-role` edge function, which enforces service-role checks and logs structured audit entries (`action`, `requested_by`, `target_user_id`).
+- The UI blocks the submit button until `sessionTracker.isReady()` resolves; this avoids racing a role update before the JWT finishes propagating.
+- Regression tests in `tests/user-management/role-change.test.ts` cover the PIN promotion scenario from `PIN_PROMOTION_FIX.md`, ensuring a demoted user cannot regain access without a valid JWT.
+
 ## Operational Checklist
 
 1. **Before shipping:**
@@ -72,6 +84,12 @@ window.sessionTracker?.isReady();
 netlify deploy --prod --dir=dist
 ```
 
+## Console & Debugging Commands
+
+- `window.sessionTracker?.getCheckpoints()` — mirrors the original `CONSOLE_DEBUG_COMMANDS.md` cheat sheet and returns all gating checks with timestamps.
+- `window.sessionTracker?.printReport?.()` — replaces the CSV instructions from `CONSOLE_DEBUG_REFERENCE.md` by generating a shareable console table.
+- `await sessionTracker.waitForSession(5000)` — reproduces the steps from `FIX_SESSION_CLAIMS_AND_ROLE_UPDATES.md` for confirming claim availability before executing privileged operations.
+
 ## Superseded References
 
 The materials below have been merged into this single playbook and can be removed or archived:
@@ -85,5 +103,10 @@ The materials below have been merged into this single playbook and can be remove
 - `TRACKING_OUTPUT_GUIDE.md`
 - `DEBUG_COMMANDS.txt`
 - `BEFORE_AFTER_DIAGRAM.txt`
+- `FIX_SESSION_CLAIMS_AND_ROLE_UPDATES.md`
+- `FRONTEND_JWT_INTEGRATION_COMPLETE.md`
+- `JWT_CLAIMS_FIX_COMPLETE.md`
+- `PIN_PROMOTION_FIX.md`
+- `TEST_ROLE_CHANGE.md`
 
 Keep this playbook up to date instead of generating additional one-off summaries.

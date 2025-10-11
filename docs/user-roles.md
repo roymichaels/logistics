@@ -32,6 +32,7 @@ Use this reference to maintain the user-role system that powers dispatch, courie
 - `normalizeRole()` defaults to `owner` for new users so infrastructure administrators retain full access until explicitly downgraded.
 - Telegram user bootstrap populates the profile name/username using Telegram-provided data instead of test fixtures.
 - User Management UI invokes the `set-role` edge function and refreshes data after a successful change.
+- The promotion PIN flow now blocks duplicate promotions—the UI requires a valid session with owner claims before it reveals the PIN entry form, mirroring the fix described in `PIN_PROMOTION_FIX.md`.
 
 ## Deployment & Verification Checklist
 
@@ -45,8 +46,8 @@ Use this reference to maintain the user-role system that powers dispatch, courie
 3. **Verify behavior**
    - Log in via Telegram; confirm your real Telegram identity appears.
    - Open the session indicator (see the Session Stability Playbook) to ensure claims include `role` and `app_role`.
-   - Promote a test user; the request to `/functions/v1/set-role` should return HTTP 200 and the UI should refresh with the new role.
-   - Run `SELECT telegram_id, role FROM users;` to validate persisted roles.
+- Promote a test user; the request to `/functions/v1/set-role` should return HTTP 200 and the UI should refresh with the new role.
+- Run `SELECT telegram_id, role FROM users;` to validate persisted roles.
 
 ## Troubleshooting Tips
 
@@ -54,6 +55,7 @@ Use this reference to maintain the user-role system that powers dispatch, courie
 - When role updates fail, inspect the edge function logs (`supabase functions logs set-role`) for authorization errors.
 - Use `get_current_user_role()` to confirm database state and compare with the response returned by `telegram-verify`.
 - If sandbox data appears, ensure the deployment picked up the updated `bootstrap` function and that caches were cleared.
+- The **User Settings** drawer (see `src/components/UserSettingsDrawer.tsx`) now exposes owner-only toggles for demo mode, diagnostics, and role auditing while regular users see only language and notification preferences. This consolidates the cleanup from `USER_SETTINGS_SIMPLIFIED.md`.
 
 ## Superseded References
 
@@ -74,5 +76,6 @@ Archive or delete the following documents—they are folded into this single gui
 - `RBAC_IMPLEMENTATION_COMPLETE.md`
 - `RBAC_SPECIFICATION_SUMMARY.md`
 - `INFRASTRUCTURE_BUSINESS_ROLE_SEPARATION.md`
+- `USER_SETTINGS_SIMPLIFIED.md`
 
 Maintain this guide instead of creating parallel status reports.
