@@ -106,7 +106,7 @@ The root-level status memos have been consolidated into maintained documentation
 1. **Clone and install**:
    ```bash
    git clone <repo>
-   cd logistics-mini-app
+   cd logistics
    npm install
    ```
 
