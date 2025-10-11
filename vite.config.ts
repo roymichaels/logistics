@@ -37,36 +37,48 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   // Support both VITE_ prefixed (local dev) and non-prefixed (Netlify/Supabase) variables
+  // Check process.env first for Netlify/CI environments
   const supabaseUrl =
-    env.VITE_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
     process.env.VITE_SUPABASE_URL ||
     env.SUPABASE_URL ||
-    process.env.SUPABASE_URL ||
+    env.VITE_SUPABASE_URL ||
     '';
 
   const supabaseAnonKey =
-    env.VITE_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
     process.env.VITE_SUPABASE_ANON_KEY ||
     env.SUPABASE_ANON_KEY ||
-    process.env.SUPABASE_ANON_KEY ||
+    env.VITE_SUPABASE_ANON_KEY ||
     '';
 
-  // Validate critical environment variables at build time
+  // Log what we found (for debugging)
+  console.log('\n🔍 Environment variable check:');
+  console.log(`   Mode: ${mode}`);
+  console.log(`   process.env.SUPABASE_URL: ${process.env.SUPABASE_URL ? '✅ Found' : '❌ Not found'}`);
+  console.log(`   process.env.VITE_SUPABASE_URL: ${process.env.VITE_SUPABASE_URL ? '✅ Found' : '❌ Not found'}`);
+  console.log(`   Final supabaseUrl: ${supabaseUrl ? '✅ ' + supabaseUrl.substring(0, 30) + '...' : '❌ Missing'}`);
+  console.log(`   Final supabaseAnonKey: ${supabaseAnonKey ? '✅ ' + supabaseAnonKey.substring(0, 20) + '...' : '❌ Missing'}\n`);
+
+  // Validate critical environment variables at build time (for production mode only)
   if (mode === 'production' && (!supabaseUrl || !supabaseAnonKey)) {
     console.error('\n❌ ERROR: Missing required Supabase environment variables!');
     console.error('\nRequired variables (use either naming convention):');
     console.error(`  - SUPABASE_URL or VITE_SUPABASE_URL: ${supabaseUrl ? '✅ Present' : '❌ Missing'}`);
     console.error(`  - SUPABASE_ANON_KEY or VITE_SUPABASE_ANON_KEY: ${supabaseAnonKey ? '✅ Present' : '❌ Missing'}`);
     console.error('\nFor Netlify/Supabase deployments, these should already be in your secrets.');
-    console.error('Check: Site Settings > Environment Variables\n');
+    console.error('Check: Site Settings > Environment Variables');
+    console.error('\nDebug info:');
+    console.error(`  NODE_ENV: ${process.env.NODE_ENV}`);
+    console.error(`  Mode: ${mode}`);
+    console.error(`  CWD: ${process.cwd()}`);
+    console.error(`  Available process.env keys: ${Object.keys(process.env).filter(k => k.includes('SUPABASE')).join(', ') || 'none'}\n`);
     throw new Error('Missing required Supabase environment variables');
   }
 
   // Log environment variable status during build
   if (supabaseUrl && supabaseAnonKey) {
-    console.log('\n✅ Environment variables loaded successfully');
-    console.log(`   Supabase URL: ${supabaseUrl.substring(0, 30)}...`);
-    console.log(`   Supabase Key: ${supabaseAnonKey.substring(0, 20)}...\n`);
+    console.log('✅ Environment variables loaded successfully\n');
   }
 
   return {
