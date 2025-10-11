@@ -46,14 +46,14 @@ The root-level status memos have been consolidated into maintained documentation
 
 ## Quick Start
 
-### Supabase Setup
+### Database Setup
 
-1. **Create a Supabase project**:
+1. **Provision your database backend** (Supabase shown here as the default managed Postgres option):
    - Go to [supabase.com](https://supabase.com)
    - Create a new project
-   - Note your project URL and anon key
+   - Note your project URL and anon key (these map to the database host and public client key)
 
-2. **Deploy Edge Functions**:
+2. **Deploy Edge Functions** (using the Supabase CLI; adapt the commands to your database provider's tooling):
    ```bash
    # Install Supabase CLI
    npm install -g supabase
@@ -70,16 +70,31 @@ The root-level status memos have been consolidated into maintained documentation
    supabase secrets set JWT_SECRET=your_jwt_secret
    
    # Deploy functions
-   supabase functions deploy telegram-webhook
-   supabase functions deploy telegram-verify
    supabase functions deploy bootstrap
+   supabase functions deploy promote-manager
+   supabase functions deploy seed-demo
+   supabase functions deploy set-role
+   supabase functions deploy superadmin-auth
+   supabase functions deploy telegram-verify
+   supabase functions deploy telegram-webhook
    supabase functions deploy user-mode
-   
+
    # Run migrations
    supabase db push
    ```
 
-3. **Set up Telegram webhook**:
+   The repository currently includes the following functions under `supabase/functions/` that should be deployed to your database backend:
+
+   - `bootstrap`
+   - `promote-manager`
+   - `seed-demo`
+   - `set-role`
+   - `superadmin-auth`
+   - `telegram-verify`
+   - `telegram-webhook`
+   - `user-mode`
+
+3. **Set up Telegram webhook** (replace the host with your database function deployment; Supabase URL shown here):
    ```bash
    curl -X POST "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook" \
      -d "url=https://<project-ref>.supabase.co/functions/v1/telegram-webhook" \
@@ -98,7 +113,7 @@ The root-level status memos have been consolidated into maintained documentation
 2. **Set up environment**:
    ```bash
    cp .env.example .env
-   # Edit .env with your Supabase configuration
+   # Edit .env with your database backend configuration (Supabase URL/keys by default)
    ```
 
 3. **Start development server**:
@@ -121,25 +136,30 @@ The root-level status memos have been consolidated into maintained documentation
    VITE_SUPABASE_URL=https://your-project-ref.supabase.co
    VITE_SUPABASE_ANON_KEY=your_anon_key
    ```
+   These variables point to the default Supabase-hosted database backend—swap in your provider's URL and public client key if you use a different platform.
 
 ## Architecture
 
-### Supabase Edge Functions
-- **telegram-webhook**: Handles incoming Telegram messages and commands
-- **telegram-verify**: Verifies Telegram WebApp initData and creates user sessions
+### Database Edge Functions
 - **bootstrap**: Returns app configuration and user preferences
+- **promote-manager**: Grants manager privileges to a user
+- **seed-demo**: Seeds demo data for onboarding environments
+- **set-role**: Updates a user's role assignment
+- **superadmin-auth**: Handles privileged superadmin authentication flow
+- **telegram-verify**: Verifies Telegram WebApp initData and creates user sessions
+- **telegram-webhook**: Handles incoming Telegram messages and commands
 - **user-mode**: Saves user mode preferences (demo/real)
 
 ### Security
 - HMAC verification of Telegram initData
-- Supabase Auth integration
+- Database backend auth integration (Supabase Auth by default)
 - Row Level Security (RLS) policies
 - No secrets in client code
 
 ### Data Flow
 1. User opens Mini App in Telegram
 2. Frontend sends initData to telegram-verify Edge Function
-3. Edge Function verifies signature and creates Supabase session
+3. Edge Function verifies signature and creates a database-backed session (Supabase session by default)
 4. Frontend calls bootstrap to get configuration
 5. App initializes with user preferences
 
@@ -151,18 +171,22 @@ npm run build
 # Deploy via Bolt interface
 ```
 
-### Supabase (Backend)
+### Database Backend (Supabase CLI example)
 ```bash
 supabase functions deploy --no-verify-jwt
 ```
 
 ## Edge Function URLs
 
-Your stable HTTPS endpoints:
-- `https://<project-ref>.supabase.co/functions/v1/telegram-webhook`
-- `https://<project-ref>.supabase.co/functions/v1/telegram-verify`
-- `https://<project-ref>.supabase.co/functions/v1/bootstrap`
-- `https://<project-ref>.supabase.co/functions/v1/user-mode`
+Your stable HTTPS endpoints (replace `<database-function-host>` with your provider's host, Supabase shown below):
+- `https://<database-function-host>/bootstrap`
+- `https://<database-function-host>/promote-manager`
+- `https://<database-function-host>/seed-demo`
+- `https://<database-function-host>/set-role`
+- `https://<database-function-host>/superadmin-auth`
+- `https://<database-function-host>/telegram-verify`
+- `https://<database-function-host>/telegram-webhook`
+- `https://<database-function-host>/user-mode`
 
 ## Project Structure
 
