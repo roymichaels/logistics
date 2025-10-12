@@ -25,7 +25,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.error('❌ Auth initialization error:', error);
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {

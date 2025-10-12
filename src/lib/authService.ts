@@ -29,15 +29,31 @@ class AuthService {
     isLoading: true,
     error: null,
   };
+  private authListenerInitialized = false;
+  private authUnsubscribe: (() => void) | null = null;
 
   constructor() {
-    this.initializeAuthListener();
+    // Don't initialize auth listener in constructor - wait for Supabase to be ready
+    console.log('🔐 AuthService instance created (auth listener deferred until Supabase is ready)');
   }
 
   private initializeAuthListener() {
+    // Only initialize once
+    if (this.authListenerInitialized) {
+      console.log('🔐 Auth listener already initialized, skipping');
+      return;
+    }
+
+    // Check if Supabase is ready
+    if (!isSupabaseInitialized()) {
+      console.warn('⚠️ Cannot initialize auth listener - Supabase not ready');
+      return;
+    }
+
+    console.log('🔐 Initializing auth listener...');
     const supabase = getSupabase();
 
-    supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('🔐 Auth state changed:', event, {
         hasSession: !!session,
         userId: session?.user?.id
@@ -49,6 +65,10 @@ class AuthService {
         this.handleSignOut();
       }
     });
+
+    this.authUnsubscribe = authListener.subscription.unsubscribe;
+    this.authListenerInitialized = true;
+    console.log('✅ Auth listener initialized successfully');
   }
 
   private async handleSessionUpdate(session: any) {
@@ -153,6 +173,14 @@ class AuthService {
     console.log('🔐 Initializing authentication...');
 
     try {
+      // First, ensure auth listener is set up
+      this.initializeAuthListener();
+
+      // Check if Supabase is ready
+      if (!isSupabaseInitialized()) {
+        throw new Error('Supabase client not initialized. Cannot proceed with authentication.');
+      }
+
       const supabase = getSupabase();
 
       const { data: sessionData } = await supabase.auth.getSession();
@@ -254,6 +282,13 @@ class AuthService {
     console.log('🚪 Signing out...');
 
     try {
+      if (!isSupabaseInitialized()) {
+        console.warn('⚠️ Supabase not initialized, clearing local state only');
+        this.handleSignOut();
+        localStorage.clear();
+        return;
+      }
+
       const supabase = getSupabase();
       await supabase.auth.signOut();
 
@@ -272,6 +307,10 @@ class AuthService {
     console.log('🔄 Refreshing session...');
 
     try {
+      if (!isSupabaseInitialized()) {
+        throw new Error('Supabase not initialized. Cannot refresh session.');
+      }
+
       const supabase = getSupabase();
       const { data, error } = await supabase.auth.refreshSession();
 
@@ -285,6 +324,16 @@ class AuthService {
       console.error('❌ Session refresh error:', error);
       throw error;
     }
+  }
+
+  public cleanup(): void {
+    console.log('🧹 Cleaning up AuthService...');
+    if (this.authUnsubscribe) {
+      this.authUnsubscribe();
+      this.authUnsubscribe = null;
+      this.authListenerInitialized = false;
+    }
+    this.listeners.clear();
   }
 }
 
