@@ -142,8 +142,8 @@ CREATE TABLE IF NOT EXISTS pin_sessions (
 );
 
 CREATE INDEX idx_pin_sessions_user ON pin_sessions(telegram_id, expires_at DESC);
-CREATE INDEX idx_pin_sessions_token ON pin_sessions(session_token) WHERE expires_at > now();
-CREATE INDEX idx_pin_sessions_expired ON pin_sessions(expires_at) WHERE expires_at <= now();
+CREATE INDEX idx_pin_sessions_token ON pin_sessions(session_token);
+CREATE INDEX idx_pin_sessions_expired ON pin_sessions(expires_at);
 
 COMMENT ON TABLE pin_sessions IS 'Active PIN sessions with 4-hour timeout';
 COMMENT ON COLUMN pin_sessions.session_token IS 'Secure random token for PIN session verification';
