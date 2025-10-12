@@ -70,6 +70,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const password = `twa_${user.id}_${BOT_TOKEN.slice(0, 8)}`;
     const email = `telegram_${user.id}@twa.local`;
 
+    // Find or create auth user
     const { data: existingUsers } = await supabase.auth.admin.listUsers();
     let authUser = existingUsers?.users?.find((u) => u.email === email);
 
@@ -92,8 +93,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
       authUser = data.user;
       console.log('✅ Auth user created');
     } else {
-      console.log('✅ Auth user found, updating metadata...');
-      await supabase.auth.admin.updateUserById(authUser.id, {
+      console.log('✅ Auth user found, updating metadata and password...');
+      // ALWAYS update password for existing users to prevent credential mismatch
+      const { error: updateErr } = await supabase.auth.admin.updateUserById(authUser.id, {
+        password: password,
         user_metadata: {
           telegram_id: user.id,
           username: user.username,
@@ -102,44 +105,47 @@ Deno.serve(async (req: Request): Promise<Response> => {
           photo_url: user.photo_url,
         },
       });
-    }
-
-    console.log('🎫 Generating session tokens...');
-    let sessionData;
-    let signInErr;
-
-    // Try to sign in with password
-    ({ data: sessionData, error: signInErr } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    }));
-
-    // If sign in fails due to invalid credentials, update the password and retry
-    if (signInErr && signInErr.message?.includes('Invalid login credentials')) {
-      console.log('⚠️ Password mismatch detected, updating password...');
-      const { error: updateErr } = await supabase.auth.admin.updateUserById(authUser.id, {
-        password: password,
-      });
 
       if (updateErr) {
-        console.error('❌ Password update failed:', updateErr);
+        console.error('❌ Failed to update user:', updateErr);
         throw updateErr;
       }
-
-      console.log('✅ Password updated, retrying sign in...');
-      ({ data: sessionData, error: signInErr } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      }));
+      console.log('✅ User metadata and password updated');
     }
 
-    if (signInErr) {
-      console.error('❌ Sign in failed:', signInErr);
-      throw signInErr;
+    // Retry sign-in up to 3 times to handle replication lag
+    console.log('🎫 Generating session tokens...');
+    let sessionData = null;
+    let lastError = null;
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      console.log(`🔄 Sign-in attempt ${attempt}/3...`);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (!error && data?.session) {
+        sessionData = data;
+        console.log(`✅ Sign-in successful on attempt ${attempt}`);
+        break;
+      }
+
+      lastError = error;
+      console.warn(`⚠️ Attempt ${attempt} failed:`, error?.message);
+
+      // Wait with exponential backoff before retrying
+      if (attempt < 3) {
+        const delay = 400 * attempt; // 400ms, 800ms
+        console.log(`⏳ Waiting ${delay}ms before retry...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
     }
 
     if (!sessionData?.session) {
-      throw new Error('No session returned from signInWithPassword');
+      console.error('❌ All sign-in attempts failed:', lastError);
+      throw lastError || new Error('Failed to create session after 3 attempts');
     }
 
     console.log('✅ Session created successfully');

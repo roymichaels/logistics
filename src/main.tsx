@@ -116,8 +116,23 @@ function LoadingScreen() {
       direction: 'rtl',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
-      <div style={{ fontSize: '48px', marginBottom: '24px' }}>⏳</div>
-      <h1 style={{ fontSize: '20px', marginBottom: '16px' }}>טוען את האפליקציה...</h1>
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .loading-spinner {
+          width: 48px;
+          height: 48px;
+          border: 4px solid #e0e0e0;
+          border-top-color: #007aff;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin-bottom: 24px;
+        }
+      `}</style>
+      <div className="loading-spinner" />
+      <h1 style={{ fontSize: '20px', marginBottom: '16px', fontWeight: '600' }}>טוען את האפליקציה...</h1>
       <p style={{ fontSize: '14px', color: '#666' }}>אנא המתן</p>
     </div>
   );

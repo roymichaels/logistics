@@ -436,14 +436,26 @@ export default function App() {
         padding: '20px',
         textAlign: 'center'
       }}>
-        <div style={{
-          fontSize: '48px',
-          marginBottom: '20px',
-          animation: 'pulse 2s ease-in-out infinite'
-        }}>
-          🔐
-        </div>
-        <div style={{ fontSize: '18px', marginBottom: '10px' }}>
+        <style>{`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+          .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid ${theme.hint_color || '#ccc'};
+            border-top-color: ${theme.button_color || '#007aff'};
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+        `}</style>
+        <div className="spinner" style={{ marginBottom: '20px' }} />
+        <div style={{ fontSize: '18px', marginBottom: '10px', fontWeight: '600' }}>
           מאמת זהות...
         </div>
         <div style={{ fontSize: '14px', opacity: 0.7 }}>

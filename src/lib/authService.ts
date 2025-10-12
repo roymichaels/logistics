@@ -266,8 +266,14 @@ class AuthService {
             userFriendlyError = 'אימות Telegram נכשל. אנא ודא שהאפליקציה נפתחה מתוך Telegram.\n\nTelegram authentication failed. Please ensure the app is opened from within Telegram.';
           }
         } else if (response.status === 500) {
-          if (!errorData.error || errorData.error === 'Internal server error') {
-            userFriendlyError = 'שגיאת שרת. אנא נסה שוב מאוחר יותר.\n\nServer error. Please try again later.';
+          // More specific error message for 500 errors
+          const errorDetail = errorData.error || 'Internal server error';
+          if (errorDetail.includes('Invalid login credentials')) {
+            userFriendlyError = 'שגיאת אימות זמנית. מנסה שוב...\n\nTemporary authentication error. Retrying...';
+          } else if (errorDetail.includes('TELEGRAM_BOT_TOKEN')) {
+            userFriendlyError = 'תצורת הבוט לא תקינה. אנא צור קשר עם התמיכה.\n\nBot configuration error. Please contact support.';
+          } else {
+            userFriendlyError = `שגיאת שרת: ${errorDetail}\n\nServer error: ${errorDetail}`;
           }
         } else if (response.status === 400) {
           if (!errorData.error || errorData.error.includes('Invalid')) {
