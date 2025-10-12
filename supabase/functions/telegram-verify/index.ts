@@ -202,6 +202,7 @@ Deno.serve(async req => {
     }
 
     const email = `telegram_${telegramId}@twa.local`;
+    const password = `twa_${telegramId}_${botToken.slice(0, 10)}`;
 
     console.log('🔍 Looking up auth user...');
     const { data: existingAuthUsers } = await supabase.auth.admin.listUsers();
@@ -239,7 +240,7 @@ Deno.serve(async req => {
       console.log('➕ Creating auth user...');
       const { data: newAuth, error: createError } = await supabase.auth.admin.createUser({
         email,
-        password: crypto.randomUUID(),
+        password,
         email_confirm: true,
         user_metadata: {
           telegram_id: telegramId,
@@ -263,22 +264,30 @@ Deno.serve(async req => {
       console.log('✅ Auth user created:', authUserId);
     }
 
-    console.log('🎫 Creating session using admin API...');
+    console.log('🎫 Generating session tokens using signInWithPassword...');
 
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.createSession({
-      user_id: authUserId,
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      }
     });
 
-    if (sessionError || !sessionData?.session) {
-      console.error('❌ Session creation failed:', sessionError);
-      throw new Error(`Failed to create session: ${sessionError?.message || 'No session returned'}`);
+    const { data: sessionData, error: signInError } = await adminClient.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError || !sessionData?.session) {
+      console.error('❌ Session generation failed:', signInError);
+      throw new Error(`Failed to generate session: ${signInError?.message || 'No session returned'}`);
     }
 
-    console.log('✅ Session created successfully');
+    console.log('✅ Session tokens generated successfully');
 
     if (!sessionData.session.access_token || !sessionData.session.refresh_token) {
       console.error('❌ Session missing tokens:', sessionData.session);
-      throw new Error('Session created but tokens are missing');
+      throw new Error('Session generated but tokens are missing');
     }
 
     console.log('✅ Session tokens validated successfully');
@@ -313,7 +322,7 @@ Deno.serve(async req => {
     if (err instanceof Error) {
       errorMessage = err.message;
 
-      if (errorMessage.includes('Failed to create session')) {
+      if (errorMessage.includes('Failed to generate session')) {
         statusCode = 500;
         errorMessage = 'שגיאה ביצירת הפעלה / Failed to create session. Please try again.';
       } else if (errorMessage.includes('Failed to create user')) {
