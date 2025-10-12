@@ -1,306 +1,267 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState
+} from 'react';
+import { BootstrapConfig, User } from '../data/types';
+import { createFrontendDataStore, FrontendDataStore } from '../lib/frontendDataStore';
+import { debugLog } from '../components/DebugPanel';
 import { useAuth } from './AuthContext';
-import { getSupabase } from '../lib/supabaseClient';
+import { userService } from '../lib/userService';
 
-interface User {
-  id: string;
-  telegram_id: number;
-  username?: string;
-  first_name: string;
-  last_name?: string;
-  photo_url?: string;
-  role?: string;
-  created_at?: string;
-}
+export type AppUserRole =
+  | 'user'
+  | 'infrastructure_owner'
+  | 'business_owner'
+  | 'owner'
+  | 'manager'
+  | 'driver'
+  | 'warehouse'
+  | 'sales'
+  | 'dispatcher'
+  | 'customer_service'
+  | null;
 
-interface DataStore {
-  [key: string]: any;
-}
-
-interface AppConfig {
-  [key: string]: any;
-}
-
-interface AppServicesContextType {
+export interface AppServicesContextValue {
   user: User | null;
-  userRole: string | null;
-  dataStore: DataStore | null;
-  config: AppConfig;
+  userRole: AppUserRole;
+  dataStore: FrontendDataStore | null;
+  config: BootstrapConfig | null;
   loading: boolean;
   error: string | null;
   refreshUserRole: (options?: { forceRefresh?: boolean }) => Promise<void>;
   logout: () => void;
   currentBusinessId: string | null;
+  setBusinessId: (businessId: string | null) => void;
 }
 
-const AppServicesContext = createContext<AppServicesContextType | undefined>(undefined);
-
-export const useAppServices = () => {
-  const context = useContext(AppServicesContext);
-  if (!context) {
-    throw new Error('useAppServices must be used within an AppServicesProvider');
-  }
-  return context;
-};
+const AppServicesContext = createContext<AppServicesContextValue | undefined>(undefined);
 
 interface AppServicesProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
+  value?: AppServicesContextValue;
 }
 
-export const AppServicesProvider: React.FC<AppServicesProviderProps> = ({ children }) => {
-  const auth = useAuth();
+export function AppServicesProvider({ children, value }: AppServicesProviderProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [dataStore, setDataStore] = useState<DataStore | null>(null);
-  const [config, setConfig] = useState<AppConfig>({});
-  const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<AppUserRole>(null);
+  const [dataStore, setDataStore] = useState<FrontendDataStore | null>(null);
+  const [config, setConfig] = useState<BootstrapConfig | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const [authAttempted, setAuthAttempted] = useState(false);
-  const [initAttempted, setInitAttempted] = useState(false);
 
-  useEffect(() => {
-    if (!auth.loading) {
-      if (auth.user && !initAttempted) {
-        console.log('[INFO] 🎯 User authenticated, initializing app services...');
-        setInitAttempted(true);
-        setRetryCount(0);
-        initializeAppServices(auth.user);
-      } else if (!auth.user && !authAttempted) {
-        console.log('[INFO] 🔐 No user session, starting Telegram authentication...');
-        authenticateWithTelegram();
-      } else if (!auth.user && authAttempted) {
-        console.log('[INFO] ⚠️ Authentication attempted but no user session');
-        setLoading(false);
-      }
+  const auth = value ? null : useAuth();
+
+  const setBusinessId = useCallback((businessId: string | null) => {
+    setCurrentBusinessId(prev => (prev === businessId ? prev : businessId));
+  }, []);
+
+  const logout = useCallback(async () => {
+    debugLog.info('🚪 Logging out user');
+    if (auth) {
+      await auth.signOut();
     }
-  }, [auth.loading, auth.user]);
-
-  const authenticateWithTelegram = async () => {
-    if (authAttempted) {
-      console.log('⚠️ Authentication already attempted, skipping...');
-      return;
-    }
-
-    setAuthAttempted(true);
-
-    try {
-      console.log('🔑 No existing session, authenticating with Telegram...');
-
-      if (!window.Telegram?.WebApp?.initData) {
-        throw new Error('Telegram WebApp data not available');
-      }
-
-      await auth.login(window.Telegram.WebApp.initData);
-
-      console.log('✅ Session established successfully');
-    } catch (err) {
-      console.error('❌ Telegram authentication failed:', err);
-      setError(err instanceof Error ? err.message : 'Authentication failed');
-      setLoading(false);
-    }
-  };
-
-  const initializeAppServices = async (authenticatedUser: User, forceRefresh = false) => {
-    try {
-      console.log(`[INFO] 🚀 AppServicesProvider initializing with authenticated user: ${authenticatedUser.first_name}`);
-      console.log(`[INFO] 📊 Retry count: ${retryCount}, User ID: ${authenticatedUser.id}, Telegram ID: ${authenticatedUser.telegram_id}`);
-
-      setLoading(true);
-      setError(null);
-
-      console.log('[INFO] 👤 Fetching full user profile from database...');
-      const fullUserProfile = await fetchUserProfile(authenticatedUser.id, authenticatedUser.telegram_id?.toString());
-
-      if (!fullUserProfile) {
-        throw new Error('Failed to fetch user profile');
-      }
-
-      console.log(`[SUCCESS] ✅ User profile fetched: ${fullUserProfile.first_name}`);
-
-      setUser(fullUserProfile);
-      setUserRole(fullUserProfile.role || 'user');
-
-      console.log('[INFO] 💾 Creating data store...');
-      const store = createDataStore(fullUserProfile);
-      setDataStore(store);
-      console.log('[SUCCESS] ✅ Data store created');
-
-      setLoading(false);
-      console.log('[SUCCESS] 🎉 AppServicesProvider initialized successfully!');
-    } catch (err) {
-      console.error('[ERROR] ❌ Failed to initialize app services:', err);
-
-      if (retryCount < 2) {
-        const delay = 1000 * Math.pow(2, retryCount);
-        console.log(`[INFO] 🔄 Retrying initialization (attempt ${retryCount + 1}/3) in ${delay}ms...`);
-        setRetryCount(prev => prev + 1);
-        setTimeout(() => {
-          if (authenticatedUser) {
-            initializeAppServices(authenticatedUser, forceRefresh);
-          }
-        }, delay);
-      } else {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to initialize services';
-        console.error('[ERROR] ❌ Max retries reached. Error:', errorMessage);
-        setError(errorMessage);
-        setLoading(false);
-      }
-    }
-  };
-
-  const fetchUserProfile = async (userId: string, telegramId?: string): Promise<User | null> => {
-    try {
-      console.log('🔍 Fetching user profile from database:', { userId, telegramId });
-
-      const supabase = getSupabase();
-
-      let data = null;
-      let error = null;
-
-      if (telegramId) {
-        console.log('🔍 Attempting lookup by telegram_id:', telegramId);
-        const result = await supabase
-          .from('users')
-          .select('*')
-          .eq('telegram_id', telegramId)
-          .maybeSingle();
-
-        data = result.data;
-        error = result.error;
-      }
-
-      if (!data && !error) {
-        console.log('🔍 Attempting lookup by id:', userId);
-        const result = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', userId)
-          .maybeSingle();
-
-        data = result.data;
-        error = result.error;
-      }
-
-      if (error) {
-        console.error('❌ Error fetching user profile:', error);
-        return null;
-      }
-
-      if (!data) {
-        console.warn('⚠️ No user profile found for:', { userId, telegramId });
-        return null;
-      }
-
-      console.log('✅ User profile fetched:', data.first_name, 'Role:', data.role);
-
-      return {
-        id: data.id,
-        telegram_id: data.telegram_id,
-        username: data.username,
-        first_name: data.first_name,
-        last_name: data.last_name,
-        photo_url: data.photo_url,
-        role: data.role,
-        created_at: data.created_at
-      };
-    } catch (err) {
-      console.error('❌ Exception fetching user profile:', err);
-      return null;
-    }
-  };
-
-  const fetchUserProfileByTelegramId = async (telegramId: number): Promise<User | null> => {
-    try {
-      console.log('🔍 Fetching user profile by telegram_id:', telegramId);
-
-      const supabase = getSupabase();
-
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('telegram_id', telegramId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('❌ Error fetching user profile:', error);
-        return null;
-      }
-
-      if (!data) {
-        console.warn('⚠️ No user profile found for telegram_id:', telegramId);
-        return null;
-      }
-
-      console.log('✅ User profile fetched:', data.first_name);
-
-      return {
-        id: data.id,
-        telegram_id: data.telegram_id,
-        username: data.username,
-        first_name: data.first_name,
-        last_name: data.last_name,
-        photo_url: data.photo_url,
-        role: data.role,
-        created_at: data.created_at
-      };
-    } catch (err) {
-      console.error('❌ Exception fetching user profile:', err);
-      return null;
-    }
-  };
-
-  const createDataStore = (userProfile: User): DataStore => {
-    const supabase = getSupabase();
-
-    return {
-      supabase,
-      user: userProfile,
-      role: userProfile.role || 'user'
-    };
-  };
-
-  const refreshUserRole = async (options?: { forceRefresh?: boolean }) => {
-    try {
-      if (!user) {
-        console.warn('⚠️ Cannot refresh role: no user available');
-        return;
-      }
-
-      console.log('🔄 Refreshing user role from database...');
-
-      const freshProfile = await fetchUserProfile(user.id);
-
-      if (freshProfile && freshProfile.role) {
-        const oldRole = userRole;
-        const newRole = freshProfile.role;
-
-        setUser(freshProfile);
-        setUserRole(newRole);
-
-        if (oldRole !== newRole) {
-          console.log(`🔄 User role changed from ${oldRole} to ${newRole}`);
-
-          const store = createDataStore(freshProfile);
-          setDataStore(store);
-        }
-
-        console.log('✅ User role refreshed:', newRole);
-      }
-    } catch (err) {
-      console.error('❌ Failed to refresh user role:', err);
-    }
-  };
-
-  const logout = () => {
     setUser(null);
     setUserRole(null);
     setDataStore(null);
-    auth.logout();
-  };
+    setCurrentBusinessId(null);
+  }, [auth]);
 
-  const value: AppServicesContextType = {
+  const refreshUserRole = useCallback(
+    async ({ forceRefresh = true }: { forceRefresh?: boolean } = {}) => {
+      if (!user?.id) {
+        debugLog.warn('⚠️ Cannot refresh user role - no user ID');
+        return;
+      }
+
+      try {
+        debugLog.info('🔄 Refreshing user role');
+        const profile = await userService.getUserProfile(user.id, forceRefresh);
+
+        const updatedUser: User = {
+          ...user,
+          ...profile,
+        };
+
+        setUser(updatedUser);
+        setUserRole((profile.role as AppUserRole) ?? 'user');
+        debugLog.success(`✅ User role updated to ${profile.role}`);
+      } catch (err) {
+        debugLog.error('❌ Failed to refresh user role', err);
+      }
+    },
+    [user]
+  );
+
+  useEffect(() => {
+    if (value) {
+      return;
+    }
+
+    if (!auth) {
+      return;
+    }
+
+    if (!auth.isAuthenticated || auth.isLoading) {
+      debugLog.info('⏳ Waiting for authentication...');
+      setLoading(true);
+      return;
+    }
+
+    if (!auth.user) {
+      debugLog.error('❌ No authenticated user available');
+      setError('No authenticated user');
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const initialize = async () => {
+      try {
+        debugLog.info('🚀 AppServicesProvider initializing with authenticated user:', auth.user?.name);
+
+        const appConfig: BootstrapConfig = {
+          app: 'miniapp',
+          adapters: { data: 'supabase' },
+          features: {
+            offline_mode: true,
+            photo_upload: true,
+            gps_tracking: true,
+            route_optimization: false,
+          },
+          ui: {
+            brand: 'מערכת לוגיסטיקה',
+            accent: '#007aff',
+            theme: 'auto',
+            language: 'he'
+          },
+          defaults: {
+            mode: 'real' as const,
+          },
+        };
+
+        if (cancelled) return;
+
+        setConfig(appConfig);
+
+        const appUser: User = {
+          id: auth.user.id,
+          telegram_id: auth.user.telegram_id,
+          username: auth.user.username || undefined,
+          name: auth.user.name,
+          photo_url: auth.user.photo_url || undefined,
+          role: auth.user.role as any,
+        };
+
+        setUser(appUser);
+        setUserRole(auth.user.role as AppUserRole);
+
+        if (cancelled) return;
+
+        debugLog.info('💾 Creating data store...');
+        const store = await createFrontendDataStore(appConfig, 'real', appUser);
+
+        if (cancelled) return;
+
+        setDataStore(store);
+        debugLog.success('✅ Data store created');
+
+        try {
+          debugLog.info('👤 Fetching full user profile from database...');
+          const profile = await userService.getUserProfile(auth.user.id, true);
+
+          if (cancelled) return;
+
+          const fullUser: User = {
+            ...appUser,
+            ...profile,
+          };
+
+          setUser(fullUser);
+          setUserRole((profile.role as AppUserRole) ?? 'user');
+          debugLog.success(`✅ User profile loaded: ${profile.name}`);
+        } catch (profileError) {
+          debugLog.warn('⚠️ Failed to fetch extended profile', profileError);
+        }
+
+        if (!cancelled) {
+          setLoading(false);
+          debugLog.success('🎉 AppServicesProvider initialized successfully!');
+        }
+      } catch (err) {
+        if (cancelled) {
+          debugLog.info('🚿 Error occurred but initialization was cancelled, ignoring');
+          return;
+        }
+
+        debugLog.error('❌ AppServicesProvider initialization failed', err);
+        console.error('AppServicesProvider initialization failed:', err);
+
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to initialize app');
+          setLoading(false);
+        }
+      }
+    };
+
+    initialize();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [value, auth?.isAuthenticated, auth?.isLoading, auth?.user]);
+
+  useEffect(() => {
+    if (value || !dataStore?.getActiveBusinessContext) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const syncBusinessContext = async () => {
+      try {
+        const context = await dataStore.getActiveBusinessContext?.();
+        if (!cancelled) {
+          setCurrentBusinessId(context?.active_business_id ?? null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          debugLog.warn('⚠️ Failed to load active business context', err);
+        }
+      }
+    };
+
+    syncBusinessContext();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [value, dataStore]);
+
+  const contextValue = useMemo<AppServicesContextValue>(() => {
+    if (value) {
+      return value;
+    }
+
+    return {
+      user,
+      userRole,
+      dataStore,
+      config,
+      loading,
+      error,
+      refreshUserRole,
+      logout,
+      currentBusinessId,
+      setBusinessId
+    };
+  }, [
+    value,
     user,
     userRole,
     dataStore,
@@ -309,8 +270,17 @@ export const AppServicesProvider: React.FC<AppServicesProviderProps> = ({ childr
     error,
     refreshUserRole,
     logout,
-    currentBusinessId
-  };
+    currentBusinessId,
+    setBusinessId
+  ]);
 
-  return <AppServicesContext.Provider value={value}>{children}</AppServicesContext.Provider>;
-};
+  return <AppServicesContext.Provider value={contextValue}>{children}</AppServicesContext.Provider>;
+}
+
+export function useAppServices() {
+  const context = useContext(AppServicesContext);
+  if (!context) {
+    throw new Error('useAppServices must be used within an AppServicesProvider');
+  }
+  return context;
+}

@@ -1,200 +1,192 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getSupabase } from '../lib/supabaseClient';
-import { getConfig } from '../lib/config';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { authService, AuthState, AuthUser } from '../lib/authService';
 
-interface TelegramUser {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-  language_code?: string;
+interface AuthContextValue extends AuthState {
+  signOut: () => Promise<void>;
+  refreshSession: () => Promise<void>;
+  authenticate: () => Promise<void>;
 }
 
-interface User {
-  id: string;
-  telegram_id: number;
-  username?: string;
-  first_name: string;
-  last_name?: string;
-  photo_url?: string;
-  role?: string;
-  created_at?: string;
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+interface AuthProviderProps {
+  children: React.ReactNode;
 }
 
-interface AuthContextType {
-  user: User | null;
-  telegramUser: TelegramUser | null;
-  session: any;
-  loading: boolean;
-  error: string | null;
-  login: (telegramInitData: string) => Promise<void>;
-  logout: () => void;
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [authState, setAuthState] = useState<AuthState>(authService.getState());
+
+  useEffect(() => {
+    const unsubscribe = authService.subscribe((state) => {
+      setAuthState(state);
+    });
+
+    authService.initialize().catch(error => {
+      console.error('❌ Auth initialization error:', error);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  const signOut = async () => {
+    await authService.signOut();
+  };
+
+  const refreshSession = async () => {
+    await authService.refreshSession();
+  };
+
+  const authenticate = async () => {
+    await authService.authenticateWithTelegram();
+  };
+
+  const value: AuthContextValue = {
+    ...authState,
+    signOut,
+    refreshSession,
+    authenticate,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
+export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
-
-interface AuthProviderProps {
-  children: ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading, error, authenticate } = useAuth();
+  const [loadingTimeout, setLoadingTimeout] = React.useState(false);
 
-  useEffect(() => {
-    initializeAuth();
-  }, []);
+  React.useEffect(() => {
+    if (isLoading) {
+      const timer = setTimeout(() => {
+        setLoadingTimeout(true);
+      }, 15000);
 
-  const initializeAuth = async () => {
-    try {
-      console.log('🔐 Initializing authentication...');
-
-      const supabase = getSupabase();
-
-      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError) {
-        console.error('Session error:', sessionError);
-        setError(sessionError.message);
-        setLoading(false);
-        return;
-      }
-
-      if (currentSession) {
-        console.log('✅ Session found');
-        setSession(currentSession);
-
-        const userData = currentSession.user?.user_metadata;
-        if (userData) {
-          const dbUserId = userData.db_user_id || currentSession.user.id;
-
-          setUser({
-            id: dbUserId,
-            telegram_id: userData.telegram_id,
-            username: userData.username,
-            first_name: userData.first_name,
-            last_name: userData.last_name,
-            photo_url: userData.photo_url,
-            role: userData.role
-          });
-
-          setTelegramUser({
-            id: userData.telegram_id,
-            first_name: userData.first_name,
-            last_name: userData.last_name,
-            username: userData.username,
-            photo_url: userData.photo_url
-          });
-        }
-      } else {
-        console.log('ℹ️ No session found, will authenticate with Telegram');
-      }
-
-      setLoading(false);
-    } catch (err) {
-      console.error('❌ Auth initialization error:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      setLoading(false);
+      return () => clearTimeout(timer);
+    } else {
+      setLoadingTimeout(false);
     }
-  };
+  }, [isLoading]);
 
-  const login = async (telegramInitData: string) => {
-    try {
-      setLoading(true);
-      setError(null);
+  if (isLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        padding: '20px',
+        textAlign: 'center',
+        direction: 'rtl',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      }}>
+        <style>{`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          .auth-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e0e0e0;
+            border-top-color: #007aff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 24px;
+          }
+        `}</style>
+        <div className="auth-spinner" />
+        <h1 style={{ fontSize: '20px', marginBottom: '16px', fontWeight: '600' }}>מאמת זהות...</h1>
+        <p style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>אנא המתן</p>
+        {loadingTimeout && (
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: '#007aff',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              marginTop: '16px'
+            }}
+          >
+            האימות לוקח זמן רב? לחץ לרענון
+          </button>
+        )}
+      </div>
+    );
+  }
 
-      console.log('📱 Starting Telegram authentication...');
+  if (error) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        padding: '20px',
+        textAlign: 'center',
+        direction: 'rtl',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      }}>
+        <div style={{ fontSize: '64px', marginBottom: '24px' }}>⚠️</div>
+        <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>שגיאת אימות</h1>
+        <p style={{ fontSize: '16px', color: '#666', marginBottom: '24px', maxWidth: '400px', whiteSpace: 'pre-line' }}>
+          {error}
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            padding: '12px 24px',
+            backgroundColor: '#007aff',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '16px',
+            cursor: 'pointer',
+            fontFamily: 'inherit'
+          }}
+        >
+          נסה שוב
+        </button>
+      </div>
+    );
+  }
 
-      const config = await getConfig();
-      const supabase = getSupabase();
+  if (!isAuthenticated) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        padding: '20px',
+        textAlign: 'center',
+        direction: 'rtl',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      }}>
+        <div style={{ fontSize: '64px', marginBottom: '24px' }}>🔒</div>
+        <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>נדרש אימות</h1>
+        <p style={{ fontSize: '16px', color: '#666', marginBottom: '24px' }}>
+          יש לפתוח את האפליקציה מתוך טלגרם
+        </p>
+      </div>
+    );
+  }
 
-      const endpoint = `${config.supabaseUrl}/functions/v1/telegram-verify`;
-
-      console.log('📡 Calling telegram-verify endpoint...');
-      console.log('🔍 Endpoint:', endpoint);
-      console.log('🔍 Has initData:', !!telegramInitData, 'Length:', telegramInitData?.length || 0);
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.supabaseAnonKey}`
-        },
-        body: JSON.stringify({ initData: telegramInitData })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Authentication failed');
-      }
-
-      const data = await response.json();
-      console.log('✅ Authentication successful');
-
-      if (data.session) {
-        setSession(data.session);
-        await supabase.auth.setSession(data.session);
-      }
-
-      if (data.user) {
-        setUser({
-          id: data.user.id,
-          telegram_id: data.user.telegram_id,
-          username: data.user.username,
-          first_name: data.user.first_name,
-          last_name: data.user.last_name,
-          photo_url: data.user.photo_url,
-          role: data.user.role
-        });
-
-        setTelegramUser({
-          id: data.user.telegram_id,
-          first_name: data.user.first_name,
-          last_name: data.user.last_name,
-          username: data.user.username,
-          photo_url: data.user.photo_url
-        });
-      }
-
-      setLoading(false);
-    } catch (err) {
-      console.error('❌ Login error:', err);
-      setError(err instanceof Error ? err.message : 'Login failed');
-      setLoading(false);
-      throw err;
-    }
-  };
-
-  const logout = () => {
-    setUser(null);
-    setTelegramUser(null);
-    setSession(null);
-
-    const supabase = getSupabase();
-    supabase.auth.signOut();
-  };
-
-  const value: AuthContextType = {
-    user,
-    telegramUser,
-    session,
-    loading,
-    error,
-    login,
-    logout
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+  return <>{children}</>;
+}

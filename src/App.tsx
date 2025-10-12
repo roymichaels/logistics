@@ -120,8 +120,6 @@ type Page =
   | 'zone-management';
 
 export default function App() {
-  const appServicesContext = useAppServices();
-
   const {
     user,
     userRole,
@@ -132,7 +130,7 @@ export default function App() {
     refreshUserRole,
     logout,
     currentBusinessId
-  } = appServicesContext;
+  } = useAppServices();
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [showOrderWizard, setShowOrderWizard] = useState(false);
   const [showBusinessManager, setShowBusinessManager] = useState(false);
@@ -594,12 +592,11 @@ export default function App() {
           minHeight: '100vh',
           backgroundColor: theme.bg_color,
           color: theme.text_color,
-          paddingBottom: '80px',
-          paddingTop: user && dataStore ? '60px' : '0'
+          paddingBottom: '80px', // Space for bottom nav
+          paddingTop: '60px' // Space for header
         }}>
-          {user && dataStore && (
-            <Header onNavigate={handleNavigate} onLogout={handleLogout} />
-          )}
+          {/* Header */}
+          <Header onNavigate={handleNavigate} onLogout={handleLogout} />
 
         <Suspense
           fallback={
@@ -647,15 +644,13 @@ export default function App() {
           onNavigate={handleNavigate}
         />
 
-        {/* Floating Action Menu - Only render when user is available */}
-        {user && (
-          <FloatingActionMenu
-            onNavigate={handleNavigate}
-            onShowModeSelector={handleShowCreateOrder}
-            isOpen={showActionMenu}
-            onClose={() => setShowActionMenu(false)}
-          />
-        )}
+        {/* Floating Action Menu */}
+        <FloatingActionMenu
+          onNavigate={handleNavigate}
+          onShowModeSelector={handleShowCreateOrder}
+          isOpen={showActionMenu}
+          onClose={() => setShowActionMenu(false)}
+        />
 
         {/* Modals */}
         {showOrderWizard && dataStore && (

@@ -1,50 +1,178 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { getConfig } from './config';
 
-let supabaseInstance: SupabaseClient | null = null;
-let initPromise: Promise<void> | null = null;
+let client: SupabaseClient | null = null;
+let configPromise: Promise<{supabaseUrl: string; supabaseAnonKey: string}> | null = null;
+let config: {supabaseUrl: string; supabaseAnonKey: string} | null = null;
+let initPromise: Promise<SupabaseClient> | null = null;
+let isInitialized = false;
 
-export const initSupabase = async (): Promise<void> => {
+// Global deduplication flag stored on window to survive React StrictMode double renders
+if (typeof window !== 'undefined') {
+  (window as any).__SUPABASE_INIT_IN_PROGRESS__ = (window as any).__SUPABASE_INIT_IN_PROGRESS__ || false;
+}
+
+async function loadConfig(): Promise<{supabaseUrl: string; supabaseAnonKey: string}> {
+  if (config) {
+    return config;
+  }
+
+  if (configPromise) {
+    return configPromise;
+  }
+
+  configPromise = (async () => {
+    try {
+      // Try build-time env vars first (for local development)
+      const buildTimeUrl = import.meta.env.VITE_SUPABASE_URL;
+      const buildTimeKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      if (buildTimeUrl && buildTimeKey && buildTimeUrl !== 'undefined' && buildTimeKey !== 'undefined') {
+        console.log('✅ Using build-time configuration (local dev)');
+        config = {
+          supabaseUrl: buildTimeUrl,
+          supabaseAnonKey: buildTimeKey,
+        };
+        return config;
+      }
+
+      // Fallback to runtime config from Edge Function
+      console.log('🔄 Fetching runtime configuration...');
+
+      // Use a hardcoded project URL for the config endpoint
+      // This is the only hardcoded value, and it's safe because it's just the project identifier
+      const configUrl = 'https://ncuyyjvvzeaqqjganbzz.supabase.co/functions/v1/app-config';
+
+      const response = await fetch(configUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to load config: ${response.status} ${response.statusText}`);
+      }
+
+      const runtimeConfig = await response.json();
+
+      if (!runtimeConfig.supabaseUrl || !runtimeConfig.supabaseAnonKey) {
+        throw new Error('Invalid configuration received from server');
+      }
+
+      console.log('✅ Runtime configuration loaded successfully');
+      config = runtimeConfig;
+      return config;
+    } catch (error) {
+      console.error('❌ Failed to load configuration:', error);
+      throw new Error('Failed to initialize application configuration');
+    }
+  })();
+
+  return configPromise;
+}
+
+export async function initSupabase(): Promise<SupabaseClient> {
+  // Check global flag first (survives React StrictMode double renders)
+  if (typeof window !== 'undefined' && (window as any).__SUPABASE_INITIALIZED__) {
+    if (client && isInitialized) {
+      console.log('✅ Supabase client already initialized (global flag), returning existing instance');
+      return client;
+    }
+  }
+
+  // If already initialized, return existing client
+  if (client && isInitialized) {
+    console.log('✅ Supabase client already initialized, returning existing instance');
+    return client;
+  }
+
+  // If initialization is in progress, wait for it (critical for React StrictMode)
   if (initPromise) {
+    console.log('⏳ Supabase initialization in progress (deduplicated), waiting for existing promise...');
     return initPromise;
   }
 
+  // Check window-level flag to prevent duplicate inits across renders
+  if (typeof window !== 'undefined') {
+    if ((window as any).__SUPABASE_INIT_IN_PROGRESS__) {
+      console.log('⏳ Supabase init already in progress globally, waiting...');
+      // Wait a bit and retry
+      await new Promise(resolve => setTimeout(resolve, 50));
+      if (client && isInitialized) {
+        return client;
+      }
+    }
+    (window as any).__SUPABASE_INIT_IN_PROGRESS__ = true;
+  }
+
+  // Start new initialization
+  console.log('🔧 Starting Supabase client initialization...');
+  const startTime = performance.now();
+
   initPromise = (async () => {
     try {
-      console.log('🔧 Starting Supabase client initialization...');
+      const { supabaseUrl, supabaseAnonKey } = await loadConfig();
 
-      const config = await getConfig();
-
-      const startTime = performance.now();
-
-      const storageKey = 'twa-undergroundlab';
-
-      supabaseInstance = createClient(config.supabaseUrl, config.supabaseAnonKey, {
+      client = createClient(supabaseUrl, supabaseAnonKey, {
         auth: {
-          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-          autoRefreshToken: true,
+          storageKey: 'twa-undergroundlab',
           persistSession: true,
+          autoRefreshToken: true,
           detectSessionInUrl: false,
-          storageKey: storageKey
-        }
+        },
+        global: {
+          headers: {
+            'x-app': 'undergroundlab-twa',
+          },
+        },
       });
 
+      // Set flags IMMEDIATELY after client creation, before any async operations
+      isInitialized = true;
+
+      if (typeof window !== 'undefined') {
+        (window as any).__SUPABASE_CLIENT__ = client;
+        (window as any).__SUPABASE_INITIALIZED__ = true;
+        (window as any).__SUPABASE_INIT_IN_PROGRESS__ = false;
+      }
+
       const endTime = performance.now();
-      console.log(`🔧 Singleton Supabase client created with storageKey: ${storageKey} (${(endTime - startTime).toFixed(2)}ms)`);
+      console.log(`🔧 Singleton Supabase client created with storageKey: twa-undergroundlab (${(endTime - startTime).toFixed(2)}ms)`);
+
+      return client;
     } catch (error) {
-      console.error('❌ Failed to initialize Supabase:', error);
+      // Reset state on error so retry is possible
+      initPromise = null;
+      isInitialized = false;
+
+      if (typeof window !== 'undefined') {
+        (window as any).__SUPABASE_INIT_IN_PROGRESS__ = false;
+        (window as any).__SUPABASE_INITIALIZED__ = false;
+      }
+
+      console.error('❌ Supabase initialization failed:', error);
       throw error;
     }
   })();
 
   return initPromise;
-};
+}
 
-export const getSupabase = (): SupabaseClient => {
-  if (!supabaseInstance) {
-    throw new Error('Supabase not initialized. Call initSupabase() first.');
+export function getSupabase(): SupabaseClient {
+  if (!client || !isInitialized) {
+    throw new Error('Supabase client not initialized. Call initSupabase() first.');
   }
-  return supabaseInstance;
-};
+  return client;
+}
 
-export default getSupabase;
+export function isSupabaseInitialized(): boolean {
+  return isInitialized && client !== null;
+}
+
+export function getSupabaseSession() {
+  const supabase = getSupabase();
+  return supabase.auth.getSession();
+}
+
+// Export config loader for other uses
+export { loadConfig };
