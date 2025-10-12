@@ -124,22 +124,45 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         debugLog.info('🔍 Verifying Supabase client is initialized...');
         const { isSupabaseInitialized } = await import('../lib/supabaseClient');
 
-        if (!isSupabaseInitialized()) {
-          debugLog.warn('⚠️ Supabase not initialized yet, waiting for main.tsx initialization...');
-          // Wait a bit for main.tsx to complete initialization
-          await new Promise(resolve => setTimeout(resolve, 100));
+        // Wait for Supabase to be initialized with timeout
+        const maxWaitTime = 10000; // 10 seconds
+        const startWait = Date.now();
 
-          if (!isSupabaseInitialized()) {
-            throw new Error('Supabase client not initialized. main.tsx should initialize it first.');
+        while (!isSupabaseInitialized()) {
+          if (cancelled) {
+            debugLog.info('🚿 Initialization cancelled (component unmounted)');
+            return;
           }
+
+          if (Date.now() - startWait > maxWaitTime) {
+            throw new Error('Timeout waiting for Supabase initialization. main.tsx should have initialized it.');
+          }
+
+          debugLog.warn('⏳ Supabase not initialized yet, waiting for main.tsx initialization...');
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        if (cancelled) {
+          debugLog.info('🚿 Initialization cancelled after Supabase check');
+          return;
         }
 
         debugLog.success('✅ Supabase client verified as initialized');
 
         const { ensureTwaSession } = await import('../lib/twaAuth');
 
+        if (cancelled) {
+          debugLog.info('🚿 Initialization cancelled before auth');
+          return;
+        }
+
         debugLog.info('🔐 Ensuring Telegram WebApp session...');
         const authResult = await ensureTwaSession();
+
+        if (cancelled) {
+          debugLog.info('🚿 Initialization cancelled after auth');
+          return;
+        }
 
         if (!authResult.ok) {
           debugLog.error('❌ Failed to establish TWA session', authResult);
@@ -169,13 +192,25 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
             hint: 'נסה שוב מאוחר יותר'
           };
 
-          // Set error state and stop loading BEFORE throwing
-          setError(`${errorInfo.message}\n${errorInfo.hint}`);
-          setLoading(false);
+          // Set error state and stop loading BEFORE throwing (only if not cancelled)
+          if (!cancelled) {
+            setError(`${errorInfo.message}\n${errorInfo.hint}`);
+            setLoading(false);
+          }
           return; // Don't throw, just return early
         }
 
+        if (cancelled) {
+          debugLog.info('🚿 Initialization cancelled after auth success');
+          return;
+        }
+
         debugLog.success('✅ TWA session established with JWT claims');
+
+        if (cancelled) {
+          debugLog.info('🚿 Initialization cancelled before bootstrap');
+          return;
+        }
 
         debugLog.info('📡 Calling bootstrap...');
         const result = await bootstrap();
@@ -196,6 +231,11 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         setConfig(result.config);
         setUser(result.user as User);
 
+        if (cancelled) {
+          debugLog.info('🚿 Initialization cancelled before datastore');
+          return;
+        }
+
         debugLog.info('💾 Creating data store...');
         const store = await createFrontendDataStore(result.config, 'real', result.user as User);
 
@@ -207,6 +247,11 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         debugLog.success('✅ Data store created');
 
         try {
+          if (cancelled) {
+            debugLog.info('🚿 Initialization cancelled before profile fetch');
+            return;
+          }
+
           const params = new URLSearchParams(window.location.search);
           const forceProfileRefresh = params.has('refresh');
 
@@ -217,26 +262,40 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
             return;
           }
 
-          setUser(profile);
-          setUserRole((profile.role as AppUserRole) ?? 'owner');
-          debugLog.success(`✅ User profile loaded: ${profile.name || (profile as any)?.first_name}`);
+          if (!cancelled) {
+            setUser(profile);
+            setUserRole((profile.role as AppUserRole) ?? 'owner');
+            debugLog.success(`✅ User profile loaded: ${profile.name || (profile as any)?.first_name}`);
 
-          if (forceProfileRefresh) {
-            window.history.replaceState({}, '', window.location.pathname);
-            debugLog.info('🧹 Cleaned up refresh parameter from URL');
+            if (forceProfileRefresh) {
+              window.history.replaceState({}, '', window.location.pathname);
+              debugLog.info('🧹 Cleaned up refresh parameter from URL');
+            }
           }
         } catch (profileError) {
           debugLog.warn('⚠️ Failed to resolve user role', profileError);
-          setUserRole('owner');
+          if (!cancelled) {
+            setUserRole('owner');
+          }
         }
 
-        setLoading(false);
-        debugLog.success('🎉 AppServicesProvider initialized successfully!');
+        if (!cancelled) {
+          setLoading(false);
+          debugLog.success('🎉 AppServicesProvider initialized successfully!');
+        }
       } catch (err) {
+        if (cancelled) {
+          debugLog.info('🚿 Error occurred but initialization was cancelled, ignoring');
+          return;
+        }
+
         debugLog.error('❌ AppServicesProvider initialization failed', err);
         console.error('AppServicesProvider initialization failed:', err);
-        setError(err instanceof Error ? err.message : 'Failed to initialize app');
-        setLoading(false);
+
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to initialize app');
+          setLoading(false);
+        }
       }
     };
 
@@ -261,7 +320,9 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
           setCurrentBusinessId(context?.active_business_id ?? null);
         }
       } catch (err) {
-        debugLog.warn('⚠️ Failed to load active business context', err);
+        if (!cancelled) {
+          debugLog.warn('⚠️ Failed to load active business context', err);
+        }
       }
     };
 
