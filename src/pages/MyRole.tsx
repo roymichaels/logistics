@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
 import { Toast } from '../components/Toast';
 import { telegram } from '../lib/telegram';
+import { loadConfig } from '../lib/supabaseClient';
 
 interface MyRoleProps {
   dataStore: DataStore;
@@ -101,15 +102,16 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
       console.log('🔐 Promoting user:', userTelegramId);
       Toast.info('מעדכן הרשאות...');
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      // Load runtime configuration
+      const config = await loadConfig();
 
-      console.log('📡 Calling edge function:', `${supabaseUrl}/functions/v1/promote-manager`);
+      console.log('📡 Calling edge function:', `${config.supabaseUrl}/functions/v1/promote-manager`);
 
-      const response = await fetch(`${supabaseUrl}/functions/v1/promote-manager`, {
+      const response = await fetch(`${config.supabaseUrl}/functions/v1/promote-manager`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+          'Authorization': `Bearer ${config.supabaseAnonKey}`
         },
         body: JSON.stringify({
           telegram_id: userTelegramId,

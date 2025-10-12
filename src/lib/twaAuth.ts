@@ -1,4 +1,4 @@
-import { getSupabase } from './supabaseClient';
+import { getSupabase, loadConfig } from './supabaseClient';
 
 export type TwaAuthResult =
   | { ok: true }
@@ -42,9 +42,18 @@ export async function ensureTwaSession(): Promise<TwaAuthResult> {
 
   console.log('📱 ensureTwaSession: Found Telegram initData, calling backend');
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  // Load runtime configuration
+  let supabaseUrl: string;
+  try {
+    const config = await loadConfig();
+    supabaseUrl = config.supabaseUrl;
+  } catch (error) {
+    console.error('❌ ensureTwaSession: Failed to load configuration', error);
+    return { ok: false, reason: 'verify_failed', details: 'Failed to load configuration' };
+  }
+
   if (!supabaseUrl) {
-    console.error('❌ ensureTwaSession: No SUPABASE_URL configured');
+    console.error('❌ ensureTwaSession: No SUPABASE_URL in configuration');
     return { ok: false, reason: 'verify_failed', details: 'Missing SUPABASE_URL' };
   }
 

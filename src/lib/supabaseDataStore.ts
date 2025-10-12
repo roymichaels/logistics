@@ -1,5 +1,5 @@
 import { RealtimeChannel, createClient } from '@supabase/supabase-js';
-import { getSupabase } from './supabaseClient';
+import { getSupabase, loadConfig } from './supabaseClient';
 import {
   DataStore,
   User,
@@ -58,10 +58,6 @@ import {
 } from '../data/types';
 
 const supabase = getSupabase();
-
-// Environment variables for fresh client creation
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export { supabase };
 
@@ -799,7 +795,8 @@ export class SupabaseDataStore implements DataStore {
     console.log(`🔍 getProfile: Fetching profile for telegram_id: ${this.userTelegramId}`);
 
     // Create fresh client to bypass any caching
-    const freshClient = createClient(supabaseUrl, supabaseKey);
+    const config = await loadConfig();
+    const freshClient = createClient(config.supabaseUrl, config.supabaseAnonKey);
 
     const { data, error } = await freshClient
       .from('users')
@@ -951,9 +948,10 @@ export class SupabaseDataStore implements DataStore {
     console.log(`🔍 getCurrentRole: Fetching role for telegram_id: ${this.userTelegramId}`);
 
     // Create fresh client to bypass any caching
-    const freshClient = createClient(supabaseUrl, supabaseKey);
+    const config = await loadConfig();
+    const freshClient = createClient(config.supabaseUrl, config.supabaseAnonKey);
 
-    const { data, error } = await freshClient
+    const { data, error} = await freshClient
       .from('users')
       .select('*')
       .eq('telegram_id', this.userTelegramId)
