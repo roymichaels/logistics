@@ -72,24 +72,37 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
   useEffect(() => {
     loadSystemMetrics();
 
-    // Set up Supabase Realtime for live system monitoring
-    const ordersChannel = supabase
-      .channel('owner-orders')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'orders' },
-        () => loadSystemMetrics()
-      )
-      .subscribe();
+    // Verify supabase is available before setting up subscriptions
+    if (!supabase) {
+      console.warn('⚠️ Supabase instance not available for realtime subscriptions');
+      return;
+    }
 
-    const usersChannel = supabase
-      .channel('owner-users')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'users' },
-        () => loadSystemMetrics()
-      )
-      .subscribe();
+    // Set up Supabase Realtime for live system monitoring
+    let ordersChannel;
+    let usersChannel;
+
+    try {
+      ordersChannel = supabase
+        .channel('owner-orders')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          () => loadSystemMetrics()
+        )
+        .subscribe();
+
+      usersChannel = supabase
+        .channel('owner-users')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'users' },
+          () => loadSystemMetrics()
+        )
+        .subscribe();
+    } catch (error) {
+      console.error('❌ Failed to initialize realtime subscriptions:', error);
+    }
 
     // Auto-refresh every 2 minutes for system-wide data
     const interval = setInterval(() => {
@@ -97,8 +110,12 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
     }, 120000);
 
     return () => {
-      ordersChannel.unsubscribe();
-      usersChannel.unsubscribe();
+      if (ordersChannel) {
+        ordersChannel.unsubscribe();
+      }
+      if (usersChannel) {
+        usersChannel.unsubscribe();
+      }
       clearInterval(interval);
     };
   }, [timeRange, supabase]);

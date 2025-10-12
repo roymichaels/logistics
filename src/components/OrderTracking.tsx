@@ -106,38 +106,52 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
   useEffect(() => {
     loadOrderData();
 
-    const subscription = supabase
-      .channel(`order-${orderId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-          filter: `id=eq.${orderId}`
-        },
-        (payload: any) => {
-          console.log('Order update received:', payload);
-          loadOrderData();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'order_status_history',
-          filter: `order_id=eq.${orderId}`
-        },
-        (payload: any) => {
-          console.log('Status history update:', payload);
-          loadOrderData();
-        }
-      )
-      .subscribe();
+    // Verify supabase is available before setting up subscriptions
+    if (!supabase) {
+      console.warn('⚠️ Supabase instance not available for realtime subscriptions');
+      return;
+    }
+
+    let subscription;
+
+    try {
+      subscription = supabase
+        .channel(`order-${orderId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'orders',
+            filter: `id=eq.${orderId}`
+          },
+          (payload: any) => {
+            console.log('Order update received:', payload);
+            loadOrderData();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'order_status_history',
+            filter: `order_id=eq.${orderId}`
+          },
+          (payload: any) => {
+            console.log('Status history update:', payload);
+            loadOrderData();
+          }
+        )
+        .subscribe();
+    } catch (error) {
+      console.error('❌ Failed to initialize realtime subscriptions:', error);
+    }
 
     return () => {
-      subscription.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   }, [orderId, supabase, loadOrderData]);
 

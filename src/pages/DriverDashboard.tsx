@@ -88,33 +88,44 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
       loadDriverData();
     }, 30000);
 
-    const subscription = supabase
-      .channel('driver-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'order_assignments',
-          filter: `driver_id=eq.${user?.telegram_id}`
-        },
-        () => {
-          telegram.hapticFeedback('notification', 'success');
-          loadDriverData();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders'
-        },
-        () => {
-          loadDriverData();
-        }
-      )
-      .subscribe();
+    // Verify supabase is available before setting up subscriptions
+    let subscription;
+
+    if (supabase) {
+      try {
+        subscription = supabase
+          .channel('driver-updates')
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'order_assignments',
+              filter: `driver_id=eq.${user?.telegram_id}`
+            },
+            () => {
+              telegram.hapticFeedback('notification', 'success');
+              loadDriverData();
+            }
+          )
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'orders'
+            },
+            () => {
+              loadDriverData();
+            }
+          )
+          .subscribe();
+      } catch (error) {
+        console.error('❌ Failed to initialize realtime subscriptions:', error);
+      }
+    } else {
+      console.warn('⚠️ Supabase instance not available for realtime subscriptions');
+    }
 
     if ('geolocation' in navigator) {
       const watchId = navigator.geolocation.watchPosition(
@@ -146,13 +157,17 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
       return () => {
         navigator.geolocation.clearWatch(watchId);
         clearInterval(interval);
-        subscription.unsubscribe();
+        if (subscription) {
+          subscription.unsubscribe();
+        }
       };
     }
 
     return () => {
       clearInterval(interval);
-      subscription.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   }, [loadDriverData, user, isOnline, driverService, supabase]);
 

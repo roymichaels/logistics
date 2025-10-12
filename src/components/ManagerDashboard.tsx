@@ -78,38 +78,51 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
   useEffect(() => {
     loadDepartmentData();
 
-    // Set up Supabase Realtime for live updates
-    const ordersChannel = supabase
-      .channel('manager-orders')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders'
-        },
-        () => {
-          console.log('Order update detected');
-          loadDepartmentData();
-        }
-      )
-      .subscribe();
+    // Verify supabase is available before setting up subscriptions
+    if (!supabase) {
+      console.warn('⚠️ Supabase instance not available for realtime subscriptions');
+      return;
+    }
 
-    const restockChannel = supabase
-      .channel('manager-restock')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'restock_requests'
-        },
-        () => {
-          console.log('Restock request update detected');
-          loadDepartmentData();
-        }
-      )
-      .subscribe();
+    // Set up Supabase Realtime for live updates
+    let ordersChannel;
+    let restockChannel;
+
+    try {
+      ordersChannel = supabase
+        .channel('manager-orders')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'orders'
+          },
+          () => {
+            console.log('Order update detected');
+            loadDepartmentData();
+          }
+        )
+        .subscribe();
+
+      restockChannel = supabase
+        .channel('manager-restock')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'restock_requests'
+          },
+          () => {
+            console.log('Restock request update detected');
+            loadDepartmentData();
+          }
+        )
+        .subscribe();
+    } catch (error) {
+      console.error('❌ Failed to initialize realtime subscriptions:', error);
+    }
 
     // Auto-refresh every 60 seconds
     const interval = setInterval(() => {
@@ -117,8 +130,12 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
     }, 60000);
 
     return () => {
-      ordersChannel.unsubscribe();
-      restockChannel.unsubscribe();
+      if (ordersChannel) {
+        ordersChannel.unsubscribe();
+      }
+      if (restockChannel) {
+        restockChannel.unsubscribe();
+      }
       clearInterval(interval);
     };
   }, [supabase]);

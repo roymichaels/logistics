@@ -61,38 +61,51 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
   useEffect(() => {
     loadData();
 
-    // Set up Supabase Realtime for live updates
-    const ordersChannel = supabase
-      .channel('dispatch-orders')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders'
-        },
-        () => {
-          console.log('Order update detected, refreshing...');
-          loadData();
-        }
-      )
-      .subscribe();
+    // Verify supabase is available before setting up subscriptions
+    if (!supabase) {
+      console.warn('⚠️ Supabase instance not available for realtime subscriptions');
+      return;
+    }
 
-    const driversChannel = supabase
-      .channel('dispatch-drivers')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'driver_statuses'
-        },
-        () => {
-          console.log('Driver status update detected, refreshing...');
-          loadData();
-        }
-      )
-      .subscribe();
+    // Set up Supabase Realtime for live updates
+    let ordersChannel;
+    let driversChannel;
+
+    try {
+      ordersChannel = supabase
+        .channel('dispatch-orders')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'orders'
+          },
+          () => {
+            console.log('Order update detected, refreshing...');
+            loadData();
+          }
+        )
+        .subscribe();
+
+      driversChannel = supabase
+        .channel('dispatch-drivers')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'driver_statuses'
+          },
+          () => {
+            console.log('Driver status update detected, refreshing...');
+            loadData();
+          }
+        )
+        .subscribe();
+    } catch (error) {
+      console.error('❌ Failed to initialize realtime subscriptions:', error);
+    }
 
     // Auto-refresh every 30 seconds
     const interval = setInterval(() => {
@@ -100,8 +113,12 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
     }, 30000);
 
     return () => {
-      ordersChannel.unsubscribe();
-      driversChannel.unsubscribe();
+      if (ordersChannel) {
+        ordersChannel.unsubscribe();
+      }
+      if (driversChannel) {
+        driversChannel.unsubscribe();
+      }
       clearInterval(interval);
     };
   }, [loadData, supabase]);
