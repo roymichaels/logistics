@@ -61,7 +61,20 @@ export function useAuth(): AuthContextValue {
 }
 
 export function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading, error } = useAuth();
+  const { isAuthenticated, isLoading, error, authenticate } = useAuth();
+  const [loadingTimeout, setLoadingTimeout] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isLoading) {
+      const timer = setTimeout(() => {
+        setLoadingTimeout(true);
+      }, 15000);
+
+      return () => clearTimeout(timer);
+    } else {
+      setLoadingTimeout(false);
+    }
+  }, [isLoading]);
 
   if (isLoading) {
     return (
@@ -78,7 +91,25 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
       }}>
         <div style={{ fontSize: '48px', marginBottom: '24px' }}>⏳</div>
         <h1 style={{ fontSize: '20px', marginBottom: '16px' }}>מאמת זהות...</h1>
-        <p style={{ fontSize: '14px', color: '#666' }}>אנא המתן</p>
+        <p style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>אנא המתן</p>
+        {loadingTimeout && (
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: '#007aff',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              marginTop: '16px'
+            }}
+          >
+            האימות לוקח זמן רב? לחץ לרענון
+          </button>
+        )}
       </div>
     );
   }

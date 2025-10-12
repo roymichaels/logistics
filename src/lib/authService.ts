@@ -225,6 +225,12 @@ class AuthService {
       const config = await import('./supabaseClient').then(m => m.loadConfig());
 
       console.log('📡 Calling telegram-verify endpoint...');
+      console.log('🔍 Endpoint:', `${config.supabaseUrl}/functions/v1/telegram-verify`);
+      console.log('🔍 Has initData:', !!telegram.initData, 'Length:', telegram.initData?.length);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
       const response = await fetch(`${config.supabaseUrl}/functions/v1/telegram-verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -232,7 +238,8 @@ class AuthService {
           type: 'webapp',
           initData: telegram.initData,
         }),
-      });
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timeoutId));
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -245,10 +252,22 @@ class AuthService {
 
         console.error('❌ Authentication failed:', {
           status: response.status,
-          error: errorData.error
+          statusText: response.statusText,
+          error: errorData.error,
+          errorData
         });
 
-        throw new Error(errorData.error || `Authentication failed: ${response.status}`);
+        let userFriendlyError = errorData.error || `Authentication failed: ${response.status}`;
+
+        if (response.status === 401) {
+          userFriendlyError = 'אימות Telegram נכשל. אנא ודא שהאפליקציה נפתחה מתוך Telegram.\n\nTelegram authentication failed. Please ensure the app is opened from within Telegram.';
+        } else if (response.status === 500) {
+          userFriendlyError = 'שגיאת שרת. אנא נסה שוב מאוחר יותר.\n\nServer error. Please try again later.';
+        } else if (response.status === 400) {
+          userFriendlyError = 'נתוני אימות לא חוקיים.\n\nInvalid authentication data.';
+        }
+
+        throw new Error(userFriendlyError);
       }
 
       const result = await response.json();
@@ -270,9 +289,20 @@ class AuthService {
       console.log('✅ Session established successfully');
     } catch (error) {
       console.error('❌ Telegram authentication error:', error);
+
+      let errorMessage = 'Authentication failed';
+
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorMessage = 'פסק זמן לאימות. אנא בדוק את חיבור האינטרנט ונסה שוב.\n\nAuthentication timeout. Please check your internet connection and try again.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
       this.updateState({
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Authentication failed',
+        error: errorMessage,
       });
       throw error;
     }

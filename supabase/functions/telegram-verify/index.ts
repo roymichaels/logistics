@@ -256,17 +256,34 @@ Deno.serve(async req => {
       console.log('✅ Auth user created:', authUserId);
     }
 
-    console.log('🎫 Creating session...');
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.createSession({
-      user_id: authUserId,
+    console.log('🎫 Generating auth link for session...');
+    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email,
+      options: {
+        data: {
+          telegram_id: telegramId,
+          username,
+          name: fullName,
+          photo_url: user.photo_url,
+        }
+      }
     });
 
-    if (sessionError || !sessionData) {
-      console.error('❌ Session creation failed:', sessionError);
-      throw new Error('Failed to create session');
+    if (linkError || !linkData) {
+      console.error('❌ Link generation failed:', linkError);
+      throw new Error('Failed to generate authentication link');
     }
 
-    console.log('✅ Session created successfully');
+    console.log('✅ Auth link generated, extracting tokens...');
+
+    const properties = linkData.properties;
+    if (!properties?.access_token || !properties?.refresh_token) {
+      console.error('❌ Missing tokens in link response:', properties);
+      throw new Error('Failed to extract session tokens');
+    }
+
+    console.log('✅ Session tokens extracted successfully');
 
     return new Response(
       JSON.stringify({
@@ -280,9 +297,9 @@ Deno.serve(async req => {
           photo_url: user.photo_url,
         },
         session: {
-          access_token: sessionData.access_token,
-          refresh_token: sessionData.refresh_token,
-          expires_in: sessionData.expires_in || 3600,
+          access_token: properties.access_token,
+          refresh_token: properties.refresh_token,
+          expires_in: properties.expires_in || 3600,
           token_type: 'bearer',
         },
       }),
