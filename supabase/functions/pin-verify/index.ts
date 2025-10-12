@@ -1,14 +1,9 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { createHmac, pbkdf2 } from 'node:crypto';
 import { promisify } from 'node:util';
+import { corsHeaders } from '../_shared/cors.ts';
 
 const pbkdf2Async = promisify(pbkdf2);
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
-};
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;

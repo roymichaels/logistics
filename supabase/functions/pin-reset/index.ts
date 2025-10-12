@@ -1,18 +1,10 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
-};
+import { corsHeaders } from '../_shared/cors.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-/**
- * Log PIN audit event
- */
 async function logPinAudit(
   telegram_id: string,
   action: string,
@@ -33,14 +25,10 @@ async function logPinAudit(
   }
 }
 
-/**
- * Check if user is authorized to reset PIN
- */
 async function checkResetAuthorization(
   requester_telegram_id: string,
   target_telegram_id: string
 ): Promise<{ authorized: boolean; reason?: string }> {
-  // Get requester's role
   const { data: requester, error: requesterError } = await supabase
     .from('users')
     .select('role')
@@ -51,14 +39,11 @@ async function checkResetAuthorization(
     return { authorized: false, reason: 'Requester not found' };
   }
 
-  // Infrastructure owners can reset any PIN
   if (requester.role === 'infrastructure_owner') {
     return { authorized: true };
   }
 
-  // Business owners can reset PINs for users in their businesses
   if (requester.role === 'business_owner') {
-    // Check if target user is in any of requester's businesses
     const { data: sharedBusinesses, error: businessError } = await supabase
       .from('business_users')
       .select('business_id')
@@ -70,7 +55,6 @@ async function checkResetAuthorization(
     }
 
     if (sharedBusinesses && sharedBusinesses.length > 0) {
-      // Check if both users share at least one business
       const requesterBusinesses = sharedBusinesses.filter(
         (b: any) => b.user_id === requester_telegram_id
       ).map((b: any) => b.business_id);
@@ -94,16 +78,12 @@ async function checkResetAuthorization(
   return { authorized: false, reason: 'Insufficient permissions' };
 }
 
-/**
- * Reset user's PIN
- */
 async function resetPin(
   requester_telegram_id: string,
   target_telegram_id: string
 ) {
   console.log(`Reset PIN request: requester=${requester_telegram_id}, target=${target_telegram_id}`);
 
-  // Check authorization
   const authCheck = await checkResetAuthorization(requester_telegram_id, target_telegram_id);
   if (!authCheck.authorized) {
     await logPinAudit(target_telegram_id, 'admin_reset', false, {
@@ -116,7 +96,6 @@ async function resetPin(
     };
   }
 
-  // Delete PIN data
   const { error: deleteError } = await supabase
     .from('user_pins')
     .delete()
@@ -134,7 +113,6 @@ async function resetPin(
     };
   }
 
-  // Invalidate all PIN sessions
   const { error: sessionError } = await supabase
     .from('pin_sessions')
     .delete()
@@ -148,25 +126,18 @@ async function resetPin(
     requester: requester_telegram_id,
   });
 
-  // TODO: Send Telegram notification to user about PIN reset
-  // This would require Telegram bot integration
-
   return {
     success: true,
     message: 'PIN reset successfully. User can set up a new PIN.',
   };
 }
 
-/**
- * Unlock user's PIN (remove lockout)
- */
 async function unlockPin(
   requester_telegram_id: string,
   target_telegram_id: string
 ) {
   console.log(`Unlock PIN request: requester=${requester_telegram_id}, target=${target_telegram_id}`);
 
-  // Check authorization
   const authCheck = await checkResetAuthorization(requester_telegram_id, target_telegram_id);
   if (!authCheck.authorized) {
     await logPinAudit(target_telegram_id, 'unlock', false, {
@@ -179,7 +150,6 @@ async function unlockPin(
     };
   }
 
-  // Reset failed attempts and lockout
   const { error: updateError } = await supabase
     .from('user_pins')
     .update({
@@ -210,9 +180,6 @@ async function unlockPin(
   };
 }
 
-/**
- * Get PIN status for a user
- */
 async function getPinStatus(telegram_id: string) {
   const { data: pinData, error } = await supabase
     .from('user_pins')
@@ -255,7 +222,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Get user from JWT
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       throw new Error('Missing authorization header');
@@ -288,7 +254,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
         break;
 
       case 'status':
-        // Can check own status or others if authorized
         const check_telegram_id = target_telegram_id || requester_telegram_id;
         if (check_telegram_id !== requester_telegram_id) {
           const authCheck = await checkResetAuthorization(requester_telegram_id, check_telegram_id);
