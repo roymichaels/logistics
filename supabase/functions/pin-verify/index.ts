@@ -1,7 +1,12 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { createHmac, pbkdf2 } from 'node:crypto';
 import { promisify } from 'node:util';
-import { corsHeaders } from '../_shared/cors.ts';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-app',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+};
 
 const pbkdf2Async = promisify(pbkdf2);
 
