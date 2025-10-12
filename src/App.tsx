@@ -120,6 +120,41 @@ type Page =
   | 'zone-management';
 
 export default function App() {
+  let appServicesContext;
+  try {
+    appServicesContext = useAppServices();
+  } catch (error) {
+    console.error('App: Failed to access AppServices context', error);
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        padding: '20px',
+        textAlign: 'center',
+        direction: 'rtl'
+      }}>
+        <div>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+          <h2>שגיאה בטעינת האפליקציה</h2>
+          <p>לא ניתן לגשת למערכת כרגע</p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: '20px',
+              padding: '12px 24px',
+              fontSize: '16px',
+              cursor: 'pointer'
+            }}
+          >
+            רענן דף
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const {
     user,
     userRole,
@@ -130,7 +165,7 @@ export default function App() {
     refreshUserRole,
     logout,
     currentBusinessId
-  } = useAppServices();
+  } = appServicesContext;
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [showOrderWizard, setShowOrderWizard] = useState(false);
   const [showBusinessManager, setShowBusinessManager] = useState(false);
@@ -595,8 +630,10 @@ export default function App() {
           paddingBottom: '80px', // Space for bottom nav
           paddingTop: '60px' // Space for header
         }}>
-          {/* Header */}
-          <Header onNavigate={handleNavigate} onLogout={handleLogout} />
+          {/* Header - Only render when user and dataStore are available */}
+          {user && dataStore && (
+            <Header onNavigate={handleNavigate} onLogout={handleLogout} />
+          )}
 
         <Suspense
           fallback={
@@ -644,13 +681,15 @@ export default function App() {
           onNavigate={handleNavigate}
         />
 
-        {/* Floating Action Menu */}
-        <FloatingActionMenu
-          onNavigate={handleNavigate}
-          onShowModeSelector={handleShowCreateOrder}
-          isOpen={showActionMenu}
-          onClose={() => setShowActionMenu(false)}
-        />
+        {/* Floating Action Menu - Only render when user is available */}
+        {user && (
+          <FloatingActionMenu
+            onNavigate={handleNavigate}
+            onShowModeSelector={handleShowCreateOrder}
+            isOpen={showActionMenu}
+            onClose={() => setShowActionMenu(false)}
+          />
+        )}
 
         {/* Modals */}
         {showOrderWizard && dataStore && (
