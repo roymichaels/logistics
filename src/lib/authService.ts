@@ -254,17 +254,24 @@ class AuthService {
           status: response.status,
           statusText: response.statusText,
           error: errorData.error,
+          timestamp: errorData.timestamp,
           errorData
         });
 
         let userFriendlyError = errorData.error || `Authentication failed: ${response.status}`;
 
         if (response.status === 401) {
-          userFriendlyError = 'אימות Telegram נכשל. אנא ודא שהאפליקציה נפתחה מתוך Telegram.\n\nTelegram authentication failed. Please ensure the app is opened from within Telegram.';
+          if (!errorData.error || errorData.error.includes('signature')) {
+            userFriendlyError = 'אימות Telegram נכשל. אנא ודא שהאפליקציה נפתחה מתוך Telegram.\n\nTelegram authentication failed. Please ensure the app is opened from within Telegram.';
+          }
         } else if (response.status === 500) {
-          userFriendlyError = 'שגיאת שרת. אנא נסה שוב מאוחר יותר.\n\nServer error. Please try again later.';
+          if (!errorData.error || errorData.error === 'Internal server error') {
+            userFriendlyError = 'שגיאת שרת. אנא נסה שוב מאוחר יותר.\n\nServer error. Please try again later.';
+          }
         } else if (response.status === 400) {
-          userFriendlyError = 'נתוני אימות לא חוקיים.\n\nInvalid authentication data.';
+          if (!errorData.error || errorData.error.includes('Invalid')) {
+            userFriendlyError = 'נתוני אימות לא חוקיים.\n\nInvalid authentication data.';
+          }
         }
 
         throw new Error(userFriendlyError);

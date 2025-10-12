@@ -256,7 +256,7 @@ Deno.serve(async req => {
       console.log('✅ Auth user created:', authUserId);
     }
 
-    console.log('🎫 Generating auth link for session...');
+    console.log('🎫 Generating auth link for OTP verification...');
     const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
       email,
@@ -275,15 +275,35 @@ Deno.serve(async req => {
       throw new Error('Failed to generate authentication link');
     }
 
-    console.log('✅ Auth link generated, extracting tokens...');
+    console.log('✅ Auth link generated, extracting hashed token...');
 
     const properties = linkData.properties;
-    if (!properties?.access_token || !properties?.refresh_token) {
-      console.error('❌ Missing tokens in link response:', properties);
-      throw new Error('Failed to extract session tokens');
+    if (!properties?.hashed_token) {
+      console.error('❌ Missing hashed_token in link response:', properties);
+      throw new Error('Failed to extract hashed token from auth link');
     }
 
-    console.log('✅ Session tokens extracted successfully');
+    console.log('🔐 Verifying OTP with hashed token...');
+
+    const { data: sessionData, error: verifyError } = await supabase.auth.verifyOtp({
+      type: 'magiclink',
+      token_hash: properties.hashed_token,
+      email
+    });
+
+    if (verifyError || !sessionData?.session) {
+      console.error('❌ OTP verification failed:', verifyError);
+      throw new Error(`Failed to verify OTP: ${verifyError?.message || 'No session returned'}`);
+    }
+
+    console.log('✅ OTP verified, session tokens obtained');
+
+    if (!sessionData.session.access_token || !sessionData.session.refresh_token) {
+      console.error('❌ Session missing tokens:', sessionData.session);
+      throw new Error('Session verification succeeded but tokens are missing');
+    }
+
+    console.log('✅ Session tokens validated successfully');
 
     return new Response(
       JSON.stringify({
@@ -297,19 +317,46 @@ Deno.serve(async req => {
           photo_url: user.photo_url,
         },
         session: {
-          access_token: properties.access_token,
-          refresh_token: properties.refresh_token,
-          expires_in: properties.expires_in || 3600,
+          access_token: sessionData.session.access_token,
+          refresh_token: sessionData.session.refresh_token,
+          expires_in: sessionData.session.expires_in || 3600,
+          expires_at: sessionData.session.expires_at,
           token_type: 'bearer',
         },
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err) {
-    console.error('💥 Error:', err);
+    console.error('💥 Authentication error:', err);
+
+    let errorMessage = 'Internal server error';
+    let statusCode = 500;
+
+    if (err instanceof Error) {
+      errorMessage = err.message;
+
+      if (errorMessage.includes('Failed to generate authentication link')) {
+        statusCode = 500;
+        errorMessage = 'שגיאה ביצירת קישור אימות / Failed to generate authentication link. Please try again.';
+      } else if (errorMessage.includes('Failed to verify OTP')) {
+        statusCode = 500;
+        errorMessage = 'שגיאה באימות OTP / OTP verification failed. Please try again.';
+      } else if (errorMessage.includes('Failed to extract hashed token')) {
+        statusCode = 500;
+        errorMessage = 'שגיאה בחילוץ טוקן / Token extraction failed. Please contact support.';
+      } else if (errorMessage.includes('Failed to create user')) {
+        statusCode = 500;
+        errorMessage = 'שגיאה ביצירת משתמש / Failed to create user. Please try again.';
+      }
+    }
+
     return new Response(
-      JSON.stringify({ ok: false, error: err.message || 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({
+        ok: false,
+        error: errorMessage,
+        timestamp: new Date().toISOString()
+      }),
+      { status: statusCode, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
