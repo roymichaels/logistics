@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { getConfig } from './config';
 
 let supabaseInstance: SupabaseClient | null = null;
 let initPromise: Promise<void> | null = null;
@@ -12,36 +13,13 @@ export const initSupabase = async (): Promise<void> => {
     try {
       console.log('🔧 Starting Supabase client initialization...');
 
-      let supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      let supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      if (!supabaseUrl || !supabaseAnonKey) {
-        console.log('🔄 Fetching runtime configuration...');
-
-        try {
-          const configResponse = await fetch('/runtime-config.json');
-          if (configResponse.ok) {
-            const config = await configResponse.json();
-            supabaseUrl = config.supabaseUrl;
-            supabaseAnonKey = config.supabaseAnonKey;
-            console.log('✅ Runtime configuration loaded successfully');
-          } else {
-            console.error('⚠️ Runtime config endpoint returned:', configResponse.status);
-          }
-        } catch (fetchError) {
-          console.error('⚠️ Failed to fetch runtime config:', fetchError);
-        }
-      }
-
-      if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error('Supabase configuration missing');
-      }
+      const config = await getConfig();
 
       const startTime = performance.now();
 
       const storageKey = 'twa-undergroundlab';
 
-      supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+      supabaseInstance = createClient(config.supabaseUrl, config.supabaseAnonKey, {
         auth: {
           storage: typeof window !== 'undefined' ? window.localStorage : undefined,
           autoRefreshToken: true,

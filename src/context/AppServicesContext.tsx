@@ -57,18 +57,30 @@ export const AppServicesProvider: React.FC<AppServicesProviderProps> = ({ childr
   const [error, setError] = useState<string | null>(null);
   const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [authAttempted, setAuthAttempted] = useState(false);
+  const [initAttempted, setInitAttempted] = useState(false);
 
   useEffect(() => {
     if (!auth.loading) {
-      if (auth.user) {
+      if (auth.user && !initAttempted) {
+        setInitAttempted(true);
         initializeAppServices(auth.user);
-      } else {
+      } else if (!auth.user && !authAttempted) {
         authenticateWithTelegram();
+      } else if (!auth.user && authAttempted) {
+        setLoading(false);
       }
     }
   }, [auth.loading, auth.user]);
 
   const authenticateWithTelegram = async () => {
+    if (authAttempted) {
+      console.log('⚠️ Authentication already attempted, skipping...');
+      return;
+    }
+
+    setAuthAttempted(true);
+
     try {
       console.log('🔑 No existing session, authenticating with Telegram...');
 

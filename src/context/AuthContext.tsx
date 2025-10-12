@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { getSupabase } from '../lib/supabaseClient';
+import { getConfig } from '../lib/config';
 
 interface TelegramUser {
   id: number;
@@ -114,11 +115,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       console.log('📱 Starting Telegram authentication...');
 
+      const config = await getConfig();
       const supabase = getSupabase();
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-      const endpoint = `${supabaseUrl}/functions/v1/telegram-verify`;
+      const endpoint = `${config.supabaseUrl}/functions/v1/telegram-verify`;
 
       console.log('📡 Calling telegram-verify endpoint...');
       console.log('🔍 Endpoint:', endpoint);
@@ -128,7 +128,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`
+          'Authorization': `Bearer ${config.supabaseAnonKey}`
         },
         body: JSON.stringify({ initData: telegramInitData })
       });
