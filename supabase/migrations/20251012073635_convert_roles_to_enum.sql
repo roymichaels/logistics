@@ -16,44 +16,83 @@
 
   3. Implementation Strategy
     - Drop all RLS policies that reference the columns being converted
-    - Perform the type conversions
+    - Clean up any invalid data
+    - Perform the type conversions with explicit casting
     - Recreate all RLS policies with identical logic
     - This prevents "cannot alter type of a column used in a policy definition" errors
 */
 
 -- Create ENUM types
 DO $$ BEGIN
-CREATE TYPE user_role AS ENUM ('user', 'infrastructure_owner', 'business_owner', 'manager', 'dispatcher', 'driver', 'warehouse', 'sales', 'customer_service');
+  CREATE TYPE user_role AS ENUM (
+    'user',
+    'infrastructure_owner',
+    'business_owner',
+    'manager',
+    'dispatcher',
+    'driver',
+    'warehouse',
+    'sales',
+    'customer_service'
+  );
 EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE order_status AS ENUM ('new', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled');
+  CREATE TYPE order_status AS ENUM (
+    'new',
+    'confirmed',
+    'preparing',
+    'ready',
+    'out_for_delivery',
+    'delivered',
+    'cancelled'
+  );
 EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE task_type AS ENUM ('delivery', 'warehouse', 'sales', 'customer_service', 'general');
+  CREATE TYPE task_type AS ENUM (
+    'delivery',
+    'warehouse',
+    'sales',
+    'customer_service',
+    'general'
+  );
 EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE task_status AS ENUM ('pending', 'in_progress', 'completed', 'cancelled');
+  CREATE TYPE task_status AS ENUM (
+    'pending',
+    'in_progress',
+    'completed',
+    'cancelled'
+  );
 EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE task_priority AS ENUM ('low', 'medium', 'high', 'urgent');
+  CREATE TYPE task_priority AS ENUM (
+    'low',
+    'medium',
+    'high',
+    'urgent'
+  );
 EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE route_status AS ENUM ('planned', 'active', 'completed');
+  CREATE TYPE route_status AS ENUM (
+    'planned',
+    'active',
+    'completed'
+  );
 EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
@@ -96,10 +135,25 @@ DROP POLICY IF EXISTS "Managers can manage channels" ON channels;
 DROP POLICY IF EXISTS "Managers can manage app config" ON app_config;
 
 -- ============================================================================
--- STEP 2: Convert column types to ENUM
+-- STEP 2: Clean up any invalid data and convert column types to ENUM
 -- ============================================================================
 
--- Convert users.role column
+-- First, normalize any invalid role values to 'user'
+UPDATE users
+SET role = 'user'
+WHERE role NOT IN (
+  'user',
+  'infrastructure_owner',
+  'business_owner',
+  'manager',
+  'dispatcher',
+  'driver',
+  'warehouse',
+  'sales',
+  'customer_service'
+);
+
+-- Convert users.role column with explicit text cast
 DO $$
 BEGIN
   IF EXISTS (
@@ -108,72 +162,97 @@ BEGIN
   ) THEN
     ALTER TABLE users
       ALTER COLUMN role TYPE user_role
-      USING role::user_role;
+      USING role::text::user_role;
   END IF;
 END $$;
 
--- Convert orders.status column
+-- Convert orders.status column with explicit text cast
 DO $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_name = 'orders' AND column_name = 'status' AND data_type = 'text'
   ) THEN
+    -- First normalize any invalid status values
+    UPDATE orders
+    SET status = 'new'
+    WHERE status NOT IN ('new', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled');
+
     ALTER TABLE orders
       ALTER COLUMN status TYPE order_status
-      USING status::order_status;
+      USING status::text::order_status;
   END IF;
 END $$;
 
--- Convert tasks.type column
+-- Convert tasks.type column with explicit text cast
 DO $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_name = 'tasks' AND column_name = 'type' AND data_type = 'text'
   ) THEN
+    -- First normalize any invalid type values
+    UPDATE tasks
+    SET type = 'general'
+    WHERE type NOT IN ('delivery', 'warehouse', 'sales', 'customer_service', 'general');
+
     ALTER TABLE tasks
       ALTER COLUMN type TYPE task_type
-      USING type::task_type;
+      USING type::text::task_type;
   END IF;
 END $$;
 
--- Convert tasks.status column
+-- Convert tasks.status column with explicit text cast
 DO $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_name = 'tasks' AND column_name = 'status' AND data_type = 'text'
   ) THEN
+    -- First normalize any invalid status values
+    UPDATE tasks
+    SET status = 'pending'
+    WHERE status NOT IN ('pending', 'in_progress', 'completed', 'cancelled');
+
     ALTER TABLE tasks
       ALTER COLUMN status TYPE task_status
-      USING status::task_status;
+      USING status::text::task_status;
   END IF;
 END $$;
 
--- Convert tasks.priority column
+-- Convert tasks.priority column with explicit text cast
 DO $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_name = 'tasks' AND column_name = 'priority' AND data_type = 'text'
   ) THEN
+    -- First normalize any invalid priority values
+    UPDATE tasks
+    SET priority = 'medium'
+    WHERE priority NOT IN ('low', 'medium', 'high', 'urgent');
+
     ALTER TABLE tasks
       ALTER COLUMN priority TYPE task_priority
-      USING priority::task_priority;
+      USING priority::text::task_priority;
   END IF;
 END $$;
 
--- Convert routes.status column
+-- Convert routes.status column with explicit text cast
 DO $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_name = 'routes' AND column_name = 'status' AND data_type = 'text'
   ) THEN
+    -- First normalize any invalid status values
+    UPDATE routes
+    SET status = 'planned'
+    WHERE status NOT IN ('planned', 'active', 'completed');
+
     ALTER TABLE routes
       ALTER COLUMN status TYPE route_status
-      USING status::route_status;
+      USING status::text::route_status;
   END IF;
 END $$;
 
