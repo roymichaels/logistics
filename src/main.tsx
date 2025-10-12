@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { AuthProvider } from './context/AuthContext';
 import { AppServicesProvider } from './context/AppServicesContext';
 import { initSupabase } from './lib/supabaseClient';
 import './lib/initDiagnostics';
@@ -174,9 +175,11 @@ function LoadingScreen() {
     console.log('✅ Rendering App component...');
     root.render(
       <ErrorBoundary>
-        <AppServicesProvider>
-          <App />
-        </AppServicesProvider>
+        <AuthProvider>
+          <AppServicesProvider>
+            <App />
+          </AppServicesProvider>
+        </AuthProvider>
       </ErrorBoundary>
     );
     console.log('✅ App rendered successfully');

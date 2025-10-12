@@ -1,47 +1,31 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { createHmac, createHash, timingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { Buffer } from 'node:buffer';
 import { corsHeaders } from '../_shared/cors.ts';
 
-/**
- * ✅ Optional local .env loader (for Bolt / non-Supabase CLI)
- * Works both locally and in Supabase Edge runtime.
- */
 let envLoaded = false;
 try {
   const { load } = await import("https://deno.land/std@0.224.0/dotenv/mod.ts");
   const env = await load({ export: true });
   if (Object.keys(env).length > 0) {
     envLoaded = true;
-    console.log("✅ Local .env loaded for Bolt environment");
+    console.log("✅ Local .env loaded");
   }
 } catch {
-  console.warn("⚠️ No .env file found, relying on Supabase secrets");
+  console.log("ℹ️ Using Supabase environment variables");
 }
 
-function normalizeUsername(username?: string) {
-  if (!username) return null;
-  return username.replace(/^@/, '').toLowerCase().trim();
-}
-
-/**
- * ✅ Telegram WebApp HMAC verification
- * Reference: https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app
- */
 function verifyTelegramWebApp(initData: string, botToken: string): boolean {
-  console.log('🔐 verifyTelegramWebApp: Starting verification');
+  console.log('🔐 Starting HMAC verification...');
   try {
-    let cleaned = initData;
-    if (initData.startsWith('tgWebAppData=')) {
-      cleaned = decodeURIComponent(initData.replace('tgWebAppData=', '').split('#')[0]);
-    }
-
-    const params = new URLSearchParams(cleaned);
+    const params = new URLSearchParams(initData);
     const hash = params.get('hash');
+
     if (!hash) {
-      console.error('❌ Missing hash in initData');
+      console.error('❌ No hash found in initData');
       return false;
     }
+
     params.delete('hash');
 
     const dataCheckString = [...params.entries()]
@@ -49,38 +33,39 @@ function verifyTelegramWebApp(initData: string, botToken: string): boolean {
       .map(([k, v]) => `${k}=${v}`)
       .join('\n');
 
-    // ✅ Correct Telegram HMAC key derivation
     const secretKey = createHmac('sha256', 'WebAppData').update(botToken).digest();
     const computed = createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
 
     const isValid = timingSafeEqual(Buffer.from(computed, 'hex'), Buffer.from(hash, 'hex'));
-    console.log('✅ HMAC verified:', isValid);
+    console.log(isValid ? '✅ HMAC verification passed' : '❌ HMAC verification failed');
+
     return isValid;
   } catch (err) {
-    console.error('💥 verifyTelegramWebApp exception:', err);
+    console.error('💥 HMAC verification exception:', err);
     return false;
   }
-}
-
-function verifyLoginWidget(data: any, botToken: string): boolean {
-  const { hash, ...fields } = data;
-  if (!hash) return false;
-  const checkString = Object.keys(fields)
-    .sort()
-    .map(k => `${k}=${fields[k]}`)
-    .join('\n');
-  const secretKey = createHash('sha256').update(botToken).digest();
-  const computed = createHmac('sha256', secretKey).update(checkString).digest('hex');
-  return timingSafeEqual(Buffer.from(computed, 'hex'), Buffer.from(hash, 'hex'));
 }
 
 function parseWebAppInitData(initData: string) {
   try {
     const params = new URLSearchParams(initData);
     const userParam = params.get('user');
-    if (!userParam) return null;
+
+    if (!userParam) {
+      console.error('❌ No user parameter in initData');
+      return null;
+    }
+
     const user = JSON.parse(userParam);
     const authDate = parseInt(params.get('auth_date') || '0');
+
+    const now = Math.floor(Date.now() / 1000);
+    const age = now - authDate;
+
+    if (age > 86400) {
+      console.warn(`⚠️ InitData is ${Math.floor(age / 3600)} hours old (>24h)`);
+    }
+
     return {
       id: user.id,
       first_name: user.first_name,
@@ -90,7 +75,7 @@ function parseWebAppInitData(initData: string) {
       auth_date: authDate,
     };
   } catch (err) {
-    console.error('⚠️ parseWebAppInitData failed:', err);
+    console.error('❌ Failed to parse initData:', err);
     return null;
   }
 }
@@ -101,61 +86,58 @@ Deno.serve(async req => {
   }
 
   try {
-    const { type, data, initData } = await req.json();
-    console.log('📲 Incoming Telegram verification request', { type, hasInitData: !!initData, initDataLength: initData?.length });
+    const { type, initData } = await req.json();
+    console.log('📲 Telegram verification request:', { type, hasInitData: !!initData });
 
-    // ✅ Load token (env fallback)
-    let botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')?.trim() ?? '';
+    const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')?.trim();
     if (!botToken) {
-      console.error('❌ TELEGRAM_BOT_TOKEN is not set in environment');
-      throw new Error('TELEGRAM_BOT_TOKEN missing or empty');
-    }
-    console.log('🔑 Token loaded - length:', botToken.length, '| Prefix:', botToken.slice(0, 10));
-
-    let valid = false;
-    let user = null;
-
-    if (type === 'loginWidget' && data) {
-      console.log('🔐 Verifying login widget...');
-      valid = verifyLoginWidget(data, botToken);
-      console.log('🔐 Login widget verification result:', valid);
-      if (valid) {
-        user = {
-          id: parseInt(data.id || '0'),
-          first_name: data.first_name || '',
-          last_name: data.last_name,
-          username: data.username,
-          photo_url: data.photo_url,
-        };
-      }
-    } else if (type === 'webapp' && initData) {
-      console.log('🔐 Verifying webapp initData...');
-      console.log('📊 InitData preview:', initData.substring(0, 100));
-      valid = verifyTelegramWebApp(initData, botToken);
-      console.log('🔐 WebApp verification result:', valid);
-      if (valid) {
-        user = parseWebAppInitData(initData);
-        console.log('👤 Parsed user:', user ? `${user.first_name} (${user.id})` : 'null');
-      }
-    } else {
-      console.warn('⚠️ Invalid request type or missing data', { type, hasData: !!data, hasInitData: !!initData });
-    }
-
-    if (!valid || !user) {
-      console.warn('❌ Telegram verification failed', { valid, hasUser: !!user, type });
+      console.error('❌ TELEGRAM_BOT_TOKEN not configured');
       return new Response(
-        JSON.stringify({ ok: false, error: 'Invalid signature or verification failed' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({ ok: false, error: 'Bot token not configured on server' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('✅ Verified Telegram user:', user.username || user.id);
+    console.log('🔑 Bot token loaded (length:', botToken.length, ')');
+
+    if (type !== 'webapp' || !initData) {
+      console.error('❌ Invalid request:', { type, hasInitData: !!initData });
+      return new Response(
+        JSON.stringify({ ok: false, error: 'Invalid request format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const isValid = verifyTelegramWebApp(initData, botToken);
+
+    if (!isValid) {
+      console.warn('❌ Telegram signature verification failed');
+      return new Response(
+        JSON.stringify({ ok: false, error: 'Invalid Telegram signature' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const user = parseWebAppInitData(initData);
+    if (!user) {
+      console.error('❌ Failed to parse user data');
+      return new Response(
+        JSON.stringify({ ok: false, error: 'Failed to parse user data' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('✅ Telegram user verified:', user.username || user.id);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Missing Supabase configuration. Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.');
+      console.error('❌ Supabase configuration missing');
+      return new Response(
+        JSON.stringify({ ok: false, error: 'Server configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
@@ -163,62 +145,69 @@ Deno.serve(async req => {
     });
 
     const telegramId = user.id.toString();
-    const username = normalizeUsername(user.username);
-    const fullName = `${user.first_name || ''}${user.last_name ? ' ' + user.last_name : ''}`;
-    const defaultRole = 'user';
+    const username = user.username?.replace(/^@/, '').toLowerCase() || null;
+    const fullName = `${user.first_name || ''}${user.last_name ? ' ' + user.last_name : ''}`.trim();
 
-    // Find or create user in custom users table
-    let { data: existing } = await supabase
+    console.log('🔍 Looking up user in database...');
+    let { data: existingUser } = await supabase
       .from('users')
       .select('id, telegram_id, role')
       .eq('telegram_id', telegramId)
       .maybeSingle();
 
-    let userId, userRole = defaultRole;
-    if (existing) {
-      userId = existing.id;
-      userRole = existing.role || defaultRole;
+    let userId: string;
+    let userRole: string;
+
+    if (existingUser) {
+      console.log('✅ User found:', existingUser.id);
+      userId = existingUser.id;
+      userRole = existingUser.role || 'user';
+
+      await supabase
+        .from('users')
+        .update({
+          username,
+          name: fullName,
+          photo_url: user.photo_url,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
     } else {
-      const { data: created, error } = await supabase
+      console.log('➕ Creating new user...');
+      const { data: newUser, error: createError } = await supabase
         .from('users')
         .insert({
           telegram_id: telegramId,
           username,
           name: fullName,
-          role: defaultRole,
+          role: 'user',
           photo_url: user.photo_url,
         })
         .select('id')
         .single();
-      if (error) throw error;
-      userId = created.id;
+
+      if (createError) {
+        console.error('❌ Failed to create user:', createError);
+        throw createError;
+      }
+
+      userId = newUser.id;
+      userRole = 'user';
+      console.log('✅ New user created:', userId);
     }
 
-    // Determine workspace context (primary business if exists)
-    let workspaceId: string | null = null;
-    const { data: memberships } = await supabase
-      .from('business_users')
-      .select('business_id, is_primary')
-      .eq('user_id', userId)
-      .eq('active', true)
-      .order('is_primary', { ascending: false });
+    const email = `telegram_${telegramId}@twa.local`;
 
-    if (memberships && memberships.length > 0) {
-      workspaceId = memberships[0].business_id;
-    }
+    console.log('🔍 Looking up auth user...');
+    const { data: existingAuthUsers } = await supabase.auth.admin.listUsers();
+    const authUser = existingAuthUsers?.users?.find(u => u.email === email);
 
-    // Create or update auth.users with Supabase Auth Admin API
-    const email = `telegram_${telegramId}@telegram-auth.local`;
-    const password = crypto.randomUUID();
+    let authUserId: string;
 
-    let authUser;
-    const { data: existingAuthUser } = await supabase.auth.admin.listUsers();
-    const foundAuthUser = existingAuthUser?.users?.find(u => u.email === email);
-
-    if (foundAuthUser) {
-      // Update existing auth user metadata
-      const { data: updatedUser, error: updateError } = await supabase.auth.admin.updateUserById(
-        foundAuthUser.id,
+    if (authUser) {
+      console.log('✅ Auth user found, updating metadata...');
+      const { data: updatedAuth, error: updateError } = await supabase.auth.admin.updateUserById(
+        authUser.id,
         {
           user_metadata: {
             telegram_id: telegramId,
@@ -228,21 +217,20 @@ Deno.serve(async req => {
           },
           app_metadata: {
             provider: 'telegram',
-            role: userRole,
-            workspace_id: workspaceId,
             user_id: userId,
             telegram_id: telegramId,
-            user_role: userRole,
+            role: userRole,
           },
         }
       );
+
       if (updateError) throw updateError;
-      authUser = updatedUser.user;
+      authUserId = updatedAuth.user.id;
     } else {
-      // Create new auth user
-      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+      console.log('➕ Creating auth user...');
+      const { data: newAuth, error: createError } = await supabase.auth.admin.createUser({
         email,
-        password,
+        password: crypto.randomUUID(),
         email_confirm: true,
         user_metadata: {
           telegram_id: telegramId,
@@ -252,46 +240,32 @@ Deno.serve(async req => {
         },
         app_metadata: {
           provider: 'telegram',
-          role: userRole,
-          workspace_id: workspaceId,
           user_id: userId,
           telegram_id: telegramId,
-          user_role: userRole,
+          role: userRole,
         },
       });
+
       if (createError) throw createError;
-      authUser = newUser.user;
+      authUserId = newAuth.user!.id;
+      console.log('✅ Auth user created:', authUserId);
     }
 
-    // Generate session token using Supabase Auth API
+    console.log('🎫 Creating session...');
     const { data: sessionData, error: sessionError } = await supabase.auth.admin.createSession({
-      user_id: authUser.id,
+      user_id: authUserId,
     });
 
     if (sessionError || !sessionData) {
-      throw new Error('Failed to create session: ' + sessionError?.message);
+      console.error('❌ Session creation failed:', sessionError);
+      throw new Error('Failed to create session');
     }
 
-    console.log('✅ Session created for user:', userId);
-
-    // Build claims object for backwards compatibility
-    const claims = {
-      user_id: userId,
-      telegram_id: telegramId,
-      user_role: userRole,
-      role: userRole,
-      workspace_id: workspaceId,
-      app_metadata: {
-        provider: 'telegram',
-        role: userRole,
-        workspace_id: workspaceId,
-      },
-    };
+    console.log('✅ Session created successfully');
 
     return new Response(
       JSON.stringify({
         ok: true,
-        valid: true,
         user: {
           id: userId,
           telegram_id: telegramId,
@@ -306,15 +280,14 @@ Deno.serve(async req => {
           expires_in: sessionData.expires_in || 3600,
           token_type: 'bearer',
         },
-        claims,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err) {
-    console.error('💥 Telegram verification error:', err);
+    console.error('💥 Error:', err);
     return new Response(
-      JSON.stringify({ ok: false, error: err.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      JSON.stringify({ ok: false, error: err.message || 'Internal server error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

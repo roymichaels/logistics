@@ -7,9 +7,10 @@ import React, {
   useState
 } from 'react';
 import { BootstrapConfig, User } from '../data/types';
-import { bootstrap } from '../lib/bootstrap';
 import { createFrontendDataStore, FrontendDataStore } from '../lib/frontendDataStore';
 import { debugLog } from '../components/DebugPanel';
+import { useAuth } from './AuthContext';
+import { userService } from '../lib/userService';
 
 export type AppUserRole =
   | 'user'
@@ -41,11 +42,6 @@ const AppServicesContext = createContext<AppServicesContextValue | undefined>(un
 
 interface AppServicesProviderProps {
   children: React.ReactNode;
-  /**
-   * Optional override for testing and Storybook fixtures. When provided, the
-   * initialization sequence is skipped and the supplied value is used
-   * directly.
-   */
   value?: AppServicesContextValue;
 }
 
@@ -58,55 +54,47 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   const [error, setError] = useState<string | null>(null);
   const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
 
+  const auth = value ? null : useAuth();
+
   const setBusinessId = useCallback((businessId: string | null) => {
     setCurrentBusinessId(prev => (prev === businessId ? prev : businessId));
   }, []);
 
-  const logout = useCallback(() => {
-    debugLog.info('🚪 Logging out user from AppServicesProvider');
-    localStorage.removeItem('user_session');
-    localStorage.removeItem('onx_session');
+  const logout = useCallback(async () => {
+    debugLog.info('🚪 Logging out user');
+    if (auth) {
+      await auth.signOut();
+    }
     setUser(null);
     setUserRole(null);
     setDataStore(null);
     setCurrentBusinessId(null);
-  }, []);
+  }, [auth]);
 
   const refreshUserRole = useCallback(
     async ({ forceRefresh = true }: { forceRefresh?: boolean } = {}) => {
-      if (!dataStore) {
-        debugLog.warn('⚠️ Cannot refresh user role - dataStore not ready');
+      if (!user?.id) {
+        debugLog.warn('⚠️ Cannot refresh user role - no user ID');
         return;
       }
 
       try {
-        debugLog.info('🔄 Refreshing user role from AppServicesProvider');
-        let role: AppUserRole = null;
+        debugLog.info('🔄 Refreshing user role');
+        const profile = await userService.getUserProfile(user.id, forceRefresh);
 
-        if (dataStore.getCurrentRole && !forceRefresh) {
-          role = (await dataStore.getCurrentRole()) as AppUserRole;
-          debugLog.info('📊 refreshUserRole via getCurrentRole()', { role });
-        }
+        const updatedUser: User = {
+          ...user,
+          ...profile,
+        };
 
-        if (!role) {
-          const profile = await dataStore.getProfile(forceRefresh);
-          role = (profile.role as AppUserRole) ?? 'owner';
-          setUser(profile);
-          debugLog.info('📊 refreshUserRole via getProfile()', {
-            role,
-            name: profile.name || (profile as any)?.first_name
-          });
-        }
-
-        if (role !== userRole) {
-          debugLog.success(`✅ User role updated from ${userRole ?? 'none'} to ${role}`);
-          setUserRole(role);
-        }
+        setUser(updatedUser);
+        setUserRole((profile.role as AppUserRole) ?? 'user');
+        debugLog.success(`✅ User role updated to ${profile.role}`);
       } catch (err) {
         debugLog.error('❌ Failed to refresh user role', err);
       }
     },
-    [dataStore, userRole]
+    [user]
   );
 
   useEffect(() => {
@@ -114,169 +102,91 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       return;
     }
 
+    if (!auth) {
+      return;
+    }
+
+    if (!auth.isAuthenticated || auth.isLoading) {
+      debugLog.info('⏳ Waiting for authentication...');
+      setLoading(true);
+      return;
+    }
+
+    if (!auth.user) {
+      debugLog.error('❌ No authenticated user available');
+      setError('No authenticated user');
+      setLoading(false);
+      return;
+    }
+
     let cancelled = false;
 
     const initialize = async () => {
       try {
-        debugLog.info('🚀 AppServicesProvider initializing...');
+        debugLog.info('🚀 AppServicesProvider initializing with authenticated user:', auth.user?.name);
 
-        // Verify Supabase is already initialized (should be done in main.tsx)
-        debugLog.info('🔍 Verifying Supabase client is initialized...');
-        const { isSupabaseInitialized } = await import('../lib/supabaseClient');
+        const appConfig: BootstrapConfig = {
+          app: 'miniapp',
+          adapters: { data: 'supabase' },
+          features: {
+            offline_mode: true,
+            photo_upload: true,
+            gps_tracking: true,
+            route_optimization: false,
+          },
+          ui: {
+            brand: 'מערכת לוגיסטיקה',
+            accent: '#007aff',
+            theme: 'auto',
+            language: 'he'
+          },
+          defaults: {
+            mode: 'real' as const,
+          },
+        };
 
-        // Wait for Supabase to be initialized with timeout
-        const maxWaitTime = 10000; // 10 seconds
-        const startWait = Date.now();
+        if (cancelled) return;
 
-        while (!isSupabaseInitialized()) {
-          if (cancelled) {
-            debugLog.info('🚿 Initialization cancelled (component unmounted)');
-            return;
-          }
+        setConfig(appConfig);
 
-          if (Date.now() - startWait > maxWaitTime) {
-            throw new Error('Timeout waiting for Supabase initialization. main.tsx should have initialized it.');
-          }
+        const appUser: User = {
+          id: auth.user.id,
+          telegram_id: auth.user.telegram_id,
+          username: auth.user.username || undefined,
+          name: auth.user.name,
+          photo_url: auth.user.photo_url || undefined,
+          role: auth.user.role as any,
+        };
 
-          debugLog.warn('⏳ Supabase not initialized yet, waiting for main.tsx initialization...');
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
+        setUser(appUser);
+        setUserRole(auth.user.role as AppUserRole);
 
-        if (cancelled) {
-          debugLog.info('🚿 Initialization cancelled after Supabase check');
-          return;
-        }
-
-        debugLog.success('✅ Supabase client verified as initialized');
-
-        const { ensureTwaSession } = await import('../lib/twaAuth');
-
-        if (cancelled) {
-          debugLog.info('🚿 Initialization cancelled before auth');
-          return;
-        }
-
-        debugLog.info('🔐 Ensuring Telegram WebApp session...');
-        const authResult = await ensureTwaSession();
-
-        if (cancelled) {
-          debugLog.info('🚿 Initialization cancelled after auth');
-          return;
-        }
-
-        if (!authResult.ok) {
-          debugLog.error('❌ Failed to establish TWA session', authResult);
-          console.error('TWA auth failed:', authResult);
-
-          const reasons: Record<string, { message: string; hint: string }> = {
-            no_init_data: {
-              message: 'אין נתוני Telegram',
-              hint: "יש לפתוח את האפליקציה מתוך צ'אט טלגרם"
-            },
-            verify_failed: {
-              message: 'אימות Telegram נכשל',
-              hint: authResult.details || 'נסה לסגור ולפתוח את האפליקציה מחדש'
-            },
-            tokens_missing: {
-              message: 'שגיאת תקשורת עם השרת',
-              hint: 'בדוק את החיבור לאינטרנט ונסה שוב'
-            },
-            set_session_failed: {
-              message: 'שגיאה בהתחברות למערכת',
-              hint: authResult.details || 'נסה לסגור ולפתוח את האפליקציה מחדש'
-            }
-          };
-
-          const errorInfo = reasons[authResult.reason] || {
-            message: 'שגיאה באימות',
-            hint: 'נסה שוב מאוחר יותר'
-          };
-
-          // Set error state and stop loading BEFORE throwing (only if not cancelled)
-          if (!cancelled) {
-            setError(`${errorInfo.message}\n${errorInfo.hint}`);
-            setLoading(false);
-          }
-          return; // Don't throw, just return early
-        }
-
-        if (cancelled) {
-          debugLog.info('🚿 Initialization cancelled after auth success');
-          return;
-        }
-
-        debugLog.success('✅ TWA session established with JWT claims');
-
-        if (cancelled) {
-          debugLog.info('🚿 Initialization cancelled before bootstrap');
-          return;
-        }
-
-        debugLog.info('📡 Calling bootstrap...');
-        const result = await bootstrap();
-        debugLog.success('✅ Bootstrap complete', {
-          hasUser: !!result.user,
-          adapter: result.config.adapters.data
-        });
-
-        if (!result.user || !result.user.telegram_id) {
-          debugLog.error('❌ Invalid user data from bootstrap', { user: result.user });
-          throw new Error('Cannot initialize app: Missing user Telegram ID');
-        }
-
-        if (cancelled) {
-          return;
-        }
-
-        setConfig(result.config);
-        setUser(result.user as User);
-
-        if (cancelled) {
-          debugLog.info('🚿 Initialization cancelled before datastore');
-          return;
-        }
+        if (cancelled) return;
 
         debugLog.info('💾 Creating data store...');
-        const store = await createFrontendDataStore(result.config, 'real', result.user as User);
+        const store = await createFrontendDataStore(appConfig, 'real', appUser);
 
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
         setDataStore(store);
         debugLog.success('✅ Data store created');
 
         try {
-          if (cancelled) {
-            debugLog.info('🚿 Initialization cancelled before profile fetch');
-            return;
-          }
-
-          const params = new URLSearchParams(window.location.search);
-          const forceProfileRefresh = params.has('refresh');
-
           debugLog.info('👤 Fetching full user profile from database...');
-          const profile = await store.getProfile(true);
+          const profile = await userService.getUserProfile(auth.user.id, true);
 
-          if (cancelled) {
-            return;
-          }
+          if (cancelled) return;
 
-          if (!cancelled) {
-            setUser(profile);
-            setUserRole((profile.role as AppUserRole) ?? 'owner');
-            debugLog.success(`✅ User profile loaded: ${profile.name || (profile as any)?.first_name}`);
+          const fullUser: User = {
+            ...appUser,
+            ...profile,
+          };
 
-            if (forceProfileRefresh) {
-              window.history.replaceState({}, '', window.location.pathname);
-              debugLog.info('🧹 Cleaned up refresh parameter from URL');
-            }
-          }
+          setUser(fullUser);
+          setUserRole((profile.role as AppUserRole) ?? 'user');
+          debugLog.success(`✅ User profile loaded: ${profile.name}`);
         } catch (profileError) {
-          debugLog.warn('⚠️ Failed to resolve user role', profileError);
-          if (!cancelled) {
-            setUserRole('owner');
-          }
+          debugLog.warn('⚠️ Failed to fetch extended profile', profileError);
         }
 
         if (!cancelled) {
@@ -304,7 +214,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     return () => {
       cancelled = true;
     };
-  }, [value]);
+  }, [value, auth?.isAuthenticated, auth?.isLoading, auth?.user]);
 
   useEffect(() => {
     if (value || !dataStore?.getActiveBusinessContext) {
