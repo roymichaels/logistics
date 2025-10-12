@@ -105,10 +105,33 @@ Deno.serve(async (req: Request): Promise<Response> => {
     }
 
     console.log('🎫 Generating session tokens...');
-    const { data: sessionData, error: signInErr } = await supabase.auth.signInWithPassword({
+    let sessionData;
+    let signInErr;
+
+    // Try to sign in with password
+    ({ data: sessionData, error: signInErr } = await supabase.auth.signInWithPassword({
       email,
       password,
-    });
+    }));
+
+    // If sign in fails due to invalid credentials, update the password and retry
+    if (signInErr && signInErr.message?.includes('Invalid login credentials')) {
+      console.log('⚠️ Password mismatch detected, updating password...');
+      const { error: updateErr } = await supabase.auth.admin.updateUserById(authUser.id, {
+        password: password,
+      });
+
+      if (updateErr) {
+        console.error('❌ Password update failed:', updateErr);
+        throw updateErr;
+      }
+
+      console.log('✅ Password updated, retrying sign in...');
+      ({ data: sessionData, error: signInErr } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      }));
+    }
 
     if (signInErr) {
       console.error('❌ Sign in failed:', signInErr);
@@ -123,16 +146,30 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     const fullName = `${user.first_name || ''}${user.last_name ? ' ' + user.last_name : ''}`.trim();
 
-    await supabase
+    // Insert/update user in users table with required role field
+    console.log('💾 Upserting user to users table...');
+    const { error: upsertErr } = await supabase
       .from('users')
       .upsert({
         telegram_id: user.id.toString(),
         username: user.username?.replace(/^@/, '').toLowerCase() || null,
         name: fullName,
-        photo_url: user.photo_url,
+        first_name: user.first_name || null,
+        last_name: user.last_name || null,
+        photo_url: user.photo_url || null,
+        role: 'user', // Set default role for new users
       }, {
-        onConflict: 'telegram_id'
+        onConflict: 'telegram_id',
+        ignoreDuplicates: false, // Update existing users
       });
+
+    if (upsertErr) {
+      console.error('❌ User upsert failed:', upsertErr);
+      // Don't throw here - we have a valid session, just log the error
+      console.warn('⚠️ Continuing despite upsert error - session is valid');
+    } else {
+      console.log('✅ User record updated in users table');
+    }
 
     return new Response(
       JSON.stringify({
