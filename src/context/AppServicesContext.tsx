@@ -119,6 +119,13 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     const initialize = async () => {
       try {
         debugLog.info('🚀 AppServicesProvider initializing...');
+
+        // Initialize Supabase client FIRST before any authentication attempts
+        debugLog.info('🔧 Initializing Supabase client...');
+        const { initSupabase } = await import('../lib/supabaseClient');
+        await initSupabase();
+        debugLog.success('✅ Supabase client initialized');
+
         const { ensureTwaSession } = await import('../lib/twaAuth');
 
         debugLog.info('🔐 Ensuring Telegram WebApp session...');

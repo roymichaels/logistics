@@ -417,7 +417,11 @@ export default function App() {
   }
 
   if (error) {
-    const [errorMessage, errorHint] = error.split('\n');
+    const lines = error.split('\n');
+    const errorMessage = lines[0] || 'שגיאה באתחול';
+    const errorDetails = lines.slice(1);
+    const [showDetails, setShowDetails] = React.useState(false);
+
     return (
       <div style={{
           display: 'flex',
@@ -438,18 +442,53 @@ export default function App() {
             marginBottom: '12px',
             color: theme.text_color
           }}>
-            {errorMessage || 'שגיאה באתחול'}
+            {errorMessage}
           </h1>
-          {errorHint && (
-            <p style={{
+          {errorDetails.length > 0 && (
+            <div style={{
               fontSize: '16px',
               marginBottom: '24px',
               color: theme.hint_color,
               lineHeight: '1.6',
-              maxWidth: '400px'
+              maxWidth: '500px',
+              textAlign: 'right'
             }}>
-              {errorHint}
-            </p>
+              {errorDetails.map((line, idx) => (
+                <p key={idx} style={{ margin: '8px 0' }}>{line}</p>
+              ))}
+            </div>
+          )}
+          {errorDetails.length > 5 && (
+            <button
+              onClick={() => setShowDetails(!showDetails)}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: 'transparent',
+                color: theme.link_color,
+                border: `1px solid ${theme.link_color}`,
+                borderRadius: '8px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                marginBottom: '12px'
+              }}
+            >
+              {showDetails ? 'הסתר פרטים טכניים' : 'הצג פרטים טכניים'}
+            </button>
+          )}
+          {showDetails && (
+            <pre style={{
+              fontSize: '12px',
+              color: theme.hint_color,
+              backgroundColor: 'rgba(0,0,0,0.05)',
+              padding: '12px',
+              borderRadius: '8px',
+              textAlign: 'left',
+              maxWidth: '500px',
+              overflow: 'auto',
+              marginBottom: '12px'
+            }}>
+              {error}
+            </pre>
           )}
           <button
             onClick={() => window.location.reload()}

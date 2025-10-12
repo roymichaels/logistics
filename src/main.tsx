@@ -137,8 +137,28 @@ function LoadingScreen() {
 
     // Initialize Supabase with config
     console.log('🔄 Initializing Supabase...');
-    await initSupabase();
-    console.log('✅ Supabase initialized successfully');
+    console.log('🔄 Fetching runtime configuration...');
+
+    // Check environment variables
+    const buildTimeUrl = import.meta.env.VITE_SUPABASE_URL;
+    const buildTimeKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    if (buildTimeUrl && buildTimeKey) {
+      console.log('✅ Build-time config available:', {
+        url: buildTimeUrl.substring(0, 30) + '...',
+        keyLength: buildTimeKey.length
+      });
+    } else {
+      console.log('⚠️ Build-time config not available, will fetch runtime config');
+    }
+
+    try {
+      await initSupabase();
+      console.log('✅ Supabase initialized successfully');
+    } catch (error) {
+      console.error('❌ Failed to initialize Supabase:', error);
+      throw new Error('Failed to load configuration. Please check your environment variables or runtime config endpoint.');
+    }
 
     // Render the actual app
     console.log('✅ Rendering App component...');

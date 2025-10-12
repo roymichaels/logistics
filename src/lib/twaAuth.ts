@@ -5,9 +5,20 @@ export type TwaAuthResult =
   | { ok: false; reason: 'no_init_data' | 'verify_failed' | 'tokens_missing' | 'set_session_failed'; details?: string };
 
 export async function ensureTwaSession(): Promise<TwaAuthResult> {
-  const supabase = getSupabase();
-
   console.log('🔐 ensureTwaSession: Starting authentication check');
+
+  // Verify Supabase client is initialized
+  let supabase;
+  try {
+    supabase = getSupabase();
+  } catch (error) {
+    console.error('❌ ensureTwaSession: Supabase client not initialized', error);
+    return {
+      ok: false,
+      reason: 'verify_failed',
+      details: 'Supabase client not initialized. This is an initialization error.'
+    };
+  }
 
   // Check existing session
   const { data: sessionCheck } = await supabase.auth.getSession();
@@ -91,11 +102,24 @@ export async function ensureTwaSession(): Promise<TwaAuthResult> {
         error: errorData.error
       });
 
-      // Signature verification should work - treat as fatal
+      // Provide specific guidance based on status code
+      let details = 'Signature verification failed';
+      if (response.status === 401) {
+        details = 'Backend authentication failed. This usually means:\n' +
+                  '1. TELEGRAM_BOT_TOKEN is not configured in Supabase secrets\n' +
+                  '2. TELEGRAM_BOT_TOKEN is incorrect or expired\n' +
+                  '3. The bot token doesn\'t match the bot launching this Mini App\n\n' +
+                  'Configure the correct token in Supabase dashboard: Edge Functions → Configuration → Secrets';
+      } else if (response.status === 500) {
+        details = 'Server error during verification. Check Supabase Edge Function logs.';
+      } else {
+        details = `Signature verification failed: ${errorData.error || errorText}`;
+      }
+
       return {
         ok: false,
         reason: 'verify_failed',
-        details: `Signature verification failed: ${errorData.error}`
+        details
       };
     }
 
