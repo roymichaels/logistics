@@ -59,8 +59,18 @@ class AuthService {
         userId: session?.user?.id
       });
 
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        this.handleSessionUpdate(session);
+      // Handle all events that provide a valid session
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+        if (session) {
+          this.handleSessionUpdate(session);
+        } else if (event === 'INITIAL_SESSION') {
+          // No session on initial load - normal for first-time users
+          console.log('ℹ️ No initial session found');
+          this.updateState({
+            isLoading: false,
+            isAuthenticated: false
+          });
+        }
       } else if (event === 'SIGNED_OUT') {
         this.handleSignOut();
       }

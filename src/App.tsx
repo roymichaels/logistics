@@ -9,7 +9,8 @@ import { BusinessManager } from './components/BusinessManager';
 import { SuperadminSetup } from './components/SuperadminSetup';
 import { FloatingActionMenu } from './components/FloatingActionButton';
 import { Header } from './components/Header';
-import { SecurityGate } from './components/SecurityGate';
+// SecurityGate disabled - Telegram authentication provides sufficient security
+// import { SecurityGate } from './components/SecurityGate';
 import { RightSidebarMenu } from './components/RightSidebarMenu';
 import { SidebarToggleButton } from './components/SidebarToggleButton';
 import { debugLog } from './components/DebugPanel';
