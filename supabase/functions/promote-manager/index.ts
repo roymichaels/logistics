@@ -44,6 +44,19 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const validRoles = ['user', 'infrastructure_owner', 'business_owner', 'manager', 'dispatcher', 'driver', 'warehouse', 'sales', 'customer_service'];
+    if (target_role && !validRoles.includes(target_role)) {
+      console.error('Invalid role specified:', target_role);
+      return new Response(
+        JSON.stringify({
+          error: 'Invalid role',
+          details: `Role must be one of: ${validRoles.join(', ')}`,
+          provided: target_role
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (pin.length !== 6) {
       console.error('Invalid PIN length');
       return new Response(
@@ -126,7 +139,7 @@ Deno.serve(async (req: Request) => {
       console.log('User created:', newUser.id);
     }
 
-    const finalRole = target_role || 'owner';
+    const finalRole = target_role || 'infrastructure_owner';
     console.log(`Updating user to role: ${finalRole}`);
 
     const { data: updatedUser, error: updateError } = await supabase

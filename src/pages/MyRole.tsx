@@ -45,8 +45,8 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         : await dataStore.getProfile();
       setUser(profile);
 
-      // AUTO-REDIRECT: If user has owner/manager role, redirect to dashboard immediately
-      if (profile.role === 'owner' || profile.role === 'manager') {
+      // AUTO-REDIRECT: If user has infrastructure_owner/business_owner/manager role, redirect to dashboard immediately
+      if (profile.role === 'infrastructure_owner' || profile.role === 'business_owner' || profile.role === 'manager') {
         console.log(`🔄 User has ${profile.role} role, redirecting to dashboard...`);
         Toast.success(`יש לך הרשאות ${profile.role}! מעביר למערכת...`);
         setTimeout(() => {

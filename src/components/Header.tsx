@@ -245,7 +245,8 @@ export function Header({ onNavigate, onLogout }: HeaderProps) {
                 borderRadius: '6px',
                 display: 'inline-block'
               }}>
-                {user?.role === 'owner' ? 'בעלים 👑' :
+                {user?.role === 'infrastructure_owner' ? 'בעל תשתית 👑' :
+                 user?.role === 'business_owner' ? 'בעלים 👑' :
                  user?.role === 'manager' ? 'מנהל' :
                  user?.role === 'dispatcher' ? 'מוקדן' :
                  user?.role === 'driver' ? 'נהג' :

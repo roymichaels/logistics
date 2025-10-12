@@ -57,7 +57,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
       setUser(profile);
 
       // Owner and Manager get custom dashboards
-      if (profile.role === 'owner' || profile.role === 'manager') {
+      if (profile.role === 'infrastructure_owner' || profile.role === 'business_owner' || profile.role === 'manager') {
         setLoading(false);
         return;
       }
@@ -184,7 +184,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   }
 
   // Owner gets comprehensive system-wide dashboard
-  if (user?.role === 'owner') {
+  if (user?.role === 'infrastructure_owner' || user?.role === 'business_owner') {
     return <OwnerDashboard dataStore={dataStore} user={user} onNavigate={onNavigate} />;
   }
 

@@ -103,7 +103,8 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
     }
   };
 
-  const canManageProducts = user?.role === 'owner' ||
+  const canManageProducts = user?.role === 'infrastructure_owner' ||
+                           user?.role === 'business_owner' ||
                            user?.role === 'manager';
 
   const categories = ['all', ...new Set(products.map(p => p.category).filter(Boolean))];

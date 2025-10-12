@@ -193,8 +193,8 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
     }
   };
 
-  const canApprove = user?.role === 'manager' || user?.role === 'owner';
-  const canFulfill = user?.role === 'warehouse' || user?.role === 'manager' || user?.role === 'owner';
+  const canApprove = user?.role === 'manager' || user?.role === 'infrastructure_owner' || user?.role === 'business_owner';
+  const canFulfill = user?.role === 'warehouse' || user?.role === 'manager' || user?.role === 'infrastructure_owner' || user?.role === 'business_owner';
 
   if (loading) {
     return (

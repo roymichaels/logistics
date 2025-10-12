@@ -31,7 +31,7 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
 
       // Load tasks based on role
       let tasksList: Task[] = [];
-      if (profile.role === 'owner' || profile.role === 'manager' || profile.role === 'dispatcher') {
+      if (profile.role === 'infrastructure_owner' || profile.role === 'business_owner' || profile.role === 'manager' || profile.role === 'dispatcher') {
         // Admins see all tasks
         if (dataStore.supabase) {
           const { data, error } = await dataStore.supabase
@@ -51,7 +51,7 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
       setTasks(tasksList);
 
       // Load users for assignment (if admin)
-      if (profile.role === 'owner' || profile.role === 'manager' || profile.role === 'dispatcher') {
+      if (profile.role === 'infrastructure_owner' || profile.role === 'business_owner' || profile.role === 'manager' || profile.role === 'dispatcher') {
         if (dataStore.supabase) {
           const { data: usersData } = await dataStore.supabase
             .from('users')
@@ -134,7 +134,8 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
     ? tasks
     : tasks.filter(t => t.status === filter);
 
-  const canManageTasks = currentUser?.role === 'owner' ||
+  const canManageTasks = currentUser?.role === 'infrastructure_owner' ||
+                         currentUser?.role === 'business_owner' ||
                          currentUser?.role === 'manager' ||
                          currentUser?.role === 'dispatcher';
 

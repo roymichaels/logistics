@@ -53,7 +53,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
       }
 
       // Load all businesses (for infrastructure owners)
-      if (profile.role === 'owner') {
+      if (profile.role === 'infrastructure_owner') {
         const { data: businessData, error: businessError } = await dataStore.supabase
           .from('businesses')
           .select('*')
@@ -136,7 +136,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
       </div>
 
       {/* Infrastructure Owner: Create Business Button */}
-      {user?.role === 'owner' && (
+      {user?.role === 'infrastructure_owner' && (
         <button
           onClick={() => setShowCreateModal(true)}
           style={{
@@ -173,7 +173,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
       )}
 
       {/* All Businesses (Infrastructure Owner Only) */}
-      {user?.role === 'owner' && businesses.length > 0 && (
+      {user?.role === 'infrastructure_owner' && businesses.length > 0 && (
         <div>
           <h2 style={{
             margin: '0 0 16px 0',
