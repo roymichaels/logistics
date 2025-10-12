@@ -3,6 +3,8 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 let client: SupabaseClient | null = null;
 let configPromise: Promise<{supabaseUrl: string; supabaseAnonKey: string}> | null = null;
 let config: {supabaseUrl: string; supabaseAnonKey: string} | null = null;
+let initPromise: Promise<SupabaseClient> | null = null;
+let isInitialized = false;
 
 async function loadConfig(): Promise<{supabaseUrl: string; supabaseAnonKey: string}> {
   if (config) {
@@ -65,40 +67,67 @@ async function loadConfig(): Promise<{supabaseUrl: string; supabaseAnonKey: stri
 }
 
 export async function initSupabase(): Promise<SupabaseClient> {
-  if (client) {
+  // If already initialized, return existing client
+  if (client && isInitialized) {
+    console.log('✅ Supabase client already initialized, returning existing instance');
     return client;
   }
 
-  const { supabaseUrl, supabaseAnonKey } = await loadConfig();
-
-  client = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      storageKey: 'twa-undergroundlab',
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: false,
-    },
-    global: {
-      headers: {
-        'x-app': 'undergroundlab-twa',
-      },
-    },
-  });
-
-  console.log('🔧 Singleton Supabase client created with storageKey: twa-undergroundlab');
-
-  if (typeof window !== 'undefined') {
-    (window as any).__SUPABASE_CLIENT__ = client;
+  // If initialization is in progress, wait for it
+  if (initPromise) {
+    console.log('⏳ Supabase initialization in progress, waiting...');
+    return initPromise;
   }
 
-  return client;
+  // Start new initialization
+  console.log('🔧 Starting Supabase client initialization...');
+  initPromise = (async () => {
+    try {
+      const { supabaseUrl, supabaseAnonKey } = await loadConfig();
+
+      client = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          storageKey: 'twa-undergroundlab',
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: false,
+        },
+        global: {
+          headers: {
+            'x-app': 'undergroundlab-twa',
+          },
+        },
+      });
+
+      isInitialized = true;
+      console.log('🔧 Singleton Supabase client created with storageKey: twa-undergroundlab');
+
+      if (typeof window !== 'undefined') {
+        (window as any).__SUPABASE_CLIENT__ = client;
+        (window as any).__SUPABASE_INITIALIZED__ = true;
+      }
+
+      return client;
+    } catch (error) {
+      // Reset state on error so retry is possible
+      initPromise = null;
+      isInitialized = false;
+      throw error;
+    }
+  })();
+
+  return initPromise;
 }
 
 export function getSupabase(): SupabaseClient {
-  if (!client) {
+  if (!client || !isInitialized) {
     throw new Error('Supabase client not initialized. Call initSupabase() first.');
   }
   return client;
+}
+
+export function isSupabaseInitialized(): boolean {
+  return isInitialized && client !== null;
 }
 
 export function getSupabaseSession() {

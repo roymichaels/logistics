@@ -120,11 +120,21 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       try {
         debugLog.info('🚀 AppServicesProvider initializing...');
 
-        // Initialize Supabase client FIRST before any authentication attempts
-        debugLog.info('🔧 Initializing Supabase client...');
-        const { initSupabase } = await import('../lib/supabaseClient');
-        await initSupabase();
-        debugLog.success('✅ Supabase client initialized');
+        // Verify Supabase is already initialized (should be done in main.tsx)
+        debugLog.info('🔍 Verifying Supabase client is initialized...');
+        const { isSupabaseInitialized } = await import('../lib/supabaseClient');
+
+        if (!isSupabaseInitialized()) {
+          debugLog.warn('⚠️ Supabase not initialized yet, waiting for main.tsx initialization...');
+          // Wait a bit for main.tsx to complete initialization
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+          if (!isSupabaseInitialized()) {
+            throw new Error('Supabase client not initialized. main.tsx should initialize it first.');
+          }
+        }
+
+        debugLog.success('✅ Supabase client verified as initialized');
 
         const { ensureTwaSession } = await import('../lib/twaAuth');
 
@@ -159,7 +169,10 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
             hint: 'נסה שוב מאוחר יותר'
           };
 
-          throw new Error(`${errorInfo.message}\n${errorInfo.hint}`);
+          // Set error state and stop loading BEFORE throwing
+          setError(`${errorInfo.message}\n${errorInfo.hint}`);
+          setLoading(false);
+          return; // Don't throw, just return early
         }
 
         debugLog.success('✅ TWA session established with JWT claims');

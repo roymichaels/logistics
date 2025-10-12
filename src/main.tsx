@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AppServicesProvider } from './context/AppServicesContext';
 import { initSupabase } from './lib/supabaseClient';
+import './lib/initDiagnostics';
 
 console.log('🚀 Starting app...');
 
@@ -153,8 +154,17 @@ function LoadingScreen() {
     }
 
     try {
+      console.log('⏱️ [TIMING] Starting Supabase initialization at', new Date().toISOString());
+      const startTime = performance.now();
       await initSupabase();
-      console.log('✅ Supabase initialized successfully');
+      const endTime = performance.now();
+      console.log(`✅ Supabase initialized successfully in ${(endTime - startTime).toFixed(2)}ms`);
+
+      // Mark as initialized globally
+      if (typeof window !== 'undefined') {
+        (window as any).__INIT_COMPLETE__ = true;
+        (window as any).__INIT_TIMESTAMP__ = Date.now();
+      }
     } catch (error) {
       console.error('❌ Failed to initialize Supabase:', error);
       throw new Error('Failed to load configuration. Please check your environment variables or runtime config endpoint.');
