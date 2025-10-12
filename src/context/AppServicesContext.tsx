@@ -46,7 +46,7 @@ interface AppServicesProviderProps {
   value?: AppServicesContextValue;
 }
 
-export function AppServicesProvider({ children, value }: AppServicesProviderProps) {
+export const AppServicesProvider = React.memo(function AppServicesProvider({ children, value }: AppServicesProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<AppUserRole>(null);
   const [dataStore, setDataStore] = useState<FrontendDataStore | null>(null);
@@ -58,6 +58,10 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
   const auth = value ? null : useAuth();
   const initializedUserIdRef = useRef<string | null>(null);
+  const initializationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const initializationPromiseRef = useRef<Promise<void> | null>(null);
+  const retryCountRef = useRef<number>(0);
+  const lastInitAttemptRef = useRef<number>(0);
 
   const setBusinessId = useCallback((businessId: string | null) => {
     setCurrentBusinessId(prev => (prev === businessId ? prev : businessId));
@@ -72,6 +76,8 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     setUserRole(null);
     setDataStore(null);
     setCurrentBusinessId(null);
+    initializedUserIdRef.current = null;
+    retryCountRef.current = 0;
   }, [auth]);
 
   const refreshUserRole = useCallback(
@@ -115,11 +121,11 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     }
 
     if (!auth.isAuthenticated) {
-      setLoading(true);
+      setLoading(false);
       return;
     }
 
-    if (!auth.user) {
+    if (!auth.user?.id) {
       debugLog.error('❌ No authenticated user available');
       setError('No authenticated user');
       setLoading(false);
@@ -128,20 +134,46 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
     const currentUserId = auth.user.id;
 
-    if (initializedUserIdRef.current === currentUserId) {
+    if (initializedUserIdRef.current === currentUserId && !error) {
+      debugLog.info('✅ Already initialized for user:', currentUserId);
       return;
     }
 
     if (isInitializing) {
+      debugLog.info('⏳ Initialization already in progress, skipping...');
       return;
     }
+
+    const now = Date.now();
+    const timeSinceLastAttempt = now - lastInitAttemptRef.current;
+
+    if (timeSinceLastAttempt < 500) {
+      debugLog.info('⏸️ Debouncing initialization attempt (too soon)');
+      return;
+    }
+
+    if (initializationPromiseRef.current) {
+      debugLog.info('⏳ Reusing existing initialization promise');
+      return;
+    }
+
+    lastInitAttemptRef.current = now;
 
     let cancelled = false;
 
     const initialize = async () => {
       setIsInitializing(true);
+      setError(null);
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        initializationTimeoutRef.current = setTimeout(() => {
+          reject(new Error('Initialization timeout after 30 seconds'));
+        }, 30000);
+      });
+
       try {
         debugLog.info('🚀 AppServicesProvider initializing with authenticated user:', auth.user?.name);
+        debugLog.info(`📊 Retry count: ${retryCountRef.current}, User ID: ${currentUserId}`);
 
         const appConfig: BootstrapConfig = {
           app: 'miniapp',
@@ -196,35 +228,71 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         debugLog.success('✅ Data store created');
 
         if (!cancelled) {
+          if (initializationTimeoutRef.current) {
+            clearTimeout(initializationTimeoutRef.current);
+            initializationTimeoutRef.current = null;
+          }
+
           initializedUserIdRef.current = currentUserId;
+          retryCountRef.current = 0;
           setLoading(false);
           setIsInitializing(false);
+          initializationPromiseRef.current = null;
           debugLog.success('🎉 AppServicesProvider initialized successfully!');
         }
       } catch (err) {
+        if (initializationTimeoutRef.current) {
+          clearTimeout(initializationTimeoutRef.current);
+          initializationTimeoutRef.current = null;
+        }
+
         if (cancelled) {
           debugLog.info('🚿 Error occurred but initialization was cancelled, ignoring');
           return;
         }
 
-        debugLog.error('❌ AppServicesProvider initialization failed', err);
+        retryCountRef.current++;
+        debugLog.error(`❌ AppServicesProvider initialization failed (attempt ${retryCountRef.current})`, err);
         console.error('AppServicesProvider initialization failed:', err);
 
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to initialize app');
+          const errorMessage = err instanceof Error ? err.message : 'Failed to initialize app';
+
+          if (retryCountRef.current < 3) {
+            const retryDelay = Math.min(1000 * Math.pow(2, retryCountRef.current), 5000);
+            debugLog.info(`🔄 Will retry initialization in ${retryDelay}ms...`);
+
+            setTimeout(() => {
+              if (!cancelled && initializedUserIdRef.current !== currentUserId) {
+                lastInitAttemptRef.current = 0;
+                initializationPromiseRef.current = null;
+              }
+            }, retryDelay);
+          } else {
+            debugLog.error('❌ Max retry attempts reached, giving up');
+            setError(errorMessage);
+          }
+
           setLoading(false);
           setIsInitializing(false);
+          initializationPromiseRef.current = null;
         }
       }
     };
 
-    initialize();
+    const initPromise = initialize();
+    initializationPromiseRef.current = initPromise;
 
     return () => {
       cancelled = true;
+      if (initializationTimeoutRef.current) {
+        clearTimeout(initializationTimeoutRef.current);
+        initializationTimeoutRef.current = null;
+      }
       setIsInitializing(false);
+      initializationPromiseRef.current = null;
     };
-  }, [value, auth?.isAuthenticated, auth?.isLoading, auth?.user?.id, isInitializing]);
+  }, [value, auth?.isAuthenticated, auth?.isLoading, auth?.user?.id, error]);
 
   useEffect(() => {
     if (value || !dataStore?.getActiveBusinessContext) {
@@ -285,7 +353,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   ]);
 
   return <AppServicesContext.Provider value={contextValue}>{children}</AppServicesContext.Provider>;
-}
+});
 
 export function useAppServices() {
   const context = useContext(AppServicesContext);

@@ -1,5 +1,6 @@
 import { getSupabase } from './supabaseClient';
 import { AuthUser } from './authService';
+import { getCircuitBreaker } from './circuitBreaker';
 
 export interface UserProfile extends AuthUser {
   created_at?: string;
@@ -19,6 +20,33 @@ export interface UserProfile extends AuthUser {
 class UserService {
   private profileCache: Map<string, { profile: UserProfile; timestamp: number }> = new Map();
   private readonly CACHE_TTL = 5 * 60 * 1000;
+  private inFlightRequests: Map<string, Promise<UserProfile>> = new Map();
+  private requestQueue: Array<() => Promise<any>> = [];
+  private activeRequests = 0;
+  private readonly MAX_CONCURRENT_REQUESTS = 3;
+
+  private async executeWithConcurrencyLimit<T>(fn: () => Promise<T>): Promise<T> {
+    if (this.activeRequests >= this.MAX_CONCURRENT_REQUESTS) {
+      console.log('⏸️ Request queue is full, waiting...');
+      await new Promise<void>(resolve => {
+        this.requestQueue.push(async () => {
+          resolve();
+          return Promise.resolve();
+        });
+      });
+    }
+
+    this.activeRequests++;
+    try {
+      return await fn();
+    } finally {
+      this.activeRequests--;
+      const nextRequest = this.requestQueue.shift();
+      if (nextRequest) {
+        nextRequest().catch(err => console.error('Queue execution error:', err));
+      }
+    }
+  }
 
   async getUserProfile(userId: string, forceRefresh = false): Promise<UserProfile> {
     if (!forceRefresh) {
@@ -29,55 +57,71 @@ class UserService {
       }
     }
 
-    console.log('🔍 Fetching user profile from database:', userId);
-    const supabase = getSupabase();
-
-    const { data, error } = await supabase
-      .from('users')
-      .select(`
-        id,
-        telegram_id,
-        username,
-        name,
-        photo_url,
-        role,
-        business_id,
-        created_at,
-        updated_at,
-        last_login,
-        login_count,
-        is_online,
-        last_active
-      `)
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (error) {
-      console.error('❌ Failed to fetch user profile:', error);
-      throw new Error(`Failed to fetch user profile: ${error.message}`);
+    const inFlight = this.inFlightRequests.get(userId);
+    if (inFlight) {
+      console.log('⏳ Reusing in-flight request for user:', userId);
+      return inFlight;
     }
 
-    if (!data) {
-      throw new Error('User profile not found');
-    }
-
-    let profile = data as UserProfile;
-
-    if (data.business_id) {
-      const primaryBusiness = await this.getPrimaryBusiness(userId);
-      profile = {
-        ...profile,
-        primary_business: primaryBusiness,
-      };
-    }
-
-    this.profileCache.set(userId, {
-      profile,
-      timestamp: Date.now(),
+    const circuitBreaker = getCircuitBreaker('user-profile-fetch', {
+      failureThreshold: 5,
+      successThreshold: 2,
+      timeout: 10000,
+      resetTimeout: 30000
     });
 
-    console.log('✅ User profile fetched:', profile.name || profile.username);
-    return profile;
+    const requestPromise = this.executeWithConcurrencyLimit(async () => {
+      try {
+        console.log('🔍 Fetching user profile from database:', userId);
+
+        return await circuitBreaker.execute(async () => {
+          const supabase = getSupabase();
+
+          const fetchPromise = supabase
+            .from('users')
+            .select(`
+              id,
+              telegram_id,
+              username,
+              name,
+              photo_url,
+              role,
+              created_at,
+              updated_at,
+              last_login,
+              login_count
+            `)
+            .eq('id', userId)
+            .maybeSingle();
+
+          const { data, error } = await fetchPromise;
+
+          if (error) {
+            console.error('❌ Failed to fetch user profile:', error);
+            throw new Error(`Failed to fetch user profile: ${error.message}`);
+          }
+
+          if (!data) {
+            throw new Error('User profile not found');
+          }
+
+          const profile = data as UserProfile;
+
+          this.profileCache.set(userId, {
+            profile,
+            timestamp: Date.now(),
+          });
+
+          console.log('✅ User profile fetched:', profile.name || profile.username);
+          return profile;
+        });
+      } finally {
+        this.inFlightRequests.delete(userId);
+      }
+    });
+
+    this.inFlightRequests.set(userId, requestPromise);
+    return requestPromise;
   }
 
   async getUserProfileByTelegramId(telegramId: string, forceRefresh = false): Promise<UserProfile> {
