@@ -11,12 +11,15 @@ import { useAppServices } from '../context/AppServicesContext';
  */
 
 type RoleKey =
-  | 'user'           // Unassigned actor - view only, zero power
-  | 'owner'          // Platform owner - sees ALL businesses
-  | 'manager'        // Business manager - full command over their business
-  | 'sales'          // Sales agent - fast order creation, own stats
-  | 'warehouse'      // Warehouse operator - inventory only, no sales
-  | 'driver';        // Driver - deliveries, personal inventory, zones only
+  | 'user'                    // Unassigned actor - view only, zero power
+  | 'infrastructure_owner'    // Infrastructure owner - full platform access
+  | 'business_owner'          // Business owner - full business access
+  | 'manager'                 // Business manager - full command over their business
+  | 'dispatcher'              // Dispatcher - route planning, driver assignment
+  | 'sales'                   // Sales agent - fast order creation, own stats
+  | 'warehouse'               // Warehouse operator - inventory only, no sales
+  | 'driver'                  // Driver - deliveries, personal inventory, zones only
+  | 'customer_service';       // Customer service - support, order tracking
 
 interface TabDefinition {
   id: string;
@@ -86,8 +89,8 @@ export function BottomNavigation({
       }
     },
 
-    // 👑 OWNER: Full access
-    owner: {
+    // 🏗️ INFRASTRUCTURE_OWNER: Platform administrator
+    infrastructure_owner: {
       tabs: [
         { id: 'chat', label: 'צ\'אט', icon: '💬' },
         { id: 'notifications', label: 'התראות', icon: '🔔' },
@@ -99,8 +102,34 @@ export function BottomNavigation({
       }
     },
 
-    // 👑 MANAGER: Full management
+    // 👑 BUSINESS_OWNER: Full business access
+    business_owner: {
+      tabs: [
+        { id: 'chat', label: 'צ\'אט', icon: '💬' },
+        { id: 'notifications', label: 'התראות', icon: '🔔' },
+        { id: 'tasks', label: 'משימות', icon: '✅' }
+      ],
+      action: {
+        label: 'פעולות מהירות',
+        icon: '⚡'
+      }
+    },
+
+    // 📊 MANAGER: Full management
     manager: {
+      tabs: [
+        { id: 'chat', label: 'צ\'אט', icon: '💬' },
+        { id: 'notifications', label: 'התראות', icon: '🔔' },
+        { id: 'tasks', label: 'משימות', icon: '✅' }
+      ],
+      action: {
+        label: 'פעולות מהירות',
+        icon: '⚡'
+      }
+    },
+
+    // 🚦 DISPATCHER: Route planning and driver assignment
+    dispatcher: {
       tabs: [
         { id: 'chat', label: 'צ\'אט', icon: '💬' },
         { id: 'notifications', label: 'התראות', icon: '🔔' },
@@ -149,12 +178,25 @@ export function BottomNavigation({
         label: 'פעולות מהירות',
         icon: '⚡'
       }
+    },
+
+    // 📞 CUSTOMER_SERVICE: Support and order tracking
+    customer_service: {
+      tabs: [
+        { id: 'chat', label: 'צ\'אט', icon: '💬' },
+        { id: 'notifications', label: 'התראות', icon: '🔔' },
+        { id: 'tasks', label: 'משימות', icon: '✅' }
+      ],
+      action: {
+        label: 'פעולות מהירות',
+        icon: '⚡'
+      }
     }
   };
 
-  const roleConfig = userRole ? roleNavigation[userRole] : roleNavigation.user;
-  const tabs = roleConfig.tabs;
-  const action = roleConfig.action;
+  const roleConfig = userRole && roleNavigation[userRole] ? roleNavigation[userRole] : roleNavigation.user;
+  const tabs = roleConfig?.tabs || [];
+  const action = roleConfig?.action;
 
   const handleActionClick = () => {
     if (action?.disabled) return;
