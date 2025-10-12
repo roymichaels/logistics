@@ -52,13 +52,14 @@ export class SecurityManager {
    */
   async initialize(): Promise<void> {
     // Check if PIN is set up
-    if (!this.pinAuthService.isPINSetup() && this.config.requirePinForAccess) {
+    const isPinSetup = await this.pinAuthService.isPINSetup();
+    if (!isPinSetup && this.config.requirePinForAccess) {
       // PIN setup is required but not done yet
       return;
     }
 
     // Try to restore session if PIN is already authenticated
-    if (this.pinAuthService.isPINSetup()) {
+    if (isPinSetup) {
       await this.restoreEncryptedSession();
     }
   }
@@ -66,9 +67,9 @@ export class SecurityManager {
   /**
    * Get current authentication state
    */
-  getAuthenticationState(): AuthenticationState {
-    const lockoutInfo = this.pinAuthService.getLockoutInfo();
-    const isPinSetup = this.pinAuthService.isPINSetup();
+  async getAuthenticationState(): Promise<AuthenticationState> {
+    const lockoutInfo = await this.pinAuthService.getLockoutInfo();
+    const isPinSetup = await this.pinAuthService.isPINSetup();
 
     return {
       isAuthenticated: this.masterKey !== null,
@@ -128,8 +129,8 @@ export class SecurityManager {
   /**
    * Verify PIN and authenticate
    */
-  async authenticateWithPIN(pin: string): Promise<{ success: boolean; error?: string; requiresPinChange?: boolean }> {
-    const lockoutInfo = this.pinAuthService.getLockoutInfo();
+  async authenticateWithPIN(pin: string): Promise<{ success: boolean; error?: string; requiresPinChange?: boolean; failureCount?: number }> {
+    const lockoutInfo = await this.pinAuthService.getLockoutInfo();
     const result = await this.pinAuthService.verifyPIN(pin);
 
     // Log PIN verification attempt with detailed context

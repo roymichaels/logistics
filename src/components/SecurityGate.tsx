@@ -57,7 +57,7 @@ export function SecurityGate({
       setSecurityManager(manager);
 
       // Check authentication state
-      const state = manager.getAuthenticationState();
+      const state = await manager.getAuthenticationState();
       setAuthState(state);
 
       if (state.requiresPinSetup) {
@@ -102,7 +102,7 @@ export function SecurityGate({
         console.log('\u2705 PIN setup successful - logged to audit');
         haptic();
         setShowPinEntry(false);
-        setAuthState(securityManager.getAuthenticationState());
+        setAuthState(await securityManager.getAuthenticationState());
       } else {
         setError(result.error || 'PIN setup failed');
       }
@@ -129,7 +129,7 @@ export function SecurityGate({
         console.log('\u2705 PIN verified successfully - logged to audit');
         haptic();
         setShowPinEntry(false);
-        setAuthState(securityManager.getAuthenticationState());
+        setAuthState(await securityManager.getAuthenticationState());
 
         if (result.requiresPinChange) {
           setShowChangePinPrompt(true);
@@ -138,7 +138,7 @@ export function SecurityGate({
         console.log('\u274c PIN verification failed - logged to audit');
         setError(result.error || 'Authentication failed');
         // Refresh auth state to get updated lockout info
-        setAuthState(securityManager.getAuthenticationState());
+        setAuthState(await securityManager.getAuthenticationState());
       }
     } catch (error) {
       console.error('PIN verification error:', error);
