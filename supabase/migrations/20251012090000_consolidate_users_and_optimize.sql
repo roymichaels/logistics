@@ -31,6 +31,38 @@
 */
 
 -- ============================================================================
+-- STEP 0: Ensure required ENUM types exist
+-- ============================================================================
+
+-- Create user_role ENUM if not exists
+DO $$ BEGIN
+  CREATE TYPE user_role AS ENUM (
+    'user',
+    'infrastructure_owner',
+    'business_owner',
+    'manager',
+    'dispatcher',
+    'driver',
+    'warehouse',
+    'sales',
+    'customer_service'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+-- Create user_registration_status ENUM if not exists
+DO $$ BEGIN
+  CREATE TYPE user_registration_status AS ENUM (
+    'pending',
+    'approved',
+    'rejected'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+-- ============================================================================
 -- STEP 1: Backup existing data
 -- ============================================================================
 
