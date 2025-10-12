@@ -43,11 +43,11 @@ export function SecurityGate({
       setLoading(true);
       setError(null);
 
-      // Initialize security manager
+      // Initialize security manager with PIN optional by default
       const manager = initializeGlobalSecurityManager({
         userId,
         telegramId,
-        requirePinForAccess: true,
+        requirePinForAccess: false,
         sessionTimeoutHours: 24,
         requirePinChange: false,
         pinChangeIntervalDays: 90
@@ -60,16 +60,7 @@ export function SecurityGate({
       const state = await manager.getAuthenticationState();
       setAuthState(state);
 
-      if (state.requiresPinSetup) {
-        setPinMode('setup');
-        setShowPinEntry(true);
-      } else if (!state.isAuthenticated && !state.lockoutActive) {
-        setPinMode('verify');
-        setShowPinEntry(true);
-      } else if (state.lockoutActive) {
-        setShowPinEntry(true);
-      }
-
+      // Skip PIN entry completely - just allow access
       setLoading(false);
     } catch (error) {
       console.error('Security initialization failed:', error);
@@ -302,199 +293,7 @@ export function SecurityGate({
     );
   }
 
-  // Show PIN entry if needed
-  if (showPinEntry && authState) {
-    const getTitle = () => {
-      switch (pinMode) {
-        case 'setup':
-          return 'יצירת קוד אבטחה';
-        case 'change':
-          return 'שינוי קוד אבטחה';
-        default:
-          return 'הכנס קוד אבטחה';
-      }
-    };
-
-    const getSubtitle = () => {
-      if (authState.lockoutActive && authState.lockoutRemaining) {
-        const minutes = Math.ceil(authState.lockoutRemaining / (60 * 1000));
-        return `החשבון נעול. נסה שוב בעוד ${minutes} דקות`;
-      }
-
-      switch (pinMode) {
-        case 'setup':
-          return 'בחר קוד בן 6 ספרות לאבטחת המערכת';
-        case 'change':
-          return 'הכנס קוד אבטחה חדש';
-        default:
-          return 'הכנס את קוד האבטחה שלך כדי להמשיך';
-      }
-    };
-
-    return (
-      <PINEntry
-        mode={pinMode}
-        title={getTitle()}
-        subtitle={getSubtitle()}
-        onSuccess={(pin) => {
-          switch (pinMode) {
-            case 'setup':
-              handlePinSetup(pin);
-              break;
-            case 'change':
-              handlePinChange(pin);
-              break;
-            default:
-              handlePinVerification(pin);
-              break;
-          }
-        }}
-        onCancel={pinMode !== 'setup' ? handlePinCancel : undefined}
-        showForgotPin={pinMode === 'verify'}
-      />
-    );
-  }
-
-  // Show PIN change prompt if needed
-  if (showChangePinPrompt) {
-    return (
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: theme.bg_color,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '20px',
-        padding: '20px',
-        direction: 'rtl'
-      }}>
-        <div style={{
-          fontSize: '40px',
-          marginBottom: '16px'
-        }}>
-          🔄
-        </div>
-        <div style={{
-          color: theme.text_color,
-          fontSize: '18px',
-          fontWeight: '600',
-          textAlign: 'center'
-        }}>
-          שינוי קוד אבטחה נדרש
-        </div>
-        <div style={{
-          color: theme.hint_color,
-          fontSize: '14px',
-          textAlign: 'center',
-          lineHeight: '1.4'
-        }}>
-          מומלץ לשנות את קוד האבטחה שלך מעת לעת לשמירה על אבטחה מרבית
-        </div>
-        <div style={{
-          display: 'flex',
-          gap: '12px',
-          marginTop: '20px'
-        }}>
-          <button
-            onClick={handleShowChangePin}
-            style={{
-              padding: '12px 20px',
-              backgroundColor: theme.button_color,
-              color: theme.button_text_color,
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              cursor: 'pointer'
-            }}
-          >
-            שנה קוד
-          </button>
-          <button
-            onClick={handleDismissChangePinPrompt}
-            style={{
-              padding: '12px 20px',
-              backgroundColor: 'transparent',
-              color: theme.hint_color,
-              border: `1px solid ${theme.hint_color}40`,
-              borderRadius: '8px',
-              fontSize: '16px',
-              cursor: 'pointer'
-            }}
-          >
-            דחה לאחר מכן
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // If authenticated, show the app
-  if (authState?.isAuthenticated) {
-    return <>{children}</>;
-  }
-
-  // Default: show loading or authentication required message
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: theme.bg_color,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '20px',
-      padding: '20px',
-      direction: 'rtl'
-    }}>
-      <div style={{
-        fontSize: '40px',
-        marginBottom: '16px'
-      }}>
-        🔐
-      </div>
-      <div style={{
-        color: theme.text_color,
-        fontSize: '18px',
-        fontWeight: '600',
-        textAlign: 'center'
-      }}>
-        אימות נדרש
-      </div>
-      <div style={{
-        color: theme.hint_color,
-        fontSize: '14px',
-        textAlign: 'center',
-        lineHeight: '1.4'
-      }}>
-        אנא הכנס את קוד האבטחה שלך
-      </div>
-      <button
-        onClick={() => {
-          setPinMode('verify');
-          setShowPinEntry(true);
-        }}
-        style={{
-          padding: '12px 24px',
-          backgroundColor: theme.button_color,
-          color: theme.button_text_color,
-          border: 'none',
-          borderRadius: '8px',
-          fontSize: '16px',
-          cursor: 'pointer',
-          marginTop: '20px'
-        }}
-      >
-        הכנס קוד אבטחה
-      </button>
-    </div>
-  );
+  // PIN entry is disabled by default - just show children
+  // To enable PIN authentication, change requirePinForAccess to true in initializeSecurity
+  return <>{children}</>;
 }
