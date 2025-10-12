@@ -70,7 +70,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const password = `twa_${user.id}_${BOT_TOKEN.slice(0, 8)}`;
     const email = `telegram_${user.id}@twa.local`;
 
-    // Find or create auth user
     const { data: existingUsers } = await supabase.auth.admin.listUsers();
     let authUser = existingUsers?.users?.find((u) => u.email === email);
 
@@ -94,7 +93,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
       console.log('✅ Auth user created');
     } else {
       console.log('✅ Auth user found, updating metadata and password...');
-      // ALWAYS update password for existing users to prevent credential mismatch
       const { error: updateErr } = await supabase.auth.admin.updateUserById(authUser.id, {
         password: password,
         user_metadata: {
@@ -113,7 +111,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
       console.log('✅ User metadata and password updated');
     }
 
-    // Retry sign-in up to 3 times to handle replication lag
     console.log('🎫 Generating session tokens...');
     let sessionData = null;
     let lastError = null;
@@ -135,9 +132,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
       lastError = error;
       console.warn(`⚠️ Attempt ${attempt} failed:`, error?.message);
 
-      // Wait with exponential backoff before retrying
       if (attempt < 3) {
-        const delay = 400 * attempt; // 400ms, 800ms
+        const delay = 400 * attempt;
         console.log(`⏳ Waiting ${delay}ms before retry...`);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
@@ -152,7 +148,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     const fullName = `${user.first_name || ''}${user.last_name ? ' ' + user.last_name : ''}`.trim();
 
-    // Check if user exists first
     console.log('💾 Checking if user exists in users table...');
     const { data: existingUser } = await supabase
       .from('users')
@@ -160,9 +155,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
       .eq('telegram_id', user.id.toString())
       .maybeSingle();
 
+    let dbUserId: string;
+    let userRole: string;
+
     if (existingUser) {
-      // User exists - only update profile info, NOT role
       console.log('✅ User exists, updating profile info only (preserving role)...');
+      dbUserId = existingUser.id;
+      userRole = existingUser.role;
+
       const { error: updateErr } = await supabase
         .from('users')
         .update({
@@ -181,9 +181,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
         console.log('✅ User profile updated (role preserved)');
       }
     } else {
-      // New user - insert with default role
       console.log('➕ Creating new user record with default role...');
-      const { error: insertErr } = await supabase
+      const { data: newUser, error: insertErr } = await supabase
         .from('users')
         .insert({
           telegram_id: user.id.toString(),
@@ -192,26 +191,46 @@ Deno.serve(async (req: Request): Promise<Response> => {
           first_name: user.first_name || null,
           last_name: user.last_name || null,
           photo_url: user.photo_url || null,
-          role: 'user', // Set default role for new users only
-        });
+          role: 'user',
+        })
+        .select('id, role')
+        .single();
 
-      if (insertErr) {
+      if (insertErr || !newUser) {
         console.error('❌ User insert failed:', insertErr);
-        console.warn('⚠️ Continuing despite insert error - session is valid');
-      } else {
-        console.log('✅ New user record created');
+        throw new Error('Failed to create user record');
       }
+
+      dbUserId = newUser.id;
+      userRole = newUser.role;
+      console.log('✅ New user record created with ID:', dbUserId);
     }
+
+    console.log('🔄 Updating auth metadata with database user ID...');
+    await supabase.auth.admin.updateUserById(authUser.id, {
+      user_metadata: {
+        telegram_id: user.id,
+        db_user_id: dbUserId,
+        username: user.username,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        photo_url: user.photo_url,
+      },
+    });
 
     return new Response(
       JSON.stringify({
         ok: true,
         user: {
-          id: authUser.id,
+          id: dbUserId,
+          auth_id: authUser.id,
           telegram_id: user.id,
           username: user.username,
+          first_name: user.first_name,
+          last_name: user.last_name,
           name: fullName,
           photo_url: user.photo_url,
+          role: userRole,
         },
         session: {
           access_token: sessionData.session.access_token,

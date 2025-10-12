@@ -63,11 +63,15 @@ export const AppServicesProvider: React.FC<AppServicesProviderProps> = ({ childr
   useEffect(() => {
     if (!auth.loading) {
       if (auth.user && !initAttempted) {
+        console.log('[INFO] 🎯 User authenticated, initializing app services...');
         setInitAttempted(true);
+        setRetryCount(0);
         initializeAppServices(auth.user);
       } else if (!auth.user && !authAttempted) {
+        console.log('[INFO] 🔐 No user session, starting Telegram authentication...');
         authenticateWithTelegram();
       } else if (!auth.user && authAttempted) {
+        console.log('[INFO] ⚠️ Authentication attempted but no user session');
         setLoading(false);
       }
     }
@@ -101,13 +105,13 @@ export const AppServicesProvider: React.FC<AppServicesProviderProps> = ({ childr
   const initializeAppServices = async (authenticatedUser: User, forceRefresh = false) => {
     try {
       console.log(`[INFO] 🚀 AppServicesProvider initializing with authenticated user: ${authenticatedUser.first_name}`);
-      console.log(`[INFO] 📊 Retry count: ${retryCount}, User ID: ${authenticatedUser.id}`);
+      console.log(`[INFO] 📊 Retry count: ${retryCount}, User ID: ${authenticatedUser.id}, Telegram ID: ${authenticatedUser.telegram_id}`);
 
       setLoading(true);
       setError(null);
 
       console.log('[INFO] 👤 Fetching full user profile from database...');
-      const fullUserProfile = await fetchUserProfile(authenticatedUser.id);
+      const fullUserProfile = await fetchUserProfile(authenticatedUser.id, authenticatedUser.telegram_id?.toString());
 
       if (!fullUserProfile) {
         throw new Error('Failed to fetch user profile');
@@ -128,32 +132,56 @@ export const AppServicesProvider: React.FC<AppServicesProviderProps> = ({ childr
     } catch (err) {
       console.error('[ERROR] ❌ Failed to initialize app services:', err);
 
-      if (retryCount < 3) {
-        console.log(`[INFO] 🔄 Retrying initialization (attempt ${retryCount + 1}/3)...`);
+      if (retryCount < 2) {
+        const delay = 1000 * Math.pow(2, retryCount);
+        console.log(`[INFO] 🔄 Retrying initialization (attempt ${retryCount + 1}/3) in ${delay}ms...`);
         setRetryCount(prev => prev + 1);
         setTimeout(() => {
           if (authenticatedUser) {
             initializeAppServices(authenticatedUser, forceRefresh);
           }
-        }, 1000 * (retryCount + 1));
+        }, delay);
       } else {
-        setError(err instanceof Error ? err.message : 'Failed to initialize services');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to initialize services';
+        console.error('[ERROR] ❌ Max retries reached. Error:', errorMessage);
+        setError(errorMessage);
         setLoading(false);
       }
     }
   };
 
-  const fetchUserProfile = async (userId: string): Promise<User | null> => {
+  const fetchUserProfile = async (userId: string, telegramId?: string): Promise<User | null> => {
     try {
-      console.log('🔍 Fetching user profile from database:', userId);
+      console.log('🔍 Fetching user profile from database:', { userId, telegramId });
 
       const supabase = getSupabase();
 
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
+      let data = null;
+      let error = null;
+
+      if (telegramId) {
+        console.log('🔍 Attempting lookup by telegram_id:', telegramId);
+        const result = await supabase
+          .from('users')
+          .select('*')
+          .eq('telegram_id', telegramId)
+          .maybeSingle();
+
+        data = result.data;
+        error = result.error;
+      }
+
+      if (!data && !error) {
+        console.log('🔍 Attempting lookup by id:', userId);
+        const result = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
+
+        data = result.data;
+        error = result.error;
+      }
 
       if (error) {
         console.error('❌ Error fetching user profile:', error);
@@ -161,11 +189,11 @@ export const AppServicesProvider: React.FC<AppServicesProviderProps> = ({ childr
       }
 
       if (!data) {
-        console.warn('⚠️ No user profile found for ID:', userId);
+        console.warn('⚠️ No user profile found for:', { userId, telegramId });
         return null;
       }
 
-      console.log('✅ User profile fetched:', data.first_name);
+      console.log('✅ User profile fetched:', data.first_name, 'Role:', data.role);
 
       return {
         id: data.id,

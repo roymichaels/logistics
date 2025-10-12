@@ -78,8 +78,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         const userData = currentSession.user?.user_metadata;
         if (userData) {
+          const dbUserId = userData.db_user_id || currentSession.user.id;
+
           setUser({
-            id: currentSession.user.id,
+            id: dbUserId,
             telegram_id: userData.telegram_id,
             username: userData.username,
             first_name: userData.first_name,
@@ -147,8 +149,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (data.user) {
-        setUser(data.user);
-        setTelegramUser(data.telegramUser);
+        setUser({
+          id: data.user.id,
+          telegram_id: data.user.telegram_id,
+          username: data.user.username,
+          first_name: data.user.first_name,
+          last_name: data.user.last_name,
+          photo_url: data.user.photo_url,
+          role: data.user.role
+        });
+
+        setTelegramUser({
+          id: data.user.telegram_id,
+          first_name: data.user.first_name,
+          last_name: data.user.last_name,
+          username: data.user.username,
+          photo_url: data.user.photo_url
+        });
       }
 
       setLoading(false);
