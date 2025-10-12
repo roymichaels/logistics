@@ -81,13 +81,21 @@ export default defineConfig(({ mode }) => {
         }
       },
       target: 'es2020',
-      minify: 'terser',
-      terserOptions: {
+      // Enable sourcemaps for better debugging
+      sourcemap: mode === 'development' ? 'inline' : false,
+      // Only minify in production
+      minify: mode === 'production' ? 'terser' : false,
+      terserOptions: mode === 'production' ? {
         compress: {
           drop_console: false, // KEEP console logs for Telegram debugging
           drop_debugger: true
+        },
+        mangle: {
+          // Keep class and function names for better error messages
+          keep_classnames: true,
+          keep_fnames: true
         }
-      },
+      } : undefined,
       reportCompressedSize: true
     },
     plugins: [

@@ -8,6 +8,7 @@
     "dev": "npx vite",
     "build": "expo export --platform web",
     "build:web": "npx vite build",
+    "build:dev": "npx vite build --mode development",
     "preview": "npx vite preview",
     "analyze": "node scripts/build-analyze.js",
     "qa": "node scripts/qa-check.js",

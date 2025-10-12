@@ -101,72 +101,66 @@ export async function ensureTwaSession(): Promise<TwaAuthResult> {
         return { ok: false, reason: 'verify_failed', details: 'Missing SUPABASE_URL' };
       }
 
-      // Retry logic with exponential backoff
-      const maxRetries = 2;
+      // Single authentication attempt - no retries on 401 errors
+      console.log('📡 Calling telegram-verify:', {
+        url: `${supabaseUrl}/functions/v1/telegram-verify`,
+        hasInitData: initData.length > 0,
+        initDataLength: initData.length,
+        initDataPreview: initData.substring(0, 50) + '...'
+      });
+
       let lastError: any = null;
 
-      for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        try {
-          if (attempt > 0) {
-            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 3000);
-            console.log(`⏳ Retry attempt ${attempt}/${maxRetries} after ${delay}ms...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
+      try {
+        const response = await fetch(`${supabaseUrl}/functions/v1/telegram-verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'webapp', initData }),
+        });
+
+        console.log('📥 telegram-verify response:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { error: errorText };
           }
 
-          console.log('📡 Calling telegram-verify:', {
-            url: `${supabaseUrl}/functions/v1/telegram-verify`,
-            hasInitData: initData.length > 0,
-            initDataPreview: initData.substring(0, 50) + '...',
-            attempt: attempt + 1
-          });
-
-          const response = await fetch(`${supabaseUrl}/functions/v1/telegram-verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'webapp', initData }),
-          });
-
-          console.log('📥 telegram-verify response:', {
+          console.error('❌ ensureTwaSession: Backend verification failed', {
             status: response.status,
             statusText: response.statusText,
-            ok: response.ok,
-            attempt: attempt + 1
+            error: errorData.error
           });
 
-          if (!response.ok) {
-            const errorText = await response.text();
-            let errorData;
-            try {
-              errorData = JSON.parse(errorText);
-            } catch {
-              errorData = { error: errorText };
-            }
+          // Store error details
+          lastError = {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData.error
+          };
 
-            console.error(`❌ ensureTwaSession: Backend verification failed (attempt ${attempt + 1}/${maxRetries + 1})`, {
-              status: response.status,
-              statusText: response.statusText,
-              error: errorData.error
-            });
-
-            // Store error for potential retry
-            lastError = {
-              status: response.status,
-              statusText: response.statusText,
-              error: errorData.error
-            };
-
-            // Don't retry on 401 (auth error) - these won't fix with retry
-            if (response.status === 401) {
-              break;
-            }
-
-            // Retry on 500 or network errors
-            if (attempt < maxRetries && (response.status === 500 || response.status >= 502)) {
-              continue;
-            }
-
-            break;
+          // Provide specific error messages based on status code
+          if (response.status === 401) {
+            const errorMsg = 'אימות Telegram נכשל\n\n' +
+                           'הסיבות האפשריות:\n' +
+                           '1. טוקן הבוט לא מוגדר ב-Supabase\n' +
+                           '2. טוקן הבוט שגוי או לא תואם\n' +
+                           '3. נתוני ההתחברות פגו (יותר מ-24 שעות)\n\n' +
+                           'פתרון: סגור את האפליקציה ופתח מחדש מטלגרם';
+            return { ok: false, reason: 'verify_failed', details: errorMsg };
+          } else if (response.status >= 500) {
+            return { ok: false, reason: 'verify_failed', details: 'שגיאת שרת. נסה שוב בעוד כמה רגעים' };
           }
+
+          return { ok: false, reason: 'verify_failed', details: errorData.error || 'אימות נכשל' };
+        }
 
           const result = await response.json();
           console.log('📦 ensureTwaSession: Backend response received', {
@@ -253,43 +247,20 @@ export async function ensureTwaSession(): Promise<TwaAuthResult> {
             console.log('📊 Debug: Access window.__SUPABASE_SESSION__, window.__JWT_CLAIMS__, and window.__JWT_RAW_PAYLOAD__ for inspection');
           }
 
-          return { ok: true };
-        } catch (error) {
-          console.error(`❌ ensureTwaSession: Exception during backend authentication (attempt ${attempt + 1})`, error);
-          lastError = error;
+        return { ok: true };
+      } catch (error) {
+        console.error('❌ ensureTwaSession: Exception during backend authentication', error);
 
-          // Retry on network errors
-          if (attempt < maxRetries) {
-            continue;
-          }
-        }
+        const errorMsg = 'שגיאת תקשורת\n\n' +
+                        'לא הצלחנו להתחבר לשרת.\n' +
+                        'בדוק את החיבור לאינטרנט ונסה שוב.';
+
+        return {
+          ok: false,
+          reason: 'verify_failed',
+          details: errorMsg
+        };
       }
-
-      // If we get here, all retries failed
-      console.error('❌ All authentication attempts failed');
-
-      // Provide specific guidance based on the last error
-      let details = 'Authentication failed after multiple attempts';
-      if (lastError && lastError.status === 401) {
-        details = '⚠️ TELEGRAM_BOT_TOKEN Configuration Required\n\n' +
-                  'The backend cannot verify your Telegram authentication because the bot token is not configured.\n\n' +
-                  '📋 Steps to fix:\n' +
-                  '1. Get your bot token from @BotFather on Telegram\n' +
-                  '2. Go to Supabase Dashboard → Edge Functions → Configuration → Secrets\n' +
-                  '3. Add secret: TELEGRAM_BOT_TOKEN = your_bot_token\n' +
-                  '4. Reload this app\n\n' +
-                  '💡 The token format should be: 123456789:ABCdefGHIjklMNOpqrsTUVwxyz';
-      } else if (lastError && (lastError.status >= 500 || lastError.status >= 502)) {
-        details = 'Server error during verification. The backend is experiencing issues. Please try again later.';
-      } else if (lastError instanceof Error) {
-        details = lastError.message;
-      }
-
-      return {
-        ok: false,
-        reason: 'verify_failed',
-        details
-      };
     } finally {
       // Clear the in-progress flag when done (success or failure)
       authInProgress = null;
