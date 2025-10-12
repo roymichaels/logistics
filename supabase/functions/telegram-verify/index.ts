@@ -152,29 +152,55 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     const fullName = `${user.first_name || ''}${user.last_name ? ' ' + user.last_name : ''}`.trim();
 
-    // Insert/update user in users table with required role field
-    console.log('💾 Upserting user to users table...');
-    const { error: upsertErr } = await supabase
+    // Check if user exists first
+    console.log('💾 Checking if user exists in users table...');
+    const { data: existingUser } = await supabase
       .from('users')
-      .upsert({
-        telegram_id: user.id.toString(),
-        username: user.username?.replace(/^@/, '').toLowerCase() || null,
-        name: fullName,
-        first_name: user.first_name || null,
-        last_name: user.last_name || null,
-        photo_url: user.photo_url || null,
-        role: 'user', // Set default role for new users
-      }, {
-        onConflict: 'telegram_id',
-        ignoreDuplicates: false, // Update existing users
-      });
+      .select('id, role')
+      .eq('telegram_id', user.id.toString())
+      .maybeSingle();
 
-    if (upsertErr) {
-      console.error('❌ User upsert failed:', upsertErr);
-      // Don't throw here - we have a valid session, just log the error
-      console.warn('⚠️ Continuing despite upsert error - session is valid');
+    if (existingUser) {
+      // User exists - only update profile info, NOT role
+      console.log('✅ User exists, updating profile info only (preserving role)...');
+      const { error: updateErr } = await supabase
+        .from('users')
+        .update({
+          username: user.username?.replace(/^@/, '').toLowerCase() || null,
+          name: fullName,
+          first_name: user.first_name || null,
+          last_name: user.last_name || null,
+          photo_url: user.photo_url || null,
+        })
+        .eq('telegram_id', user.id.toString());
+
+      if (updateErr) {
+        console.error('❌ User update failed:', updateErr);
+        console.warn('⚠️ Continuing despite update error - session is valid');
+      } else {
+        console.log('✅ User profile updated (role preserved)');
+      }
     } else {
-      console.log('✅ User record updated in users table');
+      // New user - insert with default role
+      console.log('➕ Creating new user record with default role...');
+      const { error: insertErr } = await supabase
+        .from('users')
+        .insert({
+          telegram_id: user.id.toString(),
+          username: user.username?.replace(/^@/, '').toLowerCase() || null,
+          name: fullName,
+          first_name: user.first_name || null,
+          last_name: user.last_name || null,
+          photo_url: user.photo_url || null,
+          role: 'user', // Set default role for new users only
+        });
+
+      if (insertErr) {
+        console.error('❌ User insert failed:', insertErr);
+        console.warn('⚠️ Continuing despite insert error - session is valid');
+      } else {
+        console.log('✅ New user record created');
+      }
     }
 
     return new Response(
