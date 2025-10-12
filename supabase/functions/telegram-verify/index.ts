@@ -188,7 +188,7 @@ Deno.serve(async req => {
           role: 'user',
           photo_url: user.photo_url,
         })
-        .select('id')
+        .select('id, role')
         .single();
 
       if (createError) {
@@ -197,7 +197,7 @@ Deno.serve(async req => {
       }
 
       userId = newUser.id;
-      userRole = 'user';
+      userRole = newUser.role || 'user';
       console.log('✅ New user created:', userId);
     }
 
@@ -229,8 +229,12 @@ Deno.serve(async req => {
         }
       );
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('❌ Failed to update auth user:', updateError);
+        throw updateError;
+      }
       authUserId = updatedAuth.user.id;
+      console.log('✅ Auth user metadata updated');
     } else {
       console.log('➕ Creating auth user...');
       const { data: newAuth, error: createError } = await supabase.auth.admin.createUser({
@@ -251,56 +255,30 @@ Deno.serve(async req => {
         },
       });
 
-      if (createError) throw createError;
+      if (createError) {
+        console.error('❌ Failed to create auth user:', createError);
+        throw createError;
+      }
       authUserId = newAuth.user!.id;
       console.log('✅ Auth user created:', authUserId);
     }
 
-    console.log('🎫 Generating auth link for OTP verification...');
-    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email,
-      options: {
-        data: {
-          telegram_id: telegramId,
-          username,
-          name: fullName,
-          photo_url: user.photo_url,
-        }
-      }
+    console.log('🎫 Creating session using admin API...');
+
+    const { data: sessionData, error: sessionError } = await supabase.auth.admin.createSession({
+      user_id: authUserId,
     });
 
-    if (linkError || !linkData) {
-      console.error('❌ Link generation failed:', linkError);
-      throw new Error('Failed to generate authentication link');
+    if (sessionError || !sessionData?.session) {
+      console.error('❌ Session creation failed:', sessionError);
+      throw new Error(`Failed to create session: ${sessionError?.message || 'No session returned'}`);
     }
 
-    console.log('✅ Auth link generated, extracting hashed token...');
-
-    const properties = linkData.properties;
-    if (!properties?.hashed_token) {
-      console.error('❌ Missing hashed_token in link response:', properties);
-      throw new Error('Failed to extract hashed token from auth link');
-    }
-
-    console.log('🔐 Verifying OTP with hashed token...');
-
-    const { data: sessionData, error: verifyError } = await supabase.auth.verifyOtp({
-      type: 'magiclink',
-      token_hash: properties.hashed_token,
-      email
-    });
-
-    if (verifyError || !sessionData?.session) {
-      console.error('❌ OTP verification failed:', verifyError);
-      throw new Error(`Failed to verify OTP: ${verifyError?.message || 'No session returned'}`);
-    }
-
-    console.log('✅ OTP verified, session tokens obtained');
+    console.log('✅ Session created successfully');
 
     if (!sessionData.session.access_token || !sessionData.session.refresh_token) {
       console.error('❌ Session missing tokens:', sessionData.session);
-      throw new Error('Session verification succeeded but tokens are missing');
+      throw new Error('Session created but tokens are missing');
     }
 
     console.log('✅ Session tokens validated successfully');
@@ -335,18 +313,18 @@ Deno.serve(async req => {
     if (err instanceof Error) {
       errorMessage = err.message;
 
-      if (errorMessage.includes('Failed to generate authentication link')) {
+      if (errorMessage.includes('Failed to create session')) {
         statusCode = 500;
-        errorMessage = 'שגיאה ביצירת קישור אימות / Failed to generate authentication link. Please try again.';
-      } else if (errorMessage.includes('Failed to verify OTP')) {
-        statusCode = 500;
-        errorMessage = 'שגיאה באימות OTP / OTP verification failed. Please try again.';
-      } else if (errorMessage.includes('Failed to extract hashed token')) {
-        statusCode = 500;
-        errorMessage = 'שגיאה בחילוץ טוקן / Token extraction failed. Please contact support.';
+        errorMessage = 'שגיאה ביצירת הפעלה / Failed to create session. Please try again.';
       } else if (errorMessage.includes('Failed to create user')) {
         statusCode = 500;
         errorMessage = 'שגיאה ביצירת משתמש / Failed to create user. Please try again.';
+      } else if (errorMessage.includes('Failed to update auth user')) {
+        statusCode = 500;
+        errorMessage = 'שגיאה בעדכון משתמש / Failed to update user. Please try again.';
+      } else if (errorMessage.includes('Failed to create auth user')) {
+        statusCode = 500;
+        errorMessage = 'שגיאה ביצירת חשבון / Failed to create account. Please try again.';
       }
     }
 
@@ -354,7 +332,8 @@ Deno.serve(async req => {
       JSON.stringify({
         ok: false,
         error: errorMessage,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        details: err instanceof Error ? err.message : 'Unknown error'
       }),
       { status: statusCode, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
