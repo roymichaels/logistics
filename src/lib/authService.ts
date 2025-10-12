@@ -1,5 +1,6 @@
 import { getSupabase, isSupabaseInitialized } from './supabaseClient';
 import { telegram } from './telegram';
+import { userService } from './userService';
 
 export interface AuthUser {
   id: string;
@@ -94,7 +95,6 @@ class AuthService {
         return;
       }
 
-      const supabase = getSupabase();
       const telegramId = session.user.user_metadata?.telegram_id ||
                          session.user.app_metadata?.telegram_id;
 
@@ -110,14 +110,10 @@ class AuthService {
         return;
       }
 
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('id, telegram_id, username, name, photo_url, role')
-        .eq('telegram_id', telegramId)
-        .maybeSingle();
+      const userProfile = await userService.getUserProfileByTelegramId(telegramId, true);
 
-      if (error || !userData) {
-        console.error('❌ Failed to fetch user data:', error);
+      if (!userProfile) {
+        console.error('❌ Failed to fetch user data');
         this.updateState({
           user: null,
           session: null,
@@ -128,8 +124,17 @@ class AuthService {
         return;
       }
 
+      const authUser: AuthUser = {
+        id: userProfile.id,
+        telegram_id: userProfile.telegram_id,
+        username: userProfile.username || null,
+        name: userProfile.name,
+        photo_url: userProfile.photo_url || null,
+        role: userProfile.role,
+      };
+
       this.updateState({
-        user: userData as AuthUser,
+        user: authUser,
         session,
         isAuthenticated: true,
         isLoading: false,
@@ -336,11 +341,21 @@ class AuthService {
     console.log('🚪 Signing out...');
 
     try {
+      const currentUser = this.currentState.user;
+
       if (!isSupabaseInitialized()) {
         console.warn('⚠️ Supabase not initialized, clearing local state only');
         this.handleSignOut();
         localStorage.clear();
         return;
+      }
+
+      if (currentUser?.telegram_id) {
+        try {
+          await userService.invalidateSession(currentUser.telegram_id);
+        } catch (err) {
+          console.warn('⚠️ Failed to invalidate user session:', err);
+        }
       }
 
       const supabase = getSupabase();

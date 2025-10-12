@@ -3669,19 +3669,18 @@ export class SupabaseDataStore implements DataStore {
   async getActiveBusinessContext(): Promise<any | null> {
     const profile = await this.getProfile();
 
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('telegram_id', profile.telegram_id)
-      .maybeSingle();
-
-    if (userError) throw userError;
-    if (!user) return null;
-
     const { data, error } = await supabase
-      .from('user_business_context')
-      .select('*')
-      .eq('user_id', user.id)
+      .from('users')
+      .select(`
+        id,
+        business_id,
+        businesses:business_id (
+          id,
+          name,
+          type
+        )
+      `)
+      .eq('telegram_id', profile.telegram_id)
       .maybeSingle();
 
     if (error) {
@@ -3689,7 +3688,15 @@ export class SupabaseDataStore implements DataStore {
       return null;
     }
 
-    return data;
+    if (!data || !data.business_id) {
+      return null;
+    }
+
+    return {
+      user_id: data.id,
+      active_business_id: data.business_id,
+      business: data.businesses
+    };
   }
 
   async setActiveBusinessContext(business_id: string): Promise<void> {

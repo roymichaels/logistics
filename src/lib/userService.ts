@@ -5,6 +5,15 @@ export interface UserProfile extends AuthUser {
   created_at?: string;
   updated_at?: string;
   business_id?: string | null;
+  session_token?: string | null;
+  session_expires_at?: string | null;
+  last_login?: string | null;
+  login_count?: number;
+  primary_business?: {
+    id: string;
+    name: string;
+    type: string;
+  } | null;
 }
 
 class UserService {
@@ -25,7 +34,21 @@ class UserService {
 
     const { data, error } = await supabase
       .from('users')
-      .select('id, telegram_id, username, name, photo_url, role, created_at, updated_at')
+      .select(`
+        id,
+        telegram_id,
+        username,
+        name,
+        photo_url,
+        role,
+        business_id,
+        created_at,
+        updated_at,
+        last_login,
+        login_count,
+        is_online,
+        last_active
+      `)
       .eq('id', userId)
       .maybeSingle();
 
@@ -38,7 +61,15 @@ class UserService {
       throw new Error('User profile not found');
     }
 
-    const profile = data as UserProfile;
+    let profile = data as UserProfile;
+
+    if (data.business_id) {
+      const primaryBusiness = await this.getPrimaryBusiness(userId);
+      profile = {
+        ...profile,
+        primary_business: primaryBusiness,
+      };
+    }
 
     this.profileCache.set(userId, {
       profile,
@@ -55,7 +86,21 @@ class UserService {
 
     const { data, error } = await supabase
       .from('users')
-      .select('id, telegram_id, username, name, photo_url, role, created_at, updated_at')
+      .select(`
+        id,
+        telegram_id,
+        username,
+        name,
+        photo_url,
+        role,
+        business_id,
+        created_at,
+        updated_at,
+        last_login,
+        login_count,
+        is_online,
+        last_active
+      `)
       .eq('telegram_id', telegramId)
       .maybeSingle();
 
@@ -68,7 +113,15 @@ class UserService {
       throw new Error('User profile not found');
     }
 
-    const profile = data as UserProfile;
+    let profile = data as UserProfile;
+
+    if (data.business_id) {
+      const primaryBusiness = await this.getPrimaryBusiness(data.id);
+      profile = {
+        ...profile,
+        primary_business: primaryBusiness,
+      };
+    }
 
     this.profileCache.set(profile.id, {
       profile,
@@ -83,7 +136,7 @@ class UserService {
     console.log('📝 Updating user profile:', userId);
     const supabase = getSupabase();
 
-    const allowedFields = ['username', 'name', 'photo_url'];
+    const allowedFields = ['username', 'name', 'photo_url', 'business_id'];
     const filteredUpdates = Object.keys(updates)
       .filter(key => allowedFields.includes(key))
       .reduce((obj, key) => {
@@ -98,7 +151,19 @@ class UserService {
         updated_at: new Date().toISOString(),
       })
       .eq('id', userId)
-      .select('id, telegram_id, username, name, photo_url, role, created_at, updated_at')
+      .select(`
+        id,
+        telegram_id,
+        username,
+        name,
+        photo_url,
+        role,
+        business_id,
+        created_at,
+        updated_at,
+        last_login,
+        login_count
+      `)
       .single();
 
     if (error) {
@@ -120,6 +185,59 @@ class UserService {
   async getUserRole(userId: string): Promise<string> {
     const profile = await this.getUserProfile(userId);
     return profile.role;
+  }
+
+  async updateUserSession(telegramId: string, sessionToken: string, durationHours = 24): Promise<void> {
+    console.log('🔐 Updating user session:', telegramId);
+    const supabase = getSupabase();
+
+    const { error } = await supabase.rpc('update_user_session', {
+      p_telegram_id: telegramId,
+      p_session_token: sessionToken,
+      p_session_duration_hours: durationHours,
+    });
+
+    if (error) {
+      console.error('❌ Failed to update user session:', error);
+      throw new Error(`Failed to update user session: ${error.message}`);
+    }
+
+    this.clearCache();
+    console.log('✅ User session updated');
+  }
+
+  async validateSession(sessionToken: string): Promise<UserProfile | null> {
+    console.log('🔐 Validating user session');
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase.rpc('validate_user_session', {
+      p_session_token: sessionToken,
+    });
+
+    if (error || !data || !data[0]?.is_valid) {
+      console.log('❌ Session validation failed');
+      return null;
+    }
+
+    const sessionData = data[0];
+    return this.getUserProfile(sessionData.user_id, true);
+  }
+
+  async invalidateSession(telegramId: string): Promise<void> {
+    console.log('🔐 Invalidating user session:', telegramId);
+    const supabase = getSupabase();
+
+    const { error } = await supabase.rpc('invalidate_user_session', {
+      p_telegram_id: telegramId,
+    });
+
+    if (error) {
+      console.error('❌ Failed to invalidate user session:', error);
+      throw new Error(`Failed to invalidate user session: ${error.message}`);
+    }
+
+    this.clearCache();
+    console.log('✅ User session invalidated');
   }
 
   clearCache(userId?: string) {
@@ -162,37 +280,32 @@ class UserService {
     return data || [];
   }
 
-  async getPrimaryBusiness(userId: string): Promise<any | null> {
+  async getPrimaryBusiness(userId: string): Promise<{ id: string; name: string; type: string } | null> {
     console.log('🏢 Fetching primary business for user:', userId);
     const supabase = getSupabase();
 
-    const { data, error } = await supabase
-      .from('business_users')
-      .select(`
-        business_id,
-        businesses:business_id (
-          id,
-          name,
-          type
-        )
-      `)
-      .eq('user_id', userId)
-      .eq('active', true)
-      .eq('is_primary', true)
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('business_id')
+      .eq('id', userId)
       .maybeSingle();
 
-    if (error) {
-      console.error('❌ Failed to fetch primary business:', error);
+    if (userError || !userData?.business_id) {
       return null;
     }
 
-    if (!data) {
-      console.log('ℹ️ No primary business found');
+    const { data: businessData, error: businessError } = await supabase
+      .from('businesses')
+      .select('id, name, type')
+      .eq('id', userData.business_id)
+      .maybeSingle();
+
+    if (businessError || !businessData) {
       return null;
     }
 
-    console.log('✅ Primary business found:', data.businesses?.name);
-    return data.businesses;
+    console.log('✅ Primary business found:', businessData.name);
+    return businessData as { id: string; name: string; type: string };
   }
 }
 

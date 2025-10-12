@@ -4,6 +4,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from 'react';
 import { BootstrapConfig, User } from '../data/types';
@@ -56,6 +57,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   const [isInitializing, setIsInitializing] = useState<boolean>(false);
 
   const auth = value ? null : useAuth();
+  const initializedUserIdRef = useRef<string | null>(null);
 
   const setBusinessId = useCallback((businessId: string | null) => {
     setCurrentBusinessId(prev => (prev === businessId ? prev : businessId));
@@ -124,6 +126,12 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       return;
     }
 
+    const currentUserId = auth.user.id;
+
+    if (initializedUserIdRef.current === currentUserId) {
+      return;
+    }
+
     if (isInitializing) {
       return;
     }
@@ -159,47 +167,36 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         setConfig(appConfig);
 
-        const appUser: User = {
-          id: auth.user.id,
-          telegram_id: auth.user.telegram_id,
-          username: auth.user.username || undefined,
-          name: auth.user.name,
-          photo_url: auth.user.photo_url || undefined,
-          role: auth.user.role as any,
+        debugLog.info('👤 Fetching full user profile from database...');
+        const profile = await userService.getUserProfile(currentUserId, true);
+
+        if (cancelled) return;
+
+        const fullUser: User = {
+          id: profile.id,
+          telegram_id: profile.telegram_id,
+          username: profile.username || undefined,
+          name: profile.name,
+          photo_url: profile.photo_url || undefined,
+          role: profile.role as any,
         };
 
-        setUser(appUser);
-        setUserRole(auth.user.role as AppUserRole);
+        setUser(fullUser);
+        setUserRole((profile.role as AppUserRole) ?? 'user');
+        debugLog.success(`✅ User profile fetched: ${profile.name}`);
 
         if (cancelled) return;
 
         debugLog.info('💾 Creating data store...');
-        const store = await createFrontendDataStore(appConfig, 'real', appUser);
+        const store = await createFrontendDataStore(appConfig, 'real', fullUser);
 
         if (cancelled) return;
 
         setDataStore(store);
         debugLog.success('✅ Data store created');
 
-        try {
-          debugLog.info('👤 Fetching full user profile from database...');
-          const profile = await userService.getUserProfile(auth.user.id, true);
-
-          if (cancelled) return;
-
-          const fullUser: User = {
-            ...appUser,
-            ...profile,
-          };
-
-          setUser(fullUser);
-          setUserRole((profile.role as AppUserRole) ?? 'user');
-          debugLog.success(`✅ User profile loaded: ${profile.name}`);
-        } catch (profileError) {
-          debugLog.warn('⚠️ Failed to fetch extended profile', profileError);
-        }
-
         if (!cancelled) {
+          initializedUserIdRef.current = currentUserId;
           setLoading(false);
           setIsInitializing(false);
           debugLog.success('🎉 AppServicesProvider initialized successfully!');
@@ -227,7 +224,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       cancelled = true;
       setIsInitializing(false);
     };
-  }, [value, auth?.isAuthenticated, auth?.isLoading, auth?.user, isInitializing]);
+  }, [value, auth?.isAuthenticated, auth?.isLoading, auth?.user?.id, isInitializing]);
 
   useEffect(() => {
     if (value || !dataStore?.getActiveBusinessContext) {
