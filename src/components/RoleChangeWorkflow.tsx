@@ -67,8 +67,11 @@ export function RoleChangeWorkflow({
     return { added, removed, unchanged };
   }, [currentRole, selectedRole]);
 
-  const isOwnerPromotion = selectedRole === 'owner' && currentRole !== 'owner';
-  const requiresApproval = isOwnerPromotion && currentUser.role !== 'owner';
+  const isOwnerPromotion = (selectedRole === 'infrastructure_owner' || selectedRole === 'business_owner') &&
+                           currentRole !== 'infrastructure_owner' && currentRole !== 'business_owner';
+  const requiresApproval = isOwnerPromotion &&
+                           currentUser.role !== 'infrastructure_owner' &&
+                           currentUser.role !== 'business_owner';
   const hasChanges = currentRole !== selectedRole;
 
   const handleRoleChange = async () => {

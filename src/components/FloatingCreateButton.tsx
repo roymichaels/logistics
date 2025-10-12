@@ -56,7 +56,7 @@ export function FloatingCreateButton({
   const { theme, haptic } = useTelegramUI();
 
   const actions = useMemo<QuickAction[]>(() => {
-    if (userRole === 'owner' || userRole === 'manager') {
+    if (userRole === 'infrastructure_owner' || userRole === 'business_owner' || userRole === 'manager') {
       return [
         {
           id: 'command-order',

@@ -83,7 +83,8 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
           .from('users')
           .select('*')
           .eq('business_id', user.business_id)
-          .neq('role', 'owner');
+          .neq('role', 'infrastructure_owner')
+          .neq('role', 'business_owner');
         teamUsers = usersData || [];
       }
 

@@ -363,7 +363,7 @@ export default function App() {
     // Navigate to role-specific inventory views
     if (userRole === 'warehouse') {
       setCurrentPage('warehouse-dashboard');
-    } else if (userRole === 'manager' || userRole === 'owner') {
+    } else if (userRole === 'manager' || userRole === 'infrastructure_owner' || userRole === 'business_owner') {
       setCurrentPage('manager-inventory');
     } else {
       setCurrentPage('inventory');
@@ -466,8 +466,8 @@ export default function App() {
     );
   }
 
-  // Show superadmin setup only for owner role
-  if (showSuperadminSetup && user && userRole === 'owner') {
+  // Show superadmin setup only for infrastructure_owner role
+  if (showSuperadminSetup && user && userRole === 'infrastructure_owner') {
     return <SuperadminSetup user={user} onSuccess={handleSuperadminSuccess} theme={theme} />;
   }
 
@@ -489,7 +489,7 @@ export default function App() {
 
   const renderPage = () => {
     // 🔐 MILITARIZED ROLE-BASED ACCESS CONTROL
-    const isAdmin = userRole === 'owner' || userRole === 'manager';
+    const isAdmin = userRole === 'infrastructure_owner' || userRole === 'business_owner' || userRole === 'manager';
     const isOperational = isAdmin || userRole === 'warehouse' || userRole === 'sales';
 
     // 👤 USER (unassigned): Redirect to my-role page

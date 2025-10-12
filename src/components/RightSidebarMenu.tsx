@@ -12,7 +12,7 @@ interface MenuItem {
 interface RightSidebarMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  userRole: 'owner' | 'manager' | 'driver' | 'warehouse' | 'sales' | 'dispatcher' | 'customer_service' | null;
+  userRole: 'infrastructure_owner' | 'business_owner' | 'manager' | 'driver' | 'warehouse' | 'sales' | 'dispatcher' | 'customer_service' | null;
   currentPage: string;
   onNavigate: (page: string) => void;
 }
@@ -22,7 +22,19 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
     if (!userRole) return [];
 
     const menuMap: Record<string, MenuItem[]> = {
-      owner: [
+      infrastructure_owner: [
+        { id: 'dashboard', label: 'לוח בקרה', icon: '🏠', page: 'dashboard' },
+        { id: 'orders', label: 'הזמנות', icon: '📦', page: 'orders' },
+        { id: 'drivers', label: 'נהגים', icon: '🚚', page: 'driver-status' },
+        { id: 'inventory', label: 'מלאי', icon: '📊', page: 'manager-inventory' },
+        { id: 'products', label: 'מוצרים', icon: '🏷️', page: 'products' },
+        { id: 'reports', label: 'דוחות', icon: '📈', page: 'reports' },
+        { id: 'businesses', label: 'עסקים', icon: '🏢', page: 'businesses' },
+        { id: 'zones', label: 'ניהול אזורים', icon: '🗺️', page: 'zone-management' },
+        { id: 'dispatch', label: 'לוח משלוחים', icon: '📋', page: 'dispatch-board' },
+        { id: 'users', label: 'ניהול משתמשים', icon: '👤', page: 'users' }
+      ],
+      business_owner: [
         { id: 'dashboard', label: 'לוח בקרה', icon: '🏠', page: 'dashboard' },
         { id: 'orders', label: 'הזמנות', icon: '📦', page: 'orders' },
         { id: 'drivers', label: 'נהגים', icon: '🚚', page: 'driver-status' },
@@ -85,7 +97,8 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
 
   const getRoleLabel = (): string => {
     switch (userRole) {
-      case 'owner': return 'בעלים';
+      case 'infrastructure_owner': return 'בעל תשתית';
+      case 'business_owner': return 'בעל עסק';
       case 'manager': return 'מנהל';
       case 'sales': return 'מכירות';
       case 'warehouse': return 'מחסן';
