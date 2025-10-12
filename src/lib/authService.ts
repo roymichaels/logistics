@@ -196,6 +196,7 @@ class AuthService {
         this.updateState({
           isLoading: false,
           isAuthenticated: false,
+          error: 'אפליקציה זו פועלת רק בטלגרם.\nאנא פתח את האפליקציה מתוך טלגרם.\n\nThis app only works in Telegram.\nPlease open the app from within Telegram.',
         });
         return;
       }
