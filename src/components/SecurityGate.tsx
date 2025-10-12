@@ -302,8 +302,8 @@ export function SecurityGate({
     );
   }
 
-  // Show PIN entry if needed
-  if (showPinEntry && authState) {
+  // Show PIN entry if needed - COMMENTED OUT: Just render the app
+  /* if (showPinEntry && authState) {
     const getTitle = () => {
       switch (pinMode) {
         case 'setup':
@@ -351,32 +351,10 @@ export function SecurityGate({
         </div>
       </div>
     );
-    /* return (
-      <PINEntry
-        mode={pinMode}
-        title={getTitle()}
-        subtitle={getSubtitle()}
-        onSuccess={(pin) => {
-          switch (pinMode) {
-            case 'setup':
-              handlePinSetup(pin);
-              break;
-            case 'change':
-              handlePinChange(pin);
-              break;
-            default:
-              handlePinVerification(pin);
-              break;
-          }
-        }}
-        onCancel={pinMode !== 'setup' ? handlePinCancel : undefined}
-        showForgotPin={pinMode === 'verify'}
-      />
-    ); */
-  }
+  } */
 
-  // Show PIN change prompt if needed
-  if (showChangePinPrompt) {
+  // Show PIN change prompt if needed - COMMENTED OUT: Just render the app
+  /* if (showChangePinPrompt) {
     return (
       <div style={{
         position: 'fixed',
@@ -451,9 +429,12 @@ export function SecurityGate({
         </div>
       </div>
     );
-  }
+  } */
 
-  // If authenticated, show the app
+  // Just render the app directly - PIN authentication disabled
+  return <>{children}</>;
+
+  /* // If authenticated, show the app
   if (authState?.isAuthenticated) {
     return <>{children}</>;
   }
@@ -517,4 +498,5 @@ export function SecurityGate({
       </button>
     </div>
   );
+  */
 }
