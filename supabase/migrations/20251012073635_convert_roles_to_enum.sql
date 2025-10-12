@@ -23,7 +23,7 @@
 
 -- Create ENUM types
 DO $$ BEGIN
-  CREATE TYPE user_role AS ENUM ('user', 'owner', 'business-owner', 'manager', 'dispatcher', 'driver', 'warehouse', 'sales', 'customer_service');
+CREATE TYPE user_role AS ENUM ('user', 'infrastructure_owner', 'business_owner', 'manager', 'dispatcher', 'driver', 'warehouse', 'sales', 'customer_service');
 EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
