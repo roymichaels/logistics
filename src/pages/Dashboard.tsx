@@ -6,6 +6,7 @@ import { OwnerDashboard } from '../components/OwnerDashboard';
 import { ManagerDashboard } from '../components/ManagerDashboard';
 import type { FrontendDataStore } from '../lib/frontendDataStore';
 import { registerDashboardSubscriptions } from './subscriptionHelpers';
+import { useAppServices } from '../context/AppServicesContext';
 import {
   User,
   RoyalDashboardSnapshot,
@@ -40,12 +41,17 @@ const ROYAL_COLORS = {
 };
 
 export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
+  const appServices = useAppServices();
   const [user, setUser] = useState<User | null>(null);
   const [snapshot, setSnapshot] = useState<RoyalDashboardSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const { mainButton, backButton, haptic } = useTelegramUI();
   const showSkeleton = useSkeleton(220);
   const hasTelegramSend = typeof window !== 'undefined' && !!window.Telegram?.WebApp?.sendData;
+
+  if (appServices.loading) {
+    return <RoyalSkeleton />;
+  }
 
   const loadDashboard = useCallback(async () => {
     if (!dataStore) {

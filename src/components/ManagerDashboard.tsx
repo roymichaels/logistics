@@ -44,10 +44,24 @@ interface PendingApproval {
 }
 
 export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboardProps) {
-  const { colors, styles } = useRoleTheme();
+  const { colors, styles, isLoading: themeLoading } = useRoleTheme();
   const [loading, setLoading] = useState(true);
   const [selectedView, setSelectedView] = useState<'overview' | 'team' | 'approvals' | 'resources' | 'reports'>('overview');
   const supabase = (dataStore as any).supabase;
+
+  if (themeLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        color: 'var(--tg-theme-text-color, #000)'
+      }}>
+        {hebrew.loading}
+      </div>
+    );
+  }
   const [metrics, setMetrics] = useState<DepartmentMetrics>({
     totalMembers: 0,
     activeMembers: 0,

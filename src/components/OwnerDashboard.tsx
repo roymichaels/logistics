@@ -37,8 +37,23 @@ interface BusinessMetrics {
 }
 
 export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardProps) {
-  const { colors, styles } = useRoleTheme();
+  const { colors, styles, isLoading: themeLoading } = useRoleTheme();
   const [loading, setLoading] = useState(true);
+
+  if (themeLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        background: ROYAL_COLORS.background,
+        color: ROYAL_COLORS.text
+      }}>
+        {hebrew.loading}
+      </div>
+    );
+  }
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics>({
     totalUsers: 0,
     activeUsers: 0,
