@@ -73,29 +73,6 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
 
   const theme = telegram.themeParams;
 
-  useEffect(() => {
-    if (hasManagementPermission) {
-      void loadUsers();
-    }
-  }, [hasManagementPermission, loadUsers]);
-
-  useEffect(() => {
-    telegram.setBackButton(() => onNavigate('settings'));
-    return () => telegram.hideBackButton();
-  }, [onNavigate]);
-
-  useEffect(() => {
-    if (!hasManagementPermission || !dataStore) {
-      return;
-    }
-
-    const cleanup = registerUserManagementSubscriptions(dataStore, () => {
-      void loadUsers();
-    });
-
-    return cleanup;
-  }, [dataStore, hasManagementPermission, loadUsers]);
-
   const loadUsers = useCallback(async () => {
     if (!hasManagementPermission) {
       setLoading(false);
@@ -198,6 +175,29 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       setLoading(false);
     }
   }, [hasManagementPermission, currentUser, dataStore]);
+
+  useEffect(() => {
+    if (hasManagementPermission) {
+      void loadUsers();
+    }
+  }, [hasManagementPermission, loadUsers]);
+
+  useEffect(() => {
+    telegram.setBackButton(() => onNavigate('settings'));
+    return () => telegram.hideBackButton();
+  }, [onNavigate]);
+
+  useEffect(() => {
+    if (!hasManagementPermission || !dataStore) {
+      return;
+    }
+
+    const cleanup = registerUserManagementSubscriptions(dataStore, () => {
+      void loadUsers();
+    });
+
+    return cleanup;
+  }, [dataStore, hasManagementPermission, loadUsers]);
 
   const loadAuditLogs = async (userId: string) => {
     if (!dataStore) return;
