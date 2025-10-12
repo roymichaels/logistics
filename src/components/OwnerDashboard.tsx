@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { useRoleTheme } from '../hooks/useRoleTheme';
 import { formatCurrency, hebrew } from '../lib/hebrew';
 import { Toast } from './Toast';
+import { telegram } from '../lib/telegram';
 
 interface OwnerDashboardProps {
   dataStore: DataStore;
@@ -33,6 +34,7 @@ interface BusinessMetrics {
 }
 
 export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardProps) {
+  const { colors, styles } = useRoleTheme();
   const [loading, setLoading] = useState(true);
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics>({
     totalUsers: 0,
@@ -47,10 +49,41 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
   const [businesses, setBusinesses] = useState<BusinessMetrics[]>([]);
   const [selectedView, setSelectedView] = useState<'overview' | 'businesses' | 'users' | 'financial' | 'config'>('overview');
   const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month' | 'year'>('today');
+  const supabase = (dataStore as any).supabase;
 
   useEffect(() => {
     loadSystemMetrics();
-  }, [timeRange]);
+
+    // Set up Supabase Realtime for live system monitoring
+    const ordersChannel = supabase
+      .channel('owner-orders')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        () => loadSystemMetrics()
+      )
+      .subscribe();
+
+    const usersChannel = supabase
+      .channel('owner-users')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'users' },
+        () => loadSystemMetrics()
+      )
+      .subscribe();
+
+    // Auto-refresh every 2 minutes for system-wide data
+    const interval = setInterval(() => {
+      loadSystemMetrics();
+    }, 120000);
+
+    return () => {
+      ordersChannel.unsubscribe();
+      usersChannel.unsubscribe();
+      clearInterval(interval);
+    };
+  }, [timeRange, supabase]);
 
   const loadSystemMetrics = async () => {
     setLoading(true);
@@ -237,25 +270,77 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
 
   if (loading) {
     return (
-      <div style={ROYAL_STYLES.pageContainer}>
-        <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>👑</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>{hebrew.loading}</p>
-        </div>
+      <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
+        <div style={{ fontSize: '48px', marginBottom: '16px' }}>💰</div>
+        <div style={{ color: colors.muted }}>{hebrew.loading}</div>
       </div>
     );
   }
 
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
-      <div style={ROYAL_STYLES.pageHeader}>
-        <div style={{ fontSize: '64px', marginBottom: '16px' }}>👑</div>
-        <h1 style={ROYAL_STYLES.pageTitle}>לוח בקרת הבעלים</h1>
-        <p style={ROYAL_STYLES.pageSubtitle}>
-          שליטה מלאה על כל המערכת
-        </p>
+    <div style={styles.pageContainer}>
+      {/* Premium Gold Header */}
+      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              background: colors.gradientPrimary,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '28px',
+              boxShadow: colors.glowPrimaryStrong
+            }}>
+              💰
+            </div>
+            <div>
+              <h1 style={{ ...styles.pageTitle, textAlign: 'right', marginBottom: '4px' }}>
+                לוח בקרת הבעלים
+              </h1>
+              <p style={styles.pageSubtitle}>שליטה מלאה ותובנות עסקיות</p>
+            </div>
+          </div>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '6px 12px',
+            background: `${colors.gold}20`,
+            borderRadius: '20px',
+            border: `1px solid ${colors.gold}50`
+          }}>
+            <span style={{ fontSize: '12px', color: colors.gold, fontWeight: '700' }}>👑 בעל עסק</span>
+          </div>
+        </div>
+        <button
+          onClick={() => {
+            loadSystemMetrics();
+            telegram.hapticFeedback('soft');
+          }}
+          style={{
+            padding: '10px 16px',
+            background: 'transparent',
+            border: `2px solid ${colors.accent}`,
+            borderRadius: '12px',
+            color: colors.accent,
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+        >
+          <span style={{ fontSize: '18px' }}>🔄</span>
+          רענן
+        </button>
       </div>
 
+      {/* Navigation Tabs */}
       <div style={{
         display: 'flex',
         gap: '8px',
@@ -272,15 +357,16 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
         ].map(view => (
           <button
             key={view.id}
-            onClick={() => setSelectedView(view.id as any)}
+            onClick={() => {
+              setSelectedView(view.id as any);
+              telegram.hapticFeedback('selection');
+            }}
             style={{
               padding: '12px 20px',
               borderRadius: '12px',
               border: 'none',
-              background: selectedView === view.id
-                ? 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)'
-                : ROYAL_COLORS.card,
-              color: ROYAL_COLORS.text,
+              background: selectedView === view.id ? colors.gradientPrimary : colors.card,
+              color: selectedView === view.id ? colors.textBright : colors.text,
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -288,7 +374,8 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              boxShadow: selectedView === view.id ? colors.glowPrimary : 'none'
             }}
           >
             <span>{view.icon}</span>
@@ -309,70 +396,80 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
               label="סך משתמשים"
               value={systemMetrics.totalUsers}
               subtitle={`${systemMetrics.activeUsers} פעילים`}
-              color={ROYAL_COLORS.accent}
+              color={colors.accent}
               icon="👥"
+              colors={colors}
             />
             <MetricCard
               label="סך הזמנות"
               value={systemMetrics.totalOrders}
               subtitle="כל הזמן"
-              color={ROYAL_COLORS.teal}
+              color={colors.info}
               icon="📦"
+              colors={colors}
             />
             <MetricCard
               label="הכנסות כוללות"
               value={formatCurrency(systemMetrics.totalRevenue)}
               subtitle="כל הזמן"
-              color={ROYAL_COLORS.gold}
+              color={colors.gold}
               icon="💰"
+              colors={colors}
             />
             <MetricCard
               label="מוצרים"
               value={systemMetrics.totalProducts}
               subtitle={`${systemMetrics.lowStockItems} במלאי נמוך`}
-              color={ROYAL_COLORS.crimson}
+              color={colors.warning}
               icon="📊"
+              colors={colors}
             />
             <MetricCard
               label="נהגים מחוברים"
               value={systemMetrics.onlineDrivers}
               subtitle="כעת"
-              color={ROYAL_COLORS.emerald}
+              color={colors.success}
               icon="🚚"
+              colors={colors}
             />
             <MetricCard
               label="ממתינים לאישור"
               value={systemMetrics.pendingApprovals}
               subtitle="בקשות חידוש"
-              color={ROYAL_COLORS.accent}
+              color={colors.error}
               icon="⏳"
+              colors={colors}
             />
           </div>
 
-          <div style={ROYAL_STYLES.card}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: ROYAL_COLORS.text }}>
-              פעולות מהירות
+          <div style={styles.card}>
+            <h3 style={{ margin: '0 0 20px 0', fontSize: '20px', color: colors.text, fontWeight: '700' }}>
+              💼 פעולות מהירות
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <ActionButton
                 label="ניהול משתמשים"
                 icon="👥"
                 onClick={() => onNavigate('users')}
+                colors={colors}
               />
               <ActionButton
                 label="ייצוא דוח JSON"
                 icon="📄"
                 onClick={() => handleExportData('json')}
+                colors={colors}
               />
               <ActionButton
                 label="ייצוא דוח CSV"
                 icon="📊"
                 onClick={() => handleExportData('csv')}
+                colors={colors}
               />
               <ActionButton
                 label="הגדרות מערכת"
                 icon="⚙️"
                 onClick={() => setSelectedView('config')}
+                colors={colors}
               />
             </div>
           </div>
@@ -382,87 +479,88 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
       {selectedView === 'businesses' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {businesses.length === 0 ? (
-            <div style={ROYAL_STYLES.card}>
-              <div style={ROYAL_STYLES.emptyState}>
-                <div style={ROYAL_STYLES.emptyStateIcon}>🏢</div>
-                <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text }}>
+            <div style={styles.card}>
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <div style={{ fontSize: '72px', marginBottom: '16px', opacity: 0.5 }}>🏢</div>
+                <h3 style={{ margin: '0 0 12px 0', color: colors.text, fontSize: '18px', fontWeight: '600' }}>
                   אין עסקים רשומים
                 </h3>
-                <div style={ROYAL_STYLES.emptyStateText}>
+                <div style={{ fontSize: '14px', color: colors.muted }}>
                   העסק הראשון ייווצר אוטומטית עם המשתמש הראשון
                 </div>
               </div>
             </div>
           ) : (
             businesses.map(biz => (
-              <div key={biz.businessId} style={ROYAL_STYLES.card}>
+              <div key={biz.businessId} style={{ ...styles.card, background: colors.gradientCard }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                   <div>
-                    <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: ROYAL_COLORS.text }}>
-                      {biz.businessName}
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: colors.text, fontWeight: '700' }}>
+                      🏢 {biz.businessName}
                     </h3>
-                    <p style={{ margin: 0, fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                    <p style={{ margin: 0, fontSize: '14px', color: colors.muted }}>
                       {biz.activeUsers} משתמשים • {biz.activeOrders} הזמנות פעילות
                     </p>
                   </div>
                   <div style={{
-                    padding: '4px 12px',
-                    borderRadius: '8px',
-                    background: 'rgba(74, 222, 128, 0.2)',
-                    color: ROYAL_COLORS.emerald,
+                    padding: '6px 14px',
+                    borderRadius: '10px',
+                    background: `${colors.success}20`,
+                    border: `1px solid ${colors.success}50`,
+                    color: colors.success,
                     fontSize: '12px',
-                    fontWeight: '600'
+                    fontWeight: '700'
                   }}>
-                    פעיל
+                    ✅ פעיל
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  <div>
-                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '20px' }}>
+                  <div style={{ padding: '16px', background: colors.secondary, borderRadius: '12px' }}>
+                    <div style={{ fontSize: '12px', color: colors.muted, marginBottom: '8px', fontWeight: '500' }}>
                       היום
                     </div>
-                    <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.gold }}>
+                    <div style={{ fontSize: '22px', fontWeight: '700', color: colors.gold, textShadow: colors.glowGold }}>
                       {formatCurrency(biz.todayRevenue)}
                     </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                  <div style={{ padding: '16px', background: colors.secondary, borderRadius: '12px' }}>
+                    <div style={{ fontSize: '12px', color: colors.muted, marginBottom: '8px', fontWeight: '500' }}>
                       שבוע
                     </div>
-                    <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.teal }}>
+                    <div style={{ fontSize: '22px', fontWeight: '700', color: colors.info }}>
                       {formatCurrency(biz.weekRevenue)}
                     </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                  <div style={{ padding: '16px', background: colors.secondary, borderRadius: '12px' }}>
+                    <div style={{ fontSize: '12px', color: colors.muted, marginBottom: '8px', fontWeight: '500' }}>
                       חודש
                     </div>
-                    <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.accent }}>
+                    <div style={{ fontSize: '22px', fontWeight: '700', color: colors.accent }}>
                       {formatCurrency(biz.monthRevenue)}
                     </div>
                   </div>
                 </div>
                 <div style={{
-                  marginTop: '16px',
-                  paddingTop: '16px',
-                  borderTop: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                  marginTop: '20px',
+                  paddingTop: '20px',
+                  borderTop: `1px solid ${colors.cardBorder}`,
                   display: 'grid',
                   gridTemplateColumns: '1fr 1fr',
-                  gap: '12px'
+                  gap: '16px'
                 }}>
                   <div>
-                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                    <div style={{ fontSize: '12px', color: colors.muted, marginBottom: '4px', fontWeight: '500' }}>
                       הזמנות פעילות
                     </div>
-                    <div style={{ fontSize: '16px', fontWeight: '600', color: ROYAL_COLORS.text }}>
+                    <div style={{ fontSize: '20px', fontWeight: '700', color: colors.text }}>
                       {biz.activeOrders}
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                    <div style={{ fontSize: '12px', color: colors.muted, marginBottom: '4px', fontWeight: '500' }}>
                       הזמנות שהושלמו
                     </div>
-                    <div style={{ fontSize: '16px', fontWeight: '600', color: ROYAL_COLORS.emerald }}>
+                    <div style={{ fontSize: '20px', fontWeight: '700', color: colors.success }}>
                       {biz.completedOrders}
                     </div>
                   </div>
@@ -588,67 +686,78 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
   );
 }
 
-function MetricCard({ label, value, subtitle, color, icon }: {
+function MetricCard({ label, value, subtitle, color, icon, colors: themeColors }: {
   label: string;
   value: string | number;
   subtitle: string;
   color: string;
   icon: string;
+  colors: any;
 }) {
   return (
     <div style={{
-      ...ROYAL_STYLES.card,
+      background: themeColors.secondary,
+      border: `1px solid ${themeColors.cardBorder}`,
+      borderRadius: '16px',
+      padding: '20px',
       display: 'flex',
       flexDirection: 'column',
-      gap: '8px'
+      gap: '8px',
+      transition: 'all 0.3s ease'
     }}>
-      <div style={{ fontSize: '24px' }}>{icon}</div>
-      <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+      <div style={{ fontSize: '32px', marginBottom: '4px' }}>{icon}</div>
+      <div style={{ fontSize: '12px', color: themeColors.muted, fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
         {label}
       </div>
-      <div style={{ fontSize: '24px', fontWeight: '700', color }}>
+      <div style={{ fontSize: '28px', fontWeight: '700', color }}>
         {value}
       </div>
-      <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>
+      <div style={{ fontSize: '12px', color: themeColors.muted }}>
         {subtitle}
       </div>
     </div>
   );
 }
 
-function ActionButton({ label, icon, onClick }: {
+function ActionButton({ label, icon, onClick, colors }: {
   label: string;
   icon: string;
   onClick: () => void;
+  colors: any;
 }) {
   return (
     <button
-      onClick={onClick}
+      onClick={() => {
+        onClick();
+        telegram.hapticFeedback('selection');
+      }}
       style={{
-        padding: '16px',
-        borderRadius: '12px',
-        border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-        background: ROYAL_COLORS.card,
-        color: ROYAL_COLORS.text,
-        fontSize: '14px',
+        padding: '18px 20px',
+        borderRadius: '14px',
+        border: `2px solid ${colors.cardBorder}`,
+        background: colors.secondary,
+        color: colors.text,
+        fontSize: '15px',
         fontWeight: '600',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
-        gap: '12px',
-        transition: 'all 0.2s ease'
+        gap: '14px',
+        transition: 'all 0.3s ease',
+        textAlign: 'right'
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = 'rgba(156, 109, 255, 0.1)';
-        e.currentTarget.style.borderColor = ROYAL_COLORS.accent;
+        e.currentTarget.style.background = `${colors.accent}15`;
+        e.currentTarget.style.borderColor = colors.accent;
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = ROYAL_COLORS.card;
-        e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorder;
+        e.currentTarget.style.background = colors.secondary;
+        e.currentTarget.style.borderColor = colors.cardBorder;
       }}
     >
-      <span style={{ fontSize: '20px' }}>{icon}</span>
+      <span style={{ fontSize: '24px' }}>{icon}</span>
       <span>{label}</span>
+      <span style={{ marginRight: 'auto', color: colors.muted }}>→</span>
     </button>
   );
 }
