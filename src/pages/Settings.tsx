@@ -5,7 +5,7 @@ import { DataStore, User, BootstrapConfig } from '../data/types';
 import { roleNames, roleIcons } from '../lib/hebrew';
 import { userManager } from '../lib/userManager';
 import { offlineStore, type OfflineDiagnostics } from '../utils/offlineStore';
-import { PINEntry } from '../components/PINEntry';
+// import { PINEntry } from '../components/PINEntry';
 import { getGlobalSecurityManager } from '../utils/security/securityManager';
 
 const ROYAL_COLORS = {
@@ -601,7 +601,7 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
       </TelegramModal>
 
       {/* PIN Change Modal */}
-      {showChangePinModal && (
+      {/* {showChangePinModal && (
         <div style={{
           position: 'fixed',
           top: 0,
@@ -622,7 +622,7 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
             subtitle="הכנס את הקוד הנוכחי ולאחר מכן בחר קוד חדש"
           />
         </div>
-      )}
+      )} */}
     </div>
   );
 }

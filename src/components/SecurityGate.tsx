@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { PINEntry } from './PINEntry';
+// import { PINEntry } from './PINEntry';
 import { SecurityManager, AuthenticationState, initializeGlobalSecurityManager } from '../utils/security/securityManager';
 import { SecurityAuditLogger } from '../utils/security/auditLogger';
 import { useTelegramUI } from '../hooks/useTelegramUI';
@@ -332,6 +332,26 @@ export function SecurityGate({
     };
 
     return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        backgroundColor: theme.bg_color,
+        color: theme.text_color,
+        padding: '20px',
+        textAlign: 'center'
+      }}>
+        <div>
+          <h2>{getTitle()}</h2>
+          <p>{getSubtitle()}</p>
+          <p style={{ marginTop: '20px', color: theme.hint_color }}>
+            PIN Entry component temporarily disabled
+          </p>
+        </div>
+      </div>
+    );
+    /* return (
       <PINEntry
         mode={pinMode}
         title={getTitle()}
@@ -352,7 +372,7 @@ export function SecurityGate({
         onCancel={pinMode !== 'setup' ? handlePinCancel : undefined}
         showForgotPin={pinMode === 'verify'}
       />
-    );
+    ); */
   }
 
   // Show PIN change prompt if needed
