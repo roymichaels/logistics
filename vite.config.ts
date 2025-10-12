@@ -60,25 +60,11 @@ export default defineConfig(({ mode }) => {
   console.log(`   Final supabaseUrl: ${supabaseUrl ? '✅ ' + supabaseUrl.substring(0, 30) + '...' : '❌ Missing'}`);
   console.log(`   Final supabaseAnonKey: ${supabaseAnonKey ? '✅ ' + supabaseAnonKey.substring(0, 20) + '...' : '❌ Missing'}\n`);
 
-  // Validate critical environment variables at build time (for production mode only)
-  if (mode === 'production' && (!supabaseUrl || !supabaseAnonKey)) {
-    console.error('\n❌ ERROR: Missing required Supabase environment variables!');
-    console.error('\nRequired variables (use either naming convention):');
-    console.error(`  - SUPABASE_URL or VITE_SUPABASE_URL: ${supabaseUrl ? '✅ Present' : '❌ Missing'}`);
-    console.error(`  - SUPABASE_ANON_KEY or VITE_SUPABASE_ANON_KEY: ${supabaseAnonKey ? '✅ Present' : '❌ Missing'}`);
-    console.error('\nFor Netlify/Supabase deployments, these should already be in your secrets.');
-    console.error('Check: Site Settings > Environment Variables');
-    console.error('\nDebug info:');
-    console.error(`  NODE_ENV: ${process.env.NODE_ENV}`);
-    console.error(`  Mode: ${mode}`);
-    console.error(`  CWD: ${process.cwd()}`);
-    console.error(`  Available process.env keys: ${Object.keys(process.env).filter(k => k.includes('SUPABASE')).join(', ') || 'none'}\n`);
-    throw new Error('Missing required Supabase environment variables');
-  }
-
   // Log environment variable status during build
   if (supabaseUrl && supabaseAnonKey) {
-    console.log('✅ Environment variables loaded successfully\n');
+    console.log('✅ Environment variables found - will be used for local development\n');
+  } else {
+    console.log('ℹ️  No environment variables at build time - app will use runtime configuration\n');
   }
 
   return {
@@ -135,8 +121,9 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
-      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(supabaseUrl),
-      'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(supabaseAnonKey)
+      // Only inject env vars if they exist (for local dev), otherwise use runtime config
+      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(supabaseUrl || undefined),
+      'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(supabaseAnonKey || undefined)
     }
   };
 });

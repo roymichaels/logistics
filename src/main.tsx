@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AppServicesProvider } from './context/AppServicesContext';
+import { initSupabase } from './lib/supabaseClient';
 
 console.log('🚀 Starting app...');
 
@@ -99,46 +100,78 @@ class ErrorBoundary extends React.Component<
   }
 }
 
-// Initialize React app
-try {
-  const rootElement = document.getElementById('root');
-  if (!rootElement) {
-    throw new Error('Root element not found');
-  }
-
-  console.log('✅ Root element found, creating React root...');
-  const root = ReactDOM.createRoot(rootElement);
-
-  console.log('✅ Rendering App component...');
-  root.render(
-    <ErrorBoundary>
-      <AppServicesProvider>
-        <App />
-      </AppServicesProvider>
-    </ErrorBoundary>
+// Loading component
+function LoadingScreen() {
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100vh',
+      padding: '20px',
+      textAlign: 'center',
+      direction: 'rtl',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    }}>
+      <div style={{ fontSize: '48px', marginBottom: '24px' }}>⏳</div>
+      <h1 style={{ fontSize: '20px', marginBottom: '16px' }}>טוען את האפליקציה...</h1>
+      <p style={{ fontSize: '14px', color: '#666' }}>אנא המתן</p>
+    </div>
   );
-  console.log('✅ App rendered successfully');
-} catch (error) {
-  console.error('❌ Fatal error initializing app:', error);
-  const rootElement = document.getElementById('root');
-  if (rootElement) {
-    rootElement.innerHTML = `
-      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; text-align: center; direction: rtl; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
-        <h1 style="font-size: 24px; margin-bottom: 16px;">שגיאה בטעינת האפליקציה</h1>
-        <p style="font-size: 16px; color: #666; margin-bottom: 24px; max-width: 400px;">
-          ${error instanceof Error ? error.message : 'שגיאה לא ידועה'}
-        </p>
-        <button
-          onclick="window.location.reload()"
-          style="padding: 12px 24px; background-color: #007aff; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-family: inherit;"
-        >
-          רענן דף
-        </button>
-      </div>
-    `;
-  }
 }
+
+// Initialize React app with async config loading
+(async () => {
+  try {
+    const rootElement = document.getElementById('root');
+    if (!rootElement) {
+      throw new Error('Root element not found');
+    }
+
+    console.log('✅ Root element found, creating React root...');
+    const root = ReactDOM.createRoot(rootElement);
+
+    // Show loading screen
+    root.render(<LoadingScreen />);
+
+    // Initialize Supabase with config
+    console.log('🔄 Initializing Supabase...');
+    await initSupabase();
+    console.log('✅ Supabase initialized successfully');
+
+    // Render the actual app
+    console.log('✅ Rendering App component...');
+    root.render(
+      <ErrorBoundary>
+        <AppServicesProvider>
+          <App />
+        </AppServicesProvider>
+      </ErrorBoundary>
+    );
+    console.log('✅ App rendered successfully');
+  } catch (error) {
+    console.error('❌ Fatal error initializing app:', error);
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+      rootElement.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; text-align: center; direction: rtl; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
+          <h1 style="font-size: 24px; margin-bottom: 16px;">שגיאה בטעינת האפליקציה</h1>
+          <p style="font-size: 16px; color: #666; margin-bottom: 24px; max-width: 400px;">
+            ${error instanceof Error ? error.message : 'שגיאה לא ידועה'}
+          </p>
+          <button
+            onclick="window.location.reload()"
+            style="padding: 12px 24px; background-color: #007aff; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-family: inherit;"
+          >
+            רענן דף
+          </button>
+        </div>
+      `;
+    }
+  }
+})();
 
 // Handle Telegram WebApp lifecycle
 function initTelegramWebApp() {
