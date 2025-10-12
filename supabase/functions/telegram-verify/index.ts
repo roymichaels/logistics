@@ -102,18 +102,23 @@ Deno.serve(async req => {
 
   try {
     const { type, data, initData } = await req.json();
-    console.log('📲 Incoming Telegram verification request', { type });
+    console.log('📲 Incoming Telegram verification request', { type, hasInitData: !!initData, initDataLength: initData?.length });
 
     // ✅ Load token (env fallback)
     let botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')?.trim() ?? '';
-    if (!botToken) throw new Error('TELEGRAM_BOT_TOKEN missing or empty');
-    console.log('🔑 Token length:', botToken.length, '| Prefix:', botToken.slice(0, 10));
+    if (!botToken) {
+      console.error('❌ TELEGRAM_BOT_TOKEN is not set in environment');
+      throw new Error('TELEGRAM_BOT_TOKEN missing or empty');
+    }
+    console.log('🔑 Token loaded - length:', botToken.length, '| Prefix:', botToken.slice(0, 10));
 
     let valid = false;
     let user = null;
 
     if (type === 'loginWidget' && data) {
+      console.log('🔐 Verifying login widget...');
       valid = verifyLoginWidget(data, botToken);
+      console.log('🔐 Login widget verification result:', valid);
       if (valid) {
         user = {
           id: parseInt(data.id || '0'),
@@ -124,14 +129,22 @@ Deno.serve(async req => {
         };
       }
     } else if (type === 'webapp' && initData) {
+      console.log('🔐 Verifying webapp initData...');
+      console.log('📊 InitData preview:', initData.substring(0, 100));
       valid = verifyTelegramWebApp(initData, botToken);
-      if (valid) user = parseWebAppInitData(initData);
+      console.log('🔐 WebApp verification result:', valid);
+      if (valid) {
+        user = parseWebAppInitData(initData);
+        console.log('👤 Parsed user:', user ? `${user.first_name} (${user.id})` : 'null');
+      }
+    } else {
+      console.warn('⚠️ Invalid request type or missing data', { type, hasData: !!data, hasInitData: !!initData });
     }
 
     if (!valid || !user) {
-      console.warn('❌ Telegram verification failed');
+      console.warn('❌ Telegram verification failed', { valid, hasUser: !!user, type });
       return new Response(
-        JSON.stringify({ ok: false, error: 'Invalid signature' }),
+        JSON.stringify({ ok: false, error: 'Invalid signature or verification failed' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
