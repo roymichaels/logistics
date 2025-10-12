@@ -5,6 +5,8 @@ import { DataStore, User, BootstrapConfig } from '../data/types';
 import { roleNames, roleIcons } from '../lib/hebrew';
 import { userManager } from '../lib/userManager';
 import { offlineStore, type OfflineDiagnostics } from '../utils/offlineStore';
+import { PINEntry } from '../components/PINEntry';
+import { getGlobalSecurityManager } from '../utils/security/securityManager';
 
 const ROYAL_COLORS = {
   background: 'radial-gradient(125% 125% at 50% 0%, rgba(95, 46, 170, 0.55) 0%, rgba(12, 2, 25, 0.95) 45%, #03000a 100%)',
@@ -37,6 +39,7 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
   const [offlineDiagnostics, setOfflineDiagnostics] = useState<OfflineDiagnostics | null>(null);
   const [loadingOfflineDiagnostics, setLoadingOfflineDiagnostics] = useState(false);
   const [clearingOfflineData, setClearingOfflineData] = useState(false);
+  const [showChangePinModal, setShowChangePinModal] = useState(false);
 
   const isFirstAdmin = currentUser && userManager.isFirstAdmin(currentUser.telegram_id);
   const theme = telegram.themeParams;
@@ -129,6 +132,12 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
     } finally {
       setClearingOfflineData(false);
     }
+  };
+
+  const handleChangePinSuccess = async (newPin: string) => {
+    setShowChangePinModal(false);
+    telegram.hapticFeedback('notification', 'success');
+    telegram.showAlert('קוד האבטחה שונה בהצלחה');
   };
 
   if (loading) {
@@ -268,6 +277,44 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
                   {roleNames[user?.role as keyof typeof roleNames] || 'משתמש'}
                 </span>
               </div>
+            </div>
+          </section>
+
+          {/* Security Section */}
+          <section
+            style={{
+              padding: '24px',
+              borderRadius: '22px',
+              background: ROYAL_COLORS.card,
+              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              boxShadow: ROYAL_COLORS.shadow,
+              marginBottom: '24px'
+            }}
+          >
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '700' }}>🔐 אבטחה</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <RoyalActionButton
+                title="שינוי קוד אבטחה"
+                subtitle="עדכון הקוד הסודי שלך (PIN)"
+                icon="🔑"
+                onClick={() => {
+                  telegram.hapticFeedback('selection');
+                  setShowChangePinModal(true);
+                }}
+              />
+              <RoyalActionButton
+                title="נעילת האפליקציה"
+                subtitle="נעל את האפליקציה וחזור למסך קוד אבטחה"
+                icon="🔒"
+                onClick={async () => {
+                  telegram.hapticFeedback('selection');
+                  const securityManager = getGlobalSecurityManager();
+                  if (securityManager) {
+                    await securityManager.lock();
+                    window.location.reload();
+                  }
+                }}
+              />
             </div>
           </section>
 
@@ -552,6 +599,30 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
           </div>
         )}
       </TelegramModal>
+
+      {/* PIN Change Modal */}
+      {showChangePinModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          zIndex: 10000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <PINEntry
+            mode="change"
+            onSuccess={handleChangePinSuccess}
+            onCancel={() => setShowChangePinModal(false)}
+            title="שינוי קוד אבטחה"
+            subtitle="הכנס את הקוד הנוכחי ולאחר מכן בחר קוד חדש"
+          />
+        </div>
+      )}
     </div>
   );
 }

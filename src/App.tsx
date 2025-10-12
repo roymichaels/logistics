@@ -9,8 +9,7 @@ import { BusinessManager } from './components/BusinessManager';
 import { SuperadminSetup } from './components/SuperadminSetup';
 import { FloatingActionMenu } from './components/FloatingActionButton';
 import { Header } from './components/Header';
-// SecurityGate disabled - Telegram authentication provides sufficient security
-// import { SecurityGate } from './components/SecurityGate';
+import { SecurityGate } from './components/SecurityGate';
 import { RightSidebarMenu } from './components/RightSidebarMenu';
 import { SidebarToggleButton } from './components/SidebarToggleButton';
 import { debugLog } from './components/DebugPanel';
@@ -580,9 +579,15 @@ export default function App() {
     return <Dashboard dataStore={dataStore} onNavigate={handleNavigate} />;
   };
 
-  // SecurityGate temporarily disabled to fix DOM manipulation errors
-  // Will be re-enabled after fixing the component's rendering logic
   return (
+    <SecurityGate
+      userId={user?.id || ''}
+      telegramId={user?.telegram_id || ''}
+      onSecurityError={(error) => {
+        console.error('Security error:', error);
+        telegram.showAlert('שגיאת אבטחה: ' + error);
+      }}
+    >
       <div style={{
           minHeight: '100vh',
           backgroundColor: theme.bg_color,
@@ -672,6 +677,7 @@ export default function App() {
           />
         )}
       </div>
+    </SecurityGate>
   );
 }
 
