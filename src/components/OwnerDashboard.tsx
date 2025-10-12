@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { DataStore, User } from '../data/types';
 import { useRoleTheme } from '../hooks/useRoleTheme';
 import { formatCurrency, hebrew } from '../lib/hebrew';
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
+import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { FinancialDashboard } from './FinancialDashboard';
+import { AnalyticsDashboard } from './AnalyticsDashboard';
 
 interface OwnerDashboardProps {
   dataStore: DataStore;
@@ -47,7 +50,7 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
     onlineDrivers: 0
   });
   const [businesses, setBusinesses] = useState<BusinessMetrics[]>([]);
-  const [selectedView, setSelectedView] = useState<'overview' | 'businesses' | 'users' | 'financial' | 'config'>('overview');
+  const [selectedView, setSelectedView] = useState<'overview' | 'businesses' | 'users' | 'financial' | 'analytics' | 'config'>('overview');
   const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month' | 'year'>('today');
   const supabase = (dataStore as any).supabase;
 
@@ -353,6 +356,7 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
           { id: 'businesses', label: 'עסקים', icon: '🏢' },
           { id: 'users', label: 'משתמשים', icon: '👥' },
           { id: 'financial', label: 'כספים', icon: '💰' },
+          { id: 'analytics', label: 'ניתוחים', icon: '📈' },
           { id: 'config', label: 'הגדרות', icon: '⚙️' }
         ].map(view => (
           <button
@@ -572,112 +576,124 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
       )}
 
       {selectedView === 'users' && (
-        <div style={ROYAL_STYLES.card}>
-          <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: ROYAL_COLORS.text }}>
-            ניהול משתמשים
-          </h3>
-          <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: ROYAL_COLORS.muted }}>
-            לניהול מלא של משתמשים, לחץ על הכפתור למעבר לעמוד ניהול משתמשים
-          </p>
-          <button
-            onClick={() => onNavigate('users')}
-            style={{
-              width: '100%',
-              padding: '16px',
-              borderRadius: '12px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
-              color: '#ffffff',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '12px'
-            }}
-          >
-            <span>👥</span>
-            <span>עבור לניהול משתמשים</span>
-          </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={ROYAL_STYLES.card}>
+            <h3 style={ROYAL_STYLES.cardTitle}>ניהול משתמשים</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '20px' }}>
+              <div style={{ ...ROYAL_STYLES.statBox, background: `${ROYAL_COLORS.accent}10`, border: `1px solid ${ROYAL_COLORS.accent}30` }}>
+                <div style={{ fontSize: '36px', fontWeight: '700', color: ROYAL_COLORS.accent, marginBottom: '8px' }}>
+                  {systemMetrics.totalUsers}
+                </div>
+                <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>סך משתמשים</div>
+              </div>
+              <div style={{ ...ROYAL_STYLES.statBox, background: `${ROYAL_COLORS.success}10`, border: `1px solid ${ROYAL_COLORS.success}30` }}>
+                <div style={{ fontSize: '36px', fontWeight: '700', color: ROYAL_COLORS.success, marginBottom: '8px' }}>
+                  {systemMetrics.activeUsers}
+                </div>
+                <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>פעילים (7 ימים)</div>
+              </div>
+            </div>
+            <ActionButton
+              label="עבור לניהול משתמשים המלא"
+              icon="👥"
+              onClick={() => onNavigate('users')}
+              colors={colors}
+            />
+          </div>
+
+          <div style={ROYAL_STYLES.card}>
+            <h3 style={ROYAL_STYLES.cardTitle}>פעולות מהירות</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <ActionButton
+                label="הזמן משתמש חדש"
+                icon="✉️"
+                onClick={() => Toast.info('תכונת הזמנה תתווסף בקרוב')}
+                colors={colors}
+              />
+              <ActionButton
+                label="דוח משתמשים CSV"
+                icon="📊"
+                onClick={() => handleExportData('csv')}
+                colors={colors}
+              />
+            </div>
+          </div>
         </div>
       )}
 
       {selectedView === 'financial' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={ROYAL_STYLES.card}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: ROYAL_COLORS.text }}>
-              סקירה כספית
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{
-                padding: '16px',
-                borderRadius: '12px',
-                background: 'rgba(246, 201, 69, 0.1)',
-                border: `1px solid rgba(246, 201, 69, 0.3)`
-              }}>
-                <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '8px' }}>
-                  סך כל ההכנסות
-                </div>
-                <div style={{ fontSize: '32px', fontWeight: '700', color: ROYAL_COLORS.gold }}>
-                  {formatCurrency(systemMetrics.totalRevenue)}
-                </div>
-              </div>
+        <FinancialDashboard
+          dataStore={dataStore}
+          user={user}
+          businessId={null}
+          onNavigate={onNavigate}
+        />
+      )}
 
-              <div style={{
-                padding: '16px',
-                borderRadius: '12px',
-                background: 'rgba(77, 208, 225, 0.1)',
-                border: `1px solid rgba(77, 208, 225, 0.3)`
-              }}>
-                <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '8px' }}>
-                  ממוצע הזמנה
-                </div>
-                <div style={{ fontSize: '28px', fontWeight: '700', color: ROYAL_COLORS.teal }}>
-                  {formatCurrency(systemMetrics.totalOrders > 0 ? systemMetrics.totalRevenue / systemMetrics.totalOrders : 0)}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div style={ROYAL_STYLES.card}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: ROYAL_COLORS.text }}>
-              ייצוא דוחות כספיים
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <ActionButton
-                label="דוח הכנסות - JSON"
-                icon="💰"
-                onClick={() => handleExportData('json')}
-              />
-              <ActionButton
-                label="דוח הכנסות - CSV"
-                icon="📊"
-                onClick={() => handleExportData('csv')}
-              />
-            </div>
-          </div>
-        </div>
+      {selectedView === 'analytics' && (
+        <AnalyticsDashboard
+          dataStore={dataStore}
+          user={user}
+          businessId={null}
+        />
       )}
 
       {selectedView === 'config' && (
-        <div style={ROYAL_STYLES.card}>
-          <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: ROYAL_COLORS.text }}>
-            הגדרות מערכת
-          </h3>
-          <div style={ROYAL_STYLES.emptyState}>
-            <div style={ROYAL_STYLES.emptyStateIcon}>⚙️</div>
-            <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text }}>
-              הגדרות מערכת מתקדמות
-            </h3>
-            <div style={ROYAL_STYLES.emptyStateText}>
-              תכונות הגדרות מערכת יתווספו בגרסאות הבאות:
-              <br /><br />
-              • ניהול הרשאות<br />
-              • הגדרות אבטחה<br />
-              • אינטגרציות חיצוניות<br />
-              • הגדרות תשלום<br />
-              • ניהול API Keys
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={ROYAL_STYLES.card}>
+            <h3 style={ROYAL_STYLES.cardTitle}>⚙️ הגדרות מערכת</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ padding: '16px', background: ROYAL_COLORS.secondary, borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>🔐 אבטחה</div>
+                  <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>ניהול הרשאות ואימות</div>
+                </div>
+                <button
+                  onClick={() => Toast.info('פאנל אבטחה יתווסף בקרוב')}
+                  style={{ ...ROYAL_STYLES.buttonSecondary, padding: '8px 16px', fontSize: '14px' }}
+                >
+                  הגדר →
+                </button>
+              </div>
+
+              <div style={{ padding: '16px', background: ROYAL_COLORS.secondary, borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>🔌 אינטגרציות</div>
+                  <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>חיבור למערכות חיצוניות</div>
+                </div>
+                <button
+                  onClick={() => Toast.info('ניהול אינטגרציות יתווסף בקרוב')}
+                  style={{ ...ROYAL_STYLES.buttonSecondary, padding: '8px 16px', fontSize: '14px' }}
+                >
+                  הגדר →
+                </button>
+              </div>
+
+              <div style={{ padding: '16px', background: ROYAL_COLORS.secondary, borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>🔑 API Keys</div>
+                  <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>ניהול גישה למערכת</div>
+                </div>
+                <button
+                  onClick={() => Toast.info('ניהול API Keys יתווסף בקרוב')}
+                  style={{ ...ROYAL_STYLES.buttonSecondary, padding: '8px 16px', fontSize: '14px' }}
+                >
+                  הגדר →
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div style={ROYAL_STYLES.card}>
+            <h3 style={ROYAL_STYLES.cardTitle}>🔔 התראות מערכת</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ padding: '16px', background: `${ROYAL_COLORS.success}10`, border: `1px solid ${ROYAL_COLORS.success}30`, borderRadius: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '20px' }}>✅</span>
+                  <span style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.success }}>מערכת פעילה</span>
+                </div>
+                <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>כל המערכות פועלות כראוי</div>
+              </div>
             </div>
           </div>
         </div>
@@ -723,8 +739,16 @@ function ActionButton({ label, icon, onClick, colors }: {
   label: string;
   icon: string;
   onClick: () => void;
-  colors: any;
+  colors?: any;
 }) {
+  const themeColors = colors || {
+    cardBorder: ROYAL_COLORS.cardBorder,
+    secondary: ROYAL_COLORS.secondary,
+    text: ROYAL_COLORS.text,
+    accent: ROYAL_COLORS.accent,
+    muted: ROYAL_COLORS.muted
+  };
+
   return (
     <button
       onClick={() => {
@@ -734,9 +758,9 @@ function ActionButton({ label, icon, onClick, colors }: {
       style={{
         padding: '18px 20px',
         borderRadius: '14px',
-        border: `2px solid ${colors.cardBorder}`,
-        background: colors.secondary,
-        color: colors.text,
+        border: `2px solid ${themeColors.cardBorder}`,
+        background: themeColors.secondary,
+        color: themeColors.text,
         fontSize: '15px',
         fontWeight: '600',
         cursor: 'pointer',
@@ -747,17 +771,17 @@ function ActionButton({ label, icon, onClick, colors }: {
         textAlign: 'right'
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = `${colors.accent}15`;
-        e.currentTarget.style.borderColor = colors.accent;
+        e.currentTarget.style.background = `${themeColors.accent}15`;
+        e.currentTarget.style.borderColor = themeColors.accent;
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = colors.secondary;
-        e.currentTarget.style.borderColor = colors.cardBorder;
+        e.currentTarget.style.background = themeColors.secondary;
+        e.currentTarget.style.borderColor = themeColors.cardBorder;
       }}
     >
       <span style={{ fontSize: '24px' }}>{icon}</span>
       <span>{label}</span>
-      <span style={{ marginRight: 'auto', color: colors.muted }}>→</span>
+      <span style={{ marginRight: 'auto', color: themeColors.muted }}>→</span>
     </button>
   );
 }
