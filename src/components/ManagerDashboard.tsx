@@ -78,13 +78,10 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
   useEffect(() => {
     loadDepartmentData();
 
-    // Verify supabase is available before setting up subscriptions
     if (!supabase) {
-      console.warn('⚠️ Supabase instance not available for realtime subscriptions');
       return;
     }
 
-    // Set up Supabase Realtime for live updates
     let ordersChannel;
     let restockChannel;
 

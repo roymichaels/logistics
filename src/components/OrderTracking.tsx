@@ -106,9 +106,7 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
   useEffect(() => {
     loadOrderData();
 
-    // Verify supabase is available before setting up subscriptions
     if (!supabase) {
-      console.warn('⚠️ Supabase instance not available for realtime subscriptions');
       return;
     }
 

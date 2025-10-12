@@ -53,6 +53,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState<boolean>(false);
 
   const auth = value ? null : useAuth();
 
@@ -106,8 +107,12 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       return;
     }
 
-    if (!auth.isAuthenticated || auth.isLoading) {
-      debugLog.info('⏳ Waiting for authentication...');
+    if (auth.isLoading) {
+      setLoading(true);
+      return;
+    }
+
+    if (!auth.isAuthenticated) {
       setLoading(true);
       return;
     }
@@ -119,9 +124,14 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       return;
     }
 
+    if (isInitializing) {
+      return;
+    }
+
     let cancelled = false;
 
     const initialize = async () => {
+      setIsInitializing(true);
       try {
         debugLog.info('🚀 AppServicesProvider initializing with authenticated user:', auth.user?.name);
 
@@ -191,6 +201,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         if (!cancelled) {
           setLoading(false);
+          setIsInitializing(false);
           debugLog.success('🎉 AppServicesProvider initialized successfully!');
         }
       } catch (err) {
@@ -205,6 +216,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Failed to initialize app');
           setLoading(false);
+          setIsInitializing(false);
         }
       }
     };
@@ -213,8 +225,9 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
     return () => {
       cancelled = true;
+      setIsInitializing(false);
     };
-  }, [value, auth?.isAuthenticated, auth?.isLoading, auth?.user]);
+  }, [value, auth?.isAuthenticated, auth?.isLoading, auth?.user, isInitializing]);
 
   useEffect(() => {
     if (value || !dataStore?.getActiveBusinessContext) {

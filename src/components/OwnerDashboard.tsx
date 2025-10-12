@@ -72,13 +72,16 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
   useEffect(() => {
     loadSystemMetrics();
 
-    // Verify supabase is available before setting up subscriptions
     if (!supabase) {
-      console.warn('⚠️ Supabase instance not available for realtime subscriptions');
-      return;
+      const interval = setInterval(() => {
+        loadSystemMetrics();
+      }, 120000);
+
+      return () => {
+        clearInterval(interval);
+      };
     }
 
-    // Set up Supabase Realtime for live system monitoring
     let ordersChannel;
     let usersChannel;
 

@@ -427,6 +427,7 @@ export async function deleteUserRegistrationRecord(telegramId: string): Promise<
 }
 
 export class SupabaseDataStore implements DataStore {
+  public readonly supabase = supabase;
   private user: User | null = null;
   private subscriptions: Map<string, RealtimeChannel> = new Map();
   private eventListeners: Map<string, Set<Function>> = new Map();

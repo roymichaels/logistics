@@ -123,8 +123,6 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
       } catch (error) {
         console.error('❌ Failed to initialize realtime subscriptions:', error);
       }
-    } else {
-      console.warn('⚠️ Supabase instance not available for realtime subscriptions');
     }
 
     if ('geolocation' in navigator) {

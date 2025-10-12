@@ -46,6 +46,7 @@ export type DataStoreSubscriptionTopic =
 export type DataStoreSubscriptionHandler<T extends DataStoreSubscriptionTopic> = (payload: unknown) => void;
 
 export interface FrontendDataStore extends DataStore {
+  supabase?: any;
   subscribe: <T extends DataStoreSubscriptionTopic>(
     topic: T,
     callback: DataStoreSubscriptionHandler<T>
