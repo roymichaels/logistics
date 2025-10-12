@@ -63,16 +63,16 @@ zone_coverage AS (
   ) zone_counts
 )
 SELECT
-  COALESCE(to.revenue_today, 0) as revenue_today,
-  COALESCE(to.orders_today, 0) as orders_today,
-  COALESCE(to.delivered_today, 0) as delivered_today,
-  COALESCE(to.avg_order_value, 0) as average_order_value,
-  COALESCE(to.pending_orders, 0) as pending_orders,
+  COALESCE(tod.revenue_today, 0) as revenue_today,
+  COALESCE(tod.orders_today, 0) as orders_today,
+  COALESCE(tod.delivered_today, 0) as delivered_today,
+  COALESCE(tod.avg_order_value, 0) as average_order_value,
+  COALESCE(tod.pending_orders, 0) as pending_orders,
   COALESCE(ds.active_drivers, 0) as active_drivers,
   COALESCE(zc.coverage_percent, 0) as coverage_percent,
-  COALESCE(to.outstanding_deliveries, 0) as outstanding_deliveries,
+  COALESCE(tod.outstanding_deliveries, 0) as outstanding_deliveries,
   now() as last_updated
-FROM today_orders to
+FROM today_orders tod
 CROSS JOIN driver_stats ds
 CROSS JOIN zone_coverage zc;
 

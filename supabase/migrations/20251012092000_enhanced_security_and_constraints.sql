@@ -22,6 +22,26 @@
 */
 
 -- ============================================================================
+-- STEP 0: Ensure required ENUM types exist
+-- ============================================================================
+
+-- Verify user_role ENUM exists (required for function parameters)
+DO $$
+DECLARE
+  enum_exists BOOLEAN;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1 FROM pg_type WHERE typname = 'user_role'
+  ) INTO enum_exists;
+
+  IF NOT enum_exists THEN
+    RAISE EXCEPTION 'user_role ENUM type must exist before this migration. Run previous migrations first.';
+  ELSE
+    RAISE NOTICE 'Verified user_role ENUM type exists';
+  END IF;
+END $$;
+
+-- ============================================================================
 -- STEP 1: Add business_id to tenant-scoped tables if missing
 -- ============================================================================
 

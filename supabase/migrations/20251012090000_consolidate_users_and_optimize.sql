@@ -34,32 +34,55 @@
 -- STEP 0: Ensure required ENUM types exist
 -- ============================================================================
 
--- Create user_role ENUM if not exists
-DO $$ BEGIN
-  CREATE TYPE user_role AS ENUM (
-    'user',
-    'infrastructure_owner',
-    'business_owner',
-    'manager',
-    'dispatcher',
-    'driver',
-    'warehouse',
-    'sales',
-    'customer_service'
-  );
-EXCEPTION
-  WHEN duplicate_object THEN NULL;
+-- Save and recreate user_role ENUM to ensure it exists after table operations
+-- First, check if the type exists and has the correct values
+DO $$
+DECLARE
+  enum_exists BOOLEAN;
+BEGIN
+  -- Check if user_role type exists
+  SELECT EXISTS (
+    SELECT 1 FROM pg_type WHERE typname = 'user_role'
+  ) INTO enum_exists;
+
+  -- If it doesn't exist, create it
+  IF NOT enum_exists THEN
+    CREATE TYPE user_role AS ENUM (
+      'user',
+      'infrastructure_owner',
+      'business_owner',
+      'manager',
+      'dispatcher',
+      'driver',
+      'warehouse',
+      'sales',
+      'customer_service'
+    );
+    RAISE NOTICE 'Created user_role ENUM type';
+  ELSE
+    RAISE NOTICE 'user_role ENUM type already exists';
+  END IF;
 END $$;
 
 -- Create user_registration_status ENUM if not exists
-DO $$ BEGIN
-  CREATE TYPE user_registration_status AS ENUM (
-    'pending',
-    'approved',
-    'rejected'
-  );
-EXCEPTION
-  WHEN duplicate_object THEN NULL;
+DO $$
+DECLARE
+  enum_exists BOOLEAN;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1 FROM pg_type WHERE typname = 'user_registration_status'
+  ) INTO enum_exists;
+
+  IF NOT enum_exists THEN
+    CREATE TYPE user_registration_status AS ENUM (
+      'pending',
+      'approved',
+      'rejected'
+    );
+    RAISE NOTICE 'Created user_registration_status ENUM type';
+  ELSE
+    RAISE NOTICE 'user_registration_status ENUM type already exists';
+  END IF;
 END $$;
 
 -- ============================================================================
@@ -122,6 +145,38 @@ END $$;
 
 -- Drop existing users table if exists
 DROP TABLE IF EXISTS users CASCADE;
+
+-- CRITICAL: Recreate user_role ENUM after CASCADE drop
+-- The CASCADE drop may have removed the ENUM if it was only used by the dropped table
+DO $$
+BEGIN
+  -- Drop and recreate to ensure clean state
+  DROP TYPE IF EXISTS user_role CASCADE;
+  CREATE TYPE user_role AS ENUM (
+    'user',
+    'infrastructure_owner',
+    'business_owner',
+    'manager',
+    'dispatcher',
+    'driver',
+    'warehouse',
+    'sales',
+    'customer_service'
+  );
+  RAISE NOTICE 'Recreated user_role ENUM type after CASCADE drop';
+END $$;
+
+-- Recreate user_registration_status ENUM
+DO $$
+BEGIN
+  DROP TYPE IF EXISTS user_registration_status CASCADE;
+  CREATE TYPE user_registration_status AS ENUM (
+    'pending',
+    'approved',
+    'rejected'
+  );
+  RAISE NOTICE 'Recreated user_registration_status ENUM type after CASCADE drop';
+END $$;
 
 -- Create unified users table with registration workflow support
 CREATE TABLE users (
