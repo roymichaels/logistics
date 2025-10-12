@@ -3,7 +3,8 @@ import { useTelegramUI } from '../hooks/useTelegramUI';
 
 type RoleKey =
   | 'user'
-  | 'owner'
+  | 'infrastructure_owner'
+  | 'business_owner'
   | 'manager'
   | 'dispatcher'
   | 'driver'
@@ -35,6 +36,12 @@ interface FloatingCreateButtonProps {
   onCreateUser: () => void;
   onCreateProduct: () => void;
   onNavigate?: (page: string) => void;
+  onToggleDriverStatus?: () => void;
+  onUpdateLocation?: () => void;
+  onReportIssue?: () => void;
+  onSearchOrder?: () => void;
+  onUpdateOrderStatus?: () => void;
+  onTransferInventory?: () => void;
 }
 
 export function FloatingCreateButton({
@@ -50,7 +57,13 @@ export function FloatingCreateButton({
   onCreateRoute,
   onCreateUser,
   onCreateProduct,
-  onNavigate
+  onNavigate,
+  onToggleDriverStatus,
+  onUpdateLocation,
+  onReportIssue,
+  onSearchOrder,
+  onUpdateOrderStatus,
+  onTransferInventory
 }: FloatingCreateButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, haptic } = useTelegramUI();
@@ -130,12 +143,32 @@ export function FloatingCreateButton({
           }
         },
         {
+          id: 'sales-inventory-check',
+          label: 'בדיקת מלאי',
+          icon: '📦',
+          color: '#34c759',
+          description: 'בדוק מלאי זמין לפני יצירת הזמנה',
+          action: () => {
+            onNavigate?.('inventory');
+          }
+        },
+        {
           id: 'sales-followup',
           label: 'מעקב ללקוח',
           icon: '🤝',
-          color: '#34c759',
+          color: '#5856d6',
           description: 'תאם שיחה או הודעה עם הלקוח',
           action: onContactCustomer
+        },
+        {
+          id: 'sales-stats',
+          label: 'הביצועים שלי',
+          icon: '📈',
+          color: '#af52de',
+          description: 'צפה בביצועי המכירות שלך',
+          action: () => {
+            onNavigate?.('my-stats');
+          }
         }
       ];
     }
@@ -151,10 +184,18 @@ export function FloatingCreateButton({
           action: onScanBarcode
         },
         {
-          id: 'warehouse-restock',
-          label: 'בקשת חידוש',
+          id: 'warehouse-transfer',
+          label: 'העברת מלאי',
           icon: '🔄',
           color: '#ff9500',
+          description: 'העבר מלאי בין מיקומים',
+          action: onTransferInventory || (() => onNavigate?.('inventory'))
+        },
+        {
+          id: 'warehouse-restock',
+          label: 'בקשת חידוש',
+          icon: '🔁',
+          color: '#34c759',
           description: 'פתח בקשת חידוש מלאי',
           action: () => {
             onNavigate?.('restock-requests');
@@ -162,9 +203,9 @@ export function FloatingCreateButton({
         },
         {
           id: 'warehouse-inventory',
-          label: 'בדיקת מלאי',
+          label: 'ספירת מלאי',
           icon: '📋',
-          color: '#34c759',
+          color: '#5856d6',
           description: 'בצע ספירה מדגמית במלאי',
           action: onCheckInventory
         },
@@ -175,6 +216,174 @@ export function FloatingCreateButton({
           color: '#af52de',
           description: 'פתח משימת טיפול לצוות',
           action: onCreateTask
+        }
+      ];
+    }
+
+    if (userRole === 'driver') {
+      return [
+        {
+          id: 'driver-toggle-status',
+          label: 'שינוי סטטוס',
+          icon: '🟢',
+          color: '#34c759',
+          description: 'עבור מקוון/לא מקוון',
+          action: onToggleDriverStatus || (() => onNavigate?.('driver-status'))
+        },
+        {
+          id: 'driver-deliveries',
+          label: 'המשלוחים שלי',
+          icon: '🚚',
+          color: '#007aff',
+          description: 'הצג את רשימת המשלוחים הפעילים',
+          action: () => {
+            onNavigate?.('my-deliveries');
+          }
+        },
+        {
+          id: 'driver-inventory',
+          label: 'המלאי שלי',
+          icon: '📦',
+          color: '#ff9500',
+          description: 'בדוק את המלאי ברכב שלך',
+          action: () => {
+            onNavigate?.('my-inventory');
+          }
+        },
+        {
+          id: 'driver-location',
+          label: 'עדכון מיקום',
+          icon: '📍',
+          color: '#5856d6',
+          description: 'עדכן מיקום ידני לאופטימיזציה',
+          action: onUpdateLocation || (() => {
+            haptic();
+            if ('geolocation' in navigator) {
+              navigator.geolocation.getCurrentPosition(
+                () => {
+                  haptic();
+                  console.log('Location updated');
+                },
+                (error) => console.error('Location error:', error)
+              );
+            }
+          })
+        },
+        {
+          id: 'driver-restock',
+          label: 'בקשת חידוש',
+          icon: '🔄',
+          color: '#af52de',
+          description: 'צור בקשת חידוש מהשטח',
+          action: () => {
+            onNavigate?.('restock-requests');
+          }
+        },
+        {
+          id: 'driver-report-issue',
+          label: 'דיווח בעיה',
+          icon: '⚠️',
+          color: '#ff3b30',
+          description: 'דווח על תקלה או אירוע במהלך משלוח',
+          action: onReportIssue || onCreateTask
+        }
+      ];
+    }
+
+    if (userRole === 'dispatcher') {
+      return [
+        {
+          id: 'dispatcher-assign',
+          label: 'הקצאת הזמנה',
+          icon: '📋',
+          color: '#007aff',
+          description: 'הקצה הזמנה לנהג זמין',
+          action: () => {
+            onNavigate?.('dispatch-board');
+          }
+        },
+        {
+          id: 'dispatcher-coverage',
+          label: 'כיסוי אזורי',
+          icon: '🗺️',
+          color: '#34c759',
+          description: 'צפה בכיסוי אזורים בזמן אמת',
+          action: () => {
+            onNavigate?.('zone-management');
+          }
+        },
+        {
+          id: 'dispatcher-route',
+          label: 'תכנון מסלול',
+          icon: '🛣️',
+          color: '#ff9500',
+          description: 'תכנן מסלול אופטימלי לנהגים',
+          action: onCreateRoute
+        },
+        {
+          id: 'dispatcher-drivers',
+          label: 'נהגים זמינים',
+          icon: '🚚',
+          color: '#5856d6',
+          description: 'חפש נהג זמין לפי אזור',
+          action: () => {
+            onNavigate?.('driver-status');
+          }
+        },
+        {
+          id: 'dispatcher-orders',
+          label: 'הזמנות ממתינות',
+          icon: '📦',
+          color: '#af52de',
+          description: 'צפה בהזמנות הממתינות להקצאה',
+          action: () => {
+            onNavigate?.('orders');
+          }
+        }
+      ];
+    }
+
+    if (userRole === 'customer_service') {
+      return [
+        {
+          id: 'cs-search-order',
+          label: 'חיפוש הזמנה',
+          icon: '🔍',
+          color: '#007aff',
+          description: 'חפש הזמנה לפי טלפון או מספר',
+          action: onSearchOrder || (() => onNavigate?.('orders'))
+        },
+        {
+          id: 'cs-create-order',
+          label: 'הזמנה חדשה',
+          icon: '🧾',
+          color: '#34c759',
+          description: 'צור הזמנה עבור לקוח',
+          action: onCreateOrder
+        },
+        {
+          id: 'cs-update-status',
+          label: 'עדכון סטטוס',
+          icon: '✏️',
+          color: '#ff9500',
+          description: 'עדכן סטטוס הזמנה קיימת',
+          action: onUpdateOrderStatus || (() => onNavigate?.('orders'))
+        },
+        {
+          id: 'cs-service-ticket',
+          label: 'פתק שירות',
+          icon: '🎫',
+          color: '#af52de',
+          description: 'פתח פתק שירות לבעיה',
+          action: onCreateTask
+        },
+        {
+          id: 'cs-customer-chat',
+          label: 'צ\'אט עם לקוח',
+          icon: '💬',
+          color: '#5856d6',
+          description: 'פתח שיחת צ\'אט עם הלקוח',
+          action: onContactCustomer
         }
       ];
     }
@@ -190,7 +399,14 @@ export function FloatingCreateButton({
     onCreateRoute,
     onCreateUser,
     onCreateProduct,
-    onNavigate
+    onNavigate,
+    onToggleDriverStatus,
+    onUpdateLocation,
+    onReportIssue,
+    onSearchOrder,
+    onUpdateOrderStatus,
+    onTransferInventory,
+    haptic
   ]);
 
   const isDisabled = disabled || actions.length === 0;

@@ -30,8 +30,8 @@ export function FloatingActionMenu({
 
     const actions: RoleAction[] = [];
 
-    // Owner/Manager - Full access
-    if (['owner', 'manager'].includes(user.role)) {
+    // Infrastructure Owner / Business Owner / Manager - Full access
+    if (['infrastructure_owner', 'business_owner', 'manager'].includes(user.role)) {
       actions.push({
         icon: '📦',
         label: 'הזמנה חדשה',
@@ -75,12 +75,12 @@ export function FloatingActionMenu({
       });
     }
 
-    // Sales - Can create orders
+    // Sales - Can create orders and track performance
     else if (user.role === 'sales') {
       actions.push({
-        icon: '📦',
-        label: 'הזמנה חדשה',
-        description: 'צור הזמנה מטלגרם או ממשק',
+        icon: '💬',
+        label: 'הזמנה בשיחה',
+        description: 'צור הזמנה ישירות עם לקוח',
         color: ROYAL_COLORS.gradientPurple,
         onClick: () => {
           onClose();
@@ -88,10 +88,74 @@ export function FloatingActionMenu({
         }
       });
       actions.push({
-        icon: '📈',
-        label: 'ההזמנות שלי',
-        description: 'צפה בהזמנות שיצרת',
+        icon: '🛒',
+        label: 'חנות דיגיטלית',
+        description: 'שלח קישור לחנות',
         color: ROYAL_COLORS.gradientGold,
+        onClick: () => {
+          onClose();
+          onNavigate('products');
+        }
+      });
+      actions.push({
+        icon: '📦',
+        label: 'בדיקת מלאי',
+        description: 'בדוק מלאי זמין',
+        color: ROYAL_COLORS.gradientSuccess,
+        onClick: () => {
+          onClose();
+          onNavigate('inventory');
+        }
+      });
+      actions.push({
+        icon: '📈',
+        label: 'הביצועים שלי',
+        description: 'צפה בביצועי המכירות',
+        color: ROYAL_COLORS.gradientCrimson,
+        onClick: () => {
+          onClose();
+          onNavigate('my-stats');
+        }
+      });
+    }
+
+    // Dispatcher - Route planning and driver management
+    else if (user.role === 'dispatcher') {
+      actions.push({
+        icon: '📋',
+        label: 'הקצאת הזמנה',
+        description: 'הקצה הזמנה לנהג זמין',
+        color: ROYAL_COLORS.gradientPurple,
+        onClick: () => {
+          onClose();
+          onNavigate('dispatch-board');
+        }
+      });
+      actions.push({
+        icon: '🗺️',
+        label: 'כיסוי אזורי',
+        description: 'צפה בכיסוי אזורים',
+        color: ROYAL_COLORS.gradientSuccess,
+        onClick: () => {
+          onClose();
+          onNavigate('zone-management');
+        }
+      });
+      actions.push({
+        icon: '🚚',
+        label: 'נהגים זמינים',
+        description: 'חפש נהג זמין לפי אזור',
+        color: ROYAL_COLORS.gradientGold,
+        onClick: () => {
+          onClose();
+          onNavigate('driver-status');
+        }
+      });
+      actions.push({
+        icon: '📦',
+        label: 'הזמנות ממתינות',
+        description: 'צפה בהזמנות להקצאה',
+        color: ROYAL_COLORS.gradientCrimson,
         onClick: () => {
           onClose();
           onNavigate('orders');
@@ -99,36 +163,22 @@ export function FloatingActionMenu({
       });
     }
 
-    // Dispatcher - Assign orders
-    else if (user.role === 'dispatcher') {
+    // Driver - Delivery and status management
+    else if (user.role === 'driver') {
       actions.push({
-        icon: '🚚',
-        label: 'הקצה משלוח',
-        description: 'הקצה הזמנות לנהגים',
-        color: ROYAL_COLORS.gradientPurple,
-        onClick: () => {
-          onClose();
-          onNavigate('dispatch');
-        }
-      });
-      actions.push({
-        icon: '📍',
-        label: 'מעקב נהגים',
-        description: 'מיקום ומצב נהגים בזמן אמת',
+        icon: '🟢',
+        label: 'שינוי סטטוס',
+        description: 'עבור מקוון/לא מקוון',
         color: ROYAL_COLORS.gradientSuccess,
         onClick: () => {
           onClose();
           onNavigate('driver-status');
         }
       });
-    }
-
-    // Driver - View their deliveries
-    else if (user.role === 'driver') {
       actions.push({
-        icon: '📦',
+        icon: '🚚',
         label: 'המשלוחים שלי',
-        description: 'צפה במשלוחים שהוקצו לך',
+        description: 'צפה במשלוחים פעילים',
         color: ROYAL_COLORS.gradientPurple,
         onClick: () => {
           onClose();
@@ -136,37 +186,117 @@ export function FloatingActionMenu({
         }
       });
       actions.push({
-        icon: '📍',
-        label: 'עדכן סטטוס',
-        description: 'עדכן מיקום ומצב משלוח',
+        icon: '📦',
+        label: 'המלאי שלי',
+        description: 'בדוק מלאי ברכב',
         color: ROYAL_COLORS.gradientGold,
         onClick: () => {
           onClose();
-          onNavigate('driver-status');
+          onNavigate('my-inventory');
+        }
+      });
+      actions.push({
+        icon: '📍',
+        label: 'עדכון מיקום',
+        description: 'עדכן מיקום ידני',
+        color: ROYAL_COLORS.gradientCrimson,
+        onClick: () => {
+          onClose();
+          telegram.hapticFeedback('impact', 'medium');
+          if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+              () => console.log('Location updated'),
+              (error) => console.error('Location error:', error)
+            );
+          }
         }
       });
     }
 
-    // Warehouse - Inventory operations
+    // Warehouse - Inventory management
     else if (user.role === 'warehouse') {
       actions.push({
-        icon: '📦',
-        label: 'בדיקת מלאי',
-        description: 'צפה ועדכן מלאי',
+        icon: '📷',
+        label: 'סריקת קבלה',
+        description: 'סרוק ברקוד להזנת מלאי',
         color: ROYAL_COLORS.gradientPurple,
+        onClick: () => {
+          onClose();
+          onNavigate('incoming');
+        }
+      });
+      actions.push({
+        icon: '🔄',
+        label: 'העברת מלאי',
+        description: 'העבר מלאי בין מיקומים',
+        color: ROYAL_COLORS.gradientGold,
         onClick: () => {
           onClose();
           onNavigate('inventory');
         }
       });
       actions.push({
-        icon: '🏷️',
-        label: 'בקשות חידוש',
-        description: 'בקשות חידוש מלאי',
-        color: ROYAL_COLORS.gradientGold,
+        icon: '📋',
+        label: 'ספירת מלאי',
+        description: 'בצע ספירה מדגמית',
+        color: ROYAL_COLORS.gradientSuccess,
+        onClick: () => {
+          onClose();
+          onNavigate('warehouse-dashboard');
+        }
+      });
+      actions.push({
+        icon: '🔁',
+        label: 'בקשת חידוש',
+        description: 'פתח בקשת חידוש',
+        color: ROYAL_COLORS.gradientCrimson,
         onClick: () => {
           onClose();
           onNavigate('restock-requests');
+        }
+      });
+    }
+
+    // Customer Service - Support and order management
+    else if (user.role === 'customer_service') {
+      actions.push({
+        icon: '🔍',
+        label: 'חיפוש הזמנה',
+        description: 'חפש הזמנה לפי טלפון',
+        color: ROYAL_COLORS.gradientPurple,
+        onClick: () => {
+          onClose();
+          onNavigate('orders');
+        }
+      });
+      actions.push({
+        icon: '🧾',
+        label: 'הזמנה חדשה',
+        description: 'צור הזמנה עבור לקוח',
+        color: ROYAL_COLORS.gradientSuccess,
+        onClick: () => {
+          onClose();
+          onShowModeSelector();
+        }
+      });
+      actions.push({
+        icon: '✏️',
+        label: 'עדכון סטטוס',
+        description: 'עדכן סטטוס הזמנה',
+        color: ROYAL_COLORS.gradientGold,
+        onClick: () => {
+          onClose();
+          onNavigate('orders');
+        }
+      });
+      actions.push({
+        icon: '💬',
+        label: 'צ\'אט עם לקוח',
+        description: 'פתח שיחת צ\'אט',
+        color: ROYAL_COLORS.gradientCrimson,
+        onClick: () => {
+          onClose();
+          onNavigate('chat');
         }
       });
     }
@@ -177,12 +307,14 @@ export function FloatingActionMenu({
   const getRoleLabel = (): string => {
     if (!user) return '';
     switch (user.role) {
-      case 'owner': return 'בעלים';
+      case 'infrastructure_owner': return 'בעל תשתית';
+      case 'business_owner': return 'בעל עסק';
       case 'manager': return 'מנהל';
       case 'sales': return 'מכירות';
       case 'dispatcher': return 'רכז';
       case 'driver': return 'נהג';
       case 'warehouse': return 'מחסן';
+      case 'customer_service': return 'שירות לקוחות';
       default: return 'משתמש';
     }
   };
