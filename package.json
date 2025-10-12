@@ -33,6 +33,7 @@
     "expo": "^50.0.0",
     "jsdom": "^27.0.0",
     "rollup-plugin-visualizer": "^6.0.3",
+    "supabase": "^2.48.3",
     "terser": "^5.44.0",
     "typescript": "^5.0.0",
     "vite": "^4.4.0",
