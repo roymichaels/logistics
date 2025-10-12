@@ -71,20 +71,34 @@ async function logPinAudit(
 }
 
 async function setupPin(telegram_id: string, pin: string) {
+  console.log('📝 setupPin called for telegram_id:', telegram_id);
+
   if (!/^\d{4,8}$/.test(pin)) {
+    console.log('❌ Invalid PIN format');
     return {
       success: false,
       error: 'PIN must be 4-8 digits',
     };
   }
 
-  const { data: existingPin } = await supabase
+  console.log('🔍 Checking for existing PIN...');
+  const { data: existingPin, error: checkError } = await supabase
     .from('user_pins')
     .select('telegram_id')
     .eq('telegram_id', telegram_id)
     .maybeSingle();
 
+  if (checkError) {
+    console.error('❌ Error checking existing PIN:', checkError);
+    await logPinAudit(telegram_id, 'setup', false, { error: checkError.message });
+    return {
+      success: false,
+      error: `Database error: ${checkError.message}`,
+    };
+  }
+
   if (existingPin) {
+    console.log('⚠️ PIN already exists for this user');
     await logPinAudit(telegram_id, 'setup', false, { reason: 'pin_already_exists' });
     return {
       success: false,
@@ -92,9 +106,11 @@ async function setupPin(telegram_id: string, pin: string) {
     };
   }
 
+  console.log('🔐 Generating salt and hashing PIN...');
   const salt = generateSalt();
   const hashedPin = await hashPin(pin, salt);
 
+  console.log('💾 Inserting PIN into database...');
   const { error: insertError } = await supabase
     .from('user_pins')
     .insert({
@@ -106,13 +122,15 @@ async function setupPin(telegram_id: string, pin: string) {
     });
 
   if (insertError) {
+    console.error('❌ Insert error:', insertError);
     await logPinAudit(telegram_id, 'setup', false, { error: insertError.message });
     return {
       success: false,
-      error: 'Failed to setup PIN',
+      error: `Failed to setup PIN: ${insertError.message}`,
     };
   }
 
+  console.log('✅ PIN setup successful');
   await logPinAudit(telegram_id, 'setup', true);
 
   return {
@@ -231,38 +249,83 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log('🔐 PIN verify function called');
+
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.error('❌ Missing authorization header');
       throw new Error('Missing authorization header');
     }
 
     const token = authHeader.replace('Bearer ', '');
+    console.log('🔑 Token extracted, validating user...');
+
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
-    if (authError || !user) {
-      throw new Error('Unauthorized');
+    if (authError) {
+      console.error('❌ Auth error:', authError);
+      throw new Error(`Authentication failed: ${authError.message}`);
     }
 
-    const telegram_id = user.user_metadata?.telegram_id?.toString();
+    if (!user) {
+      console.error('❌ No user found in token');
+      throw new Error('User not found');
+    }
+
+    console.log('✅ User authenticated:', user.id);
+    console.log('📋 User metadata:', JSON.stringify(user.user_metadata));
+
+    let telegram_id = user.user_metadata?.telegram_id;
+
     if (!telegram_id) {
+      console.log('⚠️ telegram_id not in user_metadata, checking app_metadata...');
+      telegram_id = user.app_metadata?.telegram_id;
+    }
+
+    if (!telegram_id) {
+      console.error('❌ Telegram ID not found in metadata');
       throw new Error('Telegram ID not found in user metadata');
     }
 
-    const { operation, pin, business_id } = await req.json();
+    telegram_id = telegram_id.toString();
+    console.log('📱 Telegram ID:', telegram_id);
+
+    const body = await req.json();
+    console.log('📦 Request body:', JSON.stringify(body));
+
+    const { operation, pin, business_id } = body;
+
+    if (!operation) {
+      console.error('❌ Operation not specified');
+      throw new Error('Operation is required');
+    }
+
+    console.log(`🎯 Operation: ${operation}`);
 
     let result;
     switch (operation) {
       case 'setup':
-        if (!pin) throw new Error('PIN is required');
+        if (!pin) {
+          console.error('❌ PIN not provided for setup');
+          throw new Error('PIN is required');
+        }
+        console.log('🔧 Setting up PIN...');
         result = await setupPin(telegram_id, pin);
+        console.log('✅ Setup result:', JSON.stringify(result));
         break;
 
       case 'verify':
-        if (!pin) throw new Error('PIN is required');
+        if (!pin) {
+          console.error('❌ PIN not provided for verify');
+          throw new Error('PIN is required');
+        }
+        console.log('🔍 Verifying PIN...');
         result = await verifyPin(telegram_id, pin, business_id);
+        console.log('✅ Verify result:', JSON.stringify({ success: result.success }));
         break;
 
       default:
+        console.error('❌ Invalid operation:', operation);
         throw new Error('Invalid operation. Use: setup, verify');
     }
 
@@ -274,10 +337,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
     );
   } catch (err: any) {
+    console.error('💥 Error in pin-verify function:', err);
+    console.error('Stack:', err.stack);
     return new Response(
       JSON.stringify({
         success: false,
         error: err.message || 'Internal Server Error',
+        details: err.stack ? err.stack.split('\n')[0] : undefined,
       }),
       {
         status: 500,
