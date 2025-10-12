@@ -1,4 +1,4 @@
-import { getSupabase } from './supabaseClient';
+import { getSupabase, isSupabaseInitialized } from './supabaseClient';
 import { telegram } from './telegram';
 
 export interface AuthUser {
