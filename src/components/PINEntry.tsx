@@ -52,8 +52,8 @@ export function PINEntry({
     return () => clearInterval(interval);
   }, [lockoutInfo]);
 
-  const checkLockoutStatus = () => {
-    const lockout = pinAuthService.getLockoutInfo();
+  const checkLockoutStatus = async () => {
+    const lockout = await pinAuthService.getLockoutInfo();
     setLockoutInfo(lockout);
   };
 

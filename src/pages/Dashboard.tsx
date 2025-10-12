@@ -85,6 +85,11 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     return buildSummary(snapshot, user);
   }, [snapshot, user]);
 
+  // Wait for both user profile and dataStore to be ready
+  if (loading || !dataStore || !user) {
+    return <RoyalSkeleton />;
+  }
+
   const handleSendSummary = useCallback(() => {
     if (!snapshot) return;
 
@@ -179,7 +184,8 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   //   };
   // }, [snapshot, handleSendSummary, mainButton]);
 
-  if (loading || showSkeleton) {
+  // Additional check for skeleton screen timing
+  if (showSkeleton) {
     return <RoyalSkeleton />;
   }
 

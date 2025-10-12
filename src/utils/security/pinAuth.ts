@@ -1,9 +1,10 @@
 /**
  * PIN Authentication System
- * Handles secure PIN-based authentication with progressive lockout
+ * Handles secure PIN-based authentication with database backend
+ * All PIN operations go through Supabase Edge Functions for security
  */
 
-import { EncryptionService } from './encryption';
+import { getSupabase } from '../../lib/supabaseClient';
 
 export interface PINSettings {
   maxFailedAttempts: number;
@@ -19,20 +20,17 @@ export interface PINValidationResult {
   lockedUntil?: Date;
   requiresPinChange?: boolean;
   error?: string;
+  sessionToken?: string;
+  expiresAt?: string;
 }
 
-export interface PINData {
-  hashedPin: string;
-  salt: string;
-  createdAt: string;
-  lastChanged: string;
-  failedAttempts: number;
-  lockedUntil?: string;
-  version: string;
+export interface PINSetupResult {
+  success: boolean;
+  error?: string;
+  message?: string;
 }
 
 export class PINAuthService {
-  private static readonly STORAGE_KEY = 'pin_auth_data';
   private static readonly DEFAULT_SETTINGS: PINSettings = {
     maxFailedAttempts: 5,
     lockoutDurationMinutes: 15,
@@ -42,15 +40,17 @@ export class PINAuthService {
   };
 
   private settings: PINSettings;
+  private businessId?: string;
 
-  constructor(settings?: Partial<PINSettings>) {
+  constructor(settings?: Partial<PINSettings>, businessId?: string) {
     this.settings = { ...PINAuthService.DEFAULT_SETTINGS, ...settings };
+    this.businessId = businessId;
   }
 
   /**
-   * Set up PIN for the first time
+   * Set up PIN for the first time (stored securely in database)
    */
-  async setupPIN(pin: string): Promise<{ success: boolean; error?: string }> {
+  async setupPIN(pin: string): Promise<PINSetupResult> {
     if (!this.validatePINFormat(pin)) {
       return {
         success: false,
@@ -59,21 +59,45 @@ export class PINAuthService {
     }
 
     try {
-      const salt = EncryptionService.generateSalt();
-      const hashedPin = await this.hashPIN(pin, salt);
+      const supabase = getSupabase();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-      const pinData: PINData = {
-        hashedPin,
-        salt: EncryptionService.arrayBufferToBase64(salt),
-        createdAt: new Date().toISOString(),
-        lastChanged: new Date().toISOString(),
-        failedAttempts: 0,
-        version: '1.0'
+      if (sessionError || !session) {
+        return {
+          success: false,
+          error: 'Not authenticated'
+        };
+      }
+
+      const { data, error } = await supabase.functions.invoke('pin-verify', {
+        body: {
+          operation: 'setup',
+          pin: pin
+        }
+      });
+
+      if (error) {
+        console.error('PIN setup error:', error);
+        return {
+          success: false,
+          error: error.message || 'Failed to setup PIN'
+        };
+      }
+
+      if (!data.success) {
+        return {
+          success: false,
+          error: data.error || 'Failed to setup PIN'
+        };
+      }
+
+      // Store setup status locally for quick checks
+      this.markPINAsSetup();
+
+      return {
+        success: true,
+        message: data.message || 'PIN setup successfully'
       };
-
-      localStorage.setItem(PINAuthService.STORAGE_KEY, JSON.stringify(pinData));
-
-      return { success: true };
     } catch (error) {
       console.error('PIN setup failed:', error);
       return {
@@ -84,46 +108,70 @@ export class PINAuthService {
   }
 
   /**
-   * Verify PIN
+   * Verify PIN (against database with proper hashing)
    */
   async verifyPIN(pin: string): Promise<PINValidationResult> {
-    const pinData = this.getPINData();
-
-    if (!pinData) {
+    if (!this.validatePINFormat(pin)) {
       return {
         success: false,
-        error: 'PIN not set up'
-      };
-    }
-
-    // Check if currently locked out
-    if (pinData.lockedUntil && new Date(pinData.lockedUntil) > new Date()) {
-      return {
-        success: false,
-        lockedUntil: new Date(pinData.lockedUntil),
-        error: 'Account is temporarily locked'
+        error: 'Invalid PIN format'
       };
     }
 
     try {
-      const salt = EncryptionService.base64ToArrayBuffer(pinData.salt);
-      const hashedInputPin = await this.hashPIN(pin, new Uint8Array(salt));
+      const supabase = getSupabase();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-      if (hashedInputPin === pinData.hashedPin) {
-        // PIN is correct, reset failed attempts
-        await this.resetFailedAttempts();
-
-        // Check if PIN change is required
-        const requiresPinChange = this.isPinChangeRequired(pinData);
-
+      if (sessionError || !session) {
         return {
-          success: true,
-          requiresPinChange
+          success: false,
+          error: 'Not authenticated'
         };
-      } else {
-        // PIN is incorrect, increment failed attempts
-        return await this.handleFailedAttempt(pinData);
       }
+
+      const { data, error } = await supabase.functions.invoke('pin-verify', {
+        body: {
+          operation: 'verify',
+          pin: pin,
+          business_id: this.businessId
+        }
+      });
+
+      if (error) {
+        console.error('PIN verification error:', error);
+        return {
+          success: false,
+          error: error.message || 'Failed to verify PIN'
+        };
+      }
+
+      if (!data.success) {
+        const result: PINValidationResult = {
+          success: false,
+          error: data.error || 'Incorrect PIN'
+        };
+
+        if (data.remaining_attempts !== undefined) {
+          result.remainingAttempts = data.remaining_attempts;
+        }
+
+        if (data.locked_until) {
+          result.lockedUntil = new Date(data.locked_until);
+        }
+
+        return result;
+      }
+
+      // Store session token locally for subsequent requests
+      if (data.session_token) {
+        this.storePINSession(data.session_token, data.expires_at);
+      }
+
+      return {
+        success: true,
+        sessionToken: data.session_token,
+        expiresAt: data.expires_at
+      };
     } catch (error) {
       console.error('PIN verification failed:', error);
       return {
@@ -136,7 +184,7 @@ export class PINAuthService {
   /**
    * Change PIN
    */
-  async changePIN(currentPin: string, newPin: string): Promise<{ success: boolean; error?: string }> {
+  async changePIN(currentPin: string, newPin: string): Promise<PINSetupResult> {
     // Verify current PIN first
     const verification = await this.verifyPIN(currentPin);
     if (!verification.success) {
@@ -161,21 +209,43 @@ export class PINAuthService {
     }
 
     try {
-      const salt = EncryptionService.generateSalt();
-      const hashedPin = await this.hashPIN(newPin, salt);
+      const supabase = getSupabase();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-      const pinData = this.getPINData();
-      if (pinData) {
-        pinData.hashedPin = hashedPin;
-        pinData.salt = EncryptionService.arrayBufferToBase64(salt);
-        pinData.lastChanged = new Date().toISOString();
-        pinData.failedAttempts = 0;
-        delete pinData.lockedUntil;
-
-        localStorage.setItem(PINAuthService.STORAGE_KEY, JSON.stringify(pinData));
+      if (sessionError || !session) {
+        return {
+          success: false,
+          error: 'Not authenticated'
+        };
       }
 
-      return { success: true };
+      const { data, error } = await supabase.functions.invoke('pin-reset', {
+        body: {
+          operation: 'change',
+          current_pin: currentPin,
+          new_pin: newPin
+        }
+      });
+
+      if (error) {
+        console.error('PIN change error:', error);
+        return {
+          success: false,
+          error: error.message || 'Failed to change PIN'
+        };
+      }
+
+      if (!data.success) {
+        return {
+          success: false,
+          error: data.error || 'Failed to change PIN'
+        };
+      }
+
+      return {
+        success: true,
+        message: data.message || 'PIN changed successfully'
+      };
     } catch (error) {
       console.error('PIN change failed:', error);
       return {
@@ -186,52 +256,153 @@ export class PINAuthService {
   }
 
   /**
-   * Check if PIN is set up
+   * Check if PIN is set up (check database)
    */
-  isPINSetup(): boolean {
-    return this.getPINData() !== null;
+  async isPINSetup(): Promise<boolean> {
+    // First check local cache for quick response
+    const localCheck = this.isLocallyMarkedAsSetup();
+    if (localCheck) {
+      return true;
+    }
+
+    try {
+      const supabase = getSupabase();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        return false;
+      }
+
+      const telegramId = session.user?.user_metadata?.telegram_id;
+      if (!telegramId) {
+        return false;
+      }
+
+      const { data, error } = await supabase
+        .from('user_pins')
+        .select('telegram_id')
+        .eq('telegram_id', telegramId.toString())
+        .maybeSingle();
+
+      const hasPin = !error && data !== null;
+
+      if (hasPin) {
+        this.markPINAsSetup();
+      }
+
+      return hasPin;
+    } catch (error) {
+      console.error('Failed to check PIN setup status:', error);
+      return false;
+    }
   }
 
   /**
    * Check if account is currently locked
    */
-  isAccountLocked(): boolean {
-    const pinData = this.getPINData();
-    if (!pinData || !pinData.lockedUntil) {
+  async isAccountLocked(): Promise<boolean> {
+    try {
+      const supabase = getSupabase();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        return false;
+      }
+
+      const telegramId = session.user?.user_metadata?.telegram_id;
+      if (!telegramId) {
+        return false;
+      }
+
+      const { data, error } = await supabase
+        .from('user_pins')
+        .select('locked_until')
+        .eq('telegram_id', telegramId.toString())
+        .maybeSingle();
+
+      if (error || !data || !data.locked_until) {
+        return false;
+      }
+
+      return new Date(data.locked_until) > new Date();
+    } catch (error) {
+      console.error('Failed to check lockout status:', error);
       return false;
     }
-
-    return new Date(pinData.lockedUntil) > new Date();
   }
 
   /**
    * Get lockout information
    */
-  getLockoutInfo(): { isLocked: boolean; lockedUntil?: Date; remainingTime?: number } {
-    const pinData = this.getPINData();
-    if (!pinData || !pinData.lockedUntil) {
+  async getLockoutInfo(): Promise<{ isLocked: boolean; lockedUntil?: Date; remainingTime?: number }> {
+    try {
+      const supabase = getSupabase();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        return { isLocked: false };
+      }
+
+      const telegramId = session.user?.user_metadata?.telegram_id;
+      if (!telegramId) {
+        return { isLocked: false };
+      }
+
+      const { data, error } = await supabase
+        .from('user_pins')
+        .select('locked_until')
+        .eq('telegram_id', telegramId.toString())
+        .maybeSingle();
+
+      if (error || !data || !data.locked_until) {
+        return { isLocked: false };
+      }
+
+      const lockedUntil = new Date(data.locked_until);
+      const now = new Date();
+
+      if (lockedUntil > now) {
+        return {
+          isLocked: true,
+          lockedUntil,
+          remainingTime: lockedUntil.getTime() - now.getTime()
+        };
+      }
+
+      return { isLocked: false };
+    } catch (error) {
+      console.error('Failed to get lockout info:', error);
       return { isLocked: false };
     }
-
-    const lockedUntil = new Date(pinData.lockedUntil);
-    const now = new Date();
-
-    if (lockedUntil > now) {
-      return {
-        isLocked: true,
-        lockedUntil,
-        remainingTime: lockedUntil.getTime() - now.getTime()
-      };
-    }
-
-    return { isLocked: false };
   }
 
   /**
-   * Reset PIN (admin function)
+   * Check if PIN session is valid
    */
-  async resetPIN(): Promise<void> {
-    localStorage.removeItem(PINAuthService.STORAGE_KEY);
+  async hasValidSession(): Promise<boolean> {
+    const sessionData = this.getPINSession();
+    if (!sessionData) {
+      return false;
+    }
+
+    // Check if session expired
+    if (new Date(sessionData.expiresAt) <= new Date()) {
+      this.clearPINSession();
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Clear PIN session
+   */
+  clearPINSession(): void {
+    try {
+      localStorage.removeItem('pin_session');
+    } catch (error) {
+      console.error('Failed to clear PIN session:', error);
+    }
   }
 
   /**
@@ -248,29 +419,7 @@ export class PINAuthService {
     this.settings = { ...this.settings, ...newSettings };
   }
 
-  /**
-   * Generate master encryption key from PIN
-   */
-  async generateMasterKeyFromPIN(pin: string): Promise<CryptoKey | null> {
-    const pinData = this.getPINData();
-    if (!pinData) return null;
-
-    try {
-      const salt = EncryptionService.base64ToArrayBuffer(pinData.salt);
-      return await EncryptionService.deriveKeyFromPIN(pin, new Uint8Array(salt));
-    } catch (error) {
-      console.error('Failed to generate master key from PIN:', error);
-      return null;
-    }
-  }
-
   // Private methods
-
-  private async hashPIN(pin: string, salt: Uint8Array): Promise<string> {
-    const key = await EncryptionService.deriveKeyFromPIN(pin, salt);
-    const exported = await EncryptionService.exportKey(key);
-    return await EncryptionService.hashData(exported);
-  }
 
   private validatePINFormat(pin: string): boolean {
     if (pin.length !== this.settings.pinLength) {
@@ -280,72 +429,43 @@ export class PINAuthService {
     return /^\d+$/.test(pin);
   }
 
-  private getPINData(): PINData | null {
+  private storePINSession(sessionToken: string, expiresAt: string): void {
     try {
-      const data = localStorage.getItem(PINAuthService.STORAGE_KEY);
+      const sessionData = {
+        token: sessionToken,
+        expiresAt: expiresAt,
+        createdAt: new Date().toISOString()
+      };
+      localStorage.setItem('pin_session', JSON.stringify(sessionData));
+    } catch (error) {
+      console.error('Failed to store PIN session:', error);
+    }
+  }
+
+  private getPINSession(): { token: string; expiresAt: string; createdAt: string } | null {
+    try {
+      const data = localStorage.getItem('pin_session');
       return data ? JSON.parse(data) : null;
     } catch (error) {
-      console.error('Failed to retrieve PIN data:', error);
+      console.error('Failed to retrieve PIN session:', error);
       return null;
     }
   }
 
-  private async handleFailedAttempt(pinData: PINData): Promise<PINValidationResult> {
-    pinData.failedAttempts += 1;
-
-    const remainingAttempts = this.settings.maxFailedAttempts - pinData.failedAttempts;
-
-    if (pinData.failedAttempts >= this.settings.maxFailedAttempts) {
-      // Lock account
-      const lockoutDuration = this.calculateLockoutDuration(pinData.failedAttempts);
-      const lockedUntil = new Date();
-      lockedUntil.setMinutes(lockedUntil.getMinutes() + lockoutDuration);
-
-      pinData.lockedUntil = lockedUntil.toISOString();
-
-      localStorage.setItem(PINAuthService.STORAGE_KEY, JSON.stringify(pinData));
-
-      return {
-        success: false,
-        lockedUntil,
-        error: `Account locked for ${lockoutDuration} minutes`
-      };
-    } else {
-      localStorage.setItem(PINAuthService.STORAGE_KEY, JSON.stringify(pinData));
-
-      return {
-        success: false,
-        remainingAttempts,
-        error: 'Incorrect PIN'
-      };
+  private markPINAsSetup(): void {
+    try {
+      localStorage.setItem('pin_setup_status', 'true');
+    } catch (error) {
+      console.error('Failed to mark PIN as setup:', error);
     }
   }
 
-  private async resetFailedAttempts(): Promise<void> {
-    const pinData = this.getPINData();
-    if (pinData) {
-      pinData.failedAttempts = 0;
-      delete pinData.lockedUntil;
-      localStorage.setItem(PINAuthService.STORAGE_KEY, JSON.stringify(pinData));
-    }
-  }
-
-  private calculateLockoutDuration(failedAttempts: number): number {
-    // Progressive lockout: base duration * (failed attempts - max allowed)
-    const baseMinutes = this.settings.lockoutDurationMinutes;
-    const multiplier = Math.max(1, failedAttempts - this.settings.maxFailedAttempts + 1);
-    return Math.min(baseMinutes * multiplier, 24 * 60); // Max 24 hours
-  }
-
-  private isPinChangeRequired(pinData: PINData): boolean {
-    if (!this.settings.requirePinChange) {
+  private isLocallyMarkedAsSetup(): boolean {
+    try {
+      return localStorage.getItem('pin_setup_status') === 'true';
+    } catch (error) {
       return false;
     }
-
-    const lastChanged = new Date(pinData.lastChanged);
-    const daysSinceChange = (Date.now() - lastChanged.getTime()) / (1000 * 60 * 60 * 24);
-
-    return daysSinceChange >= this.settings.pinChangeIntervalDays;
   }
 }
 
@@ -358,7 +478,7 @@ export class PINValidator {
    */
   static validatePINStrength(pin: string): {
     isValid: boolean;
-    score: number; // 0-100
+    score: number;
     warnings: string[];
   } {
     const warnings: string[] = [];
@@ -421,6 +541,6 @@ export class PINValidator {
 
   private static isUnique(pin: string): boolean {
     const uniqueDigits = new Set(pin).size;
-    return uniqueDigits >= 4; // At least 4 different digits
+    return uniqueDigits >= 4;
   }
 }

@@ -22,7 +22,18 @@ interface UseRoleThemeReturn {
  * Hook to get the current user's role-based theme
  */
 export function useRoleTheme(): UseRoleThemeReturn {
-  const { userRole, loading } = useAppServices();
+  // Use try-catch to handle cases where context is not available
+  let contextData: { userRole: any; loading: boolean } | null = null;
+
+  try {
+    contextData = useAppServices();
+  } catch (error) {
+    // Context not available - use defaults
+    console.warn('useRoleTheme: AppServicesContext not available, using defaults');
+  }
+
+  const userRole = contextData?.userRole ?? null;
+  const loading = contextData?.loading ?? true;
 
   const theme = useMemo(() => {
     if (!userRole) return ADMIN_THEME;
