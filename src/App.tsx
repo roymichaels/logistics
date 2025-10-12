@@ -120,40 +120,7 @@ type Page =
   | 'zone-management';
 
 export default function App() {
-  let appServicesContext;
-  try {
-    appServicesContext = useAppServices();
-  } catch (error) {
-    console.error('App: Failed to access AppServices context', error);
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        padding: '20px',
-        textAlign: 'center',
-        direction: 'rtl'
-      }}>
-        <div>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
-          <h2>שגיאה בטעינת האפליקציה</h2>
-          <p>לא ניתן לגשת למערכת כרגע</p>
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              marginTop: '20px',
-              padding: '12px 24px',
-              fontSize: '16px',
-              cursor: 'pointer'
-            }}
-          >
-            רענן דף
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const appServicesContext = useAppServices();
 
   const {
     user,
@@ -627,10 +594,9 @@ export default function App() {
           minHeight: '100vh',
           backgroundColor: theme.bg_color,
           color: theme.text_color,
-          paddingBottom: '80px', // Space for bottom nav
-          paddingTop: '60px' // Space for header
+          paddingBottom: '80px',
+          paddingTop: user && dataStore ? '60px' : '0'
         }}>
-          {/* Header - Only render when user and dataStore are available */}
           {user && dataStore && (
             <Header onNavigate={handleNavigate} onLogout={handleLogout} />
           )}

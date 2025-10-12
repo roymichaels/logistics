@@ -138,6 +138,30 @@ function LoadingScreen() {
   );
 }
 
+// Wait for Telegram WebApp to be available before initializing React
+const waitForTelegram = (): Promise<void> => {
+  return new Promise((resolve) => {
+    if (window.Telegram?.WebApp) {
+      resolve();
+      return;
+    }
+
+    let attempts = 0;
+    const maxAttempts = 20;
+    const checkInterval = setInterval(() => {
+      attempts++;
+      if (window.Telegram?.WebApp) {
+        clearInterval(checkInterval);
+        resolve();
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkInterval);
+        console.warn('⚠️ Telegram WebApp not available after max attempts');
+        resolve();
+      }
+    }, 100);
+  });
+};
+
 // Initialize React app with async config loading
 (async () => {
   try {
@@ -151,6 +175,9 @@ function LoadingScreen() {
 
     // Show loading screen
     root.render(<LoadingScreen />);
+
+    // Wait for Telegram WebApp to be available
+    await waitForTelegram();
 
     // Initialize Supabase with config
     console.log('🔄 Initializing Supabase...');
@@ -186,16 +213,18 @@ function LoadingScreen() {
       throw new Error('Failed to load configuration. Please check your environment variables or runtime config endpoint.');
     }
 
-    // Render the actual app
+    // Render the actual app - wrapped properly in providers
     console.log('✅ Rendering App component...');
     root.render(
-      <ErrorBoundary>
-        <AuthProvider>
-          <AppServicesProvider>
-            <App />
-          </AppServicesProvider>
-        </AuthProvider>
-      </ErrorBoundary>
+      <React.StrictMode>
+        <ErrorBoundary>
+          <AuthProvider>
+            <AppServicesProvider>
+              <App />
+            </AppServicesProvider>
+          </AuthProvider>
+        </ErrorBoundary>
+      </React.StrictMode>
     );
     console.log('✅ App rendered successfully');
   } catch (error) {

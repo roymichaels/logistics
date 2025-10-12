@@ -19,12 +19,14 @@ export const initSupabase = async (): Promise<void> => {
         console.log('🔄 Fetching runtime configuration...');
 
         try {
-          const configResponse = await fetch('/functions/v1/app-config');
+          const configResponse = await fetch('/runtime-config.json');
           if (configResponse.ok) {
             const config = await configResponse.json();
             supabaseUrl = config.supabaseUrl;
             supabaseAnonKey = config.supabaseAnonKey;
             console.log('✅ Runtime configuration loaded successfully');
+          } else {
+            console.error('⚠️ Runtime config endpoint returned:', configResponse.status);
           }
         } catch (fetchError) {
           console.error('⚠️ Failed to fetch runtime config:', fetchError);
