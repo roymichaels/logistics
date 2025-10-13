@@ -25,7 +25,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
       infrastructure_owner: [
         { id: 'dashboard', label: 'לוח בקרה', icon: '🏠', page: 'dashboard' },
         { id: 'orders', label: 'הזמנות', icon: '📦', page: 'orders' },
-        { id: 'drivers', label: 'נהגים', icon: '🚚', page: 'driver-status' },
+        { id: 'drivers', label: 'ניהול נהגים', icon: '🚚', page: 'drivers-management' },
         { id: 'inventory', label: 'מלאי', icon: '📊', page: 'manager-inventory' },
         { id: 'products', label: 'מוצרים', icon: '🏷️', page: 'products' },
         { id: 'reports', label: 'דוחות', icon: '📈', page: 'reports' },
@@ -37,7 +37,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
       business_owner: [
         { id: 'dashboard', label: 'לוח בקרה', icon: '🏠', page: 'dashboard' },
         { id: 'orders', label: 'הזמנות', icon: '📦', page: 'orders' },
-        { id: 'drivers', label: 'נהגים', icon: '🚚', page: 'driver-status' },
+        { id: 'drivers', label: 'ניהול נהגים', icon: '🚚', page: 'drivers-management' },
         { id: 'inventory', label: 'מלאי', icon: '📊', page: 'manager-inventory' },
         { id: 'products', label: 'מוצרים', icon: '🏷️', page: 'products' },
         { id: 'reports', label: 'דוחות', icon: '📈', page: 'reports' },
@@ -49,7 +49,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
       manager: [
         { id: 'dashboard', label: 'לוח בקרה', icon: '🏠', page: 'dashboard' },
         { id: 'orders', label: 'הזמנות', icon: '📦', page: 'orders' },
-        { id: 'drivers', label: 'נהגים', icon: '🚚', page: 'driver-status' },
+        { id: 'drivers', label: 'ניהול נהגים', icon: '🚚', page: 'drivers-management' },
         { id: 'inventory', label: 'מלאי', icon: '📊', page: 'manager-inventory' },
         { id: 'products', label: 'מוצרים', icon: '🏷️', page: 'products' },
         { id: 'reports', label: 'דוחות', icon: '📈', page: 'reports' },

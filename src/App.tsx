@@ -89,6 +89,9 @@ const MyRole = lazy(() =>
 const Profile = lazy(() =>
   import('./pages/Profile').then((module) => ({ default: module.Profile }))
 );
+const DriversManagement = lazy(() =>
+  import('./pages/DriversManagement').then((module) => ({ default: module.DriversManagement }))
+);
 
 type Page =
   | 'dashboard'
@@ -117,7 +120,8 @@ type Page =
   | 'dispatch-board'
   | 'warehouse-dashboard'
   | 'manager-inventory'
-  | 'zone-management';
+  | 'zone-management'
+  | 'drivers-management';
 
 export default function App() {
   const {
@@ -550,6 +554,9 @@ export default function App() {
       case 'zone-management':
         if (!isAdmin) break;
         return <ZoneManagement dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'drivers-management':
+        if (!isAdmin) break;
+        return <DriversManagement dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'chat':
         if (!isOperational) break;
         return <Chat dataStore={dataStore} onNavigate={handleNavigate} />;
