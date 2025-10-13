@@ -8,6 +8,8 @@ import { initializeEncryptedChatService } from '../utils/security/encryptedChatS
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { UserListView } from '../components/UserListView';
 import { UserProfileModal } from '../components/UserProfileModal';
+import { GroupChannelCreateModal } from '../components/GroupChannelCreateModal';
+import { hasPermission } from '../lib/rolePermissions';
 
 interface ChatProps {
   dataStore: DataStore;
@@ -29,8 +31,12 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
   const [loading, setLoading] = useState(true);
   const [encryptedChatId, setEncryptedChatId] = useState<string | null>(null);
   const [encryptionEnabled, setEncryptionEnabled] = useState(false);
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme, haptic, backButton } = useTelegramUI();
+
+  const canCreateGroup = currentUser && hasPermission(currentUser, 'users:view_business');
+  const userScope = currentUser?.role === 'infrastructure_owner' ? 'all' : 'business';
 
   useEffect(() => {
     initializeEncryption();
@@ -384,31 +390,101 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
         )}
 
         {activeTab === 'groups' && (
-          <GroupsList
-            groups={filteredGroups}
-            onSelect={(chat) => {
-              haptic();
-              if (chat.type === 'encrypted') {
-                setEncryptedChatId(chat.id);
-              } else {
-                setSelectedChat(chat);
-                loadMessages(chat.id);
-              }
-            }}
-          />
+          <>
+            <GroupsList
+              groups={filteredGroups}
+              onSelect={(chat) => {
+                haptic();
+                if (chat.type === 'encrypted') {
+                  setEncryptedChatId(chat.id);
+                } else {
+                  setSelectedChat(chat);
+                  loadMessages(chat.id);
+                }
+              }}
+            />
+            {canCreateGroup && (
+              <button
+                onClick={() => {
+                  haptic();
+                  setShowCreateGroupModal(true);
+                }}
+                style={{
+                  position: 'fixed',
+                  bottom: '100px',
+                  left: '20px',
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: ROYAL_COLORS.gradientPurple,
+                  border: 'none',
+                  color: '#fff',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  boxShadow: ROYAL_COLORS.glowPurple,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 10,
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                +
+              </button>
+            )}
+          </>
         )}
 
         {activeTab === 'users' && (
-          <UserListView
-            users={users}
-            currentUser={currentUser}
-            onSendMessage={handleSendMessageToUser}
-            onUserSelect={handleUserSelect}
-            showOnlineStatus={true}
-            searchPlaceholder="חפש משתמש להתכתבות..."
-          />
+          <div>
+            <div
+              style={{
+                padding: '12px 16px',
+                background: `${ROYAL_COLORS.accent}15`,
+                border: `1px solid ${ROYAL_COLORS.accent}40`,
+                borderRadius: '12px',
+                marginBottom: '16px'
+              }}
+            >
+              <div style={{ fontSize: '14px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                🌐 היקף גישה: {userScope === 'all' ? 'כל התשתית' : 'העסק שלך'}
+              </div>
+              <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
+                {users.length} משתמשים זמינים להתכתבות
+              </div>
+            </div>
+            <UserListView
+              users={users}
+              currentUser={currentUser}
+              onSendMessage={handleSendMessageToUser}
+              onUserSelect={handleUserSelect}
+              showOnlineStatus={true}
+              searchPlaceholder="חפש משתמש להתכתבות..."
+            />
+          </div>
         )}
       </div>
+
+      {/* Group Creation Modal */}
+      {currentUser && (
+        <GroupChannelCreateModal
+          isOpen={showCreateGroupModal}
+          onClose={() => setShowCreateGroupModal(false)}
+          mode="group"
+          dataStore={dataStore}
+          currentUser={currentUser}
+          availableUsers={users}
+          onSuccess={() => {
+            loadGroupChats();
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -2,24 +2,43 @@ import React, { useState, useEffect } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { telegram } from '../lib/telegram';
 import { useTelegramUI } from '../hooks/useTelegramUI';
-import { DataStore, Channel } from '../data/types';
+import { DataStore, Channel, User } from '../data/types';
 import { hebrew } from '../lib/hebrew';
+import { GroupChannelCreateModal } from '../components/GroupChannelCreateModal';
+import { hasPermission } from '../lib/rolePermissions';
 
 interface ChannelsProps {
   dataStore: DataStore;
   onNavigate: (page: string) => void;
+  currentUser?: User;
 }
 
-export function Channels({ dataStore, onNavigate }: ChannelsProps) {
+export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [updates, setUpdates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
   const { theme, haptic, backButton } = useTelegramUI();
+
+  const canCreateChannel = currentUser && (currentUser.role === 'infrastructure_owner' || currentUser.role === 'business_owner' || currentUser.role === 'manager');
 
   useEffect(() => {
     loadChannels();
+    loadUsers();
   }, []);
+
+  const loadUsers = async () => {
+    try {
+      if (dataStore.listAllUsersForMessaging) {
+        const usersList = await dataStore.listAllUsersForMessaging();
+        setUsers(usersList.filter(u => u.telegram_id !== currentUser?.telegram_id));
+      }
+    } catch (error) {
+      console.error('Failed to load users:', error);
+    }
+  };
 
   useEffect(() => {
     if (selectedChannel) {
@@ -122,13 +141,18 @@ export function Channels({ dataStore, onNavigate }: ChannelsProps) {
       {/* Channels List */}
       <div style={{ padding: '16px' }}>
         {channels.length === 0 ? (
-          <div style={{ 
-            textAlign: 'center', 
+          <div style={{
+            textAlign: 'center',
             padding: '40px 20px',
             color: theme.hint_color
           }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>📢</div>
             <p>אין ערוצים זמינים</p>
+            {canCreateChannel && (
+              <p style={{ marginTop: '12px', fontSize: '14px' }}>
+                לחץ על כפתור ה+ כדי ליצור ערוץ חדש
+              </p>
+            )}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -147,6 +171,58 @@ export function Channels({ dataStore, onNavigate }: ChannelsProps) {
           </div>
         )}
       </div>
+
+      {/* Create Channel Button */}
+      {canCreateChannel && (
+        <button
+          onClick={() => {
+            haptic();
+            setShowCreateChannelModal(true);
+          }}
+          style={{
+            position: 'fixed',
+            bottom: '100px',
+            left: '20px',
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
+            border: 'none',
+            color: '#fff',
+            fontSize: '24px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(156, 109, 255, 0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10,
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+        >
+          +
+        </button>
+      )}
+
+      {/* Channel Creation Modal */}
+      {currentUser && (
+        <GroupChannelCreateModal
+          isOpen={showCreateChannelModal}
+          onClose={() => setShowCreateChannelModal(false)}
+          mode="channel"
+          dataStore={dataStore}
+          currentUser={currentUser}
+          availableUsers={users}
+          onSuccess={() => {
+            loadChannels();
+          }}
+        />
+      )}
     </div>
   );
 }

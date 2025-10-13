@@ -564,7 +564,7 @@ export default function App() {
         return <Notifications dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'channels':
         if (!isOperational) break;
-        return <Channels dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <Channels dataStore={dataStore} onNavigate={handleNavigate} currentUser={currentUser} />;
       case 'reports':
         if (!isAdmin) break;
         return <Reports dataStore={dataStore} onNavigate={handleNavigate} />;
