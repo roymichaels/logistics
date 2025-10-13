@@ -114,44 +114,84 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
   }
 
   return (
-    <div style={{ 
-      backgroundColor: theme.bg_color,
-      color: theme.text_color,
+    <div style={{
+      background: 'linear-gradient(135deg, #1a0033 0%, #0a001a 100%)',
       minHeight: '100vh',
+      paddingTop: '16px',
+      paddingBottom: '80px',
       direction: 'rtl'
     }}>
-      {/* Header */}
-      <div style={{ padding: '16px', borderBottom: `1px solid ${theme.hint_color}20` }}>
-        <h1 style={{ 
-          margin: '0 0 8px 0', 
-          fontSize: '24px', 
-          fontWeight: '600'
+      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '0 16px' }}>
+        {/* Header */}
+        <h1 style={{
+          margin: '0 0 20px 0',
+          fontSize: '28px',
+          fontWeight: '700',
+          color: ROYAL_COLORS.text,
+          textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
         }}>
           📢 ערוצי עדכונים
         </h1>
-        <p style={{ 
-          margin: 0, 
-          color: theme.hint_color,
-          fontSize: '14px'
+        <p style={{
+          margin: '0 0 24px 0',
+          color: ROYAL_COLORS.muted,
+          fontSize: '15px'
         }}>
           הודעות חשובות ועדכוני מערכת
         </p>
-      </div>
 
-      {/* Channels List */}
-      <div style={{ padding: '16px' }}>
+        {/* Channels List */}
         {channels.length === 0 ? (
           <div style={{
-            textAlign: 'center',
-            padding: '40px 20px',
-            color: theme.hint_color
+            ...ROYAL_STYLES.emptyState,
+            padding: '60px 20px',
+            borderRadius: '16px',
+            background: ROYAL_COLORS.card,
+            textAlign: 'center'
           }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📢</div>
-            <p>אין ערוצים זמינים</p>
+            <div style={{ fontSize: '64px', marginBottom: '16px' }}>📢</div>
+            <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text, fontSize: '20px' }}>
+              אין ערוצים זמינים
+            </h3>
+            <div style={{ ...ROYAL_STYLES.emptyStateText, fontSize: '15px', marginBottom: '24px' }}>
+              {canCreateChannel
+                ? 'צור ערוץ חדש לפרסום הודעות ועדכונים'
+                : 'ערוצי עדכונים יופיעו כאן'}
+            </div>
             {canCreateChannel && (
-              <p style={{ marginTop: '12px', fontSize: '14px' }}>
-                לחץ על כפתור ה+ כדי ליצור ערוץ חדש
-              </p>
+              <button
+                onClick={() => {
+                  haptic();
+                  setShowCreateChannelModal(true);
+                }}
+                style={{
+                  padding: '14px 32px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: ROYAL_COLORS.gradientPurple,
+                  color: '#fff',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  boxShadow: ROYAL_COLORS.glowPurple,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  margin: '0 auto',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(156, 109, 255, 0.6)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = ROYAL_COLORS.glowPurple;
+                }}
+              >
+                <span style={{ fontSize: '20px' }}>+</span>
+                <span>צור ערוץ חדש</span>
+              </button>
             )}
           </div>
         ) : (
@@ -182,16 +222,16 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
           style={{
             position: 'fixed',
             bottom: '100px',
-            left: '20px',
+            right: '20px',
             width: '56px',
             height: '56px',
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
+            background: ROYAL_COLORS.gradientPurple,
             border: 'none',
             color: '#fff',
-            fontSize: '24px',
+            fontSize: '28px',
             cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(156, 109, 255, 0.4)',
+            boxShadow: `${ROYAL_COLORS.glowPurple}, 0 0 30px rgba(156, 109, 255, 0.5)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -199,11 +239,14 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
             transition: 'all 0.3s ease'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.1)';
+            e.currentTarget.style.transform = 'scale(1.15) rotate(90deg)';
+            e.currentTarget.style.boxShadow = '0 8px 24px rgba(156, 109, 255, 0.8)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+            e.currentTarget.style.boxShadow = `${ROYAL_COLORS.glowPurple}, 0 0 30px rgba(156, 109, 255, 0.5)`;
           }}
+          title="יצירת ערוץ חדש"
         >
           +
         </button>
@@ -246,7 +289,7 @@ function ChannelCard({ channel, onClick, theme }: {
       case 'announcements': return '#007aff';
       case 'updates': return '#34c759';
       case 'alerts': return '#ff3b30';
-      default: return theme.hint_color;
+      default: return ROYAL_COLORS.muted;
     }
   };
 
@@ -255,55 +298,84 @@ function ChannelCard({ channel, onClick, theme }: {
       onClick={onClick}
       style={{
         padding: '16px',
-        backgroundColor: theme.secondary_bg_color || '#f1f1f1',
-        borderRadius: '12px',
+        background: ROYAL_COLORS.card,
+        borderRadius: '16px',
         cursor: 'pointer',
-        border: `1px solid ${theme.hint_color}20`
+        border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+        transition: 'all 0.3s ease',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(156, 109, 255, 0.3)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{ 
-          fontSize: '32px',
-          color: getTypeColor(channel.type)
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{
+          width: '48px',
+          height: '48px',
+          borderRadius: '14px',
+          background: `${getTypeColor(channel.type)}20`,
+          border: `2px solid ${getTypeColor(channel.type)}40`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '24px',
+          flexShrink: 0
         }}>
           {getTypeIcon(channel.type)}
         </div>
-        
+
         <div style={{ flex: 1 }}>
-          <h3 style={{ 
-            margin: '0 0 4px 0', 
-            fontSize: '16px', 
-            fontWeight: '600',
-            color: theme.text_color
+          <h3 style={{
+            margin: '0 0 6px 0',
+            fontSize: '17px',
+            fontWeight: '700',
+            color: ROYAL_COLORS.text
           }}>
             {channel.name}
           </h3>
-          <p style={{ 
-            margin: '0 0 4px 0', 
-            fontSize: '14px', 
-            color: theme.hint_color,
-            lineHeight: '1.4'
+          <p style={{
+            margin: '0 0 6px 0',
+            fontSize: '14px',
+            color: ROYAL_COLORS.muted,
+            lineHeight: '1.5'
           }}>
             {channel.description}
           </p>
-          <div style={{ 
-            fontSize: '12px', 
-            color: theme.hint_color 
+          <div style={{
+            fontSize: '13px',
+            color: ROYAL_COLORS.muted,
+            fontWeight: '500'
           }}>
             {channel.subscribers.length} מנויים
           </div>
         </div>
-        
-        <div style={{ 
-          padding: '4px 8px',
-          backgroundColor: getTypeColor(channel.type) + '20',
-          color: getTypeColor(channel.type),
-          borderRadius: '12px',
-          fontSize: '12px',
-          fontWeight: '600'
+
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-end',
+          gap: '4px'
         }}>
-          {channel.type === 'announcements' ? 'הודעות' :
-           channel.type === 'updates' ? 'עדכונים' : 'התראות'}
+          <div style={{
+            padding: '4px 10px',
+            backgroundColor: `${getTypeColor(channel.type)}20`,
+            color: getTypeColor(channel.type),
+            borderRadius: '12px',
+            fontSize: '12px',
+            fontWeight: '600'
+          }}>
+            {channel.type === 'announcements' ? 'הודעות' :
+             channel.type === 'updates' ? 'עדכונים' : 'התראות'}
+          </div>
+          <div style={{ fontSize: '20px', color: ROYAL_COLORS.accent }}>
+            ←
+          </div>
         </div>
       </div>
     </div>

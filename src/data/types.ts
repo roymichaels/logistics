@@ -441,12 +441,17 @@ export interface Task {
 export interface GroupChat {
   id: string;
   name: string;
-  type: 'department' | 'project' | 'general';
+  type: 'department' | 'project' | 'general' | 'encrypted';
   department?: string;
   members: string[];
   telegram_chat_id?: string;
   description?: string;
+  business_id?: string;
+  created_by?: string;
   created_at: string;
+  updated_at?: string;
+  isActive?: boolean;
+  is_active?: boolean;
 }
 
 export interface Channel {
@@ -456,7 +461,12 @@ export interface Channel {
   telegram_channel_id?: string;
   description?: string;
   subscribers: string[];
+  business_id?: string;
+  created_by?: string;
   created_at: string;
+  updated_at?: string;
+  isActive?: boolean;
+  is_active?: boolean;
 }
 
 export interface Notification {

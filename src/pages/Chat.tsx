@@ -402,6 +402,11 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
                   loadMessages(chat.id);
                 }
               }}
+              canCreateGroup={canCreateGroup}
+              onCreateGroup={() => {
+                haptic();
+                setShowCreateGroupModal(true);
+              }}
             />
             {canCreateGroup && (
               <button
@@ -412,16 +417,16 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
                 style={{
                   position: 'fixed',
                   bottom: '100px',
-                  left: '20px',
+                  right: '20px',
                   width: '56px',
                   height: '56px',
                   borderRadius: '50%',
                   background: ROYAL_COLORS.gradientPurple,
                   border: 'none',
                   color: '#fff',
-                  fontSize: '24px',
+                  fontSize: '28px',
                   cursor: 'pointer',
-                  boxShadow: ROYAL_COLORS.glowPurple,
+                  boxShadow: `${ROYAL_COLORS.glowPurple}, 0 0 30px rgba(156, 109, 255, 0.5)`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -429,11 +434,14 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
                   transition: 'all 0.3s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.1)';
+                  e.currentTarget.style.transform = 'scale(1.15) rotate(90deg)';
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(156, 109, 255, 0.8)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                  e.currentTarget.style.boxShadow = `${ROYAL_COLORS.glowPurple}, 0 0 30px rgba(156, 109, 255, 0.5)`;
                 }}
+                title="יצירת קבוצה חדשה"
               >
                 +
               </button>
@@ -710,7 +718,17 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
   );
 }
 
-function GroupsList({ groups, onSelect }: { groups: GroupChat[]; onSelect: (chat: GroupChat) => void }) {
+function GroupsList({
+  groups,
+  onSelect,
+  canCreateGroup,
+  onCreateGroup
+}: {
+  groups: GroupChat[];
+  onSelect: (chat: GroupChat) => void;
+  canCreateGroup?: boolean;
+  onCreateGroup?: () => void;
+}) {
   if (groups.length === 0) {
     return (
       <div style={{
@@ -723,9 +741,43 @@ function GroupsList({ groups, onSelect }: { groups: GroupChat[]; onSelect: (chat
         <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text, fontSize: '20px' }}>
           אין קבוצות זמינות
         </h3>
-        <div style={{ ...ROYAL_STYLES.emptyStateText, fontSize: '15px' }}>
-          קבוצות צ'אט יופיעו כאן
+        <div style={{ ...ROYAL_STYLES.emptyStateText, fontSize: '15px', marginBottom: '24px' }}>
+          {canCreateGroup
+            ? 'צור קבוצה חדשה כדי להתחיל שיחת צוות'
+            : 'קבוצות צ\'אט יופיעו כאן'}
         </div>
+        {canCreateGroup && onCreateGroup && (
+          <button
+            onClick={onCreateGroup}
+            style={{
+              padding: '14px 32px',
+              borderRadius: '12px',
+              border: 'none',
+              background: ROYAL_COLORS.gradientPurple,
+              color: '#fff',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: ROYAL_COLORS.glowPurple,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              margin: '0 auto',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(156, 109, 255, 0.6)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = ROYAL_COLORS.glowPurple;
+            }}
+          >
+            <span style={{ fontSize: '20px' }}>+</span>
+            <span>צור קבוצה חדשה</span>
+          </button>
+        )}
       </div>
     );
   }
