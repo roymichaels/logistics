@@ -433,6 +433,10 @@ export class SupabaseDataStore implements DataStore {
   private authInitialization: Promise<void> | null = null;
   private initialUserData: any = null;
 
+  get supabase() {
+    return supabase;
+  }
+
   constructor(private userTelegramId: string, authSession?: SupabaseAuthSessionPayload | null, initialUserData?: any) {
     this.initialUserData = initialUserData;
 

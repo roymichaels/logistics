@@ -41,6 +41,10 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
 
   const loadDrivers = useCallback(async () => {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client not available');
+      }
+
       const { data: allUsers, error: usersError } = await supabase
         .from('users')
         .select('*')
@@ -88,6 +92,11 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
 
   useEffect(() => {
     loadDrivers();
+
+    if (!supabase) {
+      console.warn('Supabase client not available for subscriptions');
+      return;
+    }
 
     const subscription = supabase
       .channel('drivers-management')

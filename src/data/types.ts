@@ -505,6 +505,9 @@ export interface Route {
 }
 
 export interface DataStore {
+  // Supabase client access (for direct database operations)
+  supabase?: any;
+
   // Auth & Profile
   getProfile(): Promise<User>;
   getCurrentRole?(): Promise<User['role'] | null>;
