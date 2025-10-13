@@ -52,43 +52,66 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
   const [businesses, setBusinesses] = useState<BusinessMetrics[]>([]);
   const [selectedView, setSelectedView] = useState<'overview' | 'businesses' | 'users' | 'financial' | 'analytics' | 'config'>('overview');
   const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month' | 'year'>('today');
-  const supabase = (dataStore as any).supabase;
+
+  const supabase = (dataStore as any)?.supabase;
+  const isSupabaseReady = !!supabase && typeof supabase.channel === 'function';
 
   useEffect(() => {
+    if (!isSupabaseReady) {
+      return;
+    }
+
     loadSystemMetrics();
 
-    // Set up Supabase Realtime for live system monitoring
-    const ordersChannel = supabase
-      .channel('owner-orders')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'orders' },
-        () => loadSystemMetrics()
-      )
-      .subscribe();
+    let ordersChannel: any = null;
+    let usersChannel: any = null;
 
-    const usersChannel = supabase
-      .channel('owner-users')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'users' },
-        () => loadSystemMetrics()
-      )
-      .subscribe();
+    try {
+      ordersChannel = supabase
+        .channel('owner-orders')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          () => loadSystemMetrics()
+        )
+        .subscribe();
 
-    // Auto-refresh every 2 minutes for system-wide data
+      usersChannel = supabase
+        .channel('owner-users')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'users' },
+          () => loadSystemMetrics()
+        )
+        .subscribe();
+    } catch (error) {
+      console.error('Failed to set up realtime subscriptions:', error);
+    }
+
     const interval = setInterval(() => {
       loadSystemMetrics();
     }, 120000);
 
     return () => {
-      ordersChannel.unsubscribe();
-      usersChannel.unsubscribe();
+      try {
+        if (ordersChannel) {
+          ordersChannel.unsubscribe();
+        }
+        if (usersChannel) {
+          usersChannel.unsubscribe();
+        }
+      } catch (error) {
+        console.error('Failed to unsubscribe channels:', error);
+      }
       clearInterval(interval);
     };
-  }, [timeRange, supabase]);
+  }, [timeRange, isSupabaseReady]);
 
   const loadSystemMetrics = async () => {
+    if (!isSupabaseReady || !dataStore) {
+      return;
+    }
+
     setLoading(true);
     try {
       const now = new Date();
@@ -112,16 +135,16 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
       }
 
       let users: any[] = [];
-      if (dataStore.supabase) {
-        const { data: usersData } = await dataStore.supabase
+      if (supabase) {
+        const { data: usersData } = await supabase
           .from('users')
           .select('*');
         users = usersData || [];
       }
 
       let driverStatus: any[] = [];
-      if (dataStore.supabase) {
-        const { data: statusData } = await dataStore.supabase
+      if (supabase) {
+        const { data: statusData } = await supabase
           .from('driver_status')
           .select('*')
           .eq('status', 'online');
@@ -129,8 +152,8 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
       }
 
       let restockRequests: any[] = [];
-      if (dataStore.supabase) {
-        const { data: restockData } = await dataStore.supabase
+      if (supabase) {
+        const { data: restockData } = await supabase
           .from('restock_requests')
           .select('*')
           .eq('status', 'pending');
@@ -163,8 +186,8 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
         onlineDrivers: driverStatus.length
       });
 
-      if (dataStore.supabase) {
-        const { data: businessData } = await dataStore.supabase
+      if (supabase) {
+        const { data: businessData } = await supabase
           .from('businesses')
           .select('*');
 
@@ -271,7 +294,7 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
     }
   };
 
-  if (loading) {
+  if (loading || !isSupabaseReady) {
     return (
       <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>💰</div>

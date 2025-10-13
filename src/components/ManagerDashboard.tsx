@@ -47,7 +47,9 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
   const { colors, styles } = useRoleTheme();
   const [loading, setLoading] = useState(true);
   const [selectedView, setSelectedView] = useState<'overview' | 'team' | 'approvals' | 'resources' | 'reports'>('overview');
-  const supabase = (dataStore as any).supabase;
+
+  const supabase = (dataStore as any)?.supabase;
+  const isSupabaseReady = !!supabase && typeof supabase.channel === 'function';
   const [metrics, setMetrics] = useState<DepartmentMetrics>({
     totalMembers: 0,
     activeMembers: 0,
@@ -62,54 +64,75 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
   const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
 
   useEffect(() => {
+    if (!isSupabaseReady) {
+      return;
+    }
+
     loadDepartmentData();
 
-    // Set up Supabase Realtime for live updates
-    const ordersChannel = supabase
-      .channel('manager-orders')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders'
-        },
-        () => {
-          console.log('Order update detected');
-          loadDepartmentData();
-        }
-      )
-      .subscribe();
+    let ordersChannel: any = null;
+    let restockChannel: any = null;
 
-    const restockChannel = supabase
-      .channel('manager-restock')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'restock_requests'
-        },
-        () => {
-          console.log('Restock request update detected');
-          loadDepartmentData();
-        }
-      )
-      .subscribe();
+    try {
+      ordersChannel = supabase
+        .channel('manager-orders')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'orders'
+          },
+          () => {
+            console.log('Order update detected');
+            loadDepartmentData();
+          }
+        )
+        .subscribe();
 
-    // Auto-refresh every 60 seconds
+      restockChannel = supabase
+        .channel('manager-restock')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'restock_requests'
+          },
+          () => {
+            console.log('Restock request update detected');
+            loadDepartmentData();
+          }
+        )
+        .subscribe();
+    } catch (error) {
+      console.error('Failed to set up realtime subscriptions:', error);
+    }
+
     const interval = setInterval(() => {
       loadDepartmentData();
     }, 60000);
 
     return () => {
-      ordersChannel.unsubscribe();
-      restockChannel.unsubscribe();
+      try {
+        if (ordersChannel) {
+          ordersChannel.unsubscribe();
+        }
+        if (restockChannel) {
+          restockChannel.unsubscribe();
+        }
+      } catch (error) {
+        console.error('Failed to unsubscribe channels:', error);
+      }
       clearInterval(interval);
     };
-  }, [supabase]);
+  }, [isSupabaseReady]);
 
   const loadDepartmentData = async () => {
+    if (!isSupabaseReady || !dataStore) {
+      return;
+    }
+
     setLoading(true);
     try {
       const now = new Date();
@@ -125,8 +148,8 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
       }
 
       let teamUsers: any[] = [];
-      if (dataStore.supabase && user?.business_id) {
-        const { data: usersData } = await dataStore.supabase
+      if (supabase && user?.business_id) {
+        const { data: usersData } = await supabase
           .from('users')
           .select('*')
           .eq('business_id', user.business_id)
@@ -136,16 +159,16 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
       }
 
       let driverStatus: any[] = [];
-      if (dataStore.supabase) {
-        const { data: statusData } = await dataStore.supabase
+      if (supabase) {
+        const { data: statusData } = await supabase
           .from('driver_status')
           .select('*');
         driverStatus = statusData || [];
       }
 
       let salesLogs: any[] = [];
-      if (dataStore.supabase) {
-        const { data: salesData } = await dataStore.supabase
+      if (supabase) {
+        const { data: salesData } = await supabase
           .from('sales_logs')
           .select('*')
           .gte('sold_at', startOfToday.toISOString());
@@ -153,8 +176,8 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
       }
 
       let restockRequests: any[] = [];
-      if (dataStore.supabase) {
-        const { data: restockData } = await dataStore.supabase
+      if (supabase) {
+        const { data: restockData } = await supabase
           .from('restock_requests')
           .select('*')
           .eq('status', 'pending');
@@ -243,9 +266,14 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
   };
 
   const handleApproveRequest = async (approvalId: string, type: string) => {
+    if (!supabase) {
+      Toast.error('מערכת אינה זמינה');
+      return;
+    }
+
     try {
-      if (type === 'restock' && dataStore.supabase) {
-        const { error } = await dataStore.supabase
+      if (type === 'restock') {
+        const { error } = await supabase
           .from('restock_requests')
           .update({
             status: 'approved',
@@ -267,9 +295,14 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
   };
 
   const handleRejectRequest = async (approvalId: string, type: string) => {
+    if (!supabase) {
+      Toast.error('מערכת אינה זמינה');
+      return;
+    }
+
     try {
-      if (type === 'restock' && dataStore.supabase) {
-        const { error } = await dataStore.supabase
+      if (type === 'restock') {
+        const { error } = await supabase
           .from('restock_requests')
           .update({
             status: 'rejected',
@@ -290,7 +323,7 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
     }
   };
 
-  if (loading) {
+  if (loading || !isSupabaseReady) {
     return (
       <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🌱</div>
