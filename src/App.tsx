@@ -559,7 +559,7 @@ export default function App() {
         return <DriversManagement dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'chat':
         if (!isOperational) break;
-        return <Chat dataStore={dataStore} onNavigate={handleNavigate} />;
+        return <Chat dataStore={dataStore} onNavigate={handleNavigate} currentUser={user} />;
       case 'notifications':
         return <Notifications dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'channels':
