@@ -59,35 +59,48 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
   const isSupabaseReady = !!supabase && typeof supabase.channel === 'function';
 
   useEffect(() => {
-    if (!isSupabaseReady) {
-      return;
-    }
+    console.log('🔍 OwnerDashboard: useEffect triggered', { isSupabaseReady, hasDataStore: !!dataStore });
 
-    loadSystemMetrics();
+    // Safety timeout: If loading takes more than 10 seconds, force render anyway
+    const safetyTimeout = setTimeout(() => {
+      console.warn('⚠️ OwnerDashboard: Safety timeout reached, forcing loading to false');
+      setLoading(false);
+    }, 10000);
+
+    // Always attempt to load metrics, even if supabase isn't ready for subscriptions
+    loadSystemMetrics().finally(() => {
+      clearTimeout(safetyTimeout);
+    });
 
     let ordersChannel: any = null;
     let usersChannel: any = null;
 
-    try {
-      ordersChannel = supabase
-        .channel('owner-orders')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'orders' },
-          () => loadSystemMetrics()
-        )
-        .subscribe();
+    // Only set up subscriptions if supabase is ready
+    if (isSupabaseReady && supabase) {
+      try {
+        ordersChannel = supabase
+          .channel('owner-orders')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'orders' },
+            () => loadSystemMetrics()
+          )
+          .subscribe();
 
-      usersChannel = supabase
-        .channel('owner-users')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'users' },
-          () => loadSystemMetrics()
-        )
-        .subscribe();
-    } catch (error) {
-      console.error('Failed to set up realtime subscriptions:', error);
+        usersChannel = supabase
+          .channel('owner-users')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'users' },
+            () => loadSystemMetrics()
+          )
+          .subscribe();
+        console.log('✅ OwnerDashboard: Realtime subscriptions established');
+      } catch (error) {
+        console.error('Failed to set up realtime subscriptions:', error);
+      }
+    } else {
+      console.log('ℹ️ OwnerDashboard: Skipping realtime subscriptions (supabase not ready)');
     }
 
     const interval = setInterval(() => {
@@ -95,6 +108,7 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
     }, 120000);
 
     return () => {
+      clearTimeout(safetyTimeout);
       try {
         if (ordersChannel) {
           ordersChannel.unsubscribe();
@@ -110,11 +124,16 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
   }, [timeRange, isSupabaseReady]);
 
   const loadSystemMetrics = async () => {
-    if (!isSupabaseReady || !dataStore) {
+    console.log('📊 OwnerDashboard: loadSystemMetrics called', { hasDataStore: !!dataStore, isSupabaseReady });
+
+    if (!dataStore) {
+      console.warn('⚠️ OwnerDashboard: No dataStore available, setting loading to false');
+      setLoading(false);
       return;
     }
 
     setLoading(true);
+    console.log('⏳ OwnerDashboard: Loading started...');
     try {
       const now = new Date();
       const startOfToday = new Date(now);
@@ -247,9 +266,10 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
         }
       }
     } catch (error) {
-      console.error('Failed to load system metrics:', error);
+      console.error('❌ OwnerDashboard: Failed to load system metrics:', error);
       Toast.error('שגיאה בטעינת מדדי המערכת');
     } finally {
+      console.log('✅ OwnerDashboard: Loading complete, setting loading to false');
       setLoading(false);
     }
   };
@@ -296,14 +316,21 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
     }
   };
 
-  if (loading || !isSupabaseReady) {
+  // Show loading screen only while actively loading, not waiting for supabase
+  if (loading) {
+    console.log('⏳ OwnerDashboard: Rendering loading state');
     return (
       <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>💰</div>
-        <div style={{ color: colors.muted }}>{hebrew.loading}</div>
+        <div style={{ color: colors.muted, marginBottom: '12px' }}>{hebrew.loading}</div>
+        <div style={{ fontSize: '12px', color: colors.muted, opacity: 0.7 }}>
+          {!dataStore ? 'Waiting for dataStore...' : 'Loading metrics...'}
+        </div>
       </div>
     );
   }
+
+  console.log('🎨 OwnerDashboard: Rendering dashboard content');
 
   return (
     <div style={styles.pageContainer}>
