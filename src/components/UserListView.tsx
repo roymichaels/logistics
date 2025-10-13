@@ -383,10 +383,13 @@ function UserCard({
               width: '16px',
               height: '16px',
               borderRadius: '50%',
-              backgroundColor: '#34c759',
+              backgroundColor: user.online_status === 'online' ? '#34c759' : '#8e8e93',
               border: '3px solid ' + ROYAL_COLORS.card,
-              boxShadow: '0 2px 4px rgba(52, 199, 89, 0.4)'
+              boxShadow: user.online_status === 'online'
+                ? '0 2px 4px rgba(52, 199, 89, 0.4)'
+                : '0 2px 4px rgba(142, 142, 147, 0.2)'
             }}
+            title={user.online_status === 'online' ? 'מחובר' : 'לא מחובר'}
           />
         )}
       </div>

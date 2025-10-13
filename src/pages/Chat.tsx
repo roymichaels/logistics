@@ -18,6 +18,7 @@ interface ChatProps {
 }
 
 type ChatTab = 'conversations' | 'groups' | 'users';
+type UserFilter = 'all' | 'online' | 'offline';
 
 export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
   const [activeTab, setActiveTab] = useState<ChatTab>('conversations');
@@ -32,6 +33,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
   const [encryptedChatId, setEncryptedChatId] = useState<string | null>(null);
   const [encryptionEnabled, setEncryptionEnabled] = useState(false);
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+  const [userFilter, setUserFilter] = useState<UserFilter>('all');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme, haptic, backButton } = useTelegramUI();
 
@@ -261,6 +263,25 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
     chat.description?.includes(searchQuery)
   );
 
+  const filteredUsers = users.filter(user => {
+    if (!searchQuery && userFilter === 'all') return true;
+
+    const matchesSearch = !searchQuery ||
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.telegram_id.includes(searchQuery);
+
+    if (!matchesSearch) return false;
+
+    if (userFilter === 'online') return user.online_status === 'online';
+    if (userFilter === 'offline') return user.online_status !== 'online';
+
+    return true;
+  });
+
+  const onlineUsersCount = users.filter(u => u.online_status === 'online').length;
+  const offlineUsersCount = users.length - onlineUsersCount;
+
   if (loading) {
     return (
       <div style={{
@@ -301,13 +322,24 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
   }
 
   return (
-    <div style={{
-      background: 'linear-gradient(135deg, #1a0033 0%, #0a001a 100%)',
-      minHeight: '100vh',
-      paddingTop: '16px',
-      paddingBottom: '80px',
-      direction: 'rtl'
-    }}>
+    <>
+      <style>{`
+        @keyframes pulse-button {
+          0%, 100% {
+            box-shadow: 0 0 20px rgba(156, 109, 255, 0.5), 0 0 40px rgba(156, 109, 255, 0.3);
+          }
+          50% {
+            box-shadow: 0 0 30px rgba(156, 109, 255, 0.8), 0 0 60px rgba(156, 109, 255, 0.5);
+          }
+        }
+      `}</style>
+      <div style={{
+        background: 'linear-gradient(135deg, #1a0033 0%, #0a001a 100%)',
+        minHeight: '100vh',
+        paddingTop: '16px',
+        paddingBottom: '80px',
+        direction: 'rtl'
+      }}>
       <div style={{ maxWidth: '600px', margin: '0 auto', padding: '0 16px' }}>
         <h1 style={{
           margin: '0 0 20px 0',
@@ -416,26 +448,27 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
                 }}
                 style={{
                   position: 'fixed',
-                  bottom: '100px',
+                  bottom: '90px',
                   right: '20px',
-                  width: '56px',
-                  height: '56px',
+                  width: '64px',
+                  height: '64px',
                   borderRadius: '50%',
                   background: ROYAL_COLORS.gradientPurple,
-                  border: 'none',
+                  border: '3px solid rgba(255, 255, 255, 0.2)',
                   color: '#fff',
-                  fontSize: '28px',
+                  fontSize: '32px',
                   cursor: 'pointer',
                   boxShadow: `${ROYAL_COLORS.glowPurple}, 0 0 30px rgba(156, 109, 255, 0.5)`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  zIndex: 10,
-                  transition: 'all 0.3s ease'
+                  zIndex: 100,
+                  transition: 'all 0.3s ease',
+                  animation: 'pulse-button 2s ease-in-out infinite'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'scale(1.15) rotate(90deg)';
-                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(156, 109, 255, 0.8)';
+                  e.currentTarget.style.boxShadow = '0 8px 32px rgba(156, 109, 255, 0.9)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
@@ -464,11 +497,66 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
                 🌐 היקף גישה: {userScope === 'all' ? 'כל התשתית' : 'העסק שלך'}
               </div>
               <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
-                {users.length} משתמשים זמינים להתכתבות
+                {users.length} משתמשים זמינים ({onlineUsersCount} מחוברים, {offlineUsersCount} לא מחוברים)
               </div>
             </div>
+
+            {/* User Filter Buttons */}
+            <div style={{
+              display: 'flex',
+              gap: '8px',
+              marginBottom: '16px',
+              overflowX: 'auto',
+              paddingBottom: '4px'
+            }}>
+              <FilterButton
+                label="כולם"
+                icon="👥"
+                count={users.length}
+                active={userFilter === 'all'}
+                onClick={() => {
+                  haptic();
+                  setUserFilter('all');
+                }}
+              />
+              <FilterButton
+                label="מחוברים"
+                icon="🟢"
+                count={onlineUsersCount}
+                active={userFilter === 'online'}
+                onClick={() => {
+                  haptic();
+                  setUserFilter('online');
+                }}
+              />
+              <FilterButton
+                label="לא מחוברים"
+                icon="⚪"
+                count={offlineUsersCount}
+                active={userFilter === 'offline'}
+                onClick={() => {
+                  haptic();
+                  setUserFilter('offline');
+                }}
+              />
+            </div>
+            <div style={{
+              padding: '10px 16px',
+              background: `${ROYAL_COLORS.accent}10`,
+              border: `1px solid ${ROYAL_COLORS.accent}30`,
+              borderRadius: '10px',
+              marginBottom: '16px',
+              fontSize: '13px',
+              color: ROYAL_COLORS.muted,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <span style={{ fontSize: '16px' }}>ℹ️</span>
+              <span>מוצגים כל המשתמשים במערכת, לא רק מחוברים</span>
+            </div>
             <UserListView
-              users={users}
+              users={filteredUsers}
               currentUser={currentUser}
               onSendMessage={handleSendMessageToUser}
               onUserSelect={handleUserSelect}
@@ -493,7 +581,8 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
           }}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -638,19 +727,21 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
         >
           {!otherUser?.photo_url && userInitial}
         </div>
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '0',
-            right: '0',
-            width: '16px',
-            height: '16px',
-            borderRadius: '50%',
-            backgroundColor: '#34c759',
-            border: '3px solid ' + ROYAL_COLORS.card,
-            boxShadow: '0 2px 4px rgba(52, 199, 89, 0.4)'
-          }}
-        />
+        {otherUser?.online_status === 'online' && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '0',
+              right: '0',
+              width: '16px',
+              height: '16px',
+              borderRadius: '50%',
+              backgroundColor: '#34c759',
+              border: '3px solid ' + ROYAL_COLORS.card,
+              boxShadow: '0 2px 4px rgba(52, 199, 89, 0.4)'
+            }}
+          />
+        )}
       </div>
 
       {/* Message Info */}
@@ -937,18 +1028,20 @@ function ChatView({
             >
               {!chat.otherUser.photo_url && (chat.otherUser.name?.[0] || '?')}
             </div>
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '0',
-                right: '0',
-                width: '12px',
-                height: '12px',
-                borderRadius: '50%',
-                backgroundColor: '#34c759',
-                border: '2px solid ' + ROYAL_COLORS.card
-              }}
-            />
+            {chat.otherUser?.online_status === 'online' && (
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '0',
+                  right: '0',
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '50%',
+                  backgroundColor: '#34c759',
+                  border: '2px solid ' + ROYAL_COLORS.card
+                }}
+              />
+            )}
           </div>
         )}
 
@@ -971,14 +1064,14 @@ function ChatView({
               {chat.members?.length || 0} חברים פעילים
             </p>
           )}
-          {isDirectMessage && (
+          {isDirectMessage && chat.otherUser && (
             <p style={{
               margin: '4px 0 0 0',
               fontSize: '13px',
-              color: '#34c759',
+              color: chat.otherUser.online_status === 'online' ? '#34c759' : '#8e8e93',
               fontWeight: '500'
             }}>
-              פעיל עכשיו
+              {chat.otherUser.online_status === 'online' ? 'פעיל עכשיו' : 'לא מחובר'}
             </p>
           )}
         </div>
@@ -1151,6 +1244,56 @@ function MessageBubble({ message, isMe, theme }: { message: any; isMe: boolean; 
         </div>
       )}
     </div>
+  );
+}
+
+function FilterButton({
+  label,
+  icon,
+  count,
+  active,
+  onClick
+}: {
+  label: string;
+  icon: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: '8px 16px',
+        borderRadius: '20px',
+        border: `2px solid ${active ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+        background: active ? ROYAL_COLORS.gradientPurple : ROYAL_COLORS.card,
+        color: active ? '#fff' : ROYAL_COLORS.text,
+        fontSize: '14px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        transition: 'all 0.2s ease',
+        boxShadow: active ? ROYAL_COLORS.glowPurple : 'none',
+        flexShrink: 0
+      }}
+    >
+      <span style={{ fontSize: '16px' }}>{icon}</span>
+      <span>{label}</span>
+      <span style={{
+        padding: '2px 8px',
+        borderRadius: '10px',
+        background: active ? 'rgba(255, 255, 255, 0.2)' : 'rgba(156, 109, 255, 0.2)',
+        fontSize: '12px',
+        minWidth: '20px',
+        textAlign: 'center'
+      }}>
+        {count}
+      </span>
+    </button>
   );
 }
 
