@@ -637,124 +637,393 @@ function OrderDetail({
     setSelectedDriver('');
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'new': return ROYAL_COLORS.warning;
+      case 'assigned': return ROYAL_COLORS.info;
+      case 'enroute': return ROYAL_COLORS.accent;
+      case 'delivered': return ROYAL_COLORS.success;
+      case 'failed': return ROYAL_COLORS.crimson;
+      default: return ROYAL_COLORS.muted;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      new: 'חדש',
+      assigned: 'הוקצה',
+      enroute: 'בדרך',
+      delivered: 'נמסר',
+      failed: 'נכשל'
+    };
+    return labels[status] || status;
+  };
+
   return (
     <div style={{
-      padding: '16px',
-      backgroundColor: theme.bg_color,
-      color: theme.text_color,
-      minHeight: '100vh'
+      padding: '0',
+      backgroundColor: ROYAL_COLORS.background,
+      color: ROYAL_COLORS.text,
+      minHeight: '100vh',
+      paddingBottom: '80px'
     }}>
-      <h1 style={{
-        margin: '0 0 24px 0',
-        fontSize: '24px',
-        fontWeight: '600'
+      {/* Header */}
+      <div style={{
+        padding: '20px 16px',
+        background: ROYAL_COLORS.gradientPrimary,
+        borderBottom: `1px solid ${ROYAL_COLORS.cardBorder}`,
+        position: 'sticky',
+        top: 0,
+        zIndex: 10
       }}>
-        Order Details
-      </h1>
-
-      <div style={{ marginBottom: '24px' }}>
-        <h2 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '600' }}>
-          {order.customer_name}
-        </h2>
-        <p style={{ margin: '0 0 16px 0', color: theme.hint_color }}>
-          {order.customer_address}
-        </p>
-
-        <div style={{
-          padding: '8px 12px',
-          borderRadius: '8px',
-          backgroundColor: theme.secondary_bg_color,
-          display: 'inline-block',
-          marginBottom: '16px'
+        <button
+          onClick={onBack}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: ROYAL_COLORS.textBright,
+            fontSize: '16px',
+            cursor: 'pointer',
+            marginBottom: '12px',
+            padding: '0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          ← חזרה
+        </button>
+        <h1 style={{
+          margin: '0',
+          fontSize: '28px',
+          fontWeight: '700',
+          color: ROYAL_COLORS.textBright
         }}>
-          Status: <strong>{order.status.toUpperCase()}</strong>
+          📦 פרטי הזמנה
+        </h1>
+      </div>
+
+      <div style={{ padding: '16px' }}>
+        {/* Status Badge */}
+        <div style={{
+          ...ROYAL_STYLES.card,
+          marginBottom: '16px',
+          padding: '16px',
+          background: `${getStatusColor(order.status)}10`,
+          border: `2px solid ${getStatusColor(order.status)}`,
+          textAlign: 'center'
+        }}>
+          <div style={{
+            fontSize: '14px',
+            color: ROYAL_COLORS.muted,
+            marginBottom: '8px',
+            textTransform: 'uppercase',
+            letterSpacing: '1px'
+          }}>
+            סטטוס הזמנה
+          </div>
+          <div style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            color: getStatusColor(order.status)
+          }}>
+            {getStatusLabel(order.status)}
+          </div>
         </div>
 
-        {order.eta && (
-          <p style={{ margin: '0 0 16px 0', color: theme.hint_color }}>
-            ETA: {new Date(order.eta).toLocaleString()}
-          </p>
-        )}
+        {/* Customer Information */}
+        <div style={{ ...ROYAL_STYLES.card, marginBottom: '16px' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginBottom: '16px',
+            paddingBottom: '12px',
+            borderBottom: `1px solid ${ROYAL_COLORS.cardBorder}`
+          }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: ROYAL_COLORS.gradientPrimary,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px'
+            }}>
+              👤
+            </div>
+            <div style={{ flex: 1 }}>
+              <h2 style={{
+                margin: '0 0 4px 0',
+                fontSize: '20px',
+                fontWeight: '700',
+                color: ROYAL_COLORS.text
+              }}>
+                {order.customer_name}
+              </h2>
+              <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                לקוח
+              </div>
+            </div>
+          </div>
 
-        {order.notes && (
-          <div style={{ marginBottom: '16px' }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '600' }}>
-              Notes
+          {order.customer_phone && (
+            <div style={{
+              padding: '12px',
+              background: ROYAL_COLORS.secondary,
+              borderRadius: '12px',
+              marginBottom: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div>
+                <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                  טלפון
+                </div>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: ROYAL_COLORS.text }}>
+                  📞 {order.customer_phone}
+                </div>
+              </div>
+              <a
+                href={`tel:${order.customer_phone}`}
+                style={{
+                  padding: '8px 16px',
+                  background: ROYAL_COLORS.gradientSuccess,
+                  borderRadius: '10px',
+                  color: ROYAL_COLORS.textBright,
+                  textDecoration: 'none',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+              >
+                חייג
+              </a>
+            </div>
+          )}
+
+          <div style={{
+            padding: '12px',
+            background: ROYAL_COLORS.secondary,
+            borderRadius: '12px'
+          }}>
+            <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+              כתובת משלוח
+            </div>
+            <div style={{ fontSize: '15px', color: ROYAL_COLORS.text, lineHeight: '1.5' }}>
+              📍 {order.customer_address}
+            </div>
+          </div>
+        </div>
+
+        {/* Order Items */}
+        {orderItems.length > 0 && (
+          <div style={{ ...ROYAL_STYLES.card, marginBottom: '16px' }}>
+            <h3 style={{
+              margin: '0 0 16px 0',
+              fontSize: '18px',
+              fontWeight: '700',
+              color: ROYAL_COLORS.text,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <span>📋</span>
+              <span>פריטים בהזמנה</span>
             </h3>
-            <p style={{ margin: 0, color: theme.hint_color }}>
-              {order.notes}
-            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {orderItems.map((item, index) => {
+                const itemName = (item as any).product_name || (item as any).name || 'פריט';
+                const itemPrice = (item as any).price || 0;
+                return (
+                  <div key={index} style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '12px',
+                    background: ROYAL_COLORS.secondary,
+                    borderRadius: '10px',
+                    border: `1px solid ${ROYAL_COLORS.cardBorder}`
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        color: ROYAL_COLORS.text,
+                        marginBottom: '4px'
+                      }}>
+                        {itemName}
+                      </div>
+                      {itemPrice > 0 && (
+                        <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
+                          ₪{itemPrice.toLocaleString()} × {item.quantity}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{
+                      padding: '6px 12px',
+                      background: ROYAL_COLORS.accent + '20',
+                      borderRadius: '8px',
+                      color: ROYAL_COLORS.accent,
+                      fontSize: '14px',
+                      fontWeight: '700'
+                    }}>
+                      ×{item.quantity}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {order.total_amount && (
+              <div style={{
+                marginTop: '16px',
+                paddingTop: '16px',
+                borderTop: `2px solid ${ROYAL_COLORS.cardBorder}`,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <span style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.text }}>
+                  סה"כ
+                </span>
+                <span style={{ fontSize: '24px', fontWeight: '700', color: ROYAL_COLORS.gold }}>
+                  ₪{order.total_amount.toLocaleString()}
+                </span>
+              </div>
+            )}
           </div>
         )}
 
-        {orderItems.length > 0 && (
-          <div>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '600' }}>
-              Items
+        {/* Additional Information */}
+        {(order.notes || order.eta) && (
+          <div style={{ ...ROYAL_STYLES.card, marginBottom: '16px' }}>
+            <h3 style={{
+              margin: '0 0 16px 0',
+              fontSize: '18px',
+              fontWeight: '700',
+              color: ROYAL_COLORS.text
+            }}>
+              ℹ️ מידע נוסף
             </h3>
-            {orderItems.map((item, index) => {
-              const itemName = (item as any).product_name || (item as any).name || '';
-              return (
-                <div key={index} style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  padding: '8px 0',
-                  borderBottom: index < orderItems.length - 1 ? `1px solid ${theme.hint_color}20` : 'none'
-                }}>
-                  <span>{itemName}</span>
-                  <span>×{item.quantity}</span>
+
+            {order.eta && (
+              <div style={{
+                padding: '12px',
+                background: ROYAL_COLORS.secondary,
+                borderRadius: '10px',
+                marginBottom: order.notes ? '12px' : '0'
+              }}>
+                <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                  זמן הגעה משוער
                 </div>
-              );
-            })}
+                <div style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.info }}>
+                  🕒 {new Date(order.eta).toLocaleString('he-IL')}
+                </div>
+              </div>
+            )}
+
+            {order.notes && (
+              <div style={{
+                padding: '12px',
+                background: ROYAL_COLORS.secondary,
+                borderRadius: '10px'
+              }}>
+                <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                  הערות
+                </div>
+                <div style={{ fontSize: '15px', color: ROYAL_COLORS.text, lineHeight: '1.6' }}>
+                  💭 {order.notes}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {order.status !== 'delivered' && order.status !== 'failed' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {order.status === 'new' && canAssign && !isAssigning && (
-            <button
-              onClick={() => handleStatusUpdate('assigned')}
-              style={{
-                padding: '12px',
-                backgroundColor: theme.button_color,
-                color: theme.button_text_color,
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
-            >
-              הקצה הזמנה
-            </button>
-          )}
+        <div style={{ padding: '16px' }}>
+          <div style={{ ...ROYAL_STYLES.card, padding: '20px' }}>
+            <h3 style={{
+              margin: '0 0 16px 0',
+              fontSize: '18px',
+              fontWeight: '700',
+              color: ROYAL_COLORS.text
+            }}>
+              ⚡ פעולות
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {order.status === 'new' && canAssign && !isAssigning && (
+                <button
+                  onClick={() => handleStatusUpdate('assigned')}
+                  style={{
+                    padding: '16px',
+                    background: ROYAL_COLORS.gradientPrimary,
+                    color: ROYAL_COLORS.textBright,
+                    border: 'none',
+                    borderRadius: '12px',
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    boxShadow: ROYAL_COLORS.glowPurple,
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = ROYAL_COLORS.glowPurpleStrong;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = ROYAL_COLORS.glowPurple;
+                  }}
+                >
+                  🚚 הקצה הזמנה לנהג
+                </button>
+              )}
 
           {isAssigning && (
             <div
               style={{
-                padding: '16px',
-                borderRadius: '12px',
-                border: `1px solid ${theme.hint_color}30`,
-                backgroundColor: theme.secondary_bg_color || '#f5f5f5',
+                padding: '20px',
+                borderRadius: '16px',
+                border: `2px solid ${ROYAL_COLORS.accent}40`,
+                backgroundColor: ROYAL_COLORS.secondary,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '12px'
+                gap: '16px'
               }}
             >
-              <h3 style={{ margin: 0 }}>בחירת אזור ונהג</h3>
+              <h4 style={{
+                margin: 0,
+                fontSize: '16px',
+                fontWeight: '700',
+                color: ROYAL_COLORS.text
+              }}>
+                🎯 בחירת אזור ונהג
+              </h4>
               <div>
-                <label style={{ display: 'block', marginBottom: '6px', color: theme.hint_color }}>בחר אזור</label>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  color: ROYAL_COLORS.text,
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}>
+                  בחר אזור
+                </label>
                 <select
                   value={selectedZone}
                   onChange={(event) => setSelectedZone(event.target.value)}
                   style={{
                     width: '100%',
-                    padding: '10px',
-                    borderRadius: '10px',
-                    border: `1px solid ${theme.hint_color}40`,
-                    backgroundColor: theme.bg_color,
-                    color: theme.text_color
+                    padding: '12px',
+                    borderRadius: '12px',
+                    border: `2px solid ${ROYAL_COLORS.cardBorder}`,
+                    backgroundColor: ROYAL_COLORS.background,
+                    color: ROYAL_COLORS.text,
+                    fontSize: '15px',
+                    fontWeight: '600'
                   }}
                 >
                   <option value="">בחר אזור</option>
@@ -767,13 +1036,27 @@ function OrderDetail({
               </div>
 
               {assignError && (
-                <div style={{ color: '#ff3b30', backgroundColor: '#ff3b3020', padding: '8px 12px', borderRadius: '8px' }}>
-                  {assignError}
+                <div style={{
+                  color: ROYAL_COLORS.crimson,
+                  backgroundColor: `${ROYAL_COLORS.crimson}15`,
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  fontSize: '14px',
+                  border: `1px solid ${ROYAL_COLORS.crimson}40`
+                }}>
+                  ⚠️ {assignError}
                 </div>
               )}
 
               {assignLoading ? (
-                <div style={{ color: theme.hint_color }}>טוען נהגים זמינים…</div>
+                <div style={{
+                  textAlign: 'center',
+                  padding: '20px',
+                  color: ROYAL_COLORS.muted,
+                  fontSize: '15px'
+                }}>
+                  ⏳ טוען נהגים זמינים…
+                </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {candidates.map((candidate) => {
@@ -786,30 +1069,74 @@ function OrderDetail({
                     return (
                       <button
                         key={candidate.driverId}
-                        onClick={() => setSelectedDriver(candidate.driverId)}
+                        onClick={() => {
+                          setSelectedDriver(candidate.driverId);
+                          telegram.hapticFeedback('selection');
+                        }}
                         style={{
                           textAlign: 'right',
-                          border: `1px solid ${isSelected ? theme.button_color : theme.hint_color + '30'}`,
-                          backgroundColor: isSelected ? theme.button_color + '20' : theme.bg_color,
-                          color: theme.text_color,
-                          borderRadius: '10px',
-                          padding: '12px',
-                          cursor: 'pointer'
+                          border: `2px solid ${isSelected ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+                          backgroundColor: isSelected ? `${ROYAL_COLORS.accent}15` : ROYAL_COLORS.background,
+                          color: ROYAL_COLORS.text,
+                          borderRadius: '12px',
+                          padding: '16px',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease'
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ fontWeight: 600 }}>נהג #{candidate.driverId}</div>
-                          <div style={{ fontSize: '12px', color: theme.hint_color }}>דירוג: {Math.round(candidate.score)}</div>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: '8px'
+                        }}>
+                          <div style={{
+                            fontWeight: 700,
+                            fontSize: '16px',
+                            color: ROYAL_COLORS.text
+                          }}>
+                            🚗 נהג #{candidate.driverId}
+                          </div>
+                          <div style={{
+                            fontSize: '12px',
+                            color: ROYAL_COLORS.gold,
+                            fontWeight: '600',
+                            padding: '4px 8px',
+                            background: `${ROYAL_COLORS.gold}20`,
+                            borderRadius: '6px'
+                          }}>
+                            ⭐ {Math.round(candidate.score)}
+                          </div>
                         </div>
-                        <div style={{ color: theme.hint_color, fontSize: '14px' }}>
-                          סטטוס: {candidate.status.status === 'available' ? 'זמין' : candidate.status.status === 'delivering' ? 'במשלוח' : candidate.status.status === 'on_break' ? 'בהפסקה' : 'סיום משמרת'}
+                        <div style={{
+                          color: ROYAL_COLORS.muted,
+                          fontSize: '14px',
+                          marginBottom: '6px'
+                        }}>
+                          סטטוס: <span style={{ fontWeight: '600' }}>
+                            {candidate.status.status === 'available' ? '🟢 זמין' :
+                             candidate.status.status === 'delivering' ? '🚚 במשלוח' :
+                             candidate.status.status === 'on_break' ? '☕ בהפסקה' :
+                             '⚫ סיום משמרת'}
+                          </span>
                         </div>
-                        <div style={{ color: theme.hint_color, fontSize: '12px', marginTop: '4px' }}>
-                          מלאי כללי ברכב: {candidate.totalInventory} יחידות
+                        <div style={{
+                          color: ROYAL_COLORS.info,
+                          fontSize: '13px',
+                          marginBottom: '4px',
+                          fontWeight: '600'
+                        }}>
+                          📦 מלאי: {candidate.totalInventory} יחידות
                         </div>
                         {assignedZones && (
-                          <div style={{ color: theme.hint_color, fontSize: '12px', marginTop: '2px' }}>
-                            אזורים: {assignedZones}
+                          <div style={{
+                            color: ROYAL_COLORS.muted,
+                            fontSize: '12px',
+                            marginTop: '6px',
+                            paddingTop: '6px',
+                            borderTop: `1px solid ${ROYAL_COLORS.cardBorder}`
+                          }}>
+                            🗺️ אזורים: {assignedZones}
                           </div>
                         )}
                       </button>
@@ -817,42 +1144,52 @@ function OrderDetail({
                   })}
 
                   {candidates.length === 0 && !assignError && (
-                    <div style={{ color: theme.hint_color }}>אין נהגים זמינים באזור שנבחר.</div>
+                    <div style={{
+                      textAlign: 'center',
+                      padding: '20px',
+                      color: ROYAL_COLORS.muted,
+                      fontSize: '14px'
+                    }}>
+                      ℹ️ אין נהגים זמינים באזור שנבחר
+                    </div>
                   )}
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
                 <button
                   onClick={confirmAssignment}
                   disabled={!selectedDriver || assignLoading}
                   style={{
                     flex: 1,
-                    padding: '10px',
-                    borderRadius: '10px',
+                    padding: '14px',
+                    borderRadius: '12px',
                     border: 'none',
-                    backgroundColor: theme.button_color,
-                    color: theme.button_text_color || '#ffffff',
-                    fontWeight: 600,
-                    cursor: selectedDriver ? 'pointer' : 'not-allowed',
-                    opacity: selectedDriver ? 1 : 0.6
+                    background: selectedDriver ? ROYAL_COLORS.gradientSuccess : ROYAL_COLORS.secondary,
+                    color: selectedDriver ? ROYAL_COLORS.textBright : ROYAL_COLORS.muted,
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    cursor: selectedDriver && !assignLoading ? 'pointer' : 'not-allowed',
+                    opacity: selectedDriver && !assignLoading ? 1 : 0.6,
+                    boxShadow: selectedDriver ? ROYAL_COLORS.glowGreen : 'none'
                   }}
                 >
-                  אשר הקצאה
+                  ✅ אשר הקצאה
                 </button>
                 <button
                   onClick={cancelAssignment}
                   style={{
-                    padding: '10px',
-                    borderRadius: '10px',
-                    border: `1px solid ${theme.hint_color}40`,
+                    padding: '14px 20px',
+                    borderRadius: '12px',
+                    border: `2px solid ${ROYAL_COLORS.cardBorder}`,
                     backgroundColor: 'transparent',
-                    color: theme.text_color,
-                    fontWeight: 600,
+                    color: ROYAL_COLORS.text,
+                    fontSize: '16px',
+                    fontWeight: '700',
                     cursor: 'pointer'
                   }}
                 >
-                  בטל
+                  ❌ בטל
                 </button>
               </div>
             </div>
@@ -862,17 +1199,18 @@ function OrderDetail({
             <button
               onClick={() => handleStatusUpdate('enroute')}
               style={{
-                padding: '12px',
-                backgroundColor: '#007aff',
-                color: 'white',
+                padding: '16px',
+                background: ROYAL_COLORS.gradientInfo,
+                color: ROYAL_COLORS.textBright,
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '12px',
                 fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer'
+                fontWeight: '700',
+                cursor: 'pointer',
+                boxShadow: ROYAL_COLORS.glowBlue
               }}
             >
-              Mark En Route
+              🚚 סמן כ"בדרך"
             </button>
           )}
 
@@ -880,19 +1218,22 @@ function OrderDetail({
             <button
               onClick={() => handleStatusUpdate('delivered')}
               style={{
-                padding: '12px',
-                backgroundColor: '#34c759',
-                color: 'white',
+                padding: '16px',
+                background: ROYAL_COLORS.gradientSuccess,
+                color: ROYAL_COLORS.textBright,
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '12px',
                 fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer'
+                fontWeight: '700',
+                cursor: 'pointer',
+                boxShadow: ROYAL_COLORS.glowGreen
               }}
             >
-              Mark Delivered
+              ✅ סמן כנמסר
             </button>
           )}
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -50,6 +50,7 @@ export interface FrontendDataStore extends DataStore {
     topic: T,
     callback: DataStoreSubscriptionHandler<T>
   ) => () => void;
+  supabase?: any;
 }
 
 export function attachSubscriptionHelpers<T extends DataStore>(store: T): T & FrontendDataStore {

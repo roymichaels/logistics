@@ -35,14 +35,16 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
   const [showFilters, setShowFilters] = useState(false);
 
   const driverService = new DriverService(dataStore);
-  const supabase = (dataStore as any).supabase;
+  const supabase = dataStore?.supabase;
   const theme = telegram.themeParams;
   const { colors, styles } = useRoleTheme();
 
   const loadDrivers = useCallback(async () => {
     try {
       if (!supabase) {
-        throw new Error('Supabase client not available');
+        console.warn('⚠️ Supabase client not available yet, retrying...');
+        setLoading(false);
+        return;
       }
 
       const { data: allUsers, error: usersError } = await supabase
