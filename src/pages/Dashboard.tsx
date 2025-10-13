@@ -75,43 +75,6 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     }
   }, [dataStore]);
 
-  useEffect(() => {
-    backButton.hide();
-    void loadDashboard();
-  }, [backButton, loadDashboard]);
-
-  const summaryText = useMemo(() => {
-    if (!snapshot) return '';
-    return buildSummary(snapshot, user);
-  }, [snapshot, user]);
-
-  // Wait for both user profile and dataStore to be ready
-  if (loading || !dataStore || !user) {
-    return <RoyalSkeleton />;
-  }
-
-  const handleSendSummary = useCallback(() => {
-    if (!snapshot) return;
-
-    try {
-      haptic('medium');
-      const payload = summaryText;
-      if (typeof window !== 'undefined' && window.Telegram?.WebApp?.sendData) {
-        window.Telegram.WebApp.sendData(payload);
-        Toast.success('הסיכום נשלח לטלגרם');
-      } else if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(payload);
-        Toast.success('הסיכום הועתק ללוח');
-      } else {
-        Toast.show('העתיקו את הסיכום ידנית:', 'info');
-        console.info(payload);
-      }
-    } catch (error) {
-      console.error('Failed to deliver summary', error);
-      Toast.error('לא הצלחנו לשדר את הסיכום');
-    }
-  }, [snapshot, summaryText, haptic]);
-
   const handleInventoryAlert = useCallback(
     (payload: unknown) => {
       const event = (payload ?? {}) as InventoryAlertPayload;
@@ -161,6 +124,38 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   );
 
   useEffect(() => {
+    backButton.hide();
+    void loadDashboard();
+  }, [backButton, loadDashboard]);
+
+  const summaryText = useMemo(() => {
+    if (!snapshot) return '';
+    return buildSummary(snapshot, user);
+  }, [snapshot, user]);
+
+  const handleSendSummary = useCallback(() => {
+    if (!snapshot) return;
+
+    try {
+      haptic('medium');
+      const payload = summaryText;
+      if (typeof window !== 'undefined' && window.Telegram?.WebApp?.sendData) {
+        window.Telegram.WebApp.sendData(payload);
+        Toast.success('הסיכום נשלח לטלגרם');
+      } else if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(payload);
+        Toast.success('הסיכום הועתק ללוח');
+      } else {
+        Toast.show('העתיקו את הסיכום ידנית:', 'info');
+        console.info(payload);
+      }
+    } catch (error) {
+      console.error('Failed to deliver summary', error);
+      Toast.error('לא הצלחנו לשדר את הסיכום');
+    }
+  }, [snapshot, summaryText, haptic]);
+
+  useEffect(() => {
     if (!dataStore) {
       return;
     }
@@ -174,6 +169,11 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
 
     return cleanup;
   }, [dataStore, loadDashboard, handleInventoryAlert]);
+
+  // Wait for both user profile and dataStore to be ready
+  if (loading || !dataStore || !user) {
+    return <RoyalSkeleton />;
+  }
 
   // Main button disabled - removed per user request
   // useEffect(() => {
