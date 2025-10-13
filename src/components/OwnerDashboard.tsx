@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { DataStore, User } from '../data/types';
-import { useRoleTheme } from '../hooks/useRoleTheme';
 import { formatCurrency, hebrew } from '../lib/hebrew';
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { FinancialDashboard } from './FinancialDashboard';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
+import { getRoleColors, getRoleStyles } from '../styles/roleThemes';
 
 interface OwnerDashboardProps {
   dataStore: DataStore;
@@ -37,7 +37,9 @@ interface BusinessMetrics {
 }
 
 export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardProps) {
-  const { colors, styles } = useRoleTheme();
+  // Use role-specific theme without context hook
+  const colors = useMemo(() => getRoleColors(user?.role === 'business_owner' ? 'business_owner' : 'infrastructure_owner'), [user?.role]);
+  const styles = useMemo(() => getRoleStyles(user?.role === 'business_owner' ? 'business_owner' : 'infrastructure_owner'), [user?.role]);
   const [loading, setLoading] = useState(true);
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics>({
     totalUsers: 0,
