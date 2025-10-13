@@ -37,7 +37,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme, haptic, backButton } = useTelegramUI();
 
-  const canCreateGroup = currentUser && hasPermission(currentUser, 'users:view_business');
+  const canCreateGroup = currentUser && hasPermission(currentUser, 'groups:create');
   const userScope = currentUser?.role === 'infrastructure_owner' ? 'all' : 'business';
 
   useEffect(() => {
@@ -449,7 +449,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
                 style={{
                   position: 'fixed',
                   bottom: '90px',
-                  right: '20px',
+                  left: '20px',
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
@@ -457,12 +457,13 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
                   border: '3px solid rgba(255, 255, 255, 0.2)',
                   color: '#fff',
                   fontSize: '32px',
+                  fontWeight: '300',
                   cursor: 'pointer',
-                  boxShadow: `${ROYAL_COLORS.glowPurple}, 0 0 30px rgba(156, 109, 255, 0.5)`,
+                  boxShadow: `${ROYAL_COLORS.glowPurple}, 0 4px 20px rgba(156, 109, 255, 0.6)`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  zIndex: 100,
+                  zIndex: 1000,
                   transition: 'all 0.3s ease',
                   animation: 'pulse-button 2s ease-in-out infinite'
                 }}
@@ -472,7 +473,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
-                  e.currentTarget.style.boxShadow = `${ROYAL_COLORS.glowPurple}, 0 0 30px rgba(156, 109, 255, 0.5)`;
+                  e.currentTarget.style.boxShadow = `${ROYAL_COLORS.glowPurple}, 0 4px 20px rgba(156, 109, 255, 0.6)`;
                 }}
                 title="יצירת קבוצה חדשה"
               >

@@ -88,7 +88,16 @@ export type Permission =
   | 'analytics:view_all_business'
   | 'analytics:view_business'
   | 'analytics:view_own'
-  | 'analytics:export';
+  | 'analytics:export'
+  // Messaging & Groups
+  | 'messaging:send'
+  | 'messaging:view'
+  | 'groups:create'
+  | 'groups:view'
+  | 'groups:manage_own'
+  | 'channels:create'
+  | 'channels:view'
+  | 'channels:manage_own';
 
 export interface RolePermissions {
   role: User['role'];
@@ -183,6 +192,16 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       // Analytics - Complete cross-business access
       'analytics:view_all_infrastructure',
       'analytics:export',
+
+      // Messaging & Groups - Full access
+      'messaging:send',
+      'messaging:view',
+      'groups:create',
+      'groups:view',
+      'groups:manage_own',
+      'channels:create',
+      'channels:view',
+      'channels:manage_own',
     ],
   },
 
@@ -260,6 +279,16 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
 
       // System - Limited audit access
       'system:view_audit_logs',
+
+      // Messaging & Groups - Full access
+      'messaging:send',
+      'messaging:view',
+      'groups:create',
+      'groups:view',
+      'groups:manage_own',
+      'channels:create',
+      'channels:view',
+      'channels:manage_own',
     ],
   },
 
@@ -309,6 +338,14 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
 
       // System - Limited audit access
       'system:view_audit_logs',
+
+      // Messaging & Groups - Full team communication
+      'messaging:send',
+      'messaging:view',
+      'groups:create',
+      'groups:view',
+      'groups:manage_own',
+      'channels:view',
     ],
   },
 
@@ -338,6 +375,14 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
 
       // Analytics - Operational metrics
       'analytics:view_business',
+
+      // Messaging & Groups - Team communication
+      'messaging:send',
+      'messaging:view',
+      'groups:create',
+      'groups:view',
+      'groups:manage_own',
+      'channels:view',
     ],
   },
 
@@ -372,6 +417,14 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
 
       // Users - Own profile
       'users:view_own',
+
+      // Messaging & Groups - Team communication
+      'messaging:send',
+      'messaging:view',
+      'groups:create',
+      'groups:view',
+      'groups:manage_own',
+      'channels:view',
     ],
   },
 
@@ -403,6 +456,14 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
 
       // Users - Own profile
       'users:view_own',
+
+      // Messaging & Groups - Team communication
+      'messaging:send',
+      'messaging:view',
+      'groups:create',
+      'groups:view',
+      'groups:manage_own',
+      'channels:view',
     ],
   },
 
@@ -436,6 +497,12 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
 
       // Users - Own profile
       'users:view_own',
+
+      // Messaging & Groups - Customer communication
+      'messaging:send',
+      'messaging:view',
+      'groups:view',
+      'channels:view',
     ],
   },
 
@@ -459,6 +526,12 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
 
       // Users - Own profile
       'users:view_own',
+
+      // Messaging & Groups - Customer support communication
+      'messaging:send',
+      'messaging:view',
+      'groups:view',
+      'channels:view',
     ],
   },
 };
@@ -704,4 +777,13 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'analytics:view_business': 'View business analytics (limited)',
   'analytics:view_own': 'View your own performance',
   'analytics:export': 'Export analytics reports',
+
+  'messaging:send': 'Send direct messages',
+  'messaging:view': 'View and read messages',
+  'groups:create': 'Create new group chats',
+  'groups:view': 'View group chats',
+  'groups:manage_own': 'Manage groups you created',
+  'channels:create': 'Create new channels',
+  'channels:view': 'View channels',
+  'channels:manage_own': 'Manage channels you created',
 };

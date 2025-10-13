@@ -22,7 +22,7 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
   const [users, setUsers] = useState<User[]>([]);
   const { theme, haptic, backButton } = useTelegramUI();
 
-  const canCreateChannel = currentUser && (currentUser.role === 'infrastructure_owner' || currentUser.role === 'business_owner' || currentUser.role === 'manager');
+  const canCreateChannel = currentUser && hasPermission(currentUser, 'channels:create');
 
   useEffect(() => {
     loadChannels();

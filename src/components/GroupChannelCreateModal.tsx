@@ -84,6 +84,7 @@ export function GroupChannelCreateModal({
             type,
             description: description.trim() || null,
             members: [currentUser.telegram_id, ...selectedMembers],
+            created_by: currentUser.telegram_id,
             created_at: new Date().toISOString()
           })
           .select()
@@ -107,6 +108,7 @@ export function GroupChannelCreateModal({
             type,
             description: description.trim() || null,
             subscribers: selectedMembers.length > 0 ? selectedMembers : [],
+            created_by: currentUser.telegram_id,
             created_at: new Date().toISOString()
           })
           .select()
