@@ -284,7 +284,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                             fontWeight: '700'
                           }}
                         >
-                          {driver.name[0] || '?'}
+                          {(driver.name && driver.name[0]) || '?'}
                         </div>
                         <div>
                           <div style={{ fontWeight: '600' }}>{driver.name}</div>
@@ -398,7 +398,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                     fontWeight: '700'
                   }}
                 >
-                  {driver.name?.[0] || '?'}
+                  {(driver.name && driver.name[0]) || '?'}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: '600', fontSize: '16px' }}>{driver.name}</div>

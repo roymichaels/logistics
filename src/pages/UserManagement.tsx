@@ -952,7 +952,7 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
             fontWeight: '600',
             color: '#fff'
           }}>
-            {user.first_name[0]}
+            {(user.first_name && user.first_name[0]) || '?'}
           </div>
           <div>
             <div style={{ fontWeight: '600' }}>
