@@ -114,7 +114,9 @@ export interface RolePermissions {
  */
 export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
   // ========================================
-  // INFRASTRUCTURE LEVEL ROLE
+  // INFRASTRUCTURE LEVEL ROLES
+  // These roles operate at the platform level and can work across businesses
+  // Includes: infrastructure_owner, manager, dispatcher, driver, warehouse, customer_service, user
   // ========================================
 
   infrastructure_owner: {
@@ -207,6 +209,8 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
 
   // ========================================
   // BUSINESS LEVEL ROLES
+  // These roles are tied to specific businesses and cannot operate across businesses
+  // Includes: business_owner, sales
   // ========================================
 
   business_owner: {
@@ -292,10 +296,14 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
     ],
   },
 
+  // ========================================
+  // INFRASTRUCTURE LEVEL ROLES (continued)
+  // ========================================
+
   manager: {
     role: 'manager',
     label: 'Business Manager',
-    level: 'business',
+    level: 'infrastructure',
     description: 'Operations manager with team oversight but limited financial visibility',
     canSeeFinancials: false,
     canSeeCrossBusinessData: false,
@@ -352,7 +360,7 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
   dispatcher: {
     role: 'dispatcher',
     label: 'Dispatcher',
-    level: 'business',
+    level: 'infrastructure',
     description: 'Order routing and driver assignment specialist',
     canSeeFinancials: false,
     canSeeCrossBusinessData: false,
@@ -389,7 +397,7 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
   driver: {
     role: 'driver',
     label: 'Driver',
-    level: 'business',
+    level: 'infrastructure',
     description: 'Delivery personnel with access to assigned orders only',
     canSeeFinancials: false,
     canSeeCrossBusinessData: false,
@@ -431,7 +439,7 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
   warehouse: {
     role: 'warehouse',
     label: 'Warehouse Worker',
-    level: 'business',
+    level: 'infrastructure',
     description: 'Inventory management specialist with full warehouse access',
     canSeeFinancials: false,
     canSeeCrossBusinessData: false,
@@ -509,7 +517,7 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
   customer_service: {
     role: 'customer_service',
     label: 'Customer Service',
-    level: 'business',
+    level: 'infrastructure',
     description: 'Customer support with order viewing and status update capabilities',
     canSeeFinancials: false,
     canSeeCrossBusinessData: false,
@@ -528,6 +536,25 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'users:view_own',
 
       // Messaging & Groups - Customer support communication
+      'messaging:send',
+      'messaging:view',
+      'groups:view',
+      'channels:view',
+    ],
+  },
+
+  user: {
+    role: 'user',
+    label: 'User',
+    level: 'infrastructure',
+    description: 'Basic user with limited access to view own data',
+    canSeeFinancials: false,
+    canSeeCrossBusinessData: false,
+    permissions: [
+      // Users - Own profile only
+      'users:view_own',
+
+      // Messaging & Groups - Basic communication
       'messaging:send',
       'messaging:view',
       'groups:view',
