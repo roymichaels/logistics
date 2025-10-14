@@ -63,60 +63,22 @@ import {
 } from '../data/types';
 
 let supabaseInstance: any = null;
-let isInitializingSupabase = false;
 
 function getSupabaseInstance() {
   if (supabaseInstance) {
     return supabaseInstance;
   }
 
-  if (isInitializingSupabase) {
-    console.warn('⚠️ Supabase client initialization in progress');
-    return null;
-  }
-
-  isInitializingSupabase = true;
   try {
     supabaseInstance = getSupabase();
-    isInitializingSupabase = false;
     return supabaseInstance;
   } catch (error) {
-    isInitializingSupabase = false;
     console.warn('⚠️ Supabase client not yet available:', error);
     return null;
   }
 }
 
-const supabase = new Proxy({} as any, {
-  get(target, prop) {
-    // Filter out Promise-like properties to prevent treating Proxy as thenable
-    if (prop === 'then' || prop === 'catch' || prop === 'finally') {
-      return undefined;
-    }
-
-    // Filter out Symbol properties that might cause recursion
-    if (typeof prop === 'symbol') {
-      return undefined;
-    }
-
-    const instance = getSupabaseInstance();
-    if (!instance) {
-      // Only warn for non-internal properties
-      if (typeof prop === 'string' && !prop.startsWith('_')) {
-        console.warn('⚠️ Supabase client not yet initialized, property:', prop);
-      }
-      return undefined;
-    }
-
-    const value = instance[prop];
-    if (typeof value === 'function') {
-      return value.bind(instance);
-    }
-    return value;
-  }
-});
-
-export { supabase };
+export { getSupabaseInstance as supabase };
 
 export interface SupabaseAuthSessionPayload {
   access_token: string;
