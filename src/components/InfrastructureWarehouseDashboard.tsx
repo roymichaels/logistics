@@ -134,40 +134,69 @@ export function InfrastructureWarehouseDashboard() {
 
   async function handleApproveAllocation(allocationId: string, approvedQty: number) {
     try {
-      const { data, error } = await supabase.functions.invoke('approve-allocation', {
-        body: {
-          allocation_id: allocationId,
-          approved_quantity: approvedQty,
-          action: 'approve',
-          auto_fulfill: true,
-        },
+      const { data, error } = await supabase.rpc('approve_stock_allocation', {
+        p_allocation_id: allocationId,
+        p_approved_quantity: approvedQty,
+        p_notes: 'Approved by warehouse worker'
       });
 
       if (error) throw error;
-      alert('Allocation approved and fulfilled');
+
+      if (data && !data.success) {
+        alert(data.error || 'Failed to approve allocation');
+        return;
+      }
+
+      alert('Allocation approved successfully');
       loadWarehouseData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to approve allocation:', error);
-      alert('Failed to approve allocation');
+      alert(error.message || 'Failed to approve allocation');
     }
   }
 
   async function handleRejectAllocation(allocationId: string, reason: string) {
     try {
-      const { data, error } = await supabase.functions.invoke('approve-allocation', {
-        body: {
-          allocation_id: allocationId,
-          action: 'reject',
-          rejection_reason: reason,
-        },
+      const { data, error } = await supabase.rpc('reject_stock_allocation', {
+        p_allocation_id: allocationId,
+        p_rejection_reason: reason
       });
 
       if (error) throw error;
+
+      if (data && !data.success) {
+        alert(data.error || 'Failed to reject allocation');
+        return;
+      }
+
       alert('Allocation rejected');
       loadWarehouseData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to reject allocation:', error);
-      alert('Failed to reject allocation');
+      alert(error.message || 'Failed to reject allocation');
+    }
+  }
+
+  async function handleFulfillAllocation(allocationId: string, deliveredQty: number) {
+    try {
+      const { data, error } = await supabase.rpc('fulfill_stock_allocation', {
+        p_allocation_id: allocationId,
+        p_delivered_quantity: deliveredQty,
+        p_notes: 'Fulfilled by warehouse worker'
+      });
+
+      if (error) throw error;
+
+      if (data && !data.success) {
+        alert(data.error || 'Failed to fulfill allocation');
+        return;
+      }
+
+      alert('Allocation fulfilled successfully');
+      loadWarehouseData();
+    } catch (error: any) {
+      console.error('Failed to fulfill allocation:', error);
+      alert(error.message || 'Failed to fulfill allocation');
     }
   }
 
