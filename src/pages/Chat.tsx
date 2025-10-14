@@ -351,7 +351,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
           marginBottom: '20px',
           position: 'relative'
         }}>
-          {canCreateGroup && activeTab === 'groups' && (
+          {canCreateGroup && (
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => {
