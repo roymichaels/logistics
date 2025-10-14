@@ -5,7 +5,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { getSupabase } from '../lib/supabaseClient';
 import { CreateBusinessModal } from './CreateBusinessModal';
 import { DataStore, User } from '../data/types';
 
@@ -56,6 +56,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
     loadDashboardData();
 
     // Subscribe to real-time updates
+    const supabase = getSupabase();
     const subscription = supabase
       .channel('infra-dashboard')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'businesses' }, () => {
@@ -74,6 +75,8 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
   async function loadDashboardData() {
     try {
       setLoading(true);
+
+      const supabase = getSupabase();
 
       // Load metrics
       const [businessesData, ordersData, driversData, allocationsData] = await Promise.all([

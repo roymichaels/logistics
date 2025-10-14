@@ -4,7 +4,11 @@ import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { AppServicesProvider } from './context/AppServicesContext';
 import { initSupabase } from './lib/supabaseClient';
+import { installRoleDebugger } from './lib/roleDiagnostics';
 import './lib/initDiagnostics';
+
+// Install role debugging tools for console access
+installRoleDebugger();
 
 console.log('🚀 Starting app...');
 

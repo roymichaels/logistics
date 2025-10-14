@@ -3,7 +3,10 @@ import { useTelegramUI } from '../hooks/useTelegramUI';
 import { useSkeleton } from '../hooks/useSkeleton';
 import { Toast } from '../components/Toast';
 import { OwnerDashboard } from '../components/OwnerDashboard';
+import { InfrastructureOwnerDashboard } from '../components/InfrastructureOwnerDashboard';
+import { BusinessOwnerDashboard } from '../components/BusinessOwnerDashboard';
 import { ManagerDashboard } from '../components/ManagerDashboard';
+import { logRoleDiagnostic, getDashboardComponent } from '../lib/roleDiagnostics';
 import type { FrontendDataStore } from '../lib/frontendDataStore';
 import { registerDashboardSubscriptions } from './subscriptionHelpers';
 import {
@@ -54,6 +57,26 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
 
     try {
       const profile = await dataStore.getProfile();
+
+      // Role debugging - helps identify role mismatches
+      console.log('🔍 Dashboard: User profile loaded', {
+        id: profile.id,
+        name: profile.name,
+        role: profile.role,
+        business_id: profile.business_id,
+        has_business_context: !!profile.business_id
+      });
+
+      // Generate comprehensive diagnostic report
+      logRoleDiagnostic(profile);
+
+      // Get expected dashboard component
+      const dashboardInfo = getDashboardComponent(profile);
+      if (dashboardInfo.warnings.length > 0) {
+        console.warn('⚠️ Dashboard routing warnings:', dashboardInfo.warnings);
+      }
+      console.log('📊 Expected dashboard component:', dashboardInfo.component);
+
       setUser(profile);
 
       // Owner and Manager get custom dashboards
@@ -189,9 +212,42 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     return <RoyalSkeleton />;
   }
 
-  // Owner gets comprehensive system-wide dashboard
-  if (user?.role === 'infrastructure_owner' || user?.role === 'business_owner') {
-    return <OwnerDashboard dataStore={dataStore} user={user} onNavigate={onNavigate} />;
+  // Infrastructure Owner gets platform-wide system dashboard
+  if (user?.role === 'infrastructure_owner') {
+    console.log('✅ Dashboard: Routing to InfrastructureOwnerDashboard', { userId: user.id, userName: user.name });
+    return <InfrastructureOwnerDashboard dataStore={dataStore} user={user} onNavigate={onNavigate} />;
+  }
+
+  // Business Owner gets business-specific financial dashboard
+  if (user?.role === 'business_owner') {
+    console.log('✅ Dashboard: Routing to BusinessOwnerDashboard', {
+      userId: user.id,
+      userName: user.name,
+      businessId: user.business_id
+    });
+    // Business owners need a business context
+    if (!user.business_id) {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          background: 'var(--tg-theme-bg-color, #ffffff)',
+          padding: '40px 20px',
+          color: 'var(--tg-theme-text-color, #000)',
+          direction: 'rtl',
+          textAlign: 'center'
+        }}>
+          <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+            <h1 style={{ fontSize: '32px', marginBottom: '16px' }}>
+              ⚠️ חסר הקשר עסקי
+            </h1>
+            <p style={{ fontSize: '18px', color: 'var(--tg-theme-hint-color, #999)', marginBottom: '40px' }}>
+              כבעל עסק, עליך להיות משויך לעסק. אנא פנה למנהל המערכת.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    return <BusinessOwnerDashboard businessId={user.business_id} userId={user.id} />;
   }
 
   // Manager gets department-specific dashboard

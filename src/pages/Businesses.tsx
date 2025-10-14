@@ -4,6 +4,7 @@ import { hebrew } from '../lib/hebrew';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { telegram } from '../lib/telegram';
 import { CreateBusinessModal } from '../components/CreateBusinessModal';
+import { shouldShowCreateBusinessButton } from '../lib/roleDiagnostics';
 
 interface BusinessesProps {
   dataStore: DataStore;
@@ -97,6 +98,16 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
   const totalOwnershipPercentage = myOwnerships.reduce((sum, o) => sum + o.ownership_percentage, 0);
   const businessesIOwn = myOwnerships.filter(o => o.ownership_percentage > 0).length;
 
+  // Diagnostic check for Create Business button visibility
+  const createBusinessCheck = shouldShowCreateBusinessButton(user);
+  if (user) {
+    console.log('🔍 Businesses Page - Create Business Button Check:', {
+      userRole: user.role,
+      shouldShow: createBusinessCheck.show,
+      reason: createBusinessCheck.reason
+    });
+  }
+
   if (loading) {
     return (
       <div style={ROYAL_STYLES.pageContainer}>
@@ -144,9 +155,12 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
       </div>
 
       {/* Infrastructure Owner: Create Business Button */}
-      {user?.role === 'infrastructure_owner' && (
+      {user?.role === 'infrastructure_owner' ? (
         <button
-          onClick={() => setShowCreateModal(true)}
+          onClick={() => {
+            console.log('✅ Create Business button clicked');
+            setShowCreateModal(true);
+          }}
           style={{
             ...ROYAL_STYLES.buttonPrimary,
             width: '100%',
@@ -155,7 +169,23 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
         >
           + צור עסק חדש
         </button>
-      )}
+      ) : user ? (
+        <div style={{
+          padding: '16px',
+          borderRadius: '12px',
+          background: 'rgba(255, 193, 7, 0.1)',
+          border: '1px solid rgba(255, 193, 7, 0.3)',
+          marginBottom: '24px',
+          textAlign: 'center',
+          color: ROYAL_COLORS.muted,
+          fontSize: '14px'
+        }}>
+          ℹ️ רק בעלי תשתית יכולים ליצור עסקים חדשים
+          <div style={{ fontSize: '12px', marginTop: '8px', opacity: 0.7 }}>
+            התפקיד שלך: {user.role}
+          </div>
+        </div>
+      ) : null}
 
       {/* My Ownerships List */}
       {myOwnerships.length > 0 && (

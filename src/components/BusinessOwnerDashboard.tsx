@@ -6,7 +6,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { getSupabase } from '../lib/supabaseClient';
 
 interface FinancialMetrics {
   revenue_today: number;
@@ -60,6 +60,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
     loadDashboardData();
 
     // Real-time updates
+    const supabase = getSupabase();
     const subscription = supabase
       .channel(`business-${businessId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `business_id=eq.${businessId}` }, () => {
@@ -76,6 +77,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
     try {
       setLoading(true);
 
+      const supabase = getSupabase();
       const today = new Date().toISOString().split('T')[0];
       const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
