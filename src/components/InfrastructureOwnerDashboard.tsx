@@ -6,6 +6,14 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { CreateBusinessModal } from './CreateBusinessModal';
+import { DataStore, User } from '../data/types';
+
+interface InfrastructureOwnerDashboardProps {
+  dataStore: DataStore;
+  user: User | null;
+  onNavigate: (page: string) => void;
+}
 
 interface DashboardMetrics {
   totalBusinesses: number;
@@ -37,11 +45,12 @@ interface RecentActivity {
   severity: string;
 }
 
-export function InfrastructureOwnerDashboard() {
+export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: InfrastructureOwnerDashboardProps) {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [businesses, setBusinesses] = useState<BusinessSummary[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -215,7 +224,35 @@ export function InfrastructureOwnerDashboard() {
       <div className="section">
         <div className="section-header">
           <h2>Business Overview</h2>
-          <button className="btn-secondary">View All</button>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              className="btn-primary"
+              onClick={() => setShowCreateModal(true)}
+              style={{
+                padding: '10px 20px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
+              }}
+            >
+              + Create Business
+            </button>
+            <button className="btn-secondary" onClick={() => onNavigate('businesses')}>View All</button>
+          </div>
         </div>
         <div className="business-grid">
           {businesses.slice(0, 6).map(business => (
@@ -275,6 +312,19 @@ export function InfrastructureOwnerDashboard() {
           ))}
         </div>
       </div>
+
+      {/* Create Business Modal */}
+      {showCreateModal && (
+        <CreateBusinessModal
+          dataStore={dataStore}
+          user={user}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => {
+            setShowCreateModal(false);
+            loadDashboardData();
+          }}
+        />
+      )}
 
       <style jsx>{`
         .infra-owner-dashboard {

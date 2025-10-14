@@ -7,6 +7,7 @@ import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { FinancialDashboard } from './FinancialDashboard';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
 import { getRoleColors, getRoleStyles } from '../styles/roleThemes';
+import { CreateBusinessModal } from './CreateBusinessModal';
 
 interface OwnerDashboardProps {
   dataStore: DataStore;
@@ -54,6 +55,7 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
   const [businesses, setBusinesses] = useState<BusinessMetrics[]>([]);
   const [selectedView, setSelectedView] = useState<'overview' | 'businesses' | 'users' | 'financial' | 'analytics' | 'config'>('overview');
   const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month' | 'year'>('today');
+  const [showCreateBusinessModal, setShowCreateBusinessModal] = useState(false);
 
   const supabase = (dataStore as any)?.supabase;
   const isSupabaseReady = !!supabase && typeof supabase.channel === 'function';
@@ -491,6 +493,14 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
               💼 פעולות מהירות
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {user?.role === 'infrastructure_owner' && (
+                <ActionButton
+                  label="צור עסק חדש"
+                  icon="🏢"
+                  onClick={() => setShowCreateBusinessModal(true)}
+                  colors={colors}
+                />
+              )}
               <ActionButton
                 label="ניהול משתמשים"
                 icon="👥"
@@ -522,6 +532,43 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
 
       {selectedView === 'businesses' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Create Business Button - Only for infrastructure_owner */}
+          {user?.role === 'infrastructure_owner' && (
+            <button
+              onClick={() => {
+                setShowCreateBusinessModal(true);
+                telegram.hapticFeedback('selection');
+              }}
+              style={{
+                padding: '16px 24px',
+                borderRadius: '12px',
+                border: 'none',
+                background: colors.gradientPrimary,
+                color: colors.textBright,
+                fontSize: '16px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '12px',
+                boxShadow: colors.glowPrimaryStrong,
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = colors.glowPrimaryStrong;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = colors.glowPrimary;
+              }}
+            >
+              <span style={{ fontSize: '24px' }}>🏢</span>
+              <span>+ צור עסק חדש</span>
+            </button>
+          )}
+
           {businesses.length === 0 ? (
             <div style={styles.card}>
               <div style={{ textAlign: 'center', padding: '60px 20px' }}>
@@ -529,8 +576,10 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
                 <h3 style={{ margin: '0 0 12px 0', color: colors.text, fontSize: '18px', fontWeight: '600' }}>
                   אין עסקים רשומים
                 </h3>
-                <div style={{ fontSize: '14px', color: colors.muted }}>
-                  העסק הראשון ייווצר אוטומטית עם המשתמש הראשון
+                <div style={{ fontSize: '14px', color: colors.muted, marginBottom: '20px' }}>
+                  {user?.role === 'infrastructure_owner'
+                    ? 'לחץ על הכפתור למעלה כדי ליצור את העסק הראשון שלך'
+                    : 'העסק הראשון ייווצר אוטומטית עם המשתמש הראשון'}
                 </div>
               </div>
             </div>
@@ -737,6 +786,19 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
             </div>
           </div>
         </div>
+      )}
+
+      {/* Create Business Modal */}
+      {showCreateBusinessModal && (
+        <CreateBusinessModal
+          dataStore={dataStore}
+          user={user}
+          onClose={() => setShowCreateBusinessModal(false)}
+          onSuccess={() => {
+            setShowCreateBusinessModal(false);
+            loadSystemMetrics();
+          }}
+        />
       )}
     </div>
   );
