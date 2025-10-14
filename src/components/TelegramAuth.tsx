@@ -7,8 +7,6 @@ import { RoleSelectionModal } from './RoleSelectionModal';
 import { sessionTracker } from '../lib/sessionTracker';
 import { getSupabase } from '../lib/supabaseClient';
 
-const supabase = getSupabase();
-
 interface TelegramAuthProps {
   onAuth: (userData: any) => void;
   onError: (error: string) => void;
@@ -111,6 +109,13 @@ export function TelegramAuth({ onAuth, onError }: TelegramAuthProps) {
     }
 
     try {
+      let supabase;
+      try {
+        supabase = getSupabase();
+      } catch (error) {
+        debugLog.error('❌ Supabase client unavailable before backend authentication', error);
+        throw error;
+      }
       debugLog.info('📡 Verifying initData with backend...');
 
       const response = await fetch(`${SUPABASE_URL}/functions/v1/telegram-verify`, {

@@ -156,6 +156,35 @@ export function getSupabase(): SupabaseClient {
   return client;
 }
 
+export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
+  get(_target, property, receiver) {
+    const activeClient = getSupabase();
+    const value = Reflect.get(activeClient, property, receiver);
+
+    if (typeof value === 'function') {
+      return value.bind(activeClient);
+    }
+
+    return value;
+  },
+  set(_target, property, value, receiver) {
+    const activeClient = getSupabase();
+    return Reflect.set(activeClient, property, value, receiver);
+  },
+  has(_target, property) {
+    const activeClient = getSupabase();
+    return Reflect.has(activeClient, property);
+  },
+  ownKeys() {
+    const activeClient = getSupabase();
+    return Reflect.ownKeys(activeClient as object);
+  },
+  getOwnPropertyDescriptor(_target, property) {
+    const activeClient = getSupabase();
+    return Reflect.getOwnPropertyDescriptor(activeClient as object, property);
+  },
+});
+
 export function isSupabaseInitialized(): boolean {
   return isInitialized && client !== null;
 }
