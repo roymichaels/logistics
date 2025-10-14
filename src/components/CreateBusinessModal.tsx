@@ -18,28 +18,71 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
   const [loading, setLoading] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [actualUserId, setActualUserId] = useState<string | null>(null);
+  const [initError, setInitError] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const alertShownRef = React.useRef(false);
 
   useEffect(() => {
+    let mounted = true;
+    let timeoutId: NodeJS.Timeout;
+    let retryCount = 0;
+    const MAX_RETRIES = 10;
+    const RETRY_DELAY = 300;
+
+    async function waitForSupabase() {
+      while (retryCount < MAX_RETRIES && mounted) {
+        const supabaseClient = dataStore.supabase;
+
+        if (supabaseClient) {
+          return supabaseClient;
+        }
+
+        await new Promise(resolve => {
+          timeoutId = setTimeout(resolve, RETRY_DELAY);
+        });
+        retryCount++;
+      }
+
+      return null;
+    }
+
     async function resolveUserId() {
+      if (!mounted) return;
+
       if (!user) {
+        setIsInitializing(false);
         return;
       }
 
       if (user.id) {
         setActualUserId(user.id);
         setIsReady(true);
+        setIsInitializing(false);
         return;
       }
 
       if (!user.telegram_id) {
-        telegram.showAlert('שגיאה: לא נמצא מזהה משתמש. אנא רענן את הדף.');
+        setInitError('שגיאה: לא נמצא מזהה משתמש');
+        setIsInitializing(false);
+        if (!alertShownRef.current) {
+          alertShownRef.current = true;
+          telegram.showAlert('שגיאה: לא נמצא מזהה משתמש. אנא רענן את הדף.');
+        }
         return;
       }
 
       try {
-        const supabaseClient = dataStore.supabase;
+        const supabaseClient = await waitForSupabase();
+
+        if (!mounted) return;
+
         if (!supabaseClient) {
-          telegram.showAlert('המערכת לא מוכנה. אנא רענן את הדף.');
+          setInitError('המערכת לא מוכנה');
+          setIsInitializing(false);
+          if (!alertShownRef.current) {
+            alertShownRef.current = true;
+            telegram.showAlert('המערכת לא מוכנה. אנא רענן את הדף ונסה שוב.');
+          }
           return;
         }
 
@@ -49,19 +92,40 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
           .eq('telegram_id', user.telegram_id)
           .maybeSingle();
 
+        if (!mounted) return;
+
         if (error || !userData) {
-          telegram.showAlert('שגיאה בטעינת נתוני משתמש. אנא רענן את הדף.');
+          setInitError('שגיאה בטעינת נתוני משתמש');
+          setIsInitializing(false);
+          if (!alertShownRef.current) {
+            alertShownRef.current = true;
+            telegram.showAlert('שגיאה בטעינת נתוני משתמש. אנא רענן את הדף.');
+          }
           return;
         }
 
         setActualUserId(userData.id);
         setIsReady(true);
+        setIsInitializing(false);
       } catch (error) {
-        telegram.showAlert('שגיאה בטעינת נתוני משתמש. אנא רענן את הדף.');
+        if (!mounted) return;
+        setInitError('שגיאה בטעינת נתוני משתמש');
+        setIsInitializing(false);
+        if (!alertShownRef.current) {
+          alertShownRef.current = true;
+          telegram.showAlert('שגיאה בטעינת נתוני משתמש. אנא רענן את הדף.');
+        }
       }
     }
 
     resolveUserId();
+
+    return () => {
+      mounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [user, dataStore]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -238,6 +302,25 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
               />
             </div>
 
+            {initError && (
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(255, 59, 48, 0.1)',
+                border: '1px solid rgba(255, 59, 48, 0.3)',
+                borderRadius: '8px',
+                marginBottom: '16px'
+              }}>
+                <p style={{
+                  margin: 0,
+                  color: '#ff3b30',
+                  fontSize: '14px',
+                  textAlign: 'center'
+                }}>
+                  {initError}
+                </p>
+              </div>
+            )}
+
             <div style={{
               display: 'flex',
               gap: '12px',
@@ -245,15 +328,15 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
             }}>
               <button
                 type="submit"
-                disabled={loading || !isReady}
+                disabled={loading || !isReady || isInitializing || !!initError}
                 style={{
                   ...ROYAL_STYLES.buttonPrimary,
                   flex: 1,
-                  opacity: (loading || !isReady) ? 0.6 : 1,
-                  cursor: (loading || !isReady) ? 'not-allowed' : 'pointer'
+                  opacity: (loading || !isReady || isInitializing || !!initError) ? 0.6 : 1,
+                  cursor: (loading || !isReady || isInitializing || !!initError) ? 'not-allowed' : 'pointer'
                 }}
               >
-                {!isReady ? 'טוען...' : loading ? 'יוצר...' : 'צור עסק'}
+                {isInitializing ? 'מאתחל מערכת...' : !isReady ? 'טוען...' : loading ? 'יוצר...' : 'צור עסק'}
               </button>
               <button
                 type="button"

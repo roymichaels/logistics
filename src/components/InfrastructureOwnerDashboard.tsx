@@ -52,6 +52,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isSystemReady, setIsSystemReady] = useState(false);
   const loadingRef = useRef(false);
   const subscriptionRef = useRef<any>(null);
 
@@ -60,6 +61,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
       const checkInterval = setInterval(() => {
         if (isSupabaseInitialized()) {
           clearInterval(checkInterval);
+          setIsSystemReady(true);
           loadDashboardData();
         }
       }, 100);
@@ -75,6 +77,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
       };
     }
 
+    setIsSystemReady(true);
     loadDashboardData();
 
     return () => {
@@ -267,8 +270,19 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
           <h2 style={{ margin: 0, fontSize: '20px', color: ROYAL_COLORS.text }}>סקירת עסקים</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
             <button
-              onClick={() => setShowCreateModal(true)}
-              style={ROYAL_STYLES.buttonPrimary}
+              onClick={() => {
+                if (!isSystemReady) {
+                  return;
+                }
+                setShowCreateModal(true);
+              }}
+              disabled={!isSystemReady}
+              style={{
+                ...ROYAL_STYLES.buttonPrimary,
+                opacity: isSystemReady ? 1 : 0.6,
+                cursor: isSystemReady ? 'pointer' : 'not-allowed'
+              }}
+              title={isSystemReady ? undefined : 'המערכת בתהליך אתחול...'}
             >
               + צור עסק חדש
             </button>

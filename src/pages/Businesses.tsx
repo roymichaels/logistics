@@ -38,6 +38,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isSystemReady, setIsSystemReady] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -60,6 +61,8 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
         setLoading(false);
         return;
       }
+
+      setIsSystemReady(true);
 
       // Load all businesses (for infrastructure owners)
       if (profile.role === 'infrastructure_owner') {
@@ -158,13 +161,20 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
       {user?.role === 'infrastructure_owner' ? (
         <button
           onClick={() => {
+            if (!isSystemReady) {
+              telegram.showAlert('המערכת עדיין נטענת. אנא המתן מעט...');
+              return;
+            }
             console.log('✅ Create Business button clicked');
             setShowCreateModal(true);
           }}
+          disabled={!isSystemReady}
           style={{
             ...ROYAL_STYLES.buttonPrimary,
             width: '100%',
-            marginBottom: '24px'
+            marginBottom: '24px',
+            opacity: isSystemReady ? 1 : 0.6,
+            cursor: isSystemReady ? 'pointer' : 'not-allowed'
           }}
         >
           + צור עסק חדש

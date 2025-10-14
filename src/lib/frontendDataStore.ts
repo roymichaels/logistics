@@ -71,8 +71,7 @@ export function attachSubscriptionHelpers<T extends DataStore>(store: T): T & Fr
       try {
         return (store as any).supabase;
       } catch (e) {
-        // Return undefined if not available yet instead of throwing
-        console.warn('⚠️ Supabase client not yet available:', e);
+        // Return undefined silently if not available yet
         return undefined;
       }
     },
