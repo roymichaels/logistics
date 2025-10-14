@@ -33,6 +33,8 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
   const [encryptedChatId, setEncryptedChatId] = useState<string | null>(null);
   const [encryptionEnabled, setEncryptionEnabled] = useState(false);
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+  const [showCreateMenu, setShowCreateMenu] = useState(false);
+  const [createMode, setCreateMode] = useState<'group' | 'channel'>('group');
   const [userFilter, setUserFilter] = useState<UserFilter>('all');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme, haptic, backButton } = useTelegramUI();
@@ -346,43 +348,121 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
-          marginBottom: '20px'
+          marginBottom: '20px',
+          position: 'relative'
         }}>
           {canCreateGroup && activeTab === 'groups' && (
-            <button
-              onClick={() => {
-                haptic();
-                setShowCreateGroupModal(true);
-              }}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '12px',
-                border: 'none',
-                background: ROYAL_COLORS.gradientPurple,
-                color: '#fff',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                boxShadow: ROYAL_COLORS.glowPurple,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.3s ease',
-                flexShrink: 0
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(156, 109, 255, 0.6)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = ROYAL_COLORS.glowPurple;
-              }}
-              title="יצירת קבוצה חדשה"
-            >
-              <span style={{ fontSize: '20px' }}>+</span>
-              <span>קבוצה</span>
-            </button>
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => {
+                  haptic();
+                  setShowCreateMenu(!showCreateMenu);
+                }}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: ROYAL_COLORS.gradientPurple,
+                  color: '#fff',
+                  fontSize: '28px',
+                  fontWeight: '300',
+                  cursor: 'pointer',
+                  boxShadow: ROYAL_COLORS.glowPurple,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease',
+                  flexShrink: 0,
+                  lineHeight: 1
+                }}
+                title="יצירת קבוצה או ערוץ"
+              >
+                +
+              </button>
+
+              {/* Telegram-style Create Menu */}
+              {showCreateMenu && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: '8px',
+                    background: ROYAL_COLORS.card,
+                    border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                    borderRadius: '12px',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+                    zIndex: 1001,
+                    minWidth: '200px',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <button
+                    onClick={() => {
+                      haptic();
+                      setCreateMode('group');
+                      setShowCreateMenu(false);
+                      setShowCreateGroupModal(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '14px 16px',
+                      border: 'none',
+                      background: 'transparent',
+                      color: ROYAL_COLORS.text,
+                      fontSize: '16px',
+                      textAlign: 'right',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      transition: 'background 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = `${ROYAL_COLORS.accent}20`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <span style={{ fontSize: '24px' }}>👥</span>
+                    <span style={{ fontWeight: '600' }}>קבוצה חדשה</span>
+                  </button>
+                  <div style={{ height: '1px', background: ROYAL_COLORS.cardBorder }} />
+                  <button
+                    onClick={() => {
+                      haptic();
+                      setCreateMode('channel');
+                      setShowCreateMenu(false);
+                      setShowCreateGroupModal(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '14px 16px',
+                      border: 'none',
+                      background: 'transparent',
+                      color: ROYAL_COLORS.text,
+                      fontSize: '16px',
+                      textAlign: 'right',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      transition: 'background 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = `${ROYAL_COLORS.accent}20`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <span style={{ fontSize: '24px' }}>📢</span>
+                    <span style={{ fontWeight: '600' }}>ערוץ חדש</span>
+                  </button>
+                </div>
+              )}
+            </div>
           )}
           <h1 style={{
             margin: '0',
@@ -613,17 +693,35 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
         )}
       </div>
 
-      {/* Group Creation Modal */}
+      {/* Group/Channel Creation Modal */}
       {currentUser && (
         <GroupChannelCreateModal
           isOpen={showCreateGroupModal}
-          onClose={() => setShowCreateGroupModal(false)}
-          mode="group"
+          onClose={() => {
+            setShowCreateGroupModal(false);
+            setShowCreateMenu(false);
+          }}
+          mode={createMode}
           dataStore={dataStore}
           currentUser={currentUser}
           availableUsers={users}
           onSuccess={() => {
             loadGroupChats();
+          }}
+        />
+      )}
+
+      {/* Click outside to close menu */}
+      {showCreateMenu && (
+        <div
+          onClick={() => setShowCreateMenu(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1000
           }}
         />
       )}
