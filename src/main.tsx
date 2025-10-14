@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { AppServicesProvider } from './context/AppServicesContext';
+import { SupabaseReadyProvider } from './context/SupabaseReadyContext';
 import { initSupabase } from './lib/supabaseClient';
 import { installRoleDebugger } from './lib/roleDiagnostics';
 import './lib/initDiagnostics';
@@ -195,9 +196,11 @@ function LoadingScreen() {
     root.render(
       <ErrorBoundary>
         <AuthProvider>
-          <AppServicesProvider>
-            <App />
-          </AppServicesProvider>
+          <SupabaseReadyProvider>
+            <AppServicesProvider>
+              <App />
+            </AppServicesProvider>
+          </SupabaseReadyProvider>
         </AuthProvider>
       </ErrorBoundary>
     );

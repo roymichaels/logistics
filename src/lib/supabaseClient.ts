@@ -126,6 +126,7 @@ export async function initSupabase(): Promise<SupabaseClient> {
         (window as any).__SUPABASE_CLIENT__ = client;
         (window as any).__SUPABASE_INITIALIZED__ = true;
         (window as any).__SUPABASE_INIT_IN_PROGRESS__ = false;
+        window.dispatchEvent(new Event('supabase-ready'));
       }
 
       return client;
@@ -137,6 +138,7 @@ export async function initSupabase(): Promise<SupabaseClient> {
       if (typeof window !== 'undefined') {
         (window as any).__SUPABASE_INIT_IN_PROGRESS__ = false;
         (window as any).__SUPABASE_INITIALIZED__ = false;
+        window.dispatchEvent(new Event('supabase-reset'));
       }
 
       console.error('❌ Supabase initialization failed:', error);
