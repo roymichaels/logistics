@@ -3,6 +3,7 @@ import { DataStore, User } from '../data/types';
 import { telegram } from '../lib/telegram';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { waitForSupabaseInit } from '../lib/supabaseClient';
+import { useSupabaseReady } from '../context/SupabaseReadyContext';
 
 interface CreateBusinessModalProps {
   dataStore: DataStore;
@@ -22,6 +23,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
   const [initError, setInitError] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+  const { isSupabaseReady } = useSupabaseReady();
 
   useEffect(() => {
     let mounted = true;
@@ -32,7 +34,9 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       console.log('🔄 CreateBusinessModal: Starting initialization...', {
         hasUser: !!user,
         userId: user?.id,
-        telegramId: user?.telegram_id
+        telegramId: user?.telegram_id,
+        isSupabaseReady,
+        hasSupabaseInStore: !!dataStore.supabase
       });
 
       if (!user) {
@@ -49,6 +53,13 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         return;
       }
 
+      if (!isSupabaseReady) {
+        console.log('⏳ CreateBusinessModal: Global Supabase not ready yet');
+        setIsInitializing(true);
+        setIsReady(false);
+        return;
+      }
+
       if (!user.telegram_id) {
         setInitError('לא נמצא מזהה משתמש. אנא התחבר מחדש.');
         setIsInitializing(false);
@@ -59,11 +70,19 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       try {
         console.log('⏳ CreateBusinessModal: Waiting for Supabase initialization...');
 
-        const supabaseClient = await waitForSupabaseInit(15000, 200);
+        let supabaseClient = dataStore.supabase;
+
+        if (!supabaseClient) {
+          supabaseClient = await waitForSupabaseInit(15000, 200);
+        }
 
         if (!mounted) {
           console.log('🚫 CreateBusinessModal: Component unmounted during Supabase wait');
           return;
+        }
+
+        if (!supabaseClient) {
+          throw new Error('Supabase client unavailable after initialization.');
         }
 
         console.log('✅ CreateBusinessModal: Supabase client ready, querying user data...');
@@ -119,7 +138,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
     return () => {
       mounted = false;
     };
-  }, [user, retryCount]);
+  }, [user, retryCount, isSupabaseReady, dataStore.supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
