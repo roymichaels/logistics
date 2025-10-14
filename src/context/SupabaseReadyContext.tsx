@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useState
 } from 'react';
-import { isSupabaseInitialized } from '../lib/supabaseClient';
+import { getSupabase, initSupabase, isSupabaseInitialized } from '../lib/supabaseClient';
 
 export interface SupabaseReadyContextValue {
   isSupabaseReady: boolean;
@@ -30,19 +30,69 @@ export function SupabaseReadyProvider({ children, value }: SupabaseReadyProvider
       return;
     }
 
-    setIsReady(isSupabaseInitialized());
+    let isMounted = true;
+
+    const updateReadyState = () => {
+      if (!isMounted) {
+        return;
+      }
+      setIsReady(isSupabaseInitialized());
+    };
+
+    updateReadyState();
 
     if (typeof window === 'undefined') {
-      return;
+      return () => {
+        isMounted = false;
+      };
     }
 
-    const handleReady = () => setIsReady(true);
-    const handleReset = () => setIsReady(isSupabaseInitialized());
+    const ensureClient = async () => {
+      try {
+        await initSupabase();
+        if (!isMounted) {
+          return;
+        }
+        getSupabase();
+        setIsReady(true);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+        console.error('Failed to initialize Supabase client in SupabaseReadyProvider:', error);
+        setIsReady(false);
+      }
+    };
+
+    if (!isSupabaseInitialized()) {
+      ensureClient();
+    } else {
+      try {
+        getSupabase();
+      } catch (error) {
+        console.warn('SupabaseReadyProvider detected initialized flag without client. Re-running init.', error);
+        ensureClient();
+      }
+    }
+
+    const handleReady = () => {
+      updateReadyState();
+      try {
+        getSupabase();
+      } catch (error) {
+        console.error('SupabaseReadyProvider failed to access Supabase client after ready event:', error);
+      }
+    };
+
+    const handleReset = () => {
+      updateReadyState();
+    };
 
     window.addEventListener('supabase-ready', handleReady);
     window.addEventListener('supabase-reset', handleReset);
 
     return () => {
+      isMounted = false;
       window.removeEventListener('supabase-ready', handleReady);
       window.removeEventListener('supabase-reset', handleReset);
     };

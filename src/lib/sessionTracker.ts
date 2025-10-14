@@ -7,8 +7,6 @@
 
 import { getSupabase } from './supabaseClient';
 
-const supabase = getSupabase();
-
 export interface SessionCheckpoint {
   timestamp: number;
   checkpoint: string;
@@ -57,6 +55,16 @@ class SessionTracker {
     const errors: string[] = [];
 
     this.log('VERIFY_START', 'success', 'Starting session verification');
+
+    let supabase;
+    try {
+      supabase = getSupabase();
+    } catch (error) {
+      const err = error as Error;
+      this.log('VERIFY_SUPABASE', 'error', 'Supabase client unavailable', err.message);
+      errors.push('Supabase not initialized: ' + err.message);
+      return { valid: false, hasSession: false, hasClaims: false, claims: null, errors };
+    }
 
     try {
       const { data: { session }, error } = await supabase.auth.getSession();
