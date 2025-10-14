@@ -34,6 +34,9 @@ import {
   SalesLogInput,
   CreateOrderInput,
   Zone,
+  CreateZoneInput,
+  UpdateZoneInput,
+  ZoneAuditLog,
   DriverZoneAssignment,
   DriverStatusRecord,
   DriverMovementLog,
@@ -2032,11 +2035,30 @@ export class SupabaseDataStore implements DataStore {
     return defaults;
   }
   // Zones & Dispatch
-  async listZones(): Promise<Zone[]> {
-    const { data, error } = await supabase
+  async listZones(filters?: { business_id?: string; city?: string; region?: string; includeDeleted?: boolean }): Promise<Zone[]> {
+    let query = supabase
       .from('zones')
-      .select('*')
-      .order('name', { ascending: true });
+      .select('*');
+
+    if (!filters?.includeDeleted) {
+      query = query.is('deleted_at', null);
+    }
+
+    if (filters?.business_id) {
+      query = query.eq('business_id', filters.business_id);
+    }
+
+    if (filters?.city) {
+      query = query.eq('city', filters.city);
+    }
+
+    if (filters?.region) {
+      query = query.eq('region', filters.region);
+    }
+
+    query = query.order('name', { ascending: true });
+
+    const { data, error } = await query;
 
     if (error) throw error;
     return data || [];
@@ -2051,6 +2073,97 @@ export class SupabaseDataStore implements DataStore {
 
     if (error) throw error;
     return data || null;
+  }
+
+  async createZone(input: CreateZoneInput): Promise<{ id: string }> {
+    const now = new Date().toISOString();
+
+    const zoneData = {
+      name: input.name,
+      code: input.code || null,
+      description: input.description || null,
+      color: input.color || null,
+      city: input.city || null,
+      region: input.region || null,
+      polygon: input.polygon || null,
+      business_id: input.business_id || null,
+      metadata: input.metadata || {},
+      active: input.active !== undefined ? input.active : true,
+      created_by: this.userTelegramId,
+      updated_by: this.userTelegramId,
+      created_at: now,
+      updated_at: now
+    };
+
+    const { data, error } = await supabase
+      .from('zones')
+      .insert(zoneData)
+      .select('id')
+      .single();
+
+    if (error) throw error;
+    return { id: data.id };
+  }
+
+  async updateZone(id: string, input: UpdateZoneInput): Promise<void> {
+    const updateData: any = {
+      ...input,
+      updated_by: this.userTelegramId,
+      updated_at: new Date().toISOString()
+    };
+
+    const { error } = await supabase
+      .from('zones')
+      .update(updateData)
+      .eq('id', id);
+
+    if (error) throw error;
+  }
+
+  async deleteZone(id: string, softDelete: boolean = true): Promise<void> {
+    if (softDelete) {
+      const { error } = await supabase
+        .from('zones')
+        .update({
+          deleted_at: new Date().toISOString(),
+          updated_by: this.userTelegramId
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+    } else {
+      const { error } = await supabase
+        .from('zones')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    }
+  }
+
+  async restoreZone(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('zones')
+      .update({
+        deleted_at: null,
+        updated_by: this.userTelegramId,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (error) throw error;
+  }
+
+  async getZoneAuditLogs(zoneId: string, limit: number = 50): Promise<ZoneAuditLog[]> {
+    const { data, error } = await supabase
+      .from('zone_audit_logs')
+      .select('*')
+      .eq('zone_id', zoneId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return data || [];
   }
 
   async listDriverZones(filters?: { driver_id?: string; zone_id?: string; activeOnly?: boolean }): Promise<DriverZoneAssignment[]> {

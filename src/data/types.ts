@@ -157,9 +157,51 @@ export interface Zone {
   code?: string | null;
   description?: string | null;
   color?: string | null;
+  city?: string | null;
+  region?: string | null;
+  polygon?: any | null;
   active: boolean;
+  business_id?: string | null;
+  created_by?: string | null;
+  updated_by?: string | null;
+  metadata?: Record<string, any> | null;
+  deleted_at?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface CreateZoneInput {
+  name: string;
+  code?: string | null;
+  description?: string | null;
+  color?: string | null;
+  city?: string | null;
+  region?: string | null;
+  polygon?: any | null;
+  business_id?: string | null;
+  metadata?: Record<string, any> | null;
+  active?: boolean;
+}
+
+export interface UpdateZoneInput {
+  name?: string;
+  code?: string | null;
+  description?: string | null;
+  color?: string | null;
+  city?: string | null;
+  region?: string | null;
+  polygon?: any | null;
+  active?: boolean;
+  metadata?: Record<string, any> | null;
+}
+
+export interface ZoneAuditLog {
+  id: string;
+  zone_id: string;
+  action: 'created' | 'updated' | 'deleted' | 'restored';
+  changed_by: string;
+  changes: Record<string, any>;
+  created_at: string;
 }
 
 export interface DriverZoneAssignment {
@@ -561,8 +603,13 @@ export interface DataStore {
   getRolePermissions?(): Promise<RolePermissions>;
 
   // Zones & Dispatch
-  listZones?(): Promise<Zone[]>;
+  listZones?(filters?: { business_id?: string; city?: string; region?: string; includeDeleted?: boolean }): Promise<Zone[]>;
   getZone?(id: string): Promise<Zone | null>;
+  createZone?(input: CreateZoneInput): Promise<{ id: string }>;
+  updateZone?(id: string, input: UpdateZoneInput): Promise<void>;
+  deleteZone?(id: string, softDelete?: boolean): Promise<void>;
+  restoreZone?(id: string): Promise<void>;
+  getZoneAuditLogs?(zoneId: string, limit?: number): Promise<ZoneAuditLog[]>;
   listDriverZones?(filters?: { driver_id?: string; zone_id?: string; activeOnly?: boolean }): Promise<DriverZoneAssignment[]>;
   assignDriverToZone?(input: { zone_id: string; driver_id?: string; active?: boolean }): Promise<void>;
   unassignDriverFromZone?(input: { zone_id: string; driver_id?: string }): Promise<void>;

@@ -3,11 +3,14 @@ import { DataStore, Zone, User } from '../data/types';
 import { Toast } from '../components/Toast';
 import { telegram } from '../lib/telegram';
 import { TelegramModal } from '../components/TelegramModal';
+import { ZoneManager } from '../components/ZoneManager';
 
 interface ZoneManagementProps {
   dataStore: DataStore;
   onNavigate: (page: string) => void;
 }
+
+type ViewMode = 'manager' | 'assignments';
 
 const ROYAL_COLORS = {
   background: 'radial-gradient(125% 125% at 50% 0%, rgba(95, 46, 170, 0.55) 0%, rgba(12, 2, 25, 0.95) 45%, #03000a 100%)',
@@ -26,6 +29,7 @@ interface ZoneWithDrivers extends Zone {
 }
 
 export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
+  const [viewMode, setViewMode] = useState<ViewMode>('manager');
   const [zones, setZones] = useState<ZoneWithDrivers[]>([]);
   const [drivers, setDrivers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,8 +38,10 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
   const [selectedDriverId, setSelectedDriverId] = useState<string>('');
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (viewMode === 'assignments') {
+      loadData();
+    }
+  }, [viewMode]);
 
   const loadData = async () => {
     try {
@@ -117,6 +123,10 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
     }
   };
 
+  if (viewMode === 'manager') {
+    return <ZoneManager dataStore={dataStore} />;
+  }
+
   if (loading) {
     return (
       <div
@@ -170,7 +180,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
             marginBottom: '24px'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
             <div
               style={{
                 width: '56px',
@@ -191,6 +201,49 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                 שיוך נהגים לאזורי פעילות
               </p>
             </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              onClick={() => {
+                setViewMode('manager');
+                telegram.hapticFeedback('selection');
+              }}
+              style={{
+                flex: 1,
+                padding: '12px',
+                background: viewMode === 'manager' ? `linear-gradient(120deg, ${ROYAL_COLORS.teal}, ${ROYAL_COLORS.accent})` : 'rgba(20, 8, 46, 0.6)',
+                border: viewMode === 'manager' ? 'none' : '1px solid rgba(156, 109, 255, 0.3)',
+                borderRadius: '12px',
+                color: ROYAL_COLORS.text,
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                boxShadow: viewMode === 'manager' ? '0 4px 12px rgba(77, 208, 225, 0.3)' : 'none'
+              }}
+            >
+              ניהול אזורים
+            </button>
+            <button
+              onClick={() => {
+                setViewMode('assignments');
+                telegram.hapticFeedback('selection');
+              }}
+              style={{
+                flex: 1,
+                padding: '12px',
+                background: viewMode === 'assignments' ? `linear-gradient(120deg, ${ROYAL_COLORS.teal}, ${ROYAL_COLORS.accent})` : 'rgba(20, 8, 46, 0.6)',
+                border: viewMode === 'assignments' ? 'none' : '1px solid rgba(156, 109, 255, 0.3)',
+                borderRadius: '12px',
+                color: ROYAL_COLORS.text,
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                boxShadow: viewMode === 'assignments' ? '0 4px 12px rgba(77, 208, 225, 0.3)' : 'none'
+              }}
+            >
+              שיוך נהגים
+            </button>
           </div>
         </header>
 
