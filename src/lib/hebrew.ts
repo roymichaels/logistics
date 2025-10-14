@@ -153,7 +153,7 @@ export const hebrew = {
 
 export const roleNames = {
   user: 'משתמש',
-  infrastructure_owner: 'בעל עסק',
+  infrastructure_owner: 'בעל תשתית',
   business_owner: 'בעל עסק',
   owner: 'בעלים',
   manager: 'מנהל',
@@ -166,8 +166,8 @@ export const roleNames = {
 
 export const roleIcons = {
   user: '👤',
-  infrastructure_owner: '💎',
-  business_owner: '💎',
+  infrastructure_owner: '🏛️',
+  business_owner: '👑',
   owner: '👑',
   manager: '🎁',
   dispatcher: '📋',

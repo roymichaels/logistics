@@ -320,6 +320,12 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
     if (!selectedUser) return;
 
     try {
+      console.log('🔄 Approving user:', {
+        telegram_id: selectedUser.telegram_id,
+        username: selectedUser.username,
+        selected_role: selectedRole
+      });
+
       const success = await userManager.approveUser(
         selectedUser.telegram_id,
         selectedRole,
@@ -329,16 +335,22 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       if (success) {
         telegram.hapticFeedback('notification', 'success');
 
-        // Log the approval in audit log
-        if (dataStore) {
-          await dataStore.supabase.rpc('log_user_approval', {
-            p_target_user_id: selectedUser.telegram_id,
-            p_target_username: selectedUser.username || null,
-            p_performed_by: currentUser.telegram_id,
-            p_performed_by_username: currentUser.username || null,
-            p_assigned_role: selectedRole,
-            p_notes: null
-          });
+        // Log the approval in audit log (non-blocking)
+        if (dataStore?.supabase) {
+          try {
+            await dataStore.supabase.rpc('log_user_approval', {
+              p_target_user_id: selectedUser.telegram_id,
+              p_target_username: selectedUser.username || null,
+              p_performed_by: currentUser.telegram_id,
+              p_performed_by_username: currentUser.username || null,
+              p_assigned_role: selectedRole,
+              p_notes: null
+            });
+          } catch (auditError) {
+            console.warn('⚠️ Failed to log audit entry (non-critical):', auditError);
+          }
+        } else {
+          console.warn('⚠️ dataStore.supabase not available for audit logging');
         }
 
         Toast.success(`משתמש אושר בהצלחה כ${roleNames[selectedRole]}`);
@@ -349,8 +361,8 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
         Toast.error('שגיאה באישור המשתמש');
       }
     } catch (error) {
-      console.error('Failed to approve user', error);
-      Toast.error('שגיאה באישור המשתמש');
+      console.error('❌ Failed to approve user:', error);
+      Toast.error('שגיאה באישור המשתמש: ' + (error instanceof Error ? error.message : String(error)));
     }
   };
 
@@ -423,16 +435,20 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       const success = await userManager.deleteUser(user.telegram_id);
 
       if (success) {
-        // Log the deletion
-        if (dataStore) {
-          await dataStore.supabase.rpc('log_user_deletion', {
-            p_target_user_id: user.telegram_id,
-            p_target_username: user.username || null,
-            p_performed_by: currentUser.telegram_id,
-            p_performed_by_username: currentUser.username || null,
-            p_previous_role: user.assigned_role || user.requested_role,
-            p_reason: null
-          });
+        // Log the deletion (non-blocking)
+        if (dataStore?.supabase) {
+          try {
+            await dataStore.supabase.rpc('log_user_deletion', {
+              p_target_user_id: user.telegram_id,
+              p_target_username: user.username || null,
+              p_performed_by: currentUser.telegram_id,
+              p_performed_by_username: currentUser.username || null,
+              p_previous_role: user.assigned_role || user.requested_role,
+              p_reason: null
+            });
+          } catch (auditError) {
+            console.warn('⚠️ Failed to log deletion audit entry (non-critical):', auditError);
+          }
         }
 
         telegram.hapticFeedback('notification', 'success');
@@ -1281,6 +1297,43 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
 }
 
 function RoleSelectionContent({ user, selectedRole, onRoleChange, theme }: any) {
+  // Group roles by level
+  const infrastructureRoles = ['infrastructure_owner'];
+  const businessRoles = ['business_owner', 'manager', 'dispatcher', 'driver', 'warehouse', 'sales', 'customer_service'];
+
+  const renderRoleButton = (role: string, name: string) => (
+    <button
+      key={role}
+      onClick={() => {
+        telegram.hapticFeedback('selection');
+        onRoleChange(role);
+      }}
+      aria-label={`Select role ${name}`}
+      style={{
+        padding: '14px 16px',
+        border: `2px solid ${selectedRole === role ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+        borderRadius: '12px',
+        background: selectedRole === role ? ROYAL_COLORS.accent + '20' : 'transparent',
+        color: ROYAL_COLORS.text,
+        fontSize: '16px',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        transition: 'all 0.2s ease',
+        fontWeight: selectedRole === role ? '600' : '500'
+      }}
+    >
+      <span style={{ fontSize: '20px' }}>
+        {roleIcons[role as keyof typeof roleIcons]}
+      </span>
+      <span style={{ flex: 1, textAlign: 'right' }}>{name}</span>
+      {selectedRole === role && (
+        <span style={{ color: ROYAL_COLORS.accent, fontSize: '18px' }}>✓</span>
+      )}
+    </button>
+  );
+
   return (
     <div>
       <div style={{ marginBottom: '20px', textAlign: 'center' }}>
@@ -1320,39 +1373,42 @@ function RoleSelectionContent({ user, selectedRole, onRoleChange, theme }: any) 
           בחר תפקיד:
         </label>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {Object.entries(roleNames).map(([role, name]) => (
-            <button
-              key={role}
-              onClick={() => {
-                telegram.hapticFeedback('selection');
-                onRoleChange(role);
-              }}
-              aria-label={`Select role ${name}`}
-              style={{
-                padding: '14px 16px',
-                border: `2px solid ${selectedRole === role ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
-                borderRadius: '12px',
-                background: selectedRole === role ? ROYAL_COLORS.accent + '20' : 'transparent',
-                color: ROYAL_COLORS.text,
-                fontSize: '16px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                transition: 'all 0.2s ease',
-                fontWeight: selectedRole === role ? '600' : '500'
-              }}
-            >
-              <span style={{ fontSize: '20px' }}>
-                {roleIcons[role as keyof typeof roleIcons]}
-              </span>
-              <span style={{ flex: 1, textAlign: 'right' }}>{name}</span>
-              {selectedRole === role && (
-                <span style={{ color: ROYAL_COLORS.accent, fontSize: '18px' }}>✓</span>
-              )}
-            </button>
-          ))}
+        {/* Infrastructure Level Roles */}
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{
+            fontSize: '13px',
+            fontWeight: '600',
+            color: ROYAL_COLORS.muted,
+            marginBottom: '8px',
+            paddingRight: '4px'
+          }}>
+            🏛️ רמת תשתית
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {infrastructureRoles.map(role =>
+              roleNames[role as keyof typeof roleNames] &&
+              renderRoleButton(role, roleNames[role as keyof typeof roleNames])
+            )}
+          </div>
+        </div>
+
+        {/* Business Level Roles */}
+        <div>
+          <div style={{
+            fontSize: '13px',
+            fontWeight: '600',
+            color: ROYAL_COLORS.muted,
+            marginBottom: '8px',
+            paddingRight: '4px'
+          }}>
+            🏢 רמת עסק
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {businessRoles.map(role =>
+              roleNames[role as keyof typeof roleNames] &&
+              renderRoleButton(role, roleNames[role as keyof typeof roleNames])
+            )}
+          </div>
         </div>
       </div>
     </div>
