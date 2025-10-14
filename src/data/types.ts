@@ -641,6 +641,13 @@ export interface DataStore {
   removeUserFromBusiness?(business_id: string, user_id: string): Promise<void>;
   listAllUsers?(): Promise<User[]>;
 
+  // Business Types
+  listBusinessTypes?(): Promise<BusinessType[]>;
+  getBusinessType?(id: string): Promise<BusinessType | null>;
+  createBusinessType?(input: Omit<BusinessType, 'id' | 'created_at' | 'updated_at' | 'created_by'>): Promise<{ id: string }>;
+  updateBusinessType?(id: string, updates: Partial<BusinessType>): Promise<void>;
+  deleteBusinessType?(id: string): Promise<void>;
+
   // Business Context Management
   getUserBusinesses?(): Promise<UserBusinessAccess[]>;
   getActiveBusinessContext?(): Promise<UserBusinessContext | null>;
@@ -749,6 +756,21 @@ export interface UserPreference {
 export interface AppConfig {
   app: string;
   config: BootstrapConfig;
+  updated_at: string;
+}
+
+export interface BusinessType {
+  id: string;
+  type_value: string;
+  label_hebrew: string;
+  label_english: string;
+  icon?: string;
+  description?: string;
+  is_system_default: boolean;
+  active: boolean;
+  display_order: number;
+  created_at: string;
+  created_by?: string | null;
   updated_at: string;
 }
 

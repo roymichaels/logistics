@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
-import { DataStore } from '../data/types';
+import { DataStore, BusinessType } from '../data/types';
 import { useAppServices } from '../context/AppServicesContext';
 
 interface Business {
@@ -43,6 +43,7 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'businesses' | 'assignments'>('businesses');
   const [showCreateBusiness, setShowCreateBusiness] = useState(false);
+  const [businessTypes, setBusinessTypes] = useState<BusinessType[]>([]);
   const { theme, haptic } = useTelegramUI();
   const { currentBusinessId } = useAppServices();
 
@@ -111,6 +112,12 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
         setBusinessUsers(transformedData);
       }
 
+      // Load business types
+      if (dataStore.listBusinessTypes) {
+        const types = await dataStore.listBusinessTypes();
+        setBusinessTypes(types);
+      }
+
     } catch (error) {
       console.error('Failed to load business data:', error);
     } finally {
@@ -128,15 +135,8 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
   };
 
   const getBusinessTypeLabel = (type: string) => {
-    const labels = {
-      retail: 'קמעונאות',
-      food_delivery: 'משלוחי מזון',
-      electronics: 'אלקטרוניקה',
-      fashion: 'אופנה',
-      education: 'חינוך',
-      logistics: 'לוגיסטיקה'
-    };
-    return labels[type as keyof typeof labels] || type;
+    const businessType = businessTypes.find(bt => bt.type_value === type);
+    return businessType ? `${businessType.icon || ''} ${businessType.label_hebrew}`.trim() : type;
   };
 
   const getRoleLabel = (role: string) => {

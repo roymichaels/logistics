@@ -54,6 +54,7 @@ import {
   UserBusinessContext,
   UserBusinessAccess,
   BusinessUser,
+  BusinessType,
   Business
 } from '../data/types';
 
@@ -3728,6 +3729,65 @@ export class SupabaseDataStore implements DataStore {
       .update({ active: false })
       .eq('business_id', business_id)
       .eq('user_id', user.id);
+
+    if (error) throw error;
+  }
+
+  async listBusinessTypes(): Promise<BusinessType[]> {
+    const { data, error } = await supabase
+      .from('business_types')
+      .select('*')
+      .eq('active', true)
+      .order('display_order', { ascending: true });
+
+    if (error) throw error;
+
+    return data || [];
+  }
+
+  async getBusinessType(id: string): Promise<BusinessType | null> {
+    const { data, error } = await supabase
+      .from('business_types')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    return data;
+  }
+
+  async createBusinessType(input: Omit<BusinessType, 'id' | 'created_at' | 'updated_at' | 'created_by'>): Promise<{ id: string }> {
+    const profile = await this.getProfile();
+
+    const { data, error } = await supabase
+      .from('business_types')
+      .insert({
+        ...input,
+        created_by: profile.id
+      })
+      .select('id')
+      .single();
+
+    if (error) throw error;
+
+    return { id: data.id };
+  }
+
+  async updateBusinessType(id: string, updates: Partial<BusinessType>): Promise<void> {
+    const { error } = await supabase
+      .from('business_types')
+      .update(updates)
+      .eq('id', id);
+
+    if (error) throw error;
+  }
+
+  async deleteBusinessType(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('business_types')
+      .update({ active: false })
+      .eq('id', id);
 
     if (error) throw error;
   }

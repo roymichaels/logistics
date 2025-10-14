@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DataStore, User } from '../data/types';
+import { DataStore, User, BusinessType } from '../data/types';
 import { hebrew } from '../lib/hebrew';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { telegram } from '../lib/telegram';
@@ -460,11 +460,65 @@ function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: {
   const [formData, setFormData] = useState({
     name: '',
     name_hebrew: '',
-    business_type: 'logistics',
+    business_type: '',
     description: '',
     ownershipPercentage: 100
   });
+  const [businessTypes, setBusinessTypes] = useState<BusinessType[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingTypes, setLoadingTypes] = useState(true);
+  const [showCreateType, setShowCreateType] = useState(false);
+  const [newType, setNewType] = useState({ type_value: '', label_hebrew: '', label_english: '', icon: '🏢' });
+
+  useEffect(() => {
+    loadBusinessTypes();
+  }, []);
+
+  const loadBusinessTypes = async () => {
+    setLoadingTypes(true);
+    try {
+      if (dataStore.listBusinessTypes) {
+        const types = await dataStore.listBusinessTypes();
+        setBusinessTypes(types);
+        if (types.length > 0 && !formData.business_type) {
+          setFormData(prev => ({ ...prev, business_type: types[0].type_value }));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load business types:', error);
+    } finally {
+      setLoadingTypes(false);
+    }
+  };
+
+  const handleCreateType = async () => {
+    if (!newType.type_value || !newType.label_hebrew || !newType.label_english) {
+      telegram.showAlert('נא למלא את כל שדות סוג העסק');
+      return;
+    }
+
+    try {
+      if (dataStore.createBusinessType) {
+        await dataStore.createBusinessType({
+          type_value: newType.type_value.toLowerCase().replace(/\s+/g, '_'),
+          label_hebrew: newType.label_hebrew,
+          label_english: newType.label_english,
+          icon: newType.icon || '🏢',
+          is_system_default: false,
+          active: true,
+          display_order: businessTypes.length + 1
+        });
+
+        telegram.hapticFeedback('notification', 'success');
+        setNewType({ type_value: '', label_hebrew: '', label_english: '', icon: '🏢' });
+        setShowCreateType(false);
+        await loadBusinessTypes();
+      }
+    } catch (error) {
+      console.error('Failed to create business type:', error);
+      telegram.showAlert('שגיאה ביצירת סוג עסק');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -642,22 +696,92 @@ function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: {
               }}>
                 סוג העסק *
               </label>
-              <select
-                value={formData.business_type}
-                onChange={(e) => setFormData({ ...formData, business_type: e.target.value })}
-                disabled={loading}
-                style={{
-                  ...ROYAL_STYLES.input,
-                  fontSize: '16px'
-                }}
-              >
-                <option value="logistics">לוגיסטיקה</option>
-                <option value="retail">קמעונאות</option>
-                <option value="food_delivery">משלוחי מזון</option>
-                <option value="electronics">אלקטרוניקה</option>
-                <option value="fashion">אופנה</option>
-                <option value="education">חינוך</option>
-              </select>
+              {loadingTypes ? (
+                <div style={{ ...ROYAL_STYLES.input, fontSize: '16px', color: ROYAL_COLORS.muted }}>
+                  טוען סוגי עסקים...
+                </div>
+              ) : (
+                <>
+                  <select
+                    value={formData.business_type}
+                    onChange={(e) => setFormData({ ...formData, business_type: e.target.value })}
+                    disabled={loading}
+                    style={{
+                      ...ROYAL_STYLES.input,
+                      fontSize: '16px'
+                    }}
+                  >
+                    {businessTypes.length === 0 && <option value="">אין סוגי עסקים זמינים</option>}
+                    {businessTypes.map((type) => (
+                      <option key={type.id} value={type.type_value}>
+                        {type.icon} {type.label_hebrew}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateType(!showCreateType)}
+                    style={{
+                      ...ROYAL_STYLES.buttonSecondary,
+                      width: '100%',
+                      marginTop: '8px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    {showCreateType ? '✕ ביטול' : '+ צור סוג עסק חדש'}
+                  </button>
+                  {showCreateType && (
+                    <div style={{
+                      marginTop: '12px',
+                      padding: '16px',
+                      backgroundColor: ROYAL_COLORS.secondary,
+                      borderRadius: '8px',
+                      border: `1px solid ${ROYAL_COLORS.border}`
+                    }}>
+                      <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '600', color: ROYAL_COLORS.text }}>
+                        סוג עסק חדש
+                      </h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <input
+                          type="text"
+                          placeholder="ערך (אנגלית, לדוגמה: my_business)"
+                          value={newType.type_value}
+                          onChange={(e) => setNewType({ ...newType, type_value: e.target.value })}
+                          style={{ ...ROYAL_STYLES.input, fontSize: '14px' }}
+                        />
+                        <input
+                          type="text"
+                          placeholder="שם בעברית"
+                          value={newType.label_hebrew}
+                          onChange={(e) => setNewType({ ...newType, label_hebrew: e.target.value })}
+                          style={{ ...ROYAL_STYLES.input, fontSize: '14px' }}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Name in English"
+                          value={newType.label_english}
+                          onChange={(e) => setNewType({ ...newType, label_english: e.target.value })}
+                          style={{ ...ROYAL_STYLES.input, fontSize: '14px' }}
+                        />
+                        <input
+                          type="text"
+                          placeholder="אייקון (אימוג'י)"
+                          value={newType.icon}
+                          onChange={(e) => setNewType({ ...newType, icon: e.target.value })}
+                          style={{ ...ROYAL_STYLES.input, fontSize: '14px' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleCreateType}
+                          style={{ ...ROYAL_STYLES.buttonPrimary, fontSize: '14px' }}
+                        >
+                          שמור סוג עסק
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             <div>
