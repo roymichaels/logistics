@@ -46,6 +46,13 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
     setLoading(true);
     try {
       const profile = await dataStore.getProfile();
+
+      // Validate profile has required fields
+      if (!profile || !profile.id) {
+        console.error('Invalid profile data:', profile);
+        throw new Error('Failed to load user profile');
+      }
+
       setUser(profile);
 
       if (!dataStore.supabase) {

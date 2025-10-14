@@ -88,13 +88,22 @@ function getSupabaseInstance() {
 
 const supabase = new Proxy({} as any, {
   get(target, prop) {
+    // Filter out Promise-like properties to prevent treating Proxy as thenable
     if (prop === 'then' || prop === 'catch' || prop === 'finally') {
+      return undefined;
+    }
+
+    // Filter out Symbol properties that might cause recursion
+    if (typeof prop === 'symbol') {
       return undefined;
     }
 
     const instance = getSupabaseInstance();
     if (!instance) {
-      console.warn('⚠️ Supabase client not yet initialized, property:', prop);
+      // Only warn for non-internal properties
+      if (typeof prop === 'string' && !prop.startsWith('_')) {
+        console.warn('⚠️ Supabase client not yet initialized, property:', prop);
+      }
       return undefined;
     }
 
@@ -960,7 +969,7 @@ export class SupabaseDataStore implements DataStore {
         updated_at: new Date().toISOString()
       };
 
-      const { data: created, error: createError } = await supabase
+      const { data: created, error: createError } = await freshClient
         .from('users')
         .insert(newUser)
         .select('id, telegram_id, role, name, username, photo_url, department, phone, business_id, last_active, created_at, updated_at')
@@ -969,6 +978,11 @@ export class SupabaseDataStore implements DataStore {
       if (createError) {
         console.error('getProfile: Failed to create user:', createError);
         throw createError;
+      }
+
+      if (!created || !created.id) {
+        console.error('❌ Created user missing id field:', created);
+        throw new Error('Failed to create user: missing id');
       }
 
       this.user = created;
@@ -1002,7 +1016,7 @@ export class SupabaseDataStore implements DataStore {
       if (Object.keys(updates).length > 0) {
         updates.updated_at = new Date().toISOString();
 
-        const { data: updated, error: updateError } = await supabase
+        const { data: updated, error: updateError } = await freshClient
           .from('users')
           .update(updates)
           .eq('telegram_id', this.userTelegramId)
@@ -1012,11 +1026,16 @@ export class SupabaseDataStore implements DataStore {
         if (updateError) {
           console.error('⚠️ getProfile: Failed to update user data:', updateError);
           // Continue with existing data
-        } else if (updated) {
+        } else if (updated && updated.id) {
           this.user = updated;
           return updated;
         }
       }
+    }
+
+    if (!data || !data.id) {
+      console.error('❌ getProfile: User data missing id field:', data);
+      throw new Error('User data incomplete: missing id');
     }
 
     this.user = data;

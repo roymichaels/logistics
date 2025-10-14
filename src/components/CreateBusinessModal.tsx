@@ -39,15 +39,27 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         throw new Error('משתמש לא מזוהה');
       }
 
+      // Re-fetch user profile to ensure we have the latest data with id
+      let userWithId = user;
       if (!user.id) {
-        console.error('User missing id field:', {
+        console.warn('User missing id field, re-fetching profile...', {
           hasUser: !!user,
           userKeys: user ? Object.keys(user) : [],
           telegram_id: user?.telegram_id,
           role: user?.role,
           name: user?.name
         });
-        throw new Error('נתוני משתמש חסרים - אנא רענן את הדף');
+
+        try {
+          userWithId = await dataStore.getProfile(true);
+          if (!userWithId?.id) {
+            console.error('Still missing id after re-fetch:', userWithId);
+            throw new Error('נתוני משתמש חסרים - אנא רענן את הדף');
+          }
+        } catch (profileError) {
+          console.error('Failed to re-fetch profile:', profileError);
+          throw new Error('שגיאה בטעינת פרופיל המשתמש');
+        }
       }
 
       // Wait a moment for supabase to be available if not ready yet
@@ -67,8 +79,8 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       console.log('Creating business with data:', {
         name: formData.name,
         name_hebrew: formData.name_hebrew,
-        user_id: user.id,
-        user_role: user.role
+        user_id: userWithId.id,
+        user_role: userWithId.role
       });
 
       const { data: businessData, error: businessError } = await dataStore.supabase
@@ -96,7 +108,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         .from('business_ownership')
         .insert({
           business_id: businessData.id,
-          owner_user_id: user.id,
+          owner_user_id: userWithId.id,
           ownership_percentage: formData.ownershipPercentage,
           equity_type: 'founder',
           profit_share_percentage: formData.ownershipPercentage,
