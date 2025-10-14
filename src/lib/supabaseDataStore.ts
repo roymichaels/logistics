@@ -602,8 +602,11 @@ export class SupabaseDataStore implements DataStore {
     this.user = user;
     this.userCacheTimestamp = Date.now();
     console.log('💾 User cached', {
+      id: user.id,
       telegram_id: user.telegram_id,
       role: user.role,
+      hasId: !!user.id,
+      userKeys: Object.keys(user),
       timestamp: new Date(this.userCacheTimestamp).toISOString()
     });
   }
@@ -982,6 +985,15 @@ export class SupabaseDataStore implements DataStore {
       console.error('❌ getProfile: Database error:', error);
       throw error;
     }
+
+    console.log('🔍 getProfile: Raw database response:', {
+      hasData: !!data,
+      dataKeys: data ? Object.keys(data) : [],
+      id: data?.id,
+      telegram_id: data?.telegram_id,
+      role: data?.role,
+      name: data?.name
+    });
 
     if (!data) {
       // Validate telegram_id before creating user

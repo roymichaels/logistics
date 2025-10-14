@@ -35,52 +35,30 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
     setLoading(true);
     try {
       if (!user) {
-        console.error('Missing user data');
+        console.error('❌ CreateBusiness: No user provided');
         throw new Error('משתמש לא מזוהה');
       }
 
-      // Re-fetch user profile to ensure we have the latest data with id
-      let userWithId = user;
       if (!user.id) {
-        console.warn('User missing id field, re-fetching profile...', {
-          hasUser: !!user,
-          userKeys: user ? Object.keys(user) : [],
-          telegram_id: user?.telegram_id,
-          role: user?.role,
-          name: user?.name
+        console.error('❌ CreateBusiness: User missing id field:', {
+          telegram_id: user.telegram_id,
+          role: user.role,
+          name: user.name,
+          userKeys: Object.keys(user)
         });
-
-        try {
-          userWithId = await dataStore.getProfile(true);
-          if (!userWithId?.id) {
-            console.error('Still missing id after re-fetch:', userWithId);
-            throw new Error('נתוני משתמש חסרים - אנא רענן את הדף');
-          }
-        } catch (profileError) {
-          console.error('Failed to re-fetch profile:', profileError);
-          throw new Error('שגיאה בטעינת פרופיל המשתמש');
-        }
-      }
-
-      // Wait a moment for supabase to be available if not ready yet
-      let retries = 0;
-      const maxRetries = 10;
-      while (!dataStore.supabase && retries < maxRetries) {
-        console.log(`⏳ Waiting for Supabase client... (attempt ${retries + 1}/${maxRetries})`);
-        await new Promise(resolve => setTimeout(resolve, 300));
-        retries++;
+        throw new Error('שגיאה: חסר מזהה משתמש. אנא רענן את הדף ונסה שוב.');
       }
 
       if (!dataStore.supabase) {
-        console.error('Supabase client not available after retries');
+        console.error('❌ CreateBusiness: Supabase client not available');
         throw new Error('המערכת לא מוכנה. אנא רענן את הדף ונסה שוב.');
       }
 
-      console.log('Creating business with data:', {
-        name: formData.name,
-        name_hebrew: formData.name_hebrew,
-        user_id: userWithId.id,
-        user_role: userWithId.role
+      console.log('✅ CreateBusiness: Starting with valid user', {
+        user_id: user.id,
+        telegram_id: user.telegram_id,
+        role: user.role,
+        business_name: formData.name
       });
 
       const { data: businessData, error: businessError } = await dataStore.supabase
@@ -94,21 +72,22 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         .single();
 
       if (businessError) {
-        console.error('Business creation error:', businessError);
+        console.error('❌ CreateBusiness: Business creation error:', businessError);
         throw new Error(`נכשל ביצירת עסק: ${businessError.message}`);
       }
 
       if (!businessData) {
+        console.error('❌ CreateBusiness: No business data returned');
         throw new Error('לא התקבלו נתונים על העסק החדש');
       }
 
-      console.log('Business created successfully:', businessData);
+      console.log('✅ CreateBusiness: Business created:', businessData.id);
 
       const { error: ownershipError } = await dataStore.supabase
         .from('business_ownership')
         .insert({
           business_id: businessData.id,
-          owner_user_id: userWithId.id,
+          owner_user_id: user.id,
           ownership_percentage: formData.ownershipPercentage,
           equity_type: 'founder',
           profit_share_percentage: formData.ownershipPercentage,
@@ -117,18 +96,18 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         });
 
       if (ownershipError) {
-        console.error('Ownership creation error:', ownershipError);
+        console.error('❌ CreateBusiness: Ownership creation error:', ownershipError);
         throw new Error(`נכשל ביצירת בעלות: ${ownershipError.message}`);
       }
 
-      console.log('Ownership created successfully');
+      console.log('✅ CreateBusiness: Ownership created successfully');
 
       telegram.hapticFeedback('notification', 'success');
       telegram.showAlert('העסק נוצר בהצלחה!');
       onSuccess();
       onClose();
     } catch (error) {
-      console.error('Failed to create business:', error);
+      console.error('❌ CreateBusiness: Failed:', error);
       telegram.showAlert(error instanceof Error ? error.message : 'שגיאה ביצירת עסק');
     } finally {
       setLoading(false);
