@@ -3737,7 +3737,7 @@ export class SupabaseDataStore implements DataStore {
 
     const { data, error } = await supabase
       .from('users')
-      .select('telegram_id, name, username, photo_url, role, department, phone, created_at, updated_at')
+      .select('id, telegram_id, name, username, photo_url, role, department, phone, created_at, updated_at')
       .order('name', { ascending: true });
 
     if (error) {

@@ -14,7 +14,7 @@ const ALLOWED_ROLES = new Set([
   'customer_service'
 ]);
 
-const ALLOWED_TO_UPDATE_ROLES = new Set(['owner', 'business_owner', 'manager']);
+const ALLOWED_TO_UPDATE_ROLES = new Set(['owner', 'business_owner', 'manager', 'infrastructure_owner']);
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -51,31 +51,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check for custom claims at root level (from telegram-verify)
-    const callerRole = callerClaims?.user_role || callerClaims?.app_metadata?.role;
-
-    console.log('Caller info:', {
-      role: callerRole,
-      has_custom_claims: !!(callerClaims?.user_role && callerClaims?.telegram_id),
-      provider: callerClaims?.app_metadata?.provider
-    });
-
-    if (!callerRole || !ALLOWED_TO_UPDATE_ROLES.has(callerRole)) {
-      return new Response(JSON.stringify({ error: 'Forbidden - insufficient role' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    const { user_id, new_role } = await req.json();
-
-    if (!user_id || !ALLOWED_ROLES.has(new_role)) {
-      return new Response(JSON.stringify({ error: 'Bad request - invalid user_id or role' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
@@ -90,14 +65,64 @@ Deno.serve(async (req) => {
       }
     });
 
-    console.log('Updating user role:', { user_id, new_role, updated_by: callerRole });
+    // Get caller's role from database (more reliable than JWT claims)
+    const callerId = callerClaims?.sub;
+    if (!callerId) {
+      return new Response(JSON.stringify({ error: 'Invalid token - missing user ID' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
-    const { data, error } = await supabaseAdmin
+    const { data: callerUser, error: callerError } = await supabaseAdmin
       .from('users')
-      .update({ role: new_role })
-      .eq('id', user_id)
-      .select()
-      .single();
+      .select('role')
+      .eq('id', callerId)
+      .maybeSingle();
+
+    if (callerError || !callerUser) {
+      console.error('Failed to fetch caller user:', callerError);
+      return new Response(JSON.stringify({ error: 'Could not verify user permissions' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const callerRole = callerUser.role;
+
+    console.log('Caller info:', {
+      id: callerId,
+      role: callerRole
+    });
+
+    if (!callerRole || !ALLOWED_TO_UPDATE_ROLES.has(callerRole)) {
+      return new Response(JSON.stringify({ error: 'Forbidden - insufficient role' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const { user_id, telegram_id, new_role } = await req.json();
+
+    if ((!user_id && !telegram_id) || !ALLOWED_ROLES.has(new_role)) {
+      return new Response(JSON.stringify({ error: 'Bad request - invalid user_id/telegram_id or role' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    console.log('Updating user role:', { user_id, telegram_id, new_role, updated_by: callerRole });
+
+    // Build query based on what identifier is provided
+    let query = supabaseAdmin.from('users').update({ role: new_role });
+
+    if (user_id) {
+      query = query.eq('id', user_id);
+    } else {
+      query = query.eq('telegram_id', telegram_id);
+    }
+
+    const { data, error } = await query.select().single();
 
     if (error) {
       console.error('Update failed:', error);
@@ -107,7 +132,25 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (!data) {
+      return new Response(JSON.stringify({ error: 'User not found' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     console.log('Update successful:', data);
+
+    // Also update user_registrations table if it exists
+    try {
+      await supabaseAdmin
+        .from('user_registrations')
+        .update({ assigned_role: new_role })
+        .eq('telegram_id', data.telegram_id);
+      console.log('Updated user_registrations table as well');
+    } catch (registrationError) {
+      console.warn('Could not update user_registrations:', registrationError);
+    }
 
     return new Response(
       JSON.stringify({ ok: true, user: data }),

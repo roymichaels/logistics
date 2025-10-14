@@ -130,6 +130,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
 
           // Transform User[] to UserRegistration[] format
           allSystemUsers = systemUsers.map((user: any) => ({
+            id: user.id,
             telegram_id: user.telegram_id,
             first_name: user.name?.split(' ')[0] || 'משתמש',
             last_name: user.name?.split(' ').slice(1).join(' ') || null,
