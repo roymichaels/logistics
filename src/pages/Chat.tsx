@@ -347,10 +347,19 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
+          justifyContent: 'space-between',
           marginBottom: '20px',
           position: 'relative'
         }}>
+          <h1 style={{
+            margin: '0',
+            fontSize: '28px',
+            fontWeight: '700',
+            color: ROYAL_COLORS.text,
+            textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
+          }}>
+            💬 הודעות
+          </h1>
           {canCreateGroup && (
             <div style={{ position: 'relative' }}>
               <button
@@ -386,7 +395,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
                   style={{
                     position: 'absolute',
                     top: '100%',
-                    right: 0,
+                    left: 0,
                     marginTop: '8px',
                     background: ROYAL_COLORS.card,
                     border: `1px solid ${ROYAL_COLORS.cardBorder}`,
@@ -464,16 +473,6 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
               )}
             </div>
           )}
-          <h1 style={{
-            margin: '0',
-            fontSize: '28px',
-            fontWeight: '700',
-            color: ROYAL_COLORS.text,
-            textShadow: '0 0 20px rgba(156, 109, 255, 0.5)',
-            flex: 1
-          }}>
-            💬 הודעות
-          </h1>
         </div>
 
         {/* Tabs */}
