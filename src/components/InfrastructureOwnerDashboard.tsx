@@ -4,8 +4,8 @@
  * Global control panel with cross-business analytics, system health, and administrative tools.
  */
 
-import React, { useEffect, useState } from 'react';
-import { getSupabase } from '../lib/supabaseClient';
+import React, { useEffect, useState, useRef } from 'react';
+import { getSupabase, isSupabaseInitialized } from '../lib/supabaseClient';
 import { CreateBusinessModal } from './CreateBusinessModal';
 import { DataStore, User } from '../data/types';
 
@@ -51,50 +51,107 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const loadingRef = useRef(false);
+  const subscriptionRef = useRef<any>(null);
 
   useEffect(() => {
+    // Wait for Supabase to be initialized before attempting to load data
+    if (!isSupabaseInitialized()) {
+      console.warn('⚠️ Supabase not initialized yet, waiting...');
+      const checkInterval = setInterval(() => {
+        if (isSupabaseInitialized()) {
+          clearInterval(checkInterval);
+          loadDashboardData();
+        }
+      }, 100);
+
+      // Timeout after 10 seconds
+      const timeout = setTimeout(() => {
+        clearInterval(checkInterval);
+        console.error('❌ Supabase initialization timeout');
+        setLoading(false);
+      }, 10000);
+
+      return () => {
+        clearInterval(checkInterval);
+        clearTimeout(timeout);
+      };
+    }
+
     loadDashboardData();
 
-    // Subscribe to real-time updates
-    const supabase = getSupabase();
-    const subscription = supabase
-      .channel('infra-dashboard')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'businesses' }, () => {
-        loadDashboardData();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-        loadDashboardData();
-      })
-      .subscribe();
-
     return () => {
-      subscription.unsubscribe();
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe();
+      }
     };
   }, []);
 
   async function loadDashboardData() {
+    // Prevent concurrent loads
+    if (loadingRef.current) {
+      console.log('⏳ Dashboard data load already in progress, skipping...');
+      return;
+    }
+
     try {
+      loadingRef.current = true;
       setLoading(true);
+
+      // Verify Supabase is initialized
+      if (!isSupabaseInitialized()) {
+        console.error('❌ Cannot load dashboard data - Supabase not initialized');
+        setLoading(false);
+        loadingRef.current = false;
+        return;
+      }
 
       const supabase = getSupabase();
 
       // Load metrics with error handling for each query
+      // Each query is wrapped to prevent one failure from blocking others
       const [businessesData, ordersData, driversData, allocationsData] = await Promise.all([
         supabase.from('businesses').select('id, active').then(res => {
-          if (res.error) console.warn('Failed to load businesses:', res.error);
+          if (res.error) {
+            console.warn('⚠️ Failed to load businesses:', res.error.message);
+            return { data: null, error: res.error };
+          }
           return res;
+        }).catch(err => {
+          console.warn('⚠️ Exception loading businesses:', err);
+          return { data: null, error: err };
         }),
         supabase.from('orders').select('id, total_amount, status, created_at').then(res => {
-          if (res.error) console.warn('Failed to load orders:', res.error);
+          if (res.error) {
+            console.warn('⚠️ Failed to load orders:', res.error.message);
+            return { data: null, error: res.error };
+          }
           return res;
+        }).catch(err => {
+          console.warn('⚠️ Exception loading orders:', err);
+          return { data: null, error: err };
         }),
         supabase.from('users').select('id, role').in('role', ['driver', 'infrastructure_driver']).then(res => {
-          if (res.error) console.warn('Failed to load drivers:', res.error);
+          if (res.error) {
+            console.warn('⚠️ Failed to load drivers:', res.error.message);
+            return { data: null, error: res.error };
+          }
           return res;
+        }).catch(err => {
+          console.warn('⚠️ Exception loading drivers:', err);
+          return { data: null, error: err };
         }),
         supabase.from('stock_allocations').select('id, allocation_status').eq('allocation_status', 'pending').then(res => {
-          if (res.error) console.warn('Failed to load allocations:', res.error);
+          if (res.error) {
+            console.warn('⚠️ Failed to load allocations (non-critical):', res.error.message);
+            // Return empty data instead of error - allocations are non-critical
+            return { data: [], error: null };
+          }
           return res;
+        }).catch(err => {
+          console.warn('⚠️ Exception loading allocations (non-critical):', err);
+          // Return empty data instead of error - allocations are non-critical
+          return { data: [], error: null };
         }),
       ]);
 
@@ -169,10 +226,31 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
 
         setRecentActivity(activities);
       }
+
+      // Set up real-time subscriptions after initial load
+      if (!subscriptionRef.current && isSupabaseInitialized()) {
+        try {
+          const subscription = supabase
+            .channel('infra-dashboard')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'businesses' }, () => {
+              loadDashboardData();
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+              loadDashboardData();
+            })
+            .subscribe();
+
+          subscriptionRef.current = subscription;
+          console.log('✅ Real-time subscriptions established');
+        } catch (subError) {
+          console.warn('⚠️ Failed to set up real-time subscriptions:', subError);
+        }
+      }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
   }
 
