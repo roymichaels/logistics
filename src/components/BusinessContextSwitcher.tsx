@@ -82,6 +82,30 @@ export function BusinessContextSwitcher({
     try {
       setSwitching(true);
 
+      // Call Edge Function to switch context
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/business-context-switch`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ business_id: businessId }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to switch context');
+      }
+
       // Invalidate permissions cache for old and new context
       invalidatePermissionsCache(userId, currentBusinessId);
       invalidatePermissionsCache(userId, businessId);
@@ -91,9 +115,12 @@ export function BusinessContextSwitcher({
 
       // Close dropdown
       setIsOpen(false);
+
+      // Reload to apply new context
+      window.location.reload();
     } catch (error) {
       console.error('Failed to switch business:', error);
-      alert('Failed to switch business context');
+      alert(error instanceof Error ? error.message : 'Failed to switch business context');
     } finally {
       setSwitching(false);
     }
