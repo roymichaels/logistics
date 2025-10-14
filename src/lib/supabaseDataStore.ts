@@ -68,8 +68,8 @@ function getSupabaseInstance() {
     try {
       supabaseInstance = getSupabase();
     } catch (error) {
-      console.error('Failed to get Supabase instance:', error);
-      throw error;
+      console.warn('⚠️ Supabase instance not yet initialized:', error);
+      return null;
     }
   }
   return supabaseInstance;
@@ -78,6 +78,10 @@ function getSupabaseInstance() {
 const supabase = new Proxy({} as any, {
   get(target, prop) {
     const instance = getSupabaseInstance();
+    if (!instance) {
+      console.warn('⚠️ Attempting to access Supabase before initialization');
+      return undefined;
+    }
     const value = instance[prop];
     if (typeof value === 'function') {
       return value.bind(instance);

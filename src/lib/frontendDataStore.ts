@@ -64,21 +64,21 @@ export function attachSubscriptionHelpers<T extends DataStore>(store: T): T & Fr
     return () => {};
   }) as FrontendDataStore['subscribe'];
 
-  // Expose supabase client if available (handles both properties and getters)
-  try {
-    const supabaseClient = (store as any).supabase;
-    if (supabaseClient) {
-      Object.defineProperty(enhanced, 'supabase', {
-        get() {
-          return (store as any).supabase;
-        },
-        enumerable: true,
-        configurable: true
-      });
-    }
-  } catch (e) {
-    // Supabase client not available on this store
-  }
+  // Always expose supabase client property - it will delegate to the store's getter
+  // This ensures the property exists even if the client isn't immediately available
+  Object.defineProperty(enhanced, 'supabase', {
+    get() {
+      try {
+        return (store as any).supabase;
+      } catch (e) {
+        // Return undefined if not available yet instead of throwing
+        console.warn('⚠️ Supabase client not yet available:', e);
+        return undefined;
+      }
+    },
+    enumerable: true,
+    configurable: true
+  });
 
   return enhanced;
 }

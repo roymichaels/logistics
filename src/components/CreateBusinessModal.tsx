@@ -34,11 +34,6 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
 
     setLoading(true);
     try {
-      if (!dataStore.supabase) {
-        console.error('Missing supabase client');
-        throw new Error('המערכת לא מוכנה. אנא נסה שוב.');
-      }
-
       if (!user) {
         console.error('Missing user data');
         throw new Error('משתמש לא מזוהה');
@@ -47,6 +42,20 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       if (!user.id) {
         console.error('User missing id field:', user);
         throw new Error('נתוני משתמש חסרים');
+      }
+
+      // Wait a moment for supabase to be available if not ready yet
+      let retries = 0;
+      const maxRetries = 5;
+      while (!dataStore.supabase && retries < maxRetries) {
+        console.log(`⏳ Waiting for Supabase client... (attempt ${retries + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        retries++;
+      }
+
+      if (!dataStore.supabase) {
+        console.error('Supabase client not available after retries');
+        throw new Error('המערכת לא מוכנה. אנא רענן את הדף ונסה שוב.');
       }
 
       console.log('Creating business with data:', {
