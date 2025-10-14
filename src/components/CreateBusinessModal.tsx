@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
 import { telegram } from '../lib/telegram';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
@@ -18,6 +18,54 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
     ownershipPercentage: 100
   });
   const [loading, setLoading] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [actualUserId, setActualUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function resolveUserId() {
+      if (!user) {
+        return;
+      }
+
+      // If user already has id, we're good
+      if (user.id) {
+        setActualUserId(user.id);
+        setIsReady(true);
+        return;
+      }
+
+      // Try to resolve user ID from telegram_id
+      if (!user.telegram_id) {
+        telegram.showAlert('שגיאה: לא נמצא מזהה משתמש. אנא רענן את הדף.');
+        return;
+      }
+
+      try {
+        if (!dataStore.supabase) {
+          telegram.showAlert('המערכת לא מוכנה. אנא רענן את הדף.');
+          return;
+        }
+
+        const { data: userData, error } = await dataStore.supabase
+          .from('users')
+          .select('id')
+          .eq('telegram_id', user.telegram_id)
+          .maybeSingle();
+
+        if (error || !userData) {
+          telegram.showAlert('שגיאה בטעינת נתוני משתמש. אנא רענן את הדף.');
+          return;
+        }
+
+        setActualUserId(userData.id);
+        setIsReady(true);
+      } catch (error) {
+        telegram.showAlert('שגיאה בטעינת נתוני משתמש. אנא רענן את הדף.');
+      }
+    }
+
+    resolveUserId();
+  }, [user, dataStore]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,32 +82,13 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
 
     setLoading(true);
     try {
-      if (!user) {
-        console.error('❌ CreateBusiness: No user provided');
-        throw new Error('משתמש לא מזוהה');
-      }
-
-      if (!user.id) {
-        console.error('❌ CreateBusiness: User missing id field:', {
-          telegram_id: user.telegram_id,
-          role: user.role,
-          name: user.name,
-          userKeys: Object.keys(user)
-        });
-        throw new Error('שגיאה: חסר מזהה משתמש. אנא רענן את הדף ונסה שוב.');
+      if (!actualUserId) {
+        throw new Error('שגיאה: לא נמצא מזהה משתמש. אנא רענן את הדף ונסה שוב.');
       }
 
       if (!dataStore.supabase) {
-        console.error('❌ CreateBusiness: Supabase client not available');
         throw new Error('המערכת לא מוכנה. אנא רענן את הדף ונסה שוב.');
       }
-
-      console.log('✅ CreateBusiness: Starting with valid user', {
-        user_id: user.id,
-        telegram_id: user.telegram_id,
-        role: user.role,
-        business_name: formData.name
-      });
 
       const { data: businessData, error: businessError } = await dataStore.supabase
         .from('businesses')
@@ -72,22 +101,18 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         .single();
 
       if (businessError) {
-        console.error('❌ CreateBusiness: Business creation error:', businessError);
         throw new Error(`נכשל ביצירת עסק: ${businessError.message}`);
       }
 
       if (!businessData) {
-        console.error('❌ CreateBusiness: No business data returned');
         throw new Error('לא התקבלו נתונים על העסק החדש');
       }
-
-      console.log('✅ CreateBusiness: Business created:', businessData.id);
 
       const { error: ownershipError } = await dataStore.supabase
         .from('business_ownership')
         .insert({
           business_id: businessData.id,
-          owner_user_id: user.id,
+          owner_user_id: actualUserId,
           ownership_percentage: formData.ownershipPercentage,
           equity_type: 'founder',
           profit_share_percentage: formData.ownershipPercentage,
@@ -96,18 +121,14 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         });
 
       if (ownershipError) {
-        console.error('❌ CreateBusiness: Ownership creation error:', ownershipError);
         throw new Error(`נכשל ביצירת בעלות: ${ownershipError.message}`);
       }
-
-      console.log('✅ CreateBusiness: Ownership created successfully');
 
       telegram.hapticFeedback('notification', 'success');
       telegram.showAlert('העסק נוצר בהצלחה!');
       onSuccess();
       onClose();
     } catch (error) {
-      console.error('❌ CreateBusiness: Failed:', error);
       telegram.showAlert(error instanceof Error ? error.message : 'שגיאה ביצירת עסק');
     } finally {
       setLoading(false);
@@ -271,15 +292,15 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
             }}>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !isReady}
                 style={{
                   ...ROYAL_STYLES.buttonPrimary,
                   flex: 1,
-                  opacity: loading ? 0.6 : 1,
-                  cursor: loading ? 'not-allowed' : 'pointer'
+                  opacity: (loading || !isReady) ? 0.6 : 1,
+                  cursor: (loading || !isReady) ? 'not-allowed' : 'pointer'
                 }}
               >
-                {loading ? 'יוצר...' : 'צור עסק'}
+                {!isReady ? 'טוען...' : loading ? 'יוצר...' : 'צור עסק'}
               </button>
               <button
                 type="button"

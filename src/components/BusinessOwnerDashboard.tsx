@@ -7,6 +7,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { getSupabase } from '../lib/supabaseClient';
+import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 
 interface FinancialMetrics {
   revenue_today: number;
@@ -189,8 +190,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
       }));
 
       setRecentOrders(recent);
-    } catch (error) {
-      console.error('Failed to load business dashboard:', error);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -198,63 +198,64 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
 
   if (loading) {
     return (
-      <div className="loading-state">
-        <div className="spinner"></div>
-        <p>Loading business dashboard...</p>
+      <div style={{ ...ROYAL_STYLES.pageContainer, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ width: '48px', height: '48px', border: `4px solid ${ROYAL_COLORS.cardBorder}`, borderTop: `4px solid ${ROYAL_COLORS.accent}`, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
+          <p style={{ color: ROYAL_COLORS.muted }}>Loading business dashboard...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="business-owner-dashboard">
-      <div className="dashboard-header">
-        <div className="header-content">
-          <h1>Business Dashboard</h1>
-          <p className="subtitle">Financial overview and operational metrics</p>
+    <div style={ROYAL_STYLES.pageContainer}>
+      <div style={{ ...ROYAL_STYLES.card, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px', background: ROYAL_COLORS.gradientPurple, color: ROYAL_COLORS.textBright, boxShadow: ROYAL_COLORS.glowPurpleStrong }}>
+        <div>
+          <h1 style={{ margin: '0 0 8px 0', fontSize: '32px' }}>Business Dashboard</h1>
+          <p style={{ margin: 0, opacity: 0.9, fontSize: '16px' }}>Financial overview and operational metrics</p>
         </div>
-        <div className="action-buttons">
-          <button className="btn-secondary">Export Report</button>
-          <button className="btn-primary">Manage Team</button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button style={{ ...ROYAL_STYLES.buttonSecondary, background: 'rgba(255, 255, 255, 0.2)', color: ROYAL_COLORS.textBright, border: '2px solid rgba(255, 255, 255, 0.4)' }}>Export Report</button>
+          <button style={{ ...ROYAL_STYLES.buttonPrimary, background: ROYAL_COLORS.textBright, color: ROYAL_COLORS.accent }}>Manage Team</button>
         </div>
       </div>
 
-      {/* Financial Metrics */}
-      <div className="section financial-overview">
-        <h2>Financial Overview</h2>
-        <div className="metrics-grid">
-          <div className="metric-card primary">
-            <div className="metric-icon">💰</div>
-            <div className="metric-content">
-              <div className="metric-label">Revenue (Month)</div>
-              <div className="metric-value">₪{metrics?.revenue_month.toLocaleString()}</div>
-              <div className="metric-meta">₪{metrics?.revenue_today.toLocaleString()} today</div>
+      <div style={ROYAL_STYLES.card}>
+        <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', color: ROYAL_COLORS.text }}>Financial Overview</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+          <div style={{ ...ROYAL_STYLES.card, display: 'flex', alignItems: 'center', gap: '16px', background: ROYAL_COLORS.gradientPurple, color: ROYAL_COLORS.textBright, border: 'none' }}>
+            <div style={{ fontSize: '32px' }}>💰</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '13px', marginBottom: '6px', opacity: 0.8 }}>Revenue (Month)</div>
+              <div style={{ fontSize: '28px', fontWeight: '700', marginBottom: '4px' }}>₪{metrics?.revenue_month.toLocaleString()}</div>
+              <div style={{ fontSize: '12px', opacity: 0.7 }}>₪{metrics?.revenue_today.toLocaleString()} today</div>
             </div>
           </div>
 
-          <div className="metric-card">
-            <div className="metric-icon">📊</div>
-            <div className="metric-content">
-              <div className="metric-label">Costs (Month)</div>
-              <div className="metric-value">₪{metrics?.costs_month.toLocaleString()}</div>
-              <div className="metric-meta">Operating expenses</div>
+          <div style={{ ...ROYAL_STYLES.card, display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ fontSize: '32px' }}>📊</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '13px', marginBottom: '6px', color: ROYAL_COLORS.muted }}>Costs (Month)</div>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: ROYAL_COLORS.warning, marginBottom: '4px' }}>₪{metrics?.costs_month.toLocaleString()}</div>
+              <div style={{ fontSize: '12px', color: ROYAL_COLORS.mutedDark }}>Operating expenses</div>
             </div>
           </div>
 
-          <div className="metric-card success">
-            <div className="metric-icon">💎</div>
-            <div className="metric-content">
-              <div className="metric-label">Profit (Month)</div>
-              <div className="metric-value">₪{metrics?.profit_month.toLocaleString()}</div>
-              <div className="metric-meta">{metrics?.profit_margin.toFixed(1)}% margin</div>
+          <div style={{ ...ROYAL_STYLES.card, display: 'flex', alignItems: 'center', gap: '16px', background: ROYAL_COLORS.gradientSuccess, color: ROYAL_COLORS.textBright, border: 'none' }}>
+            <div style={{ fontSize: '32px' }}>💎</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '13px', marginBottom: '6px', opacity: 0.8 }}>Profit (Month)</div>
+              <div style={{ fontSize: '28px', fontWeight: '700', marginBottom: '4px' }}>₪{metrics?.profit_month.toLocaleString()}</div>
+              <div style={{ fontSize: '12px', opacity: 0.7 }}>{metrics?.profit_margin.toFixed(1)}% margin</div>
             </div>
           </div>
 
-          <div className="metric-card">
-            <div className="metric-icon">📦</div>
-            <div className="metric-content">
-              <div className="metric-label">Orders (Month)</div>
-              <div className="metric-value">{metrics?.orders_month}</div>
-              <div className="metric-meta">₪{metrics?.average_order_value.toFixed(0)} avg</div>
+          <div style={{ ...ROYAL_STYLES.card, display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ fontSize: '32px' }}>📦</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '13px', marginBottom: '6px', color: ROYAL_COLORS.muted }}>Orders (Month)</div>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: ROYAL_COLORS.info, marginBottom: '4px' }}>{metrics?.orders_month}</div>
+              <div style={{ fontSize: '12px', color: ROYAL_COLORS.mutedDark }}>₪{metrics?.average_order_value.toFixed(0)} avg</div>
             </div>
           </div>
         </div>
@@ -344,6 +345,12 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
           ))}
         </div>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
 
       <style jsx>{`
         .business-owner-dashboard {
