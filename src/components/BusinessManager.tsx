@@ -47,7 +47,6 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
   const [newBusinessForm, setNewBusinessForm] = useState({
     name: '',
     name_hebrew: '',
-    business_type: '',
     primary_color: '#007aff',
     secondary_color: '#34c759',
     default_currency: 'ILS' as 'ILS' | 'USD' | 'EUR',
@@ -164,7 +163,7 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
   const handleCreateBusiness = async () => {
     console.log('🔄 Creating business...', newBusinessForm);
 
-    if (!newBusinessForm.name || !newBusinessForm.name_hebrew || !newBusinessForm.business_type) {
+    if (!newBusinessForm.name || !newBusinessForm.name_hebrew) {
       alert('נא למלא את כל השדות החובה');
       return;
     }
@@ -179,7 +178,6 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
         setNewBusinessForm({
           name: '',
           name_hebrew: '',
-          business_type: '',
           primary_color: '#007aff',
           secondary_color: '#34c759',
           default_currency: 'ILS',
@@ -759,32 +757,6 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
                     color: theme.text_color
                   }}
                 />
-              </div>
-
-              <div>
-                <label style={{ fontSize: '12px', color: theme.hint_color, marginBottom: '4px', display: 'block' }}>
-                  סוג עסק *
-                </label>
-                <select
-                  value={newBusinessForm.business_type}
-                  onChange={(e) => setNewBusinessForm({ ...newBusinessForm, business_type: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    backgroundColor: theme.secondary_bg_color,
-                    border: `1px solid ${theme.hint_color}40`,
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    color: theme.text_color
-                  }}
-                >
-                  <option value="">בחר סוג עסק...</option>
-                  {businessTypes.map(bt => (
-                    <option key={bt.id} value={bt.type_value}>
-                      {bt.icon} {bt.label_hebrew}
-                    </option>
-                  ))}
-                </select>
               </div>
 
               <div>
