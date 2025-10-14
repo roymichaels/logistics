@@ -69,7 +69,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
   const [loadingAudit, setLoadingAudit] = useState(false);
 
   // Security: Check if current user has permission
-  const hasManagementPermission = ['manager', 'owner'].includes(currentUser?.role);
+  const hasManagementPermission = ['manager', 'owner', 'infrastructure_owner'].includes(currentUser?.role);
 
   const theme = telegram.themeParams;
 
