@@ -152,22 +152,24 @@ export const hebrew = {
 };
 
 export const roleNames = {
-  user: hebrew.user,
-  owner: hebrew.owner,
-  business_owner: hebrew.businessOwner,
-  manager: hebrew.manager,
-  dispatcher: hebrew.dispatcher,
-  driver: hebrew.driver,
-  warehouse: hebrew.warehouse_worker,
-  sales: hebrew.sales_rep,
-  customer_service: hebrew.customer_service
+  user: 'משתמש',
+  infrastructure_owner: 'בעל עסק',
+  business_owner: 'בעל עסק',
+  owner: 'בעלים',
+  manager: 'מנהל',
+  dispatcher: 'מוקדן',
+  driver: 'נהג',
+  warehouse: 'עובד מחסן',
+  sales: 'איש מכירות',
+  customer_service: 'שירות לקוחות'
 };
 
 export const roleIcons = {
   user: '👤',
-  owner: '👑',
+  infrastructure_owner: '💎',
   business_owner: '💎',
-  manager: '👔',
+  owner: '👑',
+  manager: '🎁',
   dispatcher: '📋',
   driver: '🚚',
   warehouse: '📦',

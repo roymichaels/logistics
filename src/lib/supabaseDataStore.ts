@@ -372,43 +372,98 @@ export async function approveUserRegistrationRecord(
   telegramId: string,
   input: ApproveUserRegistrationInput
 ): Promise<UserRegistration> {
+  // Try to find in user_registrations first
   const registration = await fetchUserRegistrationRecord(telegramId);
+
+  // If not in user_registrations, check users table directly
   if (!registration) {
-    throw new Error('User registration not found');
+    console.log('📊 Registration not found in user_registrations, checking users table');
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('telegram_id', telegramId)
+      .maybeSingle();
+
+    if (userError || !userData) {
+      throw new Error('User not found');
+    }
   }
 
   const now = new Date().toISOString();
   const assignedRole = normalizeRole(input.assigned_role);
-  const history = appendHistory(normalizeHistory(registration.approval_history), {
-    action: 'approved',
-    by: input.approved_by,
-    at: now,
-    notes: input.notes ?? null,
-    assigned_role: assignedRole
-  });
 
-  const { data, error } = await supabase
-    .from('user_registrations')
+  // Update in user_registrations if exists
+  if (registration) {
+    const history = appendHistory(normalizeHistory(registration.approval_history), {
+      action: 'approved',
+      by: input.approved_by,
+      at: now,
+      notes: input.notes ?? null,
+      assigned_role: assignedRole
+    });
+
+    const { error } = await supabase
+      .from('user_registrations')
+      .update({
+        status: 'approved',
+        approved_by: input.approved_by,
+        approved_at: now,
+        approval_notes: input.notes ?? null,
+        assigned_role: assignedRole,
+        approval_history: history,
+        updated_at: now
+      })
+      .eq('telegram_id', telegramId);
+
+    if (error) console.error('Failed to update user_registrations:', error);
+  }
+
+  // ALWAYS update the users table (this is the main table)
+  await updateUserRoleAssignment(telegramId, assignedRole);
+
+  // Also update registration_status in users table
+  const { error: statusError } = await supabase
+    .from('users')
     .update({
-      status: 'approved',
+      registration_status: 'approved',
       approved_by: input.approved_by,
       approved_at: now,
       approval_notes: input.notes ?? null,
       assigned_role: assignedRole,
-      approval_history: history,
+      role: assignedRole,
       updated_at: now
     })
-    .eq('telegram_id', telegramId)
+    .eq('telegram_id', telegramId);
+
+  if (statusError) throw statusError;
+
+  // Fetch the updated user to return
+  const { data: updatedUser, error: fetchError } = await supabase
+    .from('users')
     .select('*')
+    .eq('telegram_id', telegramId)
     .single();
 
-  if (error) throw error;
+  if (fetchError) throw fetchError;
 
-  await updateUserRoleAssignment(telegramId, assignedRole);
-
+  // Transform to UserRegistration format
   return {
-    ...data,
-    approval_history: normalizeHistory(data.approval_history as RegistrationApproval[] | null)
+    telegram_id: updatedUser.telegram_id,
+    first_name: updatedUser.first_name || updatedUser.name?.split(' ')[0] || 'משתמש',
+    last_name: updatedUser.last_name || updatedUser.name?.split(' ').slice(1).join(' ') || null,
+    username: updatedUser.username,
+    photo_url: updatedUser.photo_url || null,
+    department: updatedUser.department || null,
+    phone: updatedUser.phone || null,
+    requested_role: updatedUser.requested_role || updatedUser.role,
+    assigned_role: updatedUser.assigned_role || updatedUser.role,
+    status: updatedUser.registration_status || 'approved',
+    approval_history: normalizeHistory(updatedUser.approval_history as RegistrationApproval[] | null),
+    created_at: updatedUser.created_at,
+    updated_at: updatedUser.updated_at,
+    approved_by: updatedUser.approved_by || null,
+    approved_at: updatedUser.approved_at || null,
+    approval_notes: updatedUser.approval_notes || null
   } as UserRegistration;
 }
 
