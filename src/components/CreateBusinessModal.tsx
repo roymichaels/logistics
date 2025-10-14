@@ -40,16 +40,22 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       }
 
       if (!user.id) {
-        console.error('User missing id field:', user);
-        throw new Error('נתוני משתמש חסרים');
+        console.error('User missing id field:', {
+          hasUser: !!user,
+          userKeys: user ? Object.keys(user) : [],
+          telegram_id: user?.telegram_id,
+          role: user?.role,
+          name: user?.name
+        });
+        throw new Error('נתוני משתמש חסרים - אנא רענן את הדף');
       }
 
       // Wait a moment for supabase to be available if not ready yet
       let retries = 0;
-      const maxRetries = 5;
+      const maxRetries = 10;
       while (!dataStore.supabase && retries < maxRetries) {
         console.log(`⏳ Waiting for Supabase client... (attempt ${retries + 1}/${maxRetries})`);
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 300));
         retries++;
       }
 

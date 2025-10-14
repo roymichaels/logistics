@@ -62,26 +62,42 @@ import {
 } from '../data/types';
 
 let supabaseInstance: any = null;
+let isInitializingSupabase = false;
 
 function getSupabaseInstance() {
-  if (!supabaseInstance) {
-    try {
-      supabaseInstance = getSupabase();
-    } catch (error) {
-      console.warn('⚠️ Supabase instance not yet initialized:', error);
-      return null;
-    }
+  if (supabaseInstance) {
+    return supabaseInstance;
   }
-  return supabaseInstance;
+
+  if (isInitializingSupabase) {
+    console.warn('⚠️ Supabase client initialization in progress');
+    return null;
+  }
+
+  isInitializingSupabase = true;
+  try {
+    supabaseInstance = getSupabase();
+    isInitializingSupabase = false;
+    return supabaseInstance;
+  } catch (error) {
+    isInitializingSupabase = false;
+    console.warn('⚠️ Supabase client not yet available:', error);
+    return null;
+  }
 }
 
 const supabase = new Proxy({} as any, {
   get(target, prop) {
-    const instance = getSupabaseInstance();
-    if (!instance) {
-      console.warn('⚠️ Attempting to access Supabase before initialization');
+    if (prop === 'then' || prop === 'catch' || prop === 'finally') {
       return undefined;
     }
+
+    const instance = getSupabaseInstance();
+    if (!instance) {
+      console.warn('⚠️ Supabase client not yet initialized, property:', prop);
+      return undefined;
+    }
+
     const value = instance[prop];
     if (typeof value === 'function') {
       return value.bind(instance);
@@ -558,7 +574,7 @@ export class SupabaseDataStore implements DataStore {
   private initialUserData: any = null;
 
   get supabase() {
-    return supabase;
+    return getSupabaseInstance();
   }
 
   constructor(private userTelegramId: string, authSession?: SupabaseAuthSessionPayload | null, initialUserData?: any) {
@@ -928,7 +944,7 @@ export class SupabaseDataStore implements DataStore {
 
     const { data, error } = await freshClient
       .from('users')
-      .select('*')
+      .select('id, telegram_id, role, name, username, photo_url, department, phone, business_id, last_active, created_at, updated_at')
       .eq('telegram_id', this.userTelegramId)
       .maybeSingle();
 
@@ -981,7 +997,7 @@ export class SupabaseDataStore implements DataStore {
       const { data: created, error: createError } = await supabase
         .from('users')
         .insert(newUser)
-        .select()
+        .select('id, telegram_id, role, name, username, photo_url, department, phone, business_id, last_active, created_at, updated_at')
         .single();
 
       if (createError) {
@@ -1032,7 +1048,7 @@ export class SupabaseDataStore implements DataStore {
           .from('users')
           .update(updates)
           .eq('telegram_id', this.userTelegramId)
-          .select()
+          .select('id, telegram_id, role, name, username, photo_url, department, phone, business_id, last_active, created_at, updated_at')
           .maybeSingle();
 
         if (updateError) {
@@ -1081,7 +1097,7 @@ export class SupabaseDataStore implements DataStore {
 
     const { data, error} = await freshClient
       .from('users')
-      .select('*')
+      .select('id, telegram_id, role, name, username, photo_url, department, phone, business_id, last_active')
       .eq('telegram_id', this.userTelegramId)
       .maybeSingle();
 
