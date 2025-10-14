@@ -3,6 +3,7 @@ import { DataStore, User } from '../data/types';
 import { Toast } from '../components/Toast';
 import { telegram } from '../lib/telegram';
 import { loadConfig } from '../lib/supabaseClient';
+import { profileDebugger } from '../lib/profileDebugger';
 
 interface MyRoleProps {
   dataStore: DataStore;
@@ -38,11 +39,23 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
     }
   }, []);
 
-  const loadUser = async (forceRefresh = false) => {
+  const loadUser = async (forceRefresh = false, retryCount = 0) => {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1000;
+
     try {
+      console.log('📄 MyRole page: Loading user profile...', { forceRefresh, retryCount });
+
       const profile = forceRefresh
         ? await dataStore.getProfile(true)
         : await dataStore.getProfile();
+
+      console.log('✅ MyRole page: Profile loaded successfully', {
+        telegram_id: profile.telegram_id,
+        role: profile.role,
+        name: profile.name
+      });
+
       setUser(profile);
 
       // AUTO-REDIRECT: If user has infrastructure_owner/business_owner/manager role, redirect to dashboard immediately
@@ -69,10 +82,22 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         }, 500);
       }
     } catch (error) {
-      console.error('Failed to load profile:', error);
-      Toast.error('שגיאה בטעינת פרופיל');
+      console.error(`❌ MyRole page: Failed to load profile (attempt ${retryCount + 1}/${MAX_RETRIES + 1}):`, error);
+
+      if (retryCount < MAX_RETRIES) {
+        console.log(`🔄 Retrying in ${RETRY_DELAY}ms...`);
+        Toast.info(`מנסה לטעון שוב (${retryCount + 1}/${MAX_RETRIES})...`);
+        setTimeout(() => {
+          loadUser(forceRefresh, retryCount + 1);
+        }, RETRY_DELAY * (retryCount + 1));
+      } else {
+        Toast.error(`שגיאה בטעינת פרופיל: ${error instanceof Error ? error.message : 'שגיאה לא ידועה'}`);
+        setLoading(false);
+      }
     } finally {
-      setLoading(false);
+      if (retryCount === 0 || retryCount >= MAX_RETRIES) {
+        setLoading(false);
+      }
     }
   };
 

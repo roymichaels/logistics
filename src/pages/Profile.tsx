@@ -3,6 +3,7 @@ import { telegram } from '../lib/telegram';
 import { DataStore, User } from '../data/types';
 import { roleNames, roleIcons } from '../lib/hebrew';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { profileDebugger } from '../lib/profileDebugger';
 
 interface ProfileProps {
   dataStore: DataStore;
@@ -15,7 +16,14 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
   const theme = telegram.themeParams;
 
   useEffect(() => {
-    loadProfile();
+    const params = new URLSearchParams(window.location.search);
+    const shouldRefresh = params.has('refresh');
+
+    loadProfile(shouldRefresh);
+
+    if (shouldRefresh) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, []);
 
   useEffect(() => {
@@ -25,13 +33,31 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
     return () => telegram.hideBackButton();
   }, [onNavigate]);
 
-  const loadProfile = async () => {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).__showProfileReport = () => profileDebugger.printReport();
+      console.log('💡 Type window.__showProfileReport() to see profile fetch statistics');
+    }
+  }, []);
+
+  const loadProfile = async (forceRefresh = false) => {
     try {
-      const profile = await dataStore.getProfile();
+      console.log('📄 Profile page: Loading profile...', { forceRefresh });
+
+      const profile = forceRefresh
+        ? await dataStore.getProfile(true)
+        : await dataStore.getProfile();
+
+      console.log('✅ Profile page: Profile loaded successfully', {
+        telegram_id: profile.telegram_id,
+        role: profile.role,
+        name: profile.name
+      });
+
       setUser(profile);
     } catch (error) {
-      console.error('Failed to load profile:', error);
-      telegram.showAlert('Failed to load profile');
+      console.error('❌ Profile page: Failed to load profile:', error);
+      telegram.showAlert(`שגיאה בטעינת פרופיל: ${error instanceof Error ? error.message : 'שגיאה לא ידועה'}`);
     } finally {
       setLoading(false);
     }

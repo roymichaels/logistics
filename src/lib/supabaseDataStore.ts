@@ -1,5 +1,6 @@
 import { RealtimeChannel, createClient } from '@supabase/supabase-js';
 import { getSupabase, loadConfig } from './supabaseClient';
+import { trackProfileFetch, trackCacheHit } from './profileDebugger';
 import {
   DataStore,
   User,
@@ -577,6 +578,8 @@ export async function deleteUserRegistrationRecord(telegramId: string): Promise<
 
 export class SupabaseDataStore implements DataStore {
   private user: User | null = null;
+  private userCacheTimestamp: number | null = null;
+  private readonly CACHE_TTL_MS = 5 * 60 * 1000;
   private subscriptions: Map<string, RealtimeChannel> = new Map();
   private eventListeners: Map<string, Set<Function>> = new Map();
   private authInitialization: Promise<void> | null = null;
@@ -584,6 +587,25 @@ export class SupabaseDataStore implements DataStore {
 
   get supabase() {
     return getSupabaseInstance();
+  }
+
+  private isCacheValid(): boolean {
+    if (!this.user || !this.userCacheTimestamp) {
+      return false;
+    }
+    const now = Date.now();
+    const cacheAge = now - this.userCacheTimestamp;
+    return cacheAge < this.CACHE_TTL_MS;
+  }
+
+  private setCachedUser(user: User): void {
+    this.user = user;
+    this.userCacheTimestamp = Date.now();
+    console.log('💾 User cached', {
+      telegram_id: user.telegram_id,
+      role: user.role,
+      timestamp: new Date(this.userCacheTimestamp).toISOString()
+    });
   }
 
   constructor(private userTelegramId: string, authSession?: SupabaseAuthSessionPayload | null, initialUserData?: any) {
@@ -916,10 +938,26 @@ export class SupabaseDataStore implements DataStore {
 
   // Auth & Profile
   async getProfile(forceRefresh = false): Promise<User> {
-    if (this.user && !forceRefresh) {
-      console.log('getProfile: Returning cached user', { role: this.user.role });
-      return this.user;
+    if (!forceRefresh && this.isCacheValid()) {
+      console.log('✅ getProfile: Returning cached user (cache valid)', {
+        role: this.user!.role,
+        cacheAge: Date.now() - this.userCacheTimestamp!
+      });
+      return trackCacheHit('SupabaseDataStore.getProfile', this.user!);
     }
+
+    if (forceRefresh) {
+      console.log('🔄 getProfile: Force refresh requested, bypassing cache');
+    } else {
+      console.log('⏰ getProfile: Cache expired or invalid, fetching fresh data');
+    }
+
+    return trackProfileFetch('SupabaseDataStore.getProfile', forceRefresh, async () => {
+      return this._fetchProfileFromDatabase();
+    });
+  }
+
+  private async _fetchProfileFromDatabase(): Promise<User> {
 
     // Wait for auth session to be established if it's in progress
     if (this.authInitialization) {
@@ -985,7 +1023,7 @@ export class SupabaseDataStore implements DataStore {
         throw new Error('Failed to create user: missing id');
       }
 
-      this.user = created;
+      this.setCachedUser(created);
       return created;
     }
 
@@ -1027,7 +1065,7 @@ export class SupabaseDataStore implements DataStore {
           console.error('⚠️ getProfile: Failed to update user data:', updateError);
           // Continue with existing data
         } else if (updated && updated.id) {
-          this.user = updated;
+          this.setCachedUser(updated);
           return updated;
         }
       }
@@ -1038,7 +1076,7 @@ export class SupabaseDataStore implements DataStore {
       throw new Error('User data incomplete: missing id');
     }
 
-    this.user = data;
+    this.setCachedUser(data);
     return data;
   }
 
@@ -1099,8 +1137,9 @@ export class SupabaseDataStore implements DataStore {
   }
 
   clearUserCache(): void {
-    console.log('🗑️ clearUserCache: Clearing cached user data [BUILD v2]');
+    console.log('🗑️ clearUserCache: Clearing cached user data and timestamp');
     this.user = null;
+    this.userCacheTimestamp = null;
   }
 
   async updateProfile(updates: Partial<User>): Promise<void> {
