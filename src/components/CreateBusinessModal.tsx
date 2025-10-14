@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DataStore, User } from '../data/types';
+import { DataStore, User, BusinessType } from '../data/types';
 import { telegram } from '../lib/telegram';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 
@@ -15,11 +15,21 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
     name: '',
     name_hebrew: '',
     description: '',
+    business_type: 'logistics',
+    order_number_prefix: '',
+    default_currency: 'ILS' as 'ILS' | 'USD' | 'EUR',
+    primary_color: '#667eea',
+    secondary_color: '#764ba2',
     ownershipPercentage: 100
   });
+  const [businessTypes, setBusinessTypes] = useState<BusinessType[]>([]);
   const [loading, setLoading] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [actualUserId, setActualUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadBusinessTypes();
+  }, [dataStore]);
 
   useEffect(() => {
     async function resolveUserId() {
@@ -67,11 +77,42 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
     resolveUserId();
   }, [user, dataStore]);
 
+  const loadBusinessTypes = async () => {
+    if (!dataStore.supabase) return;
+
+    try {
+      const { data, error } = await dataStore.supabase
+        .from('business_types')
+        .select('*')
+        .eq('active', true)
+        .order('display_order', { ascending: true });
+
+      if (!error && data) {
+        setBusinessTypes(data);
+        if (data.length > 0) {
+          setFormData(prev => ({ ...prev, business_type: data[0].type_value }));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load business types:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name || !formData.name_hebrew) {
       telegram.showAlert('אנא הזן שם עסק באנגלית ובעברית');
+      return;
+    }
+
+    if (!formData.business_type) {
+      telegram.showAlert('אנא בחר סוג עסק');
+      return;
+    }
+
+    if (!formData.order_number_prefix) {
+      telegram.showAlert('אנא הזן קידומת מספר הזמנה');
       return;
     }
 
@@ -95,6 +136,12 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         .insert({
           name: formData.name,
           name_hebrew: formData.name_hebrew || formData.name,
+          business_type: formData.business_type,
+          order_number_prefix: formData.order_number_prefix.toUpperCase(),
+          order_number_sequence: 1000,
+          default_currency: formData.default_currency,
+          primary_color: formData.primary_color,
+          secondary_color: formData.secondary_color,
           active: true
         })
         .select()
@@ -109,15 +156,15 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       }
 
       const { error: ownershipError } = await dataStore.supabase
-        .from('business_ownership')
+        .from('business_equity')
         .insert({
           business_id: businessData.id,
-          owner_user_id: actualUserId,
-          ownership_percentage: formData.ownershipPercentage,
+          stakeholder_id: actualUserId,
+          equity_percentage: formData.ownershipPercentage,
           equity_type: 'founder',
-          profit_share_percentage: formData.ownershipPercentage,
-          voting_rights: true,
-          active: true
+          vested_percentage: 100,
+          is_active: true,
+          created_by: actualUserId
         });
 
       if (ownershipError) {
@@ -245,20 +292,127 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
                 fontWeight: '600',
                 color: ROYAL_COLORS.text
               }}>
-                תיאור (אופציונלי)
+                סוג עסק *
               </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              <select
+                value={formData.business_type}
+                onChange={(e) => setFormData({ ...formData, business_type: e.target.value })}
                 disabled={loading}
-                rows={3}
                 style={{
                   ...ROYAL_STYLES.input,
-                  fontSize: '14px',
-                  resize: 'vertical'
+                  fontSize: '16px'
                 }}
-                placeholder="תיאור קצר של העסק..."
+              >
+                {businessTypes.map(type => (
+                  <option key={type.id} value={type.type_value}>
+                    {type.icon} {type.label_hebrew}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: ROYAL_COLORS.text
+              }}>
+                קידומת מספר הזמנה *
+              </label>
+              <input
+                type="text"
+                value={formData.order_number_prefix}
+                onChange={(e) => setFormData({ ...formData, order_number_prefix: e.target.value.toUpperCase() })}
+                disabled={loading}
+                maxLength={10}
+                style={{
+                  ...ROYAL_STYLES.input,
+                  fontSize: '16px'
+                }}
+                placeholder="ORD"
               />
+            </div>
+
+            <div>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: ROYAL_COLORS.text
+              }}>
+                מטבע ברירת מחדל
+              </label>
+              <select
+                value={formData.default_currency}
+                onChange={(e) => setFormData({ ...formData, default_currency: e.target.value as 'ILS' | 'USD' | 'EUR' })}
+                disabled={loading}
+                style={{
+                  ...ROYAL_STYLES.input,
+                  fontSize: '16px'
+                }}
+              >
+                <option value="ILS">ש"ח (ILS)</option>
+                <option value="USD">דולר ($)</option>
+                <option value="EUR">יורו (€)</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: ROYAL_COLORS.text
+                }}>
+                  צבע ראשי
+                </label>
+                <input
+                  type="color"
+                  value={formData.primary_color}
+                  onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })}
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    height: '44px',
+                    padding: '4px',
+                    backgroundColor: ROYAL_COLORS.secondary,
+                    border: `1px solid ${ROYAL_COLORS.border}`,
+                    borderRadius: '8px',
+                    cursor: 'pointer'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: ROYAL_COLORS.text
+                }}>
+                  צבע משני
+                </label>
+                <input
+                  type="color"
+                  value={formData.secondary_color}
+                  onChange={(e) => setFormData({ ...formData, secondary_color: e.target.value })}
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    height: '44px',
+                    padding: '4px',
+                    backgroundColor: ROYAL_COLORS.secondary,
+                    border: `1px solid ${ROYAL_COLORS.border}`,
+                    borderRadius: '8px',
+                    cursor: 'pointer'
+                  }}
+                />
+              </div>
             </div>
 
             <div>

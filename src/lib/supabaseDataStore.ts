@@ -3726,6 +3726,42 @@ export class SupabaseDataStore implements DataStore {
     return data || [];
   }
 
+  async createBusiness(input: {
+    name: string;
+    name_hebrew: string;
+    business_type: string;
+    order_number_prefix: string;
+    default_currency: 'ILS' | 'USD' | 'EUR';
+    primary_color: string;
+    secondary_color: string;
+  }): Promise<any> {
+    console.log('🔄 createBusiness: Starting...', input);
+
+    const { data, error } = await supabase
+      .from('businesses')
+      .insert({
+        name: input.name,
+        name_hebrew: input.name_hebrew,
+        business_type: input.business_type,
+        order_number_prefix: input.order_number_prefix.toUpperCase(),
+        order_number_sequence: 1000,
+        default_currency: input.default_currency,
+        primary_color: input.primary_color,
+        secondary_color: input.secondary_color,
+        active: true
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ createBusiness: Error inserting:', error);
+      throw error;
+    }
+
+    console.log('✅ createBusiness: Created business:', data.id);
+    return data;
+  }
+
   async getBusiness(id: string): Promise<any | null> {
     const { data, error } = await supabase
       .from('businesses')

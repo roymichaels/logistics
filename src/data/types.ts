@@ -681,6 +681,7 @@ export interface DataStore {
   // Business Management
   listBusinesses?(): Promise<Business[]>;
   getBusiness?(id: string): Promise<Business | null>;
+  createBusiness?(input: { name: string; name_hebrew: string; business_type: string; order_number_prefix: string; default_currency: 'ILS' | 'USD' | 'EUR'; primary_color: string; secondary_color: string }): Promise<Business>;
   listBusinessUsers?(filters?: { business_id?: string; user_id?: string; role?: string; active_only?: boolean }): Promise<BusinessUser[]>;
   assignUserToBusiness?(input: { business_id: string; user_id: string; role: Exclude<User['role'], 'infrastructure_owner'>; is_primary?: boolean; ownership_percentage?: number; commission_percentage?: number }): Promise<{ id: string }>;
   updateBusinessUserRole?(business_id: string, user_id: string, role: Exclude<User['role'], 'infrastructure_owner'>): Promise<void>;
