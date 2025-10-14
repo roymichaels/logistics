@@ -468,7 +468,7 @@ function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: {
   const [loading, setLoading] = useState(false);
   const [loadingTypes, setLoadingTypes] = useState(true);
   const [showCreateType, setShowCreateType] = useState(false);
-  const [newType, setNewType] = useState({ type_value: '', label_hebrew: '', label_english: '', icon: '🏢' });
+  const [newType, setNewType] = useState({ label_hebrew: '', label_english: '' });
 
   useEffect(() => {
     loadBusinessTypes();
@@ -491,26 +491,36 @@ function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: {
     }
   };
 
+  const generateBusinessCode = (englishName: string): string => {
+    const words = englishName.trim().split(/\s+/);
+    if (words.length === 1) {
+      return words[0].substring(0, 4).toLowerCase();
+    }
+    return words.map(w => w[0]).join('').toLowerCase();
+  };
+
   const handleCreateType = async () => {
-    if (!newType.type_value || !newType.label_hebrew || !newType.label_english) {
-      telegram.showAlert('נא למלא את כל שדות סוג העסק');
+    if (!newType.label_hebrew || !newType.label_english) {
+      telegram.showAlert('נא להזין שם בעברית ואנגלית');
       return;
     }
 
     try {
       if (dataStore.createBusinessType) {
+        const businessCode = generateBusinessCode(newType.label_english);
+
         await dataStore.createBusinessType({
-          type_value: newType.type_value.toLowerCase().replace(/\s+/g, '_'),
+          type_value: businessCode,
           label_hebrew: newType.label_hebrew,
           label_english: newType.label_english,
-          icon: newType.icon || '🏢',
+          icon: '🏢',
           is_system_default: false,
           active: true,
           display_order: businessTypes.length + 1
         });
 
         telegram.hapticFeedback('notification', 'success');
-        setNewType({ type_value: '', label_hebrew: '', label_english: '', icon: '🏢' });
+        setNewType({ label_hebrew: '', label_english: '' });
         setShowCreateType(false);
         await loadBusinessTypes();
       }
@@ -744,32 +754,27 @@ function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <input
                           type="text"
-                          placeholder="ערך (אנגלית, לדוגמה: my_business)"
-                          value={newType.type_value}
-                          onChange={(e) => setNewType({ ...newType, type_value: e.target.value })}
-                          style={{ ...ROYAL_STYLES.input, fontSize: '14px' }}
-                        />
-                        <input
-                          type="text"
-                          placeholder="שם בעברית"
+                          placeholder="שם בעברית *"
                           value={newType.label_hebrew}
                           onChange={(e) => setNewType({ ...newType, label_hebrew: e.target.value })}
                           style={{ ...ROYAL_STYLES.input, fontSize: '14px' }}
                         />
                         <input
                           type="text"
-                          placeholder="Name in English"
+                          placeholder="Name in English *"
                           value={newType.label_english}
                           onChange={(e) => setNewType({ ...newType, label_english: e.target.value })}
                           style={{ ...ROYAL_STYLES.input, fontSize: '14px' }}
                         />
-                        <input
-                          type="text"
-                          placeholder="אייקון (אימוג'י)"
-                          value={newType.icon}
-                          onChange={(e) => setNewType({ ...newType, icon: e.target.value })}
-                          style={{ ...ROYAL_STYLES.input, fontSize: '14px' }}
-                        />
+                        <div style={{
+                          fontSize: '12px',
+                          color: ROYAL_COLORS.muted,
+                          padding: '8px',
+                          backgroundColor: 'rgba(156, 109, 255, 0.1)',
+                          borderRadius: '6px'
+                        }}>
+                          🏢 קוד העסק ייווצר אוטומטית מהשם באנגלית
+                        </div>
                         <button
                           type="button"
                           onClick={handleCreateType}
