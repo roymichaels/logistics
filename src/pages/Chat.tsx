@@ -345,18 +345,9 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          gap: '12px',
           marginBottom: '20px'
         }}>
-          <h1 style={{
-            margin: '0',
-            fontSize: '28px',
-            fontWeight: '700',
-            color: ROYAL_COLORS.text,
-            textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
-          }}>
-            💬 הודעות
-          </h1>
           {canCreateGroup && activeTab === 'groups' && (
             <button
               onClick={() => {
@@ -364,7 +355,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
                 setShowCreateGroupModal(true);
               }}
               style={{
-                padding: '10px 20px',
+                padding: '8px 16px',
                 borderRadius: '12px',
                 border: 'none',
                 background: ROYAL_COLORS.gradientPurple,
@@ -375,8 +366,9 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
                 boxShadow: ROYAL_COLORS.glowPurple,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                transition: 'all 0.3s ease'
+                gap: '6px',
+                transition: 'all 0.3s ease',
+                flexShrink: 0
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
@@ -392,6 +384,16 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
               <span>קבוצה</span>
             </button>
           )}
+          <h1 style={{
+            margin: '0',
+            fontSize: '28px',
+            fontWeight: '700',
+            color: ROYAL_COLORS.text,
+            textShadow: '0 0 20px rgba(156, 109, 255, 0.5)',
+            flex: 1
+          }}>
+            💬 הודעות
+          </h1>
         </div>
 
         {/* Tabs */}
