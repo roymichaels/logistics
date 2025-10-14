@@ -34,13 +34,11 @@ class AuthService {
 
   constructor() {
     // Don't initialize auth listener in constructor - wait for Supabase to be ready
-    console.log('🔐 AuthService instance created (auth listener deferred until Supabase is ready)');
   }
 
   private initializeAuthListener() {
     // Only initialize once
     if (this.authListenerInitialized) {
-      console.log('🔐 Auth listener already initialized, skipping');
       return;
     }
 
@@ -50,14 +48,9 @@ class AuthService {
       return;
     }
 
-    console.log('🔐 Initializing auth listener...');
     const supabase = getSupabase();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔐 Auth state changed:', event, {
-        hasSession: !!session,
-        userId: session?.user?.id
-      });
 
       // Handle all events that provide a valid session
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
@@ -65,7 +58,6 @@ class AuthService {
           this.handleSessionUpdate(session);
         } else if (event === 'INITIAL_SESSION') {
           // No session on initial load - normal for first-time users
-          console.log('ℹ️ No initial session found');
           this.updateState({
             isLoading: false,
             isAuthenticated: false
@@ -78,7 +70,6 @@ class AuthService {
 
     this.authUnsubscribe = authListener.subscription.unsubscribe;
     this.authListenerInitialized = true;
-    console.log('✅ Auth listener initialized successfully');
   }
 
   private async handleSessionUpdate(session: any) {
@@ -180,8 +171,6 @@ class AuthService {
   }
 
   public async initialize(): Promise<void> {
-    console.log('🔐 Initializing authentication...');
-
     try {
       // First, ensure auth listener is set up
       this.initializeAuthListener();
@@ -196,13 +185,11 @@ class AuthService {
       const { data: sessionData } = await supabase.auth.getSession();
 
       if (sessionData.session) {
-        console.log('✅ Existing session found, restoring...');
         await this.handleSessionUpdate(sessionData.session);
         return;
       }
 
       if (!telegram.isAvailable) {
-        console.log('ℹ️ Not in Telegram environment, no auto-authentication');
         this.updateState({
           isLoading: false,
           isAuthenticated: false,
@@ -211,7 +198,6 @@ class AuthService {
         return;
       }
 
-      console.log('🔑 No existing session, authenticating with Telegram...');
       await this.authenticateWithTelegram();
     } catch (error) {
       console.error('❌ Authentication initialization failed:', error);
@@ -223,8 +209,6 @@ class AuthService {
   }
 
   public async authenticateWithTelegram(): Promise<void> {
-    console.log('📱 Starting Telegram authentication...');
-
     this.updateState({ isLoading: true, error: null });
 
     try {
@@ -234,10 +218,6 @@ class AuthService {
 
       const supabase = getSupabase();
       const config = await import('./supabaseClient').then(m => m.loadConfig());
-
-      console.log('📡 Calling telegram-verify endpoint...');
-      console.log('🔍 Endpoint:', `${config.supabaseUrl}/functions/v1/telegram-verify`);
-      console.log('🔍 Has initData:', !!telegram.initData, 'Length:', telegram.initData?.length);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
@@ -295,7 +275,6 @@ class AuthService {
       }
 
       const result = await response.json();
-      console.log('✅ Authentication successful');
 
       if (!result.session?.access_token) {
         throw new Error('No access token in response');
@@ -309,8 +288,6 @@ class AuthService {
       if (sessionError) {
         throw new Error(`Failed to set session: ${sessionError.message}`);
       }
-
-      console.log('✅ Session established successfully');
     } catch (error) {
       console.error('❌ Telegram authentication error:', error);
 
@@ -333,8 +310,6 @@ class AuthService {
   }
 
   public async signOut(): Promise<void> {
-    console.log('🚪 Signing out...');
-
     try {
       if (!isSupabaseInitialized()) {
         console.warn('⚠️ Supabase not initialized, clearing local state only');
@@ -349,8 +324,6 @@ class AuthService {
       localStorage.clear();
 
       this.handleSignOut();
-
-      console.log('✅ Signed out successfully');
     } catch (error) {
       console.error('❌ Sign out error:', error);
       throw error;
@@ -358,8 +331,6 @@ class AuthService {
   }
 
   public async refreshSession(): Promise<void> {
-    console.log('🔄 Refreshing session...');
-
     try {
       if (!isSupabaseInitialized()) {
         throw new Error('Supabase not initialized. Cannot refresh session.');
@@ -372,7 +343,6 @@ class AuthService {
 
       if (data.session) {
         await this.handleSessionUpdate(data.session);
-        console.log('✅ Session refreshed');
       }
     } catch (error) {
       console.error('❌ Session refresh error:', error);
@@ -381,7 +351,6 @@ class AuthService {
   }
 
   public cleanup(): void {
-    console.log('🧹 Cleaning up AuthService...');
     if (this.authUnsubscribe) {
       this.authUnsubscribe();
       this.authUnsubscribe = null;

@@ -59,8 +59,6 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
   const isSupabaseReady = !!supabase && typeof supabase.channel === 'function';
 
   useEffect(() => {
-    console.log('🔍 OwnerDashboard: useEffect triggered', { isSupabaseReady, hasDataStore: !!dataStore });
-
     // Safety timeout: If loading takes more than 10 seconds, force render anyway
     const safetyTimeout = setTimeout(() => {
       console.warn('⚠️ OwnerDashboard: Safety timeout reached, forcing loading to false');
@@ -95,12 +93,9 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
             () => loadSystemMetrics()
           )
           .subscribe();
-        console.log('✅ OwnerDashboard: Realtime subscriptions established');
       } catch (error) {
         console.error('Failed to set up realtime subscriptions:', error);
       }
-    } else {
-      console.log('ℹ️ OwnerDashboard: Skipping realtime subscriptions (supabase not ready)');
     }
 
     const interval = setInterval(() => {
@@ -124,16 +119,13 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
   }, [timeRange, isSupabaseReady]);
 
   const loadSystemMetrics = async () => {
-    console.log('📊 OwnerDashboard: loadSystemMetrics called', { hasDataStore: !!dataStore, isSupabaseReady });
-
     if (!dataStore) {
-      console.warn('⚠️ OwnerDashboard: No dataStore available, setting loading to false');
+      console.warn('⚠️ OwnerDashboard: No dataStore available');
       setLoading(false);
       return;
     }
 
     setLoading(true);
-    console.log('⏳ OwnerDashboard: Loading started...');
     try {
       const now = new Date();
       const startOfToday = new Date(now);
@@ -269,7 +261,6 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
       console.error('❌ OwnerDashboard: Failed to load system metrics:', error);
       Toast.error('שגיאה בטעינת מדדי המערכת');
     } finally {
-      console.log('✅ OwnerDashboard: Loading complete, setting loading to false');
       setLoading(false);
     }
   };
@@ -318,7 +309,6 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
 
   // Show loading screen only while actively loading, not waiting for supabase
   if (loading) {
-    console.log('⏳ OwnerDashboard: Rendering loading state');
     return (
       <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>💰</div>
@@ -329,8 +319,6 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
       </div>
     );
   }
-
-  console.log('🎨 OwnerDashboard: Rendering dashboard content');
 
   return (
     <div style={styles.pageContainer}>

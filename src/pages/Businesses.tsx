@@ -46,13 +46,6 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
     setLoading(true);
     try {
       const profile = await dataStore.getProfile();
-      console.log('Businesses page: Loaded user profile:', {
-        hasId: !!profile.id,
-        id: profile.id,
-        telegram_id: profile.telegram_id,
-        role: profile.role,
-        name: profile.name
-      });
       setUser(profile);
 
       if (!dataStore.supabase) {

@@ -61,7 +61,6 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   }, []);
 
   const logout = useCallback(async () => {
-    debugLog.info('🚪 Logging out user');
     if (auth) {
       await auth.signOut();
     }
@@ -79,7 +78,6 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       }
 
       try {
-        debugLog.info('🔄 Refreshing user role');
         const profile = await userService.getUserProfile(user.id, forceRefresh);
 
         const updatedUser: User = {
@@ -89,9 +87,8 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         setUser(updatedUser);
         setUserRole((profile.role as AppUserRole) ?? 'user');
-        debugLog.success(`✅ User role updated to ${profile.role}`);
       } catch (err) {
-        debugLog.error('❌ Failed to refresh user role', err);
+        console.error('❌ Failed to refresh user role', err);
       }
     },
     [user]
@@ -107,13 +104,11 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     }
 
     if (!auth.isAuthenticated || auth.isLoading) {
-      debugLog.info('⏳ Waiting for authentication...');
       setLoading(true);
       return;
     }
 
     if (!auth.user) {
-      debugLog.error('❌ No authenticated user available');
       setError('No authenticated user');
       setLoading(false);
       return;
@@ -123,8 +118,6 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
     const initialize = async () => {
       try {
-        debugLog.info('🚀 AppServicesProvider initializing with authenticated user:', auth.user?.name);
-
         const appConfig: BootstrapConfig = {
           app: 'miniapp',
           adapters: { data: 'supabase' },
@@ -163,16 +156,13 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         if (cancelled) return;
 
-        debugLog.info('💾 Creating data store...');
         const store = await createFrontendDataStore(appConfig, 'real', appUser);
 
         if (cancelled) return;
 
         setDataStore(store);
-        debugLog.success('✅ Data store created');
 
         try {
-          debugLog.info('👤 Fetching full user profile from database...');
           const profile = await userService.getUserProfile(auth.user.id, true);
 
           if (cancelled) return;
@@ -184,22 +174,18 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
           setUser(fullUser);
           setUserRole((profile.role as AppUserRole) ?? 'user');
-          debugLog.success(`✅ User profile loaded: ${profile.name}`);
         } catch (profileError) {
-          debugLog.warn('⚠️ Failed to fetch extended profile', profileError);
+          console.warn('⚠️ Failed to fetch extended profile', profileError);
         }
 
         if (!cancelled) {
           setLoading(false);
-          debugLog.success('🎉 AppServicesProvider initialized successfully!');
         }
       } catch (err) {
         if (cancelled) {
-          debugLog.info('🚿 Error occurred but initialization was cancelled, ignoring');
           return;
         }
 
-        debugLog.error('❌ AppServicesProvider initialization failed', err);
         console.error('AppServicesProvider initialization failed:', err);
 
         if (!cancelled) {
@@ -231,7 +217,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         }
       } catch (err) {
         if (!cancelled) {
-          debugLog.warn('⚠️ Failed to load active business context', err);
+          console.warn('⚠️ Failed to load active business context', err);
         }
       }
     };

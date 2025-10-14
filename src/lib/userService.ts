@@ -15,12 +15,10 @@ class UserService {
     if (!forceRefresh) {
       const cached = this.profileCache.get(userId);
       if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
-        console.log('✅ Using cached profile for user:', userId);
         return cached.profile;
       }
     }
 
-    console.log('🔍 Fetching user profile from database:', userId);
     const supabase = getSupabase();
 
     const { data, error } = await supabase
@@ -45,12 +43,10 @@ class UserService {
       timestamp: Date.now(),
     });
 
-    console.log('✅ User profile fetched:', profile.name || profile.username);
     return profile;
   }
 
   async getUserProfileByTelegramId(telegramId: string, forceRefresh = false): Promise<UserProfile> {
-    console.log('🔍 Fetching user profile by telegram_id:', telegramId);
     const supabase = getSupabase();
 
     const { data, error } = await supabase
@@ -75,12 +71,10 @@ class UserService {
       timestamp: Date.now(),
     });
 
-    console.log('✅ User profile fetched:', profile.name || profile.username);
     return profile;
   }
 
   async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<UserProfile> {
-    console.log('📝 Updating user profile:', userId);
     const supabase = getSupabase();
 
     const allowedFields = ['username', 'name', 'photo_url'];
@@ -113,7 +107,6 @@ class UserService {
       timestamp: Date.now(),
     });
 
-    console.log('✅ User profile updated');
     return profile;
   }
 
@@ -125,15 +118,12 @@ class UserService {
   clearCache(userId?: string) {
     if (userId) {
       this.profileCache.delete(userId);
-      console.log('🗑️ Cleared profile cache for user:', userId);
     } else {
       this.profileCache.clear();
-      console.log('🗑️ Cleared all profile cache');
     }
   }
 
   async getBusinessMemberships(userId: string): Promise<any[]> {
-    console.log('🏢 Fetching business memberships for user:', userId);
     const supabase = getSupabase();
 
     const { data, error } = await supabase
@@ -158,12 +148,10 @@ class UserService {
       return [];
     }
 
-    console.log('✅ Found', data?.length || 0, 'business memberships');
     return data || [];
   }
 
   async getPrimaryBusiness(userId: string): Promise<any | null> {
-    console.log('🏢 Fetching primary business for user:', userId);
     const supabase = getSupabase();
 
     const { data, error } = await supabase
@@ -187,11 +175,9 @@ class UserService {
     }
 
     if (!data) {
-      console.log('ℹ️ No primary business found');
       return null;
     }
 
-    console.log('✅ Primary business found:', data.businesses?.name);
     return data.businesses;
   }
 }

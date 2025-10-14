@@ -580,19 +580,6 @@ export class SupabaseDataStore implements DataStore {
   constructor(private userTelegramId: string, authSession?: SupabaseAuthSessionPayload | null, initialUserData?: any) {
     this.initialUserData = initialUserData;
 
-    console.log('🏗️ SupabaseDataStore: Constructor called with:', {
-      telegram_id: userTelegramId,
-      hasAuthSession: !!authSession,
-      hasInitialUserData: !!initialUserData,
-      initialUserData: initialUserData ? {
-        telegram_id: initialUserData.telegram_id,
-        username: initialUserData.username,
-        first_name: initialUserData.first_name,
-        last_name: initialUserData.last_name,
-        photo_url: initialUserData.photo_url
-      } : null
-    });
-
     if (authSession?.access_token && authSession.refresh_token) {
       this.authInitialization = this.initializeAuthSession(authSession);
     }
@@ -927,16 +914,12 @@ export class SupabaseDataStore implements DataStore {
 
     // Wait for auth session to be established if it's in progress
     if (this.authInitialization) {
-      console.log('getProfile: Waiting for auth initialization...');
       try {
         await this.authInitialization;
-        console.log('getProfile: Auth initialization complete');
       } catch (error) {
         console.error('getProfile: Auth initialization failed:', error);
       }
     }
-
-    console.log(`🔍 getProfile: Fetching profile for telegram_id: ${this.userTelegramId}`);
 
     // Create fresh client to bypass any caching
     const config = await loadConfig();
@@ -948,22 +931,12 @@ export class SupabaseDataStore implements DataStore {
       .eq('telegram_id', this.userTelegramId)
       .maybeSingle();
 
-    console.log('🔍 getProfile: RAW RESPONSE:', {
-      hasData: !!data,
-      hasError: !!error,
-      data: data ? JSON.stringify(data) : 'null',
-      error: error ? JSON.stringify(error) : 'null',
-      timestamp: new Date().toISOString()
-    });
-
     if (error) {
       console.error('❌ getProfile: Database error:', error);
       throw error;
     }
 
     if (!data) {
-      console.log('⚠️ getProfile: User not found, creating new user');
-
       // Validate telegram_id before creating user
       if (!this.userTelegramId) {
         console.error('❌ Cannot create user: telegram_id is missing', {
@@ -987,13 +960,6 @@ export class SupabaseDataStore implements DataStore {
         updated_at: new Date().toISOString()
       };
 
-      console.log('📝 Auto-registering new Telegram user:', {
-        telegram_id: newUser.telegram_id,
-        name: newUser.name,
-        username: newUser.username,
-        role: newUser.role
-      });
-
       const { data: created, error: createError } = await supabase
         .from('users')
         .insert(newUser)
@@ -1005,16 +971,9 @@ export class SupabaseDataStore implements DataStore {
         throw createError;
       }
 
-      console.log('✅ getProfile: Created new user', { role: created.role });
       this.user = created;
       return created;
     }
-
-    console.log('✅ getProfile: Successfully fetched profile from DB:', {
-      role: data.role,
-      telegram_id: data.telegram_id,
-      updated_at: data.updated_at
-    });
 
     // Update user with latest Telegram data if available
     const telegramUserData = this.initialUserData as any;
@@ -1041,7 +1000,6 @@ export class SupabaseDataStore implements DataStore {
 
       // Apply updates if any
       if (Object.keys(updates).length > 0) {
-        console.log('🔄 getProfile: Updating user with latest Telegram data:', updates);
         updates.updated_at = new Date().toISOString();
 
         const { data: updated, error: updateError } = await supabase
@@ -1055,11 +1013,8 @@ export class SupabaseDataStore implements DataStore {
           console.error('⚠️ getProfile: Failed to update user data:', updateError);
           // Continue with existing data
         } else if (updated) {
-          console.log('✅ getProfile: User data updated successfully');
           this.user = updated;
           return updated;
-        } else {
-          console.warn('⚠️ getProfile: Update succeeded but no data returned');
         }
       }
     }

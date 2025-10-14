@@ -75,27 +75,23 @@ export async function initSupabase(): Promise<SupabaseClient> {
   // Check global flag first (survives React StrictMode double renders)
   if (typeof window !== 'undefined' && (window as any).__SUPABASE_INITIALIZED__) {
     if (client && isInitialized) {
-      console.log('✅ Supabase client already initialized (global flag), returning existing instance');
       return client;
     }
   }
 
   // If already initialized, return existing client
   if (client && isInitialized) {
-    console.log('✅ Supabase client already initialized, returning existing instance');
     return client;
   }
 
   // If initialization is in progress, wait for it (critical for React StrictMode)
   if (initPromise) {
-    console.log('⏳ Supabase initialization in progress (deduplicated), waiting for existing promise...');
     return initPromise;
   }
 
   // Check window-level flag to prevent duplicate inits across renders
   if (typeof window !== 'undefined') {
     if ((window as any).__SUPABASE_INIT_IN_PROGRESS__) {
-      console.log('⏳ Supabase init already in progress globally, waiting...');
       // Wait a bit and retry
       await new Promise(resolve => setTimeout(resolve, 50));
       if (client && isInitialized) {
@@ -104,10 +100,6 @@ export async function initSupabase(): Promise<SupabaseClient> {
     }
     (window as any).__SUPABASE_INIT_IN_PROGRESS__ = true;
   }
-
-  // Start new initialization
-  console.log('🔧 Starting Supabase client initialization...');
-  const startTime = performance.now();
 
   initPromise = (async () => {
     try {
@@ -135,9 +127,6 @@ export async function initSupabase(): Promise<SupabaseClient> {
         (window as any).__SUPABASE_INITIALIZED__ = true;
         (window as any).__SUPABASE_INIT_IN_PROGRESS__ = false;
       }
-
-      const endTime = performance.now();
-      console.log(`🔧 Singleton Supabase client created with storageKey: twa-undergroundlab (${(endTime - startTime).toFixed(2)}ms)`);
 
       return client;
     } catch (error) {
