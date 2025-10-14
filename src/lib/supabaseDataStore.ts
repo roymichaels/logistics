@@ -3871,19 +3871,42 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async createBusinessType(input: Omit<BusinessType, 'id' | 'created_at' | 'updated_at' | 'created_by'>): Promise<{ id: string }> {
-    const profile = await this.getProfile();
+    console.log('🔄 createBusinessType: Starting...', input);
+
+    // Get the current user's UUID from the users table
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('telegram_id', this.userTelegramId)
+      .maybeSingle();
+
+    if (userError) {
+      console.error('❌ createBusinessType: Error fetching user:', userError);
+      throw userError;
+    }
+
+    if (!user) {
+      console.error('❌ createBusinessType: User not found for telegram_id:', this.userTelegramId);
+      throw new Error('User not found');
+    }
+
+    console.log('✅ createBusinessType: Found user ID:', user.id);
 
     const { data, error } = await supabase
       .from('business_types')
       .insert({
         ...input,
-        created_by: profile.id
+        created_by: user.id
       })
       .select('id')
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ createBusinessType: Error inserting:', error);
+      throw error;
+    }
 
+    console.log('✅ createBusinessType: Created business type:', data.id);
     return { id: data.id };
   }
 

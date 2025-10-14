@@ -46,8 +46,9 @@ export function BusinessTypeManager({ dataStore, onClose }: BusinessTypeManagerP
     }
 
     try {
+      console.log('🔄 Creating business type...', formData);
       if (dataStore.createBusinessType) {
-        await dataStore.createBusinessType({
+        const result = await dataStore.createBusinessType({
           type_value: formData.type_value.toLowerCase().replace(/\s+/g, '_'),
           label_hebrew: formData.label_hebrew,
           label_english: formData.label_english,
@@ -58,6 +59,7 @@ export function BusinessTypeManager({ dataStore, onClose }: BusinessTypeManagerP
           display_order: businessTypes.length + 1
         });
 
+        console.log('✅ Business type created:', result);
         haptic();
         setFormData({
           type_value: '',
@@ -68,10 +70,14 @@ export function BusinessTypeManager({ dataStore, onClose }: BusinessTypeManagerP
         });
         setShowCreateForm(false);
         await loadBusinessTypes();
+        alert('סוג העסק נוסף בהצלחה!');
+      } else {
+        console.error('❌ dataStore.createBusinessType is not available');
+        alert('פונקציית יצירת סוג עסק לא זמינה');
       }
     } catch (error) {
-      console.error('Failed to create business type:', error);
-      alert('שגיאה ביצירת סוג עסק');
+      console.error('❌ Failed to create business type:', error);
+      alert(`שגיאה ביצירת סוג עסק: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
