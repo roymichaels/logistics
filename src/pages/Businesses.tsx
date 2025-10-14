@@ -459,6 +459,8 @@ function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: {
 }) {
   const [formData, setFormData] = useState({
     name: '',
+    name_hebrew: '',
+    business_type: 'logistics',
     description: '',
     ownershipPercentage: 100
   });
@@ -467,8 +469,13 @@ function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name) {
-      telegram.showAlert('אנא הזן שם עסק');
+    if (!formData.name || !formData.name_hebrew) {
+      telegram.showAlert('אנא הזן שם עסק באנגלית ובעברית');
+      return;
+    }
+
+    if (!formData.business_type) {
+      telegram.showAlert('אנא בחר סוג עסק');
       return;
     }
 
@@ -479,39 +486,47 @@ function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: {
 
     setLoading(true);
     try {
-      if (!dataStore.supabase || !user) {
-        throw new Error('Missing requirements');
+      if (!dataStore.supabase) {
+        console.error('Missing supabase client');
+        throw new Error('המערכת לא מוכנה. אנא נסה שוב.');
       }
 
-      // Create business
+      if (!user) {
+        console.error('Missing user data');
+        throw new Error('משתמש לא מזוהה');
+      }
+
+      if (!user.id) {
+        console.error('User missing id field:', user);
+        throw new Error('נתוני משתמש חסרים');
+      }
+
+      console.log('Creating business with data:', {
+        name: formData.name,
+        name_hebrew: formData.name_hebrew,
+        business_type: formData.business_type,
+        user_id: user.id,
+        user_role: user.role
+      });
+
+      // Create business with all required fields
       const { data: businessData, error: businessError } = await dataStore.supabase
         .from('businesses')
         .insert({
           name: formData.name,
-          description: formData.description,
+          name_hebrew: formData.name_hebrew || formData.name,
+          business_type: formData.business_type,
           active: true
         })
         .select()
         .single();
 
-      if (businessError) throw businessError;
-
-      // Create ownership record
-      if (formData.ownershipPercentage > 0) {
-        const { error: ownershipError } = await dataStore.supabase
-          .from('business_ownership')
-          .insert({
-            business_id: businessData.id,
-            owner_user_id: user.id,
-            ownership_percentage: formData.ownershipPercentage,
-            equity_type: 'founder',
-            profit_share_percentage: formData.ownershipPercentage,
-            voting_rights: true,
-            created_by: user.id
-          });
-
-        if (ownershipError) throw ownershipError;
+      if (businessError) {
+        console.error('Business creation error:', businessError);
+        throw businessError;
       }
+
+      console.log('Business created successfully:', businessData);
 
       telegram.hapticFeedback('notification', 'success');
       telegram.showAlert('העסק נוצר בהצלחה!');
@@ -579,7 +594,7 @@ function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: {
                 fontWeight: '600',
                 color: ROYAL_COLORS.text
               }}>
-                שם העסק *
+                שם העסק (אנגלית) *
               </label>
               <input
                 type="text"
@@ -590,8 +605,59 @@ function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: {
                   ...ROYAL_STYLES.input,
                   fontSize: '16px'
                 }}
-                placeholder='לדוגמה: חברת הפצה בע"מ'
+                placeholder="Example: Delivery Company Ltd"
               />
+            </div>
+
+            <div>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: ROYAL_COLORS.text
+              }}>
+                שם העסק (עברית) *
+              </label>
+              <input
+                type="text"
+                value={formData.name_hebrew}
+                onChange={(e) => setFormData({ ...formData, name_hebrew: e.target.value })}
+                disabled={loading}
+                style={{
+                  ...ROYAL_STYLES.input,
+                  fontSize: '16px'
+                }}
+                placeholder='חברת הפצה בע"מ'
+              />
+            </div>
+
+            <div>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: ROYAL_COLORS.text
+              }}>
+                סוג העסק *
+              </label>
+              <select
+                value={formData.business_type}
+                onChange={(e) => setFormData({ ...formData, business_type: e.target.value })}
+                disabled={loading}
+                style={{
+                  ...ROYAL_STYLES.input,
+                  fontSize: '16px'
+                }}
+              >
+                <option value="logistics">לוגיסטיקה</option>
+                <option value="retail">קמעונאות</option>
+                <option value="food_delivery">משלוחי מזון</option>
+                <option value="electronics">אלקטרוניקה</option>
+                <option value="fashion">אופנה</option>
+                <option value="education">חינוך</option>
+              </select>
             </div>
 
             <div>

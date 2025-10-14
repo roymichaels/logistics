@@ -1,4 +1,5 @@
 export interface User {
+  id: string;
   telegram_id: string;
   role: 'user' | 'infrastructure_owner' | 'business_owner' | 'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service';
   name?: string;
