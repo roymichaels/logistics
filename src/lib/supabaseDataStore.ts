@@ -61,7 +61,30 @@ import {
   Business
 } from '../data/types';
 
-const supabase = getSupabase();
+let supabaseInstance: any = null;
+
+function getSupabaseInstance() {
+  if (!supabaseInstance) {
+    try {
+      supabaseInstance = getSupabase();
+    } catch (error) {
+      console.error('Failed to get Supabase instance:', error);
+      throw error;
+    }
+  }
+  return supabaseInstance;
+}
+
+const supabase = new Proxy({} as any, {
+  get(target, prop) {
+    const instance = getSupabaseInstance();
+    const value = instance[prop];
+    if (typeof value === 'function') {
+      return value.bind(instance);
+    }
+    return value;
+  }
+});
 
 export { supabase };
 
