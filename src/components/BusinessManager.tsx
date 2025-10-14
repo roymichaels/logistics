@@ -44,6 +44,15 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
   const [activeTab, setActiveTab] = useState<'businesses' | 'assignments'>('businesses');
   const [showCreateBusiness, setShowCreateBusiness] = useState(false);
   const [businessTypes, setBusinessTypes] = useState<BusinessType[]>([]);
+  const [newBusinessForm, setNewBusinessForm] = useState({
+    name: '',
+    name_hebrew: '',
+    business_type: '',
+    primary_color: '#007aff',
+    secondary_color: '#34c759',
+    default_currency: 'ILS' as 'ILS' | 'USD' | 'EUR',
+    order_number_prefix: 'ORD'
+  });
   const { theme, haptic } = useTelegramUI();
   const { currentBusinessId } = useAppServices();
 
@@ -150,6 +159,43 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
       customer_service: 'שירות לקוחות'
     };
     return labels[role as keyof typeof labels] || role;
+  };
+
+  const handleCreateBusiness = async () => {
+    console.log('🔄 Creating business...', newBusinessForm);
+
+    if (!newBusinessForm.name || !newBusinessForm.name_hebrew || !newBusinessForm.business_type) {
+      alert('נא למלא את כל השדות החובה');
+      return;
+    }
+
+    try {
+      if (dataStore.createBusiness) {
+        const result = await dataStore.createBusiness(newBusinessForm);
+        console.log('✅ Business created:', result);
+        haptic();
+
+        // Reset form
+        setNewBusinessForm({
+          name: '',
+          name_hebrew: '',
+          business_type: '',
+          primary_color: '#007aff',
+          secondary_color: '#34c759',
+          default_currency: 'ILS',
+          order_number_prefix: 'ORD'
+        });
+        setShowCreateBusiness(false);
+        await loadData();
+        alert('העסק נוסף בהצלחה!');
+      } else {
+        console.error('❌ dataStore.createBusiness is not available');
+        alert('פונקציית יצירת עסק לא זמינה');
+      }
+    } catch (error) {
+      console.error('❌ Failed to create business:', error);
+      alert(`שגיאה ביצירת עסק: ${error instanceof Error ? error.message : String(error)}`);
+    }
   };
 
   const renderBusinessCard = (business: Business) => {
@@ -617,6 +663,236 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
         {activeTab === 'businesses' && renderBusinessesTab()}
         {activeTab === 'assignments' && renderAssignmentsTab()}
       </div>
+
+      {/* Create Business Modal */}
+      {showCreateBusiness && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          zIndex: 1100,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: theme.bg_color,
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '500px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            direction: 'rtl'
+          }}>
+            <div style={{
+              padding: '16px',
+              borderBottom: `1px solid ${theme.hint_color}20`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <h3 style={{
+                margin: 0,
+                fontSize: '18px',
+                fontWeight: '600',
+                color: theme.text_color
+              }}>
+                ➕ עסק חדש
+              </h3>
+              <button
+                onClick={() => setShowCreateBusiness(false)}
+                style={{
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  fontSize: '24px',
+                  color: theme.hint_color,
+                  cursor: 'pointer',
+                  padding: '4px'
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '12px', color: theme.hint_color, marginBottom: '4px', display: 'block' }}>
+                  שם העסק בעברית *
+                </label>
+                <input
+                  type="text"
+                  placeholder="לדוגמה: משלוחי אופטימוס"
+                  value={newBusinessForm.name_hebrew}
+                  onChange={(e) => setNewBusinessForm({ ...newBusinessForm, name_hebrew: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    backgroundColor: theme.secondary_bg_color,
+                    border: `1px solid ${theme.hint_color}40`,
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    color: theme.text_color
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', color: theme.hint_color, marginBottom: '4px', display: 'block' }}>
+                  Business Name (English) *
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., Optimus Logistics"
+                  value={newBusinessForm.name}
+                  onChange={(e) => setNewBusinessForm({ ...newBusinessForm, name: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    backgroundColor: theme.secondary_bg_color,
+                    border: `1px solid ${theme.hint_color}40`,
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    color: theme.text_color
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', color: theme.hint_color, marginBottom: '4px', display: 'block' }}>
+                  סוג עסק *
+                </label>
+                <select
+                  value={newBusinessForm.business_type}
+                  onChange={(e) => setNewBusinessForm({ ...newBusinessForm, business_type: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    backgroundColor: theme.secondary_bg_color,
+                    border: `1px solid ${theme.hint_color}40`,
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    color: theme.text_color
+                  }}
+                >
+                  <option value="">בחר סוג עסק...</option>
+                  {businessTypes.map(bt => (
+                    <option key={bt.id} value={bt.type_value}>
+                      {bt.icon} {bt.label_hebrew}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', color: theme.hint_color, marginBottom: '4px', display: 'block' }}>
+                  קידומת מספר הזמנה
+                </label>
+                <input
+                  type="text"
+                  placeholder="ORD"
+                  value={newBusinessForm.order_number_prefix}
+                  onChange={(e) => setNewBusinessForm({ ...newBusinessForm, order_number_prefix: e.target.value.toUpperCase() })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    backgroundColor: theme.secondary_bg_color,
+                    border: `1px solid ${theme.hint_color}40`,
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    color: theme.text_color
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', color: theme.hint_color, marginBottom: '4px', display: 'block' }}>
+                  מטבע ברירת מחדל
+                </label>
+                <select
+                  value={newBusinessForm.default_currency}
+                  onChange={(e) => setNewBusinessForm({ ...newBusinessForm, default_currency: e.target.value as 'ILS' | 'USD' | 'EUR' })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    backgroundColor: theme.secondary_bg_color,
+                    border: `1px solid ${theme.hint_color}40`,
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    color: theme.text_color
+                  }}
+                >
+                  <option value="ILS">ש"ח (ILS)</option>
+                  <option value="USD">דולר ($)</option>
+                  <option value="EUR">יורו (€)</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '12px', color: theme.hint_color, marginBottom: '4px', display: 'block' }}>
+                    צבע ראשי
+                  </label>
+                  <input
+                    type="color"
+                    value={newBusinessForm.primary_color}
+                    onChange={(e) => setNewBusinessForm({ ...newBusinessForm, primary_color: e.target.value })}
+                    style={{
+                      width: '100%',
+                      height: '40px',
+                      padding: '4px',
+                      backgroundColor: theme.secondary_bg_color,
+                      border: `1px solid ${theme.hint_color}40`,
+                      borderRadius: '8px',
+                      cursor: 'pointer'
+                    }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '12px', color: theme.hint_color, marginBottom: '4px', display: 'block' }}>
+                    צבע משני
+                  </label>
+                  <input
+                    type="color"
+                    value={newBusinessForm.secondary_color}
+                    onChange={(e) => setNewBusinessForm({ ...newBusinessForm, secondary_color: e.target.value })}
+                    style={{
+                      width: '100%',
+                      height: '40px',
+                      padding: '4px',
+                      backgroundColor: theme.secondary_bg_color,
+                      border: `1px solid ${theme.hint_color}40`,
+                      borderRadius: '8px',
+                      cursor: 'pointer'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={handleCreateBusiness}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: theme.button_color,
+                  color: theme.button_text_color,
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  marginTop: '8px'
+                }}
+              >
+                שמור סוג עסק
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
