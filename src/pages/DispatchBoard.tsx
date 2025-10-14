@@ -30,7 +30,6 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
   const [showDriverSelector, setShowDriverSelector] = useState(false);
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const orchestrator = useMemo(() => new DispatchOrchestrator(dataStore), [dataStore]);
-  const supabase = (dataStore as any).supabase;
 
   useEffect(() => {
     backButton.hide();
@@ -61,38 +60,60 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
   useEffect(() => {
     loadData();
 
-    // Set up Supabase Realtime for live updates
-    const ordersChannel = supabase
-      .channel('dispatch-orders')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders'
-        },
-        () => {
-          console.log('Order update detected, refreshing...');
-          loadData();
-        }
-      )
-      .subscribe();
+    const supabase = (dataStore as any)?.supabase;
 
-    const driversChannel = supabase
-      .channel('dispatch-drivers')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'driver_statuses'
-        },
-        () => {
-          console.log('Driver status update detected, refreshing...');
-          loadData();
-        }
-      )
-      .subscribe();
+    // Set up Supabase Realtime for live updates only if supabase is available
+    if (!supabase) {
+      console.warn('⚠️ Supabase client not available, realtime updates disabled. Using polling fallback.');
+
+      // Fallback to polling only
+      const interval = setInterval(() => {
+        loadData();
+      }, 30000);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }
+
+    let ordersChannel: any = null;
+    let driversChannel: any = null;
+
+    try {
+      ordersChannel = supabase
+        .channel('dispatch-orders')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'orders'
+          },
+          () => {
+            console.log('Order update detected, refreshing...');
+            loadData();
+          }
+        )
+        .subscribe();
+
+      driversChannel = supabase
+        .channel('dispatch-drivers')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'driver_statuses'
+          },
+          () => {
+            console.log('Driver status update detected, refreshing...');
+            loadData();
+          }
+        )
+        .subscribe();
+    } catch (err) {
+      console.error('Failed to setup realtime subscriptions:', err);
+    }
 
     // Auto-refresh every 30 seconds
     const interval = setInterval(() => {
@@ -100,11 +121,15 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
     }, 30000);
 
     return () => {
-      ordersChannel.unsubscribe();
-      driversChannel.unsubscribe();
+      try {
+        if (ordersChannel) ordersChannel.unsubscribe();
+        if (driversChannel) driversChannel.unsubscribe();
+      } catch (err) {
+        console.error('Error unsubscribing from channels:', err);
+      }
       clearInterval(interval);
     };
-  }, [loadData, supabase]);
+  }, [loadData, dataStore]);
 
   const totalOnline = zones.reduce((sum, zone) => sum + zone.onlineDrivers.length, 0);
   const activeDeliveries = outstandingOrders.filter((order) => order.status === 'out_for_delivery').length;
