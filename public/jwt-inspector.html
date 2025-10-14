@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JWT Claims Inspector - מפקח תביעות JWT</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header p {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-badge.success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-badge.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-badge.warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .info-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-right: 4px solid #667eea;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #555;
+      min-width: 150px;
+    }
+
+    .info-value {
+      flex: 1;
+      text-align: left;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      word-break: break-all;
+      color: #333;
+    }
+
+    .info-value.success {
+      color: #28a745;
+    }
+
+    .info-value.error {
+      color: #dc3545;
+    }
+
+    .code-block {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 12px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .alert {
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .alert.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border-right: 4px solid #17a2b8;
+    }
+
+    .alert.success {
+      background: #d4edda;
+      color: #155724;
+      border-right: 4px solid #28a745;
+    }
+
+    .alert.error {
+      background: #f8d7da;
+      color: #721c24;
+      border-right: 4px solid #dc3545;
+    }
+
+    .checklist {
+      list-style: none;
+      padding: 0;
+    }
+
+    .checklist li {
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .checklist li:last-child {
+      border-bottom: none;
+    }
+
+    .check-icon {
+      font-size: 20px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .timestamp {
+      font-size: 12px;
+      color: #999;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔐 JWT Claims Inspector</h1>
+      <p>Real-time JWT token analysis and validation / ניתוח ואימות תביעות JWT בזמן אמת</p>
+    </div>
+
+    <div id="loadingState" class="card" style="display: none;">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p style="margin-top: 16px;">Loading session data...</p>
+      </div>
+    </div>
+
+    <div id="mainContent" style="display: none;">
+      <!-- Authentication Status -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🎫</span>
+            <span>Authentication Status / סטטוס אימות</span>
+          </div>
+          <div id="authStatus" class="status-badge"></div>
+        </div>
+        <div class="info-grid">
+          <div class="info-row">
+            <div class="info-label">Session Active / סשן פעיל</div>
+            <div id="sessionActive" class="info-value"></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">User ID / מזהה משתמש</div>
+            <div id="userId" class="info-value"></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Session Expires / פג תוקף</div>
+            <div id="sessionExpiry" class="info-value"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- JWT Claims -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>📋</span>
+            <span>JWT Claims / תביעות JWT</span>
+          </div>
+          <div id="claimsStatus" class="status-badge"></div>
+        </div>
+        <div class="info-grid">
+          <div class="info-row">
+            <div class="info-label">Telegram ID</div>
+            <div id="telegramId" class="info-value"></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Role / תפקיד</div>
+            <div id="userRole" class="info-value"></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Business ID / עסק</div>
+            <div id="businessId" class="info-value"></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Scope Level / רמת הרשאה</div>
+            <div id="scopeLevel" class="info-value"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="copyJwtClaims()" style="margin-top: 16px; width: auto;">
+          📋 Copy Full JWT Claims
+        </button>
+      </div>
+
+      <!-- Permissions -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🔑</span>
+            <span>Permissions / הרשאות</span>
+          </div>
+          <div id="permissionsStatus" class="status-badge"></div>
+        </div>
+        <div class="info-grid">
+          <div class="info-row">
+            <div class="info-label">Can See Financials</div>
+            <div id="canSeeFinancials" class="info-value"></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Cross-Business Access</div>
+            <div id="canSeeCrossBusiness" class="info-value"></div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Permission Count</div>
+            <div id="permissionCount" class="info-value"></div>
+          </div>
+        </div>
+        <div id="permissionsList"></div>
+      </div>
+
+      <!-- Validation Checklist -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>✅</span>
+            <span>Validation Checklist / רשימת בדיקות</span>
+          </div>
+        </div>
+        <ul id="validationChecklist" class="checklist"></ul>
+      </div>
+
+      <!-- Raw Token Data -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🔍</span>
+            <span>Raw JWT Token / טוקן גולמי</span>
+          </div>
+        </div>
+        <div class="code-block" id="rawToken"></div>
+        <div class="timestamp" id="tokenTimestamp"></div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button class="btn btn-primary" onclick="refreshData()">
+          🔄 Refresh Data / רענן נתונים
+        </button>
+        <button class="btn btn-secondary" onclick="printReport()">
+          🖨️ Print Report / הדפס דוח
+        </button>
+        <button class="btn btn-secondary" onclick="clearSession()">
+          🗑️ Clear Session / נקה סשן
+        </button>
+      </div>
+    </div>
+
+    <div id="errorState" class="card" style="display: none;">
+      <div class="alert error">
+        <span style="font-size: 24px;">⚠️</span>
+        <div>
+          <strong>Error Loading Session</strong>
+          <p id="errorMessage" style="margin-top: 8px;"></p>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="location.reload()">
+        Retry
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let currentSession = null;
+    let currentClaims = null;
+
+    async function loadSessionData() {
+      const loadingState = document.getElementById('loadingState');
+      const mainContent = document.getElementById('mainContent');
+      const errorState = document.getElementById('errorState');
+
+      loadingState.style.display = 'block';
+      mainContent.style.display = 'none';
+      errorState.style.display = 'none';
+
+      try {
+        // Check if session tracker is available
+        if (typeof window.sessionTracker === 'undefined') {
+          throw new Error('Session tracker not available. Ensure the app is loaded.');
+        }
+
+        // Get session from sessionTracker
+        const verification = await window.sessionTracker.verifySession();
+
+        if (!verification.valid) {
+          throw new Error('Session validation failed: ' + verification.errors.join(', '));
+        }
+
+        currentSession = verification;
+        currentClaims = verification.claims;
+
+        renderSessionData();
+
+        loadingState.style.display = 'none';
+        mainContent.style.display = 'block';
+      } catch (error) {
+        console.error('Failed to load session:', error);
+        document.getElementById('errorMessage').textContent = error.message;
+        loadingState.style.display = 'none';
+        errorState.style.display = 'block';
+      }
+    }
+
+    function renderSessionData() {
+      if (!currentSession || !currentClaims) {
+        return;
+      }
+
+      // Authentication Status
+      const authStatus = document.getElementById('authStatus');
+      authStatus.textContent = currentSession.valid ? '✅ Authenticated' : '❌ Not Authenticated';
+      authStatus.className = `status-badge ${currentSession.valid ? 'success' : 'error'}`;
+
+      document.getElementById('sessionActive').textContent = currentSession.hasSession ? '✅ Yes' : '❌ No';
+      document.getElementById('sessionActive').className = `info-value ${currentSession.hasSession ? 'success' : 'error'}`;
+
+      document.getElementById('userId').textContent = currentClaims.user_id || 'N/A';
+
+      // Session expiry (if available from window.__SUPABASE_SESSION__)
+      if (window.__SUPABASE_SESSION__) {
+        const expiresAt = new Date(window.__SUPABASE_SESSION__.expires_at * 1000);
+        const timeLeft = Math.max(0, expiresAt - Date.now());
+        const minutesLeft = Math.floor(timeLeft / 60000);
+        document.getElementById('sessionExpiry').textContent =
+          `${expiresAt.toLocaleString()} (${minutesLeft} minutes left)`;
+      } else {
+        document.getElementById('sessionExpiry').textContent = 'Unknown';
+      }
+
+      // JWT Claims
+      const claimsStatus = document.getElementById('claimsStatus');
+      claimsStatus.textContent = currentSession.hasClaims ? '✅ Valid' : '❌ Missing';
+      claimsStatus.className = `status-badge ${currentSession.hasClaims ? 'success' : 'error'}`;
+
+      document.getElementById('telegramId').textContent = currentClaims.telegram_id || 'N/A';
+      document.getElementById('userRole').textContent = currentClaims.role || 'N/A';
+      document.getElementById('businessId').textContent = currentClaims.business_id || 'NULL (infrastructure-level)';
+      document.getElementById('scopeLevel').textContent = currentClaims.scope_level || 'N/A';
+
+      // Permissions
+      const hasPermissions = currentClaims.permissions && currentClaims.permissions.length > 0;
+      const permissionsStatus = document.getElementById('permissionsStatus');
+      permissionsStatus.textContent = hasPermissions ? '✅ Loaded' : '⚠️ Not Cached';
+      permissionsStatus.className = `status-badge ${hasPermissions ? 'success' : 'warning'}`;
+
+      document.getElementById('canSeeFinancials').textContent = currentClaims.can_see_financials ? '✅ Yes' : '❌ No';
+      document.getElementById('canSeeCrossBusiness').textContent = currentClaims.can_see_cross_business ? '✅ Yes' : '❌ No';
+      document.getElementById('permissionCount').textContent = currentClaims.permissions?.length || '0';
+
+      if (currentClaims.permissions && currentClaims.permissions.length > 0) {
+        const permList = document.getElementById('permissionsList');
+        permList.innerHTML = `
+          <div class="code-block" style="max-height: 200px; overflow-y: auto;">
+            ${currentClaims.permissions.map(p => `• ${p}`).join('\n')}
+          </div>
+        `;
+      }
+
+      // Validation Checklist
+      const checklist = document.getElementById('validationChecklist');
+      const checks = [
+        { label: 'JWT Token Present', passed: currentSession.hasSession },
+        { label: 'User ID in Claims', passed: !!currentClaims.user_id },
+        { label: 'Telegram ID in Claims', passed: !!currentClaims.telegram_id },
+        { label: 'Role Assigned', passed: !!currentClaims.role },
+        { label: 'Session Valid', passed: currentSession.valid },
+        { label: 'Claims Complete', passed: currentSession.hasClaims }
+      ];
+
+      checklist.innerHTML = checks.map(check => `
+        <li>
+          <span class="check-icon">${check.passed ? '✅' : '❌'}</span>
+          <span>${check.label}</span>
+        </li>
+      `).join('');
+
+      // Raw Token
+      document.getElementById('rawToken').textContent = JSON.stringify(currentClaims, null, 2);
+      document.getElementById('tokenTimestamp').textContent = `Last updated: ${new Date().toLocaleString()}`;
+    }
+
+    function copyJwtClaims() {
+      const claimsText = JSON.stringify(currentClaims, null, 2);
+      navigator.clipboard.writeText(claimsText).then(() => {
+        alert('JWT claims copied to clipboard! / תביעות JWT הועתקו ללוח!');
+      });
+    }
+
+    function refreshData() {
+      loadSessionData();
+    }
+
+    function printReport() {
+      window.print();
+    }
+
+    function clearSession() {
+      if (confirm('Are you sure you want to clear the session? You will need to re-authenticate. / האם אתה בטוח שברצונך לנקות את הסשן? תצטרך להתחבר מחדש.')) {
+        localStorage.clear();
+        sessionStorage.clear();
+        alert('Session cleared. Reloading... / הסשן נוקה. טוען מחדש...');
+        location.reload();
+      }
+    }
+
+    // Auto-load on page load
+    window.addEventListener('load', () => {
+      // Wait a bit for sessionTracker to be available
+      setTimeout(loadSessionData, 500);
+    });
+  </script>
+</body>
+</html>
