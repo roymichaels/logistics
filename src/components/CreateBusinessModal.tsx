@@ -115,20 +115,23 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: 'rgba(0, 0, 0, 0.75)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '20px',
-      zIndex: 1000
+      zIndex: 9999,
+      backdropFilter: 'blur(4px)'
     }}>
       <div style={{
-        backgroundColor: ROYAL_COLORS.background,
+        backgroundColor: ROYAL_COLORS.backgroundSolid,
+        border: `1px solid ${ROYAL_COLORS.cardBorder}`,
         borderRadius: '16px',
         maxWidth: '500px',
         width: '100%',
-        maxHeight: '90vh',
-        overflowY: 'auto'
+        maxHeight: '85vh',
+        overflowY: 'auto',
+        boxShadow: ROYAL_COLORS.shadowStrong
       }}>
         <div style={{
           padding: '20px',
@@ -159,7 +162,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ padding: '20px' }}>
+        <form onSubmit={handleSubmit} style={{ padding: '20px', paddingBottom: '32px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
               <label style={{
