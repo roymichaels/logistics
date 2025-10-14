@@ -5,6 +5,7 @@ import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { telegram } from '../lib/telegram';
 import { CreateBusinessModal } from '../components/CreateBusinessModal';
 import { shouldShowCreateBusinessButton } from '../lib/roleDiagnostics';
+import { isSupabaseInitialized } from '../lib/supabaseClient';
 
 interface BusinessesProps {
   dataStore: DataStore;
@@ -39,10 +40,25 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isSystemReady, setIsSystemReady] = useState(false);
+  const [supabaseReady, setSupabaseReady] = useState(false);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    const checkSupabase = () => {
+      const ready = isSupabaseInitialized() && !!dataStore.supabase;
+      setSupabaseReady(ready);
+      console.log('🔍 Businesses: Supabase ready check:', { ready, hasDataStore: !!dataStore.supabase });
+    };
+
+    checkSupabase();
+
+    const intervalId = setInterval(checkSupabase, 500);
+
+    return () => clearInterval(intervalId);
+  }, [dataStore]);
 
   const loadData = async () => {
     setLoading(true);
@@ -159,26 +175,57 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
 
       {/* Infrastructure Owner: Create Business Button */}
       {user?.role === 'infrastructure_owner' ? (
-        <button
-          onClick={() => {
-            if (!isSystemReady) {
-              telegram.showAlert('המערכת עדיין נטענת. אנא המתן מעט...');
-              return;
-            }
-            console.log('✅ Create Business button clicked');
-            setShowCreateModal(true);
-          }}
-          disabled={!isSystemReady}
-          style={{
-            ...ROYAL_STYLES.buttonPrimary,
-            width: '100%',
-            marginBottom: '24px',
-            opacity: isSystemReady ? 1 : 0.6,
-            cursor: isSystemReady ? 'pointer' : 'not-allowed'
-          }}
-        >
-          + צור עסק חדש
-        </button>
+        <div style={{ marginBottom: '24px' }}>
+          <button
+            onClick={() => {
+              if (!supabaseReady) {
+                telegram.showAlert('המערכת עדיין נטענת. אנא המתן רגע...');
+                return;
+              }
+              if (!isSystemReady) {
+                telegram.showAlert('טוען נתונים. אנא המתן...');
+                return;
+              }
+              console.log('✅ Create Business button clicked', { supabaseReady, isSystemReady });
+              setShowCreateModal(true);
+            }}
+            disabled={!supabaseReady || !isSystemReady}
+            style={{
+              ...ROYAL_STYLES.buttonPrimary,
+              width: '100%',
+              opacity: (supabaseReady && isSystemReady) ? 1 : 0.6,
+              cursor: (supabaseReady && isSystemReady) ? 'pointer' : 'not-allowed',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}
+          >
+            {!supabaseReady ? (
+              <>
+                <span style={{
+                  display: 'inline-block',
+                  width: '14px',
+                  height: '14px',
+                  border: '2px solid rgba(255,255,255,0.3)',
+                  borderTopColor: 'white',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }}></span>
+                <style>{`
+                  @keyframes spin {
+                    to { transform: rotate(360deg); }
+                  }
+                `}</style>
+                מכין מערכת...
+              </>
+            ) : !isSystemReady ? (
+              'טוען נתונים...'
+            ) : (
+              '+ צור עסק חדש'
+            )}
+          </button>
+        </div>
       ) : user ? (
         <div style={{
           padding: '16px',

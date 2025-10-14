@@ -163,5 +163,35 @@ export function getSupabaseSession() {
   return supabase.auth.getSession();
 }
 
+/**
+ * Wait for Supabase to be fully initialized
+ * @param maxWaitMs Maximum time to wait in milliseconds (default: 10000ms)
+ * @param checkIntervalMs Interval between checks in milliseconds (default: 100ms)
+ * @returns Promise that resolves to the Supabase client or rejects on timeout
+ */
+export async function waitForSupabaseInit(maxWaitMs: number = 10000, checkIntervalMs: number = 100): Promise<SupabaseClient> {
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < maxWaitMs) {
+    if (isInitialized && client) {
+      return client;
+    }
+
+    // If initialization is in progress, wait for it
+    if (initPromise) {
+      try {
+        return await initPromise;
+      } catch (error) {
+        console.warn('Supabase initialization failed, retrying...', error);
+      }
+    }
+
+    // Wait before next check
+    await new Promise(resolve => setTimeout(resolve, checkIntervalMs));
+  }
+
+  throw new Error(`Supabase initialization timeout after ${maxWaitMs}ms`);
+}
+
 // Export config loader for other uses
 export { loadConfig };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
 import { telegram } from '../lib/telegram';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { waitForSupabaseInit } from '../lib/supabaseClient';
 
 interface CreateBusinessModalProps {
   dataStore: DataStore;
@@ -20,37 +21,23 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
   const [actualUserId, setActualUserId] = useState<string | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
-  const alertShownRef = React.useRef(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let mounted = true;
-    let timeoutId: NodeJS.Timeout;
-    let retryCount = 0;
-    const MAX_RETRIES = 10;
-    const RETRY_DELAY = 300;
 
-    async function waitForSupabase() {
-      while (retryCount < MAX_RETRIES && mounted) {
-        const supabaseClient = dataStore.supabase;
-
-        if (supabaseClient) {
-          return supabaseClient;
-        }
-
-        await new Promise(resolve => {
-          timeoutId = setTimeout(resolve, RETRY_DELAY);
-        });
-        retryCount++;
-      }
-
-      return null;
-    }
-
-    async function resolveUserId() {
+    async function initializeModal() {
       if (!mounted) return;
+
+      console.log('🔄 CreateBusinessModal: Starting initialization...', {
+        hasUser: !!user,
+        userId: user?.id,
+        telegramId: user?.telegram_id
+      });
 
       if (!user) {
         setIsInitializing(false);
+        console.log('⚠️ CreateBusinessModal: No user provided');
         return;
       }
 
@@ -58,33 +45,28 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         setActualUserId(user.id);
         setIsReady(true);
         setIsInitializing(false);
+        console.log('✅ CreateBusinessModal: User ID already available', { userId: user.id });
         return;
       }
 
       if (!user.telegram_id) {
-        setInitError('שגיאה: לא נמצא מזהה משתמש');
+        setInitError('לא נמצא מזהה משתמש. אנא התחבר מחדש.');
         setIsInitializing(false);
-        if (!alertShownRef.current) {
-          alertShownRef.current = true;
-          telegram.showAlert('שגיאה: לא נמצא מזהה משתמש. אנא רענן את הדף.');
-        }
+        console.error('❌ CreateBusinessModal: No telegram_id found');
         return;
       }
 
       try {
-        const supabaseClient = await waitForSupabase();
+        console.log('⏳ CreateBusinessModal: Waiting for Supabase initialization...');
 
-        if (!mounted) return;
+        const supabaseClient = await waitForSupabaseInit(15000, 200);
 
-        if (!supabaseClient) {
-          setInitError('המערכת לא מוכנה');
-          setIsInitializing(false);
-          if (!alertShownRef.current) {
-            alertShownRef.current = true;
-            telegram.showAlert('המערכת לא מוכנה. אנא רענן את הדף ונסה שוב.');
-          }
+        if (!mounted) {
+          console.log('🚫 CreateBusinessModal: Component unmounted during Supabase wait');
           return;
         }
+
+        console.log('✅ CreateBusinessModal: Supabase client ready, querying user data...');
 
         const { data: userData, error } = await supabaseClient
           .from('users')
@@ -92,41 +74,52 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
           .eq('telegram_id', user.telegram_id)
           .maybeSingle();
 
-        if (!mounted) return;
-
-        if (error || !userData) {
-          setInitError('שגיאה בטעינת נתוני משתמש');
-          setIsInitializing(false);
-          if (!alertShownRef.current) {
-            alertShownRef.current = true;
-            telegram.showAlert('שגיאה בטעינת נתוני משתמש. אנא רענן את הדף.');
-          }
+        if (!mounted) {
+          console.log('🚫 CreateBusinessModal: Component unmounted during query');
           return;
         }
 
+        if (error) {
+          console.error('❌ CreateBusinessModal: Database error:', error);
+          setInitError('שגיאה בטעינת נתוני משתמש מהמסד נתונים');
+          setIsInitializing(false);
+          return;
+        }
+
+        if (!userData) {
+          console.error('❌ CreateBusinessModal: User not found in database');
+          setInitError('משתמש לא נמצא במערכת. אנא פנה למנהל.');
+          setIsInitializing(false);
+          return;
+        }
+
+        console.log('✅ CreateBusinessModal: User data loaded successfully', { userId: userData.id });
         setActualUserId(userData.id);
         setIsReady(true);
+        setInitError(null);
         setIsInitializing(false);
       } catch (error) {
         if (!mounted) return;
-        setInitError('שגיאה בטעינת נתוני משתמש');
+
+        console.error('❌ CreateBusinessModal: Initialization failed:', error);
+
+        const errorMessage = error instanceof Error
+          ? error.message.includes('timeout')
+            ? 'המערכת לוקחת זמן להיטען. נסה שוב בעוד רגע.'
+            : 'שגיאה בטעינת המערכת'
+          : 'שגיאה לא ידועה';
+
+        setInitError(errorMessage);
         setIsInitializing(false);
-        if (!alertShownRef.current) {
-          alertShownRef.current = true;
-          telegram.showAlert('שגיאה בטעינת נתוני משתמש. אנא רענן את הדף.');
-        }
       }
     }
 
-    resolveUserId();
+    initializeModal();
 
     return () => {
       mounted = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
     };
-  }, [user, dataStore]);
+  }, [user, retryCount]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -304,20 +297,42 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
 
             {initError && (
               <div style={{
-                padding: '12px',
+                padding: '16px',
                 backgroundColor: 'rgba(255, 59, 48, 0.1)',
                 border: '1px solid rgba(255, 59, 48, 0.3)',
                 borderRadius: '8px',
                 marginBottom: '16px'
               }}>
                 <p style={{
-                  margin: 0,
+                  margin: '0 0 12px 0',
                   color: '#ff3b30',
                   fontSize: '14px',
-                  textAlign: 'center'
+                  textAlign: 'center',
+                  fontWeight: '500'
                 }}>
                   {initError}
                 </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInitError(null);
+                    setIsInitializing(true);
+                    setRetryCount(prev => prev + 1);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '8px 16px',
+                    backgroundColor: 'rgba(255, 59, 48, 0.2)',
+                    border: '1px solid rgba(255, 59, 48, 0.5)',
+                    borderRadius: '6px',
+                    color: '#ff3b30',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  🔄 נסה שוב
+                </button>
               </div>
             )}
 
