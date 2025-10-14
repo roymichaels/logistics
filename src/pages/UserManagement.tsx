@@ -25,7 +25,6 @@ import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
 import { logAuthDebug, validateUserManagementAccess } from '../lib/authDebug';
 import { sessionTracker } from '../lib/sessionTracker';
-import { SessionStatusIndicator } from '../components/SessionStatusIndicator';
 
 interface UserManagementProps {
   onNavigate: (page: string) => void;
@@ -500,9 +499,6 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
 
   return (
     <div style={ROYAL_STYLES.pageContainer}>
-      {/* Session Status Indicator - Always visible in dev/debug */}
-      <SessionStatusIndicator showDetails={true} />
-
       {/* Header */}
       <div style={ROYAL_STYLES.pageHeader}>
         <h1 style={ROYAL_STYLES.pageTitle}>👥 ניהול משתמשים</h1>
