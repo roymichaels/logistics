@@ -156,10 +156,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
       .maybeSingle();
 
     if (existingUser) {
-      console.log('✅ User exists, updating profile info only (preserving role)...');
+      console.log('✅ User exists, updating profile info and syncing auth UID...');
       const { error: updateErr } = await supabase
         .from('users')
         .update({
+          id: authUser.id,
           username: user.username?.replace(/^@/, '').toLowerCase() || null,
           name: fullName,
           first_name: user.first_name || null,
@@ -172,13 +173,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
         console.error('❌ User update failed:', updateErr);
         console.warn('⚠️ Continuing despite update error - session is valid');
       } else {
-        console.log('✅ User profile updated (role preserved)');
+        console.log('✅ User profile updated and auth UID synced');
       }
     } else {
-      console.log('➕ Creating new user record with default role...');
+      console.log('➕ Creating new user record with auth UID...');
       const { error: insertErr } = await supabase
         .from('users')
         .insert({
+          id: authUser.id,
           telegram_id: user.id.toString(),
           username: user.username?.replace(/^@/, '').toLowerCase() || null,
           name: fullName,
@@ -192,7 +194,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         console.error('❌ User insert failed:', insertErr);
         console.warn('⚠️ Continuing despite insert error - session is valid');
       } else {
-        console.log('✅ New user record created');
+        console.log('✅ New user record created with auth UID');
       }
     }
 

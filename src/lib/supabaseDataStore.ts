@@ -233,6 +233,7 @@ export async function fetchUserRegistrationRecord(telegramId: string): Promise<U
 export async function listUserRegistrationRecords(filters?: {
   status?: UserRegistrationStatus;
 }): Promise<UserRegistration[]> {
+  // First, try to get from user_registrations table
   let query = supabase
     .from('user_registrations')
     .select('*')
@@ -242,13 +243,50 @@ export async function listUserRegistrationRecords(filters?: {
     query = query.eq('status', filters.status);
   }
 
-  const { data, error } = await query;
+  const { data: registrationData, error: regError } = await query;
 
-  if (error) throw error;
+  // If user_registrations query succeeds and has data, use it
+  if (!regError && registrationData && registrationData.length > 0) {
+    return registrationData.map((row) => ({
+      ...row,
+      approval_history: normalizeHistory(row.approval_history as RegistrationApproval[] | null)
+    })) as UserRegistration[];
+  }
 
-  return (data ?? []).map((row) => ({
-    ...row,
-    approval_history: normalizeHistory(row.approval_history as RegistrationApproval[] | null)
+  // Fallback: fetch from users table and transform to UserRegistration format
+  console.log('📊 Fetching users from users table as fallback');
+  let usersQuery = supabase
+    .from('users')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  // Map registration_status to status filter
+  if (filters?.status) {
+    usersQuery = usersQuery.eq('registration_status', filters.status);
+  }
+
+  const { data: usersData, error: usersError } = await usersQuery;
+
+  if (usersError) throw usersError;
+
+  // Transform users to UserRegistration format
+  return (usersData ?? []).map((user) => ({
+    telegram_id: user.telegram_id,
+    first_name: user.first_name || user.name?.split(' ')[0] || 'משתמש',
+    last_name: user.last_name || user.name?.split(' ').slice(1).join(' ') || null,
+    username: user.username,
+    photo_url: user.photo_url || null,
+    department: user.department || null,
+    phone: user.phone || null,
+    requested_role: user.requested_role || user.role,
+    assigned_role: user.assigned_role || user.role,
+    status: user.registration_status || 'pending',
+    approval_history: normalizeHistory(user.approval_history as RegistrationApproval[] | null),
+    created_at: user.created_at,
+    updated_at: user.updated_at,
+    approved_by: user.approved_by || null,
+    approved_at: user.approved_at || null,
+    approval_notes: user.approval_notes || null
   })) as UserRegistration[];
 }
 
