@@ -4002,13 +4002,18 @@ export class SupabaseDataStore implements DataStore {
   // Direct Messaging and User Presence Functions
 
   async listAllUsersForMessaging(): Promise<User[]> {
+    console.log('📋 listAllUsersForMessaging: Fetching all users for messaging...');
     const { data, error } = await supabase
       .from('users')
       .select('*')
       .order('name', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ listAllUsersForMessaging: Error fetching users:', error);
+      throw error;
+    }
 
+    console.log(`✅ listAllUsersForMessaging: Loaded ${data?.length || 0} users from database`);
     return (data || []).map((row: any) => ({
       telegram_id: row.telegram_id,
       role: row.role,
@@ -4019,7 +4024,7 @@ export class SupabaseDataStore implements DataStore {
       phone: row.phone,
       business_id: row.business_id,
       last_active: row.last_active,
-      online_status: row.online_status,
+      online_status: row.online_status || 'offline',
       last_seen: row.last_seen
     }));
   }

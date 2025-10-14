@@ -153,8 +153,21 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
   const loadUsers = async () => {
     try {
       if (dataStore.listAllUsersForMessaging) {
+        console.log('🔍 Chat: Loading users for messaging...');
         const usersList = await dataStore.listAllUsersForMessaging();
-        setUsers(usersList.filter(u => u.telegram_id !== currentUser?.telegram_id));
+        console.log(`✅ Chat: Loaded ${usersList.length} users`);
+
+        const usersWithPresence = usersList
+          .filter(u => u.telegram_id !== currentUser?.telegram_id)
+          .map(user => ({
+            ...user,
+            online_status: user.online_status || 'offline',
+            last_active: user.last_active || null,
+            last_seen: user.last_seen || null
+          }));
+
+        console.log(`📊 Chat: Showing ${usersWithPresence.length} users (filtered out current user)`);
+        setUsers(usersWithPresence);
       }
     } catch (error) {
       console.error('Failed to load users:', error);
@@ -275,13 +288,14 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
 
     if (!matchesSearch) return false;
 
-    if (userFilter === 'online') return user.online_status === 'online';
-    if (userFilter === 'offline') return user.online_status !== 'online';
+    const onlineStatus = user.online_status || 'offline';
+    if (userFilter === 'online') return onlineStatus === 'online';
+    if (userFilter === 'offline') return onlineStatus !== 'online';
 
     return true;
   });
 
-  const onlineUsersCount = users.filter(u => u.online_status === 'online').length;
+  const onlineUsersCount = users.filter(u => (u.online_status || 'offline') === 'online').length;
   const offlineUsersCount = users.length - onlineUsersCount;
 
   if (loading) {
