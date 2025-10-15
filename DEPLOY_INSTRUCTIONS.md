@@ -1,7 +1,7 @@
 # Deployment Instructions (Supabase Database)
 
 ## Summary
-The Supabase project now relies on a single consolidated baseline migration plus targeted seed scripts. Always apply the files in `supabase/migrations/` in lexical order to reconstruct the full schema and essential seed data.
+The Supabase project now ships with a lean baseline schema and a single seed script. Provisioning a new environment only requires executing two SQL files: `supabase/init_schema.sql` followed by `supabase/seed_data.sql`.
 
 ## Prerequisites
 - Supabase CLI (`npx supabase --help`)
@@ -15,7 +15,8 @@ npx supabase login
 npx supabase link --project-ref <project-ref>
 
 # Rebuild the database schema and apply seeds
-npx supabase db reset
+psql "$DATABASE_URL" -f supabase/init_schema.sql
+psql "$DATABASE_URL" -f supabase/seed_data.sql
 
 # Confirm no drift remains
 npx supabase db diff
@@ -23,11 +24,9 @@ npx supabase db diff
 
 ## Manual SQL Deployment (Dashboard)
 1. Open **Project → SQL Editor**.
-2. Run each file from `supabase/migrations/` in order:
-   - `20251015_000000_init.sql`
-   - `20251015_010000_seed_roles.sql`
-   - `20251015_020000_seed_infrastructure.sql`
-3. Validate that tenant-aware policies, helper functions, and seed data exist.
+2. Run `supabase/init_schema.sql` to create all tables, enums, and policies.
+3. Run `supabase/seed_data.sql` to populate core roles, permissions, and the default infrastructure.
+4. Validate that tenant-aware policies, helper functions, and seed data exist.
 
 ## Troubleshooting
 - **Missing access token:** set `SUPABASE_ACCESS_TOKEN` before running `npx supabase login`.
@@ -39,4 +38,4 @@ Use the helper script whenever production schema changes outside this repo:
 ```bash
 node scripts/collapse-migrations.cjs --stamp 20251015
 ```
-This command dumps the linked database, archives historical migrations in `supabase/migrations_archive/`, and regenerates the baseline + seed files so `npx supabase db reset` stays accurate.
+This command should now be treated as an archival tool. The canonical schema lives in `supabase/init_schema.sql`; regenerate it by exporting from the live database and copying the relevant statements back into this file.

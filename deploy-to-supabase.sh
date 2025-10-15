@@ -2,9 +2,7 @@
 set -euo pipefail
 
 echo "\nℹ️  deploy-to-supabase.sh is deprecated."
-echo "   Run the Supabase CLI commands instead:"
-echo "     npx supabase login"
-echo "     npx supabase link --project-ref <project-ref>"
-echo "     npx supabase db reset"
-echo "     npx supabase db diff"
-echo "\nRefer to DEPLOY_INSTRUCTIONS.md for details on the consolidated baseline workflow."
+echo "   Apply the lean baseline SQL files manually:"
+echo "     psql \"\$DATABASE_URL\" -f supabase/init_schema.sql"
+echo "     psql \"\$DATABASE_URL\" -f supabase/seed_data.sql"
+echo "\nRefer to DEPLOY_INSTRUCTIONS.md for details on the new workflow."

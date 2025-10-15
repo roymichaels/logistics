@@ -1,4 +1,5 @@
--- The canonical schema is now defined in supabase/migrations/20251015_000000_init.sql.
--- This file remains as a pointer for tooling that previously referenced supabase/schema.sql.
--- Update the baseline via `node scripts/collapse-migrations.cjs --stamp <yyyymmdd>` and
--- re-run `npx supabase db reset` to sync local environments.
+-- The canonical schema has moved to `supabase/init_schema.sql`.
+-- This pointer exists for legacy tooling that expects `supabase/schema.sql`.
+-- To provision a database run:
+--   1. psql -f supabase/init_schema.sql
+--   2. psql -f supabase/seed_data.sql
