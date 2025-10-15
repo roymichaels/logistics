@@ -1,225 +1,262 @@
-import { createClient } from 'npm:@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { corsHeaders } from '../_shared/cors.ts';
+import {
+  HttpError,
+  decodeTenantClaims,
+  requireAccessToken,
+  ensureRoleAllowsInfrastructureTraversal,
+} from '../_shared/tenantGuard.ts';
+import { getServiceSupabaseClient } from '../_shared/supabaseClient.ts';
+import { logAuditEvent } from '../_shared/auditLog.ts';
 
 interface ApprovalRequest {
   allocation_id: string;
-  approved_quantity: number;
+  approved_quantity?: number;
   action: 'approve' | 'reject';
   rejection_reason?: string;
   auto_fulfill?: boolean;
 }
 
+const INFRA_APPROVER_ROLES = new Set([
+  'infrastructure_owner',
+  'infrastructure_manager',
+  'infrastructure_warehouse',
+]);
+
+async function getActiveContext(
+  supabase: ReturnType<typeof getServiceSupabaseClient>,
+  userId: string
+) {
+  const { data, error } = await supabase
+    .from('user_active_contexts')
+    .select('infrastructure_id')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) {
+    throw new HttpError(500, 'Failed to load active context', { details: error });
+  }
+
+  return data;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers: corsHeaders });
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = getServiceSupabaseClient();
+    const token = requireAccessToken(req);
+    const claims = decodeTenantClaims(token);
+    const payload: ApprovalRequest = await req.json();
 
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!payload.allocation_id || !payload.action) {
+      throw new HttpError(400, 'allocation_id and action are required');
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !user) {
+      throw new HttpError(401, 'Unauthorized');
     }
 
-    // Only infrastructure warehouse workers and owners can approve
-    const { data: userData } = await supabase
-      .from('users')
-      .select('id, role')
-      .eq('id', user.id)
-      .single();
-
-    if (!userData || !['infrastructure_owner', 'infrastructure_warehouse'].includes(userData.role)) {
-      return new Response(
-        JSON.stringify({ error: 'Only infrastructure warehouse staff can approve allocations' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!ensureRoleAllowsInfrastructureTraversal(claims.role) || !INFRA_APPROVER_ROLES.has(claims.role ?? '')) {
+      throw new HttpError(403, 'Only infrastructure approvers can modify allocations');
     }
 
-    const request: ApprovalRequest = await req.json();
+    const activeContext = await getActiveContext(supabase, user.id);
+    const infrastructureId = activeContext?.infrastructure_id ?? claims.infrastructureId;
 
-    if (!request.allocation_id || !request.action) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!infrastructureId) {
+      throw new HttpError(403, 'No active infrastructure scope available');
     }
 
-    // Get allocation
-    const { data: allocation } = await supabase
+    const { data: allocation, error: allocationError } = await supabase
       .from('stock_allocations')
-      .select('*')
-      .eq('id', request.allocation_id)
-      .single();
+      .select('id, from_warehouse_id, to_warehouse_id, to_business_id, product_id, requested_quantity, allocation_status, allocation_number, infrastructure_id')
+      .eq('id', payload.allocation_id)
+      .maybeSingle();
+
+    if (allocationError) {
+      throw new HttpError(500, 'Failed to load allocation', { details: allocationError });
+    }
 
     if (!allocation) {
-      return new Response(
-        JSON.stringify({ error: 'Allocation not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new HttpError(404, 'Allocation not found');
+    }
+
+    if (allocation.infrastructure_id !== infrastructureId) {
+      throw new HttpError(403, 'Allocation belongs to a different infrastructure');
     }
 
     if (allocation.allocation_status !== 'pending') {
-      return new Response(
-        JSON.stringify({ error: `Allocation already ${allocation.allocation_status}` }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new HttpError(400, `Allocation already ${allocation.allocation_status}`);
     }
 
-    if (request.action === 'reject') {
-      // Reject allocation
+    if (payload.action === 'reject') {
       const { error: updateError } = await supabase
         .from('stock_allocations')
         .update({
           allocation_status: 'rejected',
           approved_by: user.id,
           approved_at: new Date().toISOString(),
-          rejection_reason: request.rejection_reason,
+          rejection_reason: payload.rejection_reason,
         })
-        .eq('id', request.allocation_id);
+        .eq('id', payload.allocation_id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        throw new HttpError(500, 'Failed to reject allocation', { details: updateError });
+      }
 
-      await supabase.from('system_audit_log').insert({
-        event_type: 'inventory_transferred',
-        actor_id: user.id,
-        actor_role: userData.role,
-        target_entity_type: 'stock_allocation',
-        target_entity_id: request.allocation_id,
-        business_id: allocation.to_business_id,
+      await logAuditEvent(supabase, {
+        eventType: 'inventory_transferred',
+        actorId: user.id,
+        actorRole: claims.role ?? undefined,
+        targetEntityType: 'stock_allocation',
+        targetEntityId: payload.allocation_id,
+        businessId: allocation.to_business_id,
+        infrastructureId: infrastructureId,
         action: 'allocation_rejected',
-        change_summary: request.rejection_reason,
+        changeSummary: payload.rejection_reason,
         severity: 'warning',
       });
 
-      return new Response(
-        JSON.stringify({ success: true, message: 'Allocation rejected' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ success: true, message: 'Allocation rejected' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    // Approve allocation
-    if (request.approved_quantity <= 0 || request.approved_quantity > allocation.requested_quantity) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid approved quantity' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!payload.approved_quantity || payload.approved_quantity <= 0) {
+      throw new HttpError(400, 'approved_quantity must be provided when approving');
     }
 
-    // Check inventory availability
-    const { data: sourceInventory } = await supabase
+    if (payload.approved_quantity > allocation.requested_quantity) {
+      throw new HttpError(400, 'approved_quantity cannot exceed requested quantity');
+    }
+
+    const { data: sourceInventory, error: inventoryError } = await supabase
       .from('inventory_locations')
       .select('on_hand_quantity, reserved_quantity')
       .eq('location_id', allocation.from_warehouse_id)
       .eq('product_id', allocation.product_id)
       .maybeSingle();
 
-    const availableQuantity = sourceInventory
-      ? sourceInventory.on_hand_quantity - sourceInventory.reserved_quantity
-      : 0;
-
-    if (availableQuantity < request.approved_quantity) {
-      return new Response(
-        JSON.stringify({
-          error: 'Insufficient inventory at source',
-          available: availableQuantity,
-          approved: request.approved_quantity,
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (inventoryError) {
+      throw new HttpError(500, 'Failed to load source inventory', { details: inventoryError });
     }
 
-    // Update allocation
+    const availableQuantity = sourceInventory
+      ? Number(sourceInventory.on_hand_quantity) - Number(sourceInventory.reserved_quantity)
+      : 0;
+
+    if (availableQuantity < payload.approved_quantity) {
+      throw new HttpError(400, 'Insufficient inventory at source warehouse', {
+        availableQuantity,
+        approvedQuantity: payload.approved_quantity,
+      });
+    }
+
+    const newStatus = payload.auto_fulfill ? 'delivered' : 'approved';
+    const now = new Date().toISOString();
+
     const { error: updateError } = await supabase
       .from('stock_allocations')
       .update({
-        allocation_status: request.auto_fulfill ? 'delivered' : 'approved',
-        approved_quantity: request.approved_quantity,
+        allocation_status: newStatus,
+        approved_quantity: payload.approved_quantity,
         approved_by: user.id,
-        approved_at: new Date().toISOString(),
-        delivered_quantity: request.auto_fulfill ? request.approved_quantity : 0,
-        delivered_by: request.auto_fulfill ? user.id : null,
-        delivered_at: request.auto_fulfill ? new Date().toISOString() : null,
+        approved_at: now,
+        delivered_quantity: payload.auto_fulfill ? payload.approved_quantity : 0,
+        delivered_by: payload.auto_fulfill ? user.id : null,
+        delivered_at: payload.auto_fulfill ? now : null,
       })
-      .eq('id', request.allocation_id);
+      .eq('id', payload.allocation_id);
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      throw new HttpError(500, 'Failed to update allocation', { details: updateError });
+    }
 
-    if (request.auto_fulfill) {
-      // Execute the transfer immediately
-      // Decrease from source
-      await supabase.rpc('adjust_inventory', {
+    if (payload.auto_fulfill) {
+      const transferPayload = {
         p_location_id: allocation.from_warehouse_id,
         p_product_id: allocation.product_id,
-        p_quantity_change: -request.approved_quantity,
-      });
+        p_quantity_change: -payload.approved_quantity,
+      };
 
-      // Increase at destination
-      await supabase.rpc('adjust_inventory', {
+      const fulfillPayload = {
         p_location_id: allocation.to_warehouse_id,
         p_product_id: allocation.product_id,
-        p_quantity_change: request.approved_quantity,
-      });
+        p_quantity_change: payload.approved_quantity,
+      };
 
-      // Log the movement
-      await supabase.from('inventory_movements').insert({
+      const decrement = await supabase.rpc('adjust_inventory', transferPayload);
+      if (decrement.error) {
+        throw new HttpError(500, 'Failed to decrement source inventory', { details: decrement.error });
+      }
+
+      const increment = await supabase.rpc('adjust_inventory', fulfillPayload);
+      if (increment.error) {
+        throw new HttpError(500, 'Failed to increment destination inventory', { details: increment.error });
+      }
+
+      const { error: movementError } = await supabase.from('inventory_movements').insert({
         movement_type: 'infrastructure_allocation',
         product_id: allocation.product_id,
         from_warehouse_id: allocation.from_warehouse_id,
         to_warehouse_id: allocation.to_warehouse_id,
-        quantity: request.approved_quantity,
+        quantity: payload.approved_quantity,
         business_id: allocation.to_business_id,
+        infrastructure_id: infrastructureId,
         reference_number: allocation.allocation_number,
         moved_by: user.id,
         approved_by: user.id,
       });
+
+      if (movementError) {
+        throw new HttpError(500, 'Failed to record inventory movement', { details: movementError });
+      }
     }
 
-    await supabase.from('system_audit_log').insert({
-      event_type: 'inventory_transferred',
-      actor_id: user.id,
-      actor_role: userData.role,
-      target_entity_type: 'stock_allocation',
-      target_entity_id: request.allocation_id,
-      business_id: allocation.to_business_id,
-      action: request.auto_fulfill ? 'allocation_fulfilled' : 'allocation_approved',
-      change_summary: `Approved ${request.approved_quantity} units`,
+    await logAuditEvent(supabase, {
+      eventType: 'inventory_transferred',
+      actorId: user.id,
+      actorRole: claims.role ?? undefined,
+      targetEntityType: 'stock_allocation',
+      targetEntityId: payload.allocation_id,
+      businessId: allocation.to_business_id,
+      infrastructureId: infrastructureId,
+      action: payload.auto_fulfill ? 'allocation_fulfilled' : 'allocation_approved',
+      changeSummary: `Approved ${payload.approved_quantity} units`,
       severity: 'info',
     });
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: request.auto_fulfill
+        message: payload.auto_fulfill
           ? 'Allocation approved and fulfilled'
           : 'Allocation approved. Ready for fulfillment.',
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
+    if (error instanceof HttpError) {
+      return new Response(
+        JSON.stringify({ error: error.message, details: error.details }),
+        { status: error.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.error('Approval error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

@@ -1,6 +1,7 @@
 import { RealtimeChannel, createClient } from '@supabase/supabase-js';
 import { getSupabase, loadConfig } from './supabaseClient';
 import { trackProfileFetch, trackCacheHit } from './profileDebugger';
+import { LEGACY_TO_CANONICAL_ROLE, CANONICAL_TO_LEGACY_ROLE } from './roleMappings';
 import {
   DataStore,
   User,
@@ -98,6 +99,7 @@ const VALID_ROLES: User['role'][] = [
   'sales',
   'customer_service'
 ];
+
 
 export interface UpsertUserRegistrationInput {
   telegram_id: string;
@@ -850,9 +852,9 @@ export class SupabaseDataStore implements DataStore {
 
     this.subscriptions.set('businesses', businessChannel);
 
-    // Subscribe to business_users changes
-    const businessUsersChannel = supabase.channel('business_users')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'business_users' }, (payload) => {
+    // Subscribe to user_business_roles changes
+    const businessUsersChannel = supabase.channel('user_business_roles')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_business_roles' }, (payload) => {
         this.notifyListeners('business_users', payload);
       })
       .subscribe();
@@ -3742,13 +3744,7 @@ export class SupabaseDataStore implements DataStore {
     role?: string;
     active_only?: boolean;
   }): Promise<any[]> {
-    let query = supabase
-      .from('business_users')
-      .select(`
-        *,
-        user:users!business_users_user_id_fkey(telegram_id, name, username, photo_url, phone, role, department),
-        business:businesses!business_users_business_id_fkey(id, name, name_hebrew, business_type, primary_color, secondary_color)
-      `);
+    let query = supabase.from('business_memberships').select('*');
 
     if (filters?.business_id) {
       query = query.eq('business_id', filters.business_id);
@@ -3759,11 +3755,12 @@ export class SupabaseDataStore implements DataStore {
     }
 
     if (filters?.role) {
-      query = query.eq('role', filters.role);
+      const canonical = LEGACY_TO_CANONICAL_ROLE[filters.role] || filters.role;
+      query = query.eq('base_role_key', canonical);
     }
 
-    if (filters?.active_only) {
-      query = query.eq('active', true);
+    if (filters?.active_only === false) {
+      // view is already scoped to active memberships; no-op for backwards compatibility
     }
 
     query = query.order('assigned_at', { ascending: false });
@@ -3776,29 +3773,33 @@ export class SupabaseDataStore implements DataStore {
       id: row.id,
       business_id: row.business_id,
       user_id: row.user_id,
-      role: row.role,
-      permissions: row.permissions,
+      role: CANONICAL_TO_LEGACY_ROLE[row.base_role_key] || row.display_role_key || row.base_role_key,
+      permissions: null,
       is_primary: row.is_primary,
-      active: row.active,
+      active: row.is_active,
       assigned_at: row.assigned_at,
       assigned_by: row.assigned_by,
-      user: row.user ? {
-        telegram_id: row.user.telegram_id,
-        name: row.user.name,
-        username: row.user.username,
-        photo_url: row.user.photo_url,
-        phone: row.user.phone,
-        role: row.user.role,
-        department: row.user.department
-      } : undefined,
-      business: row.business ? {
-        id: row.business.id,
-        name: row.business.name,
-        name_hebrew: row.business.name_hebrew,
-        business_type: row.business.business_type,
-        primary_color: row.business.primary_color,
-        secondary_color: row.business.secondary_color
-      } : undefined
+      user: row.user_id
+        ? {
+            telegram_id: row.telegram_id,
+            name: row.user_name,
+            username: row.user_username,
+            photo_url: row.user_photo_url,
+            phone: row.user_phone,
+            role: row.infrastructure_role,
+            department: row.user_department,
+          }
+        : undefined,
+      business: row.business_id
+        ? {
+            id: row.business_id,
+            name: row.business_name,
+            name_hebrew: row.business_name_hebrew,
+            business_type: row.business_type,
+            primary_color: row.primary_color,
+            secondary_color: row.secondary_color,
+          }
+        : undefined,
     }));
   }
 
@@ -3820,28 +3821,25 @@ export class SupabaseDataStore implements DataStore {
     if (userError) throw userError;
     if (!userExists) throw new Error('המשתמש לא נמצא במערכת');
 
-    // Check if assignment already exists
+    const canonicalRoleKey = LEGACY_TO_CANONICAL_ROLE[input.role] || input.role;
+
+    const { data: roleRecord, error: roleLookupError } = await supabase
+      .from('roles')
+      .select('id, role_key')
+      .eq('role_key', canonicalRoleKey)
+      .maybeSingle();
+
+    if (roleLookupError) throw roleLookupError;
+    if (!roleRecord) throw new Error(`לא נמצא תפקיד עבור ${input.role}`);
+
     const { data: existing, error: existingError } = await supabase
-      .from('business_users')
+      .from('user_business_roles')
       .select('id')
       .eq('business_id', input.business_id)
       .eq('user_id', userExists.id)
-      .eq('role', input.role)
       .maybeSingle();
 
     if (existingError) throw existingError;
-
-    if (existing) {
-      // Reactivate if exists
-      const { error: updateError } = await supabase
-        .from('business_users')
-        .update({ active: true })
-        .eq('id', existing.id);
-
-      if (updateError) throw updateError;
-
-      return { id: existing.id };
-    }
 
     // Get current user's ID for assigned_by
     const { data: currentUser, error: currentUserError } = await supabase
@@ -3852,18 +3850,36 @@ export class SupabaseDataStore implements DataStore {
 
     if (currentUserError) throw currentUserError;
 
-    // Create new assignment
+    const payload = {
+      business_id: input.business_id,
+      user_id: userExists.id,
+      role_id: roleRecord.id,
+      is_primary: input.is_primary || false,
+      is_active: true,
+      assigned_by: currentUser?.id || userExists.id,
+      assigned_at: new Date().toISOString(),
+    };
+
+    if (existing) {
+      const { error: updateError } = await supabase
+        .from('user_business_roles')
+        .update({
+          role_id: roleRecord.id,
+          is_primary: payload.is_primary,
+          is_active: true,
+          assigned_by: payload.assigned_by,
+          assigned_at: payload.assigned_at,
+        })
+        .eq('id', existing.id);
+
+      if (updateError) throw updateError;
+
+      return { id: existing.id };
+    }
+
     const { data, error } = await supabase
-      .from('business_users')
-      .insert({
-        business_id: input.business_id,
-        user_id: userExists.id,
-        role: input.role,
-        is_primary: input.is_primary || false,
-        active: true,
-        assigned_by: currentUser?.id,
-        assigned_at: new Date().toISOString()
-      })
+      .from('user_business_roles')
+      .insert(payload)
       .select('id')
       .single();
 
@@ -3883,9 +3899,20 @@ export class SupabaseDataStore implements DataStore {
     if (userError) throw userError;
     if (!user) throw new Error('המשתמש לא נמצא');
 
+    const canonicalRoleKey = LEGACY_TO_CANONICAL_ROLE[role] || role;
+
+    const { data: roleRecord, error: roleLookupError } = await supabase
+      .from('roles')
+      .select('id')
+      .eq('role_key', canonicalRoleKey)
+      .maybeSingle();
+
+    if (roleLookupError) throw roleLookupError;
+    if (!roleRecord) throw new Error(`לא נמצא תפקיד עבור ${role}`);
+
     const { error } = await supabase
-      .from('business_users')
-      .update({ role })
+      .from('user_business_roles')
+      .update({ role_id: roleRecord.id, is_active: true })
       .eq('business_id', business_id)
       .eq('user_id', user.id);
 
@@ -3904,8 +3931,8 @@ export class SupabaseDataStore implements DataStore {
     if (!user) throw new Error('המשתמש לא נמצא');
 
     const { error } = await supabase
-      .from('business_users')
-      .update({ active: false })
+      .from('user_business_roles')
+      .update({ is_active: false, deactivated_at: new Date().toISOString() })
       .eq('business_id', business_id)
       .eq('user_id', user.id);
 
@@ -4077,10 +4104,11 @@ export class SupabaseDataStore implements DataStore {
     if (!user) throw new Error('המשתמש לא נמצא');
 
     const { error } = await supabase
-      .from('business_users')
+      .from('user_business_roles')
       .update({
         ownership_percentage,
-        updated_at: new Date().toISOString()
+        is_active: true,
+        assigned_at: new Date().toISOString()
       })
       .eq('business_id', business_id)
       .eq('user_id', user.id);

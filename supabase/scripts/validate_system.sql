@@ -18,6 +18,8 @@ DECLARE
   v_function_count int;
   v_index_count int;
   v_errors text[] := ARRAY[]::text[];
+  r record;
+  v_audit_ok boolean := true;
 BEGIN
   RAISE NOTICE '=== Infrastructure RBAC System Validation ===';
   RAISE NOTICE '';
@@ -102,16 +104,42 @@ BEGIN
   -- Check 6: Audit Tables Structure
   RAISE NOTICE 'Checking audit table structure...';
 
-  SELECT COUNT(*) INTO v_table_count
-  FROM information_schema.columns
-  WHERE table_schema = 'public'
-    AND table_name = 'system_audit_log'
-    AND column_name IN ('id', 'user_id', 'action', 'entity_type', 'entity_id', 'timestamp');
+  FOR r IN
+    SELECT unnest(ARRAY[
+      'system_audit_log',
+      'financial_audit_log',
+      'cross_scope_access_log',
+      'permission_check_failures',
+      'business_lifecycle_log',
+      'equity_transfer_log',
+      'data_export_log',
+      'zone_audit_logs',
+      'login_history'
+    ]) AS table_name
+  LOOP
+    SELECT COUNT(*) INTO v_table_count
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = r.table_name
+      AND column_name = 'infrastructure_id';
 
-  IF v_table_count < 6 THEN
-    v_errors := array_append(v_errors, 'System audit log missing required columns');
-  ELSE
-    RAISE NOTICE '  ✓ Audit tables properly structured';
+    IF v_table_count = 0 THEN
+      v_errors := array_append(v_errors, format('%s missing infrastructure_id column', r.table_name));
+      v_audit_ok := false;
+      CONTINUE;
+    END IF;
+
+    EXECUTE format('select 1 from public.%I where infrastructure_id is null limit 1', r.table_name)
+      INTO v_table_count;
+
+    IF v_table_count = 1 THEN
+      v_errors := array_append(v_errors, format('%s contains rows without infrastructure scope', r.table_name));
+      v_audit_ok := false;
+    END IF;
+  END LOOP;
+
+  IF v_audit_ok THEN
+    RAISE NOTICE '  ✓ Audit tables enforce infrastructure scope';
   END IF;
 
   -- Check 7: Permission System

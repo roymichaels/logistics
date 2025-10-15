@@ -291,32 +291,19 @@ describe('Telegram WebApp Authentication Pipeline', () => {
       });
     });
 
-    it('should cache resolved permissions', async () => {
+    it('should expose canonical role permissions', async () => {
       const supabase = getSupabase();
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase
+        .from('canonical_role_permissions')
+        .select('role_key, permission_keys')
+        .order('role_key');
 
-      if (!session) {
-        console.log('⏭️ Skipping: No active session');
-        return;
-      }
-
-      const { data: cachedPermissions } = await supabase
-        .from('user_permissions_cache')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      if (cachedPermissions) {
-        const cacheAge = Date.now() - new Date(cachedPermissions.cached_at).getTime();
-        console.log('✅ Permissions cached:', {
-          role: cachedPermissions.role_key,
-          cached_at: cachedPermissions.cached_at,
-          age_ms: cacheAge,
-          is_fresh: cacheAge < 5 * 60 * 1000
-        });
-      } else {
-        console.log('⚠️ No permission cache found (will be created on first use)');
-      }
+      expect(error).toBeNull();
+      expect(data).toBeDefined();
+      console.log('✅ Canonical roles available:', data?.map((row: any) => ({
+        role: row.role_key,
+        permissions: row.permission_keys?.length ?? 0
+      })));
     });
   });
 

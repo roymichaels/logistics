@@ -1,4 +1,12 @@
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import {
+  HttpError,
+  decodeTenantClaims,
+  requireAccessToken,
+  INFRASTRUCTURE_ROLES,
+  ensureRoleAllowsInfrastructureTraversal,
+} from '../_shared/tenantGuard.ts';
+import { getServiceSupabaseClient } from '../_shared/supabaseClient.ts';
+import { logAuditEvent } from '../_shared/auditLog.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,19 +15,16 @@ const corsHeaders = {
 };
 
 interface PermissionResolutionRequest {
-  user_id: string;
+  user_id?: string;
   business_id?: string;
 }
 
-interface ResolvedPermissions {
-  user_id: string;
-  business_id: string | null;
+interface CanonicalRole {
   role_key: string;
-  permissions: string[];
+  scope_level: string;
   can_see_financials: boolean;
   can_see_cross_business: boolean;
-  scope_level: string;
-  cached_at: string;
+  permission_keys: string[] | null;
 }
 
 Deno.serve(async (req: Request) => {
@@ -32,226 +37,178 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // Get Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const token = requireAccessToken(req);
+    const supabase = getServiceSupabaseClient();
 
     // Parse request
     const { user_id, business_id }: PermissionResolutionRequest = await req.json();
 
-    if (!user_id) {
-      return new Response(
-        JSON.stringify({ error: 'user_id is required' }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
+    const claims = decodeTenantClaims(token);
+    const targetUserId = user_id ?? claims.userId;
+
+    if (!targetUserId) {
+      throw new HttpError(400, 'user_id is required');
     }
 
-    // Check cache first
-    const { data: cached, error: cacheError } = await supabase
-      .from('user_permissions_cache')
-      .select('*')
-      .eq('user_id', user_id)
-      .eq('business_id', business_id || null)
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !user) {
+      throw new HttpError(401, 'Unauthorized');
+    }
+
+    const { data: activeContext, error: contextError } = await supabase
+      .from('user_active_contexts')
+      .select('infrastructure_id, business_id, context_version')
+      .eq('user_id', user.id)
       .maybeSingle();
 
-    // If cache exists and is fresh (less than 5 minutes old), return it
-    if (cached && !cacheError) {
-      const cacheAge = Date.now() - new Date(cached.cached_at).getTime();
-      if (cacheAge < 5 * 60 * 1000) {
-        return new Response(
-          JSON.stringify({
-            ...cached,
-            from_cache: true,
-          }),
-          {
-            status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
+    if (contextError) {
+      throw new HttpError(500, 'Failed to load active context', { details: contextError });
+    }
+
+    const activeInfrastructureId = activeContext?.infrastructure_id ?? claims.infrastructureId;
+
+    if (!activeInfrastructureId) {
+      throw new HttpError(403, 'No active infrastructure scope found for request');
+    }
+
+    if (claims.userId && user_id && claims.userId !== user_id) {
+      if (!ensureRoleAllowsInfrastructureTraversal(claims.role)) {
+        throw new HttpError(403, 'Insufficient role to resolve permissions for another user');
       }
     }
 
-    // Resolve permissions from scratch
-    let permissions: string[] = [];
-    let role_key = '';
-    let can_see_financials = false;
-    let can_see_cross_business = false;
-    let scope_level = 'business';
+    const targetBusinessId = business_id ?? claims.businessId ?? activeContext?.business_id ?? null;
 
-    // Get user's role
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('id, role')
-      .eq('id', user_id)
-      .single();
+    let resolvedRoleKey: string | null = null;
+    let canonicalRole: CanonicalRole | null = null;
+    let targetInfrastructureId = activeInfrastructureId;
 
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'User not found' }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
-    // Check if user has infrastructure-level role (uses user.role directly)
-    const infrastructureRoles = [
-      'infrastructure_owner',
-      'infrastructure_manager',
-      'infrastructure_dispatcher',
-      'infrastructure_driver',
-      'infrastructure_warehouse',
-      'infrastructure_accountant',
-    ];
-
-    if (infrastructureRoles.includes(user.role)) {
-      // Infrastructure roles: get permissions from roles table
-      const { data: roleData } = await supabase
-        .from('roles')
-        .select(`
-          role_key,
-          can_see_financials,
-          can_see_cross_business,
-          scope_level,
-          role_permissions (
-            permissions (permission_key)
-          )
-        `)
-        .eq('role_key', user.role)
-        .single();
-
-      if (roleData) {
-        role_key = roleData.role_key;
-        can_see_financials = roleData.can_see_financials;
-        can_see_cross_business = roleData.can_see_cross_business;
-        scope_level = roleData.scope_level;
-        permissions = roleData.role_permissions
-          .map((rp: any) => rp.permissions.permission_key)
-          .filter((p: string) => p);
-      }
-    } else if (business_id) {
-      // Business-scoped role: check user_business_roles
-      const { data: businessRole } = await supabase
-        .from('user_business_roles')
-        .select(`
-          role_id,
-          custom_role_id,
-          roles (
-            role_key,
-            can_see_financials,
-            can_see_cross_business,
-            scope_level,
-            role_permissions (
-              permissions (permission_key)
-            )
-          ),
-          custom_roles (
-            custom_role_name,
-            base_role_id,
-            custom_role_permissions (
-              permission_id,
-              is_enabled,
-              permissions (permission_key)
-            )
-          )
-        `)
-        .eq('user_id', user_id)
-        .eq('business_id', business_id)
-        .eq('is_active', true)
+    if (targetBusinessId) {
+      const { data: business, error: businessError } = await supabase
+        .from('businesses')
+        .select('id, infrastructure_id, active')
+        .eq('id', targetBusinessId)
         .maybeSingle();
 
-      if (businessRole) {
-        if (businessRole.custom_role_id && businessRole.custom_roles) {
-          // Custom role: merge base role permissions with custom overrides
-          const customRole = businessRole.custom_roles;
-          role_key = customRole.custom_role_name;
-
-          // Get base role permissions
-          const { data: baseRole } = await supabase
-            .from('roles')
-            .select(`
-              can_see_financials,
-              can_see_cross_business,
-              scope_level,
-              role_permissions (
-                permissions (permission_key)
-              )
-            `)
-            .eq('id', customRole.base_role_id)
-            .single();
-
-          if (baseRole) {
-            can_see_financials = baseRole.can_see_financials;
-            can_see_cross_business = baseRole.can_see_cross_business;
-            scope_level = baseRole.scope_level;
-
-            // Start with base permissions
-            const basePermissions = new Set(
-              baseRole.role_permissions.map((rp: any) => rp.permissions.permission_key)
-            );
-
-            // Apply custom overrides
-            customRole.custom_role_permissions.forEach((crp: any) => {
-              const permKey = crp.permissions.permission_key;
-              if (crp.is_enabled && basePermissions.has(permKey)) {
-                // Keep enabled permissions that exist in base role
-              } else if (!crp.is_enabled) {
-                // Remove disabled permissions
-                basePermissions.delete(permKey);
-              }
-            });
-
-            permissions = Array.from(basePermissions);
-          }
-        } else if (businessRole.role_id && businessRole.roles) {
-          // Standard role
-          const roleData = businessRole.roles;
-          role_key = roleData.role_key;
-          can_see_financials = roleData.can_see_financials;
-          can_see_cross_business = roleData.can_see_cross_business;
-          scope_level = roleData.scope_level;
-          permissions = roleData.role_permissions
-            .map((rp: any) => rp.permissions.permission_key)
-            .filter((p: string) => p);
-        }
+      if (businessError) {
+        throw new HttpError(500, 'Failed to load business context', { details: businessError });
       }
+
+      if (!business) {
+        throw new HttpError(404, 'Business not found for permission resolution');
+      }
+
+      if (!business.active) {
+        throw new HttpError(403, 'Business is inactive');
+      }
+
+      if (business.infrastructure_id !== activeInfrastructureId && !ensureRoleAllowsInfrastructureTraversal(claims.role)) {
+        throw new HttpError(403, 'Cannot resolve permissions across infrastructures');
+      }
+
+      targetInfrastructureId = business.infrastructure_id;
     }
 
-    // Build result
-    const result: ResolvedPermissions = {
-      user_id,
-      business_id: business_id || null,
-      role_key,
-      permissions,
-      can_see_financials,
-      can_see_cross_business,
-      scope_level,
-      cached_at: new Date().toISOString(),
-    };
+    // Infrastructure roles are derived directly from JWT role claim
+    if (claims.role && INFRASTRUCTURE_ROLES.has(claims.role)) {
+      resolvedRoleKey = claims.role;
+    } else if (targetBusinessId) {
+      const { data: membership, error: membershipError } = await supabase
+        .from('business_memberships')
+        .select('base_role_key, display_role_key')
+        .eq('user_id', targetUserId)
+        .eq('business_id', targetBusinessId)
+        .maybeSingle();
 
-    // Update cache
+      if (membershipError) {
+        throw new HttpError(500, 'Failed to load user membership', { details: membershipError });
+      }
+
+      if (!membership) {
+        throw new HttpError(404, 'User is not active in the requested business');
+      }
+
+      resolvedRoleKey = membership.base_role_key ?? membership.display_role_key ?? null;
+    } else if (claims.role) {
+      // As a fallback for users without explicit infrastructure role but with a JWT role claim
+      resolvedRoleKey = claims.role;
+    }
+
+    if (!resolvedRoleKey) {
+      throw new HttpError(403, 'Unable to determine role for permission resolution');
+    }
+
+    const { data: roleProfile, error: roleError } = await supabase
+      .from('canonical_role_permissions')
+      .select('role_key, scope_level, can_see_financials, can_see_cross_business, permission_keys')
+      .eq('role_key', resolvedRoleKey)
+      .maybeSingle();
+
+    if (roleError) {
+      throw new HttpError(500, 'Failed to load canonical role permissions', { details: roleError });
+    }
+
+    if (!roleProfile) {
+      throw new HttpError(404, `No canonical permissions defined for role ${resolvedRoleKey}`);
+    }
+
+    canonicalRole = roleProfile as CanonicalRole;
+
+    if (targetUserId !== user.id && targetBusinessId && ensureRoleAllowsInfrastructureTraversal(claims.role)) {
+      await supabase.from('cross_scope_access_log').insert({
+        accessor_id: user.id,
+        accessor_role: claims.role,
+        target_business_id: targetBusinessId,
+        access_type: 'read',
+        accessed_resource: 'permissions_profile',
+        resource_id: targetUserId,
+        access_reason: 'resolve_permissions',
+        infrastructure_id: targetInfrastructureId,
+      });
+    }
+
     await supabase
       .from('user_permissions_cache')
       .upsert({
-        user_id,
-        business_id: business_id || null,
-        resolved_permissions: permissions,
-        role_key,
-        can_see_financials,
-        can_see_cross_business,
+        user_id: targetUserId,
+        business_id: targetBusinessId,
+        infrastructure_id: targetInfrastructureId,
+        resolved_permissions: canonicalRole.permission_keys ?? [],
+        role_key: canonicalRole.role_key,
+        can_see_financials: canonicalRole.can_see_financials,
+        can_see_cross_business: canonicalRole.can_see_cross_business,
+        cache_version: activeContext?.context_version ?? claims.contextVersion ?? 1,
         cached_at: new Date().toISOString(),
-      }, {
-        onConflict: 'user_id,business_id',
-      });
+      }, { onConflict: 'user_id,infrastructure_id,business_id' });
+
+    await logAuditEvent(supabase, {
+      eventType: 'permission_modified',
+      actorId: user.id,
+      actorRole: claims.role ?? undefined,
+      targetEntityType: 'user_permissions',
+      targetEntityId: targetUserId,
+      businessId: targetBusinessId ?? undefined,
+      infrastructureId: targetInfrastructureId ?? undefined,
+      action: 'permissions_resolved',
+      newState: {
+        role_key: canonicalRole.role_key,
+        permissions: canonicalRole.permission_keys ?? [],
+      },
+      severity: 'info',
+    });
 
     return new Response(
       JSON.stringify({
-        ...result,
+        user_id: targetUserId,
+        business_id: targetBusinessId,
+        infrastructure_id: targetInfrastructureId,
+        role_key: canonicalRole.role_key,
+        permissions: canonicalRole.permission_keys ?? [],
+        can_see_financials: canonicalRole.can_see_financials,
+        can_see_cross_business: canonicalRole.can_see_cross_business,
+        scope_level: canonicalRole.scope_level,
+        cached_at: new Date().toISOString(),
+        cache_version: activeContext?.context_version ?? claims.contextVersion ?? 1,
         from_cache: false,
       }),
       {
@@ -260,9 +217,19 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error) {
+    if (error instanceof HttpError) {
+      return new Response(
+        JSON.stringify({ error: error.message, details: error.details }),
+        {
+          status: error.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     console.error('Permission resolution error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Internal server error' }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

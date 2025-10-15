@@ -28,14 +28,14 @@ This handbook distills the feature-complete status memos into a maintainable ref
 
 - The application is multi-tenant: each record is tagged with `business_id` and isolated by RLS (`MULTI_BUSINESS_COMPLETE.md`).
 - Three seed businesses demonstrate the architecture (Green Leaf Premium, Fast Herbs, Medical Plus) with unique pricing, SKUs, and staff rosters.
-- Order numbers increment per business (`order_number_sequence`), and `business_users` tracks primary vs. secondary assignments.
+- Order numbers increment per business (`order_number_sequence`), and `business_memberships` tracks primary vs. secondary assignments.
 - Use migrations `20251002100000_roy_michaels_command_system.sql` → `20251002130000_seed_multi_business_data.sql` to restore the full demo state.
 - Owners see every workspace; managers and dispatchers are restricted to their assigned businesses.
 
 ### Verification Tips
 
 - Run `SELECT business_id, order_number FROM orders ORDER BY created_at DESC LIMIT 10;` to ensure prefixes differ per business.
-- Change a user's primary business in `business_users` and confirm the UI reflects the new workspace after refresh.
+- Change a user's primary business in `user_business_roles` (reflected through the `business_memberships` view) and confirm the UI reflects the new workspace after refresh.
 
 ## Navigation & UI Enhancements
 
@@ -66,6 +66,15 @@ This handbook distills the feature-complete status memos into a maintainable ref
 - Console helpers from `CONSOLE_DEBUG_COMMANDS.md` and `CONSOLE_DEBUG_REFERENCE.md` are exposed via `window.sessionTracker` and `window.runAuthDiagnostics()`.
 - `DEBUG_AUTH_ERROR.md` scenarios are resolved by the authentication recovery guide; see that document for full reproduction steps.
 - Shipping checklist (`SHIP_REPORT.md`) outlines final QA: role changes, order fulfillment, Telegram mobile smoke test, and Supabase log review.
+
+## Tenant Monitoring & Alerts
+
+- Run `npm run monitor:tenant` (or execute `scripts/tenant-integrity-scan.cjs`) with `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to scan for:
+  - Audit entries whose `infrastructure_id` no longer matches their business.
+  - Permission cache rows where `cache_version` drifts from `user_active_contexts.context_version`.
+  - Flagged `permission_check_failures` created in the last 24 hours.
+- The command exits with `0` when clean, `1` when anomalies are detected (details are emitted as JSON), and `2` if the RPC fails.
+- Schedule this script through CI or cron and route failures to your alerting channel; the underlying SQL lives in `public.scan_tenant_anomalies()`.
 
 ## Release Milestones
 

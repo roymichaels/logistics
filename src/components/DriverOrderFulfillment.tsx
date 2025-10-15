@@ -3,6 +3,7 @@ import { Order, DataStore, User } from '../data/types';
 import { ORDER_STATUS_COLORS } from '../styles/orderTheme';
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
+import { deliverOrder } from '../services/inventory';
 
 interface DriverOrderFulfillmentProps {
   dataStore: DataStore;
@@ -103,11 +104,14 @@ export function DriverOrderFulfillment({
 
     setUploadingProof(true);
     try {
-      await dataStore.updateOrder?.(orderId, {
-        status: 'delivered',
-        delivery_proof_url: proofImage,
-        delivered_at: new Date().toISOString()
+      const response = await deliverOrder({
+        orderId,
+        proofUrl: proofImage,
       });
+
+      if (!response.success) {
+        throw new Error('המערכת לא הצליחה לעדכן את המשלוח');
+      }
 
       telegram.hapticFeedback('notification', 'success');
       Toast.success('משלוח הושלם בהצלחה! 🎉');
@@ -117,7 +121,8 @@ export function DriverOrderFulfillment({
       await loadOrders();
     } catch (error) {
       console.error('Failed to complete delivery:', error);
-      Toast.error('שגיאה בסיום משלוח');
+      const message = error instanceof Error ? error.message : 'שגיאה בסיום משלוח';
+      Toast.error(message);
     } finally {
       setUploadingProof(false);
     }

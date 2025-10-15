@@ -92,10 +92,12 @@ Latest migration: `20251014083154_fix_business_rls_policies_v2.sql`
 - Managed by infrastructure owners
 - Fields: `type_value`, `display_name`, `description`, `display_order`, `active`
 
-#### `business_users` - Legacy business membership (still in use)
-- Links telegram_id to businesses
-- Role assignments, ownership %, commission %
-- Active status tracking
+#### `business_memberships` - Active business role view
+- Read-only view sourcing from `user_business_roles`
+- Includes resolved base/custom role keys, ownership %, commission %, audit metadata
+- Enriches membership rows with related user profile (telegram id, phone) and business branding fields
+- Replaces the legacy `business_users` table (fully decommissioned)
+- Legacy compatibility: `business_users` now exists as a read-only view exposing the classic column layout.
 
 #### `business_equity` - Equity ownership records
 - Tracks stakeholder equity in businesses
@@ -499,7 +501,7 @@ pending, approved, in_transit, fulfilled, rejected
 ## Triggers (51 total)
 
 ### Auto-update `updated_at` timestamps
-- businesses, business_users, business_types, channels, driver_inventory_records
+- businesses, business_memberships, business_types, channels, driver_inventory_records
 - group_chats, inventory_locations, inventory_records, restock_requests
 - user_registrations, zones
 

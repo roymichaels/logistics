@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { logAuditEvent } from '../_shared/auditLog.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -101,7 +102,7 @@ Deno.serve(async (req: Request) => {
     // Verify warehouse and get business context
     const { data: warehouse } = await supabase
       .from('warehouses')
-      .select('id, business_id, is_active')
+      .select('id, business_id, infrastructure_id, is_active')
       .eq('id', request.warehouse_id)
       .single();
 
@@ -200,15 +201,16 @@ Deno.serve(async (req: Request) => {
     });
 
     // Audit log
-    await supabase.from('system_audit_log').insert({
-      event_type: 'inventory_transferred',
-      actor_id: user.id,
-      actor_role: userData.role,
-      target_entity_type: 'driver_inventory',
-      target_entity_id: request.driver_id,
-      business_id: warehouse.business_id,
+    await logAuditEvent(supabase, {
+      eventType: 'inventory_transferred',
+      actorId: user.id,
+      actorRole: userData.role ?? undefined,
+      targetEntityType: 'driver_inventory',
+      targetEntityId: request.driver_id,
+      businessId: warehouse.business_id,
+      infrastructureId: warehouse.infrastructure_id ?? undefined,
       action: 'driver_inventory_loaded',
-      change_summary: `Loaded ${request.quantity} units to driver vehicle`,
+      changeSummary: `Loaded ${request.quantity} units to driver vehicle`,
       severity: 'info',
     });
 

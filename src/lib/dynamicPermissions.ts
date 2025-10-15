@@ -6,18 +6,9 @@
  */
 
 import { supabase } from './supabaseClient';
+import type { PermissionProfile } from '../services/types';
 
-export interface ResolvedPermissions {
-  user_id: string;
-  business_id: string | null;
-  role_key: string;
-  permissions: string[];
-  can_see_financials: boolean;
-  can_see_cross_business: boolean;
-  scope_level: 'infrastructure' | 'business';
-  cached_at: string;
-  from_cache?: boolean;
-}
+export type ResolvedPermissions = PermissionProfile;
 
 // In-memory cache for permission resolution
 const permissionsCache = new Map<string, { data: ResolvedPermissions; timestamp: number }>();

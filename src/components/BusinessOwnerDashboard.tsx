@@ -8,6 +8,7 @@
 import React, { useEffect, useState } from 'react';
 import { getSupabase } from '../lib/supabaseClient';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { fetchBusinessMetrics } from '../services/metrics';
 
 interface FinancialMetrics {
   revenue_today: number;
@@ -79,35 +80,24 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
       setLoading(true);
 
       const supabase = getSupabase();
-      const today = new Date().toISOString().split('T')[0];
       const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
-      // Load financial metrics
-      const { data: ordersData } = await supabase
-        .from('orders')
-        .select('total_amount, status, created_at')
-        .eq('business_id', businessId);
+      const kpi = await fetchBusinessMetrics(businessId);
 
-      const todayOrders = ordersData?.filter(o => o.created_at.startsWith(today)) || [];
-      const monthOrders = ordersData?.filter(o => o.created_at >= firstDayOfMonth) || [];
-
-      const revenueToday = todayOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
-      const revenueMonth = monthOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
-
-      // For demo purposes, costs are 60% of revenue
+      const revenueMonth = kpi.revenue_month;
       const costsMonth = revenueMonth * 0.6;
       const profitMonth = revenueMonth - costsMonth;
       const profitMargin = revenueMonth > 0 ? (profitMonth / revenueMonth) * 100 : 0;
 
       setMetrics({
-        revenue_today: revenueToday,
+        revenue_today: kpi.revenue_today,
         revenue_month: revenueMonth,
         costs_month: costsMonth,
         profit_month: profitMonth,
         profit_margin: profitMargin,
-        orders_today: todayOrders.length,
-        orders_month: monthOrders.length,
-        average_order_value: monthOrders.length > 0 ? revenueMonth / monthOrders.length : 0,
+        orders_today: kpi.orders_today,
+        orders_month: kpi.orders_month,
+        average_order_value: kpi.average_order_value,
       });
 
       // Load ownership information
