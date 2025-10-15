@@ -9,6 +9,7 @@ import { getSupabase, isSupabaseInitialized } from '../lib/supabaseClient';
 import { CreateBusinessModal } from './CreateBusinessModal';
 import { DataStore, User } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { fetchInfrastructureOverview, fetchBusinessMetrics } from '../services/metrics';
 
 interface InfrastructureOwnerDashboardProps {
   dataStore: DataStore;
@@ -104,34 +105,56 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
 
       const supabase = getSupabase();
 
-      // Load metrics with error handling for each query
-      // Each query is wrapped to prevent one failure from blocking others
-      const [businessesData, ordersData, driversData, allocationsData] = await Promise.all([
-        supabase.from('businesses').select('id, active').then(res => res.error ? { data: null, error: res.error } : res).catch(err => ({ data: null, error: err })),
-        supabase.from('orders').select('id, total_amount, status, created_at').then(res => res.error ? { data: null, error: res.error } : res).catch(err => ({ data: null, error: err })),
-        supabase.from('users').select('id, role').in('role', ['driver', 'infrastructure_driver']).then(res => res.error ? { data: null, error: res.error } : res).catch(err => ({ data: null, error: err })),
-        supabase.from('stock_allocations').select('id, allocation_status').eq('allocation_status', 'pending').then(res => res.error ? { data: [], error: null } : res).catch(() => ({ data: [], error: null })),
-      ]);
-
-      const totalBusinesses = businessesData.data?.length || 0;
-      const activeBusinesses = businessesData.data?.filter(b => b.active).length || 0;
-
-      const today = new Date().toISOString().split('T')[0];
-      const todayOrders = ordersData.data?.filter(o => o.created_at.startsWith(today)) || [];
-      const totalRevenue = todayOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+      const overview = await fetchInfrastructureOverview();
 
       setMetrics({
-        totalBusinesses,
-        activeBusinesses,
-        totalRevenue,
-        totalOrders: ordersData.data?.length || 0,
-        activeDrivers: driversData.data?.length || 0,
-        pendingAllocations: allocationsData.data?.length || 0,
-        systemHealth: allocationsData.data && allocationsData.data.length > 10 ? 'warning' : 'healthy',
+        totalBusinesses: overview.total_businesses,
+        activeBusinesses: overview.active_businesses,
+        totalRevenue: overview.revenue_today,
+        totalOrders: overview.total_orders_30_days,
+        activeDrivers: overview.active_drivers,
+        pendingAllocations: overview.pending_allocations,
+        systemHealth: overview.system_health,
       });
 
-      const { data: businessSummaries, error: summariesError } = await supabase.rpc('get_business_summaries');
-      setBusinesses(summariesError ? [] : (businessSummaries || []));
+      const { data: businessRows, error: businessRowsError } = await supabase
+        .from('businesses')
+        .select('id, name, active')
+        .order('name', { ascending: true });
+
+      if (businessRowsError || !businessRows) {
+        setBusinesses([]);
+      } else {
+        const businessMetrics = await Promise.all(
+          businessRows.map(async (biz: any) => {
+            try {
+              const metrics = await fetchBusinessMetrics(biz.id);
+              return {
+                id: biz.id,
+                name: biz.name,
+                active: biz.active,
+                total_orders: metrics.orders_month,
+                revenue_today: metrics.revenue_today,
+                active_drivers: metrics.active_drivers,
+                pending_orders: metrics.orders_in_progress,
+              } as BusinessSummary;
+            } catch (err) {
+              console.warn('⚠️ Failed to load metrics for business', biz.id, err);
+              return {
+                id: biz.id,
+                name: biz.name,
+                active: biz.active,
+                total_orders: 0,
+                revenue_today: 0,
+                active_drivers: 0,
+                pending_orders: 0,
+              } as BusinessSummary;
+            }
+          })
+        );
+
+        setBusinesses(businessMetrics);
+      }
 
       const { data: activityData, error: auditError } = await supabase
         .from('system_audit_log')

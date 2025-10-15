@@ -36,7 +36,7 @@ async function checkResetAuthorization(
 ): Promise<{ authorized: boolean; reason?: string }> {
   const { data: requester, error: requesterError } = await supabase
     .from('users')
-    .select('role')
+    .select('id, role')
     .eq('telegram_id', requester_telegram_id)
     .maybeSingle();
 
@@ -48,33 +48,40 @@ async function checkResetAuthorization(
     return { authorized: true };
   }
 
-  if (requester.role === 'business_owner') {
-    const { data: sharedBusinesses, error: businessError } = await supabase
-      .from('business_users')
-      .select('business_id')
-      .or(`user_id.eq.${requester_telegram_id},user_id.eq.${target_telegram_id}`)
-      .eq('active', true);
+  const { data: target, error: targetError } = await supabase
+    .from('users')
+    .select('id')
+    .eq('telegram_id', target_telegram_id)
+    .maybeSingle();
 
-    if (businessError) {
-      return { authorized: false, reason: 'Failed to check business membership' };
+  if (targetError || !target) {
+    return { authorized: false, reason: 'Target user not found' };
+  }
+
+  if (requester.role === 'business_owner') {
+    const { data: requesterMemberships, error: requesterMembershipError } = await supabase
+      .from('business_memberships')
+      .select('business_id')
+      .eq('user_id', requester.id);
+
+    if (requesterMembershipError) {
+      return { authorized: false, reason: 'Failed to load requester businesses' };
     }
 
-    if (sharedBusinesses && sharedBusinesses.length > 0) {
-      const requesterBusinesses = sharedBusinesses.filter(
-        (b: any) => b.user_id === requester_telegram_id
-      ).map((b: any) => b.business_id);
+    const { data: targetMemberships, error: targetMembershipError } = await supabase
+      .from('business_memberships')
+      .select('business_id')
+      .eq('user_id', target.id);
 
-      const targetBusinesses = sharedBusinesses.filter(
-        (b: any) => b.user_id === target_telegram_id
-      ).map((b: any) => b.business_id);
+    if (targetMembershipError) {
+      return { authorized: false, reason: 'Failed to load target businesses' };
+    }
 
-      const hasSharedBusiness = requesterBusinesses.some((id: string) =>
-        targetBusinesses.includes(id)
-      );
+    const requesterBusinessIds = new Set((requesterMemberships || []).map((row: any) => row.business_id));
+    const hasSharedBusiness = (targetMemberships || []).some((row: any) => requesterBusinessIds.has(row.business_id));
 
-      if (hasSharedBusiness) {
-        return { authorized: true };
-      }
+    if (hasSharedBusiness) {
+      return { authorized: true };
     }
 
     return { authorized: false, reason: 'User not in your businesses' };

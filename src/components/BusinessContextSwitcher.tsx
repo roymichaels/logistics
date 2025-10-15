@@ -6,8 +6,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
-import { invalidatePermissionsCache } from '../lib/dynamicPermissions';
+import { fetchBusinessContexts, switchBusinessContext } from '../services/business';
 
 interface BusinessContext {
   business_id: string;
@@ -41,36 +40,17 @@ export function BusinessContextSwitcher({
     try {
       setLoading(true);
 
-      // Get user's business assignments
-      const { data, error } = await supabase
-        .from('user_business_roles')
-        .select(`
-          business_id,
-          businesses (
-            id,
-            name
-          ),
-          roles (
-            role_key
-          ),
-          ownership_percentage,
-          is_primary
-        `)
-        .eq('user_id', userId)
-        .eq('is_active', true)
-        .order('is_primary', { ascending: false });
+      const contexts = await fetchBusinessContexts(userId);
 
-      if (error) throw error;
-
-      const businessContexts: BusinessContext[] = data.map((item: any) => ({
-        business_id: item.business_id,
-        business_name: item.businesses.name,
-        business_role: item.roles?.role_key || 'unknown',
-        ownership_pct: item.ownership_percentage || 0,
-        is_primary: item.is_primary,
+      const mappedContexts: BusinessContext[] = contexts.map((context) => ({
+        business_id: context.business_id,
+        business_name: context.business_name,
+        business_role: context.role_key,
+        ownership_pct: context.ownership_percentage,
+        is_primary: context.is_primary,
       }));
 
-      setBusinesses(businessContexts);
+      setBusinesses(mappedContexts);
     } catch (error) {
       console.error('Failed to load businesses:', error);
     } finally {
@@ -82,35 +62,13 @@ export function BusinessContextSwitcher({
     try {
       setSwitching(true);
 
-      // Call Edge Function to switch context
-      const { data: { session } } = await supabase.auth.getSession();
+      await switchBusinessContext(businessId, {
+        sessionMetadata: {
+          source: 'web_app',
+          initiated_at: new Date().toISOString(),
+        },
+      });
 
-      if (!session) {
-        throw new Error('No active session');
-      }
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/business-context-switch`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ business_id: businessId }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to switch context');
-      }
-
-      // Invalidate permissions cache for old and new context
-      invalidatePermissionsCache(userId, currentBusinessId);
-      invalidatePermissionsCache(userId, businessId);
-
-      // Call callback to update parent state
       onBusinessChange(businessId);
 
       // Close dropdown

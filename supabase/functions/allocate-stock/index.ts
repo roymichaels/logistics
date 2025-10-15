@@ -1,10 +1,12 @@
-import { createClient } from 'npm:@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { corsHeaders } from '../_shared/cors.ts';
+import {
+  HttpError,
+  decodeTenantClaims,
+  requireAccessToken,
+  ensureRoleAllowsInfrastructureTraversal,
+} from '../_shared/tenantGuard.ts';
+import { getServiceSupabaseClient } from '../_shared/supabaseClient.ts';
+import { logAuditEvent } from '../_shared/auditLog.ts';
 
 interface AllocationRequest {
   from_warehouse_id: string;
@@ -16,141 +18,186 @@ interface AllocationRequest {
   notes?: string;
 }
 
+const ALLOWED_BUSINESS_ROLES = new Set(['business_owner', 'manager', 'warehouse']);
+
+async function getActiveContext(
+  supabase: ReturnType<typeof getServiceSupabaseClient>,
+  userId: string
+) {
+  const { data, error } = await supabase
+    .from('user_active_contexts')
+    .select('infrastructure_id, business_id, context_version')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) {
+    throw new HttpError(500, 'Failed to load active context', { details: error });
+  }
+
+  return data;
+}
+
+function validateRequest(payload: AllocationRequest) {
+  if (!payload.from_warehouse_id || !payload.to_warehouse_id || !payload.to_business_id) {
+    throw new HttpError(400, 'from_warehouse_id, to_warehouse_id and to_business_id are required');
+  }
+
+  if (!payload.product_id) {
+    throw new HttpError(400, 'product_id is required');
+  }
+
+  if (!payload.requested_quantity || payload.requested_quantity <= 0) {
+    throw new HttpError(400, 'requested_quantity must be a positive number');
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers: corsHeaders });
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Get authenticated user
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Check if user has permission to request allocations
-    const { data: userData } = await supabase
-      .from('users')
-      .select('id, role')
-      .eq('id', user.id)
-      .single();
-
-    const allowedRoles = ['infrastructure_owner', 'infrastructure_warehouse', 'business_owner', 'manager', 'warehouse'];
-    if (!userData || !allowedRoles.includes(userData.role)) {
-      return new Response(
-        JSON.stringify({ error: 'Insufficient permissions to request allocations' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
+    const supabase = getServiceSupabaseClient();
+    const token = requireAccessToken(req);
+    const claims = decodeTenantClaims(token);
     const request: AllocationRequest = await req.json();
 
-    // Validate request
-    if (!request.from_warehouse_id || !request.to_warehouse_id || !request.product_id) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    validateRequest(request);
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !user) {
+      throw new HttpError(401, 'Unauthorized');
     }
 
-    if (request.requested_quantity <= 0) {
-      return new Response(
-        JSON.stringify({ error: 'Quantity must be positive' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    const activeContext = await getActiveContext(supabase, user.id);
+    const infrastructureId = activeContext?.infrastructure_id ?? claims.infrastructureId;
+
+    if (!infrastructureId) {
+      throw new HttpError(403, 'No active infrastructure scope available');
     }
 
-    // Verify from_warehouse is infrastructure-scoped
-    const { data: fromWarehouse } = await supabase
+    const { data: fromWarehouse, error: fromError } = await supabase
       .from('warehouses')
-      .select('scope_level, is_active')
+      .select('id, scope_level, infrastructure_id, is_active')
       .eq('id', request.from_warehouse_id)
-      .single();
+      .maybeSingle();
+
+    if (fromError) {
+      throw new HttpError(500, 'Failed to load source warehouse', { details: fromError });
+    }
 
     if (!fromWarehouse || fromWarehouse.scope_level !== 'infrastructure') {
-      return new Response(
-        JSON.stringify({ error: 'Source warehouse must be infrastructure-owned' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new HttpError(400, 'Source warehouse must be infrastructure-owned');
     }
 
     if (!fromWarehouse.is_active) {
-      return new Response(
-        JSON.stringify({ error: 'Source warehouse is inactive' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new HttpError(400, 'Source warehouse is inactive');
     }
 
-    // Verify to_warehouse is business-scoped and belongs to correct business
-    const { data: toWarehouse } = await supabase
+    if (fromWarehouse.infrastructure_id !== infrastructureId) {
+      throw new HttpError(403, 'Source warehouse belongs to a different infrastructure');
+    }
+
+    const { data: toWarehouse, error: toError } = await supabase
       .from('warehouses')
-      .select('scope_level, business_id, is_active')
+      .select('id, scope_level, infrastructure_id, business_id, is_active')
       .eq('id', request.to_warehouse_id)
-      .single();
+      .maybeSingle();
+
+    if (toError) {
+      throw new HttpError(500, 'Failed to load destination warehouse', { details: toError });
+    }
 
     if (!toWarehouse || toWarehouse.scope_level !== 'business') {
-      return new Response(
-        JSON.stringify({ error: 'Destination warehouse must be business-owned' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (toWarehouse.business_id !== request.to_business_id) {
-      return new Response(
-        JSON.stringify({ error: 'Destination warehouse does not belong to specified business' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new HttpError(400, 'Destination warehouse must be business-owned');
     }
 
     if (!toWarehouse.is_active) {
-      return new Response(
-        JSON.stringify({ error: 'Destination warehouse is inactive' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new HttpError(400, 'Destination warehouse is inactive');
     }
 
-    // Check inventory availability at source warehouse
-    const { data: sourceInventory } = await supabase
+    if (toWarehouse.business_id !== request.to_business_id) {
+      throw new HttpError(400, 'Destination warehouse does not belong to specified business');
+    }
+
+    if (toWarehouse.infrastructure_id !== infrastructureId) {
+      throw new HttpError(403, 'Destination warehouse belongs to a different infrastructure');
+    }
+
+    const { data: business, error: businessError } = await supabase
+      .from('businesses')
+      .select('id, active, infrastructure_id')
+      .eq('id', request.to_business_id)
+      .maybeSingle();
+
+    if (businessError) {
+      throw new HttpError(500, 'Failed to load business', { details: businessError });
+    }
+
+    if (!business) {
+      throw new HttpError(404, 'Business not found');
+    }
+
+    if (!business.active) {
+      throw new HttpError(403, 'Business is inactive');
+    }
+
+    if (business.infrastructure_id !== infrastructureId) {
+      throw new HttpError(403, 'Business belongs to a different infrastructure');
+    }
+
+    if (!ensureRoleAllowsInfrastructureTraversal(claims.role)) {
+      const { data: membership, error: membershipError } = await supabase
+        .from('business_memberships')
+        .select('base_role_key, display_role_key')
+        .eq('user_id', user.id)
+        .eq('business_id', request.to_business_id)
+        .maybeSingle();
+
+      if (membershipError) {
+        throw new HttpError(500, 'Failed to load user membership', { details: membershipError });
+      }
+
+      if (!membership) {
+        throw new HttpError(403, 'User is not a member of the destination business');
+      }
+
+      const resolvedRole = membership.base_role_key ?? membership.display_role_key ?? '';
+      if (!ALLOWED_BUSINESS_ROLES.has(resolvedRole)) {
+        throw new HttpError(403, 'User role cannot request allocations');
+      }
+    }
+
+    const { data: sourceInventory, error: inventoryError } = await supabase
       .from('inventory_locations')
       .select('on_hand_quantity, reserved_quantity')
       .eq('location_id', request.from_warehouse_id)
       .eq('product_id', request.product_id)
       .maybeSingle();
 
+    if (inventoryError) {
+      throw new HttpError(500, 'Failed to load source inventory', { details: inventoryError });
+    }
+
     const availableQuantity = sourceInventory
-      ? sourceInventory.on_hand_quantity - sourceInventory.reserved_quantity
+      ? Number(sourceInventory.on_hand_quantity) - Number(sourceInventory.reserved_quantity)
       : 0;
 
     if (availableQuantity < request.requested_quantity) {
-      return new Response(
-        JSON.stringify({
-          error: 'Insufficient inventory',
-          available: availableQuantity,
-          requested: request.requested_quantity,
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new HttpError(400, 'Insufficient inventory at source warehouse', {
+        availableQuantity,
+        requestedQuantity: request.requested_quantity,
+      });
     }
 
-    // Create allocation request
-    const { data: allocation, error: allocError } = await supabase
+    const { data: allocation, error: allocationError } = await supabase
       .from('stock_allocations')
       .insert({
         from_warehouse_id: request.from_warehouse_id,
@@ -160,24 +207,27 @@ Deno.serve(async (req: Request) => {
         requested_quantity: request.requested_quantity,
         allocation_status: 'pending',
         requested_by: user.id,
-        priority: request.priority || 'normal',
+        priority: request.priority ?? 'normal',
         notes: request.notes,
+        infrastructure_id: infrastructureId,
       })
       .select()
-      .single();
+      .maybeSingle();
 
-    if (allocError) throw allocError;
+    if (allocationError || !allocation) {
+      throw new HttpError(500, 'Failed to create allocation', { details: allocationError });
+    }
 
-    // Log the allocation request in audit
-    await supabase.from('system_audit_log').insert({
-      event_type: 'inventory_transferred',
-      actor_id: user.id,
-      actor_role: userData.role,
-      target_entity_type: 'stock_allocation',
-      target_entity_id: allocation.id,
-      business_id: request.to_business_id,
+    await logAuditEvent(supabase, {
+      eventType: 'inventory_transferred',
+      actorId: user.id,
+      actorRole: claims.role ?? undefined,
+      targetEntityType: 'stock_allocation',
+      targetEntityId: allocation.id,
+      businessId: request.to_business_id,
+      infrastructureId: infrastructureId,
       action: 'allocation_requested',
-      new_state: allocation,
+      newState: allocation,
       severity: 'info',
     });
 
@@ -185,14 +235,20 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: true,
         allocation,
-        message: 'Stock allocation requested successfully. Pending infrastructure approval.',
       }),
       { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
+    if (error instanceof HttpError) {
+      return new Response(
+        JSON.stringify({ error: error.message, details: error.details }),
+        { status: error.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.error('Allocation error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

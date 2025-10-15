@@ -27,12 +27,24 @@ async function createRoom(
   console.log(`Creating room: name=${name}, type=${type}, business=${business_id}`);
 
   // Verify creator is in the business
+  const { data: creatorProfile, error: creatorError } = await supabase
+    .from('users')
+    .select('id')
+    .eq('telegram_id', creator_telegram_id)
+    .maybeSingle();
+
+  if (creatorError || !creatorProfile) {
+    return {
+      success: false,
+      error: 'Creator not found',
+    };
+  }
+
   const { data: creatorBusiness, error: businessError } = await supabase
-    .from('business_users')
-    .select('role')
+    .from('business_memberships')
+    .select('base_role_key')
     .eq('business_id', business_id)
-    .eq('user_id', creator_telegram_id)
-    .eq('active', true)
+    .eq('user_id', creatorProfile.id)
     .maybeSingle();
 
   if (businessError || !creatorBusiness) {

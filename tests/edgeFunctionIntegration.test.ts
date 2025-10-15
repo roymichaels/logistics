@@ -145,6 +145,7 @@ describe('Edge Function JWT Integration', () => {
       const result = await response.json();
       expect(result.role_key).toBeDefined();
       expect(result.permissions).toBeInstanceOf(Array);
+      expect(result.from_cache).toBe(false);
 
       console.log('✅ resolve-permissions returned valid data:', {
         role: result.role_key,
@@ -153,7 +154,7 @@ describe('Edge Function JWT Integration', () => {
       });
     });
 
-    it('should cache permissions for performance', async () => {
+    it('should return consistent permissions across repeated calls', async () => {
       if (!accessToken) {
         console.log('⏭️ Skipping: No access token');
         return;
@@ -172,7 +173,6 @@ describe('Edge Function JWT Integration', () => {
 
       const { data: config } = await supabase.functions.invoke('app-config');
 
-      // First call - should populate cache
       const response1 = await fetch(`${config.supabaseUrl}/functions/v1/resolve-permissions`, {
         method: 'POST',
         headers: {
@@ -184,7 +184,6 @@ describe('Edge Function JWT Integration', () => {
 
       const result1 = await response1.json();
 
-      // Second call - should use cache
       const response2 = await fetch(`${config.supabaseUrl}/functions/v1/resolve-permissions`, {
         method: 'POST',
         headers: {
@@ -196,27 +195,36 @@ describe('Edge Function JWT Integration', () => {
 
       const result2 = await response2.json();
 
-      console.log('✅ Permission caching:', {
-        first_call_cached: result1.from_cache,
-        second_call_cached: result2.from_cache,
-        cache_working: result2.from_cache === true
+      expect(result1.role_key).toEqual(result2.role_key);
+      expect(result1.permissions).toEqual(result2.permissions);
+
+      console.log('✅ Permission resolution consistent across calls:', {
+        role: result1.role_key,
+        permissions: result1.permissions.length
       });
     });
 
-    it('should reject requests without user_id', async () => {
+    it('should resolve using JWT claims when user_id is omitted', async () => {
+      if (!accessToken) {
+        console.log('⏭️ Skipping: No access token');
+        return;
+      }
+
       const { data: config } = await supabase.functions.invoke('app-config');
 
       const response = await fetch(`${config.supabaseUrl}/functions/v1/resolve-permissions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken || 'fake_token'}`
+          'Authorization': `Bearer ${accessToken}`
         },
         body: JSON.stringify({})
       });
 
-      expect(response.status).toBe(400);
-      console.log('✅ resolve-permissions correctly rejects missing user_id');
+      expect(response.ok).toBe(true);
+      const result = await response.json();
+      expect(result.user_id).toBeDefined();
+      console.log('✅ resolve-permissions inferred user from JWT claims');
     });
   });
 
@@ -321,16 +329,16 @@ describe('Edge Function JWT Integration', () => {
     });
   });
 
-  describe('business-context-switch Function', () => {
+  describe('switch-context Function', () => {
     it('should be deployed and accessible', async () => {
       const { data: config } = await supabase.functions.invoke('app-config');
 
-      const response = await fetch(`${config.supabaseUrl}/functions/v1/business-context-switch`, {
+      const response = await fetch(`${config.supabaseUrl}/functions/v1/switch-context`, {
         method: 'OPTIONS'
       });
 
       expect(response.status).toBeLessThan(500);
-      console.log('✅ business-context-switch function is deployed:', response.status);
+      console.log('✅ switch-context function is deployed:', response.status);
     });
 
     it('should validate business access', async () => {
@@ -342,7 +350,7 @@ describe('Edge Function JWT Integration', () => {
       const { data: config } = await supabase.functions.invoke('app-config');
 
       // Try to switch to a business (will fail if no businesses exist)
-      const response = await fetch(`${config.supabaseUrl}/functions/v1/business-context-switch`, {
+      const response = await fetch(`${config.supabaseUrl}/functions/v1/switch-context`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -355,7 +363,7 @@ describe('Edge Function JWT Integration', () => {
 
       // Should fail gracefully
       expect(response.status).toBeGreaterThanOrEqual(400);
-      console.log('✅ business-context-switch validates business access:', response.status);
+      console.log('✅ switch-context validates business access:', response.status);
     });
   });
 
@@ -369,7 +377,7 @@ describe('Edge Function JWT Integration', () => {
         'allocate-stock',
         'deliver-order',
         'role-editor',
-        'business-context-switch'
+        'switch-context'
       ];
 
       console.log('\n📡 CORS Header Validation:');

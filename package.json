@@ -12,11 +12,14 @@
     "preview": "npx vite preview",
     "analyze": "node scripts/build-analyze.js",
     "qa": "node scripts/qa-check.js",
+    "monitor:tenant": "node scripts/tenant-integrity-scan.cjs",
+    "ci:verify-env": "node scripts/verify-ci-env.cjs",
     "migrate": "node scripts/migrate.js",
     "db:generate": "drizzle-kit generate:pg --schema=./data/schema/pg.ts",
     "db:push": "drizzle-kit push:pg --schema=./data/schema/pg.ts",
     "test": "vitest",
-    "test:watch": "vitest --watch"
+    "test:watch": "vitest --watch",
+    "collapse:migrations": "node scripts/collapse-migrations.cjs --stamp 20251015"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.58.0",

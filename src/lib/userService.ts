@@ -1,5 +1,6 @@
 import { getSupabase } from './supabaseClient';
 import { AuthUser } from './authService';
+import { CANONICAL_TO_LEGACY_ROLE } from './roleMappings';
 
 export interface UserProfile extends AuthUser {
   created_at?: string;
@@ -127,20 +128,10 @@ class UserService {
     const supabase = getSupabase();
 
     const { data, error } = await supabase
-      .from('business_users')
-      .select(`
-        business_id,
-        role,
-        is_primary,
-        active,
-        businesses:business_id (
-          id,
-          name,
-          type
-        )
-      `)
+      .from('business_memberships')
+      .select(`business_id, base_role_key, is_primary, is_active, business_name, business_type`)
       .eq('user_id', userId)
-      .eq('active', true)
+      .eq('is_active', true)
       .order('is_primary', { ascending: false });
 
     if (error) {
@@ -148,24 +139,27 @@ class UserService {
       return [];
     }
 
-    return data || [];
+    return (data || []).map((row: any) => ({
+      business_id: row.business_id,
+      role: CANONICAL_TO_LEGACY_ROLE[row.base_role_key] || row.base_role_key,
+      is_primary: row.is_primary,
+      active: row.is_active,
+      business: {
+        id: row.business_id,
+        name: row.business_name,
+        type: row.business_type,
+      },
+    }));
   }
 
   async getPrimaryBusiness(userId: string): Promise<any | null> {
     const supabase = getSupabase();
 
     const { data, error } = await supabase
-      .from('business_users')
-      .select(`
-        business_id,
-        businesses:business_id (
-          id,
-          name,
-          type
-        )
-      `)
+      .from('business_memberships')
+      .select('business_id, business_name, business_type')
       .eq('user_id', userId)
-      .eq('active', true)
+      .eq('is_active', true)
       .eq('is_primary', true)
       .maybeSingle();
 
@@ -178,7 +172,11 @@ class UserService {
       return null;
     }
 
-    return data.businesses;
+    return {
+      id: data.business_id,
+      name: data.business_name,
+      type: data.business_type,
+    };
   }
 }
 

@@ -6,6 +6,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import {
+  approveAllocation as approveAllocationService,
+  rejectAllocation as rejectAllocationService,
+  fulfillAllocation as fulfillAllocationService,
+} from '../services/inventory';
+import { Toast } from './Toast';
 
 interface WarehouseStock {
   warehouse_id: string;
@@ -134,69 +140,56 @@ export function InfrastructureWarehouseDashboard() {
 
   async function handleApproveAllocation(allocationId: string, approvedQty: number) {
     try {
-      const { data, error } = await supabase.rpc('approve_stock_allocation', {
-        p_allocation_id: allocationId,
-        p_approved_quantity: approvedQty,
-        p_notes: 'Approved by warehouse worker'
+      const response = await approveAllocationService({
+        allocationId,
+        action: 'approve',
+        approvedQuantity: approvedQty,
       });
 
-      if (error) throw error;
-
-      if (data && !data.success) {
-        alert(data.error || 'Failed to approve allocation');
-        return;
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to approve allocation');
       }
 
-      alert('Allocation approved successfully');
-      loadWarehouseData();
+      Toast.success(response.message || 'ההקצאה אושרה בהצלחה');
+      await loadWarehouseData();
     } catch (error: any) {
       console.error('Failed to approve allocation:', error);
-      alert(error.message || 'Failed to approve allocation');
+      Toast.error(error.message || 'שגיאה באישור ההקצאה');
     }
   }
 
   async function handleRejectAllocation(allocationId: string, reason: string) {
     try {
-      const { data, error } = await supabase.rpc('reject_stock_allocation', {
-        p_allocation_id: allocationId,
-        p_rejection_reason: reason
-      });
+      const response = await rejectAllocationService(allocationId, { reason });
 
-      if (error) throw error;
-
-      if (data && !data.success) {
-        alert(data.error || 'Failed to reject allocation');
-        return;
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to reject allocation');
       }
 
-      alert('Allocation rejected');
-      loadWarehouseData();
+      Toast.success(response.message || 'ההקצאה נדחתה');
+      await loadWarehouseData();
     } catch (error: any) {
       console.error('Failed to reject allocation:', error);
-      alert(error.message || 'Failed to reject allocation');
+      Toast.error(error.message || 'שגיאה בדחיית ההקצאה');
     }
   }
 
   async function handleFulfillAllocation(allocationId: string, deliveredQty: number) {
     try {
-      const { data, error } = await supabase.rpc('fulfill_stock_allocation', {
-        p_allocation_id: allocationId,
-        p_delivered_quantity: deliveredQty,
-        p_notes: 'Fulfilled by warehouse worker'
+      const response = await fulfillAllocationService({
+        allocationId,
+        approvedQuantity: deliveredQty,
       });
 
-      if (error) throw error;
-
-      if (data && !data.success) {
-        alert(data.error || 'Failed to fulfill allocation');
-        return;
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to fulfill allocation');
       }
 
-      alert('Allocation fulfilled successfully');
-      loadWarehouseData();
+      Toast.success(response.message || 'המלאי הועבר בהצלחה');
+      await loadWarehouseData();
     } catch (error: any) {
       console.error('Failed to fulfill allocation:', error);
-      alert(error.message || 'Failed to fulfill allocation');
+      Toast.error(error.message || 'שגיאה בביצוע ההעברה');
     }
   }
 

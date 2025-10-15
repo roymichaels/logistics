@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { DataStore, BusinessType } from '../data/types';
 import { useAppServices } from '../context/AppServicesContext';
+import {
+  listBusinesses as listBusinessesService,
+  createBusiness as createBusinessService,
+  type BusinessRecord,
+} from '../services/business';
+import { Toast } from './Toast';
 
 interface Business {
   id: string;
@@ -53,7 +59,7 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
     order_number_prefix: 'ORD'
   });
   const { theme, haptic } = useTelegramUI();
-  const { currentBusinessId } = useAppServices();
+  const { currentBusinessId, setBusinessId } = useAppServices();
 
   useEffect(() => {
     loadData();
@@ -97,10 +103,34 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
     try {
       setLoading(true);
 
-      // Load businesses from Supabase
-      if (dataStore.listBusinesses) {
+      let mappedBusinesses: Business[] | null = null;
+
+      try {
+        const serviceBusinesses = await listBusinessesService();
+        mappedBusinesses = serviceBusinesses.map((business: BusinessRecord) => ({
+          id: business.id,
+          name: business.name,
+          name_hebrew: (business as any).name_hebrew ?? business.name,
+          business_type: (business as any).business_type ?? 'logistics',
+          logo_url: (business as any).logo_url,
+          primary_color: business.primary_color ?? '#007aff',
+          secondary_color: business.secondary_color ?? '#34c759',
+          default_currency: (business.default_currency as Business['default_currency']) ?? 'ILS',
+          order_number_prefix: business.order_number_prefix ?? 'ORD',
+          active: business.active ?? true,
+          address: (business as any).address ?? null,
+          contact_info: (business as any).contact_info ?? null,
+          business_settings: (business as any).business_settings ?? null,
+        }));
+      } catch (serviceError) {
+        console.warn('⚠️ Failed to load businesses from service layer, falling back to dataStore', serviceError);
+      }
+
+      if (mappedBusinesses) {
+        setBusinesses(mappedBusinesses);
+      } else if (dataStore.listBusinesses) {
         const businessData = await dataStore.listBusinesses();
-        setBusinesses(businessData);
+        setBusinesses(businessData as Business[]);
       }
 
       // Load business user assignments from Supabase
@@ -169,30 +199,68 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
     }
 
     try {
-      if (dataStore.createBusiness) {
-        const result = await dataStore.createBusiness(newBusinessForm);
-        console.log('✅ Business created:', result);
-        haptic();
+      let createdBusiness: BusinessRecord | null = null;
 
-        // Reset form
-        setNewBusinessForm({
-          name: '',
-          name_hebrew: '',
-          primary_color: '#007aff',
-          secondary_color: '#34c759',
-          default_currency: 'ILS',
-          order_number_prefix: 'ORD'
+      try {
+        createdBusiness = await createBusinessService({
+          name: newBusinessForm.name,
+          nameHebrew: newBusinessForm.name_hebrew,
+          orderNumberPrefix: newBusinessForm.order_number_prefix,
+          defaultCurrency: newBusinessForm.default_currency,
+          primaryColor: newBusinessForm.primary_color,
+          secondaryColor: newBusinessForm.secondary_color,
+          ownerUserId: currentUserId,
+          ownerRoleKey: 'business_owner',
         });
-        setShowCreateBusiness(false);
-        await loadData();
-        alert('העסק נוסף בהצלחה!');
-      } else {
-        console.error('❌ dataStore.createBusiness is not available');
-        alert('פונקציית יצירת עסק לא זמינה');
+      } catch (serviceError) {
+        console.error('❌ createBusinessService failed, falling back to dataStore', serviceError);
+        if (dataStore.createBusiness) {
+          const fallback = await dataStore.createBusiness(newBusinessForm);
+          createdBusiness = {
+            id: fallback.id,
+            name: fallback.name,
+            name_hebrew: fallback.name_hebrew,
+            business_type: fallback.business_type,
+            order_number_prefix: fallback.order_number_prefix,
+            order_number_sequence: (fallback as any).order_number_sequence ?? 0,
+            default_currency: fallback.default_currency,
+            primary_color: fallback.primary_color,
+            secondary_color: fallback.secondary_color,
+            active: fallback.active,
+            infrastructure_id: (fallback as any).infrastructure_id ?? '',
+            created_at: (fallback as any).created_at ?? new Date().toISOString(),
+            updated_at: (fallback as any).updated_at ?? new Date().toISOString(),
+          } as BusinessRecord;
+        } else {
+          throw serviceError;
+        }
       }
+
+      if (!createdBusiness) {
+        throw new Error('Business creation returned no data');
+      }
+
+      console.log('✅ Business created:', createdBusiness);
+      haptic();
+
+      setBusinessId(createdBusiness.id);
+
+      setNewBusinessForm({
+        name: '',
+        name_hebrew: '',
+        primary_color: '#007aff',
+        secondary_color: '#34c759',
+        default_currency: 'ILS',
+        order_number_prefix: 'ORD'
+      });
+      setShowCreateBusiness(false);
+      await loadData();
+
+      Toast.success(`העסק "${createdBusiness.name_hebrew || createdBusiness.name}" נוסף בהצלחה`);
     } catch (error) {
       console.error('❌ Failed to create business:', error);
-      alert(`שגיאה ביצירת עסק: ${error instanceof Error ? error.message : String(error)}`);
+      const message = error instanceof Error ? error.message : String(error);
+      Toast.error(`שגיאה ביצירת עסק: ${message}`);
     }
   };
 
@@ -859,7 +927,7 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
                   marginTop: '8px'
                 }}
               >
-                שמור סוג עסק
+                צור עסק חדש
               </button>
             </div>
           </div>
