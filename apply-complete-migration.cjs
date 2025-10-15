@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
 console.log('\nℹ️  apply-complete-migration.cjs is deprecated.');
-console.log('   Use the consolidated baseline in supabase/migrations with the Supabase CLI:');
-console.log('     npx supabase login');
-console.log('     npx supabase link --project-ref <project-ref>');
-console.log('     npx supabase db reset');
-console.log('     npx supabase db diff');
+console.log('   Provision databases using the lean SQL files instead:');
+console.log('     psql "$DATABASE_URL" -f supabase/init_schema.sql');
+console.log('     psql "$DATABASE_URL" -f supabase/seed_data.sql');
