@@ -112,6 +112,14 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION auth_role_is_one_of(VARIADIC roles text[])
+RETURNS boolean
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT coalesce(auth.jwt()->>'role', '') = ANY(roles);
+$$;
+
 -- =====================================================
 -- Core infrastructure tables
 -- =====================================================
@@ -792,6 +800,105 @@ CREATE UNIQUE INDEX idx_dm_participants_pair
   ON direct_message_participants (LEAST(user_a, user_b), GREATEST(user_a, user_b));
 
 -- =====================================================
+-- Authorization helper functions
+-- =====================================================
+
+CREATE OR REPLACE FUNCTION auth_has_infrastructure_access(target_infrastructure uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+DECLARE
+  has_membership boolean;
+BEGIN
+  IF auth.role() = 'service_role' OR auth_is_superadmin() THEN
+    RETURN true;
+  END IF;
+
+  IF target_infrastructure IS NULL THEN
+    RETURN false;
+  END IF;
+
+  IF auth_current_infrastructure_id() = target_infrastructure THEN
+    RETURN true;
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1
+    FROM businesses b
+    JOIN user_business_roles ubr ON ubr.business_id = b.id
+    WHERE b.infrastructure_id = target_infrastructure
+      AND ubr.user_id = auth.uid()
+  ) INTO has_membership;
+
+  RETURN coalesce(has_membership, false);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION auth_has_business_access(target_business uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+DECLARE
+  infra uuid;
+BEGIN
+  IF auth.role() = 'service_role' OR auth_is_superadmin() THEN
+    RETURN true;
+  END IF;
+
+  IF target_business IS NULL THEN
+    RETURN false;
+  END IF;
+
+  IF auth_current_business_id() = target_business THEN
+    RETURN true;
+  END IF;
+
+  SELECT infrastructure_id INTO infra
+  FROM businesses
+  WHERE id = target_business;
+
+  IF infra IS NULL THEN
+    RETURN false;
+  END IF;
+
+  IF auth_current_infrastructure_id() = infra THEN
+    RETURN true;
+  END IF;
+
+  RETURN EXISTS (
+    SELECT 1
+    FROM user_business_roles ubr
+    WHERE ubr.business_id = target_business
+      AND ubr.user_id = auth.uid()
+  );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION auth_is_room_member(target_room uuid)
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT
+    auth.role() = 'service_role'
+    OR auth_is_superadmin()
+    OR EXISTS (
+      SELECT 1
+      FROM chat_room_members crm
+      WHERE crm.room_id = target_room
+        AND crm.user_id = auth.uid()
+    );
+$$;
+
+-- =====================================================
 -- Row Level Security (baseline enabling only)
 -- =====================================================
 
@@ -853,71 +960,39 @@ ALTER TABLE system_config ENABLE ROW LEVEL SECURITY;
 -- =====================================================
 
 -- Infrastructure tables
+CREATE POLICY infrastructures_member_select ON infrastructures
+  FOR SELECT
+  USING (auth_has_infrastructure_access(id));
+
 CREATE POLICY infrastructures_admin_manage ON infrastructures
   FOR ALL
   USING (auth.role() = 'service_role' OR auth_is_superadmin())
   WITH CHECK (auth.role() = 'service_role' OR auth_is_superadmin());
 
-CREATE POLICY infrastructures_member_read ON infrastructures
+CREATE POLICY businesses_member_select ON businesses
   FOR SELECT
   USING (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR (auth_current_infrastructure_id() IS NOT NULL AND auth_current_infrastructure_id() = id)
+    auth_has_business_access(id)
+    OR auth_has_infrastructure_access(infrastructure_id)
   );
 
-CREATE POLICY businesses_admin_manage ON businesses
+CREATE POLICY businesses_manage ON businesses
   FOR ALL
-  USING (auth.role() = 'service_role' OR auth_is_superadmin())
-  WITH CHECK (auth.role() = 'service_role' OR auth_is_superadmin());
-
-CREATE POLICY businesses_member_access ON businesses
-  FOR SELECT
   USING (
     auth.role() = 'service_role'
     OR auth_is_superadmin()
-    OR (auth_current_business_id() IS NOT NULL AND auth_current_business_id() = id)
-    OR (auth_current_infrastructure_id() IS NOT NULL AND auth_current_infrastructure_id() = infrastructure_id)
-  );
-
-CREATE POLICY business_insert_update_policy ON businesses
-  FOR INSERT TO PUBLIC
-  WITH CHECK (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR (
-      auth_current_infrastructure_id() IS NOT NULL
-      AND auth_current_infrastructure_id() = infrastructure_id
-    )
-  );
-
-CREATE POLICY business_update_policy ON businesses
-  FOR UPDATE
-  USING (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR (auth_current_business_id() IS NOT NULL AND auth_current_business_id() = id)
-    OR (auth_current_infrastructure_id() IS NOT NULL AND auth_current_infrastructure_id() = infrastructure_id)
+    OR auth_has_infrastructure_access(infrastructure_id)
   )
   WITH CHECK (
     auth.role() = 'service_role'
     OR auth_is_superadmin()
-    OR (auth_current_business_id() IS NOT NULL AND auth_current_business_id() = id)
-    OR (auth_current_infrastructure_id() IS NOT NULL AND auth_current_infrastructure_id() = infrastructure_id)
+    OR auth_has_infrastructure_access(infrastructure_id)
   );
 
 CREATE POLICY business_types_access ON business_types
   FOR ALL
-  USING (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR (auth_current_infrastructure_id() IS NOT NULL AND auth_current_infrastructure_id() = infrastructure_id)
-  )
-  WITH CHECK (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR (auth_current_infrastructure_id() IS NOT NULL AND auth_current_infrastructure_id() = infrastructure_id)
-  );
+  USING (auth_has_infrastructure_access(infrastructure_id))
+  WITH CHECK (auth_has_infrastructure_access(infrastructure_id));
 
 -- Global catalogs
 CREATE POLICY roles_read_authenticated ON roles
@@ -949,6 +1024,30 @@ CREATE POLICY role_permissions_manage_admin ON role_permissions
   USING (auth.role() = 'service_role' OR auth_is_superadmin())
   WITH CHECK (auth.role() = 'service_role' OR auth_is_superadmin());
 
+CREATE POLICY custom_roles_access ON custom_roles
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY custom_role_permissions_access ON custom_role_permissions
+  FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM custom_roles cr
+      WHERE cr.id = custom_role_permissions.custom_role_id
+        AND auth_has_business_access(cr.business_id)
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1
+      FROM custom_roles cr
+      WHERE cr.id = custom_role_permissions.custom_role_id
+        AND auth_has_business_access(cr.business_id)
+    )
+  );
+
 -- User tables
 CREATE POLICY users_service_manage ON users
   FOR ALL
@@ -973,12 +1072,23 @@ CREATE POLICY user_registrations_manage ON user_registrations
   USING (
     auth.role() = 'service_role'
     OR auth_is_superadmin()
-    OR coalesce(auth.jwt()->>'role', '') IN ('infrastructure_owner', 'business_owner', 'manager')
+    OR auth_role_is_one_of('infrastructure_owner', 'business_owner', 'manager')
   )
   WITH CHECK (
     auth.role() = 'service_role'
     OR auth_is_superadmin()
-    OR coalesce(auth.jwt()->>'role', '') IN ('infrastructure_owner', 'business_owner', 'manager')
+    OR auth_role_is_one_of('infrastructure_owner', 'business_owner', 'manager')
+  );
+
+CREATE POLICY user_business_roles_access ON user_business_roles
+  FOR ALL
+  USING (
+    auth_has_business_access(business_id)
+    OR auth.uid() = user_id
+  )
+  WITH CHECK (
+    auth_has_business_access(business_id)
+    OR auth.uid() = user_id
   );
 
 CREATE POLICY user_business_contexts_access ON user_business_contexts
@@ -994,6 +1104,44 @@ CREATE POLICY user_business_contexts_access ON user_business_contexts
     OR auth.uid() = user_id
   );
 
+CREATE POLICY user_permissions_cache_access ON user_permissions_cache
+  FOR ALL
+  USING (
+    auth.role() = 'service_role'
+    OR auth_is_superadmin()
+    OR auth.uid() = user_id
+    OR auth_has_business_access(business_id)
+  )
+  WITH CHECK (
+    auth.role() = 'service_role'
+    OR auth_is_superadmin()
+    OR auth.uid() = user_id
+    OR auth_has_business_access(business_id)
+  );
+
+CREATE POLICY login_history_access ON login_history
+  FOR SELECT
+  USING (
+    auth.role() = 'service_role'
+    OR auth_is_superadmin()
+    OR auth.uid() = user_id
+  );
+
+CREATE POLICY permission_check_failures_access ON permission_check_failures
+  FOR ALL
+  USING (
+    auth.role() = 'service_role'
+    OR auth_is_superadmin()
+    OR (user_id IS NOT NULL AND auth.uid() = user_id)
+    OR (business_id IS NOT NULL AND auth_has_business_access(business_id))
+  )
+  WITH CHECK (
+    auth.role() = 'service_role'
+    OR auth_is_superadmin()
+    OR (user_id IS NOT NULL AND auth.uid() = user_id)
+    OR (business_id IS NOT NULL AND auth_has_business_access(business_id))
+  );
+
 CREATE POLICY user_pins_access ON user_pins
   FOR ALL
   USING (
@@ -1007,12 +1155,24 @@ CREATE POLICY user_pins_access ON user_pins
     OR auth.uid() = user_id
   );
 
-CREATE POLICY login_history_access ON login_history
-  FOR SELECT
+CREATE POLICY pin_settings_access ON pin_settings
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY pin_sessions_access ON pin_sessions
+  FOR ALL
   USING (
     auth.role() = 'service_role'
     OR auth_is_superadmin()
     OR auth.uid() = user_id
+    OR (business_id IS NOT NULL AND auth_has_business_access(business_id))
+  )
+  WITH CHECK (
+    auth.role() = 'service_role'
+    OR auth_is_superadmin()
+    OR auth.uid() = user_id
+    OR (business_id IS NOT NULL AND auth_has_business_access(business_id))
   );
 
 CREATE POLICY pin_audit_log_access ON pin_audit_log
@@ -1021,155 +1181,308 @@ CREATE POLICY pin_audit_log_access ON pin_audit_log
     auth.role() = 'service_role'
     OR auth_is_superadmin()
     OR auth.uid() = user_id
+    OR (business_id IS NOT NULL AND auth_has_business_access(business_id))
   )
   WITH CHECK (
     auth.role() = 'service_role'
     OR auth_is_superadmin()
     OR auth.uid() = user_id
+    OR (business_id IS NOT NULL AND auth_has_business_access(business_id))
   );
 
-CREATE POLICY pin_sessions_access ON pin_sessions
+-- Business & infrastructure scoped domain tables
+CREATE POLICY business_equity_access ON business_equity
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY equity_transactions_access ON equity_transactions
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY equity_transfer_log_access ON equity_transfer_log
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY warehouses_access ON warehouses
   FOR ALL
   USING (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR auth.uid() = user_id
-    OR (
-      auth_current_business_id() IS NOT NULL
-      AND auth_current_business_id() = business_id
-    )
+    auth_has_infrastructure_access(infrastructure_id)
+    OR (business_id IS NOT NULL AND auth_has_business_access(business_id))
   )
   WITH CHECK (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR auth.uid() = user_id
-    OR (
-      auth_current_business_id() IS NOT NULL
-      AND auth_current_business_id() = business_id
-    )
+    auth_has_infrastructure_access(infrastructure_id)
+    OR (business_id IS NOT NULL AND auth_has_business_access(business_id))
   );
 
--- Business scoped tables
-DO $$
-DECLARE
-  tbl text;
-  expr text := 'auth.role() = ''service_role'' OR auth_is_superadmin() OR (auth_current_business_id() IS NOT NULL AND auth_current_business_id() = business_id)';
-BEGIN
-  FOR tbl IN SELECT unnest(ARRAY[
-    'user_business_roles',
-    'custom_roles',
-    'permission_check_failures',
-    'pin_settings',
-    'business_equity',
-    'equity_transactions',
-    'equity_transfer_log',
-    'warehouses',
-    'products',
-    'inventory_locations',
-    'inventory_records',
-    'inventory_movements',
-    'stock_allocations',
-    'restock_requests',
-    'driver_inventory_records',
-    'driver_vehicle_inventory',
-    'driver_zone_assignments',
-    'driver_status_records',
-    'driver_movement_logs',
-    'sales_logs',
-    'orders',
-    'routes',
-    'tasks'
-  ]) LOOP
-    EXECUTE format(
-      'CREATE POLICY %I_business_scope ON %I FOR ALL USING (%s) WITH CHECK (%s);',
-      tbl,
-      tbl,
-      expr,
-      expr
-    );
-  END LOOP;
-END $$;
+CREATE POLICY products_access ON products
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
 
-CREATE POLICY custom_role_permissions_access ON custom_role_permissions
+CREATE POLICY inventory_locations_access ON inventory_locations
   FOR ALL
   USING (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR EXISTS (
-      SELECT 1 FROM custom_roles cr
-      WHERE cr.id = custom_role_permissions.custom_role_id
-        AND auth_current_business_id() IS NOT NULL
-        AND auth_current_business_id() = cr.business_id
-    )
+    auth_has_infrastructure_access(infrastructure_id)
+    OR (business_id IS NOT NULL AND auth_has_business_access(business_id))
   )
   WITH CHECK (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR EXISTS (
-      SELECT 1 FROM custom_roles cr
-      WHERE cr.id = custom_role_permissions.custom_role_id
-        AND auth_current_business_id() IS NOT NULL
-        AND auth_current_business_id() = cr.business_id
-    )
+    auth_has_infrastructure_access(infrastructure_id)
+    OR (business_id IS NOT NULL AND auth_has_business_access(business_id))
   );
 
--- Order items inherit access from orders
-CREATE POLICY order_items_business_access ON order_items
+CREATE POLICY inventory_records_access ON inventory_records
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY inventory_movements_access ON inventory_movements
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY stock_allocations_access ON stock_allocations
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY restock_requests_access ON restock_requests
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY driver_inventory_records_access ON driver_inventory_records
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY driver_vehicle_inventory_access ON driver_vehicle_inventory
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY driver_zone_assignments_access ON driver_zone_assignments
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY driver_status_records_access ON driver_status_records
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY driver_movement_logs_access ON driver_movement_logs
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY sales_logs_access ON sales_logs
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY orders_access ON orders
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY order_items_access ON order_items
   FOR ALL
   USING (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR EXISTS (
-      SELECT 1 FROM orders o
+    EXISTS (
+      SELECT 1
+      FROM orders o
       WHERE o.id = order_items.order_id
+        AND auth_has_business_access(o.business_id)
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1
+      FROM orders o
+      WHERE o.id = order_items.order_id
+        AND auth_has_business_access(o.business_id)
+    )
+  );
+
+CREATE POLICY routes_access ON routes
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+CREATE POLICY route_stops_access ON route_stops
+  FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM routes r
+      WHERE r.id = route_stops.route_id
+        AND auth_has_business_access(r.business_id)
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1
+      FROM routes r
+      WHERE r.id = route_stops.route_id
+        AND auth_has_business_access(r.business_id)
+    )
+  );
+
+CREATE POLICY tasks_access ON tasks
+  FOR ALL
+  USING (auth_has_business_access(business_id))
+  WITH CHECK (auth_has_business_access(business_id));
+
+-- Chat tables
+CREATE POLICY chat_rooms_access ON chat_rooms
+  FOR ALL
+  USING (
+    auth_has_infrastructure_access(infrastructure_id)
+    OR (business_id IS NOT NULL AND auth_has_business_access(business_id))
+    OR auth_is_room_member(id)
+  )
+  WITH CHECK (
+    auth_has_infrastructure_access(infrastructure_id)
+    OR (business_id IS NOT NULL AND auth_has_business_access(business_id))
+  );
+
+CREATE POLICY chat_room_members_access ON chat_room_members
+  FOR ALL
+  USING (
+    auth_is_room_member(room_id)
+    OR EXISTS (
+      SELECT 1
+      FROM chat_rooms cr
+      WHERE cr.id = chat_room_members.room_id
         AND (
-          auth_current_business_id() IS NOT NULL
-          AND auth_current_business_id() = o.business_id
+          auth_has_infrastructure_access(cr.infrastructure_id)
+          OR (cr.business_id IS NOT NULL AND auth_has_business_access(cr.business_id))
         )
     )
   )
   WITH CHECK (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
+    auth_is_room_member(room_id)
     OR EXISTS (
-      SELECT 1 FROM orders o
-      WHERE o.id = order_items.order_id
+      SELECT 1
+      FROM chat_rooms cr
+      WHERE cr.id = chat_room_members.room_id
         AND (
-          auth_current_business_id() IS NOT NULL
-          AND auth_current_business_id() = o.business_id
+          auth_has_infrastructure_access(cr.infrastructure_id)
+          OR (cr.business_id IS NOT NULL AND auth_has_business_access(cr.business_id))
         )
     )
   );
 
--- Route stops inherit access from routes
-CREATE POLICY route_stops_business_access ON route_stops
+CREATE POLICY chat_encryption_keys_access ON chat_encryption_keys
+  FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM chat_rooms cr
+      WHERE cr.id = chat_encryption_keys.room_id
+        AND (
+          auth_has_infrastructure_access(cr.infrastructure_id)
+          OR (cr.business_id IS NOT NULL AND auth_has_business_access(cr.business_id))
+          OR auth_is_room_member(cr.id)
+        )
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1
+      FROM chat_rooms cr
+      WHERE cr.id = chat_encryption_keys.room_id
+        AND (
+          auth_has_infrastructure_access(cr.infrastructure_id)
+          OR (cr.business_id IS NOT NULL AND auth_has_business_access(cr.business_id))
+        )
+    )
+  );
+
+CREATE POLICY chat_messages_access ON chat_messages
+  FOR ALL
+  USING (auth_is_room_member(room_id))
+  WITH CHECK (auth_is_room_member(room_id));
+
+CREATE POLICY message_attachments_access ON message_attachments
+  FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM chat_messages m
+      WHERE m.id = message_attachments.message_id
+        AND auth_is_room_member(m.room_id)
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1
+      FROM chat_messages m
+      WHERE m.id = message_attachments.message_id
+        AND auth_is_room_member(m.room_id)
+    )
+  );
+CREATE POLICY chat_message_reactions_access ON chat_message_reactions
+  FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM chat_messages m
+      WHERE m.id = chat_message_reactions.message_id
+        AND auth_is_room_member(m.room_id)
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1
+      FROM chat_messages m
+      WHERE m.id = chat_message_reactions.message_id
+        AND auth_is_room_member(m.room_id)
+    )
+  );
+
+CREATE POLICY chat_notifications_queue_access ON chat_notifications_queue
   FOR ALL
   USING (
     auth.role() = 'service_role'
     OR auth_is_superadmin()
+    OR (recipient_id IS NOT NULL AND auth.uid() = recipient_id)
     OR EXISTS (
-      SELECT 1 FROM routes r
-      WHERE r.id = route_stops.route_id
-        AND (
-          auth_current_business_id() IS NOT NULL
-          AND auth_current_business_id() = r.business_id
-        )
+      SELECT 1
+      FROM chat_messages m
+      WHERE m.id = chat_notifications_queue.message_id
+        AND auth_is_room_member(m.room_id)
     )
   )
   WITH CHECK (
     auth.role() = 'service_role'
     OR auth_is_superadmin()
+    OR (recipient_id IS NOT NULL AND auth.uid() = recipient_id)
     OR EXISTS (
-      SELECT 1 FROM routes r
-      WHERE r.id = route_stops.route_id
-        AND (
-          auth_current_business_id() IS NOT NULL
-          AND auth_current_business_id() = r.business_id
-        )
+      SELECT 1
+      FROM chat_messages m
+      WHERE m.id = chat_notifications_queue.message_id
+        AND auth_is_room_member(m.room_id)
     )
   );
 
--- Notifications limited to recipient
+CREATE POLICY direct_message_participants_access ON direct_message_participants
+  FOR ALL
+  USING (
+    auth_is_room_member(room_id)
+    OR auth.uid() = user_a
+    OR auth.uid() = user_b
+  )
+  WITH CHECK (
+    auth_is_room_member(room_id)
+    OR auth.uid() = user_a
+    OR auth.uid() = user_b
+  );
+
+-- Notifications & audit
 CREATE POLICY notifications_access ON notifications
   FOR ALL
   USING (
@@ -1183,159 +1496,22 @@ CREATE POLICY notifications_access ON notifications
     OR auth.uid() = user_id
   );
 
--- Chat rooms & related tables
-CREATE POLICY chat_rooms_admin_manage ON chat_rooms
+CREATE POLICY app_config_manage ON app_config
   FOR ALL
   USING (auth.role() = 'service_role' OR auth_is_superadmin())
   WITH CHECK (auth.role() = 'service_role' OR auth_is_superadmin());
 
-CREATE POLICY chat_rooms_member_read ON chat_rooms
+CREATE POLICY system_audit_log_access ON system_audit_log
   FOR SELECT
   USING (
     auth.role() = 'service_role'
     OR auth_is_superadmin()
-    OR EXISTS (
-      SELECT 1 FROM chat_room_members m
-      WHERE m.room_id = chat_rooms.id
-        AND m.user_id = auth.uid()
-    )
+    OR auth.uid() = actor_id
+    OR (business_id IS NOT NULL AND auth_has_business_access(business_id))
+    OR (infrastructure_id IS NOT NULL AND auth_has_infrastructure_access(infrastructure_id))
   );
 
-CREATE POLICY chat_room_members_manage ON chat_room_members
-  FOR ALL
-  USING (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR user_id = auth.uid()
-    OR EXISTS (
-      SELECT 1 FROM chat_rooms r
-      WHERE r.id = chat_room_members.room_id
-        AND auth_current_business_id() IS NOT NULL
-        AND auth_current_business_id() = r.business_id
-    )
-  )
-  WITH CHECK (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR user_id = auth.uid()
-    OR EXISTS (
-      SELECT 1 FROM chat_rooms r
-      WHERE r.id = chat_room_members.room_id
-        AND auth_current_business_id() IS NOT NULL
-        AND auth_current_business_id() = r.business_id
-    )
-  );
-
-CREATE POLICY chat_encryption_keys_access ON chat_encryption_keys
-  FOR ALL
-  USING (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR EXISTS (
-      SELECT 1 FROM chat_room_members m
-      WHERE m.room_id = chat_encryption_keys.room_id
-        AND m.user_id = auth.uid()
-    )
-  )
-  WITH CHECK (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR EXISTS (
-      SELECT 1 FROM chat_room_members m
-      WHERE m.room_id = chat_encryption_keys.room_id
-        AND m.user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY chat_messages_access ON chat_messages
-  FOR ALL
-  USING (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR EXISTS (
-      SELECT 1 FROM chat_room_members m
-      WHERE m.room_id = chat_messages.room_id
-        AND m.user_id = auth.uid()
-    )
-  )
-  WITH CHECK (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR EXISTS (
-      SELECT 1 FROM chat_room_members m
-      WHERE m.room_id = chat_messages.room_id
-        AND m.user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY message_attachments_access ON message_attachments
-  FOR ALL
-  USING (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR EXISTS (
-      SELECT 1 FROM chat_messages cm
-      JOIN chat_room_members m ON m.room_id = cm.room_id
-      WHERE cm.id = message_attachments.message_id
-        AND m.user_id = auth.uid()
-    )
-  )
-  WITH CHECK (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR EXISTS (
-      SELECT 1 FROM chat_messages cm
-      JOIN chat_room_members m ON m.room_id = cm.room_id
-      WHERE cm.id = message_attachments.message_id
-        AND m.user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY chat_message_reactions_access ON chat_message_reactions
-  FOR ALL
-  USING (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR EXISTS (
-      SELECT 1 FROM chat_messages cm
-      JOIN chat_room_members m ON m.room_id = cm.room_id
-      WHERE cm.id = chat_message_reactions.message_id
-        AND m.user_id = auth.uid()
-    )
-  )
-  WITH CHECK (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR EXISTS (
-      SELECT 1 FROM chat_messages cm
-      JOIN chat_room_members m ON m.room_id = cm.room_id
-      WHERE cm.id = chat_message_reactions.message_id
-        AND m.user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY chat_notifications_queue_manage ON chat_notifications_queue
-  FOR ALL
-  USING (auth.role() = 'service_role' OR auth_is_superadmin())
-  WITH CHECK (auth.role() = 'service_role' OR auth_is_superadmin());
-
-CREATE POLICY direct_message_participants_access ON direct_message_participants
-  FOR ALL
-  USING (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR user_a = auth.uid()
-    OR user_b = auth.uid()
-  )
-  WITH CHECK (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR user_a = auth.uid()
-    OR user_b = auth.uid()
-  );
-
--- System configuration and auditing
-CREATE POLICY app_config_manage ON app_config
+CREATE POLICY system_audit_log_manage ON system_audit_log
   FOR ALL
   USING (auth.role() = 'service_role' OR auth_is_superadmin())
   WITH CHECK (auth.role() = 'service_role' OR auth_is_superadmin());
@@ -1345,67 +1521,4 @@ CREATE POLICY system_config_manage ON system_config
   USING (auth.role() = 'service_role' OR auth_is_superadmin())
   WITH CHECK (auth.role() = 'service_role' OR auth_is_superadmin());
 
-CREATE POLICY system_audit_access ON system_audit_log
-  FOR ALL
-  USING (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR (
-      auth_current_business_id() IS NOT NULL
-      AND auth_current_business_id() = business_id
-    )
-    OR (
-      auth_current_infrastructure_id() IS NOT NULL
-      AND auth_current_infrastructure_id() = infrastructure_id
-    )
-  )
-  WITH CHECK (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR (
-      auth_current_business_id() IS NOT NULL
-      AND auth_current_business_id() = business_id
-    )
-    OR (
-      auth_current_infrastructure_id() IS NOT NULL
-      AND auth_current_infrastructure_id() = infrastructure_id
-    )
-  );
-
--- system tables without direct user interaction
-CREATE POLICY permissions_cache_service_update ON user_permissions_cache
-  FOR UPDATE
-  USING (auth.role() = 'service_role' OR auth_is_superadmin())
-  WITH CHECK (auth.role() = 'service_role' OR auth_is_superadmin());
-
-CREATE POLICY permissions_cache_service_insert ON user_permissions_cache
-  FOR INSERT
-  WITH CHECK (auth.role() = 'service_role' OR auth_is_superadmin());
-
-CREATE POLICY permissions_cache_select ON user_permissions_cache
-  FOR SELECT
-  USING (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR auth_current_business_id() IS NOT NULL AND auth_current_business_id() = business_id
-  );
-
-CREATE POLICY permission_failures_service ON permission_check_failures
-  FOR ALL
-  USING (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR (
-      auth_current_business_id() IS NOT NULL
-      AND auth_current_business_id() = business_id
-    )
-  )
-  WITH CHECK (
-    auth.role() = 'service_role'
-    OR auth_is_superadmin()
-    OR (
-      auth_current_business_id() IS NOT NULL
-      AND auth_current_business_id() = business_id
-    )
-  );
 COMMIT;
