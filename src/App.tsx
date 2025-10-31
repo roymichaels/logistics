@@ -2,7 +2,6 @@ import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { telegram } from './lib/telegram';
 import { BottomNavigation } from './components/BottomNavigation';
 import { ErrorDisplay } from './components/ErrorDisplay';
-// TelegramAuth component removed - authentication now handled by ensureTwaSession() in initializeApp()
 import { OrderCreationWizard } from './components/OrderCreationWizard';
 import { DualModeOrderEntry } from './components/DualModeOrderEntry';
 import { BusinessManager } from './components/BusinessManager';
@@ -12,11 +11,14 @@ import { Header } from './components/Header';
 import { SecurityGate } from './components/SecurityGate';
 import { RightSidebarMenu } from './components/RightSidebarMenu';
 import { SidebarToggleButton } from './components/SidebarToggleButton';
+import { LoginPage } from './pages/LoginPage';
 import { debugLog } from './components/DebugPanel';
 import { hebrew } from './lib/hebrew';
 import './lib/authDiagnostics'; // Load auth diagnostics for console debugging
 import { useAppServices } from './context/AppServicesContext';
+import { useAuth } from './context/AuthContext';
 import { offlineStore } from './utils/offlineStore';
+import { platformDetection } from './lib/platformDetection';
 
 // Pages (lazy loaded)
 const Dashboard = lazy(() =>
@@ -135,6 +137,7 @@ export default function App() {
     logout,
     currentBusinessId
   } = useAppServices();
+  const { authenticateWithEthereum, authenticateWithSolana, authenticate: authenticateWithTelegram, isAuthenticated } = useAuth();
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [showOrderWizard, setShowOrderWizard] = useState(false);
   const [showBusinessManager, setShowBusinessManager] = useState(false);
@@ -425,47 +428,59 @@ export default function App() {
     return <ErrorDisplay error={error} theme={theme} />;
   }
 
-  // Show loading while authentication is in progress
-  // ensureTwaSession() handles all authentication - no separate login component needed
-  if (!isLoggedIn) {
+  // Show LoginPage when not authenticated (for web users)
+  // Telegram users will auto-authenticate via the telegram service
+  if (!isLoggedIn && !isAuthenticated) {
+    // Detect platform and decide whether to show login page
+    const platform = platformDetection.detect();
+
+    // If in Telegram and auto-auth should happen, show loading
+    if (platform.isTelegram && telegram.isAvailable) {
+      return (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          backgroundColor: theme.bg_color,
+          color: theme.text_color,
+          padding: '20px',
+          textAlign: 'center'
+        }}>
+          <style>{`
+            @keyframes spin {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+            .spinner {
+              width: 48px;
+              height: 48px;
+              border: 4px solid ${theme.hint_color || '#ccc'};
+              border-top-color: ${theme.button_color || '#007aff'};
+              border-radius: 50%;
+              animation: spin 1s linear infinite;
+            }
+          `}</style>
+          <div className="spinner" style={{ marginBottom: '20px' }} />
+          <div style={{ fontSize: '18px', marginBottom: '10px', fontWeight: '600' }}>
+            מאמת זהות...
+          </div>
+          <div style={{ fontSize: '14px', opacity: 0.7 }}>
+            Authenticating via Telegram
+          </div>
+        </div>
+      );
+    }
+
+    // Show login page for web users
     return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
-        padding: '20px',
-        textAlign: 'center'
-      }}>
-        <style>{`
-          @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-          @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-          }
-          .spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid ${theme.hint_color || '#ccc'};
-            border-top-color: ${theme.button_color || '#007aff'};
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-          }
-        `}</style>
-        <div className="spinner" style={{ marginBottom: '20px' }} />
-        <div style={{ fontSize: '18px', marginBottom: '10px', fontWeight: '600' }}>
-          מאמת זהות...
-        </div>
-        <div style={{ fontSize: '14px', opacity: 0.7 }}>
-          Authenticating via Telegram
-        </div>
-      </div>
+      <LoginPage
+        onEthereumLogin={authenticateWithEthereum}
+        onSolanaLogin={authenticateWithSolana}
+        onTelegramLogin={authenticateWithTelegram}
+        isLoading={loading}
+      />
     );
   }
 

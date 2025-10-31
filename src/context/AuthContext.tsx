@@ -5,6 +5,8 @@ interface AuthContextValue extends AuthState {
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
   authenticate: () => Promise<void>;
+  authenticateWithEthereum: (address: string, signature: string, message: string) => Promise<void>;
+  authenticateWithSolana: (address: string, signature: string, message: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -42,11 +44,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await authService.authenticateWithTelegram();
   };
 
+  const authenticateWithEthereum = async (address: string, signature: string, message: string) => {
+    await authService.authenticateWithEthereum(address, signature, message);
+  };
+
+  const authenticateWithSolana = async (address: string, signature: string, message: string) => {
+    await authService.authenticateWithSolana(address, signature, message);
+  };
+
   const value: AuthContextValue = {
     ...authState,
     signOut,
     refreshSession,
     authenticate,
+    authenticateWithEthereum,
+    authenticateWithSolana,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -61,20 +73,7 @@ export function useAuth(): AuthContextValue {
 }
 
 export function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading, error, authenticate } = useAuth();
-  const [loadingTimeout, setLoadingTimeout] = React.useState(false);
-
-  React.useEffect(() => {
-    if (isLoading) {
-      const timer = setTimeout(() => {
-        setLoadingTimeout(true);
-      }, 15000);
-
-      return () => clearTimeout(timer);
-    } else {
-      setLoadingTimeout(false);
-    }
-  }, [isLoading]);
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -86,7 +85,6 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
         height: '100vh',
         padding: '20px',
         textAlign: 'center',
-        direction: 'rtl',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}>
         <style>{`
@@ -105,87 +103,13 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
           }
         `}</style>
         <div className="auth-spinner" />
-        <h1 style={{ fontSize: '20px', marginBottom: '16px', fontWeight: '600' }}>מאמת זהות...</h1>
-        <p style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>אנא המתן</p>
-        {loadingTimeout && (
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: '#007aff',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '14px',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              marginTop: '16px'
-            }}
-          >
-            האימות לוקח זמן רב? לחץ לרענון
-          </button>
-        )}
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        padding: '20px',
-        textAlign: 'center',
-        direction: 'rtl',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-      }}>
-        <div style={{ fontSize: '64px', marginBottom: '24px' }}>⚠️</div>
-        <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>שגיאת אימות</h1>
-        <p style={{ fontSize: '16px', color: '#666', marginBottom: '24px', maxWidth: '400px', whiteSpace: 'pre-line' }}>
-          {error}
-        </p>
-        <button
-          onClick={() => window.location.reload()}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#007aff',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            cursor: 'pointer',
-            fontFamily: 'inherit'
-          }}
-        >
-          נסה שוב
-        </button>
+        <h1 style={{ fontSize: '20px', marginBottom: '16px', fontWeight: '600' }}>Loading...</h1>
       </div>
     );
   }
 
   if (!isAuthenticated) {
-    return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        padding: '20px',
-        textAlign: 'center',
-        direction: 'rtl',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-      }}>
-        <div style={{ fontSize: '64px', marginBottom: '24px' }}>🔒</div>
-        <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>נדרש אימות</h1>
-        <p style={{ fontSize: '16px', color: '#666', marginBottom: '24px' }}>
-          יש לפתוח את האפליקציה מתוך טלגרם
-        </p>
-      </div>
-    );
+    return null;
   }
 
   return <>{children}</>;

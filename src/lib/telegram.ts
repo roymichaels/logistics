@@ -1,52 +1,70 @@
-import WebApp from '@twa-dev/sdk';
-
 /**
  * Telegram Mini App Service
  *
  * This service provides a clean interface to interact with Telegram Mini Apps SDK.
- * Uses @twa-dev/sdk for proper TypeScript support and Mini App integration.
- *
- * Key differences from old approach:
- * - No need for manual window.Telegram checks
- * - No need for api_id or api_hash (those are for Telegram Client SDK, not Mini Apps)
- * - Proper TypeScript types built-in
- * - Works exclusively within Telegram Mini App context
+ * Now supports optional Telegram integration - works in both Telegram and standard web contexts.
  */
 class TelegramService {
   private initialized = false;
   private userData: any = null;
+  private WebApp: any = null;
+  private sdkLoaded = false;
 
   constructor() {
-    this.initialize();
+    this.loadSDK();
+  }
+
+  private async loadSDK() {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      // Try to dynamically import Telegram SDK
+      const module = await import('@twa-dev/sdk');
+      this.WebApp = module.default;
+      this.sdkLoaded = true;
+      this.initialize();
+    } catch (error) {
+      console.log('🌐 Telegram SDK not available - running in standard web mode');
+      this.sdkLoaded = false;
+      this.initialized = false;
+    }
   }
 
   private initialize() {
     try {
+      // Check if SDK is loaded
+      if (!this.sdkLoaded || !this.WebApp) {
+        this.initialized = false;
+        return;
+      }
+
       // Check if running in Telegram Mini App context
-      if (!WebApp.initData) {
+      if (!this.WebApp.initData) {
         console.log('🌐 Not running in Telegram Mini App environment');
-        console.log('   This app must be opened from inside Telegram using the Mini App button');
+        console.log('   App is accessible via standard web browser');
         this.initialized = false;
         return;
       }
 
       console.log('🎬 Telegram Mini App SDK initialized', {
-        version: WebApp.version,
-        platform: WebApp.platform,
-        hasInitData: !!WebApp.initData,
-        initDataLength: WebApp.initData?.length || 0,
-        hasUser: !!WebApp.initDataUnsafe?.user
+        version: this.WebApp.version,
+        platform: this.WebApp.platform,
+        hasInitData: !!this.WebApp.initData,
+        initDataLength: this.WebApp.initData?.length || 0,
+        hasUser: !!this.WebApp.initDataUnsafe?.user
       });
 
       // Signal that Mini App is ready
-      WebApp.ready();
+      this.WebApp.ready();
 
       // Expand to full height
-      WebApp.expand();
+      this.WebApp.expand();
 
       // Store user data
-      if (WebApp.initDataUnsafe?.user) {
-        this.userData = WebApp.initDataUnsafe.user;
+      if (this.WebApp.initDataUnsafe?.user) {
+        this.userData = this.WebApp.initDataUnsafe.user;
         console.log('✅ Telegram user data loaded:', {
           id: this.userData.id,
           username: this.userData.username,
@@ -67,7 +85,7 @@ class TelegramService {
    * Check if Telegram Mini App SDK is available and initialized
    */
   get isAvailable(): boolean {
-    return this.initialized && !!WebApp.initData;
+    return this.initialized && !!this.WebApp && !!this.WebApp.initData;
   }
 
   /**
@@ -81,7 +99,7 @@ class TelegramService {
    * Get Telegram theme parameters
    */
   get themeParams() {
-    return WebApp.themeParams || {
+    return this.WebApp?.themeParams || {
       bg_color: '#ffffff',
       text_color: '#000000',
       hint_color: '#999999',
@@ -96,49 +114,49 @@ class TelegramService {
    * Get raw initData string (for backend verification)
    */
   get initData(): string {
-    return WebApp.initData || '';
+    return this.WebApp?.initData || '';
   }
 
   /**
    * Get parsed initData object
    */
   get initDataUnsafe(): any {
-    return WebApp.initDataUnsafe || null;
+    return this.WebApp?.initDataUnsafe || null;
   }
 
   /**
    * Get current user data
    */
   get user(): any {
-    return this.userData || WebApp.initDataUnsafe?.user || null;
+    return this.userData || this.WebApp?.initDataUnsafe?.user || null;
   }
 
   /**
    * Check if user is authenticated
    */
   get isAuthenticated(): boolean {
-    return !!(this.userData || WebApp.initDataUnsafe?.user);
+    return !!(this.userData || this.WebApp?.initDataUnsafe?.user);
   }
 
   /**
    * Get Telegram SDK version
    */
   get version(): string {
-    return WebApp.version;
+    return this.WebApp?.version || '';
   }
 
   /**
    * Get platform (ios, android, tdesktop, etc.)
    */
   get platform(): string {
-    return WebApp.platform;
+    return this.WebApp?.platform || 'web';
   }
 
   /**
    * Get color scheme (light or dark)
    */
   get colorScheme(): string {
-    return WebApp.colorScheme;
+    return this.WebApp?.colorScheme || 'light';
   }
 
   /**
@@ -148,13 +166,13 @@ class TelegramService {
     if (!this.isAvailable) return;
 
     try {
-      WebApp.MainButton.setText(text);
-      WebApp.MainButton.onClick(onClick);
+      this.WebApp.MainButton.setText(text);
+      this.WebApp.MainButton.onClick(onClick);
 
       if (visible) {
-        WebApp.MainButton.show();
+        this.WebApp.MainButton.show();
       } else {
-        WebApp.MainButton.hide();
+        this.WebApp.MainButton.hide();
       }
     } catch (error) {
       console.log('[Telegram] MainButton error:', error);
@@ -168,7 +186,7 @@ class TelegramService {
     if (!this.isAvailable) return;
 
     try {
-      WebApp.MainButton.hide();
+      this.WebApp.MainButton.hide();
     } catch (error) {
       console.log('[Telegram] MainButton hide error:', error);
     }
@@ -181,8 +199,8 @@ class TelegramService {
     if (!this.isAvailable) return;
 
     try {
-      WebApp.BackButton.onClick(onClick);
-      WebApp.BackButton.show();
+      this.WebApp.BackButton.onClick(onClick);
+      this.WebApp.BackButton.show();
     } catch (error) {
       console.log('[Telegram] BackButton not supported in this version');
     }
@@ -195,7 +213,7 @@ class TelegramService {
     if (!this.isAvailable) return;
 
     try {
-      WebApp.BackButton.hide();
+      this.WebApp.BackButton.hide();
     } catch (error) {
       console.log('[Telegram] BackButton hide error:', error);
     }
@@ -213,13 +231,13 @@ class TelegramService {
     try {
       switch (type) {
         case 'selection':
-          WebApp.HapticFeedback.selectionChanged();
+          this.WebApp.HapticFeedback.selectionChanged();
           break;
         case 'impact':
-          WebApp.HapticFeedback.impactOccurred(style as 'light' | 'medium' | 'heavy' || 'light');
+          this.WebApp.HapticFeedback.impactOccurred(style as 'light' | 'medium' | 'heavy' || 'light');
           break;
         case 'notification':
-          WebApp.HapticFeedback.notificationOccurred(style as 'error' | 'success' | 'warning' || 'success');
+          this.WebApp.HapticFeedback.notificationOccurred(style as 'error' | 'success' | 'warning' || 'success');
           break;
       }
     } catch (error) {
@@ -233,7 +251,7 @@ class TelegramService {
   showAlert(message: string): void {
     if (this.isAvailable) {
       try {
-        WebApp.showAlert(message);
+        this.WebApp.showAlert(message);
       } catch (error) {
         console.log('[Telegram] showAlert not supported, using fallback');
         alert(message);
@@ -250,7 +268,7 @@ class TelegramService {
     return new Promise((resolve) => {
       if (this.isAvailable) {
         try {
-          WebApp.showConfirm(message, (confirmed: boolean) => {
+          this.WebApp.showConfirm(message, (confirmed: boolean) => {
             resolve(confirmed);
           });
         } catch (error) {
@@ -270,7 +288,7 @@ class TelegramService {
     return new Promise((resolve) => {
       if (this.isAvailable) {
         try {
-          WebApp.showPopup(params, (buttonId: string | null) => {
+          this.WebApp.showPopup(params, (buttonId: string | null) => {
             resolve(buttonId);
           });
         } catch (error) {
@@ -290,7 +308,7 @@ class TelegramService {
    */
   close(): void {
     if (this.isAvailable) {
-      WebApp.close();
+      this.WebApp.close();
     }
   }
 
@@ -300,7 +318,7 @@ class TelegramService {
   openLink(url: string, options?: { try_instant_view?: boolean }): void {
     if (this.isAvailable) {
       try {
-        WebApp.openLink(url, options);
+        this.WebApp.openLink(url, options);
       } catch (error) {
         console.log('[Telegram] openLink error:', error);
         window.open(url, '_blank');
@@ -316,7 +334,7 @@ class TelegramService {
   openTelegramLink(url: string): void {
     if (this.isAvailable) {
       try {
-        WebApp.openTelegramLink(url);
+        this.WebApp.openTelegramLink(url);
       } catch (error) {
         console.log('[Telegram] openTelegramLink error:', error);
         window.open(url, '_blank');
@@ -337,7 +355,7 @@ class TelegramService {
       }
 
       try {
-        WebApp.requestContact((success, data) => {
+        this.WebApp.requestContact((success, data) => {
           if (success) {
             resolve(data);
           } else {
@@ -357,7 +375,7 @@ class TelegramService {
   enableClosingConfirmation(): void {
     if (this.isAvailable) {
       try {
-        WebApp.enableClosingConfirmation();
+        this.WebApp.enableClosingConfirmation();
       } catch (error) {
         console.log('[Telegram] enableClosingConfirmation not supported');
       }
@@ -370,7 +388,7 @@ class TelegramService {
   disableClosingConfirmation(): void {
     if (this.isAvailable) {
       try {
-        WebApp.disableClosingConfirmation();
+        this.WebApp.disableClosingConfirmation();
       } catch (error) {
         console.log('[Telegram] disableClosingConfirmation not supported');
       }
@@ -383,7 +401,7 @@ class TelegramService {
   onEvent(eventType: string, handler: () => void): void {
     if (this.isAvailable) {
       try {
-        WebApp.onEvent(eventType, handler);
+        this.WebApp.onEvent(eventType, handler);
       } catch (error) {
         console.log(`[Telegram] Event ${eventType} not supported`);
       }
@@ -396,7 +414,7 @@ class TelegramService {
   offEvent(eventType: string, handler: () => void): void {
     if (this.isAvailable) {
       try {
-        WebApp.offEvent(eventType, handler);
+        this.WebApp.offEvent(eventType, handler);
       } catch (error) {
         console.log(`[Telegram] Event ${eventType} not supported`);
       }

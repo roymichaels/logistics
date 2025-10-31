@@ -3,11 +3,14 @@ import { telegram } from './telegram';
 
 export interface AuthUser {
   id: string;
-  telegram_id: string;
+  telegram_id?: string;
+  wallet_address_eth?: string;
+  wallet_address_sol?: string;
   username: string | null;
   name: string;
   photo_url: string | null;
   role: string;
+  auth_method?: string;
 }
 
 export interface AuthState {
@@ -88,24 +91,38 @@ class AuthService {
       const supabase = getSupabase();
       const telegramId = session.user.user_metadata?.telegram_id ||
                          session.user.app_metadata?.telegram_id;
+      const walletEth = session.user.user_metadata?.wallet_address_eth ||
+                        session.user.app_metadata?.wallet_address_eth;
+      const walletSol = session.user.user_metadata?.wallet_address_sol ||
+                        session.user.app_metadata?.wallet_address_sol;
 
-      if (!telegramId) {
-        console.warn('⚠️ Session exists but no telegram_id found');
+      // Check if at least one identifier exists
+      if (!telegramId && !walletEth && !walletSol) {
+        console.warn('⚠️ Session exists but no valid identifier found');
         this.updateState({
           user: null,
           session: null,
           isAuthenticated: false,
           isLoading: false,
-          error: 'Invalid session: missing telegram_id',
+          error: 'Invalid session: missing user identifier',
         });
         return;
       }
 
-      const { data: userData, error } = await supabase
+      // Query user by any available identifier
+      let query = supabase
         .from('users')
-        .select('id, telegram_id, username, name, photo_url, role')
-        .eq('telegram_id', telegramId)
-        .maybeSingle();
+        .select('id, telegram_id, wallet_address_eth, wallet_address_sol, username, name, photo_url, role, auth_method');
+
+      if (telegramId) {
+        query = query.eq('telegram_id', telegramId);
+      } else if (walletEth) {
+        query = query.eq('wallet_address_eth', walletEth.toLowerCase());
+      } else if (walletSol) {
+        query = query.eq('wallet_address_sol', walletSol.toLowerCase());
+      }
+
+      const { data: userData, error } = await query.maybeSingle();
 
       if (error || !userData) {
         console.error('❌ Failed to fetch user data:', error);
@@ -189,16 +206,12 @@ class AuthService {
         return;
       }
 
-      if (!telegram.isAvailable) {
-        this.updateState({
-          isLoading: false,
-          isAuthenticated: false,
-          error: 'אפליקציה זו פועלת רק בטלגרם.\nאנא פתח את האפליקציה מתוך טלגרם.\n\nThis app only works in Telegram.\nPlease open the app from within Telegram.',
-        });
-        return;
-      }
-
-      await this.authenticateWithTelegram();
+      // Don't auto-authenticate - let the app show the login page
+      this.updateState({
+        isLoading: false,
+        isAuthenticated: false,
+        error: null,
+      });
     } catch (error) {
       console.error('❌ Authentication initialization failed:', error);
       this.updateState({
@@ -346,6 +359,142 @@ class AuthService {
       }
     } catch (error) {
       console.error('❌ Session refresh error:', error);
+      throw error;
+    }
+  }
+
+  public async authenticateWithEthereum(
+    walletAddress: string,
+    signature: string,
+    message: string
+  ): Promise<void> {
+    this.updateState({ isLoading: true, error: null });
+
+    try {
+      const supabase = getSupabase();
+      const config = await import('./supabaseClient').then(m => m.loadConfig());
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      const response = await fetch(`${config.supabaseUrl}/functions/v1/web3-verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chain: 'ethereum',
+          walletAddress,
+          signature,
+          message,
+        }),
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timeoutId));
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Authentication failed' }));
+        throw new Error(errorData.error || `Authentication failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.session?.access_token) {
+        throw new Error('No access token in response');
+      }
+
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: result.session.access_token,
+        refresh_token: result.session.refresh_token,
+      });
+
+      if (sessionError) {
+        throw new Error(`Failed to set session: ${sessionError.message}`);
+      }
+
+      console.log('✅ Ethereum authentication successful');
+    } catch (error) {
+      console.error('❌ Ethereum authentication error:', error);
+
+      let errorMessage = 'Ethereum authentication failed';
+
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorMessage = 'Authentication timeout. Please check your internet connection and try again.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      this.updateState({
+        isLoading: false,
+        error: errorMessage,
+      });
+      throw error;
+    }
+  }
+
+  public async authenticateWithSolana(
+    walletAddress: string,
+    signature: string,
+    message: string
+  ): Promise<void> {
+    this.updateState({ isLoading: true, error: null });
+
+    try {
+      const supabase = getSupabase();
+      const config = await import('./supabaseClient').then(m => m.loadConfig());
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      const response = await fetch(`${config.supabaseUrl}/functions/v1/web3-verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chain: 'solana',
+          walletAddress,
+          signature,
+          message,
+        }),
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timeoutId));
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Authentication failed' }));
+        throw new Error(errorData.error || `Authentication failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.session?.access_token) {
+        throw new Error('No access token in response');
+      }
+
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: result.session.access_token,
+        refresh_token: result.session.refresh_token,
+      });
+
+      if (sessionError) {
+        throw new Error(`Failed to set session: ${sessionError.message}`);
+      }
+
+      console.log('✅ Solana authentication successful');
+    } catch (error) {
+      console.error('❌ Solana authentication error:', error);
+
+      let errorMessage = 'Solana authentication failed';
+
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorMessage = 'Authentication timeout. Please check your internet connection and try again.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      this.updateState({
+        isLoading: false,
+        error: errorMessage,
+      });
       throw error;
     }
   }
