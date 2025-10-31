@@ -115,9 +115,18 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     }
 
     let cancelled = false;
+    let timeoutId: NodeJS.Timeout;
 
     const initialize = async () => {
       try {
+        timeoutId = setTimeout(() => {
+          if (!cancelled) {
+            console.error('⚠️ AppServicesProvider initialization timeout after 30s');
+            setError('Initialization timeout. Please refresh the page.');
+            setLoading(false);
+          }
+        }, 30000);
+
         const appConfig: BootstrapConfig = {
           app: 'miniapp',
           adapters: { data: 'supabase' },
@@ -179,6 +188,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         }
 
         if (!cancelled) {
+          clearTimeout(timeoutId);
           setLoading(false);
         }
       } catch (err) {
@@ -189,6 +199,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         console.error('AppServicesProvider initialization failed:', err);
 
         if (!cancelled) {
+          clearTimeout(timeoutId);
           setError(err instanceof Error ? err.message : 'Failed to initialize app');
           setLoading(false);
         }
@@ -199,6 +210,9 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
     return () => {
       cancelled = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, [value, auth?.isAuthenticated, auth?.isLoading, auth?.user]);
 

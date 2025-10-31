@@ -12,6 +12,7 @@ import { SecurityGate } from './components/SecurityGate';
 import { RightSidebarMenu } from './components/RightSidebarMenu';
 import { SidebarToggleButton } from './components/SidebarToggleButton';
 import { LoginPage } from './pages/LoginPage';
+import { LandingPage } from './pages/LandingPage';
 import { debugLog } from './components/DebugPanel';
 import { hebrew } from './lib/hebrew';
 import './lib/authDiagnostics'; // Load auth diagnostics for console debugging
@@ -145,6 +146,13 @@ export default function App() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [initialPageRole, setInitialPageRole] = useState<string | null>(null);
   const [showSuperadminSetup, setShowSuperadminSetup] = useState(false);
+  const [showLandingPage, setShowLandingPage] = useState(() => {
+    // Check if user has visited before
+    const hasVisited = localStorage.getItem('hasVisitedBefore');
+    const platform = platformDetection.detect();
+    // Skip landing page for Telegram users (auto-auth)
+    return !hasVisited && !platform.isTelegram;
+  });
 
   // Derived state for login status
   const isLoggedIn = user !== null;
@@ -421,6 +429,18 @@ export default function App() {
       }}>
         {hebrew.loading}
       </div>
+    );
+  }
+
+  // Show landing page first for new web visitors
+  if (showLandingPage && !loading && !error) {
+    return (
+      <LandingPage
+        onGetStarted={() => {
+          localStorage.setItem('hasVisitedBefore', 'true');
+          setShowLandingPage(false);
+        }}
+      />
     );
   }
 
