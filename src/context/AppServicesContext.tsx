@@ -131,6 +131,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       setUserRole(null);
       setDataStore(null);
       setError(null);
+      setCurrentBusinessId(null);
       return;
     }
 

@@ -80,6 +80,11 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         setTimeout(() => {
           onNavigate('orders');
         }, 500);
+      } else if (profile.role === 'user') {
+        console.log('🔄 User has user role, redirecting to homepage...');
+        setTimeout(() => {
+          onNavigate('user-homepage');
+        }, 500);
       }
     } catch (error) {
       console.error(`❌ MyRole page: Failed to load profile (attempt ${retryCount + 1}/${MAX_RETRIES + 1}):`, error);

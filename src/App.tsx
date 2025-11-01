@@ -95,6 +95,9 @@ const Profile = lazy(() =>
 const DriversManagement = lazy(() =>
   import('./pages/DriversManagement').then((module) => ({ default: module.DriversManagement }))
 );
+const UserHomepage = lazy(() =>
+  import('./pages/UserHomepage').then((module) => ({ default: module.UserHomepage }))
+);
 
 type Page =
   | 'dashboard'
@@ -124,7 +127,8 @@ type Page =
   | 'warehouse-dashboard'
   | 'manager-inventory'
   | 'zone-management'
-  | 'drivers-management';
+  | 'drivers-management'
+  | 'user-homepage';
 
 export default function App() {
   console.log('🎨 App component rendering...');
@@ -300,7 +304,8 @@ export default function App() {
       driver: 'my-deliveries',
       sales: 'orders',
       dispatcher: 'dispatch-board',
-      customer_service: 'orders'
+      customer_service: 'orders',
+      user: 'user-homepage'
     };
 
     const defaultPage: Page | null = roleDefaultPageMap[userRole] ?? null;
@@ -543,9 +548,9 @@ export default function App() {
     const isAdmin = userRole === 'infrastructure_owner' || userRole === 'business_owner' || userRole === 'manager';
     const isOperational = isAdmin || userRole === 'warehouse' || userRole === 'sales';
 
-    // 👤 USER (unassigned): Redirect to my-role page
-    if (userRole === 'user' && currentPage !== 'my-role' && currentPage !== 'settings') {
-      setCurrentPage('my-role');
+    // 👤 USER (unassigned): Keep on user homepage
+    if (userRole === 'user' && currentPage !== 'user-homepage' && currentPage !== 'my-role' && currentPage !== 'settings') {
+      setCurrentPage('user-homepage');
       return null;
     }
 
@@ -566,6 +571,8 @@ export default function App() {
         return <MyStats dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'my-role':
         return <MyRole dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'user-homepage':
+        return <UserHomepage dataStore={dataStore} onNavigate={handleNavigate} />;
       case 'inventory':
         if (!isOperational) break;
         return <Inventory dataStore={dataStore} onNavigate={handleNavigate} />;

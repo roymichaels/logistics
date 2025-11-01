@@ -255,59 +255,11 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     return <ManagerDashboard dataStore={dataStore} user={user} onNavigate={onNavigate} />;
   }
 
-  // Simple welcome screen for regular users
+  // Redirect users with 'user' role to UserHomepage
   if (user?.role === 'user') {
-    return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: 'var(--tg-theme-bg-color, #ffffff)',
-          padding: '40px 20px',
-          color: 'var(--tg-theme-text-color, #000)',
-          direction: 'rtl',
-          textAlign: 'center'
-        }}
-      >
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <h1 style={{ fontSize: '32px', marginBottom: '16px' }}>
-            שלום, {user.name || 'משתמש'}! 👋
-          </h1>
-          <p style={{
-            fontSize: '18px',
-            color: 'var(--tg-theme-hint-color, #999)',
-            marginBottom: '40px',
-            lineHeight: '1.6'
-          }}>
-            ברוכים הבאים למערכת ניהול הלוגיסטיקה
-          </p>
-          <div style={{
-            padding: '24px',
-            backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)',
-            borderRadius: '12px',
-            marginBottom: '24px',
-            textAlign: 'right'
-          }}>
-            <h3 style={{ marginBottom: '12px', fontSize: '18px' }}>פרטי המשתמש שלך:</h3>
-            <p style={{ marginBottom: '8px' }}>שם: {user.name}</p>
-            {user.username && <p style={{ marginBottom: '8px' }}>שם משתמש: @{user.username}</p>}
-            <p style={{ marginBottom: '8px' }}>תפקיד: משתמש רגיל</p>
-          </div>
-          <div style={{
-            padding: '24px',
-            backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)',
-            borderRadius: '12px',
-            textAlign: 'right'
-          }}>
-            <h3 style={{ marginBottom: '12px', fontSize: '18px' }}>מידע חשוב:</h3>
-            <p style={{ lineHeight: '1.6', color: 'var(--tg-theme-hint-color, #666)' }}>
-              חשבונך נוצר בהצלחה. כרגע אין לך הרשאות גישה למערכת הלוגיסטיקה.
-              <br /><br />
-              אם אתה צריך גישה למערכת, אנא פנה למנהל המערכת להעלאת הרשאות.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+    console.log('🔄 Dashboard: User has "user" role, redirecting to user-homepage');
+    onNavigate('user-homepage');
+    return null;
   }
 
   if (!snapshot) {
