@@ -171,6 +171,7 @@ export function SuperadminSetup({ user, onSuccess, theme }: SuperadminSetupProps
             </label>
             <input
               type="password"
+              autoComplete={mode === 'set' ? 'new-password' : 'current-password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={mode === 'set' ? 'לפחות 6 תווים' : 'הזן סיסמה'}
@@ -202,6 +203,7 @@ export function SuperadminSetup({ user, onSuccess, theme }: SuperadminSetupProps
               </label>
               <input
                 type="password"
+                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="הזן שוב את הסיסמה"

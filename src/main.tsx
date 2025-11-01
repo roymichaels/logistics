@@ -7,11 +7,17 @@ import { SupabaseReadyProvider } from './context/SupabaseReadyContext';
 import { initSupabase } from './lib/supabaseClient';
 import { installRoleDebugger } from './lib/roleDiagnostics';
 import './lib/initDiagnostics';
+import './lib/errorHandler'; // Initialize global error handler
+import { runtimeEnvironment } from './lib/runtimeEnvironment';
+
+// Detect runtime environment
+runtimeEnvironment.detect();
 
 // Install role debugging tools for console access
 installRoleDebugger();
 
 console.log('🚀 Starting app...');
+console.log('🌍 Environment:', runtimeEnvironment.env.type);
 
 // FORCE CLEAR ALL CACHES AND UNREGISTER SERVICE WORKERS
 (async () => {
@@ -47,14 +53,16 @@ console.log('🚀 Starting app...');
   }
 })();
 
-// Error boundary component
+// Enhanced Error boundary component with better recovery
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
-  { hasError: boolean; error: Error | null }
+  { hasError: boolean; error: Error | null; errorCount: number }
 > {
+  private resetTimeout: NodeJS.Timeout | null = null;
+
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorCount: 0 };
   }
 
   static getDerivedStateFromError(error: Error) {
@@ -63,7 +71,30 @@ class ErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('❌ React Error Boundary caught an error:', error, errorInfo);
+
+    // Log to error handler
+    if (typeof window !== 'undefined' && (window as any).errorHandler) {
+      (window as any).errorHandler.handle(error, 'React Error Boundary', {
+        logToConsole: true,
+        showUserMessage: false
+      });
+    }
+
+    // Increment error count
+    this.setState(prev => ({
+      errorCount: prev.errorCount + 1
+    }));
   }
+
+  componentWillUnmount() {
+    if (this.resetTimeout) {
+      clearTimeout(this.resetTimeout);
+    }
+  }
+
+  handleReset = () => {
+    this.setState({ hasError: false, error: null, errorCount: 0 });
+  };
 
   render() {
     if (this.state.hasError) {
@@ -77,28 +108,49 @@ class ErrorBoundary extends React.Component<
           padding: '20px',
           textAlign: 'center',
           direction: 'rtl',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          backgroundColor: '#f5f5f5'
         }}>
           <div style={{ fontSize: '64px', marginBottom: '24px' }}>⚠️</div>
-          <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>משהו השתבש</h1>
-          <p style={{ fontSize: '16px', color: '#666', marginBottom: '24px', maxWidth: '400px' }}>
+          <h1 style={{ fontSize: '24px', marginBottom: '16px', fontWeight: '600' }}>משהו השתבש</h1>
+          <p style={{ fontSize: '16px', color: '#666', marginBottom: '24px', maxWidth: '400px', lineHeight: '1.5' }}>
             {this.state.error?.message || 'שגיאה לא צפויה'}
           </p>
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: '#007aff',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              cursor: 'pointer',
-              fontFamily: 'inherit'
-            }}
-          >
-            רענן דף
-          </button>
+
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button
+              onClick={this.handleReset}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: '#007aff',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: '500'
+              }}
+            >
+              נסה שוב
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: '#f0f0f0',
+                color: '#333',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: '500'
+              }}
+            >
+              רענן דף
+            </button>
+          </div>
         </div>
       );
     }
