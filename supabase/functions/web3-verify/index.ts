@@ -146,17 +146,33 @@ Deno.serve(async (req: Request): Promise<Response> => {
     console.log('✅ Session created successfully');
 
     console.log('💾 Checking if user exists in users table...');
-    const { data: existingUser } = await supabase
+
+    // Create a service role client that can bypass RLS
+    const serviceClient = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+      db: {
+        schema: 'public',
+      },
+    });
+
+    const { data: existingUser, error: selectError } = await serviceClient
       .from('users')
       .select('id, role')
       .eq(walletColumn, normalizedAddress)
       .maybeSingle();
 
+    if (selectError) {
+      console.error('⚠️ Error checking existing user:', selectError);
+    }
+
     const shortAddress = `${normalizedAddress.slice(0, 6)}...${normalizedAddress.slice(-4)}`;
 
     if (existingUser) {
       console.log('✅ User exists, syncing auth UID...');
-      const { error: updateErr } = await supabase
+      const { error: updateErr } = await serviceClient
         .from('users')
         .update({
           id: authUser.id,
@@ -174,6 +190,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
     } else {
       console.log('➕ Creating new user record with auth UID...');
+      console.log(`🔑 Using auth user ID: ${authUser.id}`);
+      console.log(`🎯 Service role: authenticated`);
 
       const insertData: any = {
         id: authUser.id,
@@ -189,17 +207,31 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       insertData[walletColumn] = normalizedAddress;
 
-      const { data: insertedData, error: insertErr } = await supabase.from('users').insert(insertData).select();
+      console.log('📝 Insert data prepared:', JSON.stringify(insertData, null, 2));
+
+      const { data: insertedData, error: insertErr } = await serviceClient
+        .from('users')
+        .insert(insertData)
+        .select();
 
       if (insertErr) {
-        console.error('❌ User insert failed:', {
+        console.error('❌ User insert failed - Full error details:', {
           error: insertErr,
           message: insertErr.message,
           details: insertErr.details,
           hint: insertErr.hint,
           code: insertErr.code,
-          insertData: insertData
+          insertData: insertData,
         });
+
+        // Check if this is an RLS policy violation
+        if (insertErr.message && insertErr.message.includes('row-level security')) {
+          throw new Error(
+            'Database security policy prevented user creation. This usually indicates a missing RLS policy. ' +
+            'Please ensure the users table has an INSERT policy for service_role.'
+          );
+        }
+
         throw new Error(`Failed to create user record: ${insertErr.message}`);
       } else {
         console.log('✅ New user record created with auth UID:', insertedData);
