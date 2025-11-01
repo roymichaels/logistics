@@ -942,18 +942,36 @@ export class SupabaseDataStore implements DataStore {
       }
     }
 
-    // Create fresh client to bypass any caching
-    const config = await loadConfig();
-    const freshClient = createClient(config.supabaseUrl, config.supabaseAnonKey);
+    // Get the authenticated session to retrieve auth.uid()
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      throw new Error('Supabase client not initialized');
+    }
 
-    const { data, error } = await freshClient
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData?.session) {
+      console.error('❌ getProfile: No authenticated session:', sessionError);
+      throw new Error('Not authenticated - please log in first');
+    }
+
+    const authUid = sessionData.session.user.id;
+    console.log('🔍 getProfile: Fetching user with auth.uid():', authUid);
+
+    // Query by auth.uid() which is the primary key
+    const { data, error } = await supabase
       .from('users')
       .select('id, telegram_id, role, name, username, photo_url, phone, last_active, created_at, updated_at, wallet_address_eth, wallet_address_sol, auth_method')
-      .eq('telegram_id', this.userTelegramId)
+      .eq('id', authUid)
       .maybeSingle();
 
     if (error) {
       console.error('❌ getProfile: Database error:', error);
+
+      // Check if this is an RLS policy violation
+      if (error.code === '42501' || error.message?.includes('row-level security')) {
+        throw new Error('Authentication session not properly established. Please refresh and try again.');
+      }
+
       throw error;
     }
 
@@ -963,51 +981,13 @@ export class SupabaseDataStore implements DataStore {
       id: data?.id,
       telegram_id: data?.telegram_id,
       role: data?.role,
-      name: data?.name
+      name: data?.name,
+      auth_method: data?.auth_method
     });
 
     if (!data) {
-      // Validate telegram_id before creating user
-      if (!this.userTelegramId) {
-        console.error('❌ Cannot create user: telegram_id is missing', {
-          userTelegramId: this.userTelegramId,
-          initialUserData: this.initialUserData
-        });
-        throw new Error('Cannot create user without telegram_id');
-      }
-
-      // Create user if doesn't exist - Auto-register new Telegram users
-      const telegramUserData = this.initialUserData as any;
-      const newUser: Omit<User, 'id'> = {
-        telegram_id: this.userTelegramId,
-        username: telegramUserData?.username?.toLowerCase() || null,
-        role: 'user', // Default to 'user' role (can be promoted to driver/manager/owner later)
-        name: telegramUserData?.first_name
-          ? `${telegramUserData.first_name}${telegramUserData.last_name ? ' ' + telegramUserData.last_name : ''}`
-          : 'משתמש חדש',
-        photo_url: telegramUserData?.photo_url || null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      const { data: created, error: createError } = await freshClient
-        .from('users')
-        .insert(newUser)
-        .select('id, telegram_id, role, name, username, photo_url, phone, last_active, created_at, updated_at, wallet_address_eth, wallet_address_sol, auth_method')
-        .single();
-
-      if (createError) {
-        console.error('getProfile: Failed to create user:', createError);
-        throw createError;
-      }
-
-      if (!created || !created.id) {
-        console.error('❌ Created user missing id field:', created);
-        throw new Error('Failed to create user: missing id');
-      }
-
-      this.setCachedUser(created);
-      return created;
+      console.error('❌ getProfile: User record not found for auth.uid():', authUid);
+      throw new Error('User profile not found. Your account may not be fully set up yet. Please contact support if this persists.');
     }
 
     // Update user with latest Telegram data if available
@@ -1037,10 +1017,10 @@ export class SupabaseDataStore implements DataStore {
       if (Object.keys(updates).length > 0) {
         updates.updated_at = new Date().toISOString();
 
-        const { data: updated, error: updateError } = await freshClient
+        const { data: updated, error: updateError } = await supabase
           .from('users')
           .update(updates)
-          .eq('telegram_id', this.userTelegramId)
+          .eq('id', authUid)
           .select('id, telegram_id, role, name, username, photo_url, phone, last_active, created_at, updated_at, wallet_address_eth, wallet_address_sol, auth_method')
           .maybeSingle();
 

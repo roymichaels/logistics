@@ -27,18 +27,54 @@ const ROYAL_COLORS = {
 export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
 
+  // Wait for authentication to be fully established before loading profile
   useEffect(() => {
-    loadUser();
+    const checkAuth = async () => {
+      try {
+        const supabase = await import('../lib/supabaseClient').then(m => m.getSupabase());
+
+        const { data: sessionData, error } = await supabase.auth.getSession();
+
+        if (error || !sessionData?.session) {
+          console.error('❌ UserHomepage: No authenticated session');
+          Toast.error('לא מזוהה משתמש - אנא התחבר מחדש');
+          setLoading(false);
+          return;
+        }
+
+        console.log('✅ UserHomepage: Authentication verified, session ready');
+        setAuthReady(true);
+      } catch (error) {
+        console.error('❌ UserHomepage: Auth check failed:', error);
+        Toast.error('שגיאה באימות');
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
+
+  // Only load user profile after auth is confirmed ready
+  useEffect(() => {
+    if (!authReady) {
+      return;
+    }
+
+    loadUser();
+  }, [authReady]);
 
   const loadUser = async () => {
     try {
+      console.log('📥 UserHomepage: Loading user profile...');
       const profile = await dataStore.getProfile();
+      console.log('✅ UserHomepage: Profile loaded successfully:', profile.role);
       setUser(profile);
     } catch (error) {
       console.error('Failed to load user profile:', error);
-      Toast.error('שגיאה בטעינת פרופיל משתמש');
+      const errorMessage = error instanceof Error ? error.message : 'שגיאה בטעינת פרופיל';
+      Toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
