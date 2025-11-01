@@ -331,7 +331,7 @@ export const hebrew = {
       offline: 'עובד ללא אינטרנט',
       copyright: 'כל הזכויות שמורות'
     }
-  }  },
+  },
 
   // Login Page
   login: {
