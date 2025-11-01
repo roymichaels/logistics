@@ -148,6 +148,90 @@ export const hebrew = {
     warehouse: 'עובד מחסן',
     sales: 'איש מכירות',
     customerService: 'שירות לקוחות'
+  },
+
+  // Landing Page
+  landing: {
+    title: 'מערכת לוגיסטיקה חכמה',
+    subtitle: 'ניהול מתקדם של הזמנות, משלוחים ומלאי בזמן אמת',
+    description: 'פתרון מקצועי לעסקים מכל הגדלים',
+    getStarted: 'התחל עכשיו',
+    signIn: 'כניסה למערכת',
+    features: {
+      title: 'יכולות מתקדמות',
+      orderManagement: {
+        title: 'ניהול הזמנות',
+        description: 'מעקב אחר הזמנות בזמן אמת, עדכוני סטטוס אוטומטיים ויצירת הזמנות מהירה'
+      },
+      deliveryManagement: {
+        title: 'ניהול משלוחים',
+        description: 'הקצאת משלוחים לנהגים, תכנון מסלולים אופטימלי ומעקב GPS'
+      },
+      inventoryManagement: {
+        title: 'ניהול מלאי',
+        description: 'מעקב מלאי מדויק, התראות על מלאי נמוך ובקשות חידוש מלאי'
+      },
+      userManagement: {
+        title: 'ניהול משתמשים',
+        description: 'תפקידים מותאמים אישית, הרשאות מתקדמות ומערכת אימות מאובטחת'
+      },
+      analytics: {
+        title: 'דוחות וניתוחים',
+        description: 'תובנות עסקיות בזמן אמת, דוחות מפורטים ומדדי ביצועים'
+      },
+      security: {
+        title: 'אבטחה מתקדמת',
+        description: 'הצפנה מלאה, בקרת גישה מבוססת תפקידים ומעקב אודיט'
+      }
+    },
+    userRoles: {
+      title: 'מי משתמש במערכת?',
+      businessOwner: 'בעל עסק',
+      businessOwnerDesc: 'ניהול מלא של העסק',
+      manager: 'מנהל',
+      managerDesc: 'פיקוח ותכנון',
+      dispatcher: 'דיספצ\'ר',
+      dispatcherDesc: 'ניהול משלוחים',
+      driver: 'נהג',
+      driverDesc: 'ביצוע משלוחים',
+      warehouse: 'מחסנאי',
+      warehouseDesc: 'ניהול מלאי',
+      sales: 'איש מכירות',
+      salesDesc: 'יצירת הזמנות'
+    },
+    cta: {
+      title: 'מוכנים להתחיל?',
+      description: 'הצטרפו למערכת הניהול הלוגיסטית המתקדמת ביותר',
+      button: 'כניסה למערכת'
+    },
+    footer: {
+      secure: 'מאובטח לחלוטין',
+      fast: 'מהיר ויעיל',
+      mobile: 'תומך במובייל',
+      copyright: 'כל הזכויות שמורות'
+    }
+  },
+
+  // Login Page
+  login: {
+    welcome: 'ברוכים הבאים',
+    subtitle: 'היכנסו לחשבון שלכם',
+    chooseMethod: 'בחרו שיטת התחברות:',
+    signInWith: 'התחברות עם',
+    ethereum: 'Ethereum',
+    solana: 'Solana',
+    telegram: 'טלגרם',
+    backToOptions: 'חזרה לאפשרויות',
+    authenticating: 'מאמת...',
+    continueWith: 'המשך עם',
+    authDescription: 'אימות באמצעות חשבון',
+    termsAgreement: 'בהתחברות אתם מסכימים לתנאי השימוש ומדיניות הפרטיות שלנו',
+    errors: {
+      authFailed: 'האימות נכשל',
+      ethereumFailed: 'אימות Ethereum נכשל',
+      solanaFailed: 'אימות Solana נכשל',
+      telegramFailed: 'אימות טלגרם נכשל'
+    }
   }
 };
 

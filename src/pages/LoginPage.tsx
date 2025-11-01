@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { EthereumLogin } from '../components/EthereumLogin';
 import { SolanaLogin } from '../components/SolanaLogin';
 import { platformDetection } from '../lib/platformDetection';
+import { hebrew } from '../lib/hebrew';
+import { ADMIN_THEME } from '../styles/roleThemes';
 
 interface LoginPageProps {
   onEthereumLogin: (address: string, signature: string, message: string) => Promise<void>;
@@ -25,6 +27,8 @@ export function LoginPage({
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [availableMethods, setAvailableMethods] = useState<Array<'ethereum' | 'solana' | 'telegram'>>([]);
+
+  const theme = ADMIN_THEME.colors;
 
   useEffect(() => {
     console.log('🔐 LoginPage: useEffect running - detecting platform and auth methods');
@@ -56,7 +60,7 @@ export function LoginPage({
     try {
       await onEthereumLogin(address, signature, message);
     } catch (err: any) {
-      setError(err.message || 'Ethereum authentication failed');
+      setError(err.message || hebrew.login.errors.ethereumFailed);
       setIsAuthenticating(false);
     }
   };
@@ -68,7 +72,7 @@ export function LoginPage({
     try {
       await onSolanaLogin(address, signature, message);
     } catch (err: any) {
-      setError(err.message || 'Solana authentication failed');
+      setError(err.message || hebrew.login.errors.solanaFailed);
       setIsAuthenticating(false);
     }
   };
@@ -80,7 +84,7 @@ export function LoginPage({
     try {
       await onTelegramLogin();
     } catch (err: any) {
-      setError(err.message || 'Telegram authentication failed');
+      setError(err.message || hebrew.login.errors.telegramFailed);
       setIsAuthenticating(false);
     }
   };
@@ -100,13 +104,14 @@ export function LoginPage({
         justifyContent: 'center',
         minHeight: '100vh',
         padding: '20px',
-        backgroundColor: '#f5f5f5'
+        background: theme.background,
+        direction: 'rtl'
       }}>
         <div style={{
           width: '48px',
           height: '48px',
-          border: '4px solid #e0e0e0',
-          borderTopColor: '#007aff',
+          border: `4px solid ${theme.border}`,
+          borderTopColor: theme.primary,
           borderRadius: '50%',
           animation: 'spin 1s linear infinite'
         }} />
@@ -116,8 +121,8 @@ export function LoginPage({
             to { transform: rotate(360deg); }
           }
         `}</style>
-        <p style={{ marginTop: '20px', fontSize: '16px', color: '#666' }}>
-          Loading...
+        <p style={{ marginTop: '20px', fontSize: '16px', color: theme.muted }}>
+          {hebrew.loading}
         </p>
       </div>
     );
@@ -134,23 +139,26 @@ export function LoginPage({
       justifyContent: 'center',
       minHeight: '100vh',
       padding: '20px',
-      backgroundColor: '#f5f5f5'
+      background: theme.background,
+      direction: 'rtl'
     }}>
       <div style={{
         maxWidth: '480px',
         width: '100%',
-        backgroundColor: '#fff',
-        borderRadius: '16px',
+        background: theme.card,
+        border: `1px solid ${theme.cardBorder}`,
+        borderRadius: '20px',
         padding: '32px',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+        boxShadow: theme.shadow
       }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px', color: '#1a1a1a' }}>
-            Welcome
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔐</div>
+          <h1 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px', color: theme.text }}>
+            {hebrew.login.welcome}
           </h1>
-          <p style={{ fontSize: '15px', color: '#666' }}>
-            Sign in to continue to your account
+          <p style={{ fontSize: '15px', color: theme.muted }}>
+            {hebrew.login.subtitle}
           </p>
         </div>
 
@@ -158,21 +166,21 @@ export function LoginPage({
         {error && (
           <div style={{
             padding: '12px 16px',
-            backgroundColor: '#fee',
-            border: '1px solid #fcc',
-            borderRadius: '8px',
+            backgroundColor: theme.error + '20',
+            border: `1px solid ${theme.error}`,
+            borderRadius: '12px',
             marginBottom: '20px',
-            color: '#c33'
+            color: theme.errorBright
           }}>
-            <strong>Error:</strong> {error}
+            <strong>{hebrew.error}:</strong> {error}
           </div>
         )}
 
         {/* Authentication Method Selector */}
         {!selectedMethod && availableMethods.length > 1 && (
           <div style={{ marginBottom: '24px' }}>
-            <p style={{ fontSize: '14px', color: '#666', marginBottom: '12px', fontWeight: '500' }}>
-              Choose your sign-in method:
+            <p style={{ fontSize: '14px', color: theme.muted, marginBottom: '12px', fontWeight: '500' }}>
+              {hebrew.login.chooseMethod}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {availableMethods.includes('ethereum') && (
@@ -180,20 +188,25 @@ export function LoginPage({
                   onClick={() => setSelectedMethod('ethereum')}
                   style={{
                     padding: '16px',
-                    backgroundColor: '#fff',
-                    border: '2px solid #037dd6',
-                    borderRadius: '8px',
+                    background: theme.secondary,
+                    border: `2px solid ${theme.info}`,
+                    borderRadius: '12px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     gap: '12px',
                     transition: 'all 0.2s',
                     fontSize: '16px',
-                    fontWeight: '500'
+                    fontWeight: '500',
+                    color: theme.text,
+                    width: '100%'
                   }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = theme.secondaryHover}
+                  onMouseLeave={(e) => e.currentTarget.style.background = theme.secondary}
                 >
                   <span style={{ fontSize: '24px' }}>⟠</span>
-                  <span>Sign in with Ethereum</span>
+                  <span>{hebrew.login.signInWith} {hebrew.login.ethereum}</span>
                 </button>
               )}
 
@@ -202,20 +215,25 @@ export function LoginPage({
                   onClick={() => setSelectedMethod('solana')}
                   style={{
                     padding: '16px',
-                    backgroundColor: '#fff',
-                    border: '2px solid #AB9FF2',
-                    borderRadius: '8px',
+                    background: theme.secondary,
+                    border: `2px solid ${theme.accentBright}`,
+                    borderRadius: '12px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     gap: '12px',
                     transition: 'all 0.2s',
                     fontSize: '16px',
-                    fontWeight: '500'
+                    fontWeight: '500',
+                    color: theme.text,
+                    width: '100%'
                   }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = theme.secondaryHover}
+                  onMouseLeave={(e) => e.currentTarget.style.background = theme.secondary}
                 >
                   <span style={{ fontSize: '24px' }}>◎</span>
-                  <span>Sign in with Solana</span>
+                  <span>{hebrew.login.signInWith} {hebrew.login.solana}</span>
                 </button>
               )}
 
@@ -224,20 +242,25 @@ export function LoginPage({
                   onClick={() => setSelectedMethod('telegram')}
                   style={{
                     padding: '16px',
-                    backgroundColor: '#fff',
-                    border: '2px solid #0088cc',
-                    borderRadius: '8px',
+                    background: theme.secondary,
+                    border: `2px solid ${theme.primary}`,
+                    borderRadius: '12px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     gap: '12px',
                     transition: 'all 0.2s',
                     fontSize: '16px',
-                    fontWeight: '500'
+                    fontWeight: '500',
+                    color: theme.text,
+                    width: '100%'
                   }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = theme.secondaryHover}
+                  onMouseLeave={(e) => e.currentTarget.style.background = theme.secondary}
                 >
                   <span style={{ fontSize: '24px' }}>✈️</span>
-                  <span>Sign in with Telegram</span>
+                  <span>{hebrew.login.signInWith} {hebrew.login.telegram}</span>
                 </button>
               )}
             </div>
@@ -254,14 +277,14 @@ export function LoginPage({
                   marginBottom: '16px',
                   padding: '8px 16px',
                   backgroundColor: 'transparent',
-                  border: '1px solid #ccc',
-                  borderRadius: '6px',
+                  border: `1px solid ${theme.border}`,
+                  borderRadius: '8px',
                   cursor: 'pointer',
                   fontSize: '14px',
-                  color: '#666'
+                  color: theme.muted
                 }}
               >
-                ← Back to options
+                ← {hebrew.login.backToOptions}
               </button>
             )}
             <EthereumLogin
@@ -280,14 +303,14 @@ export function LoginPage({
                   marginBottom: '16px',
                   padding: '8px 16px',
                   backgroundColor: 'transparent',
-                  border: '1px solid #ccc',
-                  borderRadius: '6px',
+                  border: `1px solid ${theme.border}`,
+                  borderRadius: '8px',
                   cursor: 'pointer',
                   fontSize: '14px',
-                  color: '#666'
+                  color: theme.muted
                 }}
               >
-                ← Back to options
+                ← {hebrew.login.backToOptions}
               </button>
             )}
             <SolanaLogin
@@ -300,9 +323,9 @@ export function LoginPage({
         {selectedMethod === 'telegram' && (
           <div style={{
             padding: '24px',
-            border: '2px solid #0088cc',
+            border: `2px solid ${theme.primary}`,
             borderRadius: '12px',
-            backgroundColor: '#e6f7ff',
+            background: theme.secondary,
             textAlign: 'center'
           }}>
             {availableMethods.length > 1 && (
@@ -312,22 +335,22 @@ export function LoginPage({
                   marginBottom: '16px',
                   padding: '8px 16px',
                   backgroundColor: 'transparent',
-                  border: '1px solid #ccc',
-                  borderRadius: '6px',
+                  border: `1px solid ${theme.border}`,
+                  borderRadius: '8px',
                   cursor: 'pointer',
                   fontSize: '14px',
-                  color: '#666'
+                  color: theme.muted
                 }}
               >
-                ← Back to options
+                ← {hebrew.login.backToOptions}
               </button>
             )}
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>✈️</div>
-            <h3 style={{ marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>
-              Sign in with Telegram
+            <h3 style={{ marginBottom: '12px', fontSize: '18px', fontWeight: '600', color: theme.text }}>
+              {hebrew.login.signInWith} {hebrew.login.telegram}
             </h3>
-            <p style={{ marginBottom: '20px', color: '#666', fontSize: '14px' }}>
-              Authenticate using your Telegram account
+            <p style={{ marginBottom: '20px', color: theme.muted, fontSize: '14px' }}>
+              {hebrew.login.authDescription} {hebrew.login.telegram}
             </p>
             <button
               onClick={handleTelegramLogin}
@@ -335,24 +358,25 @@ export function LoginPage({
               style={{
                 width: '100%',
                 padding: '14px 24px',
-                backgroundColor: isAuthenticating ? '#ccc' : '#0088cc',
-                color: '#fff',
+                background: isAuthenticating ? theme.mutedDark : theme.gradientPrimary,
+                color: theme.white,
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '12px',
                 fontWeight: '600',
                 fontSize: '16px',
-                cursor: isAuthenticating ? 'not-allowed' : 'pointer'
+                cursor: isAuthenticating ? 'not-allowed' : 'pointer',
+                boxShadow: isAuthenticating ? 'none' : theme.glowPrimary
               }}
             >
-              {isAuthenticating ? 'Authenticating...' : 'Continue with Telegram'}
+              {isAuthenticating ? hebrew.login.authenticating : `${hebrew.login.continueWith} ${hebrew.login.telegram}`}
             </button>
           </div>
         )}
 
         {/* Footer */}
         <div style={{ marginTop: '24px', textAlign: 'center' }}>
-          <p style={{ fontSize: '12px', color: '#999' }}>
-            By signing in, you agree to our Terms of Service and Privacy Policy
+          <p style={{ fontSize: '12px', color: theme.hint }}>
+            {hebrew.login.termsAgreement}
           </p>
         </div>
       </div>
