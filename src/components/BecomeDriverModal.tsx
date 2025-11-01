@@ -83,26 +83,57 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
         throw new Error('User not authenticated');
       }
 
-      const { data, error } = await supabase
-        .from('users')
-        .update({
-          driver_metadata: {
-            vehicle_type: formData.vehicleType,
-            license_number: formData.licenseNumber,
-            phone: formData.phone,
-            availability: formData.availability,
-            notes: formData.notes,
-            status: 'pending_approval',
-            applied_at: new Date().toISOString()
-          }
-        })
-        .eq('id', user.id);
+      console.log('🔄 Submitting driver application for user:', user.id);
 
-      if (error) {
-        throw error;
+      // Create driver application record
+      const applicationData = {
+        vehicle_type: formData.vehicleType,
+        license_number: formData.licenseNumber,
+        phone: formData.phone,
+        availability: formData.availability,
+        notes: formData.notes
+      };
+
+      const { data: application, error: appError } = await supabase
+        .from('driver_applications')
+        .insert({
+          user_id: user.id,
+          application_data: applicationData,
+          status: 'pending',
+          submitted_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (appError) {
+        console.error('❌ Error creating driver application:', appError);
+        throw appError;
       }
 
+      console.log('✅ Driver application created:', application);
+
+      // Create driver profile
+      const { error: profileError } = await supabase
+        .from('driver_profiles')
+        .insert({
+          user_id: user.id,
+          application_status: 'pending',
+          verification_status: 'unverified',
+          vehicle_type: formData.vehicleType,
+          is_active: false,
+          is_online: false,
+          notes: formData.notes
+        });
+
+      if (profileError) {
+        console.error('❌ Error creating driver profile:', profileError);
+        throw profileError;
+      }
+
+      console.log('✅ Driver profile created successfully');
+
       Toast.success('הבקשה נשלחה בהצלחה! נציג יצור איתך קשר בקרוב');
+      telegram.hapticFeedback('notification', 'success');
 
       if (onSuccess) {
         onSuccess();
@@ -110,8 +141,10 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
 
       onClose();
     } catch (error) {
-      console.error('Failed to submit driver application:', error);
-      Toast.error('שגיאה בשליחת הבקשה. נסה שוב מאוחר יותר');
+      console.error('❌ Failed to submit driver application:', error);
+      const errorMessage = error instanceof Error ? error.message : 'שגיאה בשליחת הבקשה';
+      Toast.error(errorMessage + '. נסה שוב מאוחר יותר');
+      telegram.hapticFeedback('notification', 'error');
     } finally {
       setSubmitting(false);
     }

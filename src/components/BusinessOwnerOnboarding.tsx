@@ -3,6 +3,8 @@ import { DataStore, BusinessType } from '../data/types';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { telegram } from '../lib/telegram';
 import { Toast } from './Toast';
+import { waitForSupabaseInit } from '../lib/supabaseClient';
+import { useSupabaseReady } from '../context/SupabaseReadyContext';
 
 interface BusinessOwnerOnboardingProps {
   dataStore: DataStore;
@@ -11,6 +13,22 @@ interface BusinessOwnerOnboardingProps {
 }
 
 type OnboardingStep = 'business_type' | 'business_details' | 'branding' | 'completing';
+
+interface FormErrors {
+  businessType?: string;
+  businessName?: string;
+  businessNameHebrew?: string;
+  orderPrefix?: string;
+}
+
+interface FormData {
+  selectedType: string;
+  businessName: string;
+  businessNameHebrew: string;
+  orderPrefix: string;
+  primaryColor: string;
+  secondaryColor: string;
+}
 
 const DEFAULT_COLORS = [
   { primary: '#9c6dff', secondary: '#7b3ff2', name: 'סגול מלכותי' },
@@ -25,6 +43,10 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('business_type');
   const [businessTypes, setBusinessTypes] = useState<BusinessType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
+  const { isSupabaseReady } = useSupabaseReady();
 
   // Form state
   const [selectedType, setSelectedType] = useState<string>('');
@@ -34,35 +56,141 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
   const [primaryColor, setPrimaryColor] = useState(DEFAULT_COLORS[0].primary);
   const [secondaryColor, setSecondaryColor] = useState(DEFAULT_COLORS[0].secondary);
 
+  // Load form data from localStorage if available
   useEffect(() => {
-    loadBusinessTypes();
+    const savedData = localStorage.getItem('business_onboarding_draft');
+    if (savedData) {
+      try {
+        const parsed: FormData = JSON.parse(savedData);
+        setSelectedType(parsed.selectedType || '');
+        setBusinessName(parsed.businessName || '');
+        setBusinessNameHebrew(parsed.businessNameHebrew || '');
+        setOrderPrefix(parsed.orderPrefix || '');
+        setPrimaryColor(parsed.primaryColor || DEFAULT_COLORS[0].primary);
+        setSecondaryColor(parsed.secondaryColor || DEFAULT_COLORS[0].secondary);
+        console.log('✅ Restored draft business data from localStorage');
+      } catch (error) {
+        console.error('Failed to restore draft data:', error);
+      }
+    }
   }, []);
 
-  const loadBusinessTypes = async () => {
+  // Auto-save form data to localStorage
+  useEffect(() => {
+    const formData: FormData = {
+      selectedType,
+      businessName,
+      businessNameHebrew,
+      orderPrefix,
+      primaryColor,
+      secondaryColor
+    };
+    localStorage.setItem('business_onboarding_draft', JSON.stringify(formData));
+  }, [selectedType, businessName, businessNameHebrew, orderPrefix, primaryColor, secondaryColor]);
+
+  useEffect(() => {
+    initializeOnboarding();
+  }, [isSupabaseReady]);
+
+  const initializeOnboarding = async () => {
+    if (!isSupabaseReady) {
+      console.log('⏳ BusinessOwnerOnboarding: Waiting for Supabase...');
+      return;
+    }
+
     try {
       setLoading(true);
-      const types = await dataStore.listBusinessTypes?.() || [];
-      setBusinessTypes(types.filter(t => t.active));
+      setInitError(null);
+
+      const supabaseClient = dataStore.supabase;
+      if (!supabaseClient) {
+        await waitForSupabaseInit(15000, 200);
+      }
+
+      await loadBusinessTypes();
+      setIsInitialized(true);
     } catch (error) {
-      console.error('Failed to load business types:', error);
-      Toast.error('שגיאה בטעינת סוגי עסקים');
+      console.error('❌ BusinessOwnerOnboarding: Initialization failed:', error);
+      setInitError('שגיאה באתחול המערכת. אנא נסה שוב.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadBusinessTypes = async () => {
+    try {
+      const types = await dataStore.listBusinessTypes?.() || [];
+      setBusinessTypes(types.filter(t => t.active));
+      if (types.length === 0) {
+        console.warn('⚠️ No business types found, using defaults');
+        setBusinessTypes([
+          {
+            id: 'default-logistics',
+            type_value: 'logistics',
+            label_hebrew: 'לוגיסטיקה',
+            label_english: 'Logistics',
+            icon: '🚚',
+            description: 'ניהול הפצה ומשלוחים',
+            active: true,
+            display_order: 1,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            created_by: null
+          }
+        ]);
+      }
+    } catch (error) {
+      console.error('Failed to load business types:', error);
+      Toast.error('שגיאה בטעינת סוגי עסקים');
+      throw error;
+    }
+  };
+
+  const validateStep = (step: OnboardingStep): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (step === 'business_type') {
+      if (!selectedType) {
+        newErrors.businessType = 'חובה לבחור סוג עסק';
+      }
+    } else if (step === 'business_details') {
+      if (!businessName.trim()) {
+        newErrors.businessName = 'חובה להזין שם עסק באנגלית';
+      } else if (businessName.length < 2) {
+        newErrors.businessName = 'שם העסק חייב להכיל לפחות 2 תווים';
+      }
+
+      if (!businessNameHebrew.trim()) {
+        newErrors.businessNameHebrew = 'חובה להזין שם עסק בעברית';
+      } else if (businessNameHebrew.length < 2) {
+        newErrors.businessNameHebrew = 'שם העסק חייב להכיל לפחות 2 תווים';
+      }
+
+      if (!orderPrefix.trim()) {
+        newErrors.orderPrefix = 'חובה להזין קידומת להזמנות';
+      } else if (orderPrefix.length < 2 || orderPrefix.length > 4) {
+        newErrors.orderPrefix = 'הקידומת חייבת להיות בין 2-4 תווים';
+      } else if (!/^[A-Z0-9]+$/.test(orderPrefix)) {
+        newErrors.orderPrefix = 'הקידומת יכולה להכיל רק אותיות אנגליות גדולות ומספרים';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleNext = () => {
     telegram.hapticFeedback('impact', 'light');
 
     if (currentStep === 'business_type') {
-      if (!selectedType) {
+      if (!validateStep('business_type')) {
         Toast.error('אנא בחר סוג עסק');
         return;
       }
       setCurrentStep('business_details');
     } else if (currentStep === 'business_details') {
-      if (!businessName || !businessNameHebrew || !orderPrefix) {
-        Toast.error('אנא מלא את כל השדות');
+      if (!validateStep('business_details')) {
+        Toast.error('אנא תקן את השגיאות בטופס');
         return;
       }
       setCurrentStep('branding');
@@ -88,15 +216,31 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
       setCurrentStep('completing');
       telegram.hapticFeedback('impact', 'medium');
 
-      await dataStore.createBusiness?.({
+      console.log('🔄 Creating business with data:', {
         name: businessName,
         name_hebrew: businessNameHebrew,
         business_type: selectedType,
-        order_number_prefix: orderPrefix,
+        order_number_prefix: orderPrefix
+      });
+
+      if (!dataStore.createBusiness) {
+        throw new Error('createBusiness method not available');
+      }
+
+      const result = await dataStore.createBusiness({
+        name: businessName,
+        name_hebrew: businessNameHebrew,
+        business_type: selectedType,
+        order_number_prefix: orderPrefix.toUpperCase(),
         default_currency: 'ILS',
         primary_color: primaryColor,
         secondary_color: secondaryColor
       });
+
+      console.log('✅ Business created successfully:', result);
+
+      // Clear the draft from localStorage
+      localStorage.removeItem('business_onboarding_draft');
 
       telegram.hapticFeedback('notification', 'success');
       Toast.success('העסק נוצר בהצלחה!');
@@ -105,8 +249,10 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
         onComplete();
       }, 1500);
     } catch (error) {
-      console.error('Failed to create business:', error);
-      Toast.error(error instanceof Error ? error.message : 'שגיאה ביצירת העסק');
+      console.error('❌ Failed to create business:', error);
+      const errorMessage = error instanceof Error ? error.message : 'שגיאה ביצירת העסק';
+      Toast.error(errorMessage);
+      telegram.hapticFeedback('notification', 'error');
       setCurrentStep('branding');
     }
   };
@@ -348,13 +494,18 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                   <input
                     type="text"
                     value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
+                    onChange={(e) => {
+                      setBusinessName(e.target.value);
+                      if (errors.businessName) {
+                        setErrors({ ...errors, businessName: undefined });
+                      }
+                    }}
                     placeholder="Business Name"
                     style={{
                       width: '100%',
                       padding: '14px',
                       borderRadius: '12px',
-                      border: `1px solid ${ROYAL_COLORS.border}`,
+                      border: `1px solid ${errors.businessName ? '#ff6b8a' : ROYAL_COLORS.border}`,
                       background: ROYAL_COLORS.secondary,
                       color: ROYAL_COLORS.text,
                       fontSize: '15px',
@@ -362,12 +513,21 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                       boxSizing: 'border-box'
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = ROYAL_COLORS.primary;
+                      e.currentTarget.style.borderColor = errors.businessName ? '#ff6b8a' : ROYAL_COLORS.primary;
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = ROYAL_COLORS.border;
+                      e.currentTarget.style.borderColor = errors.businessName ? '#ff6b8a' : ROYAL_COLORS.border;
                     }}
                   />
+                  {errors.businessName && (
+                    <p style={{
+                      margin: '6px 0 0 0',
+                      fontSize: '12px',
+                      color: '#ff6b8a'
+                    }}>
+                      {errors.businessName}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -383,13 +543,18 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                   <input
                     type="text"
                     value={businessNameHebrew}
-                    onChange={(e) => setBusinessNameHebrew(e.target.value)}
+                    onChange={(e) => {
+                      setBusinessNameHebrew(e.target.value);
+                      if (errors.businessNameHebrew) {
+                        setErrors({ ...errors, businessNameHebrew: undefined });
+                      }
+                    }}
                     placeholder="שם העסק"
                     style={{
                       width: '100%',
                       padding: '14px',
                       borderRadius: '12px',
-                      border: `1px solid ${ROYAL_COLORS.border}`,
+                      border: `1px solid ${errors.businessNameHebrew ? '#ff6b8a' : ROYAL_COLORS.border}`,
                       background: ROYAL_COLORS.secondary,
                       color: ROYAL_COLORS.text,
                       fontSize: '15px',
@@ -398,12 +563,22 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                       direction: 'rtl'
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = ROYAL_COLORS.primary;
+                      e.currentTarget.style.borderColor = errors.businessNameHebrew ? '#ff6b8a' : ROYAL_COLORS.primary;
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = ROYAL_COLORS.border;
+                      e.currentTarget.style.borderColor = errors.businessNameHebrew ? '#ff6b8a' : ROYAL_COLORS.border;
                     }}
                   />
+                  {errors.businessNameHebrew && (
+                    <p style={{
+                      margin: '6px 0 0 0',
+                      fontSize: '12px',
+                      color: '#ff6b8a',
+                      direction: 'rtl'
+                    }}>
+                      {errors.businessNameHebrew}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -419,14 +594,19 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                   <input
                     type="text"
                     value={orderPrefix}
-                    onChange={(e) => setOrderPrefix(e.target.value.toUpperCase().slice(0, 4))}
+                    onChange={(e) => {
+                      setOrderPrefix(e.target.value.toUpperCase().slice(0, 4));
+                      if (errors.orderPrefix) {
+                        setErrors({ ...errors, orderPrefix: undefined });
+                      }
+                    }}
                     placeholder="ORD"
                     maxLength={4}
                     style={{
                       width: '100%',
                       padding: '14px',
                       borderRadius: '12px',
-                      border: `1px solid ${ROYAL_COLORS.border}`,
+                      border: `1px solid ${errors.orderPrefix ? '#ff6b8a' : ROYAL_COLORS.border}`,
                       background: ROYAL_COLORS.secondary,
                       color: ROYAL_COLORS.text,
                       fontSize: '15px',
@@ -435,19 +615,30 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                       textTransform: 'uppercase'
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = ROYAL_COLORS.primary;
+                      e.currentTarget.style.borderColor = errors.orderPrefix ? '#ff6b8a' : ROYAL_COLORS.primary;
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = ROYAL_COLORS.border;
+                      e.currentTarget.style.borderColor = errors.orderPrefix ? '#ff6b8a' : ROYAL_COLORS.border;
                     }}
                   />
-                  <p style={{
-                    margin: '6px 0 0 0',
-                    fontSize: '12px',
-                    color: ROYAL_COLORS.muted
-                  }}>
-                    לדוגמה: {orderPrefix || 'ORD'}-0001, {orderPrefix || 'ORD'}-0002
-                  </p>
+                  {errors.orderPrefix ? (
+                    <p style={{
+                      margin: '6px 0 0 0',
+                      fontSize: '12px',
+                      color: '#ff6b8a',
+                      direction: 'rtl'
+                    }}>
+                      {errors.orderPrefix}
+                    </p>
+                  ) : (
+                    <p style={{
+                      margin: '6px 0 0 0',
+                      fontSize: '12px',
+                      color: ROYAL_COLORS.muted
+                    }}>
+                      לדוגמה: {orderPrefix || 'ORD'}-0001, {orderPrefix || 'ORD'}-0002
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

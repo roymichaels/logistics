@@ -529,22 +529,31 @@ export default function App() {
         );
       }
 
-      // Team Member Onboarding
+      // Team Member Onboarding (Driver Application)
       if (onboardingPathway === 'team_member') {
+        // For now, team_member pathway goes to driver application
+        // Can be expanded to handle other team roles later
         return (
-          <TeamMemberOnboarding
-            onComplete={(role) => {
-              if (user?.id) {
-                localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
-              }
-              setShowOnboarding(false);
-              setOnboardingPathway(null);
-              refreshUserRole({ forceRefresh: true });
-            }}
-            onBack={() => {
-              setOnboardingPathway(null);
-            }}
-          />
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'radial-gradient(125% 125% at 50% 0%, rgba(95, 46, 170, 0.55) 0%, rgba(12, 2, 25, 0.95) 45%, #03000a 100%)',
+            zIndex: 9999
+          }}>
+            <BecomeDriverModal
+              onClose={() => {
+                setOnboardingPathway(null);
+              }}
+              onSuccess={() => {
+                if (user?.id) {
+                  localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
+                }
+                setShowOnboarding(false);
+                setOnboardingPathway(null);
+                refreshUserRole({ forceRefresh: true });
+              }}
+            />
+          </div>
         );
       }
     }
