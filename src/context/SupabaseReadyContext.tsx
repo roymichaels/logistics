@@ -23,7 +23,9 @@ interface SupabaseReadyProviderProps {
 }
 
 export function SupabaseReadyProvider({ children, value }: SupabaseReadyProviderProps) {
-  const [isReady, setIsReady] = useState(() => isSupabaseInitialized());
+  const initialReady = isSupabaseInitialized();
+  console.log('⚙️ SupabaseReadyProvider: Initializing, isSupabaseInitialized:', initialReady);
+  const [isReady, setIsReady] = useState(() => initialReady);
 
   useEffect(() => {
     if (value) {
@@ -107,6 +109,8 @@ export function SupabaseReadyProvider({ children, value }: SupabaseReadyProvider
     markSupabaseReady,
     markSupabaseNotReady
   }), [isReady, markSupabaseReady, markSupabaseNotReady]);
+
+  console.log('⚙️ SupabaseReadyProvider: Rendering, isReady:', isReady);
 
   return (
     <SupabaseReadyContext.Provider value={value ?? contextValue}>

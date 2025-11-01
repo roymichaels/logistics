@@ -16,13 +16,18 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  console.log('🔑 AuthProvider: Initializing...');
   const [authState, setAuthState] = useState<AuthState>(authService.getState());
+  console.log('🔑 AuthProvider: Initial auth state:', authState);
 
   useEffect(() => {
+    console.log('🔑 AuthProvider: Setting up auth service subscription');
     const unsubscribe = authService.subscribe((state) => {
+      console.log('🔑 AuthProvider: Auth state updated:', state);
       setAuthState(state);
     });
 
+    console.log('🔑 AuthProvider: Calling authService.initialize()');
     authService.initialize().catch(error => {
       console.error('❌ Auth initialization error:', error);
     });
@@ -60,6 +65,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     authenticateWithEthereum,
     authenticateWithSolana,
   };
+
+  console.log('🔑 AuthProvider: Rendering with state:', {
+    isAuthenticated: authState.isAuthenticated,
+    isLoading: authState.isLoading,
+    hasUser: !!authState.user,
+    error: authState.error
+  });
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -127,6 +127,8 @@ type Page =
   | 'drivers-management';
 
 export default function App() {
+  console.log('🎨 App component rendering...');
+
   const {
     user,
     userRole,
@@ -139,6 +141,8 @@ export default function App() {
     currentBusinessId
   } = useAppServices();
   const { authenticateWithEthereum, authenticateWithSolana, authenticate: authenticateWithTelegram, isAuthenticated } = useAuth();
+
+  console.log('🎨 App state:', { user: !!user, userRole, loading, error, isAuthenticated });
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [showOrderWizard, setShowOrderWizard] = useState(false);
   const [showBusinessManager, setShowBusinessManager] = useState(false);
@@ -417,6 +421,7 @@ export default function App() {
   };
 
   if (loading) {
+    console.log('🎨 App: Rendering loading state');
     return (
       <div style={{
         display: 'flex',
@@ -434,6 +439,7 @@ export default function App() {
 
   // Show landing page first for new web visitors
   if (showLandingPage && !loading && !error) {
+    console.log('🎨 App: Rendering landing page');
     return (
       <LandingPage
         onGetStarted={() => {
@@ -445,14 +451,19 @@ export default function App() {
   }
 
   if (error) {
+    console.log('🎨 App: Rendering error display:', error);
     return <ErrorDisplay error={error} theme={theme} />;
   }
 
   // Show LoginPage when not authenticated (for web users)
   // Telegram users will auto-authenticate via the telegram service
   if (!isLoggedIn && !isAuthenticated) {
+    console.log('🎨 App: User not authenticated, showing login flow...');
+    console.log('🎨 App: isLoggedIn:', isLoggedIn, 'isAuthenticated:', isAuthenticated);
+
     // Detect platform and decide whether to show login page
     const platform = platformDetection.detect();
+    console.log('🎨 App: Platform detection result:', platform);
 
     // If in Telegram and auto-auth should happen, show loading
     if (platform.isTelegram && telegram.isAvailable) {
@@ -494,6 +505,7 @@ export default function App() {
     }
 
     // Show login page for web users
+    console.log('🎨 App: Rendering LoginPage component');
     return (
       <LoginPage
         onEthereumLogin={authenticateWithEthereum}
@@ -510,6 +522,7 @@ export default function App() {
   }
 
   if (!dataStore) {
+    console.log('🎨 App: No dataStore, showing initialization message');
     return (
       <div style={{
         display: 'flex',
@@ -620,6 +633,8 @@ export default function App() {
     // Fallback if no case matched (unauthorized access attempt)
     return <Dashboard dataStore={dataStore} onNavigate={handleNavigate} />;
   };
+
+  console.log('🎨 App: Rendering main app content with SecurityGate');
 
   return (
     <SecurityGate

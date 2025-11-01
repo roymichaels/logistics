@@ -18,25 +18,33 @@ export function LoginPage({
   onTelegramLogin,
   isLoading = false,
 }: LoginPageProps) {
+  console.log('🔐 LoginPage: Component mounting/rendering...');
+  console.log('🔐 LoginPage: Props:', { isLoading, hasEthereumLogin: !!onEthereumLogin, hasSolanaLogin: !!onSolanaLogin, hasTelegramLogin: !!onTelegramLogin });
+
   const [selectedMethod, setSelectedMethod] = useState<AuthMethod>(null);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [availableMethods, setAvailableMethods] = useState<Array<'ethereum' | 'solana' | 'telegram'>>([]);
 
   useEffect(() => {
+    console.log('🔐 LoginPage: useEffect running - detecting platform and auth methods');
     const platform = platformDetection.detect();
     const methods = platformDetection.getAvailableAuthMethods();
 
+    console.log('🔐 LoginPage: Available auth methods:', methods);
     setAvailableMethods(methods);
 
     // Auto-select if only one method is available
     if (methods.length === 1) {
+      console.log('🔐 LoginPage: Auto-selecting only available method:', methods[0]);
       setSelectedMethod(methods[0]);
     }
 
     // Auto-select recommended method if multiple are available
     const recommended = platformDetection.getRecommendedAuthMethod();
+    console.log('🔐 LoginPage: Recommended auth method:', recommended);
     if (recommended && methods.includes(recommended)) {
+      console.log('🔐 LoginPage: Auto-selecting recommended method:', recommended);
       setSelectedMethod(recommended);
     }
   }, []);
@@ -83,6 +91,7 @@ export function LoginPage({
   };
 
   if (isLoading) {
+    console.log('🔐 LoginPage: Rendering loading state');
     return (
       <div style={{
         display: 'flex',
@@ -113,6 +122,9 @@ export function LoginPage({
       </div>
     );
   }
+
+  console.log('🔐 LoginPage: Rendering main login UI');
+  console.log('🔐 LoginPage: Selected method:', selectedMethod, 'Available methods:', availableMethods);
 
   return (
     <div style={{

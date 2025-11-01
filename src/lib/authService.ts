@@ -166,7 +166,9 @@ class AuthService {
   }
 
   private updateState(newState: Partial<AuthState>) {
+    console.log('🔐 AuthService: Updating state:', newState);
     this.currentState = { ...this.currentState, ...newState };
+    console.log('🔐 AuthService: New state:', this.currentState);
     this.notifyListeners();
   }
 
@@ -188,25 +190,32 @@ class AuthService {
   }
 
   public async initialize(): Promise<void> {
+    console.log('🔐 AuthService: initialize() called');
     try {
       // First, ensure auth listener is set up
+      console.log('🔐 AuthService: Setting up auth listener...');
       this.initializeAuthListener();
 
       // Check if Supabase is ready
       if (!isSupabaseInitialized()) {
+        console.error('🔐 AuthService: Supabase not initialized!');
         throw new Error('Supabase client not initialized. Cannot proceed with authentication.');
       }
 
+      console.log('🔐 AuthService: Supabase is ready, getting session...');
       const supabase = getSupabase();
 
       const { data: sessionData } = await supabase.auth.getSession();
+      console.log('🔐 AuthService: Session check result:', { hasSession: !!sessionData.session });
 
       if (sessionData.session) {
+        console.log('🔐 AuthService: Existing session found, updating state...');
         await this.handleSessionUpdate(sessionData.session);
         return;
       }
 
       // Don't auto-authenticate - let the app show the login page
+      console.log('🔐 AuthService: No existing session, setting unauthenticated state');
       this.updateState({
         isLoading: false,
         isAuthenticated: false,
