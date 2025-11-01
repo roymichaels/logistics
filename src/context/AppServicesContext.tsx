@@ -54,7 +54,9 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   const [error, setError] = useState<string | null>(null);
   const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
 
-  const auth = value ? null : useAuth();
+  // Always call useAuth to comply with React hooks rules
+  // We'll just not use it if 'value' is provided
+  const auth = useAuth();
 
   const setBusinessId = useCallback((businessId: string | null) => {
     setCurrentBusinessId(prev => (prev === businessId ? prev : businessId));
