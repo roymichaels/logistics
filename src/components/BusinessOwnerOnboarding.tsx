@@ -177,7 +177,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
       console.log('🔄 Creating business with data:', {
         name: businessName,
         name_hebrew: businessNameHebrew,
-        business_type: selectedType,
+        business_type: 'logistics',
         order_number_prefix: orderPrefix
       });
 
