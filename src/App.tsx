@@ -16,6 +16,8 @@ import { LandingPage } from './pages/LandingPage';
 import { OnboardingHub } from './components/OnboardingHub';
 import { BusinessOwnerOnboarding } from './components/BusinessOwnerOnboarding';
 import { TeamMemberOnboarding } from './components/TeamMemberOnboarding';
+import { SearchBusinessModal } from './components/SearchBusinessModal';
+import { BecomeDriverModal } from './components/BecomeDriverModal';
 import { debugLog } from './components/DebugPanel';
 import { hebrew } from './lib/hebrew';
 import './lib/authDiagnostics'; // Load auth diagnostics for console debugging
@@ -166,6 +168,9 @@ export default function App() {
   });
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingPathway, setOnboardingPathway] = useState<'business_owner' | 'team_member' | null>(null);
+  const [showSearchBusiness, setShowSearchBusiness] = useState(false);
+  const [showBecomeDriver, setShowBecomeDriver] = useState(false);
+  const [showCreateBusiness, setShowCreateBusiness] = useState(false);
 
   // Derived state for login status
   const isLoggedIn = user !== null;
@@ -417,6 +422,21 @@ export default function App() {
 
   const handleShowBusinessManager = () => {
     setShowBusinessManager(true);
+  };
+
+  const handleShowSearchBusiness = () => {
+    setShowSearchBusiness(true);
+    telegram.hapticFeedback('selection');
+  };
+
+  const handleShowBecomeDriver = () => {
+    setShowBecomeDriver(true);
+    telegram.hapticFeedback('selection');
+  };
+
+  const handleShowCreateBusiness = () => {
+    setShowCreateBusiness(true);
+    telegram.hapticFeedback('selection');
   };
 
   const handleOrderCreated = (order: any) => {
@@ -735,7 +755,13 @@ export default function App() {
           paddingTop: '60px' // Space for header
         }}>
           {/* Header */}
-          <Header onNavigate={handleNavigate} onLogout={handleLogout} />
+          <Header
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+            onCreateBusiness={handleShowCreateBusiness}
+            onBecomeDriver={handleShowBecomeDriver}
+            onSearchBusiness={handleShowSearchBusiness}
+          />
 
         <Suspense
           fallback={
@@ -814,6 +840,61 @@ export default function App() {
             currentUserId={user?.telegram_id}
             onClose={() => setShowBusinessManager(false)}
           />
+        )}
+
+        {/* Search Business Modal */}
+        {showSearchBusiness && (
+          <SearchBusinessModal
+            onClose={() => setShowSearchBusiness(false)}
+            onBusinessSelected={(businessId) => {
+              console.log('Business selected:', businessId);
+              setShowSearchBusiness(false);
+            }}
+          />
+        )}
+
+        {/* Become Driver Modal */}
+        {showBecomeDriver && (
+          <BecomeDriverModal
+            onClose={() => setShowBecomeDriver(false)}
+            onSuccess={() => {
+              refreshUserRole({ forceRefresh: true });
+            }}
+          />
+        )}
+
+        {/* Create Business Modal (reuses BusinessOwnerOnboarding) */}
+        {showCreateBusiness && dataStore && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0, 0, 0, 0.7)',
+              backdropFilter: 'blur(8px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999,
+              padding: '20px'
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowCreateBusiness(false);
+              }
+            }}
+          >
+            <div style={{ maxWidth: '800px', width: '100%', maxHeight: '90vh', overflow: 'auto' }}>
+              <BusinessOwnerOnboarding
+                dataStore={dataStore}
+                onComplete={() => {
+                  setShowCreateBusiness(false);
+                  refreshUserRole({ forceRefresh: true });
+                  telegram.showAlert('העסק נוצר בהצלחה!');
+                }}
+                onBack={() => setShowCreateBusiness(false)}
+              />
+            </div>
+          </div>
         )}
       </div>
     </SecurityGate>

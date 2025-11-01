@@ -13,9 +13,12 @@ import '../styles/header.css';
 interface HeaderProps {
   onNavigate: (page: string) => void;
   onLogout: () => void;
+  onCreateBusiness?: () => void;
+  onBecomeDriver?: () => void;
+  onSearchBusiness?: () => void;
 }
 
-export const Header = React.memo(function Header({ onNavigate, onLogout }: HeaderProps) {
+export const Header = React.memo(function Header({ onNavigate, onLogout, onCreateBusiness, onBecomeDriver, onSearchBusiness }: HeaderProps) {
   const context = useContext(AppServicesContext);
   const user = context?.user;
   const dataStore = context?.dataStore;
@@ -97,14 +100,119 @@ export const Header = React.memo(function Header({ onNavigate, onLogout }: Heade
         </div>
       </div>
 
-      {/* Center Section - Business Context Selector */}
+      {/* Center Section - Navigation or Business Context Selector */}
       <div className="header-center-section">
-        {user && dataStore && requiresBusinessContext(user) && (
+        {user && dataStore && requiresBusinessContext(user) ? (
           <BusinessContextSelector
             dataStore={dataStore}
             user={user}
             onContextChanged={handleBusinessContextChange}
           />
+        ) : user && (
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            justifyContent: 'center'
+          }}>
+            {onCreateBusiness && (
+              <button
+                onClick={onCreateBusiness}
+                style={{
+                  padding: '10px 20px',
+                  background: 'linear-gradient(135deg, #f6c945, #f39c12)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 2px 8px rgba(246, 201, 69, 0.3)',
+                  transition: 'all 0.2s ease',
+                  fontFamily: 'inherit'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(246, 201, 69, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(246, 201, 69, 0.3)';
+                }}
+              >
+                <span style={{ fontSize: '16px' }}>🏢</span>
+                <span>צור עסק</span>
+              </button>
+            )}
+            {onBecomeDriver && user?.role !== 'driver' && (
+              <button
+                onClick={onBecomeDriver}
+                style={{
+                  padding: '10px 20px',
+                  background: 'linear-gradient(135deg, #4dd0e1, #00acc1)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 2px 8px rgba(77, 208, 225, 0.3)',
+                  transition: 'all 0.2s ease',
+                  fontFamily: 'inherit'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(77, 208, 225, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(77, 208, 225, 0.3)';
+                }}
+              >
+                <span style={{ fontSize: '16px' }}>🚗</span>
+                <span>הפוך לנהג</span>
+              </button>
+            )}
+            {onSearchBusiness && (
+              <button
+                onClick={onSearchBusiness}
+                style={{
+                  padding: '10px 20px',
+                  background: 'linear-gradient(135deg, #9c6dff, #7b3ff2)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 2px 8px rgba(156, 109, 255, 0.3)',
+                  transition: 'all 0.2s ease',
+                  fontFamily: 'inherit'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(156, 109, 255, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(156, 109, 255, 0.3)';
+                }}
+              >
+                <span style={{ fontSize: '16px' }}>🔍</span>
+                <span>חפש עסק</span>
+              </button>
+            )}
+          </div>
         )}
       </div>
 
