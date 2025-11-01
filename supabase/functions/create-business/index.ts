@@ -74,10 +74,34 @@ Deno.serve(async (req: Request) => {
     }
 
     const activeContext = await getActiveContext(supabase, user.id);
-    const infrastructureId = payload.infrastructure_id ?? activeContext?.infrastructure_id ?? claims.infrastructureId;
+    let infrastructureId = payload.infrastructure_id ?? activeContext?.infrastructure_id ?? claims.infrastructureId;
 
+    // If no infrastructure exists, create a default one
     if (!infrastructureId) {
-      throw new HttpError(403, 'No active infrastructure scope available');
+      const { data: existingInfra } = await supabase
+        .from('infrastructures')
+        .select('id')
+        .limit(1)
+        .maybeSingle();
+
+      if (existingInfra) {
+        infrastructureId = existingInfra.id;
+      } else {
+        const { data: newInfra, error: infraError } = await supabase
+          .from('infrastructures')
+          .insert({
+            name: 'Default Infrastructure',
+            description: 'Auto-created infrastructure for new businesses'
+          })
+          .select('id')
+          .single();
+
+        if (infraError) {
+          throw new HttpError(500, 'Failed to create default infrastructure', { details: infraError });
+        }
+
+        infrastructureId = newInfra.id;
+      }
     }
 
     const insertPayload = {
