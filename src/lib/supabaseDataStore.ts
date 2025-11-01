@@ -3688,6 +3688,8 @@ export class SupabaseDataStore implements DataStore {
   }): Promise<any> {
     console.log('🔄 createBusiness: Starting...', input);
 
+    const supabase = getSupabase();
+
     // Get current user ID
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
