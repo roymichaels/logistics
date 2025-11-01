@@ -3696,17 +3696,70 @@ export class SupabaseDataStore implements DataStore {
       throw new Error('User not authenticated');
     }
 
+    // Get or create infrastructure
+    let infrastructureId: string;
+    const { data: existingInfrastructures } = await supabase
+      .from('infrastructures')
+      .select('id')
+      .limit(1)
+      .maybeSingle();
+
+    if (existingInfrastructures) {
+      infrastructureId = existingInfrastructures.id;
+      console.log('✅ Using existing infrastructure:', infrastructureId);
+    } else {
+      const { data: newInfrastructure, error: infraError } = await supabase
+        .from('infrastructures')
+        .insert({
+          name: 'Default Infrastructure',
+          description: 'Auto-created infrastructure'
+        })
+        .select()
+        .single();
+
+      if (infraError) {
+        console.error('❌ Failed to create infrastructure:', infraError);
+        throw new Error('Failed to create infrastructure');
+      }
+
+      infrastructureId = newInfrastructure.id;
+      console.log('✅ Created new infrastructure:', infrastructureId);
+    }
+
+    // Look up business_type_id
+    const { data: businessType, error: typeError } = await supabase
+      .from('business_types')
+      .select('id')
+      .eq('type_value', input.business_type)
+      .maybeSingle();
+
+    if (typeError) {
+      console.error('❌ Failed to lookup business type:', typeError);
+      throw new Error('Failed to lookup business type');
+    }
+
+    const businessTypeId = businessType?.id || null;
+    console.log('✅ Business type ID:', businessTypeId);
+
+    // Prepare settings JSONB with all custom fields
+    const settings = {
+      order_number_prefix: input.order_number_prefix.toUpperCase(),
+      order_number_sequence: 1000,
+      primary_color: input.primary_color,
+      secondary_color: input.secondary_color,
+      language: 'he',
+      timezone: 'Asia/Jerusalem'
+    };
+
     const { data, error } = await supabase
       .from('businesses')
       .insert({
+        infrastructure_id: infrastructureId,
+        business_type_id: businessTypeId,
         name: input.name,
         name_hebrew: input.name_hebrew,
-        business_type: input.business_type,
-        order_number_prefix: input.order_number_prefix.toUpperCase(),
-        order_number_sequence: 1000,
         default_currency: input.default_currency,
-        primary_color: input.primary_color,
-        secondary_color: input.secondary_color,
+        settings: settings,
         active: true,
         created_by: user.id
       })
@@ -3736,7 +3789,6 @@ export class SupabaseDataStore implements DataStore {
       }
     } catch (syncError) {
       console.warn('⚠️ JWT claims sync error:', syncError);
-      // Don't fail the business creation if sync fails
     }
 
     // Refresh the user session to get updated claims
