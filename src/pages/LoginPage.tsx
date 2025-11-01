@@ -38,19 +38,12 @@ export function LoginPage({
     console.log('🔐 LoginPage: Available auth methods:', methods);
     setAvailableMethods(methods);
 
-    // Auto-select if only one method is available
+    // Only auto-select if exactly one method is available
     if (methods.length === 1) {
       console.log('🔐 LoginPage: Auto-selecting only available method:', methods[0]);
       setSelectedMethod(methods[0]);
     }
-
-    // Auto-select recommended method if multiple are available
-    const recommended = platformDetection.getRecommendedAuthMethod();
-    console.log('🔐 LoginPage: Recommended auth method:', recommended);
-    if (recommended && methods.includes(recommended)) {
-      console.log('🔐 LoginPage: Auto-selecting recommended method:', recommended);
-      setSelectedMethod(recommended);
-    }
+    // If multiple methods available, let user choose (don't auto-select)
   }, []);
 
   const handleEthereumSuccess = async (address: string, signature: string, message: string) => {
