@@ -3688,6 +3688,12 @@ export class SupabaseDataStore implements DataStore {
   }): Promise<any> {
     console.log('🔄 createBusiness: Starting...', input);
 
+    // Get current user ID
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('businesses')
       .insert({
@@ -3699,7 +3705,8 @@ export class SupabaseDataStore implements DataStore {
         default_currency: input.default_currency,
         primary_color: input.primary_color,
         secondary_color: input.secondary_color,
-        active: true
+        active: true,
+        created_by: user.id
       })
       .select()
       .single();
@@ -3710,6 +3717,33 @@ export class SupabaseDataStore implements DataStore {
     }
 
     console.log('✅ createBusiness: Created business:', data.id);
+
+    // Trigger JWT claims synchronization
+    try {
+      const syncResponse = await supabase.functions.invoke('sync-user-claims', {
+        body: {
+          user_id: user.id,
+          business_id: data.id,
+        },
+      });
+
+      if (syncResponse.error) {
+        console.warn('⚠️ JWT claims sync failed:', syncResponse.error);
+      } else {
+        console.log('✅ JWT claims synced successfully');
+      }
+    } catch (syncError) {
+      console.warn('⚠️ JWT claims sync error:', syncError);
+      // Don't fail the business creation if sync fails
+    }
+
+    // Refresh the user session to get updated claims
+    try {
+      await supabase.auth.refreshSession();
+    } catch (refreshError) {
+      console.warn('⚠️ Session refresh failed:', refreshError);
+    }
+
     return data;
   }
 
