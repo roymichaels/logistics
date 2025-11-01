@@ -873,3 +873,153 @@ export interface UserBusinessAccess {
   ownership_pct: number;
   is_primary: boolean;
 }
+
+export type DriverApplicationStatus =
+  | 'pending'
+  | 'under_review'
+  | 'approved'
+  | 'rejected'
+  | 'suspended'
+  | 'deactivated';
+
+export type DriverVerificationStatus =
+  | 'unverified'
+  | 'pending'
+  | 'verified'
+  | 'rejected'
+  | 'expired';
+
+export type DocumentType =
+  | 'drivers_license'
+  | 'vehicle_registration'
+  | 'insurance'
+  | 'background_check'
+  | 'profile_photo'
+  | 'vehicle_photo'
+  | 'bank_account';
+
+export type DriverServiceTier = 'standard' | 'premium' | 'platinum';
+
+export interface DriverProfile {
+  id: string;
+  user_id: string;
+  application_status: DriverApplicationStatus;
+  verification_status: DriverVerificationStatus;
+  service_tier: DriverServiceTier;
+  approved_at?: string;
+  approved_by?: string;
+  date_of_birth?: string;
+  national_id_number?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  vehicle_type?: string;
+  vehicle_make?: string;
+  vehicle_model?: string;
+  vehicle_year?: number;
+  vehicle_plate?: string;
+  vehicle_color?: string;
+  bank_account_holder?: string;
+  bank_account_number?: string;
+  bank_name?: string;
+  bank_branch?: string;
+  tax_id?: string;
+  max_delivery_distance_km?: number;
+  min_order_value?: number;
+  preferred_payment_method?: string;
+  accepts_cash_orders?: boolean;
+  total_deliveries: number;
+  completed_deliveries: number;
+  cancelled_deliveries: number;
+  average_rating: number;
+  acceptance_rate: number;
+  completion_rate: number;
+  on_time_rate: number;
+  is_active: boolean;
+  is_online: boolean;
+  last_online_at?: string;
+  current_latitude?: number;
+  current_longitude?: number;
+  location_updated_at?: string;
+  max_concurrent_orders: number;
+  current_order_count: number;
+  notes?: string;
+  rejection_reason?: string;
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DriverApplication {
+  id: string;
+  user_id: string;
+  application_data: Record<string, any>;
+  status: DriverApplicationStatus;
+  reviewed_by?: string;
+  reviewed_at?: string;
+  review_notes?: string;
+  submitted_at: string;
+  approved_at?: string;
+  rejected_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DriverDocument {
+  id: string;
+  driver_profile_id: string;
+  document_type: DocumentType;
+  document_url: string;
+  document_number?: string;
+  verification_status: DriverVerificationStatus;
+  verified_by?: string;
+  verified_at?: string;
+  verification_notes?: string;
+  issue_date?: string;
+  expiry_date?: string;
+  uploaded_at: string;
+  updated_at: string;
+}
+
+export interface DriverEarning {
+  id: string;
+  driver_profile_id: string;
+  order_id: string;
+  business_id: string;
+  base_fee: number;
+  distance_fee: number;
+  time_fee: number;
+  surge_fee: number;
+  tip_amount: number;
+  bonus_amount: number;
+  total_earnings: number;
+  platform_fee: number;
+  net_earnings: number;
+  payout_id?: string;
+  is_paid: boolean;
+  paid_at?: string;
+  distance_km?: number;
+  duration_minutes?: number;
+  earned_at: string;
+  created_at: string;
+}
+
+export interface OrderMarketplace {
+  id: string;
+  order_id: string;
+  business_id: string;
+  pickup_latitude: number;
+  pickup_longitude: number;
+  delivery_latitude: number;
+  delivery_longitude: number;
+  estimated_distance_km?: number;
+  delivery_fee: number;
+  driver_earnings: number;
+  broadcast_radius_km?: number;
+  max_driver_count?: number;
+  is_active: boolean;
+  assigned_driver_id?: string;
+  assigned_at?: string;
+  expires_at?: string;
+  broadcasted_at: string;
+  created_at: string;
+}
