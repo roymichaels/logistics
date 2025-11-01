@@ -13,6 +13,9 @@ import { RightSidebarMenu } from './components/RightSidebarMenu';
 import { SidebarToggleButton } from './components/SidebarToggleButton';
 import { LoginPage } from './pages/LoginPage';
 import { LandingPage } from './pages/LandingPage';
+import { OnboardingHub } from './components/OnboardingHub';
+import { BusinessOwnerOnboarding } from './components/BusinessOwnerOnboarding';
+import { TeamMemberOnboarding } from './components/TeamMemberOnboarding';
 import { debugLog } from './components/DebugPanel';
 import { hebrew } from './lib/hebrew';
 import './lib/authDiagnostics'; // Load auth diagnostics for console debugging
@@ -161,6 +164,8 @@ export default function App() {
     // Skip landing page for Telegram users (auto-auth)
     return !hasVisited && !platform.isTelegram;
   });
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingPathway, setOnboardingPathway] = useState<'business_owner' | 'team_member' | null>(null);
 
   // Derived state for login status
   const isLoggedIn = user !== null;
@@ -453,6 +458,76 @@ export default function App() {
         }}
       />
     );
+  }
+
+  // Show onboarding flow for authenticated users with 'user' role
+  if (isLoggedIn && userRole === 'user' && !loading && !error) {
+    // Check if user wants to see onboarding
+    const hasCompletedOnboarding = localStorage.getItem(`onboarding_completed_${user?.id}`);
+
+    if (!hasCompletedOnboarding || showOnboarding) {
+      console.log('🎨 App: Rendering onboarding flow');
+
+      // Onboarding Hub - pathway selection
+      if (!onboardingPathway) {
+        return (
+          <OnboardingHub
+            onSelectPathway={(pathway) => {
+              if (pathway) {
+                setOnboardingPathway(pathway);
+                setShowOnboarding(true);
+              }
+            }}
+            onSkip={() => {
+              if (user?.id) {
+                localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
+              }
+              setShowOnboarding(false);
+              setOnboardingPathway(null);
+            }}
+          />
+        );
+      }
+
+      // Business Owner Onboarding
+      if (onboardingPathway === 'business_owner' && dataStore) {
+        return (
+          <BusinessOwnerOnboarding
+            dataStore={dataStore}
+            onComplete={() => {
+              if (user?.id) {
+                localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
+              }
+              setShowOnboarding(false);
+              setOnboardingPathway(null);
+              refreshUserRole({ forceRefresh: true });
+            }}
+            onBack={() => {
+              setOnboardingPathway(null);
+            }}
+          />
+        );
+      }
+
+      // Team Member Onboarding
+      if (onboardingPathway === 'team_member') {
+        return (
+          <TeamMemberOnboarding
+            onComplete={(role) => {
+              if (user?.id) {
+                localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
+              }
+              setShowOnboarding(false);
+              setOnboardingPathway(null);
+              refreshUserRole({ forceRefresh: true });
+            }}
+            onBack={() => {
+              setOnboardingPathway(null);
+            }}
+          />
+        );
+      }
+    }
   }
 
   if (error) {

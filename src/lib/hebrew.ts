@@ -232,6 +232,51 @@ export const hebrew = {
       solanaFailed: 'אימות Solana נכשל',
       telegramFailed: 'אימות טלגרם נכשל'
     }
+  },
+
+  // Onboarding
+  onboarding: {
+    hub: {
+      title: 'ברוכים הבאים למערכת!',
+      subtitle: 'בחרו את המסלול המתאים לכם כדי להתחיל',
+      businessOwner: {
+        title: 'יצירת עסק חדש',
+        subtitle: 'אני בעל עסק',
+        description: 'צור ונהל את העסק שלך עם מערכת לוגיסטיקה מקצועית'
+      },
+      teamMember: {
+        title: 'הצטרפות לצוות',
+        subtitle: 'אני נהג, מחסנאי או איש צוות',
+        description: 'הצטרף לארגון קיים והתחל לעבוד מיד'
+      },
+      continue: 'המשך',
+      skip: 'דלג לעכשיו',
+      info: 'תוכל תמיד לשנות את ההגדרות והתפקיד שלך מדף ההגדרות'
+    },
+    businessOwner: {
+      step1: 'בחר סוג עסק',
+      step2: 'פרטי העסק',
+      step3: 'מיתוג ועיצוב',
+      completing: 'יוצר את העסק...',
+      businessName: 'שם העסק (אנגלית)',
+      businessNameHebrew: 'שם העסק (עברית)',
+      orderPrefix: 'קידומת מספר הזמנה',
+      colors: 'בחר צבעי מותג',
+      preview: 'תצוגה מקדימה',
+      back: 'חזור',
+      next: 'המשך',
+      create: 'צור עסק'
+    },
+    teamMember: {
+      title: 'בחר את התפקיד שלך',
+      subtitle: 'איזה תפקיד מעניין אותך?',
+      roleDetails: 'סקירת התפקיד',
+      responsibilities: 'אחריות ומשימות עיקריות',
+      requirements: 'דרישות ומיומנויות',
+      submit: 'שלח בקשה',
+      submitting: 'שולח בקשה...',
+      info: 'בקשתך תישלח למנהל העסק לאישור. תקבל הודעה ברגע שהבקשה תאושר ותוכל להתחיל לעבוד.'
+    }
   }
 };
 
