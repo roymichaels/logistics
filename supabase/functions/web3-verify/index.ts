@@ -156,6 +156,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         .update({
           id: authUser.id,
           name: shortAddress,
+          display_name: shortAddress,
           auth_method: chain,
         })
         .eq(walletColumn, normalizedAddress);
@@ -172,9 +173,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
       const insertData: any = {
         id: authUser.id,
         name: shortAddress,
+        display_name: shortAddress,
         role: 'user',
+        global_role: 'user',
         auth_method: chain,
         auth_methods_linked: [{ type: chain, value: normalizedAddress, linked_at: new Date().toISOString() }],
+        active: true,
+        metadata: {},
       };
 
       insertData[walletColumn] = normalizedAddress;

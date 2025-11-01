@@ -99,27 +99,29 @@ RETURNS TABLE (
   telegram_id TEXT,
   username TEXT,
   name TEXT,
+  display_name TEXT,
   role TEXT,
+  global_role TEXT,
   wallet_address_eth TEXT,
   wallet_address_sol TEXT,
   auth_method TEXT
-) 
+)
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
   IF chain = 'ethereum' THEN
     RETURN QUERY
-    SELECT 
-      u.id, u.telegram_id, u.username, u.name, u.role,
-      u.wallet_address_eth, u.wallet_address_sol, u.auth_method
+    SELECT
+      u.id, u.telegram_id, u.username, u.name, u.display_name,
+      u.role, u.global_role::text, u.wallet_address_eth, u.wallet_address_sol, u.auth_method
     FROM users u
     WHERE LOWER(u.wallet_address_eth) = LOWER(wallet_addr);
   ELSIF chain = 'solana' THEN
     RETURN QUERY
-    SELECT 
-      u.id, u.telegram_id, u.username, u.name, u.role,
-      u.wallet_address_eth, u.wallet_address_sol, u.auth_method
+    SELECT
+      u.id, u.telegram_id, u.username, u.name, u.display_name,
+      u.role, u.global_role::text, u.wallet_address_eth, u.wallet_address_sol, u.auth_method
     FROM users u
     WHERE LOWER(u.wallet_address_sol) = LOWER(wallet_addr);
   END IF;
