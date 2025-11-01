@@ -252,7 +252,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   }, [value, auth?.isAuthenticated, auth?.isLoading, auth?.user]);
 
   useEffect(() => {
-    if (value || !dataStore?.getActiveBusinessContext) {
+    if (value || !dataStore?.getActiveBusinessContext || loading) {
       return;
     }
 
@@ -260,6 +260,12 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
     const syncBusinessContext = async () => {
       try {
+        // Only attempt business context loading if dataStore is fully initialized
+        if (!dataStore || typeof dataStore.getActiveBusinessContext !== 'function') {
+          console.log('⏳ AppServicesProvider: DataStore not ready for business context');
+          return;
+        }
+
         const context = await dataStore.getActiveBusinessContext?.();
         if (!cancelled) {
           setCurrentBusinessId(context?.active_business_id ?? null);
@@ -267,6 +273,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       } catch (err) {
         if (!cancelled) {
           console.warn('⚠️ Failed to load active business context', err);
+          // Don't propagate error - business features may not be implemented yet
         }
       }
     };
@@ -276,7 +283,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     return () => {
       cancelled = true;
     };
-  }, [value, dataStore]);
+  }, [value, dataStore, loading]);
 
   const contextValue = useMemo<AppServicesContextValue>(() => {
     if (value) {

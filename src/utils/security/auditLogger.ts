@@ -3,8 +3,9 @@
  * Tracks security events, failed attempts, and suspicious activity
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { getSupabase, isSupabaseInitialized } from '../../lib/supabaseClient';
 import { getGlobalSecurityManager } from './securityManager';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export interface SecurityEvent {
   eventType: 'pin_setup' | 'pin_verify' | 'pin_change' | 'pin_reset' |
@@ -31,27 +32,23 @@ export interface SecurityAlert {
 }
 
 export class SecurityAuditLogger {
-  private supabase: ReturnType<typeof createClient> | null = null;
   private eventQueue: SecurityEvent[] = [];
   private isProcessingQueue = false;
   private failedAttempts: Map<string, number> = new Map();
   private lastEventTimes: Map<string, number> = new Map();
 
   constructor() {
-    this.initializeSupabase();
     this.startQueueProcessor();
   }
 
-  private initializeSupabase() {
+  private getSupabaseClient(): SupabaseClient | null {
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      if (supabaseUrl && supabaseKey) {
-        this.supabase = createClient(supabaseUrl, supabaseKey);
+      if (isSupabaseInitialized()) {
+        return getSupabase();
       }
+      return null;
     } catch (error) {
-      console.error('Failed to initialize Supabase for audit logging:', error);
+      return null;
     }
   }
 
@@ -208,13 +205,14 @@ export class SecurityAuditLogger {
     limit: number = 50,
     eventTypes?: string[]
   ): Promise<any[]> {
-    if (!this.supabase) {
+    const supabase = this.getSupabaseClient();
+    if (!supabase) {
       console.warn('Supabase not initialized, returning empty events');
       return [];
     }
 
     try {
-      let query = this.supabase
+      let query = supabase
         .from('security_audit_log')
         .select('*')
         .eq('user_id', userId)
@@ -434,7 +432,8 @@ export class SecurityAuditLogger {
   }
 
   private async processEventQueue(): Promise<void> {
-    if (this.isProcessingQueue || this.eventQueue.length === 0 || !this.supabase) {
+    const supabase = this.getSupabaseClient();
+    if (this.isProcessingQueue || this.eventQueue.length === 0 || !supabase) {
       return;
     }
 
@@ -455,7 +454,7 @@ export class SecurityAuditLogger {
         created_at: new Date().toISOString()
       }));
 
-      const { error } = await this.supabase
+      const { error } = await supabase
         .from('security_audit_log')
         .insert(dbEvents);
 

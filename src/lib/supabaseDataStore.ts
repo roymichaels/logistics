@@ -948,7 +948,7 @@ export class SupabaseDataStore implements DataStore {
 
     const { data, error } = await freshClient
       .from('users')
-      .select('id, telegram_id, role, name, username, photo_url, phone, business_id, last_active, created_at, updated_at, wallet_address_eth, wallet_address_sol, auth_method')
+      .select('id, telegram_id, role, name, username, photo_url, phone, last_active, created_at, updated_at, wallet_address_eth, wallet_address_sol, auth_method')
       .eq('telegram_id', this.userTelegramId)
       .maybeSingle();
 
@@ -993,7 +993,7 @@ export class SupabaseDataStore implements DataStore {
       const { data: created, error: createError } = await freshClient
         .from('users')
         .insert(newUser)
-        .select('id, telegram_id, role, name, username, photo_url, phone, business_id, last_active, created_at, updated_at, wallet_address_eth, wallet_address_sol, auth_method')
+        .select('id, telegram_id, role, name, username, photo_url, phone, last_active, created_at, updated_at, wallet_address_eth, wallet_address_sol, auth_method')
         .single();
 
       if (createError) {
@@ -1041,7 +1041,7 @@ export class SupabaseDataStore implements DataStore {
           .from('users')
           .update(updates)
           .eq('telegram_id', this.userTelegramId)
-          .select('id, telegram_id, role, name, username, photo_url, phone, business_id, last_active, created_at, updated_at, wallet_address_eth, wallet_address_sol, auth_method')
+          .select('id, telegram_id, role, name, username, photo_url, phone, last_active, created_at, updated_at, wallet_address_eth, wallet_address_sol, auth_method')
           .maybeSingle();
 
         if (updateError) {
@@ -1092,7 +1092,7 @@ export class SupabaseDataStore implements DataStore {
 
     const { data, error} = await freshClient
       .from('users')
-      .select('id, telegram_id, role, name, username, photo_url, phone, business_id, last_active, wallet_address_eth, wallet_address_sol, auth_method')
+      .select('id, telegram_id, role, name, username, photo_url, phone, last_active, wallet_address_eth, wallet_address_sol, auth_method')
       .eq('telegram_id', this.userTelegramId)
       .maybeSingle();
 
@@ -4047,25 +4047,33 @@ export class SupabaseDataStore implements DataStore {
 
   // Business Context Management Methods
   async getUserBusinesses(): Promise<any[]> {
-    const { data, error } = await supabase
-      .rpc('get_user_businesses');
+    try {
+      const supabase = getSupabase();
+      const { data, error } = await supabase
+        .rpc('get_user_businesses');
 
-    if (error) {
-      console.error('Failed to get user businesses:', error);
+      if (error) {
+        console.error('Failed to get user businesses:', error);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('getUserBusinesses: Error accessing Supabase:', error);
       throw error;
     }
-
-    return data || [];
   }
 
   async getActiveBusinessContext(): Promise<any | null> {
-    const profile = await this.getProfile();
+    try {
+      const profile = await this.getProfile();
+      const supabase = getSupabase();
 
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('telegram_id', profile.telegram_id)
-      .maybeSingle();
+      const { data: user, error: userError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('telegram_id', profile.telegram_id)
+        .maybeSingle();
 
     if (userError) throw userError;
     if (!user) return null;
@@ -4082,16 +4090,26 @@ export class SupabaseDataStore implements DataStore {
     }
 
     return data;
+    } catch (error) {
+      console.error('getActiveBusinessContext: Error accessing Supabase:', error);
+      return null;
+    }
   }
 
   async setActiveBusinessContext(business_id: string): Promise<void> {
-    const { error } = await supabase
-      .rpc('set_user_active_business', {
-        p_business_id: business_id
-      });
+    try {
+      const supabase = getSupabase();
+      const { error } = await supabase
+        .rpc('set_user_active_business', {
+          p_business_id: business_id
+        });
 
-    if (error) {
-      console.error('Failed to set active business context:', error);
+      if (error) {
+        console.error('Failed to set active business context:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('setActiveBusinessContext: Error accessing Supabase:', error);
       throw error;
     }
   }
