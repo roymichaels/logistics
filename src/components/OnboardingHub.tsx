@@ -38,15 +38,15 @@ const PATHWAYS: PathwayCard[] = [
   },
   {
     id: 'team_member',
-    icon: '👥',
-    title: 'הצטרפות לצוות',
-    subtitle: 'אני נהג, מחסנאי או איש צוות',
-    description: 'הצטרף לארגון קיים והתחל לעבוד מיד',
+    icon: '🚗',
+    title: 'להיות נהג',
+    subtitle: 'אני רוצה לעבוד כנהג משלוחים',
+    description: 'התחל לעבוד כנהג משלוחים והרווח מיד',
     benefits: [
-      'קבלת משימות ומשלוחים',
-      'מעקב אחר הביצועים שלך',
-      'תקשורת עם הצוות',
-      'קבלת תגמול והעדפות'
+      'קבלת משלוחים והזמנות',
+      'ניהול מסלולי המשלוח שלך',
+      'מעקב אחר הרווחים שלך',
+      'עבודה גמישה ועצמאית'
     ],
     color: '#4dd0e1',
     gradient: 'linear-gradient(135deg, rgba(77, 208, 225, 0.3), rgba(77, 208, 225, 0.1))'

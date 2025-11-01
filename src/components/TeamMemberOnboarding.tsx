@@ -224,7 +224,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
               marginBottom: '16px',
               animation: 'fadeInUp 0.6s ease-out'
             }}>
-              👥
+              🚗
             </div>
             <h2 style={{
               margin: 0,
@@ -243,7 +243,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
               animation: 'fadeInUp 0.6s ease-out 0.2s backwards'
             }}>
               {currentStep === 'role_selection'
-                ? 'איזה תפקיד מעניין אותך?'
+                ? 'התחל כנהג משלוחים או בחר תפקיד אחר'
                 : 'בדוק את הדרישות לפני ששולח בקשה'}
             </p>
           </div>
