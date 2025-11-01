@@ -188,7 +188,7 @@ export default function App() {
       handleRoleRefresh();
     };
 
-    window.addEventListener('role-refresh', handleCustomRefresh);
+    window.addEventListener('role-refresh', handleCustomRefresh, { passive: true });
 
     // Check URL for refresh parameter (legacy support)
     const params = new URLSearchParams(window.location.search);

@@ -246,15 +246,17 @@ function LoadingScreen() {
     // Render the actual app
     console.log('✅ Rendering App component...');
     root.render(
-      <ErrorBoundary>
-        <AuthProvider>
-          <SupabaseReadyProvider>
-            <AppServicesProvider>
-              <App />
-            </AppServicesProvider>
-          </SupabaseReadyProvider>
-        </AuthProvider>
-      </ErrorBoundary>
+      <React.StrictMode>
+        <ErrorBoundary>
+          <AuthProvider>
+            <SupabaseReadyProvider>
+              <AppServicesProvider>
+                <App />
+              </AppServicesProvider>
+            </SupabaseReadyProvider>
+          </AuthProvider>
+        </ErrorBoundary>
+      </React.StrictMode>
     );
     console.log('✅ App rendered successfully');
   } catch (error) {
@@ -355,7 +357,7 @@ function initTelegramWebApp() {
   };
 
   handleViewportChange();
-  window.addEventListener('resize', handleViewportChange);
+  window.addEventListener('resize', handleViewportChange, { passive: true });
 
   // Handle theme changes
   tg.onEvent('themeChanged', () => {

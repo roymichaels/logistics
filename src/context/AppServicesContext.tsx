@@ -38,7 +38,7 @@ export interface AppServicesContextValue {
   setBusinessId: (businessId: string | null) => void;
 }
 
-const AppServicesContext = createContext<AppServicesContextValue | undefined>(undefined);
+export const AppServicesContext = createContext<AppServicesContextValue | undefined>(undefined);
 
 interface AppServicesProviderProps {
   children: React.ReactNode;

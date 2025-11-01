@@ -1,21 +1,27 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo, useContext } from 'react';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { BusinessContextSelector } from './BusinessContextSelector';
 import { requiresBusinessContext } from '../lib/rolePermissions';
-import { useAppServices } from '../context/AppServicesContext';
+import { AppServicesContext } from '../context/AppServicesContext';
 import {
   useDashboardRefetch,
   useInventoryRefetch,
   useOrdersRefetch
 } from '../hooks/useBusinessDataRefetch';
+import '../styles/header.css';
 
 interface HeaderProps {
   onNavigate: (page: string) => void;
   onLogout: () => void;
 }
 
-export function Header({ onNavigate, onLogout }: HeaderProps) {
-  const { user, dataStore, currentBusinessId, setBusinessId } = useAppServices();
+export const Header = React.memo(function Header({ onNavigate, onLogout }: HeaderProps) {
+  const context = useContext(AppServicesContext);
+  const user = context?.user;
+  const dataStore = context?.dataStore;
+  const currentBusinessId = context?.currentBusinessId;
+  const setBusinessId = context?.setBusinessId;
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const refetchOrders = useOrdersRefetch();
@@ -35,10 +41,10 @@ export function Header({ onNavigate, onLogout }: HeaderProps) {
     }
   }, [dropdownOpen]);
 
-  const userName = user?.name || (user as any)?.first_name || 'משתמש';
-  const userInitial = userName[0]?.toUpperCase() || 'U';
+  const userName = useMemo(() => user?.name || (user as any)?.first_name || 'משתמש', [user]);
+  const userInitial = useMemo(() => userName[0]?.toUpperCase() || 'U', [userName]);
 
-  const handleMenuClick = (action: 'profile' | 'settings' | 'logout') => {
+  const handleMenuClick = useCallback((action: 'profile' | 'settings' | 'logout') => {
     setDropdownOpen(false);
 
     switch (action) {
@@ -52,7 +58,7 @@ export function Header({ onNavigate, onLogout }: HeaderProps) {
         onLogout();
         break;
     }
-  };
+  }, [onNavigate, onLogout]);
 
   const handleBusinessContextChange = useCallback(
     (businessId: string) => {
@@ -60,7 +66,9 @@ export function Header({ onNavigate, onLogout }: HeaderProps) {
         return;
       }
 
-      setBusinessId(businessId);
+      if (setBusinessId) {
+        setBusinessId(businessId);
+      }
 
       void Promise.all([
         refetchOrders(businessId),
@@ -72,73 +80,25 @@ export function Header({ onNavigate, onLogout }: HeaderProps) {
   );
 
   return (
-    <header style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: '60px',
-      background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-      borderBottom: `1px solid ${ROYAL_COLORS.border}`,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0 20px',
-      zIndex: 1000,
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-    }}>
+    <header
+      className="header-container"
+      style={{ borderBottom: `1px solid ${ROYAL_COLORS.border}` }}
+    >
       {/* Logo/Brand */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px'
-      }}>
-        {/* Twitter-style Blue Circle */}
-        <div style={{
-          width: '40px',
-          height: '40px',
-          borderRadius: '50%',
-          background: '#1DA1F2',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontWeight: '900',
-          fontSize: '18px',
-          boxShadow: '0 2px 8px rgba(29, 161, 242, 0.3)'
-        }}>
-          UL
-        </div>
-
-        {/* Brand Text */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <div style={{
-            fontSize: '16px',
-            fontWeight: '700',
-            color: ROYAL_COLORS.text,
-            letterSpacing: '0.5px'
-          }}>
+      <div className="header-logo-container">
+        <div className="header-logo-circle">UL</div>
+        <div className="header-brand-container">
+          <div className="header-brand-title" style={{ color: ROYAL_COLORS.text }}>
             UndergroundLab
           </div>
-          <div style={{
-            fontSize: '13px',
-            fontFamily: 'cursive',
-            color: ROYAL_COLORS.muted,
-            fontStyle: 'italic',
-            opacity: 0.7
-          }}>
+          <div className="header-brand-subtitle" style={{ color: ROYAL_COLORS.muted }}>
             Logistics
           </div>
         </div>
       </div>
 
       {/* Center Section - Business Context Selector */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        justifyContent: 'center',
-        padding: '0 20px'
-      }}>
+      <div className="header-center-section">
         {user && dataStore && requiresBusinessContext(user) && (
           <BusinessContextSelector
             dataStore={dataStore}
@@ -149,39 +109,19 @@ export function Header({ onNavigate, onLogout }: HeaderProps) {
       </div>
 
       {/* User Avatar Dropdown */}
-      <div ref={dropdownRef} style={{ position: 'relative' }}>
+      <div ref={dropdownRef} className="header-dropdown-container">
         <button
           onClick={() => setDropdownOpen(!dropdownOpen)}
+          className={`header-avatar-button ${dropdownOpen ? 'open' : ''}`}
           style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
             border: `2px solid ${ROYAL_COLORS.primary}`,
             background: user?.photo_url
               ? `url(${user.photo_url}) center/cover`
               : 'linear-gradient(135deg, #9C6DFF 0%, #7B3FF2 100%)',
             color: ROYAL_COLORS.white,
-            fontSize: '16px',
-            fontWeight: '700',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s ease',
-            boxShadow: dropdownOpen ? '0 0 0 3px rgba(156, 109, 255, 0.3)' : '0 2px 8px rgba(156, 109, 255, 0.2)',
-            transform: dropdownOpen ? 'scale(1.05)' : 'scale(1)'
-          }}
-          onMouseEnter={(e) => {
-            if (!dropdownOpen) {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(156, 109, 255, 0.3)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!dropdownOpen) {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(156, 109, 255, 0.2)';
-            }
+            boxShadow: dropdownOpen
+              ? '0 0 0 3px rgba(156, 109, 255, 0.3)'
+              : '0 2px 8px rgba(156, 109, 255, 0.2)'
           }}
         >
           {!user?.photo_url && userInitial}
@@ -189,49 +129,27 @@ export function Header({ onNavigate, onLogout }: HeaderProps) {
 
         {/* Dropdown Menu */}
         {dropdownOpen && (
-          <div style={{
-            position: 'absolute',
-            top: 'calc(100% + 8px)',
-            left: 0,
-            width: '200px',
-            background: ROYAL_COLORS.cardBg,
-            border: `1px solid ${ROYAL_COLORS.border}`,
-            borderRadius: '12px',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
-            overflow: 'hidden',
-            animation: 'slideDown 0.2s ease'
-          }}>
+          <div
+            className="header-dropdown-menu"
+            style={{
+              background: ROYAL_COLORS.cardBg,
+              border: `1px solid ${ROYAL_COLORS.border}`
+            }}
+          >
             {/* User Info Section */}
-            <div style={{
-              padding: '16px',
-              borderBottom: `1px solid ${ROYAL_COLORS.border}`,
-              background: 'linear-gradient(135deg, rgba(156, 109, 255, 0.2) 0%, rgba(123, 63, 242, 0.2) 100%)'
-            }}>
-              <div style={{
-                fontSize: '14px',
-                fontWeight: '700',
-                color: ROYAL_COLORS.text,
-                marginBottom: '4px'
-              }}>
+            <div
+              className="header-dropdown-user-info"
+              style={{ borderBottom: `1px solid ${ROYAL_COLORS.border}` }}
+            >
+              <div className="header-dropdown-username" style={{ color: ROYAL_COLORS.text }}>
                 {userName}
               </div>
               {user?.username && (
-                <div style={{
-                  fontSize: '12px',
-                  color: ROYAL_COLORS.muted
-                }}>
+                <div className="header-dropdown-handle" style={{ color: ROYAL_COLORS.muted }}>
                   @{user.username}
                 </div>
               )}
-              <div style={{
-                fontSize: '11px',
-                color: ROYAL_COLORS.primary,
-                marginTop: '6px',
-                padding: '4px 8px',
-                background: 'rgba(156, 109, 255, 0.1)',
-                borderRadius: '6px',
-                display: 'inline-block'
-              }}>
+              <div className="header-dropdown-role" style={{ color: ROYAL_COLORS.primary }}>
                 {user?.role === 'infrastructure_owner' ? 'בעל תשתית 👑' :
                  user?.role === 'business_owner' ? 'בעלים 👑' :
                  user?.role === 'manager' ? 'מנהל' :
@@ -244,113 +162,41 @@ export function Header({ onNavigate, onLogout }: HeaderProps) {
             </div>
 
             {/* Menu Items */}
-            <div style={{ padding: '8px' }}>
+            <div className="header-dropdown-items">
               <button
                 onClick={() => handleMenuClick('profile')}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  background: 'transparent',
-                  border: 'none',
-                  color: ROYAL_COLORS.text,
-                  fontSize: '14px',
-                  textAlign: 'right',
-                  cursor: 'pointer',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  transition: 'background 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(156, 109, 255, 0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                }}
+                className="header-dropdown-button"
+                style={{ color: ROYAL_COLORS.text }}
               >
-                <span style={{ fontSize: '18px' }}>👤</span>
-                <span style={{ flex: 1 }}>הפרופיל שלי</span>
+                <span className="header-dropdown-button-icon">👤</span>
+                <span className="header-dropdown-button-text">הפרופיל שלי</span>
               </button>
 
               <button
                 onClick={() => handleMenuClick('settings')}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  background: 'transparent',
-                  border: 'none',
-                  color: ROYAL_COLORS.text,
-                  fontSize: '14px',
-                  textAlign: 'right',
-                  cursor: 'pointer',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  transition: 'background 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(156, 109, 255, 0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                }}
+                className="header-dropdown-button"
+                style={{ color: ROYAL_COLORS.text }}
               >
-                <span style={{ fontSize: '18px' }}>⚙️</span>
-                <span style={{ flex: 1 }}>הגדרות</span>
+                <span className="header-dropdown-button-icon">⚙️</span>
+                <span className="header-dropdown-button-text">הגדרות</span>
               </button>
 
-              <div style={{
-                height: '1px',
-                background: ROYAL_COLORS.border,
-                margin: '8px 0'
-              }} />
+              <div
+                className="header-dropdown-divider"
+                style={{ background: ROYAL_COLORS.border }}
+              />
 
               <button
                 onClick={() => handleMenuClick('logout')}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#ff4757',
-                  fontSize: '14px',
-                  textAlign: 'right',
-                  cursor: 'pointer',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  transition: 'background 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 71, 87, 0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                }}
+                className="header-dropdown-button logout"
               >
-                <span style={{ fontSize: '18px' }}>🚪</span>
-                <span style={{ flex: 1 }}>התנתק</span>
+                <span className="header-dropdown-button-icon">🚪</span>
+                <span className="header-dropdown-button-text">התנתק</span>
               </button>
             </div>
           </div>
         )}
       </div>
-
-      <style>{`
-        @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </header>
   );
-}
+});

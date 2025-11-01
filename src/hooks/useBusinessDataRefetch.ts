@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
-import { useAppServices } from '../context/AppServicesContext';
+import { useCallback, useContext } from 'react';
+import { AppServicesContext } from '../context/AppServicesContext';
 import { debugLog } from '../components/DebugPanel';
 
 async function safeCall<T>(operation: () => Promise<T> | T, context: string) {
@@ -13,7 +13,8 @@ async function safeCall<T>(operation: () => Promise<T> | T, context: string) {
 }
 
 export function useOrdersRefetch() {
-  const { dataStore } = useAppServices();
+  const context = useContext(AppServicesContext);
+  const dataStore = context?.dataStore;
 
   return useCallback(
     async (businessId?: string | null) => {
@@ -29,7 +30,8 @@ export function useOrdersRefetch() {
 }
 
 export function useInventoryRefetch() {
-  const { dataStore } = useAppServices();
+  const context = useContext(AppServicesContext);
+  const dataStore = context?.dataStore;
 
   return useCallback(
     async (businessId?: string | null) => {
@@ -45,7 +47,8 @@ export function useInventoryRefetch() {
 }
 
 export function useDashboardRefetch() {
-  const { dataStore } = useAppServices();
+  const context = useContext(AppServicesContext);
+  const dataStore = context?.dataStore;
 
   return useCallback(
     async (businessId?: string | null) => {
