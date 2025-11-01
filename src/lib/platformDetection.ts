@@ -153,7 +153,13 @@ class PlatformDetectionService {
     const info = this.info;
     const methods: Array<'telegram' | 'ethereum' | 'solana'> = [];
 
-    if (info.isTelegram) {
+    // On web (not in Telegram), always show Telegram as an option
+    if (info.isWeb) {
+      methods.push('telegram');
+    }
+
+    // Also show telegram if in Telegram context
+    if (info.isTelegram && !methods.includes('telegram')) {
       methods.push('telegram');
     }
 
@@ -165,8 +171,8 @@ class PlatformDetectionService {
       methods.push('solana');
     }
 
-    // If no methods detected, show all as options (user may need to install wallet)
-    if (methods.length === 0 && info.isWeb) {
+    // If only telegram is available, also show web3 options (user may need to install wallet)
+    if (methods.length === 1 && methods[0] === 'telegram') {
       methods.push('ethereum', 'solana');
     }
 

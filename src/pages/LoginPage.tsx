@@ -186,6 +186,7 @@ export function LoginPage({
               {availableMethods.includes('ethereum') && (
                 <button
                   onClick={() => setSelectedMethod('ethereum')}
+                  className="auth-method-btn"
                   style={{
                     padding: '16px',
                     background: theme.secondary,
@@ -196,14 +197,11 @@ export function LoginPage({
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '12px',
-                    transition: 'all 0.2s',
                     fontSize: '16px',
                     fontWeight: '500',
                     color: theme.text,
                     width: '100%'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = theme.secondaryHover}
-                  onMouseLeave={(e) => e.currentTarget.style.background = theme.secondary}
                 >
                   <span style={{ fontSize: '24px' }}>⟠</span>
                   <span>{hebrew.login.signInWith} {hebrew.login.ethereum}</span>
@@ -223,14 +221,11 @@ export function LoginPage({
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '12px',
-                    transition: 'all 0.2s',
                     fontSize: '16px',
                     fontWeight: '500',
                     color: theme.text,
                     width: '100%'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = theme.secondaryHover}
-                  onMouseLeave={(e) => e.currentTarget.style.background = theme.secondary}
                 >
                   <span style={{ fontSize: '24px' }}>◎</span>
                   <span>{hebrew.login.signInWith} {hebrew.login.solana}</span>
@@ -250,14 +245,11 @@ export function LoginPage({
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '12px',
-                    transition: 'all 0.2s',
                     fontSize: '16px',
                     fontWeight: '500',
                     color: theme.text,
                     width: '100%'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = theme.secondaryHover}
-                  onMouseLeave={(e) => e.currentTarget.style.background = theme.secondary}
                 >
                   <span style={{ fontSize: '24px' }}>✈️</span>
                   <span>{hebrew.login.signInWith} {hebrew.login.telegram}</span>

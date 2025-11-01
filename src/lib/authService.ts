@@ -388,7 +388,11 @@ class AuthService {
 
       const response = await fetch(`${config.supabaseUrl}/functions/v1/web3-verify`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${config.supabaseAnonKey}`,
+          'apikey': config.supabaseAnonKey,
+        },
         body: JSON.stringify({
           chain: 'ethereum',
           walletAddress,
@@ -456,7 +460,11 @@ class AuthService {
 
       const response = await fetch(`${config.supabaseUrl}/functions/v1/web3-verify`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${config.supabaseAnonKey}`,
+          'apikey': config.supabaseAnonKey,
+        },
         body: JSON.stringify({
           chain: 'solana',
           walletAddress,
