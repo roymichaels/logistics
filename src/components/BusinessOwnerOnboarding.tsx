@@ -12,17 +12,15 @@ interface BusinessOwnerOnboardingProps {
   onBack: () => void;
 }
 
-type OnboardingStep = 'business_type' | 'business_details' | 'branding' | 'completing';
+type OnboardingStep = 'business_details' | 'branding' | 'completing';
 
 interface FormErrors {
-  businessType?: string;
   businessName?: string;
   businessNameHebrew?: string;
   orderPrefix?: string;
 }
 
 interface FormData {
-  selectedType: string;
   businessName: string;
   businessNameHebrew: string;
   orderPrefix: string;
@@ -31,25 +29,26 @@ interface FormData {
 }
 
 const DEFAULT_COLORS = [
-  { primary: '#9c6dff', secondary: '#7b3ff2', name: 'סגול מלכותי' },
-  { primary: '#f6c945', secondary: '#e5b834', name: 'זהב' },
-  { primary: '#ff6b8a', secondary: '#ff4d73', name: 'אדום' },
-  { primary: '#4dd0e1', secondary: '#26c6da', name: 'תכלת' },
-  { primary: '#4ade80', secondary: '#22c55e', name: 'ירוק' },
-  { primary: '#ff9500', secondary: '#ff8800', name: 'כתום' }
+  { primary: '#1a1a2e', secondary: '#16213e', name: 'כהה מאובטח', icon: '🔒' },
+  { primary: '#0f4c75', secondary: '#3282b8', name: 'כחול עמוק', icon: '💎' },
+  { primary: '#2d4059', secondary: '#ea5455', name: 'אפור-אדום', icon: '🎯' },
+  { primary: '#1b262c', secondary: '#0f4c75', name: 'אפור צבאי', icon: '⚡' },
+  { primary: '#27496d', secondary: '#00a8cc', name: 'תכלת מקצועי', icon: '🛡️' },
+  { primary: '#121212', secondary: '#bb86fc', name: 'שחור-סגול', icon: '🌙' },
+  { primary: '#2c3e50', secondary: '#e74c3c', name: 'כחול-אדום', icon: '🔥' },
+  { primary: '#34495e', secondary: '#f39c12', name: 'אפור-זהב', icon: '⭐' }
 ];
 
 export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: BusinessOwnerOnboardingProps) {
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>('business_type');
-  const [businessTypes, setBusinessTypes] = useState<BusinessType[]>([]);
+  const [currentStep, setCurrentStep] = useState<OnboardingStep>('business_details');
+  // Business types removed - using automatic 'logistics' default
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isInitialized, setIsInitialized] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const { isSupabaseReady } = useSupabaseReady();
 
-  // Form state
-  const [selectedType, setSelectedType] = useState<string>('');
+  // Form state - business type removed
   const [businessName, setBusinessName] = useState('');
   const [businessNameHebrew, setBusinessNameHebrew] = useState('');
   const [orderPrefix, setOrderPrefix] = useState('');
@@ -62,7 +61,6 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
     if (savedData) {
       try {
         const parsed: FormData = JSON.parse(savedData);
-        setSelectedType(parsed.selectedType || '');
         setBusinessName(parsed.businessName || '');
         setBusinessNameHebrew(parsed.businessNameHebrew || '');
         setOrderPrefix(parsed.orderPrefix || '');
@@ -78,7 +76,6 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
   // Auto-save form data to localStorage
   useEffect(() => {
     const formData: FormData = {
-      selectedType,
       businessName,
       businessNameHebrew,
       orderPrefix,
@@ -86,7 +83,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
       secondaryColor
     };
     localStorage.setItem('business_onboarding_draft', JSON.stringify(formData));
-  }, [selectedType, businessName, businessNameHebrew, orderPrefix, primaryColor, secondaryColor]);
+  }, [businessName, businessNameHebrew, orderPrefix, primaryColor, secondaryColor]);
 
   useEffect(() => {
     initializeOnboarding();
@@ -107,7 +104,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
         await waitForSupabaseInit(15000, 200);
       }
 
-      await loadBusinessTypes();
+      // Business types loading removed - using automatic defaults
       setIsInitialized(true);
     } catch (error) {
       console.error('❌ BusinessOwnerOnboarding: Initialization failed:', error);
@@ -117,43 +114,12 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
     }
   };
 
-  const loadBusinessTypes = async () => {
-    try {
-      const types = await dataStore.listBusinessTypes?.() || [];
-      setBusinessTypes(types.filter(t => t.active));
-      if (types.length === 0) {
-        console.warn('⚠️ No business types found, using defaults');
-        setBusinessTypes([
-          {
-            id: 'default-logistics',
-            type_value: 'logistics',
-            label_hebrew: 'לוגיסטיקה',
-            label_english: 'Logistics',
-            icon: '🚚',
-            description: 'ניהול הפצה ומשלוחים',
-            active: true,
-            display_order: 1,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            created_by: null
-          }
-        ]);
-      }
-    } catch (error) {
-      console.error('Failed to load business types:', error);
-      Toast.error('שגיאה בטעינת סוגי עסקים');
-      throw error;
-    }
-  };
+  // loadBusinessTypes removed - no longer needed
 
   const validateStep = (step: OnboardingStep): boolean => {
     const newErrors: FormErrors = {};
 
-    if (step === 'business_type') {
-      if (!selectedType) {
-        newErrors.businessType = 'חובה לבחור סוג עסק';
-      }
-    } else if (step === 'business_details') {
+    if (step === 'business_details') {
       if (!businessName.trim()) {
         newErrors.businessName = 'חובה להזין שם עסק באנגלית';
       } else if (businessName.length < 2) {
@@ -182,13 +148,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
   const handleNext = () => {
     telegram.hapticFeedback('impact', 'light');
 
-    if (currentStep === 'business_type') {
-      if (!validateStep('business_type')) {
-        Toast.error('אנא בחר סוג עסק');
-        return;
-      }
-      setCurrentStep('business_details');
-    } else if (currentStep === 'business_details') {
+    if (currentStep === 'business_details') {
       if (!validateStep('business_details')) {
         Toast.error('אנא תקן את השגיאות בטופס');
         return;
@@ -202,10 +162,8 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
   const handleBack = () => {
     telegram.hapticFeedback('impact', 'light');
 
-    if (currentStep === 'business_type') {
+    if (currentStep === 'business_details') {
       onBack();
-    } else if (currentStep === 'business_details') {
-      setCurrentStep('business_type');
     } else if (currentStep === 'branding') {
       setCurrentStep('business_details');
     }
@@ -230,7 +188,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
       const result = await dataStore.createBusiness({
         name: businessName,
         name_hebrew: businessNameHebrew,
-        business_type: selectedType,
+        business_type: 'logistics',
         order_number_prefix: orderPrefix.toUpperCase(),
         default_currency: 'ILS',
         primary_color: primaryColor,
@@ -265,10 +223,8 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
 
   const getStepTitle = () => {
     switch (currentStep) {
-      case 'business_type':
-        return 'בחר סוג עסק';
       case 'business_details':
-        return 'פרטי העסק';
+        return 'פרטי העסק הפרטי';
       case 'branding':
         return 'מיתוג ועיצוב';
       case 'completing':
@@ -280,14 +236,12 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
 
   const getStepNumber = () => {
     switch (currentStep) {
-      case 'business_type':
-        return 1;
       case 'business_details':
-        return 2;
+        return 1;
       case 'branding':
-        return 3;
+        return 2;
       default:
-        return 3;
+        return 2;
     }
   };
 
@@ -338,7 +292,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
               marginBottom: '20px',
               gap: '8px'
             }}>
-              {[1, 2, 3].map((step) => (
+              {[1, 2].map((step) => (
                 <div
                   key={step}
                   style={{
@@ -370,7 +324,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                 fontSize: '14px',
                 color: ROYAL_COLORS.muted
               }}>
-                שלב {getStepNumber()} מתוך 3
+                שלב {getStepNumber()} מתוך 2
               </p>
             </div>
           </div>
@@ -385,8 +339,8 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
           marginBottom: '20px',
           boxShadow: ROYAL_COLORS.shadow
         }}>
-          {/* Business Type Selection */}
-          {currentStep === 'business_type' && (
+          {/* Business Type Selection - REMOVED */}
+          {false && (
             <div>
               <p style={{
                 margin: '0 0 20px 0',
@@ -471,13 +425,29 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
           {/* Business Details */}
           {currentStep === 'business_details' && (
             <div>
+              <div style={{
+                padding: '16px',
+                background: 'rgba(102, 126, 234, 0.08)',
+                border: '1px solid rgba(102, 126, 234, 0.2)',
+                borderRadius: '12px',
+                marginBottom: '24px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔐</div>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                  מעבדה תת-קרקעית מאובטחת
+                </div>
+                <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, lineHeight: '1.5' }}>
+                  עסק פרטי עם סחר מקוון, לוגיסטיקה, צוות וקהילה
+                </div>
+              </div>
               <p style={{
                 margin: '0 0 24px 0',
                 fontSize: '15px',
                 color: ROYAL_COLORS.text,
                 lineHeight: '1.6'
               }}>
-                מלא את פרטי העסק שלך
+                מלא את פרטי העסק הפרטי שלך
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -647,18 +617,35 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
           {/* Branding */}
           {currentStep === 'branding' && (
             <div>
+              <div style={{
+                padding: '16px',
+                background: 'rgba(187, 134, 252, 0.08)',
+                border: '1px solid rgba(187, 134, 252, 0.2)',
+                borderRadius: '12px',
+                marginBottom: '24px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>🎨</div>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                  עיצוב המותג שלך
+                </div>
+                <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, lineHeight: '1.5' }}>
+                  בחר ערכת צבעים שמתאימה לאופי העסק הפרטי שלך
+                </div>
+              </div>
               <p style={{
-                margin: '0 0 24px 0',
+                margin: '0 0 20px 0',
                 fontSize: '15px',
                 color: ROYAL_COLORS.text,
-                lineHeight: '1.6'
+                lineHeight: '1.6',
+                textAlign: 'center'
               }}>
-                בחר צבעי מותג לעסק שלך
+                צבעים מוצפנים ומאובטחים למעבדה התת-קרקעית
               </p>
 
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
+                gridTemplateColumns: window.innerWidth > 600 ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)',
                 gap: '12px'
               }}>
                 {DEFAULT_COLORS.map((color, index) => {
@@ -683,22 +670,39 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                         <div style={{
                           position: 'absolute',
                           top: '8px',
-                          left: '8px',
-                          fontSize: '16px',
-                          color: color.primary
+                          right: '8px',
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          background: color.primary,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '14px',
+                          color: '#fff',
+                          fontWeight: 'bold',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
                         }}>
                           ✓
                         </div>
                       )}
                       <div style={{
+                        fontSize: '28px',
+                        marginBottom: '8px',
+                        textAlign: 'center'
+                      }}>
+                        {color.icon}
+                      </div>
+                      <div style={{
                         width: '100%',
-                        height: '40px',
+                        height: '32px',
                         borderRadius: '8px',
                         background: `linear-gradient(135deg, ${color.primary}, ${color.secondary})`,
-                        marginBottom: '8px'
+                        marginBottom: '8px',
+                        boxShadow: `0 4px 12px ${color.primary}40`
                       }} />
                       <div style={{
-                        fontSize: '13px',
+                        fontSize: '11px',
                         fontWeight: '600',
                         color: ROYAL_COLORS.text,
                         textAlign: 'center'
@@ -710,40 +714,104 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                 })}
               </div>
 
-              {/* Preview */}
+              {/* Enhanced Preview */}
               <div style={{
-                marginTop: '24px',
-                padding: '20px',
-                borderRadius: '12px',
-                background: `linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}10)`,
-                border: `1px solid ${primaryColor}40`
+                marginTop: '28px',
+                padding: '24px',
+                borderRadius: '16px',
+                background: `linear-gradient(135deg, ${primaryColor}15, ${secondaryColor}08)`,
+                border: `2px solid ${primaryColor}50`,
+                boxShadow: `0 8px 24px ${primaryColor}30`
               }}>
                 <div style={{
-                  fontSize: '14px',
+                  fontSize: '13px',
                   fontWeight: '600',
                   color: ROYAL_COLORS.text,
-                  marginBottom: '12px'
+                  marginBottom: '16px',
+                  textAlign: 'center',
+                  opacity: 0.7
                 }}>
-                  תצוגה מקדימה:
+                  🔍 תצוגה מקדימה
                 </div>
+
+                {/* Business Card Preview */}
                 <div style={{
-                  fontSize: '24px',
-                  fontWeight: '700',
-                  color: primaryColor,
-                  marginBottom: '8px'
+                  background: ROYAL_COLORS.card,
+                  padding: '20px',
+                  borderRadius: '12px',
+                  marginBottom: '16px',
+                  border: `1px solid ${primaryColor}30`
                 }}>
-                  {businessNameHebrew || 'שם העסק'}
+                  <div style={{
+                    fontSize: '20px',
+                    fontWeight: '700',
+                    color: primaryColor,
+                    marginBottom: '8px',
+                    textAlign: 'right'
+                  }}>
+                    {businessNameHebrew || 'שם העסק הפרטי'}
+                  </div>
+                  <div style={{
+                    fontSize: '13px',
+                    color: ROYAL_COLORS.muted,
+                    marginBottom: '12px',
+                    textAlign: 'right'
+                  }}>
+                    {businessName || 'Business Name'}
+                  </div>
+                  <div style={{
+                    display: 'inline-block',
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    boxShadow: `0 2px 8px ${primaryColor}50`
+                  }}>
+                    🔒 מוצפן ומאובטח
+                  </div>
                 </div>
+
+                {/* Order Card Preview */}
                 <div style={{
-                  display: 'inline-block',
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
-                  color: '#ffffff',
-                  fontSize: '14px',
-                  fontWeight: '600'
+                  background: ROYAL_COLORS.secondary,
+                  padding: '16px',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  border: `1px solid ${primaryColor}20`
                 }}>
-                  הזמנה #{orderPrefix || 'ORD'}-0001
+                  <div>
+                    <div style={{
+                      fontSize: '11px',
+                      color: ROYAL_COLORS.muted,
+                      marginBottom: '4px'
+                    }}>
+                      מספר הזמנה
+                    </div>
+                    <div style={{
+                      fontSize: '16px',
+                      fontWeight: '700',
+                      color: primaryColor
+                    }}>
+                      {orderPrefix || 'ORD'}-0001
+                    </div>
+                  </div>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '8px',
+                    background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '20px',
+                    boxShadow: `0 4px 12px ${primaryColor}40`
+                  }}>
+                    📦
+                  </div>
                 </div>
               </div>
             </div>

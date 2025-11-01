@@ -15,7 +15,9 @@ interface CreateBusinessModalProps {
 export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: CreateBusinessModalProps) {
   const [formData, setFormData] = useState({
     name: '',
-    name_hebrew: ''
+    name_hebrew: '',
+    primary_color: '#667eea',
+    secondary_color: '#764ba2'
   });
   const [loading, setLoading] = useState(false);
   const [isReady, setIsReady] = useState(false);
@@ -166,12 +168,11 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         .insert({
           name: formData.name,
           name_hebrew: formData.name_hebrew,
-          business_type: 'logistics',
           order_number_prefix: orderPrefix,
           order_number_sequence: 1000,
           default_currency: 'ILS',
-          primary_color: '#667eea',
-          secondary_color: '#764ba2',
+          primary_color: formData.primary_color,
+          secondary_color: formData.secondary_color,
           active: true
         })
         .select()
@@ -246,8 +247,8 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
             justifyContent: 'space-between',
             alignItems: 'center'
           }}>
-            <h2 style={{ margin: 0, color: ROYAL_COLORS.text, fontSize: '20px' }}>
-              עסק חדש
+            <h2 style={{ margin: 0, color: ROYAL_COLORS.text, fontSize: '20px', fontWeight: '700' }}>
+              🏢 צור עסק פרטי
             </h2>
             <button
               onClick={onClose}
@@ -267,6 +268,25 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         </div>
 
         <form onSubmit={handleSubmit} style={{ padding: '20px', paddingBottom: '32px' }}>
+          <div style={{
+            padding: '16px',
+            background: 'rgba(102, 126, 234, 0.08)',
+            border: '1px solid rgba(102, 126, 234, 0.2)',
+            borderRadius: '12px',
+            marginBottom: '24px'
+          }}>
+            <div style={{
+              fontSize: '13px',
+              color: ROYAL_COLORS.text,
+              lineHeight: '1.6',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontWeight: '600', marginBottom: '4px' }}>מעבדה תת-קרקעית מאובטחת</div>
+              <div style={{ color: ROYAL_COLORS.muted, fontSize: '12px' }}>
+                עסק פרטי עם סחר מקוון, לוגיסטיקה, צוות ועוד
+              </div>
+            </div>
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
               <label style={{
@@ -285,9 +305,10 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
                 disabled={loading}
                 style={{
                   ...ROYAL_STYLES.input,
-                  fontSize: '16px'
+                  fontSize: '16px',
+                  direction: 'rtl'
                 }}
-                placeholder='חברת הפצה בע"מ'
+                placeholder='חנות גאדג׳טים פרטית'
               />
             </div>
 
@@ -310,8 +331,20 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
                   ...ROYAL_STYLES.input,
                   fontSize: '16px'
                 }}
-                placeholder="Distribution Company Ltd"
+                placeholder="Secret Gadgets Shop"
               />
+              {formData.name && (
+                <div style={{
+                  marginTop: '8px',
+                  padding: '8px 12px',
+                  background: ROYAL_COLORS.secondary,
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  color: ROYAL_COLORS.muted
+                }}>
+                  <span style={{ fontWeight: '600' }}>קידומת הזמנה:</span> {formData.name.substring(0, 3).toUpperCase() || 'BUS'}-0001
+                </div>
+              )}
             </div>
 
             {initError && (
