@@ -19,7 +19,6 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 
 function verifyEthereumSignature(message: string, signature: string, address: string): boolean {
   try {
-    console.log('Verifying Ethereum signature for address:', address);
     return true;
   } catch (error) {
     console.error('Ethereum signature verification error:', error);
@@ -29,7 +28,6 @@ function verifyEthereumSignature(message: string, signature: string, address: st
 
 function verifySolanaSignature(message: string, signature: string, address: string): boolean {
   try {
-    console.log('Verifying Solana signature for address:', address);
     return true;
   } catch (error) {
     console.error('Solana signature verification error:', error);
@@ -53,8 +51,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
       throw new Error('Invalid chain. Must be "ethereum" or "solana"');
     }
 
-    console.log(`✅ Web3 authentication request for ${chain} wallet:`, walletAddress);
-
     let isValid = false;
 
     if (chain === 'ethereum') {
@@ -77,8 +73,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const walletColumn = chain === 'ethereum' ? 'wallet_address_eth' : 'wallet_address_sol';
 
     if (!authUser) {
-      console.log('➕ Creating new auth user for Web3 wallet...');
-
       const userMetadata: any = {};
       userMetadata[`wallet_address_${chain === 'ethereum' ? 'eth' : 'sol'}`] = normalizedAddress;
 
@@ -91,9 +85,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       if (error) throw error;
       authUser = data.user;
-      console.log('✅ Auth user created');
     } else {
-      console.log('✅ Auth user found, updating metadata...');
 
       const userMetadata: any = authUser.user_metadata || {};
       userMetadata[`wallet_address_${chain === 'ethereum' ? 'eth' : 'sol'}`] = normalizedAddress;
@@ -107,16 +99,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
         console.error('❌ Failed to update user:', updateErr);
         throw updateErr;
       }
-      console.log('✅ User metadata updated');
     }
 
-    console.log('🎫 Generating session tokens...');
     let sessionData = null;
     let lastError = null;
 
     for (let attempt = 1; attempt <= 3; attempt++) {
-      console.log(`🔄 Sign-in attempt ${attempt}/3...`);
-
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -124,28 +112,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       if (!error && data?.session) {
         sessionData = data;
-        console.log(`✅ Sign-in successful on attempt ${attempt}`);
         break;
       }
 
       lastError = error;
-      console.warn(`⚠️ Attempt ${attempt} failed:`, error?.message);
 
       if (attempt < 3) {
-        const delay = 400 * attempt;
-        console.log(`⏳ Waiting ${delay}ms before retry...`);
-        await new Promise((resolve) => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, 400 * attempt));
       }
     }
 
     if (!sessionData?.session) {
-      console.error('❌ All sign-in attempts failed:', lastError);
       throw lastError || new Error('Failed to create session after 3 attempts');
     }
-
-    console.log('✅ Session created successfully');
-
-    console.log('💾 Checking if user exists in users table...');
 
     // Create a service role client that can bypass RLS
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey, {
@@ -164,14 +143,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
       .eq(walletColumn, normalizedAddress)
       .maybeSingle();
 
-    if (selectError) {
-      console.error('⚠️ Error checking existing user:', selectError);
-    }
-
     const shortAddress = `${normalizedAddress.slice(0, 6)}...${normalizedAddress.slice(-4)}`;
 
     if (existingUser) {
-      console.log('✅ User exists, syncing auth UID...');
       const { error: updateErr } = await serviceClient
         .from('users')
         .update({
@@ -184,14 +158,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       if (updateErr) {
         console.error('❌ User update failed:', updateErr);
-        console.warn('⚠️ Continuing despite update error - session is valid');
-      } else {
-        console.log('✅ User profile updated and auth UID synced');
       }
     } else {
-      console.log('➕ Creating new user record with auth UID...');
-      console.log(`🔑 Using auth user ID: ${authUser.id}`);
-      console.log(`🎯 Service role: authenticated`);
 
       const insertData: any = {
         id: authUser.id,
@@ -207,22 +175,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       insertData[walletColumn] = normalizedAddress;
 
-      console.log('📝 Insert data prepared:', JSON.stringify(insertData, null, 2));
-
       const { data: insertedData, error: insertErr } = await serviceClient
         .from('users')
         .insert(insertData)
         .select();
 
       if (insertErr) {
-        console.error('❌ User insert failed - Full error details:', {
-          error: insertErr,
-          message: insertErr.message,
-          details: insertErr.details,
-          hint: insertErr.hint,
-          code: insertErr.code,
-          insertData: insertData,
-        });
+        console.error('❌ User insert failed:', insertErr.message);
 
         // Check if this is an RLS policy violation
         if (insertErr.message && insertErr.message.includes('row-level security')) {
@@ -233,8 +192,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
         }
 
         throw new Error(`Failed to create user record: ${insertErr.message}`);
-      } else {
-        console.log('✅ New user record created with auth UID:', insertedData);
       }
     }
 

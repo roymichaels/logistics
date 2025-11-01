@@ -948,7 +948,7 @@ export class SupabaseDataStore implements DataStore {
 
     const { data, error } = await freshClient
       .from('users')
-      .select('id, telegram_id, role, name, username, photo_url, department, phone, business_id, last_active, created_at, updated_at')
+      .select('id, telegram_id, role, name, username, photo_url, phone, business_id, last_active, created_at, updated_at, wallet_address_eth, wallet_address_sol, auth_method')
       .eq('telegram_id', this.userTelegramId)
       .maybeSingle();
 
@@ -993,7 +993,7 @@ export class SupabaseDataStore implements DataStore {
       const { data: created, error: createError } = await freshClient
         .from('users')
         .insert(newUser)
-        .select('id, telegram_id, role, name, username, photo_url, department, phone, business_id, last_active, created_at, updated_at')
+        .select('id, telegram_id, role, name, username, photo_url, phone, business_id, last_active, created_at, updated_at, wallet_address_eth, wallet_address_sol, auth_method')
         .single();
 
       if (createError) {
@@ -1041,7 +1041,7 @@ export class SupabaseDataStore implements DataStore {
           .from('users')
           .update(updates)
           .eq('telegram_id', this.userTelegramId)
-          .select('id, telegram_id, role, name, username, photo_url, department, phone, business_id, last_active, created_at, updated_at')
+          .select('id, telegram_id, role, name, username, photo_url, phone, business_id, last_active, created_at, updated_at, wallet_address_eth, wallet_address_sol, auth_method')
           .maybeSingle();
 
         if (updateError) {
@@ -1092,7 +1092,7 @@ export class SupabaseDataStore implements DataStore {
 
     const { data, error} = await freshClient
       .from('users')
-      .select('id, telegram_id, role, name, username, photo_url, department, phone, business_id, last_active')
+      .select('id, telegram_id, role, name, username, photo_url, phone, business_id, last_active, wallet_address_eth, wallet_address_sol, auth_method')
       .eq('telegram_id', this.userTelegramId)
       .maybeSingle();
 
@@ -4033,7 +4033,7 @@ export class SupabaseDataStore implements DataStore {
 
     const { data, error } = await supabase
       .from('users')
-      .select('id, telegram_id, name, username, photo_url, role, department, phone, created_at, updated_at')
+      .select('id, telegram_id, name, username, photo_url, role, phone, created_at, updated_at, wallet_address_eth, wallet_address_sol, auth_method')
       .order('name', { ascending: true });
 
     if (error) {

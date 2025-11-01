@@ -42,19 +42,9 @@ class TelegramService {
 
       // Check if running in Telegram Mini App context
       if (!this.WebApp.initData) {
-        console.log('🌐 Not running in Telegram Mini App environment');
-        console.log('   App is accessible via standard web browser');
         this.initialized = false;
         return;
       }
-
-      console.log('🎬 Telegram Mini App SDK initialized', {
-        version: this.WebApp.version,
-        platform: this.WebApp.platform,
-        hasInitData: !!this.WebApp.initData,
-        initDataLength: this.WebApp.initData?.length || 0,
-        hasUser: !!this.WebApp.initDataUnsafe?.user
-      });
 
       // Signal that Mini App is ready
       this.WebApp.ready();
@@ -65,13 +55,6 @@ class TelegramService {
       // Store user data
       if (this.WebApp.initDataUnsafe?.user) {
         this.userData = this.WebApp.initDataUnsafe.user;
-        console.log('✅ Telegram user data loaded:', {
-          id: this.userData.id,
-          username: this.userData.username,
-          firstName: this.userData.first_name
-        });
-      } else {
-        console.warn('⚠️ No user data in initDataUnsafe');
       }
 
       this.initialized = true;
