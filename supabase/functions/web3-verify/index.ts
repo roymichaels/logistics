@@ -10,7 +10,12 @@ const corsHeaders = {
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
 
 function verifyEthereumSignature(message: string, signature: string, address: string): boolean {
   try {
@@ -184,13 +189,20 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       insertData[walletColumn] = normalizedAddress;
 
-      const { error: insertErr } = await supabase.from('users').insert(insertData);
+      const { data: insertedData, error: insertErr } = await supabase.from('users').insert(insertData).select();
 
       if (insertErr) {
-        console.error('❌ User insert failed:', insertErr);
-        console.warn('⚠️ Continuing despite insert error - session is valid');
+        console.error('❌ User insert failed:', {
+          error: insertErr,
+          message: insertErr.message,
+          details: insertErr.details,
+          hint: insertErr.hint,
+          code: insertErr.code,
+          insertData: insertData
+        });
+        throw new Error(`Failed to create user record: ${insertErr.message}`);
       } else {
-        console.log('✅ New user record created with auth UID');
+        console.log('✅ New user record created with auth UID:', insertedData);
       }
     }
 
