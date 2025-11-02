@@ -1,5 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { authService, AuthState, AuthUser } from '../lib/authService';
+import {
+  recordAuthAttempt,
+  isInAuthLoop,
+  isCircuitBreakerActive,
+  activateCircuitBreaker,
+  resetAuthLoopDetection,
+  getAuthLoopDiagnostics
+} from '../lib/authLoopDetection';
 
 interface AuthContextValue extends AuthState {
   signOut: () => Promise<void>;
@@ -38,6 +46,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const signOut = async () => {
+    // Check for auth loop before logging out
+    if (isInAuthLoop()) {
+      console.error('⚠️ Auth loop detected! Activating circuit breaker.');
+      activateCircuitBreaker();
+      return;
+    }
+
+    // Record logout attempt
+    recordAuthAttempt('logout', authState.user?.id);
+
     await authService.signOut();
   };
 
@@ -46,14 +64,64 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const authenticate = async () => {
+    // Check if circuit breaker is active
+    if (isCircuitBreakerActive()) {
+      const diagnostics = getAuthLoopDiagnostics();
+      const cooldownMinutes = Math.ceil(diagnostics.cooldownRemaining / 60000);
+      console.error(`🚫 Circuit breaker active. Please wait ${cooldownMinutes} minutes before trying again.`);
+      throw new Error(`Too many authentication attempts. Please wait ${cooldownMinutes} minutes and try again.`);
+    }
+
+    // Check for auth loop before authenticating
+    if (isInAuthLoop()) {
+      console.error('⚠️ Auth loop detected! Activating circuit breaker.');
+      activateCircuitBreaker();
+      throw new Error('Authentication loop detected. Please wait 5 minutes and try again.');
+    }
+
+    // Record login attempt
+    recordAuthAttempt('login');
+
     await authService.authenticateWithTelegram();
   };
 
   const authenticateWithEthereum = async (address: string, signature: string, message: string) => {
+    // Check if circuit breaker is active
+    if (isCircuitBreakerActive()) {
+      const diagnostics = getAuthLoopDiagnostics();
+      const cooldownMinutes = Math.ceil(diagnostics.cooldownRemaining / 60000);
+      throw new Error(`Too many authentication attempts. Please wait ${cooldownMinutes} minutes and try again.`);
+    }
+
+    // Check for auth loop
+    if (isInAuthLoop()) {
+      activateCircuitBreaker();
+      throw new Error('Authentication loop detected. Please wait 5 minutes and try again.');
+    }
+
+    // Record login attempt
+    recordAuthAttempt('login', address);
+
     await authService.authenticateWithEthereum(address, signature, message);
   };
 
   const authenticateWithSolana = async (address: string, signature: string, message: string) => {
+    // Check if circuit breaker is active
+    if (isCircuitBreakerActive()) {
+      const diagnostics = getAuthLoopDiagnostics();
+      const cooldownMinutes = Math.ceil(diagnostics.cooldownRemaining / 60000);
+      throw new Error(`Too many authentication attempts. Please wait ${cooldownMinutes} minutes and try again.`);
+    }
+
+    // Check for auth loop
+    if (isInAuthLoop()) {
+      activateCircuitBreaker();
+      throw new Error('Authentication loop detected. Please wait 5 minutes and try again.');
+    }
+
+    // Record login attempt
+    recordAuthAttempt('login', address);
+
     await authService.authenticateWithSolana(address, signature, message);
   };
 

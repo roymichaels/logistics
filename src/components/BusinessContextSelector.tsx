@@ -97,27 +97,22 @@ export function BusinessContextSelector({
         'success'
       );
 
-      // Force a page reload to ensure all components pick up the new business context
-      // This ensures proper JWT claims and session state synchronization
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      // Emit a custom event instead of forcing page reload
+      // This allows components to update without losing state
+      window.dispatchEvent(new CustomEvent('business-context-changed', {
+        detail: { businessId }
+      }));
     } catch (error: any) {
       console.error('Failed to switch business context:', error);
 
       // Provide helpful error message if the function is missing
       if (error?.code === 'PGRST202' || error?.message?.includes('set_user_active_business')) {
-        console.error('⚠️ Database function set_user_active_business not found - migrations still applying');
-        console.log('💡 The page will automatically reload when migrations complete');
+        console.error('⚠️ Database function set_user_active_business not found - migrations may still be applying');
+        console.log('💡 Please try refreshing the page manually');
 
-        // Auto-retry after migrations complete
-        setTimeout(() => {
-          console.log('🔄 Retrying business context switch...');
-          window.location.reload();
-        }, 3000);
-
-        Toast.show('טוען הגדרות מערכת... הדף ירענן אוטומטית', 'info');
+        Toast.show('פונקציה חסרה במסד הנתונים. אנא רענן את הדף.', 'error');
       } else {
+        console.error('Business context switch failed:', error);
         Toast.show(hebrew.errors.switchFailed, 'error');
       }
     }

@@ -28,6 +28,11 @@ import { useAppServices } from './context/AppServicesContext';
 import { useAuth } from './context/AuthContext';
 import { offlineStore } from './utils/offlineStore';
 import { platformDetection } from './lib/platformDetection';
+import {
+  isCircuitBreakerActive,
+  getAuthLoopDiagnostics,
+  resetAuthLoopDetection
+} from './lib/authLoopDetection';
 
 // Pages (lazy loaded)
 const Dashboard = lazy(() =>
@@ -584,6 +589,66 @@ export default function App() {
   if (!isLoggedIn && !isAuthenticated) {
     console.log('🎨 App: User not authenticated, showing login flow...');
     console.log('🎨 App: isLoggedIn:', isLoggedIn, 'isAuthenticated:', isAuthenticated);
+
+    // Check if circuit breaker is active
+    if (isCircuitBreakerActive()) {
+      const diagnostics = getAuthLoopDiagnostics();
+      const cooldownMinutes = Math.ceil(diagnostics.cooldownRemaining / 60000);
+
+      return (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          backgroundColor: theme.bg_color,
+          color: theme.text_color,
+          padding: '40px 20px',
+          textAlign: 'center'
+        }}>
+          <div style={{ maxWidth: '500px' }}>
+            <div style={{ fontSize: '64px', marginBottom: '24px' }}>⚠️</div>
+            <h1 style={{ fontSize: '28px', marginBottom: '16px', fontWeight: '700' }}>
+              זוהה בעיה באימות
+            </h1>
+            <p style={{ fontSize: '18px', marginBottom: '32px', opacity: 0.8, lineHeight: '1.6' }}>
+              זוהו ניסיונות רבים מדי להתחבר. אנא המתן {cooldownMinutes} דקות ונסה שוב.
+            </p>
+            <div style={{
+              padding: '16px',
+              backgroundColor: 'rgba(255, 152, 0, 0.1)',
+              borderRadius: '12px',
+              marginBottom: '32px',
+              fontSize: '14px',
+              opacity: 0.7
+            }}>
+              אם הבעיה חוזרת על עצמה, אנא פנה לתמיכה טכנית.
+            </div>
+            <button
+              onClick={() => {
+                console.log('🔄 Manual reset of auth loop detection');
+                resetAuthLoopDetection();
+                window.location.reload();
+              }}
+              style={{
+                padding: '14px 32px',
+                fontSize: '16px',
+                fontWeight: '600',
+                backgroundColor: theme.button_color || '#007aff',
+                color: theme.button_text_color || '#ffffff',
+                border: 'none',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(0, 122, 255, 0.3)'
+              }}
+            >
+              איפוס וניסיון מחדש
+            </button>
+          </div>
+        </div>
+      );
+    }
 
     // Detect platform and decide whether to show login page
     const platform = platformDetection.detect();

@@ -232,6 +232,8 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     });
     // Business owners need a business context
     if (!user.business_id) {
+      // Show a loading/retry state instead of error - business_id might still be syncing
+      console.log('⌛ Dashboard: Business owner missing business_id, showing loading state');
       return (
         <div style={{
           minHeight: '100vh',
@@ -239,17 +241,38 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
           padding: '40px 20px',
           color: 'var(--tg-theme-text-color, #000)',
           direction: 'rtl',
-          textAlign: 'center'
+          textAlign: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
         }}>
           <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-            <h1 style={{ fontSize: '32px', marginBottom: '16px' }}>
-              ⚠️ חסר הקשר עסקי
-            </h1>
-            <p style={{ fontSize: '18px', color: 'var(--tg-theme-hint-color, #999)', marginBottom: '40px' }}>
-              כבעל עסק, עליך להיות משויך לעסק. אנא פנה למנהל המערכת.
+            <div style={{
+              width: '48px',
+              height: '48px',
+              border: '4px solid rgba(0,0,0,0.1)',
+              borderTop: '4px solid var(--tg-theme-button-color, #007aff)',
+              borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite',
+              margin: '0 auto 24px'
+            }} />
+            <h2 style={{ fontSize: '24px', marginBottom: '16px' }}>
+              טוען נתוני עסק...
+            </h2>
+            <p style={{ fontSize: '16px', color: 'var(--tg-theme-hint-color, #999)', marginBottom: '32px' }}>
+              מסנכרן את הפרופיל שלך עם העסק. אנא המתן...
             </p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={async () => {
+                console.log('🔄 Manual refresh requested');
+                try {
+                  await dataStore?.getProfile?.();
+                  window.location.reload();
+                } catch (err) {
+                  console.error('Failed to refresh profile:', err);
+                  window.location.reload();
+                }
+              }}
               style={{
                 padding: '12px 24px',
                 fontSize: '16px',
@@ -261,8 +284,13 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
                 cursor: 'pointer'
               }}
             >
-              רענן דף
+              נסה שוב
             </button>
+            <style>{
+              `@keyframes spin {
+                to { transform: rotate(360deg); }
+              }`
+            }</style>
           </div>
         </div>
       );

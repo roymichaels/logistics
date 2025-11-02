@@ -274,7 +274,19 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
           // Check for cached business role from localStorage
           const cachedBusinessRoleStr = localStorage.getItem('active_business_role');
-          let effectiveRole = (profile.role as AppUserRole) ?? 'user';
+
+          // Prefer global_role over role for business owners
+          let effectiveRole = (profile.global_role || profile.role) as AppUserRole;
+          if (!effectiveRole) {
+            effectiveRole = 'user';
+          }
+
+          console.log('👤 User profile loaded:', {
+            role: profile.role,
+            global_role: profile.global_role,
+            effectiveRole,
+            business_id: profile.business_id
+          });
 
           if (cachedBusinessRoleStr) {
             try {
@@ -298,6 +310,12 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
             }
           }
 
+          // If profile has business_id directly, use it (for business owners)
+          if (profile.business_id && !currentBusinessId) {
+            console.log('🏢 Setting business_id from profile:', profile.business_id);
+            setCurrentBusinessId(profile.business_id);
+          }
+
           const fullUser: User = {
             ...appUser,
             ...profile,
@@ -307,6 +325,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
           setUserRole(effectiveRole);
         } catch (profileError) {
           console.warn('⚠️ Failed to fetch extended profile', profileError);
+          // Don't fail initialization if profile fetch fails
         }
 
         if (!cancelled) {

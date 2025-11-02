@@ -194,6 +194,7 @@ async function upsertUserProfileFromRegistration(input: UpsertUserRegistrationIn
 }
 
 async function updateUserRoleAssignment(telegramId: string, role: User['role']) {
+  const supabase = getSupabase();
   // Check if user exists
   const { data: existingUser } = await supabase
     .from('users')
@@ -236,6 +237,7 @@ async function updateUserRoleAssignment(telegramId: string, role: User['role']) 
 }
 
 export async function fetchUserRegistrationRecord(telegramId: string): Promise<UserRegistration | null> {
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from('user_registrations')
     .select('*')
@@ -355,6 +357,8 @@ export async function upsertUserRegistrationRecord(
     approval_history: updatedHistory,
     updated_at: now
   };
+
+  const supabase = getSupabase();
 
   if (existing) {
     const { data, error } = await supabase
