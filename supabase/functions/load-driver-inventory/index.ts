@@ -3,7 +3,7 @@ import { logAuditEvent } from '../_shared/auditLog.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey, x-app',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
