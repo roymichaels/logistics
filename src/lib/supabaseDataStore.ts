@@ -3751,8 +3751,9 @@ export class SupabaseDataStore implements DataStore {
     // Wait briefly for database triggers to complete
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Step 1: Switch user context to the newly created business
+    // Step 1: Switch user context to the newly created business (OPTIONAL)
     console.log('🔄 Switching user context to new business...');
+    let contextSwitchSucceeded = false;
     try {
       const switchResponse = await supabase.functions.invoke('switch-context', {
         body: {
@@ -3764,13 +3765,14 @@ export class SupabaseDataStore implements DataStore {
 
       if (switchResponse.error) {
         console.error('❌ Context switch failed:', switchResponse.error);
-        throw new Error('Failed to switch business context');
+      } else {
+        console.log('✅ Context switched successfully');
+        contextSwitchSucceeded = true;
       }
-
-      console.log('✅ Context switched successfully');
     } catch (contextError) {
       console.error('❌ Context switch error:', contextError);
-      // Don't fail the entire operation if context switch fails
+      console.log('ℹ️ Will use fallback method to update user context');
+      // Don't fail - we'll use database fallback
     }
 
     // Step 2: Trigger JWT claims synchronization with retry logic
@@ -3860,7 +3862,54 @@ export class SupabaseDataStore implements DataStore {
       throw new Error('Failed to refresh session with new business context. Please refresh the page.');
     }
 
-    // Step 4: Wait for role propagation to ensure UI can access new role
+    // Step 4: Query business role directly from database as fallback
+    console.log('🔄 Querying business role from database...');
+    try {
+      const { data: businessRole, error: roleError } = await supabase
+        .from('user_business_roles')
+        .select(`
+          id,
+          business_id,
+          role_id,
+          is_primary,
+          roles:role_id (
+            id,
+            name,
+            code
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('business_id', data.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (roleError) {
+        console.error('❌ Failed to query business role:', roleError);
+      } else if (businessRole) {
+        console.log('✅ Business role found:', businessRole);
+
+        // Store business role information for the UI to pick up
+        const businessRoleData = {
+          business_id: data.id,
+          business_name: data.name,
+          business_name_hebrew: data.name_hebrew,
+          infrastructure_id: infrastructureId,
+          role_code: businessRole.roles?.code || 'owner',
+          role_name: businessRole.roles?.name || 'Business Owner',
+          is_primary: businessRole.is_primary
+        };
+
+        localStorage.setItem('active_business_role', JSON.stringify(businessRoleData));
+        console.log('💾 Business role cached in localStorage for immediate UI access');
+      } else {
+        console.warn('⚠️ No business role found yet - database trigger may still be processing');
+      }
+    } catch (roleQueryError) {
+      console.error('❌ Error querying business role:', roleQueryError);
+      // Continue anyway - role will be picked up on next page load
+    }
+
+    // Step 5: Wait for role propagation to ensure UI can access new role
     console.log('⏳ Waiting for role propagation...');
     await new Promise(resolve => setTimeout(resolve, 1000));
 

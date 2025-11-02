@@ -217,8 +217,9 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
       // Trigger a role refresh event to update the UI immediately
       window.dispatchEvent(new Event('role-refresh'));
 
-      // Complete the flow
-      onComplete();
+      // Force a page reload to ensure the new business role is reflected
+      console.log('🔄 Reloading page to reflect new business owner status...');
+      window.location.reload();
     } catch (error) {
       console.error('❌ Failed to create business:', error);
 

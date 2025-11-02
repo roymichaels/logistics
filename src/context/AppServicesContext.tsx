@@ -210,13 +210,39 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
           if (cancelled) return;
 
+          // Check for cached business role from localStorage
+          const cachedBusinessRoleStr = localStorage.getItem('active_business_role');
+          let effectiveRole = (profile.role as AppUserRole) ?? 'user';
+
+          if (cachedBusinessRoleStr) {
+            try {
+              const cachedBusinessRole = JSON.parse(cachedBusinessRoleStr);
+              console.log('✅ Found cached business role:', cachedBusinessRole);
+
+              // If user has a business role, use it instead of base role
+              if (cachedBusinessRole.role_code) {
+                effectiveRole = cachedBusinessRole.role_code as AppUserRole;
+                console.log(`🔄 Overriding user role from '${profile.role}' to '${effectiveRole}' based on business role`);
+              }
+
+              // Store business ID in context
+              if (cachedBusinessRole.business_id) {
+                setCurrentBusinessId(cachedBusinessRole.business_id);
+              }
+            } catch (parseError) {
+              console.error('❌ Failed to parse cached business role:', parseError);
+              // Clear invalid cache
+              localStorage.removeItem('active_business_role');
+            }
+          }
+
           const fullUser: User = {
             ...appUser,
             ...profile,
           };
 
           setUser(fullUser);
-          setUserRole((profile.role as AppUserRole) ?? 'user');
+          setUserRole(effectiveRole);
         } catch (profileError) {
           console.warn('⚠️ Failed to fetch extended profile', profileError);
         }

@@ -70,6 +70,28 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
       console.log('📥 UserHomepage: Loading user profile...');
       const profile = await dataStore.getProfile();
       console.log('✅ UserHomepage: Profile loaded successfully:', profile.role);
+
+      // Check for cached business role
+      const cachedBusinessRoleStr = localStorage.getItem('active_business_role');
+      if (cachedBusinessRoleStr) {
+        try {
+          const cachedBusinessRole = JSON.parse(cachedBusinessRoleStr);
+          console.log('✅ UserHomepage: Found cached business role:', cachedBusinessRole);
+
+          // If user has business role, they should not be on this page
+          if (cachedBusinessRole.role_code && cachedBusinessRole.role_code !== 'user') {
+            console.log('🔄 UserHomepage: User has business role, redirecting...');
+            Toast.success(`ברוך הבא! אתה כעת ${cachedBusinessRole.role_name}`);
+            // Trigger a page reload to let App.tsx redirect to appropriate page
+            window.location.reload();
+            return;
+          }
+        } catch (parseError) {
+          console.error('❌ Failed to parse cached business role:', parseError);
+          localStorage.removeItem('active_business_role');
+        }
+      }
+
       setUser(profile);
     } catch (error) {
       console.error('Failed to load user profile:', error);
