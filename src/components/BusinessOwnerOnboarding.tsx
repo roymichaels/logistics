@@ -197,6 +197,11 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
 
       console.log('✅ Business created successfully:', result);
 
+      // Store business ID for recovery if needed
+      if (result?.id) {
+        localStorage.setItem('last_created_business_id', result.id);
+      }
+
       // Clear the draft from localStorage
       localStorage.removeItem('business_onboarding_draft');
 
@@ -208,7 +213,21 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
       }, 1500);
     } catch (error) {
       console.error('❌ Failed to create business:', error);
-      const errorMessage = error instanceof Error ? error.message : 'שגיאה ביצירת העסק';
+
+      let errorMessage = 'שגיאה ביצירת העסק';
+
+      if (error instanceof Error) {
+        if (error.message.includes('permission') || error.message.includes('RLS')) {
+          errorMessage = 'שגיאת הרשאות - אנא נסה שוב או פנה לתמיכה';
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'שגיאת רשת - בדוק את החיבור לאינטרנט';
+        } else if (error.message.includes('duplicate') || error.message.includes('unique')) {
+          errorMessage = 'עסק עם שם זהה כבר קיים';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
       Toast.error(errorMessage);
       telegram.hapticFeedback('notification', 'error');
       setCurrentStep('branding');

@@ -3748,29 +3748,68 @@ export class SupabaseDataStore implements DataStore {
 
     console.log('✅ createBusiness: Created business:', data.id);
 
-    // Trigger JWT claims synchronization
-    try {
-      const syncResponse = await supabase.functions.invoke('sync-user-claims', {
-        body: {
-          user_id: user.id,
-          business_id: data.id,
-        },
-      });
+    // Wait briefly for database triggers to complete
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-      if (syncResponse.error) {
-        console.warn('⚠️ JWT claims sync failed:', syncResponse.error);
-      } else {
-        console.log('✅ JWT claims synced successfully');
+    // Trigger JWT claims synchronization with retry logic
+    const syncJwtClaims = async (retryCount = 0): Promise<boolean> => {
+      const maxRetries = 3;
+      const retryDelay = 1000 * (retryCount + 1);
+
+      try {
+        console.log(`🔄 Syncing JWT claims (attempt ${retryCount + 1}/${maxRetries + 1})...`);
+
+        const syncResponse = await supabase.functions.invoke('sync-user-claims', {
+          body: {
+            user_id: user.id,
+            business_id: data.id,
+            infrastructure_id: infrastructureId,
+          },
+        });
+
+        if (syncResponse.error) {
+          console.error('❌ JWT claims sync failed:', syncResponse.error);
+          console.error('❌ Response data:', syncResponse.data);
+
+          if (retryCount < maxRetries) {
+            console.log(`⏳ Retrying in ${retryDelay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+            return syncJwtClaims(retryCount + 1);
+          }
+          return false;
+        }
+
+        console.log('✅ JWT claims synced successfully:', syncResponse.data);
+        return true;
+      } catch (syncError) {
+        console.error('❌ JWT claims sync error:', syncError);
+
+        if (retryCount < maxRetries) {
+          console.log(`⏳ Retrying in ${retryDelay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          return syncJwtClaims(retryCount + 1);
+        }
+        return false;
       }
-    } catch (syncError) {
-      console.warn('⚠️ JWT claims sync error:', syncError);
+    };
+
+    const syncSuccess = await syncJwtClaims();
+
+    if (!syncSuccess) {
+      console.warn('⚠️ JWT claims sync failed after retries - business created but permissions may be delayed');
     }
 
     // Refresh the user session to get updated claims
     try {
-      await supabase.auth.refreshSession();
+      console.log('🔄 Refreshing user session...');
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.warn('⚠️ Session refresh failed:', refreshError);
+      } else {
+        console.log('✅ Session refreshed successfully');
+      }
     } catch (refreshError) {
-      console.warn('⚠️ Session refresh failed:', refreshError);
+      console.warn('⚠️ Session refresh error:', refreshError);
     }
 
     return data;
