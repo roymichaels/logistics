@@ -96,9 +96,22 @@ export function BusinessContextSelector({
         hebrew.common.switched + ': ' + (business?.business_name || ''),
         'success'
       );
-    } catch (error) {
+
+      // Force a page reload to ensure all components pick up the new business context
+      // This ensures proper JWT claims and session state synchronization
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (error: any) {
       console.error('Failed to switch business context:', error);
-      Toast.show(hebrew.errors.switchFailed, 'error');
+
+      // Provide helpful error message if the function is missing
+      if (error?.code === 'PGRST202' || error?.message?.includes('set_user_active_business')) {
+        console.error('⚠️ Database function set_user_active_business not found - run latest migrations');
+        Toast.show('אנא רענן את הדף ונסה שוב', 'error');
+      } else {
+        Toast.show(hebrew.errors.switchFailed, 'error');
+      }
     }
   };
 

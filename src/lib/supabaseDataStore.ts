@@ -3776,40 +3776,71 @@ export class SupabaseDataStore implements DataStore {
     }
 
     if (!roleVerified) {
-      console.warn('⚠️ Business role not found after trigger wait - will continue anyway');
+      console.warn('⚠️ Business role not found after trigger wait - using link_user_to_business as fallback');
+
+      // Use the new link_user_to_business function to ensure proper setup
+      try {
+        console.log('🔄 Calling link_user_to_business to ensure proper setup...');
+        const { data: linkResult, error: linkError } = await supabase.rpc('link_user_to_business', {
+          p_user_id: user.id,
+          p_business_id: data.id
+        });
+
+        if (linkError) {
+          console.error('❌ link_user_to_business failed:', linkError);
+        } else {
+          console.log('✅ link_user_to_business succeeded:', linkResult);
+          roleVerified = true;
+        }
+      } catch (linkError) {
+        console.error('❌ link_user_to_business error:', linkError);
+      }
     }
 
-    // Step 1: Switch user context to the newly created business (OPTIONAL - will use fallback if fails)
-    console.log('🔄 Attempting to switch user context to new business...');
+    // Step 1: Set active business context using the new set_user_active_business function
+    console.log('🔄 Setting active business context...');
     let contextSwitchSucceeded = false;
 
     try {
-      // Get current session for access token
-      const { data: sessionData } = await supabase.auth.getSession();
+      // Use the new set_user_active_business RPC function
+      const { data: contextResult, error: contextError } = await supabase.rpc('set_user_active_business', {
+        p_business_id: data.id
+      });
 
-      if (!sessionData?.session?.access_token) {
-        console.warn('⚠️ No active session found, skipping context switch (will use JWT sync instead)');
+      if (contextError) {
+        console.warn('⚠️ set_user_active_business failed:', contextError);
+        console.log('ℹ️ Will try fallback methods');
       } else {
-        const switchResponse = await supabase.functions.invoke('switch-context', {
-          body: {
-            infrastructure_id: infrastructureId,
-            business_id: data.id,
-            refresh_token: sessionData.session.refresh_token || null,
-          },
-        });
-
-        if (switchResponse.error) {
-          console.warn('⚠️ Context switch via edge function failed:', switchResponse.error);
-          console.log('ℹ️ This is non-critical - JWT sync will handle context update');
-        } else {
-          console.log('✅ Context switched successfully via edge function');
-          contextSwitchSucceeded = true;
-        }
+        console.log('✅ Business context set successfully:', contextResult);
+        contextSwitchSucceeded = true;
       }
     } catch (contextError) {
-      console.warn('⚠️ Context switch error (non-critical):', contextError);
-      console.log('ℹ️ Will use JWT sync fallback method to update user context');
-      // Don't fail - we'll use JWT sync as the primary mechanism
+      console.warn('⚠️ set_user_active_business error:', contextError);
+      console.log('ℹ️ Will try fallback methods');
+    }
+
+    // Fallback: Try the old switch-context edge function if the RPC failed
+    if (!contextSwitchSucceeded) {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+
+        if (sessionData?.session?.access_token) {
+          const switchResponse = await supabase.functions.invoke('switch-context', {
+            body: {
+              infrastructure_id: infrastructureId,
+              business_id: data.id,
+              refresh_token: sessionData.session.refresh_token || null,
+            },
+          });
+
+          if (!switchResponse.error) {
+            console.log('✅ Context switched via fallback edge function');
+            contextSwitchSucceeded = true;
+          }
+        }
+      } catch (fallbackError) {
+        console.warn('⚠️ Fallback context switch also failed:', fallbackError);
+      }
     }
 
     // Step 2: Trigger JWT claims synchronization with retry logic
