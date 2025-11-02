@@ -3748,31 +3748,41 @@ export class SupabaseDataStore implements DataStore {
 
     console.log('✅ createBusiness: Created business:', data.id);
 
-    // Wait briefly for database triggers to complete
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait for database triggers to complete (increased from 500ms to 1500ms)
+    console.log('⏳ Waiting for database triggers to complete...');
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Step 1: Switch user context to the newly created business (OPTIONAL)
-    console.log('🔄 Switching user context to new business...');
+    // Step 1: Switch user context to the newly created business (OPTIONAL - will use fallback if fails)
+    console.log('🔄 Attempting to switch user context to new business...');
     let contextSwitchSucceeded = false;
-    try {
-      const switchResponse = await supabase.functions.invoke('switch-context', {
-        body: {
-          infrastructure_id: infrastructureId,
-          business_id: data.id,
-          refresh_token: null, // Will trigger manual refresh below
-        },
-      });
 
-      if (switchResponse.error) {
-        console.error('❌ Context switch failed:', switchResponse.error);
+    try {
+      // Get current session for access token
+      const { data: sessionData } = await supabase.auth.getSession();
+
+      if (!sessionData?.session?.access_token) {
+        console.warn('⚠️ No active session found, skipping context switch (will use JWT sync instead)');
       } else {
-        console.log('✅ Context switched successfully');
-        contextSwitchSucceeded = true;
+        const switchResponse = await supabase.functions.invoke('switch-context', {
+          body: {
+            infrastructure_id: infrastructureId,
+            business_id: data.id,
+            refresh_token: sessionData.session.refresh_token || null,
+          },
+        });
+
+        if (switchResponse.error) {
+          console.warn('⚠️ Context switch via edge function failed:', switchResponse.error);
+          console.log('ℹ️ This is non-critical - JWT sync will handle context update');
+        } else {
+          console.log('✅ Context switched successfully via edge function');
+          contextSwitchSucceeded = true;
+        }
       }
     } catch (contextError) {
-      console.error('❌ Context switch error:', contextError);
-      console.log('ℹ️ Will use fallback method to update user context');
-      // Don't fail - we'll use database fallback
+      console.warn('⚠️ Context switch error (non-critical):', contextError);
+      console.log('ℹ️ Will use JWT sync fallback method to update user context');
+      // Don't fail - we'll use JWT sync as the primary mechanism
     }
 
     // Step 2: Trigger JWT claims synchronization with retry logic
@@ -3858,52 +3868,108 @@ export class SupabaseDataStore implements DataStore {
     }
 
     if (!sessionRefreshed) {
-      console.error('❌ Failed to refresh session after 3 attempts');
-      throw new Error('Failed to refresh session with new business context. Please refresh the page.');
+      console.warn('⚠️ Failed to refresh session after 3 attempts');
+      console.log('ℹ️ Business created successfully, but session may need manual refresh');
+      // Don't throw - business was created successfully, user can refresh the page
     }
 
-    // Step 4: Query business role using business_memberships view
+    // Step 4: Query business role using user_business_roles table directly
+    // (more reliable than the view during initial setup)
     console.log('🔄 Querying business role from database...');
-    try {
-      const { data: businessRole, error: roleError } = await supabase
-        .from('business_memberships')
-        .select('id, business_id, display_role_key, display_role_label, base_role_key, is_primary')
-        .eq('user_id', user.id)
-        .eq('business_id', data.id)
-        .eq('is_active', true)
-        .maybeSingle();
 
-      if (roleError) {
-        console.error('❌ Failed to query business role:', roleError);
-      } else if (businessRole) {
-        console.log('✅ Business role found:', businessRole);
+    // Use retry logic for role query since triggers may still be executing
+    let businessRole: any = null;
+    let roleQueryAttempts = 0;
+    const maxRoleQueryAttempts = 5;
 
-        // Store business role information for the UI to pick up
-        const businessRoleData = {
-          business_id: data.id,
-          business_name: data.name,
-          business_name_hebrew: data.name_hebrew,
-          infrastructure_id: infrastructureId,
-          role_code: businessRole.base_role_key || 'business_owner',
-          role_name: businessRole.display_role_label || 'Business Owner',
-          is_primary: businessRole.is_primary
-        };
+    while (!businessRole && roleQueryAttempts < maxRoleQueryAttempts) {
+      roleQueryAttempts++;
 
-        localStorage.setItem('active_business_role', JSON.stringify(businessRoleData));
-        console.log('💾 Business role cached in localStorage for immediate UI access');
-      } else {
-        console.warn('⚠️ No business role found yet - database trigger may still be processing');
+      try {
+        console.log(`🔄 Querying business role (attempt ${roleQueryAttempts}/${maxRoleQueryAttempts})...`);
+
+        // Query the underlying table with role information joined
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_business_roles')
+          .select(`
+            business_id,
+            is_primary,
+            role_id,
+            roles:role_id (
+              role_key,
+              label
+            )
+          `)
+          .eq('user_id', user.id)
+          .eq('business_id', data.id)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (roleError) {
+          console.error('❌ Failed to query business role:', roleError);
+
+          if (roleQueryAttempts < maxRoleQueryAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 500 * roleQueryAttempts));
+            continue;
+          }
+        } else if (roleData) {
+          console.log('✅ Business role found:', roleData);
+          businessRole = roleData;
+          break;
+        } else {
+          console.warn(`⚠️ No business role found yet (attempt ${roleQueryAttempts}) - waiting for triggers...`);
+
+          if (roleQueryAttempts < maxRoleQueryAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 500 * roleQueryAttempts));
+          }
+        }
+      } catch (roleQueryError) {
+        console.error('❌ Error querying business role:', roleQueryError);
+
+        if (roleQueryAttempts < maxRoleQueryAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 500 * roleQueryAttempts));
+        }
       }
-    } catch (roleQueryError) {
-      console.error('❌ Error querying business role:', roleQueryError);
-      // Continue anyway - role will be picked up on next page load
+    }
+
+    // Store role information if found
+    if (businessRole && businessRole.roles) {
+      const businessRoleData = {
+        business_id: data.id,
+        business_name: data.name,
+        business_name_hebrew: data.name_hebrew,
+        infrastructure_id: infrastructureId,
+        role_code: businessRole.roles.role_key || 'business_owner',
+        role_name: businessRole.roles.label || 'Business Owner',
+        is_primary: businessRole.is_primary
+      };
+
+      localStorage.setItem('active_business_role', JSON.stringify(businessRoleData));
+      console.log('💾 Business role cached in localStorage for immediate UI access');
+    } else {
+      console.warn('⚠️ Business role not found after all retries - will be loaded on next page refresh');
     }
 
     // Step 5: Wait for role propagation to ensure UI can access new role
     console.log('⏳ Waiting for role propagation...');
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 500));
 
+    // Final summary
     console.log('🎉 Business creation flow complete!');
+    console.log('📊 Summary:', {
+      businessId: data.id,
+      businessName: data.name,
+      contextSwitched: contextSwitchSucceeded,
+      jwtSynced: syncSuccess,
+      sessionRefreshed: sessionRefreshed,
+      roleFound: !!businessRole
+    });
+
+    if (!sessionRefreshed || !businessRole) {
+      console.log('ℹ️ Note: Some steps were incomplete. The business was created successfully.');
+      console.log('ℹ️ If you don\'t see the business immediately, please refresh the page.');
+    }
+
     return data;
   }
 
