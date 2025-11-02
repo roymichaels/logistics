@@ -53,6 +53,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
+  const [roleRefreshPending, setRoleRefreshPending] = useState(false);
 
   // Always call useAuth to comply with React hooks rules
   // We'll just not use it if 'value' is provided
@@ -79,10 +80,16 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         return;
       }
 
+      if (roleRefreshPending) {
+        console.log('⏭️ Role refresh already pending, skipping duplicate request');
+        return;
+      }
+
+      setRoleRefreshPending(true);
+
       try {
         console.log('🔄 AppServicesContext: Refreshing user role from database...', { userId: user.id });
 
-        // Clear the cache to force fresh data
         userService.clearCache(user.id);
 
         const profile = await userService.getUserProfile(user.id, true);
@@ -93,7 +100,6 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
           business_id: profile.business_id
         });
 
-        // Check if user became a business owner
         const wasUser = user.role === 'user';
         const isNowBusinessOwner = (profile.global_role === 'business_owner' || profile.role === 'business_owner');
 
@@ -104,26 +110,25 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         setUser(updatedUser);
 
-        // Use global_role if available, otherwise fall back to role
         const effectiveRole = (profile.global_role || profile.role) as AppUserRole;
         setUserRole(effectiveRole);
 
-        // If user has a new business, set it as current
         if (profile.business_id && profile.business_id !== currentBusinessId) {
           console.log('🏢 AppServicesContext: Setting new business context:', profile.business_id);
           setCurrentBusinessId(profile.business_id);
         }
 
-        // If this is a new business owner, set a flag to force navigation
         if (wasUser && isNowBusinessOwner) {
           console.log('🎉 AppServicesContext: User became business owner - setting navigation flag');
           localStorage.setItem('force_dashboard_navigation', 'true');
         }
       } catch (err) {
         console.error('❌ Failed to refresh user role', err);
+      } finally {
+        setTimeout(() => setRoleRefreshPending(false), 1000);
       }
     },
-    [user, currentBusinessId]
+    [user, currentBusinessId, roleRefreshPending]
   );
 
   // Listen for role-refresh events
@@ -272,8 +277,9 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
           if (cancelled) return;
 
-          // Check for cached business role from localStorage
-          const cachedBusinessRoleStr = localStorage.getItem('active_business_role');
+          // Restore infrastructure and business context from session metadata
+          const infrastructureId = auth.session?.user?.app_metadata?.infrastructure_id || null;
+          const sessionBusinessId = auth.session?.user?.app_metadata?.business_id || null;
 
           // Prefer global_role over role for business owners
           let effectiveRole = (profile.global_role || profile.role) as AppUserRole;
@@ -285,9 +291,13 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
             role: profile.role,
             global_role: profile.global_role,
             effectiveRole,
-            business_id: profile.business_id
+            business_id: profile.business_id,
+            session_business_id: sessionBusinessId,
+            infrastructure_id: infrastructureId
           });
 
+          // Check for cached business role from localStorage (for context switching)
+          const cachedBusinessRoleStr = localStorage.getItem('active_business_role');
           if (cachedBusinessRoleStr) {
             try {
               const cachedBusinessRole = JSON.parse(cachedBusinessRoleStr);
@@ -305,27 +315,28 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
               }
             } catch (parseError) {
               console.error('❌ Failed to parse cached business role:', parseError);
-              // Clear invalid cache
               localStorage.removeItem('active_business_role');
             }
-          }
-
-          // If profile has business_id directly, use it (for business owners)
-          if (profile.business_id && !currentBusinessId) {
-            console.log('🏢 Setting business_id from profile:', profile.business_id);
-            setCurrentBusinessId(profile.business_id);
+          } else {
+            // No cached business role, use session or profile business_id
+            const businessToSet = sessionBusinessId || profile.business_id;
+            if (businessToSet) {
+              console.log('🏢 Setting business_id from session/profile:', businessToSet);
+              setCurrentBusinessId(businessToSet);
+            }
           }
 
           const fullUser: User = {
             ...appUser,
             ...profile,
+            infrastructure_id: infrastructureId,
+            business_id: sessionBusinessId || profile.business_id
           };
 
           setUser(fullUser);
           setUserRole(effectiveRole);
         } catch (profileError) {
           console.warn('⚠️ Failed to fetch extended profile', profileError);
-          // Don't fail initialization if profile fetch fails
         }
 
         if (!cancelled) {

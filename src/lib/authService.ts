@@ -25,6 +25,8 @@ export type AuthStateListener = (state: AuthState) => void;
 
 const SESSION_STORAGE_KEY = 'twa-undergroundlab-session-backup';
 const USER_CONTEXT_KEY = 'twa-user-context';
+const SESSION_SYNC_CHANNEL = 'twa-session-sync';
+const TOKEN_REFRESH_MARGIN_MS = 5 * 60 * 1000;
 
 interface StoredUserContext {
   businessId: string | null;
@@ -45,9 +47,25 @@ class AuthService {
   private authListenerInitialized = false;
   private authUnsubscribe: (() => void) | null = null;
   private sessionHealthCheckInterval: NodeJS.Timeout | null = null;
+  private sessionSyncChannel: BroadcastChannel | null = null;
+  private tokenRefreshTimeout: NodeJS.Timeout | null = null;
+  private isRefreshingToken = false;
 
   constructor() {
     // Don't initialize auth listener in constructor - wait for Supabase to be ready
+    // Initialize cross-tab session synchronization
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      this.sessionSyncChannel = new BroadcastChannel(SESSION_SYNC_CHANNEL);
+      this.sessionSyncChannel.onmessage = (event) => {
+        if (event.data.type === 'SESSION_UPDATED') {
+          console.log('📡 Session update from another tab');
+          this.handleCrossTabSessionUpdate(event.data.session);
+        } else if (event.data.type === 'SIGNED_OUT') {
+          console.log('📡 Sign out from another tab');
+          this.handleSignOut();
+        }
+      };
+    }
   }
 
   private initializeAuthListener() {
@@ -86,7 +104,15 @@ class AuthService {
     this.authListenerInitialized = true;
   }
 
-  private async handleSessionUpdate(session: any) {
+  private async handleCrossTabSessionUpdate(session: any) {
+    if (!session || this.currentState.isAuthenticated) {
+      return;
+    }
+    console.log('🔄 Processing cross-tab session update');
+    await this.handleSessionUpdate(session, false);
+  }
+
+  private async handleSessionUpdate(session: any, broadcastToOtherTabs = true) {
     try {
       if (!session?.user) {
         this.updateState({
@@ -167,6 +193,19 @@ class AuthService {
         error: null,
       });
 
+      if (broadcastToOtherTabs && this.sessionSyncChannel) {
+        this.sessionSyncChannel.postMessage({
+          type: 'SESSION_UPDATED',
+          session: {
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+            expires_at: session.expires_at
+          }
+        });
+      }
+
+      this.scheduleTokenRefresh(session);
+
       console.log('✅ Session update complete');
     } catch (error) {
       console.error('❌ Error handling session update:', error);
@@ -180,7 +219,46 @@ class AuthService {
     }
   }
 
+  private scheduleTokenRefresh(session: any) {
+    if (this.tokenRefreshTimeout) {
+      clearTimeout(this.tokenRefreshTimeout);
+    }
+
+    if (!session?.expires_at) {
+      return;
+    }
+
+    const expiresAt = session.expires_at * 1000;
+    const now = Date.now();
+    const timeUntilExpiry = expiresAt - now;
+    const refreshAt = timeUntilExpiry - TOKEN_REFRESH_MARGIN_MS;
+
+    if (refreshAt > 0) {
+      console.log(`⏱️ Token refresh scheduled in ${Math.round(refreshAt / 60000)} minutes`);
+      this.tokenRefreshTimeout = setTimeout(() => {
+        console.log('🔄 Proactively refreshing token before expiration');
+        this.refreshSession().catch(error => {
+          console.error('❌ Scheduled token refresh failed:', error);
+        });
+      }, refreshAt);
+    } else {
+      console.warn('⚠️ Token expires soon, refreshing immediately');
+      this.refreshSession().catch(error => {
+        console.error('❌ Immediate token refresh failed:', error);
+      });
+    }
+  }
+
   private handleSignOut() {
+    if (this.tokenRefreshTimeout) {
+      clearTimeout(this.tokenRefreshTimeout);
+      this.tokenRefreshTimeout = null;
+    }
+
+    if (this.sessionSyncChannel) {
+      this.sessionSyncChannel.postMessage({ type: 'SIGNED_OUT' });
+    }
+
     this.updateState({
       user: null,
       session: null,
@@ -542,6 +620,13 @@ class AuthService {
   }
 
   public async refreshSession(): Promise<void> {
+    if (this.isRefreshingToken) {
+      console.log('⏭️ Token refresh already in progress, skipping');
+      return;
+    }
+
+    this.isRefreshingToken = true;
+
     try {
       console.log('🔄 Refreshing session...');
       if (!isSupabaseInitialized()) {
@@ -553,7 +638,6 @@ class AuthService {
 
       if (error) {
         console.error('❌ Session refresh failed:', error);
-        // Try to restore from backup as last resort
         const restored = await this.tryRestoreSessionFromBackup();
         if (!restored) {
           throw error;
@@ -568,6 +652,8 @@ class AuthService {
     } catch (error) {
       console.error('❌ Session refresh error:', error);
       throw error;
+    } finally {
+      this.isRefreshingToken = false;
     }
   }
 
@@ -720,6 +806,14 @@ class AuthService {
     if (this.sessionHealthCheckInterval) {
       clearInterval(this.sessionHealthCheckInterval);
       this.sessionHealthCheckInterval = null;
+    }
+    if (this.tokenRefreshTimeout) {
+      clearTimeout(this.tokenRefreshTimeout);
+      this.tokenRefreshTimeout = null;
+    }
+    if (this.sessionSyncChannel) {
+      this.sessionSyncChannel.close();
+      this.sessionSyncChannel = null;
     }
     this.listeners.clear();
   }
