@@ -58,6 +58,39 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Handle case where businessId is missing
+  if (!businessId) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <div style={{ fontSize: '48px', marginBottom: '20px' }}>🏢</div>
+        <h2 style={{ color: ROYAL_COLORS.text, marginBottom: '16px' }}>
+          ברוכים הבאים!
+        </h2>
+        <p style={{ color: ROYAL_COLORS.muted, marginBottom: '24px', maxWidth: '400px', margin: '0 auto 24px' }}>
+          נראה שאתה עדיין לא יצרת עסק. בוא ניצור את העסק הראשון שלך!
+        </p>
+        <button
+          onClick={() => {
+            window.location.hash = '#businesses';
+          }}
+          style={{
+            padding: '12px 32px',
+            backgroundColor: ROYAL_COLORS.gold,
+            color: ROYAL_COLORS.backgroundSolid,
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '16px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          צור עסק חדש
+        </button>
+      </div>
+    );
+  }
+
   useEffect(() => {
     loadDashboardData();
 

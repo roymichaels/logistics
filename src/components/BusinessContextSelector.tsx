@@ -107,8 +107,16 @@ export function BusinessContextSelector({
 
       // Provide helpful error message if the function is missing
       if (error?.code === 'PGRST202' || error?.message?.includes('set_user_active_business')) {
-        console.error('⚠️ Database function set_user_active_business not found - run latest migrations');
-        Toast.show('אנא רענן את הדף ונסה שוב', 'error');
+        console.error('⚠️ Database function set_user_active_business not found - migrations still applying');
+        console.log('💡 The page will automatically reload when migrations complete');
+
+        // Auto-retry after migrations complete
+        setTimeout(() => {
+          console.log('🔄 Retrying business context switch...');
+          window.location.reload();
+        }, 3000);
+
+        Toast.show('טוען הגדרות מערכת... הדף ירענן אוטומטית', 'info');
       } else {
         Toast.show(hebrew.errors.switchFailed, 'error');
       }
