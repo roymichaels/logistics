@@ -42,6 +42,8 @@ export interface CreateBusinessInput {
 interface CreateBusinessResponse {
   success: boolean;
   business: BusinessRecord;
+  owner_role_assigned?: boolean;
+  jwt_synced?: boolean;
 }
 
 export async function listBusinesses(options: { activeOnly?: boolean } = {}): Promise<BusinessRecord[]> {
@@ -109,7 +111,7 @@ export async function fetchBusinessContexts(userId?: string): Promise<BusinessCo
 }
 
 export async function createBusiness(input: CreateBusinessInput): Promise<BusinessRecord> {
-  const { supabase } = await ensureSession();
+  const { supabase, session } = await ensureSession();
 
   const payload = {
     name: input.name,
@@ -128,6 +130,19 @@ export async function createBusiness(input: CreateBusinessInput): Promise<Busine
 
   if (!response.success || !response.business) {
     throw new Error('Business creation failed');
+  }
+
+  // Wait a bit for triggers to complete
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  // Refresh session to get updated JWT claims
+  try {
+    const { error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) {
+      console.warn('Session refresh warning (non-fatal):', refreshError);
+    }
+  } catch (refreshErr) {
+    console.warn('Session refresh failed (non-fatal):', refreshErr);
   }
 
   return response.business;

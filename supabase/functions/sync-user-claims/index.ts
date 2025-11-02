@@ -58,10 +58,10 @@ Deno.serve(async (req: Request) => {
 
     console.log('✅ User data fetched:', userData);
 
-    // Fetch user business roles separately
+    // Fetch user business roles with role details from business_memberships view
     const { data: businessRoles, error: rolesError } = await supabase
-      .from('user_business_roles')
-      .select('business_id, role_id, ownership_percentage, is_primary')
+      .from('business_memberships')
+      .select('business_id, display_role_key, base_role_key, ownership_percentage, is_primary')
       .eq('user_id', user_id);
 
     if (rolesError) {
@@ -121,7 +121,17 @@ Deno.serve(async (req: Request) => {
       if (primaryRole) {
         console.log('📌 Setting primary business role:', primaryRole);
         claims.primary_business_id = primaryRole.business_id;
+        claims.business_role = primaryRole.display_role_key || primaryRole.base_role_key;
         claims.ownership_percentage = primaryRole.ownership_percentage;
+      }
+
+      // If business_id is specified but not primary, use that role
+      if (business_id && (!primaryRole || primaryRole.business_id !== business_id)) {
+        const targetBusinessRole = businessRoles.find((r: any) => r.business_id === business_id);
+        if (targetBusinessRole) {
+          console.log('📌 Setting target business role:', targetBusinessRole);
+          claims.business_role = targetBusinessRole.display_role_key || targetBusinessRole.base_role_key;
+        }
       }
     } else {
       console.log('⚠️ No business roles found for user');

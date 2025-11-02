@@ -163,43 +163,39 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
 
       const orderPrefix = formData.name.substring(0, 3).toUpperCase() || 'BUS';
 
-      const { data: businessData, error: businessError } = await supabaseClient
-        .from('businesses')
-        .insert({
+      // Use the create-business Edge Function for proper role assignment
+      const { data: response, error: functionError } = await supabaseClient.functions.invoke('create-business', {
+        body: {
           name: formData.name,
           name_hebrew: formData.name_hebrew,
           order_number_prefix: orderPrefix,
-          order_number_sequence: 1000,
           default_currency: 'ILS',
           primary_color: formData.primary_color,
           secondary_color: formData.secondary_color,
-          active: true
-        })
-        .select()
-        .single();
+          owner_user_id: actualUserId,
+          owner_role_key: 'business_owner'
+        }
+      });
 
-      if (businessError) {
-        throw new Error(`נכשל ביצירת עסק: ${businessError.message}`);
+      if (functionError) {
+        throw new Error(`נכשל ביצירת עסק: ${functionError.message}`);
       }
 
-      if (!businessData) {
+      if (!response || !response.success || !response.business) {
         throw new Error('לא התקבלו נתונים על העסק החדש');
       }
 
-      const { error: ownershipError } = await supabaseClient
-        .from('business_equity')
-        .insert({
-          business_id: businessData.id,
-          stakeholder_id: actualUserId,
-          equity_percentage: 100,
-          equity_type: 'founder',
-          vested_percentage: 100,
-          is_active: true,
-          created_by: actualUserId
-        });
+      // Wait for database triggers to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      if (ownershipError) {
-        throw new Error(`נכשל ביצירת בעלות: ${ownershipError.message}`);
+      // Refresh session to get updated JWT claims with business_owner role
+      try {
+        const { error: refreshError } = await supabaseClient.auth.refreshSession();
+        if (refreshError) {
+          console.warn('Session refresh warning:', refreshError);
+        }
+      } catch (refreshErr) {
+        console.warn('Session refresh failed:', refreshErr);
       }
 
       telegram.hapticFeedback('notification', 'success');
@@ -207,7 +203,9 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       onSuccess();
       onClose();
     } catch (error) {
-      telegram.showAlert(error instanceof Error ? error.message : 'שגיאה ביצירת עסק');
+      const errorMessage = error instanceof Error ? error.message : 'שגיאה ביצירת עסק';
+      console.error('Business creation error:', error);
+      telegram.showAlert(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -126,7 +126,7 @@ export async function handleSwitchContext(
 
     const { data: userRecord, error: profileError } = await supabase
       .from('users')
-      .select('id, role')
+      .select('id, global_role')
       .eq('id', user.id)
       .single();
 
@@ -158,7 +158,7 @@ export async function handleSwitchContext(
         throw new HttpError(400, 'Business does not belong to requested infrastructure');
       }
 
-      if (!ensureRoleAllowsInfrastructureTraversal(userRecord.role)) {
+      if (!ensureRoleAllowsInfrastructureTraversal(userRecord.global_role)) {
         const { data: membership } = await supabase
           .from('user_business_roles')
           .select('id')
@@ -172,7 +172,7 @@ export async function handleSwitchContext(
         }
       }
     } else if (targetInfrastructureId) {
-      if (!ensureRoleAllowsInfrastructureTraversal(userRecord.role)) {
+      if (!ensureRoleAllowsInfrastructureTraversal(userRecord.global_role)) {
         throw new HttpError(403, 'Only infrastructure roles can switch infrastructure without a business');
       }
     } else {
@@ -248,12 +248,27 @@ export async function handleSwitchContext(
       last_switched_at: contextRow.last_switched_at,
     };
 
+    // Get business role if switching to a business context
+    let businessRole = tenantClaims.businessRole;
+    if (targetBusinessId) {
+      const { data: membership } = await supabase
+        .from('business_memberships')
+        .select('display_role_key, base_role_key')
+        .eq('user_id', user.id)
+        .eq('business_id', targetBusinessId)
+        .maybeSingle();
+
+      if (membership) {
+        businessRole = membership.display_role_key || membership.base_role_key;
+      }
+    }
+
     await supabase.auth.admin.updateUserById(user.id, {
       app_metadata: {
-        role: userRecord.role,
+        role: userRecord.global_role,
         infrastructure_id: contextPayload.infrastructure_id,
         business_id: contextPayload.business_id,
-        business_role: tenantClaims.businessRole,
+        business_role: businessRole,
         context_version: contextPayload.context_version,
         context_refreshed_at: contextPayload.last_switched_at,
       },

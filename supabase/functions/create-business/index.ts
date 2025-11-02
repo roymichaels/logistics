@@ -160,6 +160,42 @@ Deno.serve(async (req: Request) => {
       throw new HttpError(500, 'Failed to assign business owner', { details: membershipError });
     }
 
+    // Update user's global_role to business_owner if currently 'user'
+    const { data: currentUser } = await supabase
+      .from('users')
+      .select('global_role')
+      .eq('id', ownerUserId)
+      .maybeSingle();
+
+    if (currentUser && currentUser.global_role === 'user') {
+      await supabase
+        .from('users')
+        .update({ global_role: 'business_owner' })
+        .eq('id', ownerUserId);
+    }
+
+    // Sync JWT claims with new business role
+    try {
+      const { data: businessRole } = await supabase
+        .from('business_memberships')
+        .select('display_role_key, base_role_key')
+        .eq('user_id', ownerUserId)
+        .eq('business_id', business.id)
+        .maybeSingle();
+
+      // Update JWT claims in auth.users metadata
+      await supabase.auth.admin.updateUserById(ownerUserId, {
+        app_metadata: {
+          role: currentUser?.global_role || 'business_owner',
+          business_id: business.id,
+          business_role: businessRole?.display_role_key || ownerRoleKey,
+          infrastructure_id: infrastructureId,
+        },
+      });
+    } catch (jwtError) {
+      console.warn('JWT sync warning (non-fatal):', jwtError);
+    }
+
     await supabase.from('business_lifecycle_log').insert({
       business_id: business.id,
       infrastructure_id: infrastructureId,
@@ -185,6 +221,8 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: true,
         business,
+        owner_role_assigned: true,
+        jwt_synced: true,
       }),
       { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
