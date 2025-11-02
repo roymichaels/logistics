@@ -96,6 +96,38 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     [user]
   );
 
+  // Listen for role-refresh events
+  useEffect(() => {
+    if (value || !user?.id) {
+      return;
+    }
+
+    const handleRoleRefresh = async (event: Event) => {
+      console.log('🔄 AppServicesProvider: role-refresh event received');
+
+      try {
+        // Small delay to ensure database transaction is complete
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Clear any stale business role cache
+        localStorage.removeItem('active_business_role');
+
+        // Force refresh the user role
+        await refreshUserRole({ forceRefresh: true });
+
+        console.log('✅ AppServicesProvider: Role refresh completed');
+      } catch (error) {
+        console.error('❌ AppServicesProvider: Role refresh failed:', error);
+      }
+    };
+
+    window.addEventListener('role-refresh', handleRoleRefresh);
+
+    return () => {
+      window.removeEventListener('role-refresh', handleRoleRefresh);
+    };
+  }, [value, user?.id, refreshUserRole]);
+
   useEffect(() => {
     console.log('🔧 AppServicesProvider: useEffect running', {
       hasValue: !!value,

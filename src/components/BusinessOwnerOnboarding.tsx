@@ -215,11 +215,12 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       // Trigger a role refresh event to update the UI immediately
+      // The App component and AppServicesProvider will handle the role refresh
+      console.log('🔄 Dispatching role-refresh event...');
       window.dispatchEvent(new Event('role-refresh'));
 
-      // Force a page reload to ensure the new business role is reflected
-      console.log('🔄 Reloading page to reflect new business owner status...');
-      window.location.reload();
+      // Call onComplete to close the modal and let the app handle navigation
+      onComplete();
     } catch (error) {
       console.error('❌ Failed to create business:', error);
 

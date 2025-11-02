@@ -263,10 +263,27 @@ class AuthService {
     try {
       const backupData = localStorage.getItem(SESSION_STORAGE_KEY);
       if (!backupData) {
+        console.log('ℹ️ No session backup found');
         return false;
       }
 
-      const { accessToken, refreshToken, expiresAt } = JSON.parse(backupData);
+      let parsedBackup;
+      try {
+        parsedBackup = JSON.parse(backupData);
+      } catch (parseError) {
+        console.error('❌ Failed to parse session backup, clearing corrupted data');
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+        return false;
+      }
+
+      const { accessToken, refreshToken, expiresAt, userId, timestamp } = parsedBackup;
+
+      // Validate backup data
+      if (!accessToken || !refreshToken) {
+        console.warn('⚠️ Invalid backup data: missing tokens');
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+        return false;
+      }
 
       // Check if backup is expired
       if (expiresAt && Date.now() > expiresAt) {
@@ -275,8 +292,16 @@ class AuthService {
         return false;
       }
 
-      console.log('🔄 Attempting to restore session from backup...');
+      // Check if backup is too old (older than 7 days)
+      if (timestamp && Date.now() - timestamp > 7 * 24 * 60 * 60 * 1000) {
+        console.log('⚠️ Backup session too old, cleaning up');
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+        return false;
+      }
+
+      console.log('🔄 Attempting to restore session from backup...', { userId });
       const supabase = getSupabase();
+
       const { data, error } = await supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken,
@@ -288,12 +313,13 @@ class AuthService {
         return false;
       }
 
-      console.log('✅ Session restored from backup');
+      console.log('✅ Session restored from backup successfully');
       await this.handleSessionUpdate(data.session);
       this.startSessionHealthCheck();
       return true;
     } catch (error) {
       console.error('❌ Error restoring session from backup:', error);
+      localStorage.removeItem(SESSION_STORAGE_KEY);
       return false;
     }
   }
@@ -330,16 +356,22 @@ class AuthService {
   private backupSession(session: any) {
     try {
       if (!session?.access_token || !session?.refresh_token) {
+        console.warn('⚠️ Cannot backup session: missing tokens');
         return;
       }
 
+      // Include user metadata for faster recovery
       const backupData = {
         accessToken: session.access_token,
         refreshToken: session.refresh_token,
         expiresAt: session.expires_at ? session.expires_at * 1000 : Date.now() + 24 * 60 * 60 * 1000,
+        userId: session.user?.id,
+        userEmail: session.user?.email,
+        timestamp: Date.now()
       };
 
       localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(backupData));
+      console.log('✅ Session backed up successfully');
     } catch (error) {
       console.error('⚠️ Failed to backup session:', error);
     }
