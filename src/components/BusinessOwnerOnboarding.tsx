@@ -185,6 +185,9 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
         throw new Error('createBusiness method not available');
       }
 
+      // Show loading toast
+      Toast.info('יוצר את העסק שלך...');
+
       const result = await dataStore.createBusiness({
         name: businessName,
         name_hebrew: businessNameHebrew,
@@ -206,11 +209,16 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
       localStorage.removeItem('business_onboarding_draft');
 
       telegram.hapticFeedback('notification', 'success');
-      Toast.success('העסק נוצר בהצלחה!');
+      Toast.success('העסק נוצר בהצלחה! מעביר אותך לתפקיד בעל העסק...');
 
-      setTimeout(() => {
-        onComplete();
-      }, 1500);
+      // Wait a moment to let the user see the success message
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Trigger a role refresh event to update the UI immediately
+      window.dispatchEvent(new Event('role-refresh'));
+
+      // Complete the flow
+      onComplete();
     } catch (error) {
       console.error('❌ Failed to create business:', error);
 

@@ -3751,7 +3751,29 @@ export class SupabaseDataStore implements DataStore {
     // Wait briefly for database triggers to complete
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Trigger JWT claims synchronization with retry logic
+    // Step 1: Switch user context to the newly created business
+    console.log('🔄 Switching user context to new business...');
+    try {
+      const switchResponse = await supabase.functions.invoke('switch-context', {
+        body: {
+          infrastructure_id: infrastructureId,
+          business_id: data.id,
+          refresh_token: null, // Will trigger manual refresh below
+        },
+      });
+
+      if (switchResponse.error) {
+        console.error('❌ Context switch failed:', switchResponse.error);
+        throw new Error('Failed to switch business context');
+      }
+
+      console.log('✅ Context switched successfully');
+    } catch (contextError) {
+      console.error('❌ Context switch error:', contextError);
+      // Don't fail the entire operation if context switch fails
+    }
+
+    // Step 2: Trigger JWT claims synchronization with retry logic
     const syncJwtClaims = async (retryCount = 0): Promise<boolean> => {
       const maxRetries = 3;
       const retryDelay = 1000 * (retryCount + 1);
@@ -3799,19 +3821,50 @@ export class SupabaseDataStore implements DataStore {
       console.warn('⚠️ JWT claims sync failed after retries - business created but permissions may be delayed');
     }
 
-    // Refresh the user session to get updated claims
-    try {
-      console.log('🔄 Refreshing user session...');
-      const { error: refreshError } = await supabase.auth.refreshSession();
-      if (refreshError) {
-        console.warn('⚠️ Session refresh failed:', refreshError);
-      } else {
-        console.log('✅ Session refreshed successfully');
+    // Step 3: Refresh the user session to get updated claims (SYNCHRONOUS - wait for completion)
+    let sessionRefreshed = false;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        console.log(`🔄 Refreshing user session (attempt ${attempt + 1}/3)...`);
+        const { data: sessionData, error: refreshError } = await supabase.auth.refreshSession();
+
+        if (refreshError) {
+          console.warn(`⚠️ Session refresh attempt ${attempt + 1} failed:`, refreshError);
+          if (attempt < 2) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+            continue;
+          }
+        } else if (sessionData?.session) {
+          console.log('✅ Session refreshed successfully');
+          sessionRefreshed = true;
+
+          // Verify the session has the new business context
+          const appMetadata = sessionData.session.user.app_metadata;
+          console.log('🔍 Session metadata:', {
+            business_id: appMetadata?.business_id,
+            role: appMetadata?.role,
+            business_role: appMetadata?.business_role
+          });
+          break;
+        }
+      } catch (refreshError) {
+        console.warn(`⚠️ Session refresh error (attempt ${attempt + 1}):`, refreshError);
+        if (attempt < 2) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+        }
       }
-    } catch (refreshError) {
-      console.warn('⚠️ Session refresh error:', refreshError);
     }
 
+    if (!sessionRefreshed) {
+      console.error('❌ Failed to refresh session after 3 attempts');
+      throw new Error('Failed to refresh session with new business context. Please refresh the page.');
+    }
+
+    // Step 4: Wait for role propagation to ensure UI can access new role
+    console.log('⏳ Waiting for role propagation...');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    console.log('🎉 Business creation flow complete!');
     return data;
   }
 

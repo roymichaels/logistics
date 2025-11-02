@@ -23,6 +23,16 @@ export interface AuthState {
 
 export type AuthStateListener = (state: AuthState) => void;
 
+const SESSION_STORAGE_KEY = 'twa-undergroundlab-session-backup';
+const USER_CONTEXT_KEY = 'twa-user-context';
+
+interface StoredUserContext {
+  businessId: string | null;
+  infrastructureId: string | null;
+  role: string | null;
+  lastUpdate: number;
+}
+
 class AuthService {
   private listeners: Set<AuthStateListener> = new Set();
   private currentState: AuthState = {
@@ -34,6 +44,7 @@ class AuthService {
   };
   private authListenerInitialized = false;
   private authUnsubscribe: (() => void) | null = null;
+  private sessionHealthCheckInterval: NodeJS.Timeout | null = null;
 
   constructor() {
     // Don't initialize auth listener in constructor - wait for Supabase to be ready
@@ -88,6 +99,11 @@ class AuthService {
         return;
       }
 
+      console.log('🔄 Processing session update...');
+
+      // Backup the session for recovery
+      this.backupSession(session);
+
       const supabase = getSupabase();
       const telegramId = session.user.user_metadata?.telegram_id ||
                          session.user.app_metadata?.telegram_id;
@@ -136,13 +152,22 @@ class AuthService {
         return;
       }
 
+      const authUser = userData as AuthUser;
+
+      // Save user context for recovery
+      const businessId = session.user.app_metadata?.business_id || null;
+      const infrastructureId = session.user.app_metadata?.infrastructure_id || null;
+      this.saveUserContext(businessId, infrastructureId, authUser.role);
+
       this.updateState({
-        user: userData as AuthUser,
+        user: authUser,
         session,
         isAuthenticated: true,
         isLoading: false,
         error: null,
       });
+
+      console.log('✅ Session update complete');
     } catch (error) {
       console.error('❌ Error handling session update:', error);
       this.updateState({
@@ -189,6 +214,7 @@ class AuthService {
 
   public async initialize(): Promise<void> {
     try {
+      console.log('🔐 AuthService: Starting initialization...');
       this.initializeAuthListener();
 
       if (!isSupabaseInitialized()) {
@@ -196,13 +222,29 @@ class AuthService {
       }
 
       const supabase = getSupabase();
-      const { data: sessionData } = await supabase.auth.getSession();
 
-      if (sessionData.session) {
-        await this.handleSessionUpdate(sessionData.session);
+      // Try to recover existing session
+      console.log('🔐 AuthService: Checking for existing session...');
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        console.error('❌ Session recovery error:', sessionError);
+        // Try to restore from backup if main session fails
+        const restored = await this.tryRestoreSessionFromBackup();
+        if (!restored) {
+          throw sessionError;
+        }
         return;
       }
 
+      if (sessionData.session) {
+        console.log('✅ Existing session found, restoring...');
+        await this.handleSessionUpdate(sessionData.session);
+        this.startSessionHealthCheck();
+        return;
+      }
+
+      console.log('ℹ️ No existing session found');
       this.updateState({
         isLoading: false,
         isAuthenticated: false,
@@ -214,6 +256,119 @@ class AuthService {
         isLoading: false,
         error: error instanceof Error ? error.message : 'Authentication failed',
       });
+    }
+  }
+
+  private async tryRestoreSessionFromBackup(): Promise<boolean> {
+    try {
+      const backupData = localStorage.getItem(SESSION_STORAGE_KEY);
+      if (!backupData) {
+        return false;
+      }
+
+      const { accessToken, refreshToken, expiresAt } = JSON.parse(backupData);
+
+      // Check if backup is expired
+      if (expiresAt && Date.now() > expiresAt) {
+        console.log('⚠️ Backup session expired, cleaning up');
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+        return false;
+      }
+
+      console.log('🔄 Attempting to restore session from backup...');
+      const supabase = getSupabase();
+      const { data, error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+
+      if (error || !data.session) {
+        console.error('❌ Failed to restore backup session:', error);
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+        return false;
+      }
+
+      console.log('✅ Session restored from backup');
+      await this.handleSessionUpdate(data.session);
+      this.startSessionHealthCheck();
+      return true;
+    } catch (error) {
+      console.error('❌ Error restoring session from backup:', error);
+      return false;
+    }
+  }
+
+  private startSessionHealthCheck() {
+    // Clear any existing interval
+    if (this.sessionHealthCheckInterval) {
+      clearInterval(this.sessionHealthCheckInterval);
+    }
+
+    // Check session health every 5 minutes
+    this.sessionHealthCheckInterval = setInterval(async () => {
+      try {
+        if (!isSupabaseInitialized()) {
+          return;
+        }
+
+        const supabase = getSupabase();
+        const { data, error } = await supabase.auth.getSession();
+
+        if (error || !data.session) {
+          console.warn('⚠️ Session health check failed, attempting refresh...');
+          await this.refreshSession();
+        } else {
+          console.log('✅ Session health check passed');
+          this.backupSession(data.session);
+        }
+      } catch (error) {
+        console.error('❌ Session health check error:', error);
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+  }
+
+  private backupSession(session: any) {
+    try {
+      if (!session?.access_token || !session?.refresh_token) {
+        return;
+      }
+
+      const backupData = {
+        accessToken: session.access_token,
+        refreshToken: session.refresh_token,
+        expiresAt: session.expires_at ? session.expires_at * 1000 : Date.now() + 24 * 60 * 60 * 1000,
+      };
+
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(backupData));
+    } catch (error) {
+      console.error('⚠️ Failed to backup session:', error);
+    }
+  }
+
+  public saveUserContext(businessId: string | null, infrastructureId: string | null, role: string | null) {
+    try {
+      const context: StoredUserContext = {
+        businessId,
+        infrastructureId,
+        role,
+        lastUpdate: Date.now(),
+      };
+      localStorage.setItem(USER_CONTEXT_KEY, JSON.stringify(context));
+    } catch (error) {
+      console.error('⚠️ Failed to save user context:', error);
+    }
+  }
+
+  public getUserContext(): StoredUserContext | null {
+    try {
+      const data = localStorage.getItem(USER_CONTEXT_KEY);
+      if (!data) {
+        return null;
+      }
+      return JSON.parse(data);
+    } catch (error) {
+      console.error('⚠️ Failed to get user context:', error);
+      return null;
     }
   }
 
@@ -320,18 +475,23 @@ class AuthService {
 
   public async signOut(): Promise<void> {
     try {
+      // Stop session health check
+      if (this.sessionHealthCheckInterval) {
+        clearInterval(this.sessionHealthCheckInterval);
+        this.sessionHealthCheckInterval = null;
+      }
+
       if (!isSupabaseInitialized()) {
         console.warn('⚠️ Supabase not initialized, clearing local state only');
         this.handleSignOut();
-        localStorage.clear();
+        this.clearStoredData();
         return;
       }
 
       const supabase = getSupabase();
       await supabase.auth.signOut();
 
-      localStorage.clear();
-
+      this.clearStoredData();
       this.handleSignOut();
     } catch (error) {
       console.error('❌ Sign out error:', error);
@@ -339,8 +499,19 @@ class AuthService {
     }
   }
 
+  private clearStoredData() {
+    try {
+      localStorage.removeItem(SESSION_STORAGE_KEY);
+      localStorage.removeItem(USER_CONTEXT_KEY);
+      // Don't clear all localStorage - preserve user preferences
+    } catch (error) {
+      console.error('⚠️ Error clearing stored data:', error);
+    }
+  }
+
   public async refreshSession(): Promise<void> {
     try {
+      console.log('🔄 Refreshing session...');
       if (!isSupabaseInitialized()) {
         throw new Error('Supabase not initialized. Cannot refresh session.');
       }
@@ -348,9 +519,18 @@ class AuthService {
       const supabase = getSupabase();
       const { data, error } = await supabase.auth.refreshSession();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Session refresh failed:', error);
+        // Try to restore from backup as last resort
+        const restored = await this.tryRestoreSessionFromBackup();
+        if (!restored) {
+          throw error;
+        }
+        return;
+      }
 
       if (data.session) {
+        console.log('✅ Session refreshed successfully');
         await this.handleSessionUpdate(data.session);
       }
     } catch (error) {
@@ -504,6 +684,10 @@ class AuthService {
       this.authUnsubscribe();
       this.authUnsubscribe = null;
       this.authListenerInitialized = false;
+    }
+    if (this.sessionHealthCheckInterval) {
+      clearInterval(this.sessionHealthCheckInterval);
+      this.sessionHealthCheckInterval = null;
     }
     this.listeners.clear();
   }

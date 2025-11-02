@@ -40,12 +40,28 @@ console.log('🌍 Environment:', runtimeEnvironment.env.type);
       }
     }
 
-    // Clear localStorage (except user session)
-    const sessionData = localStorage.getItem('user_session');
+    // Clear localStorage (except critical session data)
+    const keysToPreserve = [
+      'user_session',
+      'twa-undergroundlab-session-backup',
+      'twa-user-context',
+      'hasVisitedBefore'
+    ];
+
+    const preservedData: Record<string, string> = {};
+    keysToPreserve.forEach(key => {
+      const value = localStorage.getItem(key);
+      if (value) {
+        preservedData[key] = value;
+      }
+    });
+
     localStorage.clear();
-    if (sessionData) {
-      localStorage.setItem('user_session', sessionData);
-    }
+
+    // Restore preserved data
+    Object.entries(preservedData).forEach(([key, value]) => {
+      localStorage.setItem(key, value);
+    });
 
     console.log('✅ All caches cleared');
   } catch (error) {

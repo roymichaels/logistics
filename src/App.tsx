@@ -18,9 +18,12 @@ import { BusinessOwnerOnboarding } from './components/BusinessOwnerOnboarding';
 import { TeamMemberOnboarding } from './components/TeamMemberOnboarding';
 import { SearchBusinessModal } from './components/SearchBusinessModal';
 import { BecomeDriverModal } from './components/BecomeDriverModal';
+import { ToastContainer } from './components/EnhancedToast';
+import { PageLoadingSkeleton } from './components/LoadingSkeleton';
 import { debugLog } from './components/DebugPanel';
 import { hebrew } from './lib/hebrew';
 import './lib/authDiagnostics'; // Load auth diagnostics for console debugging
+import './styles/transitions.css';
 import { useAppServices } from './context/AppServicesContext';
 import { useAuth } from './context/AuthContext';
 import { offlineStore } from './utils/offlineStore';
@@ -772,22 +775,10 @@ export default function App() {
             onSearchBusiness={handleShowSearchBusiness}
           />
 
-        <Suspense
-          fallback={
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: '50vh',
-                color: theme.hint_color
-              }}
-            >
-              {hebrew.loading}
-            </div>
-          }
-        >
-          {renderPage()}
+        <Suspense fallback={<PageLoadingSkeleton />}>
+          <div className="page-enter">
+            {renderPage()}
+          </div>
         </Suspense>
 
         {/* Bottom Navigation - Hidden for 'user' role */}
@@ -905,6 +896,9 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {/* Enhanced Toast Notifications */}
+        <ToastContainer />
       </div>
     </SecurityGate>
   );
