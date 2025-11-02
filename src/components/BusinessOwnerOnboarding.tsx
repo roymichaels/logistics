@@ -211,13 +211,22 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
       telegram.hapticFeedback('notification', 'success');
       Toast.success('העסק נוצר בהצלחה! מעביר אותך לתפקיד בעל העסק...');
 
-      // Wait a moment to let the user see the success message
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Wait for the UI to show success message
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Store the new business info temporarily
+      if (result?.id) {
+        localStorage.setItem('newly_created_business_id', result.id);
+        localStorage.setItem('newly_created_business_name', businessName);
+      }
 
       // Trigger a role refresh event to update the UI immediately
       // The App component and AppServicesProvider will handle the role refresh
       console.log('🔄 Dispatching role-refresh event...');
       window.dispatchEvent(new Event('role-refresh'));
+
+      // Wait a moment for role refresh to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Call onComplete to close the modal and let the app handle navigation
       onComplete();

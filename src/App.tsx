@@ -180,7 +180,7 @@ export default function App() {
 
   const theme = telegram.themeParams;
 
-  // Listen for role refresh events (after manager promotion)
+  // Listen for role refresh events (after manager promotion or business creation)
   useEffect(() => {
     const handleRoleRefresh = async () => {
       console.log('🔄 Role refresh requested, fetching fresh role from database...');
@@ -189,6 +189,18 @@ export default function App() {
         // Small delay to ensure DB transaction is complete
         await new Promise(resolve => setTimeout(resolve, 500));
         await refreshUserRole({ forceRefresh: true });
+
+        // Check if we need to force navigation to dashboard
+        const forceDashboard = localStorage.getItem('force_dashboard_navigation');
+        if (forceDashboard === 'true') {
+          console.log('🎯 Forcing navigation to dashboard after role change');
+          localStorage.removeItem('force_dashboard_navigation');
+
+          // Navigate to dashboard after a short delay to ensure state is updated
+          setTimeout(() => {
+            setCurrentPage('dashboard');
+          }, 500);
+        }
       } catch (error) {
         console.error('❌ Failed to refresh user role:', error);
         debugLog.error('Role refresh failed', error);
@@ -656,7 +668,9 @@ export default function App() {
     const isOperational = isAdmin || userRole === 'warehouse' || userRole === 'sales';
 
     // 👤 USER (unassigned): Keep on user homepage
-    if (userRole === 'user' && currentPage !== 'user-homepage' && currentPage !== 'my-role' && currentPage !== 'settings') {
+    // Exception: Don't redirect if they just became a business owner (check localStorage flag)
+    const isDashboardForced = localStorage.getItem('force_dashboard_navigation') === 'true';
+    if (userRole === 'user' && !isDashboardForced && currentPage !== 'user-homepage' && currentPage !== 'my-role' && currentPage !== 'settings') {
       setCurrentPage('user-homepage');
       return null;
     }

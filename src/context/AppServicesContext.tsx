@@ -80,7 +80,22 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       }
 
       try {
-        const profile = await userService.getUserProfile(user.id, forceRefresh);
+        console.log('🔄 AppServicesContext: Refreshing user role from database...', { userId: user.id });
+
+        // Clear the cache to force fresh data
+        userService.clearCache(user.id);
+
+        const profile = await userService.getUserProfile(user.id, true);
+
+        console.log('✅ AppServicesContext: User profile refreshed', {
+          role: profile.role,
+          global_role: profile.global_role,
+          business_id: profile.business_id
+        });
+
+        // Check if user became a business owner
+        const wasUser = user.role === 'user';
+        const isNowBusinessOwner = (profile.global_role === 'business_owner' || profile.role === 'business_owner');
 
         const updatedUser: User = {
           ...user,
@@ -88,12 +103,27 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         };
 
         setUser(updatedUser);
-        setUserRole((profile.role as AppUserRole) ?? 'user');
+
+        // Use global_role if available, otherwise fall back to role
+        const effectiveRole = (profile.global_role || profile.role) as AppUserRole;
+        setUserRole(effectiveRole);
+
+        // If user has a new business, set it as current
+        if (profile.business_id && profile.business_id !== currentBusinessId) {
+          console.log('🏢 AppServicesContext: Setting new business context:', profile.business_id);
+          setCurrentBusinessId(profile.business_id);
+        }
+
+        // If this is a new business owner, set a flag to force navigation
+        if (wasUser && isNowBusinessOwner) {
+          console.log('🎉 AppServicesContext: User became business owner - setting navigation flag');
+          localStorage.setItem('force_dashboard_navigation', 'true');
+        }
       } catch (err) {
         console.error('❌ Failed to refresh user role', err);
       }
     },
-    [user]
+    [user, currentBusinessId]
   );
 
   // Listen for role-refresh events

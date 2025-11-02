@@ -164,17 +164,28 @@ Deno.serve(async (req: Request) => {
       throw new HttpError(500, 'Failed to assign business owner', { details: membershipError });
     }
 
-    // Update user's global_role to business_owner if currently 'user'
+    // Update user's global_role to business_owner and set business_id if currently 'user'
     const { data: currentUser } = await supabase
       .from('users')
-      .select('global_role')
+      .select('global_role, business_id')
       .eq('id', ownerUserId)
       .maybeSingle();
 
+    const userUpdates: any = {};
+
     if (currentUser && currentUser.global_role === 'user') {
+      userUpdates.global_role = 'business_owner';
+    }
+
+    // Set business_id on user record if not already set
+    if (!currentUser?.business_id) {
+      userUpdates.business_id = business.id;
+    }
+
+    if (Object.keys(userUpdates).length > 0) {
       await supabase
         .from('users')
-        .update({ global_role: 'business_owner' })
+        .update(userUpdates)
         .eq('id', ownerUserId);
     }
 

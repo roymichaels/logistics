@@ -219,10 +219,15 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   }
 
   // Business Owner gets business-specific financial dashboard
-  if (user?.role === 'business_owner') {
+  // Check both role and global_role fields
+  const isBusinessOwner = user?.role === 'business_owner' || (user as any)?.global_role === 'business_owner';
+
+  if (isBusinessOwner) {
     console.log('✅ Dashboard: Routing to BusinessOwnerDashboard', {
       userId: user.id,
       userName: user.name,
+      role: user.role,
+      global_role: (user as any)?.global_role,
       businessId: user.business_id
     });
     // Business owners need a business context
@@ -243,6 +248,21 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
             <p style={{ fontSize: '18px', color: 'var(--tg-theme-hint-color, #999)', marginBottom: '40px' }}>
               כבעל עסק, עליך להיות משויך לעסק. אנא פנה למנהל המערכת.
             </p>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                padding: '12px 24px',
+                fontSize: '16px',
+                fontWeight: '600',
+                backgroundColor: 'var(--tg-theme-button-color, #007aff)',
+                color: 'var(--tg-theme-button-text-color, #ffffff)',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              רענן דף
+            </button>
           </div>
         </div>
       );
