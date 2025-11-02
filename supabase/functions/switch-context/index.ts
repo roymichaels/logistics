@@ -1,13 +1,13 @@
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
-import { logAuditEvent } from '../_shared/auditLog.ts';
+import { corsHeaders } from './cors.ts';
+import { logAuditEvent } from './auditLog.ts';
 import {
   HttpError,
   assertTenantScope,
   decodeTenantClaims,
   ensureRoleAllowsInfrastructureTraversal,
   requireAccessToken,
-} from '../_shared/tenantGuard.ts';
+} from './tenantGuard.ts';
 
 interface SwitchContextRequest {
   infrastructure_id?: string | null;
@@ -161,10 +161,9 @@ export async function handleSwitchContext(
       if (!ensureRoleAllowsInfrastructureTraversal(userRecord.global_role)) {
         const { data: membership, error: membershipError } = await supabase
           .from('business_memberships')
-          .select('id, display_role_key')
+          .select('display_role_key')
           .eq('user_id', user.id)
           .eq('business_id', targetBusinessId)
-          .eq('is_active', true)
           .maybeSingle();
 
         if (membershipError) {
@@ -252,7 +251,6 @@ export async function handleSwitchContext(
       last_switched_at: contextRow.last_switched_at,
     };
 
-    // Get business role if switching to a business context
     let businessRole = tenantClaims.businessRole;
     if (targetBusinessId) {
       const { data: membership } = await supabase

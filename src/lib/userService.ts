@@ -5,7 +5,6 @@ import { CANONICAL_TO_LEGACY_ROLE } from './roleMappings';
 export interface UserProfile extends AuthUser {
   created_at?: string;
   updated_at?: string;
-  business_id?: string | null;
 }
 
 class UserService {
@@ -24,7 +23,7 @@ class UserService {
 
     const { data, error } = await supabase
       .from('users')
-      .select('id, telegram_id, username, name, photo_url, role, global_role, business_id, created_at, updated_at')
+      .select('id, telegram_id, username, name, photo_url, role, global_role, created_at, updated_at')
       .eq('id', userId)
       .maybeSingle();
 
@@ -52,7 +51,7 @@ class UserService {
 
     const { data, error } = await supabase
       .from('users')
-      .select('id, telegram_id, username, name, photo_url, role, global_role, business_id, created_at, updated_at')
+      .select('id, telegram_id, username, name, photo_url, role, global_role, created_at, updated_at')
       .eq('telegram_id', telegramId)
       .maybeSingle();
 
@@ -93,7 +92,7 @@ class UserService {
         updated_at: new Date().toISOString(),
       })
       .eq('id', userId)
-      .select('id, telegram_id, username, name, photo_url, role, global_role, business_id, created_at, updated_at')
+      .select('id, telegram_id, username, name, photo_url, role, global_role, created_at, updated_at')
       .single();
 
     if (error) {
