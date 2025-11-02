@@ -159,13 +159,17 @@ export async function handleSwitchContext(
       }
 
       if (!ensureRoleAllowsInfrastructureTraversal(userRecord.global_role)) {
-        const { data: membership } = await supabase
-          .from('user_business_roles')
-          .select('id')
+        const { data: membership, error: membershipError } = await supabase
+          .from('business_memberships')
+          .select('id, display_role_key')
           .eq('user_id', user.id)
           .eq('business_id', targetBusinessId)
           .eq('is_active', true)
           .maybeSingle();
+
+        if (membershipError) {
+          throw new HttpError(500, 'Failed to verify business membership', { details: membershipError });
+        }
 
         if (!membership) {
           throw new HttpError(403, 'You do not have access to this business');

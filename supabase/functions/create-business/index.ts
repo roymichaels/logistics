@@ -69,8 +69,12 @@ Deno.serve(async (req: Request) => {
       throw new HttpError(401, 'Unauthorized');
     }
 
-    if (!ensureRoleAllowsInfrastructureTraversal(claims.role)) {
-      throw new HttpError(403, 'Only infrastructure roles can create businesses');
+    // Allow users to create their first business (auto-upgrade to business_owner)
+    // Infrastructure roles can create businesses in any infrastructure
+    const canCreateBusiness = ensureRoleAllowsInfrastructureTraversal(claims.role) || claims.role === 'user' || claims.role === 'business_owner';
+
+    if (!canCreateBusiness) {
+      throw new HttpError(403, 'You do not have permission to create businesses');
     }
 
     const activeContext = await getActiveContext(supabase, user.id);

@@ -3862,22 +3862,12 @@ export class SupabaseDataStore implements DataStore {
       throw new Error('Failed to refresh session with new business context. Please refresh the page.');
     }
 
-    // Step 4: Query business role directly from database as fallback
+    // Step 4: Query business role using business_memberships view
     console.log('🔄 Querying business role from database...');
     try {
       const { data: businessRole, error: roleError } = await supabase
-        .from('user_business_roles')
-        .select(`
-          id,
-          business_id,
-          role_id,
-          is_primary,
-          roles:role_id (
-            id,
-            name,
-            code
-          )
-        `)
+        .from('business_memberships')
+        .select('id, business_id, display_role_key, display_role_label, base_role_key, is_primary')
         .eq('user_id', user.id)
         .eq('business_id', data.id)
         .eq('is_active', true)
@@ -3894,8 +3884,8 @@ export class SupabaseDataStore implements DataStore {
           business_name: data.name,
           business_name_hebrew: data.name_hebrew,
           infrastructure_id: infrastructureId,
-          role_code: businessRole.roles?.code || 'owner',
-          role_name: businessRole.roles?.name || 'Business Owner',
+          role_code: businessRole.base_role_key || 'business_owner',
+          role_name: businessRole.display_role_label || 'Business Owner',
           is_primary: businessRole.is_primary
         };
 
