@@ -266,11 +266,21 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
               onClick={async () => {
                 console.log('🔄 Manual refresh requested');
                 try {
-                  await dataStore?.getProfile?.();
-                  window.location.reload();
+                  setLoading(true);
+                  const refreshedProfile = await dataStore?.refreshProfile?.();
+                  if (refreshedProfile?.business_id) {
+                    // Successfully got business_id, reload dashboard
+                    await loadDashboard();
+                  } else {
+                    // No business found, navigate to create business
+                    console.log('📝 No business found, navigating to businesses page');
+                    onNavigate('businesses');
+                  }
                 } catch (err) {
                   console.error('Failed to refresh profile:', err);
-                  window.location.reload();
+                  Toast.error('שגיאה בטעינת נתונים. אנא נסה שנית.');
+                } finally {
+                  setLoading(false);
                 }
               }}
               style={{

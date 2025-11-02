@@ -1043,8 +1043,60 @@ export class SupabaseDataStore implements DataStore {
       throw new Error('User data incomplete: missing id');
     }
 
+    // Auto-assign business_id for business owners if missing
+    if (data.role === 'business_owner' && !data.business_id) {
+      console.log('🔄 getProfile: Business owner missing business_id, attempting auto-assignment');
+      try {
+        const assignedBusinessId = await this._autoAssignBusinessId(data.id);
+        if (assignedBusinessId) {
+          data.business_id = assignedBusinessId;
+          console.log('✅ getProfile: Auto-assigned business_id:', assignedBusinessId);
+        }
+      } catch (error) {
+        console.warn('⚠️ getProfile: Failed to auto-assign business_id:', error);
+      }
+    }
+
     this.setCachedUser(data);
     return data;
+  }
+
+  private async _autoAssignBusinessId(userId: string): Promise<string | null> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      return null;
+    }
+
+    // Check if user owns any businesses
+    const { data: businesses, error } = await supabase
+      .from('businesses')
+      .select('id')
+      .eq('owner_id', userId)
+      .limit(1);
+
+    if (error) {
+      console.error('Failed to query businesses:', error);
+      return null;
+    }
+
+    if (businesses && businesses.length > 0) {
+      const businessId = businesses[0].id;
+
+      // Update user profile with business_id
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ business_id: businessId })
+        .eq('id', userId);
+
+      if (updateError) {
+        console.error('Failed to update user business_id:', updateError);
+        return null;
+      }
+
+      return businessId;
+    }
+
+    return null;
   }
 
   async refreshProfile(): Promise<User> {
@@ -1159,6 +1211,10 @@ export class SupabaseDataStore implements DataStore {
 
   // Products
   async listProducts(filters?: { category?: string; q?: string }): Promise<Product[]> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      throw new Error('Supabase client not available');
+    }
     let query = supabase.from('products').select('*');
 
     if (filters?.category && filters.category !== 'all') {
@@ -1252,6 +1308,10 @@ export class SupabaseDataStore implements DataStore {
     const permissions = await this.getRolePermissions();
     if (!permissions.can_view_inventory) {
       throw new Error('אין לך הרשאה לצפות במלאי');
+    }
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      throw new Error('Supabase client not available');
     }
 
     let query = supabase
@@ -2004,6 +2064,10 @@ export class SupabaseDataStore implements DataStore {
     if (!permissions.can_view_inventory) {
       throw new Error('אין לך הרשאה לצפות בהתראות מלאי');
     }
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      throw new Error('Supabase client not available');
+    }
 
     let query = supabase.from('inventory_low_stock_alerts').select('*');
 
@@ -2029,6 +2093,10 @@ export class SupabaseDataStore implements DataStore {
 
   async getRolePermissions(): Promise<RolePermissions> {
     const profile = await this.getProfile();
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      throw new Error('Supabase client not available');
+    }
 
     const { data, error } = await supabase
       .from('role_permissions')
@@ -2752,6 +2820,10 @@ export class SupabaseDataStore implements DataStore {
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
   }): Promise<Order[]> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      throw new Error('Supabase client not available');
+    }
     let query = supabase.from('orders').select('*');
 
     // Apply role-based filtering
@@ -3264,6 +3336,11 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async getRoyalDashboardSnapshot(): Promise<RoyalDashboardSnapshot> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      throw new Error('Supabase client not available');
+    }
+
     const now = new Date();
     const startOfDay = new Date(now);
     startOfDay.setHours(0, 0, 0, 0);
