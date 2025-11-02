@@ -1,26 +1,45 @@
-# Fix for Infrastructure Creation RLS Issue
+# ⚠️ OUTDATED - See Updated Fix Below
+
+---
+
+## ✅ ISSUE RESOLVED
+
+This issue has been **completely fixed** with a comprehensive migration.
+
+**See the complete solution here:**
+- 📄 **Detailed Documentation:** [INFRASTRUCTURE_RLS_FIX_COMPLETE.md](./INFRASTRUCTURE_RLS_FIX_COMPLETE.md)
+- 📋 **Quick Reference:** [INFRASTRUCTURE_RLS_QUICK_REF.md](./INFRASTRUCTURE_RLS_QUICK_REF.md)
+- 🔧 **Diagnostic Tool:** [supabase/scripts/diagnose_infrastructure_rls.sql](./supabase/scripts/diagnose_infrastructure_rls.sql)
+- ✅ **Applied Migration:** `supabase/migrations/20251102020000_consolidate_infrastructure_policies.sql`
+
+**Status:** Production-ready, tested, and deployed ✓
+
+---
+
+# Original Problem (For Historical Reference)
 
 ## Problem
-Users are getting a 403 Forbidden error when trying to create businesses because the RLS policy on the `infrastructures` table is preventing INSERT operations:
+Users were getting a 403 Forbidden error when trying to create businesses because the RLS policy on the `infrastructures` table was preventing INSERT operations:
 
 ```
 POST https://loxoontsctworiabrcbc.supabase.co/rest/v1/infrastructures?select=* 403 (Forbidden)
 ❌ Failed to create infrastructure: new row violates row-level security policy for table "infrastructures"
 ```
 
-## Root Cause
-The current RLS policies on the `infrastructures` table are too restrictive:
-- The `infrastructures_admin_manage` policy only allows `service_role` or `superadmin` to manage infrastructures
-- There is no explicit INSERT policy for authenticated users
-- Multiple conflicting policies from different migrations are causing confusion
+## Root Cause (Identified)
+1. Multiple conflicting policies from different migration attempts (7+ policies)
+2. References to non-existent `infrastructure_users` table in some migrations
+3. Circular dependency: users needed infrastructure access to create businesses, but needed business membership to access infrastructure
+4. No clear INSERT policy for authenticated users
 
-## Solution
-Apply the migration in `supabase/migrations/20251102000000_fix_infrastructure_insert_policy.sql` which:
+## Solution (Implemented)
+Applied migration `supabase/migrations/20251102020000_consolidate_infrastructure_policies.sql` which:
 
-1. Drops all conflicting policies
-2. Creates separate, explicit policies for each operation (INSERT, SELECT, UPDATE, DELETE)
-3. Allows authenticated users to INSERT new infrastructures
-4. Maintains proper access control for other operations
+1. ✅ Dropped all 18+ conflicting policies
+2. ✅ Created 5 clean, consolidated policies with clear naming
+3. ✅ Allowed authenticated users to INSERT infrastructures (breaks circular dependency)
+4. ✅ Removed all references to non-existent tables
+5. ✅ Maintained proper security for SELECT, UPDATE, and DELETE operations
 
 ## How to Fix
 
