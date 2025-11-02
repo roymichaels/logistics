@@ -3888,21 +3888,12 @@ export class SupabaseDataStore implements DataStore {
       try {
         console.log(`🔄 Querying business role (attempt ${roleQueryAttempts}/${maxRoleQueryAttempts})...`);
 
-        // Query the underlying table with role information joined
+        // Query the business_memberships view which has proper joins
         const { data: roleData, error: roleError } = await supabase
-          .from('user_business_roles')
-          .select(`
-            business_id,
-            is_primary,
-            role_id,
-            roles:role_id (
-              role_key,
-              label
-            )
-          `)
+          .from('business_memberships')
+          .select('id, business_id, is_primary, display_role_key, display_role_label')
           .eq('user_id', user.id)
           .eq('business_id', data.id)
-          .eq('is_active', true)
           .maybeSingle();
 
         if (roleError) {
@@ -3933,14 +3924,14 @@ export class SupabaseDataStore implements DataStore {
     }
 
     // Store role information if found
-    if (businessRole && businessRole.roles) {
+    if (businessRole) {
       const businessRoleData = {
         business_id: data.id,
         business_name: data.name,
         business_name_hebrew: data.name_hebrew,
         infrastructure_id: infrastructureId,
-        role_code: businessRole.roles.role_key || 'business_owner',
-        role_name: businessRole.roles.label || 'Business Owner',
+        role_code: businessRole.display_role_key || 'business_owner',
+        role_name: businessRole.display_role_label || 'Business Owner',
         is_primary: businessRole.is_primary
       };
 
