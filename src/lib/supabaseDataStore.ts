@@ -3696,35 +3696,10 @@ export class SupabaseDataStore implements DataStore {
       throw new Error('User not authenticated');
     }
 
-    // Get or create infrastructure
-    let infrastructureId: string;
-    const { data: existingInfrastructures } = await supabase
-      .from('infrastructures')
-      .select('id')
-      .limit(1)
-      .maybeSingle();
-
-    if (existingInfrastructures) {
-      infrastructureId = existingInfrastructures.id;
-      console.log('✅ Using existing infrastructure:', infrastructureId);
-    } else {
-      const { data: newInfrastructure, error: infraError } = await supabase
-        .from('infrastructures')
-        .insert({
-          name: 'Default Infrastructure',
-          description: 'Auto-created infrastructure'
-        })
-        .select()
-        .single();
-
-      if (infraError) {
-        console.error('❌ Failed to create infrastructure:', infraError);
-        throw new Error('Failed to create infrastructure');
-      }
-
-      infrastructureId = newInfrastructure.id;
-      console.log('✅ Created new infrastructure:', infrastructureId);
-    }
+    // Use the default infrastructure ID directly
+    // This avoids RLS issues where users can't SELECT infrastructures they're not yet members of
+    const infrastructureId = '73c82fd4-c0c5-406c-ae94-96d4094c8eae';
+    console.log('✅ Using default infrastructure:', infrastructureId);
 
     // Look up business_type_id
     const { data: businessType, error: typeError } = await supabase
