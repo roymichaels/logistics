@@ -49,8 +49,15 @@ export function BusinessContextSelector({
           await switchBusiness(defaultBusiness.business_id, userBusinesses);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load business context:', error);
+
+      // Provide helpful error message for common database schema issues
+      if (error?.code === '42703' || error?.message?.includes('column') || error?.message?.includes('does not exist')) {
+        console.error('⚠️ Database schema issue detected. This usually resolves after the database migration completes.');
+        console.error('💡 Tip: Try refreshing the page in a few seconds.');
+      }
+
       // Don't show error toast during initialization - business features may not be implemented yet
       // Toast.show(hebrew.errors.loadFailed, 'error');
     } finally {

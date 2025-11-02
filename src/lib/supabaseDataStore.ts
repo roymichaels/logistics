@@ -3748,9 +3748,36 @@ export class SupabaseDataStore implements DataStore {
 
     console.log('✅ createBusiness: Created business:', data.id);
 
-    // Wait for database triggers to complete (increased from 500ms to 1500ms)
+    // Wait for database triggers to complete and verify business role was created
     console.log('⏳ Waiting for database triggers to complete...');
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Verify business role was created by trigger before proceeding
+    console.log('🔍 Verifying business role was created by trigger...');
+    let roleVerified = false;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const { data: roleCheck, error: roleCheckError } = await supabase
+        .from('user_business_roles')
+        .select('id, role_id, is_active')
+        .eq('user_id', user.id)
+        .eq('business_id', data.id)
+        .maybeSingle();
+
+      if (roleCheck && roleCheck.is_active) {
+        console.log('✅ Business role verified:', roleCheck);
+        roleVerified = true;
+        break;
+      }
+
+      if (attempt < 4) {
+        console.log(`⏳ Business role not ready yet, waiting... (attempt ${attempt + 1}/5)`);
+        await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
+      }
+    }
+
+    if (!roleVerified) {
+      console.warn('⚠️ Business role not found after trigger wait - will continue anyway');
+    }
 
     // Step 1: Switch user context to the newly created business (OPTIONAL - will use fallback if fails)
     console.log('🔄 Attempting to switch user context to new business...');
