@@ -1,12 +1,138 @@
-import { corsHeaders } from '../_shared/cors.ts';
-import {
-  HttpError,
-  decodeTenantClaims,
-  requireAccessToken,
-  ensureRoleAllowsInfrastructureTraversal,
-} from '../_shared/tenantGuard.ts';
-import { getServiceSupabaseClient } from '../_shared/supabaseClient.ts';
-import { logAuditEvent } from '../_shared/auditLog.ts';
+import { createClient } from 'npm:@supabase/supabase-js@2';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey, x-app, x-requested-with',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Max-Age': '86400',
+};
+
+const INFRASTRUCTURE_ROLES = new Set([
+  'infrastructure_owner',
+  'infrastructure_manager',
+  'infrastructure_dispatcher',
+  'infrastructure_driver',
+  'infrastructure_warehouse',
+  'infrastructure_accountant',
+]);
+
+class HttpError extends Error {
+  status: number;
+  details?: Record<string, unknown>;
+
+  constructor(status: number, message: string, details?: Record<string, unknown>) {
+    super(message);
+    this.status = status;
+    this.details = details;
+  }
+}
+
+function base64UrlDecode(input: string): string {
+  let normalized = input.replace(/-/g, '+').replace(/_/g, '/');
+  const pad = normalized.length % 4;
+  if (pad) {
+    normalized += '='.repeat(4 - pad);
+  }
+
+  if (typeof atob === 'function') {
+    const binary = atob(normalized);
+    const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  }
+
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(normalized, 'base64').toString('utf-8');
+  }
+
+  throw new Error('No base64 decoder available in current runtime');
+}
+
+function decodeTenantClaims(token: string) {
+  const parts = token.split('.');
+  if (parts.length < 2) {
+    throw new HttpError(401, 'Invalid JWT structure');
+  }
+
+  try {
+    const payloadJson = base64UrlDecode(parts[1]);
+    const payload = JSON.parse(payloadJson);
+    return {
+      userId: payload.sub ?? payload.user_id ?? null,
+      role: payload.role ?? payload.app_role ?? payload.user_role ?? null,
+      infrastructureId: payload.infrastructure_id ?? payload.app_metadata?.infrastructure_id ?? null,
+      businessId: payload.business_id ?? payload.app_metadata?.business_id ?? null,
+      businessRole: payload.business_role ?? payload.app_metadata?.business_role ?? null,
+      contextVersion: typeof payload.context_version === 'number'
+        ? payload.context_version
+        : payload.app_metadata?.context_version ?? null,
+      contextRefreshedAt: payload.context_refreshed_at ?? payload.app_metadata?.context_refreshed_at ?? null,
+    };
+  } catch (error) {
+    throw new HttpError(401, 'Failed to parse JWT payload', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+function requireAccessToken(req: Request): string {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    throw new HttpError(401, 'Authorization header with Bearer token is required');
+  }
+  const token = authHeader.replace('Bearer ', '').trim();
+  if (!token) {
+    throw new HttpError(401, 'Empty Bearer token provided');
+  }
+  return token;
+}
+
+function ensureRoleAllowsInfrastructureTraversal(role: string | null): boolean {
+  return !!role && INFRASTRUCTURE_ROLES.has(role);
+}
+
+function getServiceSupabaseClient() {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new HttpError(500, 'Supabase environment variables are not configured');
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+async function logAuditEvent(supabase: any, payload: any): Promise<void> {
+  const auditPayload = {
+    event_type: payload.eventType,
+    action: payload.action,
+    target_entity_type: payload.targetEntityType,
+    target_entity_id: payload.targetEntityId,
+    business_id: payload.businessId,
+    infrastructure_id: payload.infrastructureId,
+    actor_id: payload.actorId,
+    actor_role: payload.actorRole,
+    change_summary: payload.changeSummary,
+    severity: payload.severity,
+    metadata: payload.metadata ?? {},
+    previous_state: payload.previousState ?? null,
+    new_state: payload.newState ?? null,
+    ip_address: payload.ipAddress,
+    user_agent: payload.userAgent,
+    session_id: payload.sessionId,
+    request_id: payload.requestId,
+  };
+
+  try {
+    await supabase.rpc('audit_log', { payload: auditPayload }).maybeSingle();
+  } catch (error) {
+    console.warn('Audit log warning (non-fatal):', error);
+  }
+}
 
 interface CreateBusinessRequest {
   name: string;
@@ -25,10 +151,7 @@ const DEFAULT_OWNER_ROLE = 'business_owner';
 const DEFAULT_PRIMARY_COLOR = '#1B4B66';
 const DEFAULT_SECONDARY_COLOR = '#F5A623';
 
-async function getActiveContext(
-  supabase: ReturnType<typeof getServiceSupabaseClient>,
-  userId: string
-) {
+async function getActiveContext(supabase: any, userId: string) {
   const { data, error } = await supabase
     .from('user_active_contexts')
     .select('infrastructure_id')
@@ -69,8 +192,6 @@ Deno.serve(async (req: Request) => {
       throw new HttpError(401, 'Unauthorized');
     }
 
-    // Allow users to create their first business (auto-upgrade to business_owner)
-    // Infrastructure roles can create businesses in any infrastructure
     const canCreateBusiness = ensureRoleAllowsInfrastructureTraversal(claims.role) || claims.role === 'user' || claims.role === 'business_owner';
 
     if (!canCreateBusiness) {
@@ -80,7 +201,6 @@ Deno.serve(async (req: Request) => {
     const activeContext = await getActiveContext(supabase, user.id);
     let infrastructureId = payload.infrastructure_id ?? activeContext?.infrastructure_id ?? claims.infrastructureId;
 
-    // If no infrastructure exists, create a default one
     if (!infrastructureId) {
       const { data: existingInfra } = await supabase
         .from('infrastructures')
@@ -164,7 +284,6 @@ Deno.serve(async (req: Request) => {
       throw new HttpError(500, 'Failed to assign business owner', { details: membershipError });
     }
 
-    // Update user's global_role to business_owner and set business_id if currently 'user'
     const { data: currentUser } = await supabase
       .from('users')
       .select('global_role, business_id')
@@ -177,7 +296,6 @@ Deno.serve(async (req: Request) => {
       userUpdates.global_role = 'business_owner';
     }
 
-    // Set business_id on user record if not already set
     if (!currentUser?.business_id) {
       userUpdates.business_id = business.id;
     }
@@ -189,7 +307,6 @@ Deno.serve(async (req: Request) => {
         .eq('id', ownerUserId);
     }
 
-    // Sync JWT claims with new business role
     try {
       const { data: businessRole } = await supabase
         .from('business_memberships')
@@ -198,10 +315,9 @@ Deno.serve(async (req: Request) => {
         .eq('business_id', business.id)
         .maybeSingle();
 
-      // Update JWT claims in auth.users metadata
       await supabase.auth.admin.updateUserById(ownerUserId, {
         app_metadata: {
-          role: currentUser?.global_role || 'business_owner',
+          role: userUpdates.global_role || currentUser?.global_role || 'business_owner',
           business_id: business.id,
           business_role: businessRole?.display_role_key || ownerRoleKey,
           infrastructure_id: infrastructureId,
