@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import type { CreatePostInput, PostVisibility } from '../../data/types';
+import { useAppServices } from '../../context/AppServicesContext';
+import { MediaUploadService } from '../../services/mediaUpload';
+import type { CreatePostInput, PostVisibility, MediaType } from '../../data/types';
 
 interface CreatePostBoxProps {
   onSubmit: (input: CreatePostInput) => Promise<void>;
@@ -8,25 +10,76 @@ interface CreatePostBoxProps {
   replyToPostId?: string;
 }
 
+interface MediaPreview {
+  file: File;
+  url: string;
+  type: MediaType;
+}
+
 export function CreatePostBox({ onSubmit, placeholder = "What's happening?", replyToPostId }: CreatePostBoxProps) {
   const { user } = useAuth();
+  const { dataStore } = useAppServices();
   const [content, setContent] = useState('');
   const [visibility, setVisibility] = useState<PostVisibility>('public');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mediaFiles, setMediaFiles] = useState<MediaPreview[]>([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const newPreviews: MediaPreview[] = [];
+    for (const file of files) {
+      const url = URL.createObjectURL(file);
+      const type: MediaType = file.type.startsWith('video/') ? 'video' : 'image';
+      newPreviews.push({ file, url, type });
+    }
+
+    setMediaFiles((prev) => [...prev, ...newPreviews].slice(0, 4));
+  };
+
+  const removeMedia = (index: number) => {
+    setMediaFiles((prev) => {
+      URL.revokeObjectURL(prev[index].url);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
 
   const handleSubmit = async () => {
-    if (!content.trim() || isSubmitting) return;
+    if ((!content.trim() && mediaFiles.length === 0) || isSubmitting) return;
 
     setIsSubmitting(true);
+    setUploadProgress(0);
+
     try {
+      let uploadedMedia: Array<{ media_type: MediaType; media_url: string; thumbnail_url?: string }> = [];
+
+      if (mediaFiles.length > 0) {
+        const mediaService = new MediaUploadService(dataStore.supabase);
+        const results = await mediaService.uploadMultiple(mediaFiles.map((m) => m.file));
+        uploadedMedia = results.map((result) => ({
+          media_type: result.type,
+          media_url: result.url,
+          thumbnail_url: result.thumbnail
+        }));
+        setUploadProgress(100);
+      }
+
       await onSubmit({
-        content: content.trim(),
+        content: content.trim() || 'Shared media',
         visibility,
-        reply_to_post_id: replyToPostId
+        reply_to_post_id: replyToPostId,
+        media: uploadedMedia.length > 0 ? uploadedMedia : undefined
       });
+
       setContent('');
+      setMediaFiles([]);
+      setUploadProgress(0);
     } catch (error) {
       console.error('Failed to create post:', error);
+      alert('Failed to create post. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -60,25 +113,60 @@ export function CreatePostBox({ onSubmit, placeholder = "What's happening?", rep
           rows={3}
         />
 
+        {mediaFiles.length > 0 && (
+          <div className={`mt-3 grid gap-2 ${mediaFiles.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            {mediaFiles.map((media, index) => (
+              <div key={index} className="relative rounded-2xl overflow-hidden bg-gray-100">
+                {media.type === 'image' ? (
+                  <img src={media.url} alt="Preview" className="w-full h-48 object-cover" />
+                ) : (
+                  <video src={media.url} className="w-full h-48 object-cover" />
+                )}
+                <button
+                  onClick={() => removeMedia(index)}
+                  className="absolute top-2 right-2 w-8 h-8 bg-gray-900 bg-opacity-75 text-white rounded-full hover:bg-opacity-90 transition-colors flex items-center justify-center"
+                  title="Remove"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {uploadProgress > 0 && uploadProgress < 100 && (
+          <div className="mt-3">
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+            <p className="text-sm text-gray-500 mt-1">Uploading media... {uploadProgress}%</p>
+          </div>
+        )}
+
         <div className="flex items-center justify-between mt-3 pt-3 border-t">
           <div className="flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+            />
             <button
               type="button"
-              className="p-2 text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
-              title="Add image"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={mediaFiles.length >= 4}
+              className="p-2 text-blue-500 hover:bg-blue-50 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Add image or video"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </button>
-
-            <button
-              type="button"
-              className="p-2 text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
-              title="Add GIF"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </button>
 

@@ -111,6 +111,15 @@ const DriversManagement = lazy(() =>
 const UserHomepage = lazy(() =>
   import('./pages/UserHomepage').then((module) => ({ default: module.UserHomepage }))
 );
+const SocialFeed = lazy(() =>
+  import('./pages/SocialFeed').then((module) => ({ default: module.SocialFeed }))
+);
+const UserProfilePage = lazy(() =>
+  import('./pages/UserProfile').then((module) => ({ default: module.UserProfilePage }))
+);
+const SocialAnalytics = lazy(() =>
+  import('./pages/SocialAnalytics').then((module) => ({ default: module.SocialAnalytics }))
+);
 
 type Page =
   | 'dashboard'
@@ -141,7 +150,10 @@ type Page =
   | 'manager-inventory'
   | 'zone-management'
   | 'drivers-management'
-  | 'user-homepage';
+  | 'user-homepage'
+  | 'social-feed'
+  | 'social-profile'
+  | 'social-analytics';
 
 export default function App() {
   console.log('🎨 App component rendering...');
@@ -819,6 +831,12 @@ export default function App() {
         return <Settings dataStore={dataStore} onNavigate={handleNavigate} config={config} currentUser={user} />;
       case 'profile':
         return <Profile dataStore={dataStore} onNavigate={handleNavigate} />;
+      case 'social-feed':
+        return <SocialFeed />;
+      case 'social-profile':
+        return <UserProfilePage />;
+      case 'social-analytics':
+        return <SocialAnalytics />;
       default:
         return <Dashboard dataStore={dataStore} onNavigate={handleNavigate} />;
     }
