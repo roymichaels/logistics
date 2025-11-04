@@ -2,6 +2,7 @@ import React from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { hebrew } from '../lib/hebrew';
 import { useAppServices } from '../context/AppServicesContext';
+import { TWITTER_COLORS } from '../styles/twitterTheme';
 
 /**
  * 🧠 ROY MICHAELS MILITARIZED NAVIGATION
@@ -231,30 +232,30 @@ export function BottomNavigation({
           height: '64px',
           borderRadius: '50%',
           background: action?.disabled
-            ? `rgba(100, 100, 120, 0.3)`
-            : 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
-          color: action?.disabled ? theme.hint_color : '#ffffff',
+            ? TWITTER_COLORS.textTertiary
+            : TWITTER_COLORS.gradientPrimary,
+          color: action?.disabled ? TWITTER_COLORS.textSecondary : TWITTER_COLORS.white,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: '28px',
           boxShadow: action?.disabled
             ? 'none'
-            : '0 8px 24px rgba(156, 109, 255, 0.5), 0 0 40px rgba(156, 109, 255, 0.3)',
-          border: '3px solid rgba(25, 0, 80, 0.95)',
+            : TWITTER_COLORS.glow,
+          border: `3px solid ${TWITTER_COLORS.background}`,
           transform: action?.disabled ? 'scale(1)' : 'scale(1.1)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
         }}
         onMouseEnter={(e) => {
           if (!action?.disabled) {
             e.currentTarget.style.transform = 'scale(1.15)';
-            e.currentTarget.style.boxShadow = '0 12px 32px rgba(156, 109, 255, 0.6), 0 0 50px rgba(156, 109, 255, 0.4)';
+            e.currentTarget.style.boxShadow = TWITTER_COLORS.glowLarge;
           }
         }}
         onMouseLeave={(e) => {
           if (!action?.disabled) {
             e.currentTarget.style.transform = 'scale(1.1)';
-            e.currentTarget.style.boxShadow = '0 8px 24px rgba(156, 109, 255, 0.5), 0 0 40px rgba(156, 109, 255, 0.3)';
+            e.currentTarget.style.boxShadow = TWITTER_COLORS.glow;
           }
         }}
       >
@@ -262,7 +263,7 @@ export function BottomNavigation({
       </div>
       <span style={{
         fontSize: '10px',
-        color: action?.disabled ? theme.hint_color : '#bfa9ff',
+        color: action?.disabled ? TWITTER_COLORS.textSecondary : TWITTER_COLORS.primary,
         marginTop: '6px',
         fontWeight: '600'
       }}>
@@ -273,13 +274,17 @@ export function BottomNavigation({
 
   const navItems: React.ReactNode[] = [];
 
-  // Calculate middle position for action button
+  // Calculate positions for proper centering in RTL
+  const hasSidebarButton = userRole && userRole !== 'user' && onOpenSidebar;
   const totalTabs = tabs.length;
-  const leftTabsCount = Math.floor(totalTabs / 2);
-  const rightTabsCount = totalTabs - leftTabsCount;
+
+  // In RTL: sidebar (right) | tabs | ACTION (center) | tabs | empty space (left)
+  // We need to balance tabs on both sides of the center action button
+  const leftSideTabs = Math.floor(totalTabs / 2); // tabs to the left of center button
+  const rightSideTabs = totalTabs - leftSideTabs; // tabs to the right of center button
 
   // Add תפקידי button on the far right (first in RTL layout)
-  if (userRole && userRole !== 'user' && onOpenSidebar) {
+  if (hasSidebarButton) {
     navItems.push(
       <button
         key="sidebar-menu"
@@ -297,7 +302,7 @@ export function BottomNavigation({
           padding: '8px 4px',
           border: 'none',
           backgroundColor: 'transparent',
-          color: 'rgba(191, 169, 255, 0.9)',
+          color: TWITTER_COLORS.textSecondary,
           cursor: 'pointer',
           fontSize: '11px',
           fontWeight: '600',
@@ -307,7 +312,7 @@ export function BottomNavigation({
       >
         <span style={{
           fontSize: '22px',
-          filter: 'drop-shadow(0 0 6px rgba(156, 109, 255, 0.6))',
+          filter: `drop-shadow(0 0 6px ${TWITTER_COLORS.accentGlow})`,
           transition: 'all 0.2s ease'
         }}>
           📋
@@ -317,8 +322,8 @@ export function BottomNavigation({
     );
   }
 
-  // Add right side tabs (in RTL: leftmost visible tabs)
-  for (let i = 0; i < rightTabsCount; i++) {
+  // Add right side tabs (before center button in RTL)
+  for (let i = 0; i < rightSideTabs; i++) {
     const tab = tabs[i];
     navItems.push(
       <button
@@ -337,7 +342,7 @@ export function BottomNavigation({
           padding: '8px 4px',
           border: 'none',
           backgroundColor: 'transparent',
-          color: currentPage === tab.id ? '#9c6dff' : 'rgba(191, 169, 255, 0.6)',
+          color: currentPage === tab.id ? TWITTER_COLORS.primary : TWITTER_COLORS.textSecondary,
           cursor: 'pointer',
           fontSize: '11px',
           fontWeight: currentPage === tab.id ? '600' : '500',
@@ -348,7 +353,7 @@ export function BottomNavigation({
       >
         <span style={{
           fontSize: currentPage === tab.id ? '24px' : '22px',
-          filter: currentPage === tab.id ? 'drop-shadow(0 0 8px rgba(156, 109, 255, 0.8))' : 'none',
+          filter: currentPage === tab.id ? `drop-shadow(0 0 8px ${TWITTER_COLORS.accentGlow})` : 'none',
           transition: 'all 0.2s ease'
         }}>
           {tab.icon}
@@ -362,9 +367,9 @@ export function BottomNavigation({
             transform: 'translateX(-50%)',
             width: '32px',
             height: '3px',
-            background: 'linear-gradient(90deg, transparent, #9c6dff, transparent)',
+            background: `linear-gradient(90deg, transparent, ${TWITTER_COLORS.primary}, transparent)`,
             borderRadius: '2px',
-            boxShadow: '0 0 8px rgba(156, 109, 255, 0.6)'
+            boxShadow: `0 0 8px ${TWITTER_COLORS.accentGlow}`
           }} />
         )}
       </button>
@@ -376,8 +381,8 @@ export function BottomNavigation({
     navItems.push(renderActionSlot());
   }
 
-  // Add left side tabs (in RTL: rightmost visible tabs)
-  for (let i = rightTabsCount; i < totalTabs; i++) {
+  // Add left side tabs (after center button in RTL)
+  for (let i = rightSideTabs; i < totalTabs; i++) {
     const tab = tabs[i];
     navItems.push(
       <button
@@ -396,7 +401,7 @@ export function BottomNavigation({
           padding: '8px 4px',
           border: 'none',
           backgroundColor: 'transparent',
-          color: currentPage === tab.id ? '#9c6dff' : 'rgba(191, 169, 255, 0.6)',
+          color: currentPage === tab.id ? TWITTER_COLORS.primary : TWITTER_COLORS.textSecondary,
           cursor: 'pointer',
           fontSize: '11px',
           fontWeight: currentPage === tab.id ? '600' : '500',
@@ -407,7 +412,7 @@ export function BottomNavigation({
       >
         <span style={{
           fontSize: currentPage === tab.id ? '24px' : '22px',
-          filter: currentPage === tab.id ? 'drop-shadow(0 0 8px rgba(156, 109, 255, 0.8))' : 'none',
+          filter: currentPage === tab.id ? `drop-shadow(0 0 8px ${TWITTER_COLORS.accentGlow})` : 'none',
           transition: 'all 0.2s ease'
         }}>
           {tab.icon}
@@ -421,9 +426,9 @@ export function BottomNavigation({
             transform: 'translateX(-50%)',
             width: '32px',
             height: '3px',
-            background: 'linear-gradient(90deg, transparent, #9c6dff, transparent)',
+            background: `linear-gradient(90deg, transparent, ${TWITTER_COLORS.primary}, transparent)`,
             borderRadius: '2px',
-            boxShadow: '0 0 8px rgba(156, 109, 255, 0.6)'
+            boxShadow: `0 0 8px ${TWITTER_COLORS.accentGlow}`
           }} />
         )}
       </button>
@@ -438,10 +443,10 @@ export function BottomNavigation({
           bottom: 0,
           left: 0,
           right: 0,
-          background: 'linear-gradient(180deg, rgba(25, 0, 80, 0.70) 0%, rgba(25, 0, 80, 0.95) 100%)',
-          backdropFilter: 'blur(10px)',
-          borderTop: '1px solid rgba(156, 109, 255, 0.2)',
-          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.3)',
+          background: TWITTER_COLORS.navBackground,
+          backdropFilter: TWITTER_COLORS.navBackdrop,
+          borderTop: `1px solid ${TWITTER_COLORS.navBorder}`,
+          boxShadow: TWITTER_COLORS.shadowLarge,
           display: 'flex',
           padding: '12px 8px 18px 8px',
           zIndex: 1000,

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo, useContext } from 'react';
 import { ROYAL_COLORS } from '../styles/royalTheme';
+import { TWITTER_COLORS } from '../styles/twitterTheme';
 import { BusinessContextSelector } from './BusinessContextSelector';
 import { requiresBusinessContext } from '../lib/rolePermissions';
 import { AppServicesContext } from '../context/AppServicesContext';
@@ -85,17 +86,37 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
   return (
     <header
       className="header-container"
-      style={{ borderBottom: `1px solid ${ROYAL_COLORS.border}` }}
+      style={{
+        borderBottom: `1px solid ${TWITTER_COLORS.border}`,
+        background: TWITTER_COLORS.navBackground,
+        backdropFilter: TWITTER_COLORS.navBackdrop
+      }}
     >
       {/* Logo/Brand */}
       <div className="header-logo-container">
-        <div className="header-logo-circle">UL</div>
+        <div
+          className="header-logo-circle"
+          style={{
+            background: TWITTER_COLORS.gradientPrimary,
+            boxShadow: TWITTER_COLORS.glow,
+            border: 'none',
+            animation: 'pulse-glow 2s ease-in-out infinite'
+          }}
+        >
+          <style>{`
+            @keyframes pulse-glow {
+              0%, 100% {
+                box-shadow: ${TWITTER_COLORS.glow};
+              }
+              50% {
+                box-shadow: ${TWITTER_COLORS.glowLarge};
+              }
+            }
+          `}</style>
+        </div>
         <div className="header-brand-container">
-          <div className="header-brand-title" style={{ color: ROYAL_COLORS.text }}>
+          <div className="header-brand-title" style={{ color: TWITTER_COLORS.text }}>
             UndergroundLab
-          </div>
-          <div className="header-brand-subtitle" style={{ color: ROYAL_COLORS.muted }}>
-            Logistics
           </div>
         </div>
       </div>
@@ -121,27 +142,27 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 onClick={onCreateBusiness}
                 style={{
                   padding: '10px 20px',
-                  background: 'linear-gradient(135deg, #f6c945, #f39c12)',
+                  background: TWITTER_COLORS.gradientPrimary,
                   border: 'none',
-                  borderRadius: '12px',
-                  color: '#ffffff',
+                  borderRadius: '9999px',
+                  color: TWITTER_COLORS.white,
                   fontSize: '14px',
-                  fontWeight: '600',
+                  fontWeight: '700',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  boxShadow: '0 2px 8px rgba(246, 201, 69, 0.3)',
+                  boxShadow: TWITTER_COLORS.shadow,
                   transition: 'all 0.2s ease',
                   fontFamily: 'inherit'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(246, 201, 69, 0.4)';
+                  e.currentTarget.style.background = TWITTER_COLORS.primaryHover;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(246, 201, 69, 0.3)';
+                  e.currentTarget.style.background = TWITTER_COLORS.gradientPrimary;
                 }}
               >
                 <span style={{ fontSize: '16px' }}>🏢</span>
@@ -153,27 +174,26 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 onClick={onBecomeDriver}
                 style={{
                   padding: '10px 20px',
-                  background: 'linear-gradient(135deg, #4dd0e1, #00acc1)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  color: '#ffffff',
+                  background: TWITTER_COLORS.buttonSecondary,
+                  border: `1px solid ${TWITTER_COLORS.buttonSecondaryBorder}`,
+                  borderRadius: '9999px',
+                  color: TWITTER_COLORS.buttonSecondaryText,
                   fontSize: '14px',
-                  fontWeight: '600',
+                  fontWeight: '700',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  boxShadow: '0 2px 8px rgba(77, 208, 225, 0.3)',
                   transition: 'all 0.2s ease',
                   fontFamily: 'inherit'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(77, 208, 225, 0.4)';
+                  e.currentTarget.style.background = TWITTER_COLORS.backgroundHover;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(77, 208, 225, 0.3)';
+                  e.currentTarget.style.background = TWITTER_COLORS.buttonSecondary;
                 }}
               >
                 <span style={{ fontSize: '16px' }}>🚗</span>
@@ -185,27 +205,26 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 onClick={onSearchBusiness}
                 style={{
                   padding: '10px 20px',
-                  background: 'linear-gradient(135deg, #9c6dff, #7b3ff2)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  color: '#ffffff',
+                  background: TWITTER_COLORS.buttonSecondary,
+                  border: `1px solid ${TWITTER_COLORS.buttonSecondaryBorder}`,
+                  borderRadius: '9999px',
+                  color: TWITTER_COLORS.buttonSecondaryText,
                   fontSize: '14px',
-                  fontWeight: '600',
+                  fontWeight: '700',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  boxShadow: '0 2px 8px rgba(156, 109, 255, 0.3)',
                   transition: 'all 0.2s ease',
                   fontFamily: 'inherit'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(156, 109, 255, 0.4)';
+                  e.currentTarget.style.background = TWITTER_COLORS.backgroundHover;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(156, 109, 255, 0.3)';
+                  e.currentTarget.style.background = TWITTER_COLORS.buttonSecondary;
                 }}
               >
                 <span style={{ fontSize: '16px' }}>🔍</span>
@@ -222,14 +241,14 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
           onClick={() => setDropdownOpen(!dropdownOpen)}
           className={`header-avatar-button ${dropdownOpen ? 'open' : ''}`}
           style={{
-            border: `2px solid ${ROYAL_COLORS.primary}`,
+            border: `2px solid ${TWITTER_COLORS.primary}`,
             background: user?.photo_url
               ? `url(${user.photo_url}) center/cover`
-              : 'linear-gradient(135deg, #9C6DFF 0%, #7B3FF2 100%)',
-            color: ROYAL_COLORS.white,
+              : TWITTER_COLORS.gradientPrimary,
+            color: TWITTER_COLORS.white,
             boxShadow: dropdownOpen
-              ? '0 0 0 3px rgba(156, 109, 255, 0.3)'
-              : '0 2px 8px rgba(156, 109, 255, 0.2)'
+              ? `0 0 0 3px ${TWITTER_COLORS.accentGlow}`
+              : TWITTER_COLORS.shadow
           }}
         >
           {!user?.photo_url && userInitial}
@@ -240,24 +259,24 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
           <div
             className="header-dropdown-menu"
             style={{
-              background: ROYAL_COLORS.cardBg,
-              border: `1px solid ${ROYAL_COLORS.border}`
+              background: TWITTER_COLORS.card,
+              border: `1px solid ${TWITTER_COLORS.border}`
             }}
           >
             {/* User Info Section */}
             <div
               className="header-dropdown-user-info"
-              style={{ borderBottom: `1px solid ${ROYAL_COLORS.border}` }}
+              style={{ borderBottom: `1px solid ${TWITTER_COLORS.border}` }}
             >
-              <div className="header-dropdown-username" style={{ color: ROYAL_COLORS.text }}>
+              <div className="header-dropdown-username" style={{ color: TWITTER_COLORS.text }}>
                 {userName}
               </div>
               {user?.username && (
-                <div className="header-dropdown-handle" style={{ color: ROYAL_COLORS.muted }}>
+                <div className="header-dropdown-handle" style={{ color: TWITTER_COLORS.textSecondary }}>
                   @{user.username}
                 </div>
               )}
-              <div className="header-dropdown-role" style={{ color: ROYAL_COLORS.primary }}>
+              <div className="header-dropdown-role" style={{ color: TWITTER_COLORS.primary }}>
                 {user?.role === 'infrastructure_owner' ? 'בעל תשתית 👑' :
                  user?.role === 'business_owner' ? 'בעלים 👑' :
                  user?.role === 'manager' ? 'מנהל' :
@@ -274,7 +293,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
               <button
                 onClick={() => handleMenuClick('profile')}
                 className="header-dropdown-button"
-                style={{ color: ROYAL_COLORS.text }}
+                style={{ color: TWITTER_COLORS.text }}
               >
                 <span className="header-dropdown-button-icon">👤</span>
                 <span className="header-dropdown-button-text">הפרופיל שלי</span>
@@ -283,7 +302,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
               <button
                 onClick={() => handleMenuClick('settings')}
                 className="header-dropdown-button"
-                style={{ color: ROYAL_COLORS.text }}
+                style={{ color: TWITTER_COLORS.text }}
               >
                 <span className="header-dropdown-button-icon">⚙️</span>
                 <span className="header-dropdown-button-text">הגדרות</span>
@@ -291,7 +310,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
 
               <div
                 className="header-dropdown-divider"
-                style={{ background: ROYAL_COLORS.border }}
+                style={{ background: TWITTER_COLORS.border }}
               />
 
               <button

@@ -28,18 +28,22 @@ interface DashboardProps {
 
 const numberFormatter = new Intl.NumberFormat('he-IL');
 
-const ROYAL_COLORS = {
-  background: 'radial-gradient(125% 125% at 50% 0%, rgba(95, 46, 170, 0.55) 0%, rgba(12, 2, 25, 0.95) 45%, #03000a 100%)',
-  card: 'rgba(24, 10, 45, 0.75)',
-  cardBorder: 'rgba(140, 91, 238, 0.45)',
-  muted: '#bfa9ff',
-  text: '#f4f1ff',
-  accent: '#9c6dff',
-  gold: '#f6c945',
-  crimson: '#ff6b8a',
-  teal: '#4dd0e1',
-  emerald: '#4ade80',
-  shadow: '0 20px 40px rgba(20, 4, 54, 0.45)'
+// Import Twitter dark theme
+import { TWITTER_COLORS } from '../styles/twitterTheme';
+
+// Dashboard colors based on Twitter dark theme
+const DASHBOARD_COLORS = {
+  background: TWITTER_COLORS.background,
+  card: TWITTER_COLORS.card,
+  cardBorder: TWITTER_COLORS.cardBorder,
+  muted: TWITTER_COLORS.textSecondary,
+  text: TWITTER_COLORS.text,
+  accent: TWITTER_COLORS.primary,
+  gold: TWITTER_COLORS.success, // Green for positive metrics
+  crimson: TWITTER_COLORS.error,
+  teal: TWITTER_COLORS.info,
+  emerald: TWITTER_COLORS.success,
+  shadow: TWITTER_COLORS.shadowLarge
 };
 
 export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
@@ -309,23 +313,14 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     <div
       style={{
         minHeight: '100vh',
-        background: ROYAL_COLORS.background,
+        background: DASHBOARD_COLORS.background,
         padding: '28px clamp(16px, 5vw, 40px)',
-        color: ROYAL_COLORS.text,
+        color: DASHBOARD_COLORS.text,
         direction: 'rtl',
         position: 'relative',
         overflow: 'hidden'
       }}
     >
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background:
-            'radial-gradient(80% 80% at 80% 10%, rgba(246, 201, 69, 0.08) 0%, rgba(20, 6, 58, 0) 60%), radial-gradient(65% 65% at 15% 20%, rgba(157, 78, 221, 0.18) 0%, rgba(38, 12, 85, 0) 70%)',
-          pointerEvents: 'none'
-        }}
-      />
 
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', maxWidth: '100%' }}>
         <RoyalHeader user={user} metrics={metrics} onNavigate={onNavigate} />
@@ -364,11 +359,11 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
 
         {/* Charts - Full Width Stack */}
         <RoyalSection title="עקומת הכנסות - 7 ימים" accent>
-          <RoyalLineChart data={revenueTrend} color={ROYAL_COLORS.gold} />
+          <RoyalLineChart data={revenueTrend} color={DASHBOARD_COLORS.gold} />
         </RoyalSection>
 
         <RoyalSection title="קצב הזמנות / שעה" accent>
-          <RoyalBarChart data={ordersPerHour} color={ROYAL_COLORS.accent} />
+          <RoyalBarChart data={ordersPerHour} color={DASHBOARD_COLORS.accent} />
         </RoyalSection>
 
         {/* Agents Section - Full Width */}
@@ -429,48 +424,40 @@ function RoyalHeader({ user, metrics, onNavigate }: { user: User | null; metrics
         flexDirection: 'column',
         gap: '18px',
         padding: '24px',
-        background: 'linear-gradient(120deg, rgba(82, 36, 142, 0.55), rgba(20, 9, 49, 0.8))',
-        borderRadius: '22px',
-        border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-        boxShadow: ROYAL_COLORS.shadow,
+        background: DASHBOARD_COLORS.card,
+        borderRadius: '16px',
+        border: `1px solid ${DASHBOARD_COLORS.cardBorder}`,
+        boxShadow: DASHBOARD_COLORS.shadow,
         position: 'relative',
         overflow: 'hidden'
       }}
     >
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(55% 55% at 85% 20%, rgba(246, 201, 69, 0.22) 0%, rgba(59, 20, 106, 0) 60%)',
-          pointerEvents: 'none'
-        }}
-      />
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' }}>
           <div>
             <div style={{ fontSize: '28px', fontWeight: 700 }}>{greeting}, {user?.name || 'מפקדת'}</div>
-            <div style={{ color: ROYAL_COLORS.muted, fontSize: '15px', marginTop: '4px' }}>
-              👑 מצב האימפריה מעודכן. הכנסות היום: <strong>{formatCurrency(metrics.revenueToday)}</strong>
+            <div style={{ color: DASHBOARD_COLORS.muted, fontSize: '15px', marginTop: '4px' }}>
+              מצב המערכת מעודכן. הכנסות היום: <strong>{formatCurrency(metrics.revenueToday)}</strong>
             </div>
           </div>
           <button
             onClick={() => onNavigate('orders')}
             style={{
-              border: 'none',
-              background: 'rgba(255, 255, 255, 0.08)',
-              color: ROYAL_COLORS.text,
+              border: `1px solid ${TWITTER_COLORS.buttonSecondaryBorder}`,
+              background: TWITTER_COLORS.buttonSecondary,
+              color: DASHBOARD_COLORS.text,
               padding: '10px 16px',
-              borderRadius: '999px',
+              borderRadius: '9999px',
               fontSize: '14px',
               cursor: 'pointer',
-              backdropFilter: 'blur(12px)'
+              fontWeight: '700'
             }}
           >
             תצוגת הזמנות →
           </button>
         </div>
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <RoyalBadge text="מצב מלכותי פעיל" tone="gold" />
+          <RoyalBadge text="מצב פעיל" tone="gold" />
           <RoyalBadge text={`כיסוי ${numberFormatter.format(metrics.coveragePercent)}%`} tone="accent" />
           <RoyalBadge text={`${numberFormatter.format(metrics.activeDrivers)} נהגים בזירה`} tone="outline" />
         </div>
@@ -481,10 +468,10 @@ function RoyalHeader({ user, metrics, onNavigate }: { user: User | null; metrics
 
 function RoyalMetricCard({ label, value, subtitle, tone, icon }: { label: string; value: string; subtitle?: string; tone: 'gold' | 'crimson' | 'teal' | 'purple'; icon?: string }) {
   const toneColor = {
-    gold: ROYAL_COLORS.gold,
-    crimson: ROYAL_COLORS.crimson,
-    teal: ROYAL_COLORS.teal,
-    purple: ROYAL_COLORS.accent
+    gold: DASHBOARD_COLORS.gold,
+    crimson: DASHBOARD_COLORS.crimson,
+    teal: DASHBOARD_COLORS.teal,
+    purple: DASHBOARD_COLORS.accent
   }[tone];
 
   return (
@@ -492,23 +479,23 @@ function RoyalMetricCard({ label, value, subtitle, tone, icon }: { label: string
       style={{
         width: '100%',
         padding: '20px',
-        borderRadius: '20px',
-        background: ROYAL_COLORS.card,
-        border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-        boxShadow: ROYAL_COLORS.shadow,
+        borderRadius: '16px',
+        background: DASHBOARD_COLORS.card,
+        border: `1px solid ${DASHBOARD_COLORS.cardBorder}`,
+        boxShadow: DASHBOARD_COLORS.shadow,
         display: 'flex',
         flexDirection: 'column',
         gap: '10px'
       }}
     >
-      <div style={{ fontSize: '15px', color: ROYAL_COLORS.muted }}>{label}</div>
+      <div style={{ fontSize: '15px', color: DASHBOARD_COLORS.muted }}>{label}</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         {icon && (
           <span style={{ fontSize: '28px' }}>{icon}</span>
         )}
         <div style={{ fontSize: '28px', fontWeight: 700, color: toneColor }}>{value}</div>
       </div>
-      {subtitle && <div style={{ color: ROYAL_COLORS.muted, fontSize: '13px' }}>{subtitle}</div>}
+      {subtitle && <div style={{ color: DASHBOARD_COLORS.muted, fontSize: '13px' }}>{subtitle}</div>}
     </div>
   );
 }
@@ -544,12 +531,10 @@ function RoyalSection({
       style={{
         width: '100%',
         padding: '24px',
-        borderRadius: '22px',
-        background: accent
-          ? 'linear-gradient(140deg, rgba(63, 33, 109, 0.75), rgba(22, 10, 42, 0.85))'
-          : ROYAL_COLORS.card,
-        border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-        boxShadow: ROYAL_COLORS.shadow,
+        borderRadius: '16px',
+        background: accent ? TWITTER_COLORS.backgroundSecondary : DASHBOARD_COLORS.card,
+        border: `1px solid ${DASHBOARD_COLORS.cardBorder}`,
+        boxShadow: DASHBOARD_COLORS.shadow,
         display: 'flex',
         flexDirection: 'column',
         gap: '18px',
@@ -558,7 +543,7 @@ function RoyalSection({
     >
       <div>
         <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>{title}</h2>
-        {description && <p style={{ margin: '6px 0 0', color: ROYAL_COLORS.muted, fontSize: '13px' }}>{description}</p>}
+        {description && <p style={{ margin: '6px 0 0', color: DASHBOARD_COLORS.muted, fontSize: '13px' }}>{description}</p>}
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>{children}</div>
     </section>
@@ -611,7 +596,7 @@ function RoyalLineChart({ data, color }: { data: RoyalDashboardChartPoint[]; col
           display: 'flex',
           justifyContent: 'space-between',
           fontSize: '12px',
-          color: ROYAL_COLORS.muted,
+          color: DASHBOARD_COLORS.muted,
           paddingTop: '6px'
         }}
       >
@@ -640,11 +625,11 @@ function RoyalBarChart({ data, color }: { data: RoyalDashboardChartPoint[]; colo
                 width: '100%',
                 height: `${Math.max(height, 6)}%`,
                 borderRadius: '12px 12px 4px 4px',
-                background: `linear-gradient(180deg, ${color}, rgba(156, 109, 255, 0.25))`,
-                boxShadow: '0 8px 20px rgba(40, 12, 82, 0.45)'
+                background: color,
+                boxShadow: TWITTER_COLORS.shadow
               }}
             />
-            <span style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>{point.label}</span>
+            <span style={{ fontSize: '11px', color: DASHBOARD_COLORS.muted }}>{point.label}</span>
           </div>
         );
       })}
@@ -653,7 +638,7 @@ function RoyalBarChart({ data, color }: { data: RoyalDashboardChartPoint[]; colo
 }
 
 function RoyalAgentRow({ agent }: { agent: RoyalDashboardAgent }) {
-  const statusTone = agent.status === 'offline' ? 'rgba(255, 255, 255, 0.2)' : ROYAL_COLORS.accent;
+  const statusTone = agent.status === 'offline' ? 'rgba(255, 255, 255, 0.2)' : DASHBOARD_COLORS.accent;
   const statusLabel = agent.status === 'offline' ? 'מנותק' : agent.status === 'available' ? 'זמין' : 'במשימה';
 
   return (
@@ -664,8 +649,8 @@ function RoyalAgentRow({ agent }: { agent: RoyalDashboardAgent }) {
         justifyContent: 'space-between',
         padding: '14px 16px',
         borderRadius: '16px',
-        background: 'rgba(20, 8, 46, 0.6)',
-        border: `1px solid rgba(156, 109, 255, 0.25)`
+        background: TWITTER_COLORS.backgroundSecondary,
+        border: `1px solid ${TWITTER_COLORS.border}`
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -674,7 +659,7 @@ function RoyalAgentRow({ agent }: { agent: RoyalDashboardAgent }) {
             width: '40px',
             height: '40px',
             borderRadius: '12px',
-            background: 'linear-gradient(130deg, rgba(80, 33, 140, 0.7), rgba(33, 12, 73, 0.7))',
+            background: TWITTER_COLORS.gradientPrimary,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -685,7 +670,7 @@ function RoyalAgentRow({ agent }: { agent: RoyalDashboardAgent }) {
         </div>
         <div>
           <div style={{ fontWeight: 600 }}>{agent.name}</div>
-          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+          <div style={{ fontSize: '12px', color: DASHBOARD_COLORS.muted }}>
             {agent.zone || 'ללא אזור'} · {numberFormatter.format(agent.ordersInProgress)} משלוחים פתוחים
           </div>
         </div>
@@ -700,9 +685,9 @@ function RoyalZoneCard({ zone }: { zone: RoyalDashboardZoneCoverage }) {
     <div
       style={{
         padding: '16px',
-        borderRadius: '18px',
-        background: 'rgba(18, 6, 38, 0.75)',
-        border: `1px solid rgba(156, 109, 255, 0.25)`,
+        borderRadius: '16px',
+        background: TWITTER_COLORS.backgroundSecondary,
+        border: `1px solid ${TWITTER_COLORS.border}`,
         display: 'flex',
         flexDirection: 'column',
         gap: '8px'
@@ -710,9 +695,9 @@ function RoyalZoneCard({ zone }: { zone: RoyalDashboardZoneCoverage }) {
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <strong>{zone.zoneName}</strong>
-        <span style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>{numberFormatter.format(zone.activeDrivers)} נהגים</span>
+        <span style={{ fontSize: '12px', color: DASHBOARD_COLORS.muted }}>{numberFormatter.format(zone.activeDrivers)} נהגים</span>
       </div>
-      <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+      <div style={{ fontSize: '12px', color: DASHBOARD_COLORS.muted }}>
         {zone.outstandingOrders > 0
           ? `${numberFormatter.format(zone.outstandingOrders)} משלוחים ממתינים`
           : 'אין משלוחים ממתינים'}
@@ -721,12 +706,12 @@ function RoyalZoneCard({ zone }: { zone: RoyalDashboardZoneCoverage }) {
         <div
           style={{
             width: `${Math.min(zone.coveragePercent, 100)}%`,
-            background: `linear-gradient(90deg, ${ROYAL_COLORS.accent}, ${ROYAL_COLORS.gold})`,
+            background: `linear-gradient(90deg, ${DASHBOARD_COLORS.accent}, ${DASHBOARD_COLORS.gold})`,
             height: '100%'
           }}
         />
       </div>
-      <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+      <div style={{ fontSize: '12px', color: DASHBOARD_COLORS.muted }}>
         כיסוי {numberFormatter.format(zone.coveragePercent)}%
       </div>
     </div>
@@ -745,21 +730,21 @@ function RoyalAlertList({ alerts }: { alerts: RoyalDashboardLowStockAlert[] }) {
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            background: 'rgba(65, 23, 66, 0.65)',
+            background: TWITTER_COLORS.backgroundSecondary,
             padding: '14px',
             borderRadius: '16px',
-            border: `1px solid rgba(255, 107, 138, 0.4)`
+            border: `1px solid ${TWITTER_COLORS.border}`
           }}
         >
           <div>
             <div style={{ fontWeight: 600 }}>{alert.product_name}</div>
-            <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>{alert.location_name}</div>
+            <div style={{ fontSize: '12px', color: DASHBOARD_COLORS.muted }}>{alert.location_name}</div>
           </div>
           <div style={{ textAlign: 'left' }}>
-            <div style={{ color: ROYAL_COLORS.crimson, fontWeight: 600 }}>
+            <div style={{ color: DASHBOARD_COLORS.crimson, fontWeight: 600 }}>
               {numberFormatter.format(alert.on_hand_quantity)} יחידות
             </div>
-            <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+            <div style={{ fontSize: '12px', color: DASHBOARD_COLORS.muted }}>
               סף {numberFormatter.format(alert.low_stock_threshold)}
             </div>
           </div>
@@ -781,18 +766,18 @@ function RoyalRestockList({ requests }: { requests: RoyalDashboardRestockRequest
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            background: 'rgba(18, 44, 63, 0.65)',
+            background: TWITTER_COLORS.backgroundSecondary,
             padding: '14px',
             borderRadius: '16px',
-            border: `1px solid rgba(77, 208, 225, 0.4)`
+            border: `1px solid ${TWITTER_COLORS.border}`
           }}
         >
           <div>
             <div style={{ fontWeight: 600 }}>{request.product_name || 'מוצר לא מזוהה'}</div>
-            <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>{request.to_location_name || 'מרכז ראשי'}</div>
+            <div style={{ fontSize: '12px', color: DASHBOARD_COLORS.muted }}>{request.to_location_name || 'מרכז ראשי'}</div>
           </div>
           <div style={{ textAlign: 'left' }}>
-            <div style={{ color: ROYAL_COLORS.teal, fontWeight: 600 }}>
+            <div style={{ color: DASHBOARD_COLORS.teal, fontWeight: 600 }}>
               {numberFormatter.format(request.requested_quantity)} יחידות
             </div>
             <RoyalBadge text={translateStatus(request.status)} tone="outline" />
@@ -807,12 +792,12 @@ function RoyalEmptyState({ message }: { message: string }) {
   return (
     <div
       style={{
-        borderRadius: '18px',
-        border: `1px dashed rgba(255, 255, 255, 0.2)`,
+        borderRadius: '16px',
+        border: `1px dashed ${TWITTER_COLORS.border}`,
         padding: '24px',
         textAlign: 'center',
-        color: ROYAL_COLORS.muted,
-        background: 'rgba(12, 3, 25, 0.4)'
+        color: DASHBOARD_COLORS.muted,
+        background: TWITTER_COLORS.backgroundSecondary
       }}
     >
       {message}
@@ -822,10 +807,10 @@ function RoyalEmptyState({ message }: { message: string }) {
 
 function RoyalBadge({ text, tone, color }: { text: string; tone: 'gold' | 'accent' | 'outline' | 'custom'; color?: string }) {
   const palette = {
-    gold: { background: 'rgba(246, 201, 69, 0.18)', border: 'rgba(246, 201, 69, 0.35)', color: ROYAL_COLORS.gold },
-    accent: { background: 'rgba(156, 109, 255, 0.2)', border: 'rgba(156, 109, 255, 0.35)', color: ROYAL_COLORS.accent },
-    outline: { background: 'transparent', border: 'rgba(255, 255, 255, 0.35)', color: ROYAL_COLORS.text },
-    custom: { background: color || 'rgba(255,255,255,0.18)', border: color || 'rgba(255,255,255,0.35)', color: ROYAL_COLORS.text }
+    gold: { background: TWITTER_COLORS.accentFaded, border: TWITTER_COLORS.border, color: DASHBOARD_COLORS.gold },
+    accent: { background: TWITTER_COLORS.accentFaded, border: TWITTER_COLORS.border, color: DASHBOARD_COLORS.accent },
+    outline: { background: 'transparent', border: TWITTER_COLORS.buttonSecondaryBorder, color: DASHBOARD_COLORS.text },
+    custom: { background: color || TWITTER_COLORS.backgroundHover, border: TWITTER_COLORS.border, color: DASHBOARD_COLORS.text }
   }[tone];
 
   return (
@@ -855,18 +840,18 @@ function RoyalActionButton({ label, icon, onClick }: { label: string; icon: stri
       style={{
         width: '100%',
         border: 'none',
-        background: 'linear-gradient(120deg, rgba(156, 109, 255, 0.45), rgba(43, 16, 88, 0.85))',
-        color: ROYAL_COLORS.text,
+        background: TWITTER_COLORS.gradientPrimary,
+        color: TWITTER_COLORS.white,
         padding: '14px 20px',
-        borderRadius: '14px',
+        borderRadius: '9999px',
         cursor: 'pointer',
         fontSize: '15px',
-        fontWeight: '600',
+        fontWeight: '700',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         gap: '12px',
-        boxShadow: '0 12px 24px rgba(30, 10, 70, 0.45)'
+        boxShadow: TWITTER_COLORS.shadow
       }}
     >
       <span>{icon}</span>
@@ -1032,10 +1017,10 @@ function RoyalSkeleton() {
     <div
       style={{
         minHeight: '100vh',
-        background: ROYAL_COLORS.background,
+        background: DASHBOARD_COLORS.background,
         padding: '32px',
         direction: 'rtl',
-        color: ROYAL_COLORS.text
+        color: DASHBOARD_COLORS.text
       }}
     >
       <div style={{ display: 'grid', gap: '20px', maxWidth: '960px', margin: '0 auto' }}>
@@ -1044,9 +1029,9 @@ function RoyalSkeleton() {
             key={index}
             style={{
               height: index === 1 ? '140px' : '120px',
-              borderRadius: '20px',
-              background: 'rgba(30, 12, 66, 0.5)',
-              border: `1px solid rgba(156, 109, 255, 0.25)`,
+              borderRadius: '16px',
+              background: TWITTER_COLORS.backgroundSecondary,
+              border: `1px solid ${TWITTER_COLORS.border}`,
               animation: 'pulse 1.5s ease-in-out infinite'
             }}
           />
