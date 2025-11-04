@@ -80,16 +80,17 @@ class TelegramService {
 
   /**
    * Get Telegram theme parameters
+   * Defaults to Twitter/X dark mode theme
    */
   get themeParams() {
     return this.WebApp?.themeParams || {
-      bg_color: '#ffffff',
-      text_color: '#000000',
-      hint_color: '#999999',
-      link_color: '#007aff',
-      button_color: '#007aff',
-      button_text_color: '#ffffff',
-      secondary_bg_color: '#f1f1f1'
+      bg_color: '#15202B',
+      text_color: '#E7E9EA',
+      hint_color: '#8899A6',
+      link_color: '#1D9BF0',
+      button_color: '#1D9BF0',
+      button_text_color: '#FFFFFF',
+      secondary_bg_color: '#192734'
     };
   }
 

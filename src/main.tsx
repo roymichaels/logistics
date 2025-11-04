@@ -126,11 +126,11 @@ class ErrorBoundary extends React.Component<
           textAlign: 'center',
           direction: 'rtl',
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          backgroundColor: '#f5f5f5'
+          backgroundColor: '#15202B'
         }}>
           <div style={{ fontSize: '64px', marginBottom: '24px' }}>⚠️</div>
-          <h1 style={{ fontSize: '24px', marginBottom: '16px', fontWeight: '600' }}>משהו השתבש</h1>
-          <p style={{ fontSize: '16px', color: '#666', marginBottom: '24px', maxWidth: '400px', lineHeight: '1.5' }}>
+          <h1 style={{ fontSize: '24px', marginBottom: '16px', fontWeight: '600', color: '#E7E9EA' }}>משהו השתבש</h1>
+          <p style={{ fontSize: '16px', color: '#8899A6', marginBottom: '24px', maxWidth: '400px', lineHeight: '1.5' }}>
             {this.state.error?.message || 'שגיאה לא צפויה'}
           </p>
 
@@ -139,7 +139,7 @@ class ErrorBoundary extends React.Component<
               onClick={this.handleReset}
               style={{
                 padding: '12px 24px',
-                backgroundColor: '#007aff',
+                backgroundColor: '#1D9BF0',
                 color: '#fff',
                 border: 'none',
                 borderRadius: '8px',
@@ -155,8 +155,8 @@ class ErrorBoundary extends React.Component<
               onClick={() => window.location.reload()}
               style={{
                 padding: '12px 24px',
-                backgroundColor: '#f0f0f0',
-                color: '#333',
+                backgroundColor: '#192734',
+                color: '#E7E9EA',
                 border: 'none',
                 borderRadius: '8px',
                 fontSize: '16px',
@@ -291,7 +291,7 @@ function LoadingScreen() {
           </p>
           <button
             onclick="window.location.reload()"
-            style="padding: 12px 24px; background-color: #007aff; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-family: inherit;"
+            style="padding: 12px 24px; background-color: #1D9BF0; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-family: inherit;"
           >
             רענן דף
           </button>

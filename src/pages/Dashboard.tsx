@@ -31,14 +31,14 @@ const numberFormatter = new Intl.NumberFormat('he-IL');
 // Import Twitter dark theme
 import { TWITTER_COLORS } from '../styles/twitterTheme';
 
-// Dashboard colors based on Twitter dark theme
+// Dashboard colors based on authentic Twitter/X dark theme
 const DASHBOARD_COLORS = {
-  background: TWITTER_COLORS.background,
-  card: TWITTER_COLORS.card,
-  cardBorder: TWITTER_COLORS.cardBorder,
-  muted: TWITTER_COLORS.textSecondary,
-  text: TWITTER_COLORS.text,
-  accent: TWITTER_COLORS.primary,
+  background: TWITTER_COLORS.background, // #15202B - Twitter's dark blue-black
+  card: TWITTER_COLORS.card, // #192734 - Secondary dark surface
+  cardBorder: TWITTER_COLORS.cardBorder, // #38444D - Subtle blue-gray border
+  muted: TWITTER_COLORS.textSecondary, // #8899A6 - Blue-gray muted text
+  text: TWITTER_COLORS.text, // #E7E9EA - Off-white primary text
+  accent: TWITTER_COLORS.primary, // #1D9BF0 - Twitter blue
   gold: TWITTER_COLORS.success, // Green for positive metrics
   crimson: TWITTER_COLORS.error,
   teal: TWITTER_COLORS.info,

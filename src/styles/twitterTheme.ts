@@ -1,29 +1,30 @@
 /**
- * Twitter Dark Theme Color System
- * Inspired by Twitter's dark mode design
+ * Twitter/X Dark Theme Color System
+ * Authentic Twitter/X dark mode colors (2024-2025)
+ * Based on Twitter's actual dark blue-black theme
  */
 
 export const TWITTER_COLORS = {
-  // Background colors
-  background: '#000000', // Pure black background
-  backgroundSecondary: '#16181C', // Slightly lighter for cards
-  backgroundHover: '#1C1F23', // Hover states
+  // Background colors - Twitter uses dark blue-black, NOT pure black
+  background: '#15202B', // Twitter's main dark background (Black Pearl)
+  backgroundSecondary: '#192734', // Secondary dark background
+  backgroundHover: '#22303C', // Hover states (lighter blue-gray)
 
   // Primary blue (Twitter blue)
-  primary: '#1D9BF0', // Twitter blue
+  primary: '#1D9BF0', // Twitter blue (current)
   primaryHover: '#1A8CD8',
   primaryPressed: '#1683BF',
   primaryFaded: 'rgba(29, 155, 240, 0.1)',
 
   // Text colors
-  text: '#E7E9EA', // Primary text
-  textSecondary: '#71767B', // Secondary/muted text
-  textTertiary: '#565959', // Even more muted
+  text: '#E7E9EA', // Primary text (off-white)
+  textSecondary: '#8899A6', // Secondary/muted text (blue-gray)
+  textTertiary: '#536471', // Even more muted
   textInverse: '#0F1419', // Text on light backgrounds
 
-  // Border colors
-  border: '#2F3336',
-  borderHover: '#3F4346',
+  // Border colors - Twitter uses subtle blue-gray borders
+  border: '#38444D',
+  borderHover: '#4A5568',
 
   // Status colors
   success: '#00BA7C', // Green
@@ -32,9 +33,9 @@ export const TWITTER_COLORS = {
   info: '#1D9BF0', // Blue
 
   // Card and surface colors
-  card: '#16181C',
-  cardBorder: '#2F3336',
-  cardHover: '#1C1F23',
+  card: '#192734',
+  cardBorder: '#38444D',
+  cardHover: '#22303C',
 
   // Accent colors
   accent: '#1D9BF0', // Same as primary
@@ -42,10 +43,10 @@ export const TWITTER_COLORS = {
   accentGlow: 'rgba(29, 155, 240, 0.3)',
 
   // Shadow and glow effects
-  shadow: '0 0 2px rgba(255, 255, 255, 0.05)',
-  shadowLarge: '0 8px 16px rgba(0, 0, 0, 0.5)',
-  glow: '0 0 20px rgba(29, 155, 240, 0.5)',
-  glowLarge: '0 0 40px rgba(29, 155, 240, 0.6)',
+  shadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
+  shadowLarge: '0 4px 12px rgba(0, 0, 0, 0.4)',
+  glow: '0 0 15px rgba(29, 155, 240, 0.4)',
+  glowLarge: '0 0 30px rgba(29, 155, 240, 0.5)',
 
   // Button colors
   buttonPrimary: '#1D9BF0',
@@ -61,13 +62,13 @@ export const TWITTER_COLORS = {
 
   // Gradients
   gradientPrimary: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
-  gradientCard: 'linear-gradient(180deg, #16181C 0%, #0F1419 100%)',
-  gradientOverlay: 'linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.8) 100%)',
+  gradientCard: 'linear-gradient(180deg, #192734 0%, #15202B 100%)',
+  gradientOverlay: 'linear-gradient(180deg, rgba(21, 32, 43, 0) 0%, rgba(21, 32, 43, 0.9) 100%)',
 
   // Navigation
-  navBackground: 'rgba(0, 0, 0, 0.85)',
+  navBackground: 'rgba(21, 32, 43, 0.85)',
   navBackdrop: 'blur(12px)',
-  navBorder: 'rgba(47, 51, 54, 0.7)',
+  navBorder: 'rgba(56, 68, 77, 0.7)',
 
   // Status indicators
   online: '#00BA7C',
@@ -92,17 +93,17 @@ export const TWITTER_DARK_THEME = {
 
   // Component-specific colors
   header: {
-    background: 'rgba(0, 0, 0, 0.85)',
+    background: 'rgba(21, 32, 43, 0.85)',
     backdrop: 'blur(12px)',
-    border: 'rgba(47, 51, 54, 0.7)',
+    border: 'rgba(56, 68, 77, 0.7)',
     text: TWITTER_COLORS.text,
     logo: TWITTER_COLORS.primary
   },
 
   navigation: {
-    background: 'rgba(0, 0, 0, 0.85)',
+    background: 'rgba(21, 32, 43, 0.85)',
     backdrop: 'blur(12px)',
-    border: 'rgba(47, 51, 54, 0.7)',
+    border: 'rgba(56, 68, 77, 0.7)',
     icon: TWITTER_COLORS.textSecondary,
     iconActive: TWITTER_COLORS.primary,
     text: TWITTER_COLORS.textSecondary,

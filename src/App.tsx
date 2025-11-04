@@ -234,10 +234,10 @@ export default function App() {
     };
   }, [dataStore, refreshUserRole]);
 
-  // Apply theme to body
+  // Apply theme to body - use Twitter dark theme colors
   useEffect(() => {
-    document.body.style.backgroundColor = theme.bg_color || '#ffffff';
-    document.body.style.color = theme.text_color || '#000000';
+    document.body.style.backgroundColor = theme.bg_color || '#15202B';
+    document.body.style.color = theme.text_color || '#E7E9EA';
     document.body.style.margin = '0';
     document.body.style.padding = '0';
     document.body.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -557,7 +557,7 @@ export default function App() {
           <div style={{
             position: 'fixed',
             inset: 0,
-            background: 'radial-gradient(125% 125% at 50% 0%, rgba(95, 46, 170, 0.55) 0%, rgba(12, 2, 25, 0.95) 45%, #03000a 100%)',
+            background: theme.bg_color || '#15202B',
             zIndex: 9999
           }}>
             <BecomeDriverModal
