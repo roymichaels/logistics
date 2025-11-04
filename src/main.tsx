@@ -4,6 +4,7 @@ import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { AppServicesProvider } from './context/AppServicesContext';
 import { SupabaseReadyProvider } from './context/SupabaseReadyContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { initSupabase } from './lib/supabaseClient';
 import { installRoleDebugger } from './lib/roleDiagnostics';
 import './lib/initDiagnostics';
@@ -264,13 +265,15 @@ function LoadingScreen() {
     root.render(
       <React.StrictMode>
         <ErrorBoundary>
-          <AuthProvider>
-            <SupabaseReadyProvider>
-              <AppServicesProvider>
-                <App />
-              </AppServicesProvider>
-            </SupabaseReadyProvider>
-          </AuthProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <SupabaseReadyProvider>
+                <AppServicesProvider>
+                  <App />
+                </AppServicesProvider>
+              </SupabaseReadyProvider>
+            </AuthProvider>
+          </LanguageProvider>
         </ErrorBoundary>
       </React.StrictMode>
     );

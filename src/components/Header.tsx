@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo, useContext } 
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { TWITTER_COLORS } from '../styles/twitterTheme';
 import { BusinessContextSelector } from './BusinessContextSelector';
+import { LanguageToggle } from './LanguageToggle';
 import { requiresBusinessContext } from '../lib/rolePermissions';
 import { AppServicesContext } from '../context/AppServicesContext';
 import {
@@ -235,24 +236,27 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
         )}
       </div>
 
-      {/* User Avatar Dropdown */}
-      <div ref={dropdownRef} className="header-dropdown-container">
-        <button
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-          className={`header-avatar-button ${dropdownOpen ? 'open' : ''}`}
-          style={{
-            border: `2px solid ${TWITTER_COLORS.primary}`,
-            background: user?.photo_url
-              ? `url(${user.photo_url}) center/cover`
-              : TWITTER_COLORS.gradientPrimary,
-            color: TWITTER_COLORS.white,
-            boxShadow: dropdownOpen
-              ? `0 0 0 3px ${TWITTER_COLORS.accentGlow}`
-              : TWITTER_COLORS.shadow
-          }}
-        >
-          {!user?.photo_url && userInitial}
-        </button>
+      {/* Language Toggle and User Avatar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <LanguageToggle variant="switch" size="small" />
+
+        <div ref={dropdownRef} className="header-dropdown-container">
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className={`header-avatar-button ${dropdownOpen ? 'open' : ''}`}
+            style={{
+              border: `2px solid ${TWITTER_COLORS.primary}`,
+              background: user?.photo_url
+                ? `url(${user.photo_url}) center/cover`
+                : TWITTER_COLORS.gradientPrimary,
+              color: TWITTER_COLORS.white,
+              boxShadow: dropdownOpen
+                ? `0 0 0 3px ${TWITTER_COLORS.accentGlow}`
+                : TWITTER_COLORS.shadow
+            }}
+          >
+            {!user?.photo_url && userInitial}
+          </button>
 
         {/* Dropdown Menu */}
         {dropdownOpen && (
@@ -323,6 +327,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
             </div>
           </div>
         )}
+        </div>
       </div>
     </header>
   );
