@@ -9,6 +9,9 @@ import React, { useEffect, useState } from 'react';
 import { getSupabase } from '../lib/supabaseClient';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { fetchBusinessMetrics } from '../services/metrics';
+import { BusinessDashboardHeader } from './BusinessDashboardHeader';
+import { BusinessBottomNav } from './BusinessBottomNav';
+import { useLanguage } from '../context/LanguageContext';
 
 interface FinancialMetrics {
   revenue_today: number;
@@ -57,6 +60,8 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activePage, setActivePage] = useState('dashboard');
+  const { t, formatCurrency, isRTL } = useLanguage();
 
   // Handle case where businessId is missing
   if (!businessId) {
@@ -231,58 +236,148 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
   }
 
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
-      <div style={{ ...ROYAL_STYLES.card, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px', background: ROYAL_COLORS.gradientPurple, color: ROYAL_COLORS.textBright, boxShadow: ROYAL_COLORS.glowPurpleStrong }}>
-        <div>
-          <h1 style={{ margin: '0 0 8px 0', fontSize: '32px' }}>Business Dashboard</h1>
-          <p style={{ margin: 0, opacity: 0.9, fontSize: '16px' }}>Financial overview and operational metrics</p>
-        </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button style={{ ...ROYAL_STYLES.buttonSecondary, background: 'rgba(255, 255, 255, 0.2)', color: ROYAL_COLORS.textBright, border: '2px solid rgba(255, 255, 255, 0.4)' }}>Export Report</button>
-          <button style={{ ...ROYAL_STYLES.buttonPrimary, background: ROYAL_COLORS.textBright, color: ROYAL_COLORS.accent }}>Manage Team</button>
-        </div>
-      </div>
+    <>
+      <BusinessDashboardHeader
+        businessName="thecongress"
+        userName="UndergroundLab"
+        notificationCount={0}
+        onProfileClick={() => setActivePage('profile')}
+      />
 
-      <div style={ROYAL_STYLES.card}>
-        <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', color: ROYAL_COLORS.text }}>Financial Overview</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
-          <div style={{ ...ROYAL_STYLES.card, display: 'flex', alignItems: 'center', gap: '16px', background: ROYAL_COLORS.gradientPurple, color: ROYAL_COLORS.textBright, border: 'none' }}>
-            <div style={{ fontSize: '32px' }}>💰</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '13px', marginBottom: '6px', opacity: 0.8 }}>Revenue (Month)</div>
-              <div style={{ fontSize: '28px', fontWeight: '700', marginBottom: '4px' }}>₪{metrics?.revenue_month.toLocaleString()}</div>
-              <div style={{ fontSize: '12px', opacity: 0.7 }}>₪{metrics?.revenue_today.toLocaleString()} today</div>
+      <div style={{
+        minHeight: '100vh',
+        paddingTop: '80px',
+        paddingBottom: '90px',
+        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+        padding: '80px 20px 90px 20px',
+        direction: isRTL ? 'rtl' : 'ltr'
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          {/* Header Section */}
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(124, 58, 237, 0.15) 100%)',
+            borderRadius: '24px',
+            padding: '32px',
+            marginBottom: '32px',
+            border: '1px solid rgba(139, 92, 246, 0.3)',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <h1 style={{ margin: '0 0 12px 0', fontSize: '36px', fontWeight: '700', color: '#ffffff' }}>Business Dashboard</h1>
+                <p style={{ margin: 0, fontSize: '16px', color: 'rgba(255, 255, 255, 0.8)' }}>Financial overview and operational metrics</p>
+              </div>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button style={{
+                  padding: '12px 24px',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '12px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}>Export Report</button>
+                <button style={{
+                  padding: '12px 24px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+                }}>Manage Team</button>
+              </div>
             </div>
           </div>
 
-          <div style={{ ...ROYAL_STYLES.card, display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ fontSize: '32px' }}>📊</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '13px', marginBottom: '6px', color: ROYAL_COLORS.muted }}>Costs (Month)</div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: ROYAL_COLORS.warning, marginBottom: '4px' }}>₪{metrics?.costs_month.toLocaleString()}</div>
-              <div style={{ fontSize: '12px', color: ROYAL_COLORS.mutedDark }}>Operating expenses</div>
-            </div>
-          </div>
+          {/* Financial Overview Section */}
+          <div style={{
+            marginBottom: '24px'
+          }}>
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff' }}>Financial Overview</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+              {/* Profit Card */}
+              <div style={{
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                borderRadius: '20px',
+                padding: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '20px',
+                boxShadow: '0 8px 32px rgba(16, 185, 129, 0.3)',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <div style={{ fontSize: '48px' }}>💎</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '14px', marginBottom: '8px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: '500' }}>Profit (Month)</div>
+                  <div style={{ fontSize: '32px', fontWeight: '700', marginBottom: '6px', color: '#ffffff' }}>₪{metrics?.profit_month.toLocaleString()}</div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.8)' }}>{metrics?.profit_margin.toFixed(1)}% margin</div>
+                </div>
+              </div>
 
-          <div style={{ ...ROYAL_STYLES.card, display: 'flex', alignItems: 'center', gap: '16px', background: ROYAL_COLORS.gradientSuccess, color: ROYAL_COLORS.textBright, border: 'none' }}>
-            <div style={{ fontSize: '32px' }}>💎</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '13px', marginBottom: '6px', opacity: 0.8 }}>Profit (Month)</div>
-              <div style={{ fontSize: '28px', fontWeight: '700', marginBottom: '4px' }}>₪{metrics?.profit_month.toLocaleString()}</div>
-              <div style={{ fontSize: '12px', opacity: 0.7 }}>{metrics?.profit_margin.toFixed(1)}% margin</div>
-            </div>
-          </div>
+              {/* Costs Card */}
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(30, 30, 60, 0.8) 0%, rgba(20, 20, 40, 0.9) 100%)',
+                borderRadius: '20px',
+                padding: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '20px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <div style={{ fontSize: '48px' }}>📊</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '14px', marginBottom: '8px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: '500' }}>Costs (Month)</div>
+                  <div style={{ fontSize: '32px', fontWeight: '700', marginBottom: '6px', color: '#fbbf24' }}>₪{metrics?.costs_month.toLocaleString()}</div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)' }}>Operating expenses</div>
+                </div>
+              </div>
 
-          <div style={{ ...ROYAL_STYLES.card, display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ fontSize: '32px' }}>📦</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '13px', marginBottom: '6px', color: ROYAL_COLORS.muted }}>Orders (Month)</div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: ROYAL_COLORS.info, marginBottom: '4px' }}>{metrics?.orders_month}</div>
-              <div style={{ fontSize: '12px', color: ROYAL_COLORS.mutedDark }}>₪{metrics?.average_order_value.toFixed(0)} avg</div>
+              {/* Revenue Card */}
+              <div style={{
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                borderRadius: '20px',
+                padding: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '20px',
+                boxShadow: '0 8px 32px rgba(139, 92, 246, 0.3)',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <div style={{ fontSize: '48px' }}>💰</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '14px', marginBottom: '8px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: '500' }}>Revenue (Month)</div>
+                  <div style={{ fontSize: '32px', fontWeight: '700', marginBottom: '6px', color: '#ffffff' }}>₪{metrics?.revenue_month.toLocaleString()}</div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.8)' }}>₪{metrics?.revenue_today.toLocaleString()} today</div>
+                </div>
+              </div>
+
+              {/* Orders Card */}
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(30, 30, 60, 0.8) 0%, rgba(20, 20, 40, 0.9) 100%)',
+                borderRadius: '20px',
+                padding: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '20px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <div style={{ fontSize: '48px' }}>📦</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '14px', marginBottom: '8px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: '500' }}>Orders (Month)</div>
+                  <div style={{ fontSize: '32px', fontWeight: '700', marginBottom: '6px', color: '#60a5fa' }}>avg {metrics?.orders_month}</div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)' }}>₪{metrics?.average_order_value.toFixed(0)} avg</div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
       {/* Ownership Distribution */}
       <div className="section ownership-section">
@@ -368,6 +463,11 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
           ))}
         </div>
       </div>
+
+        </div>
+      </div>
+
+      <BusinessBottomNav activePage={activePage} onNavigate={setActivePage} />
 
       <style>{`
         @keyframes spin {
@@ -744,6 +844,6 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
           to { transform: rotate(360deg); }
         }
       `}</style>
-    </div>
+    </>
   );
 }
