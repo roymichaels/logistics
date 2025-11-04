@@ -3,6 +3,7 @@ import { ROYAL_COLORS } from '../styles/royalTheme';
 import { TWITTER_COLORS } from '../styles/twitterTheme';
 import { BusinessContextSelector } from './BusinessContextSelector';
 import { LanguageToggle } from './LanguageToggle';
+import { GlowingPortalLogo } from './GlowingPortalLogo';
 import { requiresBusinessContext } from '../lib/rolePermissions';
 import { AppServicesContext } from '../context/AppServicesContext';
 import {
@@ -95,26 +96,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
     >
       {/* Logo/Brand */}
       <div className="header-logo-container">
-        <div
-          className="header-logo-circle"
-          style={{
-            background: TWITTER_COLORS.gradientPrimary,
-            boxShadow: TWITTER_COLORS.glow,
-            border: 'none',
-            animation: 'pulse-glow 2s ease-in-out infinite'
-          }}
-        >
-          <style>{`
-            @keyframes pulse-glow {
-              0%, 100% {
-                box-shadow: ${TWITTER_COLORS.glow};
-              }
-              50% {
-                box-shadow: ${TWITTER_COLORS.glowLarge};
-              }
-            }
-          `}</style>
-        </div>
+        <GlowingPortalLogo size={40} pulseSpeed={2} />
         <div className="header-brand-container">
           <div className="header-brand-title" style={{ color: TWITTER_COLORS.text }}>
             UndergroundLab

@@ -206,10 +206,8 @@ export function BottomNavigation({
   };
 
   const renderActionSlot = () => (
-    <button
+    <div
       key="action-slot"
-      onClick={handleActionClick}
-      disabled={action?.disabled}
       style={{
         flex: '0 0 90px',
         minWidth: '90px',
@@ -218,14 +216,27 @@ export function BottomNavigation({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        border: 'none',
-        background: 'transparent',
-        cursor: action?.disabled ? 'not-allowed' : 'pointer',
-        padding: '0',
-        position: 'relative',
-        marginTop: '-24px'
+        position: 'relative'
       }}
     >
+      <button
+        onClick={handleActionClick}
+        disabled={action?.disabled}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          border: 'none',
+          background: 'transparent',
+          cursor: action?.disabled ? 'not-allowed' : 'pointer',
+          padding: '0',
+          position: 'absolute',
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)'
+        }}
+      >
       <div
         style={{
           width: '64px',
@@ -265,11 +276,13 @@ export function BottomNavigation({
         fontSize: '10px',
         color: action?.disabled ? TWITTER_COLORS.textSecondary : TWITTER_COLORS.primary,
         marginTop: '6px',
-        fontWeight: '600'
+        fontWeight: '600',
+        whiteSpace: 'nowrap'
       }}>
         {action?.label}
       </span>
     </button>
+    </div>
   );
 
   const navItems: React.ReactNode[] = [];

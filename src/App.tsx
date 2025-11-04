@@ -236,8 +236,8 @@ export default function App() {
 
   // Apply theme to body - use Twitter dark theme colors
   useEffect(() => {
-    document.body.style.backgroundColor = theme.bg_color || '#15202B';
-    document.body.style.color = theme.text_color || '#E7E9EA';
+    document.body.style.backgroundColor = '#15202B'; // Twitter dark background
+    document.body.style.color = '#E7E9EA'; // Twitter text color
     document.body.style.margin = '0';
     document.body.style.padding = '0';
     document.body.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -478,8 +478,8 @@ export default function App() {
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
+        backgroundColor: '#15202B',
+        color: '#E7E9EA',
         fontSize: '16px'
       }}>
         {hebrew.loading}
@@ -557,7 +557,7 @@ export default function App() {
           <div style={{
             position: 'fixed',
             inset: 0,
-            background: theme.bg_color || '#15202B',
+            background: '#15202B',
             zIndex: 9999
           }}>
             <BecomeDriverModal
@@ -602,8 +602,8 @@ export default function App() {
           justifyContent: 'center',
           alignItems: 'center',
           height: '100vh',
-          backgroundColor: theme.bg_color,
-          color: theme.text_color,
+          backgroundColor: '#15202B',
+          color: '#E7E9EA',
           padding: '40px 20px',
           textAlign: 'center'
         }}>
@@ -635,12 +635,12 @@ export default function App() {
                 padding: '14px 32px',
                 fontSize: '16px',
                 fontWeight: '600',
-                backgroundColor: theme.button_color || '#007aff',
-                color: theme.button_text_color || '#ffffff',
+                backgroundColor: '#1D9BF0',
+                color: '#ffffff',
                 border: 'none',
                 borderRadius: '12px',
                 cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(0, 122, 255, 0.3)'
+                boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)'
               }}
             >
               איפוס וניסיון מחדש
@@ -663,8 +663,8 @@ export default function App() {
           justifyContent: 'center',
           alignItems: 'center',
           height: '100vh',
-          backgroundColor: theme.bg_color,
-          color: theme.text_color,
+          backgroundColor: '#15202B',
+          color: '#E7E9EA',
           padding: '20px',
           textAlign: 'center'
         }}>
@@ -676,8 +676,8 @@ export default function App() {
             .spinner {
               width: 48px;
               height: 48px;
-              border: 4px solid ${theme.hint_color || '#ccc'};
-              border-top-color: ${theme.button_color || '#007aff'};
+              border: 4px solid #536471;
+              border-top-color: #1D9BF0;
               border-radius: 50%;
               animation: spin 1s linear infinite;
             }
@@ -718,8 +718,8 @@ export default function App() {
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
+        backgroundColor: '#15202B',
+        color: '#E7E9EA',
         fontSize: '16px'
       }}>
         מכין את המערכת...
@@ -840,10 +840,10 @@ export default function App() {
     >
       <div style={{
           minHeight: '100vh',
-          backgroundColor: theme.bg_color,
-          color: theme.text_color,
-          paddingBottom: '80px', // Space for bottom nav
-          paddingTop: '60px' // Space for header
+          backgroundColor: '#15202B',
+          color: '#E7E9EA',
+          paddingBottom: '80px',
+          paddingTop: '60px'
         }}>
           {/* Header */}
           <Header
