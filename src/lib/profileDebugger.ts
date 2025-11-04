@@ -22,17 +22,7 @@ class ProfileDebugger {
       this.attempts = this.attempts.slice(0, this.MAX_HISTORY);
     }
 
-    const icon = attempt.success ? '✅' : '❌';
-    const cacheStatus = attempt.cacheHit ? '[CACHE]' : '[FETCH]';
-
-    console.log(`${icon} ${cacheStatus} Profile fetch from ${attempt.source}`, {
-      duration: `${attempt.duration}ms`,
-      forceRefresh: attempt.forceRefresh,
-      success: attempt.success,
-      role: attempt.userData?.role,
-      error: attempt.error,
-      timestamp: new Date(attempt.timestamp).toISOString()
-    });
+    // Silent logging - data available for debugging but not cluttering console
   }
 
   getHistory(): ProfileFetchAttempt[] {

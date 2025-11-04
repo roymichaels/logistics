@@ -570,14 +570,7 @@ export class SupabaseDataStore implements DataStore {
   private setCachedUser(user: User): void {
     this.user = user;
     this.userCacheTimestamp = Date.now();
-    console.log('💾 User cached', {
-      id: user.id,
-      telegram_id: user.telegram_id,
-      role: user.role,
-      hasId: !!user.id,
-      userKeys: Object.keys(user),
-      timestamp: new Date(this.userCacheTimestamp).toISOString()
-    });
+    // User cached
   }
 
   constructor(private userTelegramId: string, authSession?: SupabaseAuthSessionPayload | null, initialUserData?: any) {
@@ -917,17 +910,7 @@ export class SupabaseDataStore implements DataStore {
   // Auth & Profile
   async getProfile(forceRefresh = false): Promise<User> {
     if (!forceRefresh && this.isCacheValid()) {
-      console.log('✅ getProfile: Returning cached user (cache valid)', {
-        role: this.user!.role,
-        cacheAge: Date.now() - this.userCacheTimestamp!
-      });
       return trackCacheHit('SupabaseDataStore.getProfile', this.user!);
-    }
-
-    if (forceRefresh) {
-      console.log('🔄 getProfile: Force refresh requested, bypassing cache');
-    } else {
-      console.log('⏰ getProfile: Cache expired or invalid, fetching fresh data');
     }
 
     return trackProfileFetch('SupabaseDataStore.getProfile', forceRefresh, async () => {
@@ -959,7 +942,7 @@ export class SupabaseDataStore implements DataStore {
     }
 
     const authUid = sessionData.session.user.id;
-    console.log('🔍 getProfile: Fetching user with auth.uid():', authUid);
+    // Fetching user profile
 
     // Query by auth.uid() which is the primary key
     const { data, error } = await supabase
@@ -979,15 +962,7 @@ export class SupabaseDataStore implements DataStore {
       throw error;
     }
 
-    console.log('🔍 getProfile: Raw database response:', {
-      hasData: !!data,
-      dataKeys: data ? Object.keys(data) : [],
-      id: data?.id,
-      telegram_id: data?.telegram_id,
-      role: data?.role,
-      name: data?.name,
-      auth_method: data?.auth_method
-    });
+    // Database response received
 
     if (!data) {
       console.error('❌ getProfile: User record not found for auth.uid():', authUid);
@@ -1045,15 +1020,13 @@ export class SupabaseDataStore implements DataStore {
 
     // Auto-assign business_id for business owners if missing
     if (data.role === 'business_owner' && !data.business_id) {
-      console.log('🔄 getProfile: Business owner missing business_id, attempting auto-assignment');
       try {
         const assignedBusinessId = await this._autoAssignBusinessId(data.id);
         if (assignedBusinessId) {
           data.business_id = assignedBusinessId;
-          console.log('✅ getProfile: Auto-assigned business_id:', assignedBusinessId);
         }
       } catch (error) {
-        console.warn('⚠️ getProfile: Failed to auto-assign business_id:', error);
+        // Silent fail - user will be prompted to create/select business
       }
     }
 
@@ -1067,36 +1040,33 @@ export class SupabaseDataStore implements DataStore {
       return null;
     }
 
-    // Check if user owns any businesses
-    const { data: businesses, error } = await supabase
-      .from('businesses')
-      .select('id')
-      .eq('owner_id', userId)
+    // Check if user has any business memberships with owner role
+    const { data: memberships, error } = await supabase
+      .from('business_memberships')
+      .select('business_id, ownership_percentage')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .order('ownership_percentage', { ascending: false, nullsLast: true })
+      .order('is_primary', { ascending: false, nullsLast: true })
       .limit(1);
 
-    if (error) {
-      console.error('Failed to query businesses:', error);
+    if (error || !memberships || memberships.length === 0) {
       return null;
     }
 
-    if (businesses && businesses.length > 0) {
-      const businessId = businesses[0].id;
+    const businessId = memberships[0].business_id;
 
-      // Update user profile with business_id
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ business_id: businessId })
-        .eq('id', userId);
+    // Update user profile with business_id
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ business_id: businessId })
+      .eq('id', userId);
 
-      if (updateError) {
-        console.error('Failed to update user business_id:', updateError);
-        return null;
-      }
-
-      return businessId;
+    if (updateError) {
+      return null;
     }
 
-    return null;
+    return businessId;
   }
 
   async refreshProfile(): Promise<User> {

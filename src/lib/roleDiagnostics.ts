@@ -102,48 +102,12 @@ export function generateRoleDiagnostic(user: User | null): RoleDiagnosticReport 
 }
 
 /**
- * Log a formatted diagnostic report to console
+ * Log a formatted diagnostic report to console (silent mode - data available for debugging)
  */
 export function logRoleDiagnostic(user: User | null): void {
   const report = generateRoleDiagnostic(user);
-
-  if (!report) {
-    console.warn('⚠️ No diagnostic report generated');
-    return;
-  }
-
-  console.group('🔍 Role Diagnostic Report');
-  console.log('👤 User:', report.userName, `(${report.userId})`);
-  console.log('🎭 Role:', report.role);
-  console.log('📊 Role Level:', report.roleLevel);
-  console.log('🏢 Business ID:', report.businessId || 'None');
-  console.log('🖥️  Expected Dashboard:', report.expectedDashboard);
-
-  console.group('📋 Permissions');
-  console.log('Create Business:', report.hasCreateBusinessPermission ? '✅' : '❌');
-  console.log('View All Businesses:', report.hasViewAllBusinessesPermission ? '✅' : '❌');
-  console.log('Cross-Business Data:', report.canSeeCrossBusinessData ? '✅' : '❌');
-  console.log('View Financials:', report.canSeeFinancials ? '✅' : '❌');
-  console.log('Requires Business Context:', report.requiresBusinessContext ? '✅' : '❌');
-  console.groupEnd();
-
-  if (report.issues.length > 0) {
-    console.group('⚠️  Issues Found');
-    report.issues.forEach((issue, i) => console.warn(`${i + 1}. ${issue}`));
-    console.groupEnd();
-  }
-
-  if (report.recommendations.length > 0) {
-    console.group('💡 Recommendations');
-    report.recommendations.forEach((rec, i) => console.log(`${i + 1}. ${rec}`));
-    console.groupEnd();
-  }
-
-  if (report.issues.length === 0) {
-    console.log('✅ No issues detected');
-  }
-
-  console.groupEnd();
+  // Silent - report generated but not logged to console
+  // Use generateRoleDiagnostic directly if you need the data
 }
 
 /**

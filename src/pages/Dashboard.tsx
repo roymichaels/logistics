@@ -58,24 +58,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     try {
       const profile = await dataStore.getProfile();
 
-      // Role debugging - helps identify role mismatches
-      console.log('🔍 Dashboard: User profile loaded', {
-        id: profile.id,
-        name: profile.name,
-        role: profile.role,
-        business_id: profile.business_id,
-        has_business_context: !!profile.business_id
-      });
-
-      // Generate comprehensive diagnostic report
-      logRoleDiagnostic(profile);
-
-      // Get expected dashboard component
-      const dashboardInfo = getDashboardComponent(profile);
-      if (dashboardInfo.warnings.length > 0) {
-        console.warn('⚠️ Dashboard routing warnings:', dashboardInfo.warnings);
-      }
-      console.log('📊 Expected dashboard component:', dashboardInfo.component);
+      // Profile loaded
 
       setUser(profile);
 
@@ -214,7 +197,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
 
   // Infrastructure Owner gets platform-wide system dashboard
   if (user?.role === 'infrastructure_owner') {
-    console.log('✅ Dashboard: Routing to InfrastructureOwnerDashboard', { userId: user.id, userName: user.name });
+    // Routing to InfrastructureOwnerDashboard
     return <InfrastructureOwnerDashboard dataStore={dataStore} user={user} onNavigate={onNavigate} />;
   }
 
@@ -223,17 +206,9 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   const isBusinessOwner = user?.role === 'business_owner' || (user as any)?.global_role === 'business_owner';
 
   if (isBusinessOwner) {
-    console.log('✅ Dashboard: Routing to BusinessOwnerDashboard', {
-      userId: user.id,
-      userName: user.name,
-      role: user.role,
-      global_role: (user as any)?.global_role,
-      businessId: user.business_id
-    });
     // Business owners need a business context
     if (!user.business_id) {
       // Show a loading/retry state instead of error - business_id might still be syncing
-      console.log('⌛ Dashboard: Business owner missing business_id, showing loading state');
       return (
         <div style={{
           minHeight: '100vh',
@@ -264,7 +239,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
             </p>
             <button
               onClick={async () => {
-                console.log('🔄 Manual refresh requested');
+                // Manual refresh requested
                 try {
                   setLoading(true);
                   const refreshedProfile = await dataStore?.refreshProfile?.();
@@ -273,7 +248,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
                     await loadDashboard();
                   } else {
                     // No business found, navigate to create business
-                    console.log('📝 No business found, navigating to businesses page');
+                    // No business found, navigating to businesses page
                     onNavigate('businesses');
                   }
                 } catch (err) {
@@ -315,7 +290,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
 
   // Redirect users with 'user' role to UserHomepage
   if (user?.role === 'user') {
-    console.log('🔄 Dashboard: User has "user" role, redirecting to user-homepage');
+    // Redirecting to user homepage
     onNavigate('user-homepage');
     return null;
   }
