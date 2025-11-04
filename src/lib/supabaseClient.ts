@@ -108,9 +108,11 @@ export async function initSupabase(): Promise<SupabaseClient> {
       client = createClient(supabaseUrl, supabaseAnonKey, {
         auth: {
           storageKey: 'twa-undergroundlab',
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: false,
+          flowType: 'pkce',
         },
         global: {
           headers: {

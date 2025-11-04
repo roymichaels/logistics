@@ -125,8 +125,6 @@ class AuthService {
         return;
       }
 
-      console.log('🔄 Processing session update...');
-
       // Backup the session for recovery
       this.backupSession(session);
 
@@ -292,7 +290,6 @@ class AuthService {
 
   public async initialize(): Promise<void> {
     try {
-      console.log('🔐 AuthService: Starting initialization...');
       this.initializeAuthListener();
 
       if (!isSupabaseInitialized()) {
@@ -302,7 +299,6 @@ class AuthService {
       const supabase = getSupabase();
 
       // Try to recover existing session
-      console.log('🔐 AuthService: Checking for existing session...');
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
       if (sessionError) {
@@ -316,13 +312,11 @@ class AuthService {
       }
 
       if (sessionData.session) {
-        console.log('✅ Existing session found, restoring...');
         await this.handleSessionUpdate(sessionData.session);
         this.startSessionHealthCheck();
         return;
       }
 
-      console.log('ℹ️ No existing session found');
       this.updateState({
         isLoading: false,
         isAuthenticated: false,
@@ -449,7 +443,6 @@ class AuthService {
       };
 
       localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(backupData));
-      console.log('✅ Session backed up successfully');
     } catch (error) {
       console.error('⚠️ Failed to backup session:', error);
     }
