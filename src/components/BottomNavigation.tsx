@@ -210,7 +210,9 @@ export function BottomNavigation({
       onClick={handleActionClick}
       disabled={action?.disabled}
       style={{
-        flex: '0 0 80px',
+        flex: '0 0 90px',
+        minWidth: '90px',
+        maxWidth: '90px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -270,7 +272,11 @@ export function BottomNavigation({
   );
 
   const navItems: React.ReactNode[] = [];
-  const actionIndex = action ? Math.floor(tabs.length / 2) : null;
+
+  // Calculate middle position for action button
+  const totalTabs = tabs.length;
+  const leftTabsCount = Math.floor(totalTabs / 2);
+  const rightTabsCount = totalTabs - leftTabsCount;
 
   // Add תפקידי button on the far right (first in RTL layout)
   if (userRole && userRole !== 'user' && onOpenSidebar) {
@@ -282,7 +288,8 @@ export function BottomNavigation({
           onOpenSidebar();
         }}
         style={{
-          flex: '0 0 70px',
+          flex: '1',
+          minWidth: '0',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -310,11 +317,9 @@ export function BottomNavigation({
     );
   }
 
-  tabs.forEach((tab, index) => {
-    if (action && actionIndex !== null && index === actionIndex) {
-      navItems.push(renderActionSlot());
-    }
-
+  // Add right side tabs (in RTL: leftmost visible tabs)
+  for (let i = 0; i < rightTabsCount; i++) {
+    const tab = tabs[i];
     navItems.push(
       <button
         key={tab.id}
@@ -324,6 +329,7 @@ export function BottomNavigation({
         }}
         style={{
           flex: 1,
+          minWidth: '0',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -363,10 +369,65 @@ export function BottomNavigation({
         )}
       </button>
     );
-  });
+  }
 
-  if (action && actionIndex !== null && actionIndex >= tabs.length) {
+  // Add center action button
+  if (action) {
     navItems.push(renderActionSlot());
+  }
+
+  // Add left side tabs (in RTL: rightmost visible tabs)
+  for (let i = rightTabsCount; i < totalTabs; i++) {
+    const tab = tabs[i];
+    navItems.push(
+      <button
+        key={tab.id}
+        onClick={() => {
+          haptic();
+          onNavigate(tab.id);
+        }}
+        style={{
+          flex: 1,
+          minWidth: '0',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '8px 4px',
+          border: 'none',
+          backgroundColor: 'transparent',
+          color: currentPage === tab.id ? '#9c6dff' : 'rgba(191, 169, 255, 0.6)',
+          cursor: 'pointer',
+          fontSize: '11px',
+          fontWeight: currentPage === tab.id ? '600' : '500',
+          position: 'relative',
+          transition: 'all 0.2s ease',
+          transform: currentPage === tab.id ? 'scale(1.05)' : 'scale(1)'
+        }}
+      >
+        <span style={{
+          fontSize: currentPage === tab.id ? '24px' : '22px',
+          filter: currentPage === tab.id ? 'drop-shadow(0 0 8px rgba(156, 109, 255, 0.8))' : 'none',
+          transition: 'all 0.2s ease'
+        }}>
+          {tab.icon}
+        </span>
+        <span>{tab.label}</span>
+        {currentPage === tab.id && (
+          <div style={{
+            position: 'absolute',
+            bottom: '4px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '32px',
+            height: '3px',
+            background: 'linear-gradient(90deg, transparent, #9c6dff, transparent)',
+            borderRadius: '2px',
+            boxShadow: '0 0 8px rgba(156, 109, 255, 0.6)'
+          }} />
+        )}
+      </button>
+    );
   }
 
   return (
