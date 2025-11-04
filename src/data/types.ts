@@ -703,6 +703,39 @@ export interface DataStore {
 
   // Real-time subscriptions
   subscribeToChanges?(table: string, callback: (payload: any) => void): () => void;
+
+  // Social Media Features
+  getUserProfile?(user_id?: string): Promise<UserProfile | null>;
+  updateUserProfile?(updates: UpdateProfileInput): Promise<void>;
+  createPost?(input: CreatePostInput): Promise<{ id: string }>;
+  deletePost?(post_id: string): Promise<void>;
+  getPost?(post_id: string): Promise<Post | null>;
+  getFeed?(filters?: FeedFilters): Promise<Post[]>;
+  getUserPosts?(user_id: string, limit?: number): Promise<Post[]>;
+  likePost?(post_id: string): Promise<void>;
+  unlikePost?(post_id: string): Promise<void>;
+  repostPost?(post_id: string, comment?: string): Promise<{ id: string }>;
+  unrepostPost?(post_id: string): Promise<void>;
+  createComment?(input: CreateCommentInput): Promise<{ id: string }>;
+  deleteComment?(comment_id: string): Promise<void>;
+  getPostComments?(post_id: string, limit?: number): Promise<PostComment[]>;
+  followUser?(user_id: string): Promise<void>;
+  unfollowUser?(user_id: string): Promise<void>;
+  getFollowers?(user_id?: string, limit?: number): Promise<User[]>;
+  getFollowing?(user_id?: string, limit?: number): Promise<User[]>;
+  isFollowing?(user_id: string): Promise<boolean>;
+  searchUsers?(query: string, limit?: number): Promise<User[]>;
+  getTrendingTopics?(limit?: number): Promise<TrendingTopic[]>;
+  searchPosts?(query: string, filters?: FeedFilters): Promise<Post[]>;
+  bookmarkPost?(post_id: string): Promise<void>;
+  unbookmarkPost?(post_id: string): Promise<void>;
+  getBookmarkedPosts?(limit?: number): Promise<Post[]>;
+  blockUser?(user_id: string): Promise<void>;
+  unblockUser?(user_id: string): Promise<void>;
+  muteUser?(user_id: string): Promise<void>;
+  unmuteUser?(user_id: string): Promise<void>;
+  getBlockedUsers?(): Promise<User[]>;
+  getMutedUsers?(): Promise<User[]>;
 }
 
 export interface RoyalDashboardMetrics {
@@ -1022,4 +1055,192 @@ export interface OrderMarketplace {
   expires_at?: string;
   broadcasted_at: string;
   created_at: string;
+}
+
+// ========================================
+// TWITTER-STYLE SOCIAL MEDIA TYPES
+// ========================================
+
+export interface UserProfile {
+  id: string;
+  user_id: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  avatar_url?: string;
+  banner_url?: string;
+  is_verified: boolean;
+  is_private: boolean;
+  followers_count: number;
+  following_count: number;
+  posts_count: number;
+  likes_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type PostVisibility = 'public' | 'private' | 'followers' | 'business';
+
+export interface Post {
+  id: string;
+  user_id: string;
+  business_id?: string;
+  content: string;
+  visibility: PostVisibility;
+  reply_to_post_id?: string;
+  repost_of_post_id?: string;
+  is_reply: boolean;
+  is_repost: boolean;
+  likes_count: number;
+  reposts_count: number;
+  comments_count: number;
+  views_count: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string;
+  user?: User;
+  media?: PostMedia[];
+  hashtags?: Hashtag[];
+  mentions?: UserMention[];
+  is_liked?: boolean;
+  is_reposted?: boolean;
+  is_bookmarked?: boolean;
+}
+
+export interface PostLike {
+  id: string;
+  post_id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface PostRepost {
+  id: string;
+  post_id: string;
+  user_id: string;
+  comment?: string;
+  created_at: string;
+}
+
+export interface PostComment {
+  id: string;
+  post_id: string;
+  user_id: string;
+  parent_comment_id?: string;
+  content: string;
+  likes_count: number;
+  replies_count: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string;
+  user?: User;
+  replies?: PostComment[];
+}
+
+export interface UserFollow {
+  id: string;
+  follower_id: string;
+  following_id: string;
+  created_at: string;
+}
+
+export interface Hashtag {
+  id: string;
+  tag: string;
+  usage_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PostHashtag {
+  id: string;
+  post_id: string;
+  hashtag_id: string;
+  created_at: string;
+}
+
+export interface UserMention {
+  id: string;
+  post_id: string;
+  mentioned_user_id: string;
+  mentioning_user_id: string;
+  created_at: string;
+}
+
+export interface TrendingTopic {
+  id: string;
+  hashtag_id: string;
+  posts_count: number;
+  engagement_score: number;
+  trend_date: string;
+  created_at: string;
+  hashtag?: Hashtag;
+}
+
+export type MediaType = 'image' | 'video' | 'gif';
+
+export interface PostMedia {
+  id: string;
+  post_id: string;
+  media_type: MediaType;
+  media_url: string;
+  thumbnail_url?: string;
+  width?: number;
+  height?: number;
+  duration?: number;
+  display_order: number;
+  created_at: string;
+}
+
+export interface UserBlock {
+  id: string;
+  blocker_id: string;
+  blocked_id: string;
+  created_at: string;
+}
+
+export interface UserMute {
+  id: string;
+  muter_id: string;
+  muted_id: string;
+  created_at: string;
+}
+
+export interface PostBookmark {
+  id: string;
+  post_id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface CreatePostInput {
+  content: string;
+  visibility?: PostVisibility;
+  reply_to_post_id?: string;
+  business_id?: string;
+  media?: Array<{ media_type: MediaType; media_url: string; thumbnail_url?: string }>;
+}
+
+export interface CreateCommentInput {
+  post_id: string;
+  content: string;
+  parent_comment_id?: string;
+}
+
+export interface UpdateProfileInput {
+  bio?: string;
+  location?: string;
+  website?: string;
+  avatar_url?: string;
+  banner_url?: string;
+  is_private?: boolean;
+}
+
+export interface FeedFilters {
+  user_id?: string;
+  following_only?: boolean;
+  business_id?: string;
+  hashtag?: string;
+  limit?: number;
+  offset?: number;
 }
