@@ -49,7 +49,28 @@ export interface Translations {
   customer_service: string;
   user: string;
 
-  // Business context
+  // Common namespace
+  common: {
+    loading: string;
+    switched: string;
+    selectBusiness: string;
+    ownership: string;
+    primary: string;
+  };
+
+  // Roles namespace
+  roles: {
+    infrastructureOwner: string;
+    businessOwner: string;
+    manager: string;
+    dispatcher: string;
+    driver: string;
+    warehouse: string;
+    sales: string;
+    customerService: string;
+  };
+
+  // Business context (backward compatibility)
   switched: string;
   selectBusiness: string;
   ownership: string;
@@ -253,7 +274,28 @@ const hebrewTranslations: Translations = {
   customer_service: 'שירות לקוחות',
   user: 'משתמש',
 
-  // Business context
+  // Common namespace for shared UI elements
+  common: {
+    loading: 'טוען...',
+    switched: 'עבר אל',
+    selectBusiness: 'בחר עסק',
+    ownership: 'בעלות',
+    primary: 'ראשי',
+  },
+
+  // Roles namespace for role labels
+  roles: {
+    infrastructureOwner: 'בעל תשתית',
+    businessOwner: 'בעל עסק',
+    manager: 'מנהל',
+    dispatcher: 'מוקדן',
+    driver: 'נהג',
+    warehouse: 'מחסנאי',
+    sales: 'איש מכירות',
+    customerService: 'שירות לקוחות',
+  },
+
+  // Business context (kept for backward compatibility)
   switched: 'עבר אל',
   selectBusiness: 'בחר עסק',
   ownership: 'בעלות',
@@ -527,7 +569,28 @@ const englishTranslations: Translations = {
   customer_service: 'Customer Service',
   user: 'User',
 
-  // Business context
+  // Common namespace for shared UI elements
+  common: {
+    loading: 'Loading...',
+    switched: 'Switched to',
+    selectBusiness: 'Select Business',
+    ownership: 'Ownership',
+    primary: 'Primary',
+  },
+
+  // Roles namespace for role labels
+  roles: {
+    infrastructureOwner: 'Infrastructure Owner',
+    businessOwner: 'Business Owner',
+    manager: 'Manager',
+    dispatcher: 'Dispatcher',
+    driver: 'Driver',
+    warehouse: 'Warehouse Worker',
+    sales: 'Sales Representative',
+    customerService: 'Customer Service',
+  },
+
+  // Business context (kept for backward compatibility)
   switched: 'Switched to',
   selectBusiness: 'Select Business',
   ownership: 'Ownership',
