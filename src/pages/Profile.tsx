@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { telegram } from '../lib/telegram';
 import { DataStore, User } from '../data/types';
-import { roleNames, roleIcons } from '../lib/hebrew';
+import { roleNames, roleIcons } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { profileDebugger } from '../lib/profileDebugger';
+import { ProfileDiagnostics } from '../lib/diagnostics';
 
 interface ProfileProps {
   dataStore: DataStore;
@@ -35,7 +35,7 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      (window as any).__showProfileReport = () => profileDebugger.printReport();
+      (window as any).__showProfileReport = () => ProfileDiagnostics.profileDebugger.printReport();
       console.log('💡 Type window.__showProfileReport() to see profile fetch statistics');
     }
   }, []);

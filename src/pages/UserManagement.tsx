@@ -20,10 +20,10 @@ import type { UserRegistration, User } from '../data/types';
 import type { FrontendDataStore } from '../lib/frontendDataStore';
 import { registerUserManagementSubscriptions } from './subscriptionHelpers';
 import { TelegramModal } from '../components/TelegramModal';
-import { roleNames, roleIcons } from '../lib/hebrew';
+import { roleNames, roleIcons } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
-import { logAuthDebug, validateUserManagementAccess } from '../lib/authDebug';
+import { AuthDiagnostics } from '../lib/diagnostics';
 import { sessionTracker } from '../lib/sessionTracker';
 
 interface UserManagementProps {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { telegram } from '../lib/telegram';
 import { DataStore, Product, User } from '../data/types';
-import { hebrew, formatCurrency } from '../lib/hebrew';
+import { hebrew, formatCurrency } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 
 interface ProductsProps {

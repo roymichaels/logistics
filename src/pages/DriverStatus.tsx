@@ -8,7 +8,7 @@ import {
 } from '../data/types';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { Toast } from '../components/Toast';
-import { hebrew } from '../lib/hebrew';
+import { hebrew } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 
 interface DriverStatusProps {

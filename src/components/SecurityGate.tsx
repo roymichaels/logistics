@@ -8,7 +8,7 @@ import { PINEntry } from './PINEntry';
 import { SecurityManager, AuthenticationState, initializeGlobalSecurityManager } from '../utils/security/securityManager';
 import { SecurityAuditLogger } from '../utils/security/auditLogger';
 import { useTelegramUI } from '../hooks/useTelegramUI';
-import { hebrew } from '../lib/hebrew';
+import { hebrew } from '../lib/i18n';
 
 interface SecurityGateProps {
   userId: string;

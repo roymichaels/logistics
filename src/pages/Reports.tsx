@@ -3,7 +3,7 @@ import { telegram } from '../lib/telegram';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { DataStore, User, Order } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { formatCurrency } from '../lib/hebrew';
+import { formatCurrency } from '../lib/i18n';
 import { Toast } from '../components/Toast';
 
 interface ReportsProps {

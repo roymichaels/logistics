@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { telegram } from '../lib/telegram';
 import { DataStore, Task, User } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { hebrew } from '../lib/hebrew';
+import { hebrew } from '../lib/i18n';
 
 interface TasksProps {
   dataStore: DataStore;

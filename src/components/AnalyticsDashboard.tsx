@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { formatCurrency, hebrew } from '../lib/hebrew';
+import { formatCurrency, hebrew } from '../lib/i18n';
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, InventoryLog } from '../data/types';
 import { useTelegramUI } from '../hooks/useTelegramUI';
-import { hebrew, formatDate, formatTime } from '../lib/hebrew';
+import { hebrew, formatDate, formatTime } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
 

@@ -21,8 +21,8 @@ import { BecomeDriverModal } from './components/BecomeDriverModal';
 import { ToastContainer } from './components/EnhancedToast';
 import { PageLoadingSkeleton } from './components/LoadingSkeleton';
 import { debugLog } from './components/DebugPanel';
-import { hebrew } from './lib/hebrew';
-import './lib/authDiagnostics'; // Load auth diagnostics for console debugging
+import { hebrew } from './lib/i18n';
+import './lib/diagnostics'; // Load diagnostics for console debugging
 import './styles/transitions.css';
 import { useAppServices } from './context/AppServicesContext';
 import { useAuth } from './context/AuthContext';

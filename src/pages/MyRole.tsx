@@ -3,7 +3,7 @@ import { DataStore, User } from '../data/types';
 import { Toast } from '../components/Toast';
 import { telegram } from '../lib/telegram';
 import { loadConfig } from '../lib/supabaseClient';
-import { profileDebugger } from '../lib/profileDebugger';
+import { ProfileDiagnostics } from '../lib/diagnostics';
 
 interface MyRoleProps {
   dataStore: DataStore;

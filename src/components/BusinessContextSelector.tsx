@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, User, UserBusinessAccess } from '../data/types';
 import { ROYAL_COLORS } from '../styles/royalTheme';
-import { hebrew } from '../lib/hebrew';
+import { hebrew } from '../lib/i18n';
 import { Toast } from './Toast';
 
 interface BusinessContextSelectorProps {

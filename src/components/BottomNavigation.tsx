@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
-import { hebrew } from '../lib/hebrew';
+import { hebrew } from '../lib/i18n';
 import { useAppServices } from '../context/AppServicesContext';
 import { TWITTER_COLORS } from '../styles/twitterTheme';
 

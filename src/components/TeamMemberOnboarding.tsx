@@ -3,7 +3,7 @@ import { User } from '../data/types';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { telegram } from '../lib/telegram';
 import { Toast } from './Toast';
-import { hebrew, roleNames, roleIcons } from '../lib/hebrew';
+import { hebrew, roleNames, roleIcons } from '../lib/i18n';
 
 interface TeamMemberOnboardingProps {
   onComplete: (role: User['role']) => void;

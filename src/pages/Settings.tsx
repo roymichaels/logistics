@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { telegram } from '../lib/telegram';
 import { TelegramModal } from '../components/TelegramModal';
 import { DataStore, User, BootstrapConfig } from '../data/types';
-import { roleNames, roleIcons } from '../lib/hebrew';
+import { roleNames, roleIcons } from '../lib/i18n';
 import { userManager } from '../lib/userManager';
 import { offlineStore, type OfflineDiagnostics } from '../utils/offlineStore';
 import { PINEntry } from '../components/PINEntry';

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
-import { hebrew } from '../lib/hebrew';
+import { hebrew } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { telegram } from '../lib/telegram';
 import { CreateBusinessModal } from '../components/CreateBusinessModal';
-import { shouldShowCreateBusinessButton } from '../lib/roleDiagnostics';
+import { RoleDiagnostics } from '../lib/diagnostics';
 import { isSupabaseInitialized } from '../lib/supabaseClient';
 
 interface BusinessesProps {
@@ -118,7 +118,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
   const businessesIOwn = myOwnerships.filter(o => o.ownership_percentage > 0).length;
 
   // Diagnostic check for Create Business button visibility
-  const createBusinessCheck = shouldShowCreateBusinessButton(user);
+  const createBusinessCheck = RoleDiagnostics.shouldShowCreateBusinessButton(user);
   if (user) {
     console.log('🔍 Businesses Page - Create Business Button Check:', {
       userRole: user.role,

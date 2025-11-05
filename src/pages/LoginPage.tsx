@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { EthereumLogin } from '../components/EthereumLogin';
 import { SolanaLogin } from '../components/SolanaLogin';
 import { platformDetection } from '../lib/platformDetection';
-import { hebrew } from '../lib/hebrew';
+import { hebrew } from '../lib/i18n';
 import { ADMIN_THEME } from '../styles/roleThemes';
 
 interface LoginPageProps {

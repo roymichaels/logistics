@@ -6,16 +6,12 @@ import { AppServicesProvider } from './context/AppServicesContext';
 import { SupabaseReadyProvider } from './context/SupabaseReadyContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { initSupabase } from './lib/supabaseClient';
-import { installRoleDebugger } from './lib/roleDiagnostics';
-import './lib/initDiagnostics';
+import './lib/diagnostics';
 import './lib/errorHandler'; // Initialize global error handler
 import { runtimeEnvironment } from './lib/runtimeEnvironment';
 
 // Detect runtime environment
 runtimeEnvironment.detect();
-
-// Install role debugging tools for console access
-installRoleDebugger();
 
 console.log('🚀 Starting app...');
 console.log('🌍 Environment:', runtimeEnvironment.env.type);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { ROYAL_COLORS } from '../styles/royalTheme';
-import { roleNames, roleIcons } from '../lib/hebrew';
+import { roleNames, roleIcons } from '../lib/i18n';
 import type { User } from '../data/types';
 
 interface UserProfileModalProps {

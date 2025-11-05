@@ -3,7 +3,7 @@ import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { telegram } from '../lib/telegram';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { DataStore, Channel, User } from '../data/types';
-import { hebrew } from '../lib/hebrew';
+import { hebrew } from '../lib/i18n';
 import { GroupChannelCreateModal } from '../components/GroupChannelCreateModal';
 import { hasPermission } from '../lib/rolePermissions';
 

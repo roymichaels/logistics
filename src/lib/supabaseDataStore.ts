@@ -1,6 +1,6 @@
 import { RealtimeChannel, createClient } from '@supabase/supabase-js';
 import { getSupabase, loadConfig } from './supabaseClient';
-import { trackProfileFetch, trackCacheHit } from './profileDebugger';
+import { ProfileDiagnostics } from './diagnostics';
 import { LEGACY_TO_CANONICAL_ROLE, CANONICAL_TO_LEGACY_ROLE } from './roleMappings';
 import {
   DataStore,
@@ -910,10 +910,10 @@ export class SupabaseDataStore implements DataStore {
   // Auth & Profile
   async getProfile(forceRefresh = false): Promise<User> {
     if (!forceRefresh && this.isCacheValid()) {
-      return trackCacheHit('SupabaseDataStore.getProfile', this.user!);
+      return ProfileDiagnostics.trackCacheHit('SupabaseDataStore.getProfile', this.user!);
     }
 
-    return trackProfileFetch('SupabaseDataStore.getProfile', forceRefresh, async () => {
+    return ProfileDiagnostics.trackFetch('SupabaseDataStore.getProfile', forceRefresh, async () => {
       return this._fetchProfileFromDatabase();
     });
   }

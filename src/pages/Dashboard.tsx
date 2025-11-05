@@ -6,7 +6,7 @@ import { OwnerDashboard } from '../components/OwnerDashboard';
 import { InfrastructureOwnerDashboard } from '../components/InfrastructureOwnerDashboard';
 import { BusinessOwnerDashboard } from '../components/BusinessOwnerDashboard';
 import { ManagerDashboard } from '../components/ManagerDashboard';
-import { logRoleDiagnostic, getDashboardComponent } from '../lib/roleDiagnostics';
+import { RoleDiagnostics } from '../lib/diagnostics';
 import type { FrontendDataStore } from '../lib/frontendDataStore';
 import { registerDashboardSubscriptions } from './subscriptionHelpers';
 import {
@@ -19,7 +19,7 @@ import {
   RoyalDashboardZoneCoverage,
   RoyalDashboardChartPoint
 } from '../data/types';
-import { formatCurrency, hebrew } from '../lib/hebrew';
+import { formatCurrency, hebrew } from '../lib/i18n';
 
 interface DashboardProps {
   dataStore: FrontendDataStore;

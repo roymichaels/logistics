@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { hebrew } from '../lib/hebrew';
-import { english } from '../lib/english';
+import { hebrew } from '../lib/i18n';
+import { english } from '../lib/i18n';
 import { supabase } from '../lib/supabaseClient';
 
 type Language = 'he' | 'en';

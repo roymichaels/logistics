@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { User } from '../data/types';
 import { ROYAL_COLORS } from '../styles/royalTheme';
-import { hebrew } from '../lib/hebrew';
+import { hebrew } from '../lib/i18n';
 
 interface RoleSelectionModalProps {
   onRoleSelect: (role: User['role']) => void;

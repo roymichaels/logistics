@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { telegram } from '../lib/telegram';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { DataStore, GroupChat, User } from '../data/types';
-import { hebrew } from '../lib/hebrew';
+import { hebrew } from '../lib/i18n';
 import { EncryptedChatComponent } from '../components/EncryptedChat';
 import { initializeEncryptedChatService } from '../utils/security/encryptedChatService';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';

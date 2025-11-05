@@ -3,7 +3,7 @@ import { useTelegramUI } from '../hooks/useTelegramUI';
 import { DataStore, Product, InventoryRecord, InventoryAlert, InventoryLocation } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
-import { formatCurrency } from '../lib/hebrew';
+import { formatCurrency } from '../lib/i18n';
 
 interface InventoryProps {
   dataStore: DataStore;

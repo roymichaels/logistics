@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { hebrew } from '../lib/hebrew';
+import { hebrew } from '../lib/i18n';
 import { ADMIN_THEME } from '../styles/roleThemes';
 
 interface LandingPageProps {

@@ -22,7 +22,7 @@ import {
   Permission,
   PERMISSION_DESCRIPTIONS,
 } from '../lib/rolePermissions';
-import { roleNames, roleIcons } from '../lib/hebrew';
+import { roleNames, roleIcons } from '../lib/i18n';
 
 interface RoleChangeWorkflowProps {
   currentUser: User;
