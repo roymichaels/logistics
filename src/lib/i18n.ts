@@ -84,6 +84,37 @@ export interface Translations {
   completed: string;
   cancelled: string;
 
+  // Common UI states
+  loading: string;
+  error: string;
+
+  // Login and authentication
+  login: {
+    welcome: string;
+    subtitle: string;
+    chooseMethod: string;
+    signInWith: string;
+    ethereum: string;
+    solana: string;
+    telegram: string;
+    backToOptions: string;
+    authDescription: string;
+    continueWith: string;
+    authenticating: string;
+    termsAgreement: string;
+    errors: {
+      ethereumFailed: string;
+      solanaFailed: string;
+      telegramFailed: string;
+    };
+  };
+
+  // Error messages
+  errors: {
+    loadFailed: string;
+    switchFailed: string;
+  };
+
   [key: string]: string | any;
 }
 
@@ -256,6 +287,37 @@ const hebrewTranslations: Translations = {
   pending: 'ממתין',
   completed: 'הושלם',
   cancelled: 'בוטל',
+
+  // Common UI states
+  loading: 'טוען...',
+  error: 'שגיאה',
+
+  // Login and authentication
+  login: {
+    welcome: 'ברוכים הבאים',
+    subtitle: 'התחבר לחשבונך',
+    chooseMethod: 'בחר שיטת אימות:',
+    signInWith: 'התחבר עם',
+    ethereum: 'Ethereum',
+    solana: 'Solana',
+    telegram: 'Telegram',
+    backToOptions: 'חזור לאפשרויות',
+    authDescription: 'התחבר בצורה מאובטחת באמצעות',
+    continueWith: 'המשך עם',
+    authenticating: 'מאמת...',
+    termsAgreement: 'בהמשך, אתה מסכים לתנאי השימוש ומדיניות הפרטיות שלנו',
+    errors: {
+      ethereumFailed: 'אימות Ethereum נכשל. נסה שנית.',
+      solanaFailed: 'אימות Solana נכשל. נסה שנית.',
+      telegramFailed: 'אימות Telegram נכשל. נסה שנית.',
+    },
+  },
+
+  // Error messages
+  errors: {
+    loadFailed: 'טעינת הנתונים נכשלה',
+    switchFailed: 'מעבר בין עסקים נכשל',
+  },
 };
 
 const hebrewLanding: LandingTranslations = {
@@ -499,6 +561,37 @@ const englishTranslations: Translations = {
   pending: 'Pending',
   completed: 'Completed',
   cancelled: 'Cancelled',
+
+  // Common UI states
+  loading: 'Loading...',
+  error: 'Error',
+
+  // Login and authentication
+  login: {
+    welcome: 'Welcome',
+    subtitle: 'Sign in to your account',
+    chooseMethod: 'Choose authentication method:',
+    signInWith: 'Sign in with',
+    ethereum: 'Ethereum',
+    solana: 'Solana',
+    telegram: 'Telegram',
+    backToOptions: 'Back to options',
+    authDescription: 'Securely authenticate using',
+    continueWith: 'Continue with',
+    authenticating: 'Authenticating...',
+    termsAgreement: 'By continuing, you agree to our Terms of Service and Privacy Policy',
+    errors: {
+      ethereumFailed: 'Ethereum authentication failed. Please try again.',
+      solanaFailed: 'Solana authentication failed. Please try again.',
+      telegramFailed: 'Telegram authentication failed. Please try again.',
+    },
+  },
+
+  // Error messages
+  errors: {
+    loadFailed: 'Failed to load data',
+    switchFailed: 'Failed to switch business',
+  },
 };
 
 const englishLanding: LandingTranslations = {
@@ -724,11 +817,6 @@ class I18nService {
 
 export const i18n = new I18nService();
 
-// Legacy exports for backward compatibility
-export const hebrew = hebrewTranslations;
-export const english = englishTranslations;
-export const hebrewLandingUpdate = { landing: hebrewLanding };
-
 // Helper functions
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('he-IL', {
@@ -764,6 +852,48 @@ export function formatDateTime(date: string | Date): string {
     minute: '2-digit'
   }).format(d);
 }
+
+// English formatting functions
+function formatCurrencyEN(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(amount);
+}
+
+function formatDateEN(date: string | Date): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(d);
+}
+
+function formatTimeEN(date: string | Date): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(d);
+}
+
+// Legacy exports for backward compatibility
+export const hebrew = {
+  ...hebrewTranslations,
+  formatCurrency,
+  formatDate,
+  formatTime,
+};
+
+export const english = {
+  ...englishTranslations,
+  formatCurrency: formatCurrencyEN,
+  formatDate: formatDateEN,
+  formatTime: formatTimeEN,
+};
+
+export const hebrewLandingUpdate = { landing: hebrewLanding };
 
 export const roleNames = {
   infrastructure_owner: i18n.t('owner'),
