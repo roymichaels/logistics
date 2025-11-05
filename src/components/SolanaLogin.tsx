@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { TWITTER_COLORS } from '../styles/twitterTheme';
 
 interface SolanaLoginProps {
   onSuccess: (walletAddress: string, signature: string, message: string) => void;
@@ -27,7 +28,6 @@ export function SolanaLogin({ onSuccess, onError }: SolanaLoginProps) {
   const [provider, setProvider] = useState<SolanaProvider | null>(null);
 
   useEffect(() => {
-    // Check if Solana wallet is available
     if (typeof window !== 'undefined') {
       const solanaProvider = window.solana || window.phantom?.solana;
 
@@ -35,7 +35,6 @@ export function SolanaLogin({ onSuccess, onError }: SolanaLoginProps) {
         setHasSolanaWallet(true);
         setProvider(solanaProvider);
 
-        // Check if already connected
         if (solanaProvider.isConnected && solanaProvider.publicKey) {
           setWalletAddress(solanaProvider.publicKey.toString());
         }
@@ -45,63 +44,57 @@ export function SolanaLogin({ onSuccess, onError }: SolanaLoginProps) {
 
   const connectWallet = async () => {
     if (!provider) {
-      onError('No Solana wallet detected. Please install Phantom or another Solana wallet.');
+      onError('לא זוהה ארנק Solana. אנא התקן Phantom או ארנק Solana אחר.');
       return;
     }
 
     setIsConnecting(true);
 
     try {
-      // Connect to wallet
       const response = await provider.connect();
 
       if (!response.publicKey) {
-        throw new Error('No public key returned from wallet.');
+        throw new Error('לא הוחזר מפתח ציבורי מהארנק.');
       }
 
       const address = response.publicKey.toString();
       setWalletAddress(address);
 
-      // Create message to sign (following SIWS standard similar to EIP-4361)
       const domain = window.location.host;
       const timestamp = new Date().toISOString();
       const nonce = Math.random().toString(36).substring(7);
 
-      const message = `${domain} wants you to sign in with your Solana account:
+      const message = `${domain} רוצה שתתחבר עם חשבון ה-Solana שלך:
 ${address}
 
-I accept the Terms of Service: https://${domain}/tos
+אני מקבל את תנאי השירות: https://${domain}/tos
 
-URI: https://${domain}
-Version: 1
-Chain: Solana Mainnet
+כתובת: https://${domain}
+גרסה: 1
+רשת: Solana Mainnet
 Nonce: ${nonce}
-Issued At: ${timestamp}`;
+הונפק ב: ${timestamp}`;
 
-      // Convert message to Uint8Array
       const encodedMessage = new TextEncoder().encode(message);
 
-      // Request signature
       const signedMessage = await provider.signMessage(encodedMessage, 'utf8');
 
-      // Convert signature to hex string
       const signatureHex = Array.from(signedMessage.signature)
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
 
-      console.log('✅ Solana wallet connected and message signed');
+      console.log('✅ ארנק Solana מחובר והודעה נחתמה');
 
-      // Call success callback with wallet data
       onSuccess(address, signatureHex, message);
     } catch (error: any) {
-      console.error('❌ Solana wallet connection error:', error);
+      console.error('❌ שגיאה בחיבור ארנק Solana:', error);
 
-      let errorMessage = 'Failed to connect Solana wallet';
+      let errorMessage = 'כשל בחיבור ארנק Solana';
 
       if (error.code === 4001 || error.message?.includes('rejected')) {
-        errorMessage = 'Wallet connection was rejected. Please try again.';
+        errorMessage = 'חיבור הארנק נדחה. אנא נסה שוב.';
       } else if (error.code === -32002) {
-        errorMessage = 'Connection request is already pending. Please check your wallet.';
+        errorMessage = 'בקשת חיבור כבר ממתינה. אנא בדוק את הארנק שלך.';
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -115,18 +108,29 @@ Issued At: ${timestamp}`;
   if (!hasSolanaWallet) {
     return (
       <div style={{
-        padding: '24px',
-        border: '1px solid #e0e0e0',
+        padding: '32px',
+        border: `1px solid ${TWITTER_COLORS.border}`,
         borderRadius: '12px',
-        backgroundColor: '#f9f9f9',
-        textAlign: 'center'
+        backgroundColor: TWITTER_COLORS.card,
+        textAlign: 'center',
+        direction: 'rtl'
       }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>👻</div>
-        <h3 style={{ marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>
-          No Solana Wallet Detected
+        <div style={{ fontSize: '56px', marginBottom: '20px' }}>👻</div>
+        <h3 style={{
+          marginBottom: '16px',
+          fontSize: '20px',
+          fontWeight: '700',
+          color: TWITTER_COLORS.text
+        }}>
+          לא זוהה ארנק Solana
         </h3>
-        <p style={{ marginBottom: '20px', color: '#666', fontSize: '14px' }}>
-          To sign in with Solana, you need a Solana wallet like Phantom.
+        <p style={{
+          marginBottom: '24px',
+          color: TWITTER_COLORS.textSecondary,
+          fontSize: '15px',
+          lineHeight: '1.6'
+        }}>
+          כדי להתחבר עם Solana, אתה צריך ארנק Solana כמו Phantom.
         </p>
         <a
           href="https://phantom.app/download"
@@ -134,16 +138,18 @@ Issued At: ${timestamp}`;
           rel="noopener noreferrer"
           style={{
             display: 'inline-block',
-            padding: '12px 24px',
-            backgroundColor: '#AB9FF2',
-            color: '#fff',
+            padding: '14px 28px',
+            background: TWITTER_COLORS.gradientPrimary,
+            color: TWITTER_COLORS.buttonPrimaryText,
             textDecoration: 'none',
             borderRadius: '8px',
-            fontWeight: '500',
-            fontSize: '14px'
+            fontWeight: '700',
+            fontSize: '15px',
+            transition: 'all 0.2s ease',
+            boxShadow: TWITTER_COLORS.shadow
           }}
         >
-          Install Phantom
+          התקן Phantom
         </a>
       </div>
     );
@@ -151,37 +157,63 @@ Issued At: ${timestamp}`;
 
   return (
     <div style={{
-      padding: '24px',
-      border: '2px solid #AB9FF2',
+      padding: '32px',
+      border: `1px solid ${TWITTER_COLORS.primary}`,
       borderRadius: '12px',
-      backgroundColor: '#f5f3ff',
-      textAlign: 'center'
+      backgroundColor: TWITTER_COLORS.card,
+      textAlign: 'center',
+      direction: 'rtl',
+      boxShadow: TWITTER_COLORS.shadowLarge
     }}>
-      <div style={{ fontSize: '48px', marginBottom: '16px' }}>◎</div>
-      <h3 style={{ marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>
-        Sign in with Solana
+      <div style={{
+        fontSize: '56px',
+        marginBottom: '20px',
+        filter: `drop-shadow(0 0 20px ${TWITTER_COLORS.accentGlow})`
+      }}>
+        ◎
+      </div>
+      <h3 style={{
+        marginBottom: '16px',
+        fontSize: '22px',
+        fontWeight: '700',
+        color: TWITTER_COLORS.text
+      }}>
+        התחבר עם Solana
       </h3>
 
       {walletAddress ? (
-        <div style={{ marginBottom: '20px' }}>
-          <p style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>
-            Connected wallet:
+        <div style={{ marginBottom: '24px' }}>
+          <p style={{
+            fontSize: '14px',
+            color: TWITTER_COLORS.textSecondary,
+            marginBottom: '12px',
+            fontWeight: '600'
+          }}>
+            ארנק מחובר:
           </p>
           <code style={{
             display: 'block',
-            padding: '8px 12px',
-            backgroundColor: '#fff',
-            borderRadius: '6px',
-            fontSize: '12px',
+            padding: '12px 16px',
+            backgroundColor: TWITTER_COLORS.backgroundSecondary,
+            border: `1px solid ${TWITTER_COLORS.border}`,
+            borderRadius: '8px',
+            fontSize: '13px',
             fontFamily: 'monospace',
-            wordBreak: 'break-all'
+            wordBreak: 'break-all',
+            color: TWITTER_COLORS.primary,
+            direction: 'ltr'
           }}>
             {walletAddress}
           </code>
         </div>
       ) : (
-        <p style={{ marginBottom: '20px', color: '#666', fontSize: '14px' }}>
-          Connect your Solana wallet to continue
+        <p style={{
+          marginBottom: '24px',
+          color: TWITTER_COLORS.textSecondary,
+          fontSize: '15px',
+          lineHeight: '1.6'
+        }}>
+          חבר את ארנק ה-Solana שלך כדי להמשיך
         </p>
       )}
 
@@ -190,23 +222,29 @@ Issued At: ${timestamp}`;
         disabled={isConnecting}
         style={{
           width: '100%',
-          padding: '14px 24px',
-          backgroundColor: isConnecting ? '#ccc' : '#AB9FF2',
-          color: '#fff',
+          padding: '16px 28px',
+          background: isConnecting ? TWITTER_COLORS.textTertiary : TWITTER_COLORS.gradientPrimary,
+          color: isConnecting ? TWITTER_COLORS.textSecondary : TWITTER_COLORS.buttonPrimaryText,
           border: 'none',
           borderRadius: '8px',
-          fontWeight: '600',
+          fontWeight: '700',
           fontSize: '16px',
           cursor: isConnecting ? 'not-allowed' : 'pointer',
-          transition: 'background-color 0.2s'
+          transition: 'all 0.2s ease',
+          boxShadow: isConnecting ? 'none' : TWITTER_COLORS.shadow
         }}
       >
-        {isConnecting ? 'Connecting...' : walletAddress ? 'Sign Message & Continue' : 'Connect Wallet'}
+        {isConnecting ? '...מתחבר' : walletAddress ? 'חתום והמשך' : 'חבר ארנק'}
       </button>
 
       {walletAddress && (
-        <p style={{ marginTop: '12px', fontSize: '12px', color: '#666' }}>
-          You will be asked to sign a message to verify ownership
+        <p style={{
+          marginTop: '16px',
+          fontSize: '13px',
+          color: TWITTER_COLORS.textSecondary,
+          lineHeight: '1.5'
+        }}>
+          תתבקש לחתום על הודעה כדי לאמת בעלות
         </p>
       )}
     </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { TWITTER_COLORS } from '../styles/twitterTheme';
 
 interface EthereumLoginProps {
   onSuccess: (walletAddress: string, signature: string, message: string) => void;
@@ -23,11 +24,9 @@ export function EthereumLogin({ onSuccess, onError }: EthereumLoginProps) {
   const [hasEthereumWallet, setHasEthereumWallet] = useState(false);
 
   useEffect(() => {
-    // Check if Ethereum wallet is available
     if (typeof window !== 'undefined' && window.ethereum) {
       setHasEthereumWallet(true);
 
-      // Check if already connected
       window.ethereum
         .request({ method: 'eth_accounts' })
         .then((accounts: string[]) => {
@@ -43,60 +42,56 @@ export function EthereumLogin({ onSuccess, onError }: EthereumLoginProps) {
 
   const connectWallet = async () => {
     if (!window.ethereum) {
-      onError('No Ethereum wallet detected. Please install MetaMask or another Web3 wallet.');
+      onError('לא זוהה ארנק Ethereum. אנא התקן MetaMask או ארנק Web3 אחר.');
       return;
     }
 
     setIsConnecting(true);
 
     try {
-      // Request account access
       const accounts = await window.ethereum.request({
         method: 'eth_requestAccounts',
       });
 
       if (accounts.length === 0) {
-        throw new Error('No accounts found. Please unlock your wallet.');
+        throw new Error('לא נמצאו חשבונות. אנא פתח את הארנק שלך.');
       }
 
       const address = accounts[0];
       setWalletAddress(address);
 
-      // Create message to sign (following EIP-4361 standard)
       const domain = window.location.host;
       const timestamp = new Date().toISOString();
       const nonce = Math.random().toString(36).substring(7);
 
-      const message = `${domain} wants you to sign in with your Ethereum account:
+      const message = `${domain} רוצה שתתחבר עם חשבון ה-Ethereum שלך:
 ${address}
 
-I accept the Terms of Service: https://${domain}/tos
+אני מקבל את תנאי השירות: https://${domain}/tos
 
-URI: https://${domain}
-Version: 1
+כתובת: https://${domain}
+גרסה: 1
 Chain ID: 1
 Nonce: ${nonce}
-Issued At: ${timestamp}`;
+הונפק ב: ${timestamp}`;
 
-      // Request signature
       const signature = await window.ethereum.request({
         method: 'personal_sign',
         params: [message, address],
       });
 
-      console.log('✅ Ethereum wallet connected and message signed');
+      console.log('✅ ארנק Ethereum מחובר והודעה נחתמה');
 
-      // Call success callback with wallet data
       onSuccess(address, signature, message);
     } catch (error: any) {
-      console.error('❌ Ethereum wallet connection error:', error);
+      console.error('❌ שגיאה בחיבור ארנק Ethereum:', error);
 
-      let errorMessage = 'Failed to connect Ethereum wallet';
+      let errorMessage = 'כשל בחיבור ארנק Ethereum';
 
       if (error.code === 4001) {
-        errorMessage = 'Wallet connection was rejected. Please try again.';
+        errorMessage = 'חיבור הארנק נדחה. אנא נסה שוב.';
       } else if (error.code === -32002) {
-        errorMessage = 'Connection request is already pending. Please check your wallet.';
+        errorMessage = 'בקשת חיבור כבר ממתינה. אנא בדוק את הארנק שלך.';
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -110,18 +105,29 @@ Issued At: ${timestamp}`;
   if (!hasEthereumWallet) {
     return (
       <div style={{
-        padding: '24px',
-        border: '1px solid #e0e0e0',
+        padding: '32px',
+        border: `1px solid ${TWITTER_COLORS.border}`,
         borderRadius: '12px',
-        backgroundColor: '#f9f9f9',
-        textAlign: 'center'
+        backgroundColor: TWITTER_COLORS.card,
+        textAlign: 'center',
+        direction: 'rtl'
       }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🦊</div>
-        <h3 style={{ marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>
-          No Ethereum Wallet Detected
+        <div style={{ fontSize: '56px', marginBottom: '20px' }}>🦊</div>
+        <h3 style={{
+          marginBottom: '16px',
+          fontSize: '20px',
+          fontWeight: '700',
+          color: TWITTER_COLORS.text
+        }}>
+          לא זוהה ארנק Ethereum
         </h3>
-        <p style={{ marginBottom: '20px', color: '#666', fontSize: '14px' }}>
-          To sign in with Ethereum, you need a Web3 wallet like MetaMask.
+        <p style={{
+          marginBottom: '24px',
+          color: TWITTER_COLORS.textSecondary,
+          fontSize: '15px',
+          lineHeight: '1.6'
+        }}>
+          כדי להתחבר עם Ethereum, אתה צריך ארנק Web3 כמו MetaMask.
         </p>
         <a
           href="https://metamask.io/download/"
@@ -129,16 +135,18 @@ Issued At: ${timestamp}`;
           rel="noopener noreferrer"
           style={{
             display: 'inline-block',
-            padding: '12px 24px',
-            backgroundColor: '#037dd6',
-            color: '#fff',
+            padding: '14px 28px',
+            background: TWITTER_COLORS.gradientPrimary,
+            color: TWITTER_COLORS.buttonPrimaryText,
             textDecoration: 'none',
             borderRadius: '8px',
-            fontWeight: '500',
-            fontSize: '14px'
+            fontWeight: '700',
+            fontSize: '15px',
+            transition: 'all 0.2s ease',
+            boxShadow: TWITTER_COLORS.shadow
           }}
         >
-          Install MetaMask
+          התקן MetaMask
         </a>
       </div>
     );
@@ -146,37 +154,63 @@ Issued At: ${timestamp}`;
 
   return (
     <div style={{
-      padding: '24px',
-      border: '2px solid #037dd6',
+      padding: '32px',
+      border: `1px solid ${TWITTER_COLORS.primary}`,
       borderRadius: '12px',
-      backgroundColor: '#f0f8ff',
-      textAlign: 'center'
+      backgroundColor: TWITTER_COLORS.card,
+      textAlign: 'center',
+      direction: 'rtl',
+      boxShadow: TWITTER_COLORS.shadowLarge
     }}>
-      <div style={{ fontSize: '48px', marginBottom: '16px' }}>⟠</div>
-      <h3 style={{ marginBottom: '12px', fontSize: '18px', fontWeight: '600' }}>
-        Sign in with Ethereum
+      <div style={{
+        fontSize: '56px',
+        marginBottom: '20px',
+        filter: `drop-shadow(0 0 20px ${TWITTER_COLORS.accentGlow})`
+      }}>
+        ⟠
+      </div>
+      <h3 style={{
+        marginBottom: '16px',
+        fontSize: '22px',
+        fontWeight: '700',
+        color: TWITTER_COLORS.text
+      }}>
+        התחבר עם Ethereum
       </h3>
 
       {walletAddress ? (
-        <div style={{ marginBottom: '20px' }}>
-          <p style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>
-            Connected wallet:
+        <div style={{ marginBottom: '24px' }}>
+          <p style={{
+            fontSize: '14px',
+            color: TWITTER_COLORS.textSecondary,
+            marginBottom: '12px',
+            fontWeight: '600'
+          }}>
+            ארנק מחובר:
           </p>
           <code style={{
             display: 'block',
-            padding: '8px 12px',
-            backgroundColor: '#fff',
-            borderRadius: '6px',
-            fontSize: '12px',
+            padding: '12px 16px',
+            backgroundColor: TWITTER_COLORS.backgroundSecondary,
+            border: `1px solid ${TWITTER_COLORS.border}`,
+            borderRadius: '8px',
+            fontSize: '13px',
             fontFamily: 'monospace',
-            wordBreak: 'break-all'
+            wordBreak: 'break-all',
+            color: TWITTER_COLORS.primary,
+            direction: 'ltr'
           }}>
             {walletAddress}
           </code>
         </div>
       ) : (
-        <p style={{ marginBottom: '20px', color: '#666', fontSize: '14px' }}>
-          Connect your Ethereum wallet to continue
+        <p style={{
+          marginBottom: '24px',
+          color: TWITTER_COLORS.textSecondary,
+          fontSize: '15px',
+          lineHeight: '1.6'
+        }}>
+          חבר את ארנק ה-Ethereum שלך כדי להמשיך
         </p>
       )}
 
@@ -185,23 +219,29 @@ Issued At: ${timestamp}`;
         disabled={isConnecting}
         style={{
           width: '100%',
-          padding: '14px 24px',
-          backgroundColor: isConnecting ? '#ccc' : '#037dd6',
-          color: '#fff',
+          padding: '16px 28px',
+          background: isConnecting ? TWITTER_COLORS.textTertiary : TWITTER_COLORS.gradientPrimary,
+          color: isConnecting ? TWITTER_COLORS.textSecondary : TWITTER_COLORS.buttonPrimaryText,
           border: 'none',
           borderRadius: '8px',
-          fontWeight: '600',
+          fontWeight: '700',
           fontSize: '16px',
           cursor: isConnecting ? 'not-allowed' : 'pointer',
-          transition: 'background-color 0.2s'
+          transition: 'all 0.2s ease',
+          boxShadow: isConnecting ? 'none' : TWITTER_COLORS.shadow
         }}
       >
-        {isConnecting ? 'Connecting...' : walletAddress ? 'Sign Message & Continue' : 'Connect Wallet'}
+        {isConnecting ? '...מתחבר' : walletAddress ? 'חתום והמשך' : 'חבר ארנק'}
       </button>
 
       {walletAddress && (
-        <p style={{ marginTop: '12px', fontSize: '12px', color: '#666' }}>
-          You will be asked to sign a message to verify ownership
+        <p style={{
+          marginTop: '16px',
+          fontSize: '13px',
+          color: TWITTER_COLORS.textSecondary,
+          lineHeight: '1.5'
+        }}>
+          תתבקש לחתום על הודעה כדי לאמת בעלות
         </p>
       )}
     </div>
