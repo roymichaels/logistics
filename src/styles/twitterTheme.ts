@@ -1,86 +1,86 @@
 /**
- * Twitter/X Dark Theme Color System
- * Authentic Twitter/X dark mode colors (2024-2025)
- * Based on Twitter's actual dark blue-black theme
+ * UndergroundLab Dark Theme Color System
+ * Professional secure business platform design
+ * Neutral dark theme with distinctive accent colors
  */
 
 export const TWITTER_COLORS = {
-  // Background colors - Twitter uses dark blue-black, NOT pure black
-  background: '#15202B', // Twitter's main dark background (Black Pearl)
-  backgroundSecondary: '#192734', // Secondary dark background
-  backgroundHover: '#22303C', // Hover states (lighter blue-gray)
+  // Background colors - Neutral dark theme
+  background: '#0A0E14', // Deep slate background
+  backgroundSecondary: '#131920', // Secondary dark surface
+  backgroundHover: '#1C2128', // Hover states
 
-  // Primary blue (Twitter blue)
-  primary: '#1D9BF0', // Twitter blue (current)
-  primaryHover: '#1A8CD8',
-  primaryPressed: '#1683BF',
-  primaryFaded: 'rgba(29, 155, 240, 0.1)',
+  // Primary accent - Deep cyan/teal (distinctive from Twitter)
+  primary: '#00D9FF', // Bright cyan
+  primaryHover: '#00C4E6',
+  primaryPressed: '#00B0CC',
+  primaryFaded: 'rgba(0, 217, 255, 0.1)',
 
   // Text colors
-  text: '#E7E9EA', // Primary text (off-white)
-  textSecondary: '#8899A6', // Secondary/muted text (blue-gray)
-  textTertiary: '#536471', // Even more muted
-  textInverse: '#0F1419', // Text on light backgrounds
+  text: '#E8EAED', // Primary text (soft white)
+  textSecondary: '#9BA1A6', // Secondary text (neutral gray)
+  textTertiary: '#6B7280', // Muted text
+  textInverse: '#0A0E14', // Text on light backgrounds
 
-  // Border colors - Twitter uses subtle blue-gray borders
-  border: '#38444D',
-  borderHover: '#4A5568',
+  // Border colors - Neutral gray borders
+  border: '#2D333B',
+  borderHover: '#3D444D',
 
   // Status colors
-  success: '#00BA7C', // Green
-  error: '#F4212E', // Red
-  warning: '#FFD400', // Yellow
-  info: '#1D9BF0', // Blue
+  success: '#10B981', // Emerald green
+  error: '#EF4444', // Red
+  warning: '#F59E0B', // Amber
+  info: '#06B6D4', // Cyan
 
   // Card and surface colors
-  card: '#192734',
-  cardBorder: '#38444D',
-  cardHover: '#22303C',
+  card: '#131920',
+  cardBorder: '#2D333B',
+  cardHover: '#1C2128',
 
   // Accent colors
-  accent: '#1D9BF0', // Same as primary
-  accentFaded: 'rgba(29, 155, 240, 0.1)',
-  accentGlow: 'rgba(29, 155, 240, 0.3)',
+  accent: '#00D9FF',
+  accentFaded: 'rgba(0, 217, 255, 0.1)',
+  accentGlow: 'rgba(0, 217, 255, 0.25)',
 
   // Shadow and glow effects
-  shadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
-  shadowLarge: '0 4px 12px rgba(0, 0, 0, 0.4)',
-  glow: '0 0 15px rgba(29, 155, 240, 0.4)',
-  glowLarge: '0 0 30px rgba(29, 155, 240, 0.5)',
+  shadow: '0 1px 3px rgba(0, 0, 0, 0.4)',
+  shadowLarge: '0 4px 16px rgba(0, 0, 0, 0.5)',
+  glow: '0 0 12px rgba(0, 217, 255, 0.3)',
+  glowLarge: '0 0 24px rgba(0, 217, 255, 0.4)',
 
   // Button colors
-  buttonPrimary: '#1D9BF0',
-  buttonPrimaryHover: '#1A8CD8',
-  buttonPrimaryText: '#FFFFFF',
+  buttonPrimary: '#00D9FF',
+  buttonPrimaryHover: '#00C4E6',
+  buttonPrimaryText: '#0A0E14',
   buttonSecondary: 'transparent',
-  buttonSecondaryBorder: '#536471',
-  buttonSecondaryText: '#E7E9EA',
+  buttonSecondaryBorder: '#3D444D',
+  buttonSecondaryText: '#E8EAED',
 
   // Special elements
-  highlight: 'rgba(29, 155, 240, 0.1)',
-  overlay: 'rgba(91, 112, 131, 0.4)',
+  highlight: 'rgba(0, 217, 255, 0.12)',
+  overlay: 'rgba(10, 14, 20, 0.75)',
 
   // Gradients
-  gradientPrimary: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
-  gradientCard: 'linear-gradient(180deg, #192734 0%, #15202B 100%)',
-  gradientOverlay: 'linear-gradient(180deg, rgba(21, 32, 43, 0) 0%, rgba(21, 32, 43, 0.9) 100%)',
+  gradientPrimary: 'linear-gradient(135deg, #00D9FF 0%, #0891B2 100%)',
+  gradientCard: 'linear-gradient(180deg, #131920 0%, #0A0E14 100%)',
+  gradientOverlay: 'linear-gradient(180deg, rgba(10, 14, 20, 0) 0%, rgba(10, 14, 20, 0.9) 100%)',
 
   // Navigation
-  navBackground: 'rgba(21, 32, 43, 0.85)',
-  navBackdrop: 'blur(12px)',
-  navBorder: 'rgba(56, 68, 77, 0.7)',
+  navBackground: 'rgba(10, 14, 20, 0.9)',
+  navBackdrop: 'blur(16px)',
+  navBorder: 'rgba(45, 51, 59, 0.8)',
 
   // Status indicators
-  online: '#00BA7C',
-  offline: '#536471',
-  busy: '#F4212E',
-  away: '#FFD400',
+  online: '#10B981',
+  offline: '#6B7280',
+  busy: '#EF4444',
+  away: '#F59E0B',
 
   // Chart colors
-  chartPrimary: '#1D9BF0',
-  chartSecondary: '#7856FF',
-  chartTertiary: '#00BA7C',
-  chartQuaternary: '#F4212E',
+  chartPrimary: '#00D9FF',
+  chartSecondary: '#8B5CF6',
+  chartTertiary: '#10B981',
+  chartQuaternary: '#EF4444',
 
   // White and transparent
   white: '#FFFFFF',
@@ -93,17 +93,17 @@ export const TWITTER_DARK_THEME = {
 
   // Component-specific colors
   header: {
-    background: 'rgba(21, 32, 43, 0.85)',
-    backdrop: 'blur(12px)',
-    border: 'rgba(56, 68, 77, 0.7)',
+    background: 'rgba(10, 14, 20, 0.9)',
+    backdrop: 'blur(16px)',
+    border: 'rgba(45, 51, 59, 0.8)',
     text: TWITTER_COLORS.text,
     logo: TWITTER_COLORS.primary
   },
 
   navigation: {
-    background: 'rgba(21, 32, 43, 0.85)',
-    backdrop: 'blur(12px)',
-    border: 'rgba(56, 68, 77, 0.7)',
+    background: 'rgba(10, 14, 20, 0.9)',
+    backdrop: 'blur(16px)',
+    border: 'rgba(45, 51, 59, 0.8)',
     icon: TWITTER_COLORS.textSecondary,
     iconActive: TWITTER_COLORS.primary,
     text: TWITTER_COLORS.textSecondary,
@@ -135,7 +135,7 @@ export const TWITTER_DARK_THEME = {
 
   modal: {
     background: TWITTER_COLORS.card,
-    overlay: 'rgba(91, 112, 131, 0.4)',
+    overlay: 'rgba(10, 14, 20, 0.75)',
     border: TWITTER_COLORS.border
   }
 };

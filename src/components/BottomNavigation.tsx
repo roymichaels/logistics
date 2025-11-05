@@ -206,68 +206,43 @@ export function BottomNavigation({
   };
 
   const renderActionSlot = () => (
-    <div
+    <button
       key="action-slot"
+      onClick={handleActionClick}
+      disabled={action?.disabled}
       style={{
-        flex: '0 0 90px',
-        minWidth: '90px',
-        maxWidth: '90px',
+        flex: 1,
+        minWidth: '0',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        position: 'relative'
+        gap: '6px',
+        padding: '8px 4px',
+        border: 'none',
+        backgroundColor: 'transparent',
+        cursor: action?.disabled ? 'not-allowed' : 'pointer',
+        fontSize: '11px',
+        fontWeight: '600',
+        position: 'relative',
+        transition: 'all 0.2s ease'
       }}
     >
-      <button
-        onClick={handleActionClick}
-        disabled={action?.disabled}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: 'none',
-          background: 'transparent',
-          cursor: action?.disabled ? 'not-allowed' : 'pointer',
-          padding: '0',
-          position: 'absolute',
-          bottom: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)'
-        }}
-      >
       <div
         style={{
-          width: '64px',
-          height: '64px',
-          borderRadius: '50%',
+          width: '48px',
+          height: '48px',
+          borderRadius: '12px',
           background: action?.disabled
             ? TWITTER_COLORS.textTertiary
             : TWITTER_COLORS.gradientPrimary,
-          color: action?.disabled ? TWITTER_COLORS.textSecondary : TWITTER_COLORS.white,
+          color: action?.disabled ? TWITTER_COLORS.textSecondary : TWITTER_COLORS.buttonPrimaryText,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '28px',
-          boxShadow: action?.disabled
-            ? 'none'
-            : TWITTER_COLORS.glow,
-          border: `3px solid ${TWITTER_COLORS.background}`,
-          transform: action?.disabled ? 'scale(1)' : 'scale(1.1)',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-        }}
-        onMouseEnter={(e) => {
-          if (!action?.disabled) {
-            e.currentTarget.style.transform = 'scale(1.15)';
-            e.currentTarget.style.boxShadow = TWITTER_COLORS.glowLarge;
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!action?.disabled) {
-            e.currentTarget.style.transform = 'scale(1.1)';
-            e.currentTarget.style.boxShadow = TWITTER_COLORS.glow;
-          }
+          fontSize: '24px',
+          boxShadow: action?.disabled ? 'none' : TWITTER_COLORS.shadow,
+          transition: 'all 0.2s ease'
         }}
       >
         {action?.icon}
@@ -275,14 +250,12 @@ export function BottomNavigation({
       <span style={{
         fontSize: '10px',
         color: action?.disabled ? TWITTER_COLORS.textSecondary : TWITTER_COLORS.primary,
-        marginTop: '6px',
         fontWeight: '600',
         whiteSpace: 'nowrap'
       }}>
         {action?.label}
       </span>
     </button>
-    </div>
   );
 
   const navItems: React.ReactNode[] = [];
@@ -461,9 +434,11 @@ export function BottomNavigation({
           borderTop: `1px solid ${TWITTER_COLORS.navBorder}`,
           boxShadow: TWITTER_COLORS.shadowLarge,
           display: 'flex',
-          padding: '12px 8px 18px 8px',
+          padding: '8px 8px 12px 8px',
           zIndex: 1000,
-          direction: 'rtl'
+          direction: 'rtl',
+          height: '72px',
+          alignItems: 'center'
         }}
         data-business-id={currentBusinessId ?? undefined}
       >

@@ -23,7 +23,7 @@ export function LanguageToggle({ variant = 'button', size = 'medium' }: Language
           gap: '12px',
           padding: size === 'small' ? '4px 8px' : size === 'large' ? '12px 16px' : '8px 12px',
           background: TWITTER_COLORS.backgroundSecondary,
-          borderRadius: '9999px',
+          borderRadius: '20px',
           border: `1px solid ${TWITTER_COLORS.border}`,
           cursor: 'pointer',
           transition: 'all 0.2s ease'
@@ -46,7 +46,7 @@ export function LanguageToggle({ variant = 'button', size = 'medium' }: Language
             width: size === 'small' ? '36px' : size === 'large' ? '52px' : '44px',
             height: size === 'small' ? '20px' : size === 'large' ? '28px' : '24px',
             background: TWITTER_COLORS.primary,
-            borderRadius: '9999px',
+            borderRadius: '20px',
             transition: 'all 0.3s ease'
           }}
         >
@@ -87,7 +87,7 @@ export function LanguageToggle({ variant = 'button', size = 'medium' }: Language
         padding: size === 'small' ? '6px 12px' : size === 'large' ? '12px 24px' : '8px 16px',
         background: TWITTER_COLORS.buttonSecondary,
         border: `1px solid ${TWITTER_COLORS.buttonSecondaryBorder}`,
-        borderRadius: '9999px',
+        borderRadius: '20px',
         color: TWITTER_COLORS.buttonSecondaryText,
         fontSize: size === 'small' ? '12px' : size === 'large' ? '16px' : '14px',
         fontWeight: '700',
