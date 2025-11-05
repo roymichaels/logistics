@@ -350,8 +350,8 @@ function OwnershipCard({ ownership, onNavigate }: {
         <div style={{
           padding: '6px 12px',
           borderRadius: '8px',
-          background: 'rgba(156, 109, 255, 0.2)',
-          border: '1px solid rgba(156, 109, 255, 0.4)',
+          background: 'rgba(29, 155, 240, 0.2)',
+          border: '1px solid rgba(29, 155, 240, 0.4)',
           fontSize: '14px',
           fontWeight: '600',
           color: ROYAL_COLORS.accent

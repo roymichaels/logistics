@@ -148,7 +148,7 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
             fontSize: '28px',
             fontWeight: '700',
             color: ROYAL_COLORS.text,
-            textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
+            textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
           }}>
             התראות {unreadCount > 0 && <span style={{ color: ROYAL_COLORS.accent }}>({unreadCount})</span>}
           </h2>
@@ -173,14 +173,14 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
                 borderRadius: '12px',
                 border: 'none',
                 background: filter === f.id
-                  ? 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)'
+                  ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
                   : ROYAL_COLORS.card,
                 color: ROYAL_COLORS.text,
                 fontSize: '14px',
                 fontWeight: '600',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
-                boxShadow: filter === f.id ? '0 4px 12px rgba(156, 109, 255, 0.3)' : 'none',
+                boxShadow: filter === f.id ? '0 4px 12px rgba(29, 155, 240, 0.3)' : 'none',
                 transition: 'all 0.3s ease'
               }}
             >
@@ -241,12 +241,12 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
                   borderRadius: '16px',
                   background: notification.read_at
                     ? ROYAL_COLORS.card
-                    : 'rgba(156, 109, 255, 0.1)',
+                    : 'rgba(29, 155, 240, 0.1)',
                   border: `1px solid ${notification.read_at ? ROYAL_COLORS.cardBorder : ROYAL_COLORS.accent}40`,
                   cursor: notification.read_at ? 'default' : 'pointer',
                   transition: 'all 0.3s ease',
                   opacity: notification.read_at ? 0.7 : 1,
-                  boxShadow: notification.read_at ? 'none' : '0 4px 12px rgba(156, 109, 255, 0.2)'
+                  boxShadow: notification.read_at ? 'none' : '0 4px 12px rgba(29, 155, 240, 0.2)'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
@@ -298,7 +298,7 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
                       background: ROYAL_COLORS.accent,
                       flexShrink: 0,
                       marginTop: '8px',
-                      boxShadow: '0 0 8px rgba(156, 109, 255, 0.6)'
+                      boxShadow: '0 0 8px rgba(29, 155, 240, 0.6)'
                     }} />
                   )}
                 </div>

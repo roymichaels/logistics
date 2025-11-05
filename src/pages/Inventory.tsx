@@ -213,7 +213,7 @@ export function Inventory({ dataStore, onNavigate }: InventoryProps) {
             fontSize: '28px',
             fontWeight: '700',
             color: ROYAL_COLORS.text,
-            textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
+            textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
           }}>
             {selectedProduct.product.name}
           </h1>
@@ -323,7 +323,7 @@ export function Inventory({ dataStore, onNavigate }: InventoryProps) {
           fontSize: '28px',
           fontWeight: '700',
           color: ROYAL_COLORS.text,
-          textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
+          textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
         }}>
           📦 מלאי
         </h1>
@@ -376,14 +376,14 @@ export function Inventory({ dataStore, onNavigate }: InventoryProps) {
                 borderRadius: '12px',
                 border: 'none',
                 background: filter === f.id
-                  ? 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)'
+                  ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
                   : ROYAL_COLORS.card,
                 color: filter === f.id ? '#fff' : ROYAL_COLORS.text,
                 fontSize: '14px',
                 fontWeight: '600',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
-                boxShadow: filter === f.id ? '0 4px 12px rgba(156, 109, 255, 0.3)' : 'none',
+                boxShadow: filter === f.id ? '0 4px 12px rgba(29, 155, 240, 0.3)' : 'none',
                 transition: 'all 0.3s ease'
               }}
             >
@@ -427,7 +427,7 @@ export function Inventory({ dataStore, onNavigate }: InventoryProps) {
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(156, 109, 255, 0.3)';
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(29, 155, 240, 0.3)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';

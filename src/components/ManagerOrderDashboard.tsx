@@ -230,10 +230,10 @@ export function ManagerOrderDashboard({
     }}>
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
+        background: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
         padding: '24px 20px',
         color: '#FFFFFF',
-        boxShadow: '0 4px 12px rgba(156, 109, 255, 0.3)'
+        boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)'
       }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
@@ -477,11 +477,11 @@ export function ManagerOrderDashboard({
         {/* Bulk Actions Bar */}
         {selectedOrders.size > 0 && (
           <div style={{
-            background: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
+            background: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
             borderRadius: '16px',
             padding: '16px 20px',
             marginBottom: '20px',
-            boxShadow: '0 4px 12px rgba(156, 109, 255, 0.3)',
+            boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
@@ -565,9 +565,9 @@ export function ManagerOrderDashboard({
               style={{
                 padding: '8px 16px',
                 borderRadius: '10px',
-                border: '2px solid #9c6dff',
+                border: '2px solid #1D9BF0',
                 background: '#FFFFFF',
-                color: '#9c6dff',
+                color: '#1D9BF0',
                 fontWeight: '600',
                 cursor: filteredOrders.length === 0 ? 'not-allowed' : 'pointer',
                 fontSize: '14px',
@@ -762,7 +762,7 @@ function EnhancedOrderCard({ order, selected, onSelect, onClick }: {
             <div style={{
               fontSize: '20px',
               fontWeight: '700',
-              color: '#9c6dff'
+              color: '#1D9BF0'
             }}>
               ₪{order.total_amount.toLocaleString()}
             </div>

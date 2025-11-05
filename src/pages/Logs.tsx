@@ -215,7 +215,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
                 ? `2px solid ${ROYAL_COLORS.accent}`
                 : `1px solid ${ROYAL_COLORS.cardBorder}`,
               background: filter === tab.key
-                ? 'rgba(156, 109, 255, 0.15)'
+                ? 'rgba(29, 155, 240, 0.15)'
                 : ROYAL_COLORS.card,
               color: filter === tab.key ? ROYAL_COLORS.accent : ROYAL_COLORS.text,
               fontSize: '13px',

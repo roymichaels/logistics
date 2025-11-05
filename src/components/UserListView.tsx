@@ -105,7 +105,7 @@ export function UserListView({
             fontSize: '28px',
             fontWeight: '700',
             color: ROYAL_COLORS.text,
-            textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
+            textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
           }}
         >
           👥 משתמשים ({filteredUsers.length})
@@ -302,7 +302,7 @@ function RoleFilterChip({
         style={{
           padding: '2px 8px',
           borderRadius: '10px',
-          background: selected ? 'rgba(255, 255, 255, 0.2)' : 'rgba(156, 109, 255, 0.2)',
+          background: selected ? 'rgba(255, 255, 255, 0.2)' : 'rgba(29, 155, 240, 0.2)',
           fontSize: '12px'
         }}
       >
@@ -346,7 +346,7 @@ function UserCard({
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = '0 4px 16px rgba(156, 109, 255, 0.3)';
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(29, 155, 240, 0.3)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
@@ -362,7 +362,7 @@ function UserCard({
             borderRadius: '50%',
             background: user.photo_url
               ? `url(${user.photo_url}) center/cover`
-              : 'linear-gradient(135deg, rgba(156, 109, 255, 0.8), rgba(123, 63, 242, 0.8))',
+              : 'linear-gradient(135deg, rgba(29, 155, 240, 0.8), rgba(123, 63, 242, 0.8))',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -422,7 +422,7 @@ function UserCard({
               style={{
                 padding: '2px 8px',
                 borderRadius: '8px',
-                background: 'rgba(156, 109, 255, 0.2)',
+                background: 'rgba(29, 155, 240, 0.2)',
                 fontSize: '11px',
                 fontWeight: '600',
                 color: ROYAL_COLORS.accent

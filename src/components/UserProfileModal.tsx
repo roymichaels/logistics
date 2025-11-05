@@ -149,7 +149,7 @@ export function UserProfileModal({
               borderRadius: '50%',
               background: user.photo_url
                 ? `url(${user.photo_url}) center/cover`
-                : 'linear-gradient(135deg, rgba(156, 109, 255, 0.8), rgba(123, 63, 242, 0.8))',
+                : 'linear-gradient(135deg, rgba(29, 155, 240, 0.8), rgba(123, 63, 242, 0.8))',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -294,7 +294,7 @@ export function UserProfileModal({
               style={{
                 textAlign: 'center',
                 padding: '16px',
-                background: 'rgba(156, 109, 255, 0.1)',
+                background: 'rgba(29, 155, 240, 0.1)',
                 borderRadius: '12px',
                 color: ROYAL_COLORS.accent,
                 fontSize: '14px',
@@ -377,7 +377,7 @@ function ActionButton({
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-2px)';
         e.currentTarget.style.boxShadow = primary
-          ? '0 8px 24px rgba(156, 109, 255, 0.4)'
+          ? '0 8px 24px rgba(29, 155, 240, 0.4)'
           : '0 4px 12px rgba(0, 0, 0, 0.2)';
       }}
       onMouseLeave={(e) => {
@@ -393,7 +393,7 @@ function ActionButton({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: primary ? 'rgba(255, 255, 255, 0.2)' : 'rgba(156, 109, 255, 0.2)',
+          background: primary ? 'rgba(255, 255, 255, 0.2)' : 'rgba(29, 155, 240, 0.2)',
           borderRadius: '10px'
         }}
       >

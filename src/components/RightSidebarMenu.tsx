@@ -221,7 +221,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
                   borderRadius: '12px',
                   border: 'none',
                   background: isActive
-                    ? 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)'
+                    ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
                     : 'transparent',
                   color: ROYAL_COLORS.text,
                   fontSize: '15px',
@@ -232,11 +232,11 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
                   gap: '12px',
                   textAlign: 'right',
                   transition: 'all 0.2s ease',
-                  boxShadow: isActive ? '0 4px 12px rgba(156, 109, 255, 0.3)' : 'none'
+                  boxShadow: isActive ? '0 4px 12px rgba(29, 155, 240, 0.3)' : 'none'
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
-                    e.currentTarget.style.background = 'rgba(156, 109, 255, 0.15)';
+                    e.currentTarget.style.background = 'rgba(29, 155, 240, 0.15)';
                   }
                 }}
                 onMouseLeave={(e) => {

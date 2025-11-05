@@ -337,8 +337,8 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                     flex: 1,
                     height: '4px',
                     background: step <= getStepNumber()
-                      ? 'linear-gradient(90deg, #9c6dff, #f6c945)'
-                      : 'rgba(156, 109, 255, 0.2)',
+                      ? 'linear-gradient(90deg, #1D9BF0, #f6c945)'
+                      : 'rgba(29, 155, 240, 0.2)',
                     borderRadius: '2px',
                     transition: 'all 0.3s ease'
                   }}
@@ -410,7 +410,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                           ? `2px solid ${ROYAL_COLORS.primary}`
                           : `1px solid ${ROYAL_COLORS.border}`,
                         background: isSelected
-                          ? 'rgba(156, 109, 255, 0.15)'
+                          ? 'rgba(29, 155, 240, 0.15)'
                           : ROYAL_COLORS.secondary,
                         cursor: 'pointer',
                         transition: 'all 0.2s ease',
@@ -920,23 +920,23 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
               style={{
                 flex: 2,
                 padding: '16px',
-                background: 'linear-gradient(120deg, #9c6dff, #f6c945)',
+                background: 'linear-gradient(120deg, #1D9BF0, #f6c945)',
                 border: 'none',
                 borderRadius: '14px',
                 color: '#ffffff',
                 fontSize: '16px',
                 fontWeight: '700',
                 cursor: 'pointer',
-                boxShadow: '0 6px 20px rgba(156, 109, 255, 0.5)',
+                boxShadow: '0 6px 20px rgba(29, 155, 240, 0.5)',
                 transition: 'all 0.2s ease'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 8px 30px rgba(156, 109, 255, 0.6)';
+                e.currentTarget.style.boxShadow = '0 8px 30px rgba(29, 155, 240, 0.6)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(156, 109, 255, 0.5)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(29, 155, 240, 0.5)';
               }}
             >
               {currentStep === 'branding' ? 'צור עסק' : 'המשך ←'}

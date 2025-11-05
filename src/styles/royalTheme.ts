@@ -1,73 +1,73 @@
 /**
- * 👑 ROY MICHAELS ROYAL COMMAND CENTER THEME
+ * 🐦 TWITTER/X DARK THEME
  *
- * Consistent, elegant, dark purple aesthetic across all pages
- * No plain whites, no generic colors - only royal vibes
+ * Consistent, elegant Twitter-style blue aesthetic across all pages
+ * Authentic Twitter dark mode colors
  */
 
 export const ROYAL_COLORS = {
   // Backgrounds
-  background: 'radial-gradient(125% 125% at 50% 0%, rgba(95, 46, 170, 0.55) 0%, rgba(12, 2, 25, 0.95) 45%, #03000a 100%)',
-  backgroundSolid: '#03000a',
-  backgroundDark: 'rgba(12, 2, 25, 0.95)',
+  background: '#15202B', // Twitter dark background
+  backgroundSolid: '#15202B',
+  backgroundDark: '#192734',
 
   // Cards & Surfaces
-  card: 'rgba(24, 10, 45, 0.75)',
-  cardBg: '#180a2d',
-  cardHover: 'rgba(34, 15, 60, 0.85)',
-  cardBorder: 'rgba(140, 91, 238, 0.45)',
-  cardBorderHover: 'rgba(156, 109, 255, 0.65)',
-  border: 'rgba(140, 91, 238, 0.3)',
+  card: '#192734',
+  cardBg: '#192734',
+  cardHover: '#22303C',
+  cardBorder: 'rgba(56, 68, 77, 0.5)',
+  cardBorderHover: 'rgba(29, 155, 240, 0.5)',
+  border: '#38444D',
 
   // Secondary surfaces
-  secondary: 'rgba(35, 15, 65, 0.7)',
-  secondaryHover: 'rgba(45, 20, 80, 0.8)',
+  secondary: '#192734',
+  secondaryHover: '#22303C',
 
   // Text
-  text: '#f4f1ff',
+  text: '#E7E9EA',
   textBright: '#ffffff',
-  muted: '#bfa9ff',
-  mutedDark: 'rgba(191, 169, 255, 0.6)',
-  hint: 'rgba(191, 169, 255, 0.4)',
+  muted: '#8899A6',
+  mutedDark: 'rgba(136, 153, 166, 0.6)',
+  hint: 'rgba(136, 153, 166, 0.4)',
 
   // Accent Colors
-  primary: '#9c6dff',
-  accent: '#9c6dff',
-  accentBright: '#b589ff',
-  accentDark: '#7c3aed',
+  primary: '#1D9BF0',
+  accent: '#1D9BF0',
+  accentBright: '#1DA1F2',
+  accentDark: '#1A8CD8',
   white: '#ffffff',
 
   // Status Colors
-  gold: '#f6c945',
-  goldBright: '#ffd966',
-  crimson: '#ff6b8a',
-  crimsonBright: '#ff8aa5',
-  success: '#10b981',
-  successBright: '#34d399',
-  warning: '#f59e0b',
-  warningBright: '#fbbf24',
-  error: '#ef4444',
-  errorBright: '#f87171',
-  info: '#3b82f6',
-  infoBright: '#60a5fa',
+  gold: '#FFD400',
+  goldBright: '#FFE44D',
+  crimson: '#F4212E',
+  crimsonBright: '#F4585E',
+  success: '#00BA7C',
+  successBright: '#00D68F',
+  warning: '#FFD400',
+  warningBright: '#FFE44D',
+  error: '#F4212E',
+  errorBright: '#F4585E',
+  info: '#1D9BF0',
+  infoBright: '#1DA1F2',
 
   // Glows & Effects
-  glowPurple: '0 0 20px rgba(156, 109, 255, 0.3)',
-  glowPurpleStrong: '0 0 30px rgba(156, 109, 255, 0.5)',
-  glowGold: '0 0 20px rgba(246, 201, 69, 0.3)',
-  glowCrimson: '0 0 20px rgba(255, 107, 138, 0.3)',
+  glowPurple: '0 0 20px rgba(29, 155, 240, 0.3)',
+  glowPurpleStrong: '0 0 30px rgba(29, 155, 240, 0.5)',
+  glowGold: '0 0 20px rgba(255, 212, 0, 0.3)',
+  glowCrimson: '0 0 20px rgba(244, 33, 46, 0.3)',
 
   // Shadows
-  shadow: '0 20px 40px rgba(20, 4, 54, 0.45)',
-  shadowStrong: '0 25px 50px rgba(20, 4, 54, 0.6)',
-  shadowSoft: '0 10px 25px rgba(20, 4, 54, 0.3)',
+  shadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
+  shadowStrong: '0 4px 12px rgba(0, 0, 0, 0.4)',
+  shadowSoft: '0 1px 2px rgba(0, 0, 0, 0.2)',
 
   // Gradients
-  gradientPurple: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
-  gradientGold: 'linear-gradient(135deg, #f6c945 0%, #d4a12a 100%)',
-  gradientCrimson: 'linear-gradient(135deg, #ff6b8a 0%, #e84c6f 100%)',
-  gradientSuccess: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-  gradientCard: 'linear-gradient(145deg, rgba(24, 10, 45, 0.75) 0%, rgba(34, 15, 60, 0.65) 100%)',
+  gradientPurple: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
+  gradientGold: 'linear-gradient(135deg, #FFD400 0%, #FFA500 100%)',
+  gradientCrimson: 'linear-gradient(135deg, #F4212E 0%, #C9191E 100%)',
+  gradientSuccess: 'linear-gradient(135deg, #00BA7C 0%, #00A368 100%)',
+  gradientCard: 'linear-gradient(145deg, #192734 0%, #15202B 100%)',
 };
 
 export const ROYAL_STYLES = {
@@ -224,8 +224,8 @@ export const ROYAL_STYLES = {
   },
 
   badgeInfo: {
-    background: 'rgba(156, 109, 255, 0.2)',
-    border: '1px solid rgba(156, 109, 255, 0.5)',
+    background: 'rgba(29, 155, 240, 0.2)',
+    border: '1px solid rgba(29, 155, 240, 0.5)',
     color: ROYAL_COLORS.accentBright
   },
 

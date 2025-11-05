@@ -342,7 +342,7 @@ export function DriverOrderFulfillment({
                   <div style={{
                     fontSize: '18px',
                     fontWeight: '700',
-                    color: '#9c6dff'
+                    color: '#1D9BF0'
                   }}>
                     ₪{((item.price || 0) * item.quantity).toLocaleString()}
                   </div>
@@ -359,7 +359,7 @@ export function DriverOrderFulfillment({
                 fontWeight: '700'
               }}>
                 <span>סה״כ לגביה:</span>
-                <span style={{ color: '#9c6dff' }}>
+                <span style={{ color: '#1D9BF0' }}>
                   ₪{selectedOrder.total_amount.toLocaleString()}
                 </span>
               </div>
@@ -386,12 +386,12 @@ export function DriverOrderFulfillment({
                     width: '100%',
                     padding: '60px 20px',
                     background: 'linear-gradient(135deg, #f5f7fa 0%, #e3e9f0 100%)',
-                    border: '3px dashed #9c6dff',
+                    border: '3px dashed #1D9BF0',
                     borderRadius: '16px',
                     cursor: 'pointer',
                     fontSize: '16px',
                     fontWeight: '700',
-                    color: '#9c6dff',
+                    color: '#1D9BF0',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -680,7 +680,7 @@ function OrderCard({ order, onClick }: {
             {statusConfig.icon} {order.status}
           </div>
 
-          <div style={{ fontSize: '18px', fontWeight: '700', color: '#9c6dff' }}>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: '#1D9BF0' }}>
             ₪{order.total_amount.toLocaleString()}
           </div>
         </div>

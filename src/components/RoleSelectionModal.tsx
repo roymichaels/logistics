@@ -90,7 +90,7 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
         <div style={{
           padding: '24px',
           borderBottom: `1px solid ${ROYAL_COLORS.border}`,
-          background: 'linear-gradient(135deg, rgba(156, 109, 255, 0.2) 0%, rgba(123, 63, 242, 0.2) 100%)'
+          background: 'linear-gradient(135deg, rgba(29, 155, 240, 0.2) 0%, rgba(123, 63, 242, 0.2) 100%)'
         }}>
           <div style={{
             fontSize: '32px',
@@ -138,7 +138,7 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
                   ? `2px solid ${ROYAL_COLORS.primary}`
                   : `1px solid ${ROYAL_COLORS.border}`,
                 backgroundColor: selectedRole === role.value
-                  ? 'rgba(156, 109, 255, 0.1)'
+                  ? 'rgba(29, 155, 240, 0.1)'
                   : ROYAL_COLORS.secondary,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',

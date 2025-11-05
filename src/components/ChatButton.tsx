@@ -42,7 +42,7 @@ export function ChatButton({ userId, userName, onStartChat, icon = '💬', size 
       onMouseEnter={(e) => {
         e.currentTarget.style.background = `${ROYAL_COLORS.accent}25`;
         e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = '0 4px 12px rgba(156, 109, 255, 0.3)';
+        e.currentTarget.style.boxShadow = '0 4px 12px rgba(29, 155, 240, 0.3)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = `${ROYAL_COLORS.accent}15`;

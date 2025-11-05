@@ -98,7 +98,7 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
           borderRadius: '50%',
           background: user?.photo_url
             ? `url(${user.photo_url}) center/cover`
-            : 'linear-gradient(135deg, rgba(156, 109, 255, 0.8), rgba(123, 63, 242, 0.8))',
+            : 'linear-gradient(135deg, rgba(29, 155, 240, 0.8), rgba(123, 63, 242, 0.8))',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -296,7 +296,7 @@ function ProfileActionButton({
         justifyContent: 'center',
         background: danger
           ? 'rgba(239, 68, 68, 0.2)'
-          : 'rgba(156, 109, 255, 0.2)',
+          : 'rgba(29, 155, 240, 0.2)',
         borderRadius: '10px'
       }}>
         {icon}

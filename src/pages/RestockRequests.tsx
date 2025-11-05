@@ -280,7 +280,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
             <div style={{
               padding: '16px',
               borderRadius: '12px',
-              background: 'rgba(156, 109, 255, 0.1)',
+              background: 'rgba(29, 155, 240, 0.1)',
               border: `1px solid ${ROYAL_COLORS.cardBorder}`
             }}>
               <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
@@ -470,7 +470,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
                 ? `2px solid ${ROYAL_COLORS.accent}`
                 : `1px solid ${ROYAL_COLORS.cardBorder}`,
               background: filter === tab.key
-                ? 'rgba(156, 109, 255, 0.15)'
+                ? 'rgba(29, 155, 240, 0.15)'
                 : ROYAL_COLORS.card,
               color: filter === tab.key ? ROYAL_COLORS.accent : ROYAL_COLORS.text,
               fontSize: '13px',

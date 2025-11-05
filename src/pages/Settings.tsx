@@ -14,7 +14,7 @@ const ROYAL_COLORS = {
   cardBorder: 'rgba(140, 91, 238, 0.45)',
   muted: '#bfa9ff',
   text: '#f4f1ff',
-  accent: '#9c6dff',
+  accent: '#1D9BF0',
   gold: '#f6c945',
   shadow: '0 20px 40px rgba(20, 4, 54, 0.45)'
 };
@@ -192,7 +192,7 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
               width: '56px',
               height: '56px',
               borderRadius: '16px',
-              background: 'linear-gradient(130deg, rgba(156, 109, 255, 0.7), rgba(82, 36, 142, 0.7))',
+              background: 'linear-gradient(130deg, rgba(29, 155, 240, 0.7), rgba(82, 36, 142, 0.7))',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -227,20 +227,20 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
               padding: '20px',
               background: 'rgba(20, 8, 46, 0.6)',
               borderRadius: '18px',
-              border: '1px solid rgba(156, 109, 255, 0.25)'
+              border: '1px solid rgba(29, 155, 240, 0.25)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
                 <div style={{
                   width: '56px',
                   height: '56px',
                   borderRadius: '16px',
-                  background: 'linear-gradient(130deg, rgba(246, 201, 69, 0.8), rgba(156, 109, 255, 0.8))',
+                  background: 'linear-gradient(130deg, rgba(246, 201, 69, 0.8), rgba(29, 155, 240, 0.8))',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '24px',
                   fontWeight: '700',
-                  boxShadow: '0 8px 16px rgba(156, 109, 255, 0.3)'
+                  boxShadow: '0 8px 16px rgba(29, 155, 240, 0.3)'
                 }}>
                   {(user?.name?.[0] || (user as any)?.first_name?.[0] || 'U').toUpperCase()}
                 </div>
@@ -636,7 +636,7 @@ function RoyalInfoRow({ label, value }: { label: string; value: string }) {
       padding: '14px 18px',
       background: 'rgba(20, 8, 46, 0.6)',
       borderRadius: '12px',
-      border: '1px solid rgba(156, 109, 255, 0.2)'
+      border: '1px solid rgba(29, 155, 240, 0.2)'
     }}>
       <span style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>{label}</span>
       <span style={{ fontSize: '14px', fontWeight: '600', color: ROYAL_COLORS.text }}>{value}</span>
@@ -660,8 +660,8 @@ function RoyalActionButton({ title, subtitle, icon, onClick, disabled }: {
         alignItems: 'center',
         gap: '16px',
         padding: '18px 20px',
-        background: disabled ? 'rgba(20, 8, 46, 0.4)' : 'linear-gradient(120deg, rgba(156, 109, 255, 0.25), rgba(82, 36, 142, 0.25))',
-        border: `1px solid ${disabled ? 'rgba(156, 109, 255, 0.15)' : 'rgba(156, 109, 255, 0.35)'}`,
+        background: disabled ? 'rgba(20, 8, 46, 0.4)' : 'linear-gradient(120deg, rgba(29, 155, 240, 0.25), rgba(82, 36, 142, 0.25))',
+        border: `1px solid ${disabled ? 'rgba(29, 155, 240, 0.15)' : 'rgba(29, 155, 240, 0.35)'}`,
         borderRadius: '16px',
         cursor: disabled ? 'not-allowed' : 'pointer',
         width: '100%',
@@ -671,13 +671,13 @@ function RoyalActionButton({ title, subtitle, icon, onClick, disabled }: {
       }}
       onMouseEnter={(e) => {
         if (!disabled) {
-          e.currentTarget.style.background = 'linear-gradient(120deg, rgba(156, 109, 255, 0.35), rgba(82, 36, 142, 0.35))';
-          e.currentTarget.style.boxShadow = '0 8px 20px rgba(156, 109, 255, 0.3)';
+          e.currentTarget.style.background = 'linear-gradient(120deg, rgba(29, 155, 240, 0.35), rgba(82, 36, 142, 0.35))';
+          e.currentTarget.style.boxShadow = '0 8px 20px rgba(29, 155, 240, 0.3)';
         }
       }}
       onMouseLeave={(e) => {
         if (!disabled) {
-          e.currentTarget.style.background = 'linear-gradient(120deg, rgba(156, 109, 255, 0.25), rgba(82, 36, 142, 0.25))';
+          e.currentTarget.style.background = 'linear-gradient(120deg, rgba(29, 155, 240, 0.25), rgba(82, 36, 142, 0.25))';
           e.currentTarget.style.boxShadow = 'none';
         }
       }}
@@ -689,7 +689,7 @@ function RoyalActionButton({ title, subtitle, icon, onClick, disabled }: {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'rgba(156, 109, 255, 0.2)',
+        background: 'rgba(29, 155, 240, 0.2)',
         borderRadius: '12px'
       }}>
         {icon}

@@ -227,10 +227,10 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
     }}>
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
+        background: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
         padding: '20px',
         color: '#FFFFFF',
-        boxShadow: '0 4px 12px rgba(156, 109, 255, 0.3)'
+        boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -290,9 +290,9 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
                     style={{
                       padding: '8px 16px',
                       borderRadius: '20px',
-                      border: `2px solid ${selectedCategory === cat ? '#9c6dff' : '#E0E0E0'}`,
-                      background: selectedCategory === cat ? 'rgba(156, 109, 255, 0.1)' : '#FFFFFF',
-                      color: selectedCategory === cat ? '#9c6dff' : '#666',
+                      border: `2px solid ${selectedCategory === cat ? '#1D9BF0' : '#E0E0E0'}`,
+                      background: selectedCategory === cat ? 'rgba(29, 155, 240, 0.1)' : '#FFFFFF',
+                      color: selectedCategory === cat ? '#1D9BF0' : '#666',
                       fontWeight: '600',
                       fontSize: '14px',
                       cursor: 'pointer',
@@ -382,7 +382,7 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
                       <div style={{
                         fontSize: '24px',
                         fontWeight: '700',
-                        color: '#9c6dff'
+                        color: '#1D9BF0'
                       }}>
                         ₪{product.price.toLocaleString()}
                       </div>
@@ -391,14 +391,14 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
                         onClick={() => addToCart(product)}
                         style={{
                           padding: '12px 24px',
-                          background: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
+                          background: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
                           border: 'none',
                           borderRadius: '12px',
                           color: '#FFFFFF',
                           fontWeight: '700',
                           fontSize: '14px',
                           cursor: 'pointer',
-                          boxShadow: '0 4px 12px rgba(156, 109, 255, 0.3)',
+                          boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)',
                           transition: 'all 0.2s ease'
                         }}
                         onMouseEnter={(e) => {
@@ -448,7 +448,7 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
                   onClick={() => setStep('browse')}
                   style={{
                     padding: '12px 24px',
-                    background: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
+                    background: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
                     border: 'none',
                     borderRadius: '12px',
                     color: '#FFFFFF',
@@ -522,9 +522,9 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
                           width: '36px',
                           height: '36px',
                           borderRadius: '50%',
-                          border: '2px solid #9c6dff',
+                          border: '2px solid #1D9BF0',
                           background: '#FFFFFF',
-                          color: '#9c6dff',
+                          color: '#1D9BF0',
                           cursor: 'pointer',
                           fontSize: '20px',
                           display: 'flex',
@@ -539,7 +539,7 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
                     <div style={{
                       fontSize: '20px',
                       fontWeight: '700',
-                      color: '#9c6dff',
+                      color: '#1D9BF0',
                       minWidth: '100px',
                       textAlign: 'left'
                     }}>
@@ -566,7 +566,7 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
                 <div style={{
                   ...ORDER_FORM_STYLES.section,
                   background: 'linear-gradient(135deg, #f5f7fa 0%, #e3e9f0 100%)',
-                  border: '2px solid #9c6dff'
+                  border: '2px solid #1D9BF0'
                 }}>
                   <div style={{
                     display: 'flex',
@@ -576,7 +576,7 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
                     fontWeight: '700'
                   }}>
                     <span>סה״כ לתשלום:</span>
-                    <span style={{ color: '#9c6dff' }}>
+                    <span style={{ color: '#1D9BF0' }}>
                       ₪{cartTotal.toLocaleString()}
                     </span>
                   </div>
@@ -701,12 +701,12 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
                 justifyContent: 'space-between',
                 marginTop: '16px',
                 paddingTop: '16px',
-                borderTop: '2px solid #9c6dff',
+                borderTop: '2px solid #1D9BF0',
                 fontSize: '20px',
                 fontWeight: '700'
               }}>
                 <span>סה״כ:</span>
-                <span style={{ color: '#9c6dff' }}>
+                <span style={{ color: '#1D9BF0' }}>
                   ₪{cartTotal.toLocaleString()}
                 </span>
               </div>
@@ -763,12 +763,12 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
                 padding: '14px 24px',
                 borderRadius: '12px',
                 border: 'none',
-                background: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
+                background: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
                 color: '#FFFFFF',
                 fontWeight: '700',
                 cursor: 'pointer',
                 fontSize: '16px',
-                boxShadow: '0 4px 12px rgba(156, 109, 255, 0.3)',
+                boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -794,12 +794,12 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
                 padding: '14px 24px',
                 borderRadius: '12px',
                 border: 'none',
-                background: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
+                background: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
                 color: '#FFFFFF',
                 fontWeight: '700',
                 cursor: 'pointer',
                 fontSize: '16px',
-                boxShadow: '0 4px 12px rgba(156, 109, 255, 0.3)'
+                boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)'
               }}
             >
               המשך לתשלום →

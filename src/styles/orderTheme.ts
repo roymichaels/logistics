@@ -101,12 +101,12 @@ export const ORDER_CARD_STYLES = {
   hover: {
     transform: 'translateY(-4px)',
     boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
-    borderColor: '#9c6dff'
+    borderColor: '#1D9BF0'
   },
   selected: {
-    borderColor: '#9c6dff',
-    background: 'rgba(156, 109, 255, 0.05)',
-    boxShadow: '0 4px 16px rgba(156, 109, 255, 0.2)'
+    borderColor: '#1D9BF0',
+    background: 'rgba(29, 155, 240, 0.05)',
+    boxShadow: '0 4px 16px rgba(29, 155, 240, 0.2)'
   },
   urgent: {
     borderColor: '#F44336',
@@ -174,7 +174,7 @@ export const ORDER_TIMELINE_STYLES = {
     top: '32px',
     width: '3px',
     height: 'calc(100% - 48px)',
-    background: 'linear-gradient(to bottom, #9c6dff 0%, #e0e0e0 100%)'
+    background: 'linear-gradient(to bottom, #1D9BF0 0%, #e0e0e0 100%)'
   },
   step: {
     display: 'flex',
@@ -238,8 +238,8 @@ export const ORDER_FORM_STYLES = {
     outline: 'none'
   },
   inputFocus: {
-    borderColor: '#9c6dff',
-    boxShadow: '0 0 0 4px rgba(156, 109, 255, 0.1)'
+    borderColor: '#1D9BF0',
+    boxShadow: '0 0 0 4px rgba(29, 155, 240, 0.1)'
   },
   error: {
     borderColor: '#F44336',

@@ -341,7 +341,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
 
               {/* Revenue Card */}
               <div style={{
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #1A8CD8 100%)',
                 borderRadius: '20px',
                 padding: '28px',
                 display: 'flex',

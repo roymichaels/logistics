@@ -16,7 +16,7 @@ const ROYAL_COLORS = {
   cardBorder: 'rgba(140, 91, 238, 0.45)',
   muted: '#bfa9ff',
   text: '#f4f1ff',
-  accent: '#9c6dff',
+  accent: '#1D9BF0',
   gold: '#f6c945',
   teal: '#4dd0e1',
   shadow: '0 20px 40px rgba(20, 4, 54, 0.45)'

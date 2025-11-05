@@ -178,7 +178,7 @@ export function EnhancedOrderTracking({
               onClick={onClose}
               style={{
                 padding: '12px 24px',
-                background: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
+                background: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
                 border: 'none',
                 borderRadius: '12px',
                 color: '#FFFFFF',
@@ -306,7 +306,7 @@ export function EnhancedOrderTracking({
                       width: '3px',
                       height: '32px',
                       background: isCompleted
-                        ? 'linear-gradient(to bottom, #9c6dff, #E0E0E0)'
+                        ? 'linear-gradient(to bottom, #1D9BF0, #E0E0E0)'
                         : '#E0E0E0',
                       transition: 'all 0.5s ease'
                     }} />
@@ -497,7 +497,7 @@ export function EnhancedOrderTracking({
                   <div style={{
                     fontSize: '18px',
                     fontWeight: '700',
-                    color: '#9c6dff'
+                    color: '#1D9BF0'
                   }}>
                     ₪{((item.price || 0) * item.quantity).toLocaleString()}
                   </div>
@@ -514,7 +514,7 @@ export function EnhancedOrderTracking({
               alignItems: 'center'
             }}>
               <div style={{ fontSize: '20px', fontWeight: '700' }}>סה״כ</div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#9c6dff' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#1D9BF0' }}>
                 ₪{order.total_amount.toLocaleString()}
               </div>
             </div>

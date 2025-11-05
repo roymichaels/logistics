@@ -183,7 +183,7 @@ export function NotificationCenter({ dataStore, onClose }: NotificationCenterPro
                 borderRadius: '8px',
                 border: 'none',
                 background: filter === f.id
-                  ? 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)'
+                  ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
                   : ROYAL_COLORS.card,
                 color: ROYAL_COLORS.text,
                 fontSize: '13px',
@@ -243,7 +243,7 @@ export function NotificationCenter({ dataStore, onClose }: NotificationCenterPro
                   borderRadius: '12px',
                   background: notification.read_at
                     ? 'rgba(255, 255, 255, 0.03)'
-                    : 'rgba(156, 109, 255, 0.1)',
+                    : 'rgba(29, 155, 240, 0.1)',
                   border: `1px solid ${notification.read_at ? ROYAL_COLORS.cardBorder : ROYAL_COLORS.accent}40`,
                   cursor: notification.read_at ? 'default' : 'pointer',
                   transition: 'all 0.2s ease',

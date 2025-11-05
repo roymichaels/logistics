@@ -1925,7 +1925,7 @@ function OrderDetailEnhanced({
           fontSize: '28px',
           fontWeight: '700',
           color: ROYAL_COLORS.text,
-          textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
+          textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
         }}>
           📦 פרטי הזמנה
         </h1>
@@ -2078,12 +2078,12 @@ function OrderDetailEnhanced({
                     padding: '12px',
                     borderRadius: '12px',
                     border: 'none',
-                    background: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
+                    background: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
                     color: '#fff',
                     fontSize: '16px',
                     fontWeight: '600',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(156, 109, 255, 0.3)'
+                    boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)'
                   }}
                 >
                   🚚 התחל משלוח

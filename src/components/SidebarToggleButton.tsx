@@ -23,10 +23,10 @@ export function SidebarToggleButton({ onClick, hasNotifications = false }: Sideb
         transform: 'translateY(-50%)',
         width: '48px',
         height: '120px',
-        background: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
+        background: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
         border: 'none',
         borderRadius: '12px 0 0 12px',
-        boxShadow: '-4px 0 20px rgba(156, 109, 255, 0.4)',
+        boxShadow: '-4px 0 20px rgba(29, 155, 240, 0.4)',
         cursor: 'pointer',
         zIndex: 998,
         display: 'flex',
@@ -41,11 +41,11 @@ export function SidebarToggleButton({ onClick, hasNotifications = false }: Sideb
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-50%) translateX(-4px)';
-        e.currentTarget.style.boxShadow = '-6px 0 30px rgba(156, 109, 255, 0.6)';
+        e.currentTarget.style.boxShadow = '-6px 0 30px rgba(29, 155, 240, 0.6)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(-50%)';
-        e.currentTarget.style.boxShadow = '-4px 0 20px rgba(156, 109, 255, 0.4)';
+        e.currentTarget.style.boxShadow = '-4px 0 20px rgba(29, 155, 240, 0.4)';
       }}
     >
       <span style={{

@@ -223,7 +223,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
             fontSize: '28px',
             fontWeight: '700',
             color: ROYAL_COLORS.text,
-            textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
+            textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
           }}>
             📊 דוחות
           </h1>
@@ -248,14 +248,14 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                 borderRadius: '12px',
                 border: 'none',
                 background: selectedReport === type.id
-                  ? 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)'
+                  ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
                   : ROYAL_COLORS.card,
                 color: selectedReport === type.id ? '#fff' : ROYAL_COLORS.text,
                 fontSize: '14px',
                 fontWeight: '600',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
-                boxShadow: selectedReport === type.id ? '0 4px 12px rgba(156, 109, 255, 0.3)' : 'none',
+                boxShadow: selectedReport === type.id ? '0 4px 12px rgba(29, 155, 240, 0.3)' : 'none',
                 transition: 'all 0.3s ease',
                 display: 'flex',
                 alignItems: 'center',

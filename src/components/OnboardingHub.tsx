@@ -300,7 +300,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
               width: '100%',
               padding: '18px',
               background: selectedPathway
-                ? 'linear-gradient(120deg, #9c6dff, #f6c945)'
+                ? 'linear-gradient(120deg, #1D9BF0, #f6c945)'
                 : ROYAL_COLORS.secondary,
               border: 'none',
               borderRadius: '16px',
@@ -309,19 +309,19 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
               fontWeight: '700',
               cursor: selectedPathway ? 'pointer' : 'not-allowed',
               opacity: selectedPathway ? 1 : 0.5,
-              boxShadow: selectedPathway ? '0 6px 20px rgba(156, 109, 255, 0.5)' : 'none',
+              boxShadow: selectedPathway ? '0 6px 20px rgba(29, 155, 240, 0.5)' : 'none',
               transition: 'all 0.3s ease'
             }}
             onMouseEnter={(e) => {
               if (selectedPathway) {
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 8px 30px rgba(156, 109, 255, 0.6)';
+                e.currentTarget.style.boxShadow = '0 8px 30px rgba(29, 155, 240, 0.6)';
               }
             }}
             onMouseLeave={(e) => {
               if (selectedPathway) {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(156, 109, 255, 0.5)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(29, 155, 240, 0.5)';
               }
             }}
           >
@@ -361,7 +361,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
         <div style={{
           marginTop: '30px',
           padding: '20px',
-          background: 'rgba(156, 109, 255, 0.1)',
+          background: 'rgba(29, 155, 240, 0.1)',
           border: `1px solid ${ROYAL_COLORS.cardBorder}`,
           borderRadius: '14px',
           textAlign: 'center',

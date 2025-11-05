@@ -306,10 +306,10 @@ export function EnhancedOrderEntry({
     }}>
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)',
+        background: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
         padding: '20px',
         color: '#FFFFFF',
-        boxShadow: '0 4px 12px rgba(156, 109, 255, 0.3)',
+        boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)',
         position: 'sticky',
         top: 0,
         zIndex: 10
@@ -382,8 +382,8 @@ export function EnhancedOrderEntry({
               style={{
                 padding: '16px',
                 borderRadius: '16px',
-                border: `3px solid ${mode === 'storefront' ? '#9c6dff' : '#E0E0E0'}`,
-                background: mode === 'storefront' ? 'rgba(156, 109, 255, 0.1)' : '#FFFFFF',
+                border: `3px solid ${mode === 'storefront' ? '#1D9BF0' : '#E0E0E0'}`,
+                background: mode === 'storefront' ? 'rgba(29, 155, 240, 0.1)' : '#FFFFFF',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 textAlign: 'center'
@@ -393,7 +393,7 @@ export function EnhancedOrderEntry({
               <div style={{
                 fontSize: '16px',
                 fontWeight: '700',
-                color: mode === 'storefront' ? '#9c6dff' : '#212121',
+                color: mode === 'storefront' ? '#1D9BF0' : '#212121',
                 marginBottom: '4px'
               }}>
                 בחירת מוצרים
@@ -411,8 +411,8 @@ export function EnhancedOrderEntry({
               style={{
                 padding: '16px',
                 borderRadius: '16px',
-                border: `3px solid ${mode === 'dm' ? '#9c6dff' : '#E0E0E0'}`,
-                background: mode === 'dm' ? 'rgba(156, 109, 255, 0.1)' : '#FFFFFF',
+                border: `3px solid ${mode === 'dm' ? '#1D9BF0' : '#E0E0E0'}`,
+                background: mode === 'dm' ? 'rgba(29, 155, 240, 0.1)' : '#FFFFFF',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 textAlign: 'center'
@@ -422,7 +422,7 @@ export function EnhancedOrderEntry({
               <div style={{
                 fontSize: '16px',
                 fontWeight: '700',
-                color: mode === 'dm' ? '#9c6dff' : '#212121',
+                color: mode === 'dm' ? '#1D9BF0' : '#212121',
                 marginBottom: '4px'
               }}>
                 הדבק מטלגרם
@@ -440,8 +440,8 @@ export function EnhancedOrderEntry({
               style={{
                 padding: '16px',
                 borderRadius: '16px',
-                border: `3px solid ${mode === 'quick' ? '#9c6dff' : '#E0E0E0'}`,
-                background: mode === 'quick' ? 'rgba(156, 109, 255, 0.1)' : '#FFFFFF',
+                border: `3px solid ${mode === 'quick' ? '#1D9BF0' : '#E0E0E0'}`,
+                background: mode === 'quick' ? 'rgba(29, 155, 240, 0.1)' : '#FFFFFF',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 textAlign: 'center'
@@ -451,7 +451,7 @@ export function EnhancedOrderEntry({
               <div style={{
                 fontSize: '16px',
                 fontWeight: '700',
-                color: mode === 'quick' ? '#9c6dff' : '#212121',
+                color: mode === 'quick' ? '#1D9BF0' : '#212121',
                 marginBottom: '4px'
               }}>
                 הזמנה מהירה
@@ -707,7 +707,7 @@ export function EnhancedOrderEntry({
           <div style={{
             ...ORDER_FORM_STYLES.section,
             background: 'linear-gradient(135deg, #f5f7fa 0%, #e3e9f0 100%)',
-            border: '2px solid #9c6dff'
+            border: '2px solid #1D9BF0'
           }}>
             <h2 style={{
               margin: '0 0 16px 0',
@@ -741,7 +741,7 @@ export function EnhancedOrderEntry({
                   <div style={{
                     fontSize: '18px',
                     fontWeight: '700',
-                    color: '#9c6dff'
+                    color: '#1D9BF0'
                   }}>
                     ₪{(item.product.price * item.quantity).toLocaleString()}
                   </div>
@@ -753,12 +753,12 @@ export function EnhancedOrderEntry({
                 justifyContent: 'space-between',
                 paddingTop: '16px',
                 marginTop: '8px',
-                borderTop: '3px solid #9c6dff',
+                borderTop: '3px solid #1D9BF0',
                 fontSize: '24px',
                 fontWeight: '700'
               }}>
                 <span>סה״כ:</span>
-                <span style={{ color: '#9c6dff' }}>
+                <span style={{ color: '#1D9BF0' }}>
                   ₪{totalAmount.toLocaleString()}
                 </span>
               </div>

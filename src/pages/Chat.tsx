@@ -342,10 +342,10 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
       <style>{`
         @keyframes pulse-button {
           0%, 100% {
-            box-shadow: 0 0 20px rgba(156, 109, 255, 0.5), 0 0 40px rgba(156, 109, 255, 0.3);
+            box-shadow: 0 0 20px rgba(29, 155, 240, 0.5), 0 0 40px rgba(29, 155, 240, 0.3);
           }
           50% {
-            box-shadow: 0 0 30px rgba(156, 109, 255, 0.8), 0 0 60px rgba(156, 109, 255, 0.5);
+            box-shadow: 0 0 30px rgba(29, 155, 240, 0.8), 0 0 60px rgba(29, 155, 240, 0.5);
           }
         }
       `}</style>
@@ -370,7 +370,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
             fontSize: '28px',
             fontWeight: '700',
             color: ROYAL_COLORS.text,
-            textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
+            textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
           }}>
             💬 הודעות
           </h1>
@@ -597,7 +597,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
                   fontSize: '32px',
                   fontWeight: '300',
                   cursor: 'pointer',
-                  boxShadow: `${ROYAL_COLORS.glowPurple}, 0 4px 20px rgba(156, 109, 255, 0.6)`,
+                  boxShadow: `${ROYAL_COLORS.glowPurple}, 0 4px 20px rgba(29, 155, 240, 0.6)`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -607,11 +607,11 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'scale(1.15) rotate(90deg)';
-                  e.currentTarget.style.boxShadow = '0 8px 32px rgba(156, 109, 255, 0.9)';
+                  e.currentTarget.style.boxShadow = '0 8px 32px rgba(29, 155, 240, 0.9)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
-                  e.currentTarget.style.boxShadow = `${ROYAL_COLORS.glowPurple}, 0 4px 20px rgba(156, 109, 255, 0.6)`;
+                  e.currentTarget.style.boxShadow = `${ROYAL_COLORS.glowPurple}, 0 4px 20px rgba(29, 155, 240, 0.6)`;
                 }}
                 title="יצירת קבוצה חדשה"
               >
@@ -856,7 +856,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = '0 4px 16px rgba(156, 109, 255, 0.3)';
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(29, 155, 240, 0.3)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
@@ -872,7 +872,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
             borderRadius: '50%',
             background: otherUser?.photo_url
               ? `url(${otherUser.photo_url}) center/cover`
-              : 'linear-gradient(135deg, rgba(156, 109, 255, 0.8), rgba(123, 63, 242, 0.8))',
+              : 'linear-gradient(135deg, rgba(29, 155, 240, 0.8), rgba(123, 63, 242, 0.8))',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -956,7 +956,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(156, 109, 255, 0.4)'
+            boxShadow: '0 2px 8px rgba(29, 155, 240, 0.4)'
           }}
         >
           {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
@@ -1015,7 +1015,7 @@ function GroupsList({
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(156, 109, 255, 0.6)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(29, 155, 240, 0.6)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)';
@@ -1063,7 +1063,7 @@ function ChatCard({ chat, onClick }: { chat: GroupChat; onClick: () => void }) {
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = '0 4px 16px rgba(156, 109, 255, 0.3)';
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(29, 155, 240, 0.3)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
@@ -1173,7 +1173,7 @@ function ChatView({
                 borderRadius: '50%',
                 background: chat.otherUser.photo_url
                   ? `url(${chat.otherUser.photo_url}) center/cover`
-                  : 'linear-gradient(135deg, rgba(156, 109, 255, 0.8), rgba(123, 63, 242, 0.8))',
+                  : 'linear-gradient(135deg, rgba(29, 155, 240, 0.8), rgba(123, 63, 242, 0.8))',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1292,7 +1292,7 @@ function ChatView({
             style={{
               padding: '0',
               background: newMessage.trim()
-                ? 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)'
+                ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
                 : ROYAL_COLORS.cardBorder,
               color: '#fff',
               border: 'none',
@@ -1304,7 +1304,7 @@ function ChatView({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: newMessage.trim() ? '0 4px 12px rgba(156, 109, 255, 0.4)' : 'none',
+              boxShadow: newMessage.trim() ? '0 4px 12px rgba(29, 155, 240, 0.4)' : 'none',
               transition: 'all 0.3s ease'
             }}
           >
@@ -1345,7 +1345,7 @@ function MessageBubble({ message, isMe, theme }: { message: any; isMe: boolean; 
         maxWidth: '70%',
         padding: '12px 16px',
         background: isMe
-          ? 'linear-gradient(135deg, #9c6dff 0%, #7c3aed 100%)'
+          ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
           : ROYAL_COLORS.card,
         color: '#fff',
         borderRadius: '18px',
@@ -1353,7 +1353,7 @@ function MessageBubble({ message, isMe, theme }: { message: any; isMe: boolean; 
         borderBottomLeftRadius: isMe ? '18px' : '4px',
         border: isMe ? 'none' : `1px solid ${ROYAL_COLORS.cardBorder}`,
         boxShadow: isMe
-          ? '0 4px 12px rgba(156, 109, 255, 0.3)'
+          ? '0 4px 12px rgba(29, 155, 240, 0.3)'
           : '0 2px 8px rgba(0, 0, 0, 0.2)'
       }}>
         {!isMe && (
@@ -1443,7 +1443,7 @@ function FilterButton({
       <span style={{
         padding: '2px 8px',
         borderRadius: '10px',
-        background: active ? 'rgba(255, 255, 255, 0.2)' : 'rgba(156, 109, 255, 0.2)',
+        background: active ? 'rgba(255, 255, 255, 0.2)' : 'rgba(29, 155, 240, 0.2)',
         fontSize: '12px',
         minWidth: '20px',
         textAlign: 'center'

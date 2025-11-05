@@ -18,7 +18,7 @@ const ROYAL_COLORS = {
   cardBorder: 'rgba(140, 91, 238, 0.45)',
   muted: '#bfa9ff',
   text: '#f4f1ff',
-  accent: '#9c6dff',
+  accent: '#1D9BF0',
   gold: '#f6c945',
   teal: '#4dd0e1',
   shadow: '0 20px 40px rgba(20, 4, 54, 0.45)'
@@ -186,7 +186,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                 width: '56px',
                 height: '56px',
                 borderRadius: '16px',
-                background: 'linear-gradient(130deg, rgba(77, 208, 225, 0.7), rgba(156, 109, 255, 0.7))',
+                background: 'linear-gradient(130deg, rgba(77, 208, 225, 0.7), rgba(29, 155, 240, 0.7))',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -213,7 +213,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                 flex: 1,
                 padding: '12px',
                 background: viewMode === 'manager' ? `linear-gradient(120deg, ${ROYAL_COLORS.teal}, ${ROYAL_COLORS.accent})` : 'rgba(20, 8, 46, 0.6)',
-                border: viewMode === 'manager' ? 'none' : '1px solid rgba(156, 109, 255, 0.3)',
+                border: viewMode === 'manager' ? 'none' : '1px solid rgba(29, 155, 240, 0.3)',
                 borderRadius: '12px',
                 color: ROYAL_COLORS.text,
                 fontSize: '14px',
@@ -233,7 +233,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                 flex: 1,
                 padding: '12px',
                 background: viewMode === 'assignments' ? `linear-gradient(120deg, ${ROYAL_COLORS.teal}, ${ROYAL_COLORS.accent})` : 'rgba(20, 8, 46, 0.6)',
-                border: viewMode === 'assignments' ? 'none' : '1px solid rgba(156, 109, 255, 0.3)',
+                border: viewMode === 'assignments' ? 'none' : '1px solid rgba(29, 155, 240, 0.3)',
                 borderRadius: '12px',
                 color: ROYAL_COLORS.text,
                 fontSize: '14px',
@@ -303,7 +303,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                     color: ROYAL_COLORS.muted,
                     background: 'rgba(20, 8, 46, 0.4)',
                     borderRadius: '16px',
-                    border: '1px dashed rgba(156, 109, 255, 0.3)'
+                    border: '1px dashed rgba(29, 155, 240, 0.3)'
                   }}
                 >
                   אין נהגים משוייכים לאזור זה
@@ -320,7 +320,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                         padding: '16px',
                         background: 'rgba(20, 8, 46, 0.6)',
                         borderRadius: '16px',
-                        border: '1px solid rgba(156, 109, 255, 0.25)'
+                        border: '1px solid rgba(29, 155, 240, 0.25)'
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -329,7 +329,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                             width: '40px',
                             height: '40px',
                             borderRadius: '12px',
-                            background: 'linear-gradient(130deg, rgba(246, 201, 69, 0.7), rgba(156, 109, 255, 0.7))',
+                            background: 'linear-gradient(130deg, rgba(246, 201, 69, 0.7), rgba(29, 155, 240, 0.7))',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -422,12 +422,12 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                   padding: '16px',
                   background:
                     selectedDriverId === driver.telegram_id
-                      ? 'rgba(156, 109, 255, 0.3)'
+                      ? 'rgba(29, 155, 240, 0.3)'
                       : 'rgba(20, 8, 46, 0.6)',
                   border: `2px solid ${
                     selectedDriverId === driver.telegram_id
                       ? ROYAL_COLORS.accent
-                      : 'rgba(156, 109, 255, 0.2)'
+                      : 'rgba(29, 155, 240, 0.2)'
                   }`,
                   borderRadius: '12px',
                   color: ROYAL_COLORS.text,
@@ -443,7 +443,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                     width: '40px',
                     height: '40px',
                     borderRadius: '12px',
-                    background: 'linear-gradient(130deg, rgba(246, 201, 69, 0.7), rgba(156, 109, 255, 0.7))',
+                    background: 'linear-gradient(130deg, rgba(246, 201, 69, 0.7), rgba(29, 155, 240, 0.7))',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

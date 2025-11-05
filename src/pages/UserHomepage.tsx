@@ -16,7 +16,7 @@ const ROYAL_COLORS = {
   cardBorder: 'rgba(140, 91, 238, 0.45)',
   muted: '#bfa9ff',
   text: '#f4f1ff',
-  accent: '#9c6dff',
+  accent: '#1D9BF0',
   gold: '#f6c945',
   crimson: '#ff6b8a',
   teal: '#4dd0e1',
@@ -274,7 +274,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
               justifyContent: 'space-between',
               alignItems: 'center',
               padding: '12px 16px',
-              background: 'rgba(156, 109, 255, 0.1)',
+              background: 'rgba(29, 155, 240, 0.1)',
               borderRadius: '12px'
             }}>
               <span style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>שם מלא</span>
@@ -288,7 +288,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
               justifyContent: 'space-between',
               alignItems: 'center',
               padding: '12px 16px',
-              background: 'rgba(156, 109, 255, 0.1)',
+              background: 'rgba(29, 155, 240, 0.1)',
               borderRadius: '12px'
             }}>
               <span style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>שם משתמש</span>
@@ -302,7 +302,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
               justifyContent: 'space-between',
               alignItems: 'center',
               padding: '12px 16px',
-              background: 'rgba(156, 109, 255, 0.1)',
+              background: 'rgba(29, 155, 240, 0.1)',
               borderRadius: '12px'
             }}>
               <span style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>סטטוס</span>
@@ -323,7 +323,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
         </div>
 
         <div style={{
-          background: 'linear-gradient(135deg, rgba(156, 109, 255, 0.2), rgba(156, 109, 255, 0.05))',
+          background: 'linear-gradient(135deg, rgba(29, 155, 240, 0.2), rgba(29, 155, 240, 0.05))',
           border: `1px solid ${ROYAL_COLORS.cardBorder}`,
           borderRadius: '20px',
           padding: '28px',
@@ -362,7 +362,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
             style={{
               width: '100%',
               padding: '16px',
-              background: 'linear-gradient(120deg, #9c6dff, #f6c945)',
+              background: 'linear-gradient(120deg, #1D9BF0, #f6c945)',
               border: 'none',
               borderRadius: '14px',
               color: '#ffffff',
@@ -373,7 +373,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '10px',
-              boxShadow: '0 6px 20px rgba(156, 109, 255, 0.5)',
+              boxShadow: '0 6px 20px rgba(29, 155, 240, 0.5)',
               transition: 'transform 0.2s, box-shadow 0.2s'
             }}
             onMouseDown={(e) => {
@@ -432,7 +432,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
         <div style={{
           marginTop: '24px',
           padding: '16px',
-          background: 'rgba(156, 109, 255, 0.1)',
+          background: 'rgba(29, 155, 240, 0.1)',
           border: `1px solid ${ROYAL_COLORS.cardBorder}`,
           borderRadius: '14px',
           textAlign: 'center'

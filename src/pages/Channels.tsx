@@ -128,7 +128,7 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
           fontSize: '28px',
           fontWeight: '700',
           color: ROYAL_COLORS.text,
-          textShadow: '0 0 20px rgba(156, 109, 255, 0.5)'
+          textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
         }}>
           📢 ערוצי עדכונים
         </h1>
@@ -182,7 +182,7 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(156, 109, 255, 0.6)';
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(29, 155, 240, 0.6)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
@@ -231,7 +231,7 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
             color: '#fff',
             fontSize: '28px',
             cursor: 'pointer',
-            boxShadow: `${ROYAL_COLORS.glowPurple}, 0 0 30px rgba(156, 109, 255, 0.5)`,
+            boxShadow: `${ROYAL_COLORS.glowPurple}, 0 0 30px rgba(29, 155, 240, 0.5)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -240,11 +240,11 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'scale(1.15) rotate(90deg)';
-            e.currentTarget.style.boxShadow = '0 8px 24px rgba(156, 109, 255, 0.8)';
+            e.currentTarget.style.boxShadow = '0 8px 24px rgba(29, 155, 240, 0.8)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
-            e.currentTarget.style.boxShadow = `${ROYAL_COLORS.glowPurple}, 0 0 30px rgba(156, 109, 255, 0.5)`;
+            e.currentTarget.style.boxShadow = `${ROYAL_COLORS.glowPurple}, 0 0 30px rgba(29, 155, 240, 0.5)`;
           }}
           title="יצירת ערוץ חדש"
         >
@@ -307,7 +307,7 @@ function ChannelCard({ channel, onClick, theme }: {
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = '0 4px 16px rgba(156, 109, 255, 0.3)';
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(29, 155, 240, 0.3)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';

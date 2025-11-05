@@ -16,7 +16,7 @@ const ROYAL_COLORS = {
   cardBorder: 'rgba(140, 91, 238, 0.45)',
   muted: '#bfa9ff',
   text: '#f4f1ff',
-  accent: '#9c6dff',
+  accent: '#1D9BF0',
   gold: '#f6c945',
   crimson: '#ff6b8a',
   shadow: '0 20px 40px rgba(20, 4, 54, 0.45)'
@@ -313,7 +313,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
           style={{
             width: '100%',
             padding: '14px',
-            background: 'linear-gradient(120deg, #9c6dff, #f6c945)',
+            background: 'linear-gradient(120deg, #1D9BF0, #f6c945)',
             border: 'none',
             borderRadius: '12px',
             color: '#ffffff',
@@ -324,7 +324,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            boxShadow: '0 4px 16px rgba(156, 109, 255, 0.4)'
+            boxShadow: '0 4px 16px rgba(29, 155, 240, 0.4)'
           }}
         >
           🎯 בקש תפקיד

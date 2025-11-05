@@ -274,7 +274,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                     style={{
                       padding: '16px',
                       background: isSelected
-                        ? 'linear-gradient(135deg, rgba(156, 109, 255, 0.2), rgba(156, 109, 255, 0.1))'
+                        ? 'linear-gradient(135deg, rgba(29, 155, 240, 0.2), rgba(29, 155, 240, 0.1))'
                         : ROYAL_COLORS.secondary,
                       border: isSelected
                         ? `2px solid ${ROYAL_COLORS.primary}`
@@ -360,7 +360,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                             <span
                               style={{
                                 padding: '2px 8px',
-                                background: 'rgba(156, 109, 255, 0.2)',
+                                background: 'rgba(29, 155, 240, 0.2)',
                                 borderRadius: '6px',
                                 fontSize: '12px'
                               }}
@@ -395,7 +395,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
               flex: 1,
               padding: '14px',
               background: selectedBusiness
-                ? 'linear-gradient(120deg, #9c6dff, #f6c945)'
+                ? 'linear-gradient(120deg, #1D9BF0, #f6c945)'
                 : ROYAL_COLORS.secondary,
               border: 'none',
               borderRadius: '12px',
@@ -410,7 +410,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
             onMouseEnter={(e) => {
               if (selectedBusiness) {
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(156, 109, 255, 0.4)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(29, 155, 240, 0.4)';
               }
             }}
             onMouseLeave={(e) => {

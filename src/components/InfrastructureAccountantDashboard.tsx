@@ -500,7 +500,7 @@ export function InfrastructureAccountantDashboard() {
           align-items: center;
           margin-bottom: 32px;
           padding: 24px;
-          background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+          background: linear-gradient(135deg, #8b5cf6 0%, #1A8CD8 100%);
           border-radius: 12px;
           color: white;
         }
@@ -871,7 +871,7 @@ export function InfrastructureAccountantDashboard() {
 
         .chart-bar {
           width: 100%;
-          background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
+          background: linear-gradient(180deg, #8b5cf6 0%, #1A8CD8 100%);
           border-radius: 4px 4px 0 0;
           display: flex;
           align-items: flex-start;
@@ -990,7 +990,7 @@ export function InfrastructureAccountantDashboard() {
 
         .cost-bar-fill {
           height: 100%;
-          background: linear-gradient(90deg, #8b5cf6 0%, #7c3aed 100%);
+          background: linear-gradient(90deg, #8b5cf6 0%, #1A8CD8 100%);
           transition: width 0.3s ease;
         }
 
