@@ -9,7 +9,6 @@ import React, { useEffect, useState } from 'react';
 import { getSupabase } from '../lib/supabaseClient';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { fetchBusinessMetrics } from '../services/metrics';
-import { BusinessDashboardHeader } from './BusinessDashboardHeader';
 import { BusinessBottomNav } from './BusinessBottomNav';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -237,19 +236,12 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
 
   return (
     <>
-      <BusinessDashboardHeader
-        businessName="thecongress"
-        userName="UndergroundLab"
-        notificationCount={0}
-        onProfileClick={() => setActivePage('profile')}
-      />
-
       <div style={{
         minHeight: '100vh',
-        paddingTop: '80px',
+        paddingTop: '20px',
         paddingBottom: '90px',
         background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-        padding: '80px 20px 90px 20px',
+        padding: '20px 20px 90px 20px',
         direction: isRTL ? 'rtl' : 'ltr'
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
