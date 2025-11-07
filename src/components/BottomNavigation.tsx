@@ -73,8 +73,7 @@ export function BottomNavigation({
 
   /**
    * 🔐 UNIFIED BOTTOM NAVIGATION
-   * תפקידי | צ'אט | פעולות מהירות | התראות | משימות
-   * All role-specific pages accessible via תפקידי sidebar
+   * Visual RTL: תפריט | משימות | התראות | פעולות | צ'אט
    */
   const roleNavigation: Record<RoleKey, RoleNavigationConfig> = {
     // ⛔ USER: Unassigned - View Only
@@ -85,7 +84,7 @@ export function BottomNavigation({
         { id: 'tasks', label: 'משימות', icon: '✅' }
       ],
       action: {
-        label: 'פעולות מהירות',
+        label: 'פעולות',
         icon: '⚡'
       }
     },
@@ -98,7 +97,7 @@ export function BottomNavigation({
         { id: 'tasks', label: 'משימות', icon: '✅' }
       ],
       action: {
-        label: 'פעולות מהירות',
+        label: 'פעולות',
         icon: '⚡'
       }
     },
@@ -111,7 +110,7 @@ export function BottomNavigation({
         { id: 'tasks', label: 'משימות', icon: '✅' }
       ],
       action: {
-        label: 'פעולות מהירות',
+        label: 'פעולות',
         icon: '⚡'
       }
     },
@@ -124,7 +123,7 @@ export function BottomNavigation({
         { id: 'tasks', label: 'משימות', icon: '✅' }
       ],
       action: {
-        label: 'פעולות מהירות',
+        label: 'פעולות',
         icon: '⚡'
       }
     },
@@ -137,7 +136,7 @@ export function BottomNavigation({
         { id: 'tasks', label: 'משימות', icon: '✅' }
       ],
       action: {
-        label: 'פעולות מהירות',
+        label: 'פעולות',
         icon: '⚡'
       }
     },
@@ -150,7 +149,7 @@ export function BottomNavigation({
         { id: 'tasks', label: 'משימות', icon: '✅' }
       ],
       action: {
-        label: 'פעולות מהירות',
+        label: 'פעולות',
         icon: '⚡'
       }
     },
@@ -163,7 +162,7 @@ export function BottomNavigation({
         { id: 'tasks', label: 'משימות', icon: '✅' }
       ],
       action: {
-        label: 'פעולות מהירות',
+        label: 'פעולות',
         icon: '⚡'
       }
     },
@@ -176,7 +175,7 @@ export function BottomNavigation({
         { id: 'tasks', label: 'משימות', icon: '✅' }
       ],
       action: {
-        label: 'פעולות מהירות',
+        label: 'פעולות',
         icon: '⚡'
       }
     },
@@ -189,7 +188,7 @@ export function BottomNavigation({
         { id: 'tasks', label: 'משימות', icon: '✅' }
       ],
       action: {
-        label: 'פעולות מהירות',
+        label: 'פעולות',
         icon: '⚡'
       }
     }
@@ -264,12 +263,83 @@ export function BottomNavigation({
   const hasSidebarButton = userRole && userRole !== 'user' && onOpenSidebar;
   const totalTabs = tabs.length;
 
-  // In RTL: sidebar (right) | tabs | ACTION (center) | tabs | empty space (left)
-  // We need to balance tabs on both sides of the center action button
-  const leftSideTabs = Math.floor(totalTabs / 2); // tabs to the left of center button
+  // For RTL layout with action button in center:
+  // Structure: [צ'אט] [ACTION] [התראות] [משימות] [תפריט]
+  // Visual RTL: תפריט | משימות | התראות | פעולות | צ'אט
+  // With 3 tabs total: צ'אט (0), התראות (1), משימות (2)
+  // Split: 1 tab left of action (צ'אט), 2 tabs right of action (התראות, משימות)
+  const leftSideTabs = 1; // tabs to the left of center button
   const rightSideTabs = totalTabs - leftSideTabs; // tabs to the right of center button
 
-  // Add תפקידי button on the far right (first in RTL layout)
+  // Render function for tab buttons
+  const renderTab = (tab: TabDefinition) => (
+    <button
+      key={tab.id}
+      onClick={() => {
+        haptic();
+        onNavigate(tab.id);
+      }}
+      style={{
+        flex: 1,
+        minWidth: '0',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '8px 4px',
+        border: 'none',
+        backgroundColor: 'transparent',
+        color: currentPage === tab.id ? TWITTER_COLORS.primary : TWITTER_COLORS.textSecondary,
+        cursor: 'pointer',
+        fontSize: '11px',
+        fontWeight: currentPage === tab.id ? '600' : '500',
+        position: 'relative',
+        transition: 'all 0.2s ease',
+        transform: currentPage === tab.id ? 'scale(1.05)' : 'scale(1)'
+      }}
+    >
+      <span style={{
+        fontSize: currentPage === tab.id ? '24px' : '22px',
+        filter: currentPage === tab.id ? `drop-shadow(0 0 8px ${TWITTER_COLORS.accentGlow})` : 'none',
+        transition: 'all 0.2s ease'
+      }}>
+        {tab.icon}
+      </span>
+      <span>{tab.label}</span>
+      {currentPage === tab.id && (
+        <div style={{
+          position: 'absolute',
+          bottom: '4px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '32px',
+          height: '3px',
+          background: `linear-gradient(90deg, transparent, ${TWITTER_COLORS.primary}, transparent)`,
+          borderRadius: '2px',
+          boxShadow: `0 0 8px ${TWITTER_COLORS.accentGlow}`
+        }} />
+      )}
+    </button>
+  );
+
+  // Add left side tabs (shown on right in RTL)
+  for (let i = 0; i < leftSideTabs; i++) {
+    const tab = tabs[i];
+    navItems.push(renderTab(tab));
+  }
+
+  // Add center action button
+  if (action) {
+    navItems.push(renderActionSlot());
+  }
+
+  // Add right side tabs (shown on left in RTL)
+  for (let i = leftSideTabs; i < totalTabs; i++) {
+    const tab = tabs[i];
+    navItems.push(renderTab(tab));
+  }
+
+  // Add תפריט button on the far left (shown on far right in RTL layout)
   if (hasSidebarButton) {
     navItems.push(
       <button
@@ -301,122 +371,9 @@ export function BottomNavigation({
           filter: `drop-shadow(0 0 6px ${TWITTER_COLORS.accentGlow})`,
           transition: 'all 0.2s ease'
         }}>
-          📋
+          ☰
         </span>
-        <span>תפקידי</span>
-      </button>
-    );
-  }
-
-  // Add right side tabs (before center button in RTL)
-  for (let i = 0; i < rightSideTabs; i++) {
-    const tab = tabs[i];
-    navItems.push(
-      <button
-        key={tab.id}
-        onClick={() => {
-          haptic();
-          onNavigate(tab.id);
-        }}
-        style={{
-          flex: 1,
-          minWidth: '0',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '8px 4px',
-          border: 'none',
-          backgroundColor: 'transparent',
-          color: currentPage === tab.id ? TWITTER_COLORS.primary : TWITTER_COLORS.textSecondary,
-          cursor: 'pointer',
-          fontSize: '11px',
-          fontWeight: currentPage === tab.id ? '600' : '500',
-          position: 'relative',
-          transition: 'all 0.2s ease',
-          transform: currentPage === tab.id ? 'scale(1.05)' : 'scale(1)'
-        }}
-      >
-        <span style={{
-          fontSize: currentPage === tab.id ? '24px' : '22px',
-          filter: currentPage === tab.id ? `drop-shadow(0 0 8px ${TWITTER_COLORS.accentGlow})` : 'none',
-          transition: 'all 0.2s ease'
-        }}>
-          {tab.icon}
-        </span>
-        <span>{tab.label}</span>
-        {currentPage === tab.id && (
-          <div style={{
-            position: 'absolute',
-            bottom: '4px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '32px',
-            height: '3px',
-            background: `linear-gradient(90deg, transparent, ${TWITTER_COLORS.primary}, transparent)`,
-            borderRadius: '2px',
-            boxShadow: `0 0 8px ${TWITTER_COLORS.accentGlow}`
-          }} />
-        )}
-      </button>
-    );
-  }
-
-  // Add center action button
-  if (action) {
-    navItems.push(renderActionSlot());
-  }
-
-  // Add left side tabs (after center button in RTL)
-  for (let i = rightSideTabs; i < totalTabs; i++) {
-    const tab = tabs[i];
-    navItems.push(
-      <button
-        key={tab.id}
-        onClick={() => {
-          haptic();
-          onNavigate(tab.id);
-        }}
-        style={{
-          flex: 1,
-          minWidth: '0',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '8px 4px',
-          border: 'none',
-          backgroundColor: 'transparent',
-          color: currentPage === tab.id ? TWITTER_COLORS.primary : TWITTER_COLORS.textSecondary,
-          cursor: 'pointer',
-          fontSize: '11px',
-          fontWeight: currentPage === tab.id ? '600' : '500',
-          position: 'relative',
-          transition: 'all 0.2s ease',
-          transform: currentPage === tab.id ? 'scale(1.05)' : 'scale(1)'
-        }}
-      >
-        <span style={{
-          fontSize: currentPage === tab.id ? '24px' : '22px',
-          filter: currentPage === tab.id ? `drop-shadow(0 0 8px ${TWITTER_COLORS.accentGlow})` : 'none',
-          transition: 'all 0.2s ease'
-        }}>
-          {tab.icon}
-        </span>
-        <span>{tab.label}</span>
-        {currentPage === tab.id && (
-          <div style={{
-            position: 'absolute',
-            bottom: '4px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '32px',
-            height: '3px',
-            background: `linear-gradient(90deg, transparent, ${TWITTER_COLORS.primary}, transparent)`,
-            borderRadius: '2px',
-            boxShadow: `0 0 8px ${TWITTER_COLORS.accentGlow}`
-          }} />
-        )}
+        <span>תפריט</span>
       </button>
     );
   }
