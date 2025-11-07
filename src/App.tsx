@@ -338,10 +338,10 @@ export default function App() {
     }
 
     const roleDefaultPageMap: Record<string, Page> = {
-      owner: 'dashboard',
-      manager: 'dashboard',
-      business_owner: 'dashboard',
-      infrastructure_owner: 'dashboard',
+      owner: 'orders',
+      manager: 'orders',
+      business_owner: 'orders',
+      infrastructure_owner: 'businesses',
       warehouse: 'inventory',
       driver: 'my-deliveries',
       sales: 'orders',
@@ -878,8 +878,8 @@ export default function App() {
           </div>
         </Suspense>
 
-        {/* Bottom Navigation - Hidden for 'user' role and dashboard page */}
-        {dataStore && userRole && userRole !== 'user' && currentPage !== 'dashboard' && (
+        {/* Bottom Navigation - Hidden for 'user' role only */}
+        {dataStore && userRole && userRole !== 'user' && (
           <BottomNavigation
             currentPage={currentPage}
             onNavigate={handleNavigate}
