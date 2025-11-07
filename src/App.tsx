@@ -878,8 +878,8 @@ export default function App() {
           </div>
         </Suspense>
 
-        {/* Bottom Navigation - Hidden for 'user' role */}
-        {dataStore && userRole && userRole !== 'user' && (
+        {/* Bottom Navigation - Hidden for 'user' role and dashboard page */}
+        {dataStore && userRole && userRole !== 'user' && currentPage !== 'dashboard' && (
           <BottomNavigation
             currentPage={currentPage}
             onNavigate={handleNavigate}
