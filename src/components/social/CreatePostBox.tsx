@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useAppServices } from '../../context/AppServicesContext';
 import { MediaUploadService } from '../../services/mediaUpload';
+import { i18n } from '../../lib/i18n';
 import type { CreatePostInput, PostVisibility, MediaType } from '../../data/types';
 
 interface CreatePostBoxProps {
@@ -16,7 +17,8 @@ interface MediaPreview {
   type: MediaType;
 }
 
-export function CreatePostBox({ onSubmit, placeholder = "What's happening?", replyToPostId }: CreatePostBoxProps) {
+export function CreatePostBox({ onSubmit, placeholder, replyToPostId }: CreatePostBoxProps) {
+  const defaultPlaceholder = placeholder || i18n.getTranslations().social.whatsHappening;
   const { user } = useAuth();
   const { dataStore } = useAppServices();
   const [content, setContent] = useState('');
@@ -68,7 +70,7 @@ export function CreatePostBox({ onSubmit, placeholder = "What's happening?", rep
       }
 
       await onSubmit({
-        content: content.trim() || 'Shared media',
+        content: content.trim() || i18n.getTranslations().social.sharedMedia,
         visibility,
         reply_to_post_id: replyToPostId,
         media: uploadedMedia.length > 0 ? uploadedMedia : undefined
@@ -79,7 +81,7 @@ export function CreatePostBox({ onSubmit, placeholder = "What's happening?", rep
       setUploadProgress(0);
     } catch (error) {
       console.error('Failed to create post:', error);
-      alert('Failed to create post. Please try again.');
+      alert(i18n.getTranslations().social.postFailed);
     } finally {
       setIsSubmitting(false);
     }
@@ -95,7 +97,7 @@ export function CreatePostBox({ onSubmit, placeholder = "What's happening?", rep
     <div className="flex gap-3">
       <div className="flex-shrink-0">
         {user?.photo_url ? (
-          <img src={user.photo_url} alt={user.name || 'You'} className="w-12 h-12 rounded-full" />
+          <img src={user.photo_url} alt={user.name || user.username || i18n.getTranslations().social.userAvatar} className="w-12 h-12 rounded-full" />
         ) : (
           <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
             {(user?.name?.[0] || user?.username?.[0] || 'U').toUpperCase()}
@@ -108,7 +110,8 @@ export function CreatePostBox({ onSubmit, placeholder = "What's happening?", rep
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={defaultPlaceholder}
+          aria-label={i18n.getTranslations().social.whatsHappening}
           className="w-full p-3 text-lg border-none focus:outline-none resize-none"
           rows={3}
         />
@@ -118,14 +121,15 @@ export function CreatePostBox({ onSubmit, placeholder = "What's happening?", rep
             {mediaFiles.map((media, index) => (
               <div key={index} className="relative rounded-2xl overflow-hidden bg-gray-100">
                 {media.type === 'image' ? (
-                  <img src={media.url} alt="Preview" className="w-full h-48 object-cover" />
+                  <img src={media.url} alt={i18n.getTranslations().social.postImage} className="w-full h-48 object-cover" />
                 ) : (
                   <video src={media.url} className="w-full h-48 object-cover" />
                 )}
                 <button
                   onClick={() => removeMedia(index)}
                   className="absolute top-2 right-2 w-8 h-8 bg-gray-900 bg-opacity-75 text-white rounded-full hover:bg-opacity-90 transition-colors flex items-center justify-center"
-                  title="Remove"
+                  title={i18n.getTranslations().social.removeMedia}
+                  aria-label={i18n.getTranslations().social.removeMedia}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -144,7 +148,7 @@ export function CreatePostBox({ onSubmit, placeholder = "What's happening?", rep
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className="text-sm text-gray-500 mt-1">Uploading media... {uploadProgress}%</p>
+            <p className="text-sm text-gray-500 mt-1">{i18n.getTranslations().social.uploadingMedia}... {uploadProgress}%</p>
           </div>
         )}
 
@@ -163,7 +167,8 @@ export function CreatePostBox({ onSubmit, placeholder = "What's happening?", rep
               onClick={() => fileInputRef.current?.click()}
               disabled={mediaFiles.length >= 4}
               className="p-2 text-blue-500 hover:bg-blue-50 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Add image or video"
+              title={i18n.getTranslations().social.addImageOrVideo}
+              aria-label={i18n.getTranslations().social.addImageOrVideo}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -175,9 +180,9 @@ export function CreatePostBox({ onSubmit, placeholder = "What's happening?", rep
               onChange={(e) => setVisibility(e.target.value as PostVisibility)}
               className="px-3 py-1 text-sm border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="public">Public</option>
-              <option value="followers">Followers</option>
-              <option value="private">Private</option>
+              <option value="public">{i18n.getTranslations().social.public}</option>
+              <option value="followers">{i18n.getTranslations().social.followersOnly}</option>
+              <option value="private">{i18n.getTranslations().social.private}</option>
             </select>
           </div>
 
@@ -190,7 +195,7 @@ export function CreatePostBox({ onSubmit, placeholder = "What's happening?", rep
               disabled={!content.trim() || content.length > 280 || isSubmitting}
               className="px-6 py-2 bg-blue-500 text-white rounded-full font-semibold hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isSubmitting ? 'Posting...' : 'Post'}
+              {isSubmitting ? i18n.getTranslations().social.posting : i18n.getTranslations().social.post}
             </button>
           </div>
         </div>

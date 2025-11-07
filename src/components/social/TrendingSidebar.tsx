@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAppServices } from '../../context/AppServicesContext';
+import { i18n } from '../../lib/i18n';
 import type { TrendingTopic, User } from '../../data/types';
 
 export function TrendingSidebar() {
@@ -43,7 +44,8 @@ export function TrendingSidebar() {
         <div className="p-4">
           <input
             type="text"
-            placeholder="Search"
+            placeholder={i18n.getTranslations().social.searchPlaceholder}
+            aria-label={i18n.getTranslations().social.search}
             className="w-full px-4 py-2 bg-white border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -51,7 +53,7 @@ export function TrendingSidebar() {
 
       <div className="bg-gray-50 rounded-2xl overflow-hidden">
         <div className="p-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold">Trending</h2>
+          <h2 className="text-xl font-bold">{i18n.getTranslations().social.trending}</h2>
         </div>
 
         {loading ? (
@@ -60,7 +62,7 @@ export function TrendingSidebar() {
           </div>
         ) : trending.length === 0 ? (
           <div className="p-4 text-center text-gray-500 text-sm">
-            No trending topics yet
+            {i18n.getTranslations().social.noTrendingYet}
           </div>
         ) : (
           <div>
@@ -72,13 +74,13 @@ export function TrendingSidebar() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <p className="text-xs text-gray-500">
-                      {index + 1} · Trending
+                      {index + 1} · {i18n.getTranslations().social.trending}
                     </p>
                     <p className="font-bold text-gray-900">
                       #{topic.hashtag?.tag}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {topic.posts_count} {topic.posts_count === 1 ? 'post' : 'posts'}
+                      {topic.posts_count} {topic.posts_count === 1 ? i18n.getTranslations().social.post : i18n.getTranslations().social.posts}
                     </p>
                   </div>
                 </div>
@@ -88,8 +90,8 @@ export function TrendingSidebar() {
         )}
 
         <div className="p-4 border-t border-gray-200">
-          <button className="text-blue-500 hover:underline text-sm">
-            Show more
+          <button className="text-blue-500 hover:underline text-sm" aria-label={i18n.getTranslations().social.showMore}>
+            {i18n.getTranslations().social.showMore}
           </button>
         </div>
       </div>
@@ -97,7 +99,7 @@ export function TrendingSidebar() {
       {suggestedUsers.length > 0 && (
         <div className="bg-gray-50 rounded-2xl overflow-hidden">
           <div className="p-4 border-b border-gray-200">
-            <h2 className="text-xl font-bold">Who to follow</h2>
+            <h2 className="text-xl font-bold">{i18n.getTranslations().social.whoToFollow}</h2>
           </div>
 
           <div>
@@ -133,8 +135,9 @@ export function TrendingSidebar() {
                   <button
                     onClick={() => handleFollow(user.id)}
                     className="px-4 py-1.5 bg-black text-white rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors"
+                    aria-label={`${i18n.getTranslations().social.follow} ${user.name || user.username}`}
                   >
-                    Follow
+                    {i18n.getTranslations().social.follow}
                   </button>
                 </div>
               </div>
@@ -142,8 +145,8 @@ export function TrendingSidebar() {
           </div>
 
           <div className="p-4 border-t border-gray-200">
-            <button className="text-blue-500 hover:underline text-sm">
-              Show more
+            <button className="text-blue-500 hover:underline text-sm" aria-label={i18n.getTranslations().social.showMore}>
+              {i18n.getTranslations().social.showMore}
             </button>
           </div>
         </div>

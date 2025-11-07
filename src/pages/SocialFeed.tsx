@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAppServices } from '../context/AppServicesContext';
+import { i18n } from '../lib/i18n';
 import type { Post, CreatePostInput } from '../data/types';
 import { PostCard } from '../components/social/PostCard';
 import { CreatePostBox } from '../components/social/CreatePostBox';
@@ -83,7 +84,7 @@ export function SocialFeed() {
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  For You
+                  {i18n.getTranslations().social.forYou}
                 </button>
                 <button
                   onClick={() => setFilter('following')}
@@ -93,7 +94,7 @@ export function SocialFeed() {
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  Following
+                  {i18n.getTranslations().social.followingFeed}
                 </button>
               </div>
             </div>
@@ -105,12 +106,12 @@ export function SocialFeed() {
             <div className="divide-y">
               {loading ? (
                 <div className="p-8 text-center text-gray-500">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                  <p className="mt-2">Loading feed...</p>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto" role="status" aria-label={i18n.getTranslations().common.loading}></div>
+                  <p className="mt-2">{i18n.getTranslations().social.loadingFeed}</p>
                 </div>
               ) : posts.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
-                  <p>No posts yet. Start following people or create your first post!</p>
+                  <p>{i18n.getTranslations().social.noPostsYet}. {i18n.getTranslations().social.startFollowing} {i18n.getTranslations().social.createFirstPost}</p>
                 </div>
               ) : (
                 posts.map((post) => (

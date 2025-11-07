@@ -136,6 +136,125 @@ export interface Translations {
     switchFailed: string;
   };
 
+  // Social Media Features
+  social: {
+    // Feed and Posts
+    whatsHappening: string;
+    post: string;
+    posting: string;
+    sharedMedia: string;
+    deletePost: string;
+    editPost: string;
+    postDeleted: string;
+    postCreated: string;
+    postFailed: string;
+
+    // Interactions
+    like: string;
+    unlike: string;
+    comment: string;
+    repost: string;
+    unrepost: string;
+    share: string;
+    bookmark: string;
+    unbookmark: string;
+    reply: string;
+
+    // Counts and Stats
+    likes: string;
+    reposts: string;
+    comments: string;
+    views: string;
+    followers: string;
+    following: string;
+    posts: string;
+
+    // Visibility
+    public: string;
+    private: string;
+    followersOnly: string;
+    businessOnly: string;
+
+    // Media
+    addMedia: string;
+    addImageOrVideo: string;
+    removeMedia: string;
+    uploadingMedia: string;
+    mediaUploadFailed: string;
+
+    // Repost Modal
+    repostTitle: string;
+    addComment: string;
+    addCommentOptional: string;
+    cancel: string;
+
+    // Sidebar Sections
+    trending: string;
+    whoToFollow: string;
+    showMore: string;
+    search: string;
+    searchPlaceholder: string;
+    noTrendingYet: string;
+
+    // User Actions
+    follow: string;
+    unfollow: string;
+    followingButton: string;
+    followBack: string;
+    block: string;
+    unblock: string;
+    mute: string;
+    unmute: string;
+    report: string;
+
+    // Recommendations
+    suggestedForYou: string;
+    peopleYouMayKnow: string;
+    similarPosts: string;
+    relatedContent: string;
+    basedOnYourInterests: string;
+    mutualFollowers: string;
+    dismiss: string;
+    notInterested: string;
+
+    // Feed Filters
+    forYou: string;
+    followingFeed: string;
+    latest: string;
+    topPosts: string;
+
+    // Time Formatting
+    now: string;
+    minutesAgo: string;
+    hoursAgo: string;
+    daysAgo: string;
+    weeksAgo: string;
+
+    // Character Count
+    characterLimit: string;
+    charactersRemaining: string;
+
+    // Hashtags and Mentions
+    hashtag: string;
+    mention: string;
+    trendingHashtags: string;
+
+    // Errors and States
+    loadingFeed: string;
+    noPostsYet: string;
+    startFollowing: string;
+    createFirstPost: string;
+    somethingWentWrong: string;
+    tryAgain: string;
+
+    // Accessibility
+    closeModal: string;
+    openMenu: string;
+    userAvatar: string;
+    postImage: string;
+    postVideo: string;
+  };
+
   [key: string]: string | any;
 }
 
@@ -359,6 +478,125 @@ const hebrewTranslations: Translations = {
   errors: {
     loadFailed: 'טעינת הנתונים נכשלה',
     switchFailed: 'מעבר בין עסקים נכשל',
+  },
+
+  // Social Media Features
+  social: {
+    // Feed and Posts
+    whatsHappening: 'מה קורה?',
+    post: 'פרסם',
+    posting: 'מפרסם...',
+    sharedMedia: 'מדיה משותפת',
+    deletePost: 'מחק פוסט',
+    editPost: 'ערוך פוסט',
+    postDeleted: 'הפוסט נמחק בהצלחה',
+    postCreated: 'הפוסט נוצר בהצלחה',
+    postFailed: 'יצירת הפוסט נכשלה',
+
+    // Interactions
+    like: 'לייק',
+    unlike: 'ביטול לייק',
+    comment: 'תגובה',
+    repost: 'שיתוף מחדש',
+    unrepost: 'ביטול שיתוף',
+    share: 'שתף',
+    bookmark: 'שמור',
+    unbookmark: 'ביטול שמירה',
+    reply: 'הגב',
+
+    // Counts and Stats
+    likes: 'לייקים',
+    reposts: 'שיתופים',
+    comments: 'תגובות',
+    views: 'צפיות',
+    followers: 'עוקבים',
+    following: 'עוקב אחרי',
+    posts: 'פוסטים',
+
+    // Visibility
+    public: 'ציבורי',
+    private: 'פרטי',
+    followersOnly: 'עוקבים בלבד',
+    businessOnly: 'עסק בלבד',
+
+    // Media
+    addMedia: 'הוסף מדיה',
+    addImageOrVideo: 'הוסף תמונה או וידאו',
+    removeMedia: 'הסר',
+    uploadingMedia: 'מעלה מדיה',
+    mediaUploadFailed: 'העלאת המדיה נכשלה',
+
+    // Repost Modal
+    repostTitle: 'שתף מחדש',
+    addComment: 'הוסף תגובה',
+    addCommentOptional: 'הוסף תגובה (אופציונלי)',
+    cancel: 'ביטול',
+
+    // Sidebar Sections
+    trending: 'טרנדים',
+    whoToFollow: 'מי לעקוב',
+    showMore: 'הצג עוד',
+    search: 'חיפוש',
+    searchPlaceholder: 'חפש',
+    noTrendingYet: 'עדיין אין טרנדים',
+
+    // User Actions
+    follow: 'עקוב',
+    unfollow: 'הפסק לעקוב',
+    followingButton: 'עוקב',
+    followBack: 'עקוב בחזרה',
+    block: 'חסום',
+    unblock: 'בטל חסימה',
+    mute: 'השתק',
+    unmute: 'בטל השתקה',
+    report: 'דווח',
+
+    // Recommendations
+    suggestedForYou: 'מומלץ בשבילך',
+    peopleYouMayKnow: 'אנשים שאולי אתה מכיר',
+    similarPosts: 'פוסטים דומים',
+    relatedContent: 'תוכן קשור',
+    basedOnYourInterests: 'מבוסס על תחומי העניין שלך',
+    mutualFollowers: 'עוקבים משותפים',
+    dismiss: 'התעלם',
+    notInterested: 'לא מעוניין',
+
+    // Feed Filters
+    forYou: 'בשבילך',
+    followingFeed: 'עוקבים',
+    latest: 'אחרונים',
+    topPosts: 'פוסטים מובילים',
+
+    // Time Formatting
+    now: 'עכשיו',
+    minutesAgo: 'דקות',
+    hoursAgo: 'שעות',
+    daysAgo: 'ימים',
+    weeksAgo: 'שבועות',
+
+    // Character Count
+    characterLimit: 'מגבלת תווים',
+    charactersRemaining: 'תווים נותרו',
+
+    // Hashtags and Mentions
+    hashtag: 'האשטאג',
+    mention: 'אזכור',
+    trendingHashtags: 'האשטאגים טרנדיים',
+
+    // Errors and States
+    loadingFeed: 'טוען פיד...',
+    noPostsYet: 'עדיין אין פוסטים',
+    startFollowing: 'התחל לעקוב אחרי אנשים',
+    createFirstPost: 'צור את הפוסט הראשון שלך!',
+    somethingWentWrong: 'משהו השתבש',
+    tryAgain: 'נסה שוב',
+
+    // Accessibility
+    closeModal: 'סגור חלון',
+    openMenu: 'פתח תפריט',
+    userAvatar: 'תמונת משתמש',
+    postImage: 'תמונת פוסט',
+    postVideo: 'וידאו פוסט',
   },
 };
 
@@ -654,6 +892,125 @@ const englishTranslations: Translations = {
   errors: {
     loadFailed: 'Failed to load data',
     switchFailed: 'Failed to switch business',
+  },
+
+  // Social Media Features
+  social: {
+    // Feed and Posts
+    whatsHappening: "What's happening?",
+    post: 'Post',
+    posting: 'Posting...',
+    sharedMedia: 'Shared media',
+    deletePost: 'Delete post',
+    editPost: 'Edit post',
+    postDeleted: 'Post deleted successfully',
+    postCreated: 'Post created successfully',
+    postFailed: 'Failed to create post',
+
+    // Interactions
+    like: 'Like',
+    unlike: 'Unlike',
+    comment: 'Comment',
+    repost: 'Repost',
+    unrepost: 'Undo repost',
+    share: 'Share',
+    bookmark: 'Bookmark',
+    unbookmark: 'Remove bookmark',
+    reply: 'Reply',
+
+    // Counts and Stats
+    likes: 'Likes',
+    reposts: 'Reposts',
+    comments: 'Comments',
+    views: 'Views',
+    followers: 'Followers',
+    following: 'Following',
+    posts: 'Posts',
+
+    // Visibility
+    public: 'Public',
+    private: 'Private',
+    followersOnly: 'Followers only',
+    businessOnly: 'Business only',
+
+    // Media
+    addMedia: 'Add media',
+    addImageOrVideo: 'Add image or video',
+    removeMedia: 'Remove',
+    uploadingMedia: 'Uploading media',
+    mediaUploadFailed: 'Media upload failed',
+
+    // Repost Modal
+    repostTitle: 'Repost',
+    addComment: 'Add a comment',
+    addCommentOptional: 'Add a comment (optional)',
+    cancel: 'Cancel',
+
+    // Sidebar Sections
+    trending: 'Trending',
+    whoToFollow: 'Who to follow',
+    showMore: 'Show more',
+    search: 'Search',
+    searchPlaceholder: 'Search',
+    noTrendingYet: 'No trending topics yet',
+
+    // User Actions
+    follow: 'Follow',
+    unfollow: 'Unfollow',
+    followingButton: 'Following',
+    followBack: 'Follow back',
+    block: 'Block',
+    unblock: 'Unblock',
+    mute: 'Mute',
+    unmute: 'Unmute',
+    report: 'Report',
+
+    // Recommendations
+    suggestedForYou: 'Suggested for you',
+    peopleYouMayKnow: 'People you may know',
+    similarPosts: 'Similar posts',
+    relatedContent: 'Related content',
+    basedOnYourInterests: 'Based on your interests',
+    mutualFollowers: 'Mutual followers',
+    dismiss: 'Dismiss',
+    notInterested: 'Not interested',
+
+    // Feed Filters
+    forYou: 'For you',
+    followingFeed: 'Following',
+    latest: 'Latest',
+    topPosts: 'Top posts',
+
+    // Time Formatting
+    now: 'now',
+    minutesAgo: 'm',
+    hoursAgo: 'h',
+    daysAgo: 'd',
+    weeksAgo: 'w',
+
+    // Character Count
+    characterLimit: 'Character limit',
+    charactersRemaining: 'characters remaining',
+
+    // Hashtags and Mentions
+    hashtag: 'Hashtag',
+    mention: 'Mention',
+    trendingHashtags: 'Trending hashtags',
+
+    // Errors and States
+    loadingFeed: 'Loading feed...',
+    noPostsYet: 'No posts yet',
+    startFollowing: 'Start following people',
+    createFirstPost: 'Create your first post!',
+    somethingWentWrong: 'Something went wrong',
+    tryAgain: 'Try again',
+
+    // Accessibility
+    closeModal: 'Close modal',
+    openMenu: 'Open menu',
+    userAvatar: 'User avatar',
+    postImage: 'Post image',
+    postVideo: 'Post video',
   },
 };
 
