@@ -3162,6 +3162,12 @@ export class SupabaseDataStore implements DataStore {
 
   // Communications
   async listGroupChats(): Promise<GroupChat[]> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      console.warn('Supabase client not available');
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('group_chats')
       .select('*')
@@ -3173,6 +3179,12 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async listChannels(): Promise<Channel[]> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      console.warn('Supabase client not available');
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('channels')
       .select('*')
@@ -3185,6 +3197,11 @@ export class SupabaseDataStore implements DataStore {
 
   // Notifications
   async createNotification(input: CreateNotificationInput): Promise<{ id: string }> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      throw new Error('Supabase client not available');
+    }
+
     const payload = {
       recipient_id: input.recipient_id,
       title: input.title,
@@ -3206,6 +3223,12 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async getNotifications(): Promise<Notification[]> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      console.warn('Supabase client not available');
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
@@ -3217,6 +3240,12 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async markNotificationRead(id: string): Promise<void> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      console.warn('Supabase client not available');
+      return;
+    }
+
     const { error } = await supabase
       .from('notifications')
       .update({ read: true, read_at: new Date().toISOString() })
@@ -3231,6 +3260,12 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async listNotifications(filters?: { limit?: number; unreadOnly?: boolean }): Promise<Notification[]> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      console.warn('Supabase client not available');
+      return [];
+    }
+
     let query = supabase
       .from('notifications')
       .select('*')
@@ -3252,6 +3287,12 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async listMessages(chatId: string, limit: number = 100): Promise<any[]> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      console.warn('Supabase client not available');
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('messages')
       .select('*')
@@ -3265,6 +3306,11 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async sendMessage(chatId: string, content: string, messageType: string = 'text'): Promise<{ id: string }> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      throw new Error('Supabase client not available');
+    }
+
     const { data, error } = await supabase
       .from('messages')
       .insert({
@@ -3283,6 +3329,12 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async editMessage(messageId: string, content: string): Promise<void> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      console.warn('Supabase client not available');
+      return;
+    }
+
     const { error } = await supabase
       .from('messages')
       .update({
@@ -3296,6 +3348,12 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async deleteMessage(messageId: string): Promise<void> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      console.warn('Supabase client not available');
+      return;
+    }
+
     const { error } = await supabase
       .from('messages')
       .update({ is_deleted: true })
@@ -4485,6 +4543,12 @@ export class SupabaseDataStore implements DataStore {
 
   async listAllUsersForMessaging(): Promise<User[]> {
     console.log('📋 listAllUsersForMessaging: Fetching all users for messaging...');
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      console.warn('Supabase client not available');
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -4526,6 +4590,12 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async listDirectMessageRooms(): Promise<any[]> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      console.warn('Supabase client not available');
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('direct_message_participants')
       .select(`
@@ -4562,6 +4632,12 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async updateUserPresence(status: 'online' | 'away' | 'busy' | 'offline'): Promise<void> {
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      console.warn('Supabase client not available');
+      return;
+    }
+
     const { error } = await supabase
       .from('user_presence')
       .upsert({
