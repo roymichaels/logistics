@@ -8,7 +8,23 @@ interface LanguageToggleProps {
 }
 
 export function LanguageToggle({ variant = 'button', size = 'medium' }: LanguageToggleProps) {
-  const { language, setLanguage } = useLanguage();
+  // Safely access context with fallback
+  let language: 'he' | 'en' = 'he';
+  let setLanguage: (lang: 'he' | 'en') => void = () => {};
+
+  try {
+    const context = useLanguage();
+    language = context.language;
+    setLanguage = context.setLanguage;
+  } catch (error) {
+    // Context not available - use localStorage fallback
+    const stored = localStorage.getItem('app_language');
+    language = (stored === 'en' || stored === 'he') ? stored : 'he';
+    setLanguage = (lang: 'he' | 'en') => {
+      localStorage.setItem('app_language', lang);
+      window.location.reload();
+    };
+  }
 
   const handleToggle = () => {
     setLanguage(language === 'he' ? 'en' : 'he');
