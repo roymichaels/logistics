@@ -380,7 +380,30 @@ export function BottomNavigation({
 
   return (
     <>
+      <style>{`
+        @media (min-width: 768px) {
+          .bottom-nav-container {
+            bottom: 0 !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: auto !important;
+            width: 80px !important;
+            height: 100vh !important;
+            flex-direction: column !important;
+            padding: 16px 8px !important;
+            border-top: none !important;
+            border-right: 1px solid ${TWITTER_COLORS.navBorder} !important;
+            justify-content: flex-start !important;
+            gap: 8px !important;
+          }
+          .bottom-nav-container button {
+            width: 100% !important;
+            flex: 0 0 auto !important;
+          }
+        }
+      `}</style>
       <div
+        className="bottom-nav-container"
         style={{
           position: 'fixed',
           bottom: 0,

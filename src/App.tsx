@@ -856,7 +856,17 @@ export default function App() {
         telegram.showAlert('שגיאת אבטחה: ' + error);
       }}
     >
-      <div style={{
+      <style>{`
+        @media (min-width: 768px) {
+          .main-content-wrapper {
+            padding-left: 80px !important;
+            padding-bottom: 20px !important;
+          }
+        }
+      `}</style>
+      <div
+        className="main-content-wrapper"
+        style={{
           minHeight: '100vh',
           backgroundColor: '#15202B',
           color: '#E7E9EA',
