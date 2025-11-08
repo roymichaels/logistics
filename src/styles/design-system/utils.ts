@@ -1,4 +1,4 @@
-import { colors } from './tokens';
+import { colors, spacing, borderRadius, shadows, typography, transitions } from './tokens';
 
 /**
  * Design System Utilities
@@ -50,3 +50,60 @@ export function createRGBA(hex: string, alpha: number): string {
   const b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
+
+/**
+ * Common style patterns for reuse
+ */
+export const commonStyles = {
+  // Page container
+  pageContainer: {
+    minHeight: '100vh',
+    background: colors.background.primary,
+    padding: spacing['2xl'],
+    paddingBottom: '100px',
+    direction: 'rtl' as const,
+  },
+
+  // Page header
+  pageHeader: {
+    textAlign: 'center' as const,
+    marginBottom: spacing['3xl'],
+  },
+
+  pageTitle: {
+    margin: 0,
+    fontSize: typography.fontSize['3xl'],
+    fontWeight: typography.fontWeight.bold,
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
+    textShadow: shadows.glow,
+    letterSpacing: typography.letterSpacing.tight,
+    lineHeight: typography.lineHeight.tight,
+  },
+
+  pageSubtitle: {
+    margin: 0,
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+    fontWeight: typography.fontWeight.medium,
+    lineHeight: typography.lineHeight.normal,
+  },
+
+  // Empty state
+  emptyState: {
+    textAlign: 'center' as const,
+    padding: '60px 20px',
+    color: colors.text.secondary,
+  },
+
+  emptyStateIcon: {
+    fontSize: '64px',
+    marginBottom: spacing.lg,
+    opacity: 0.5,
+  },
+
+  emptyStateText: {
+    fontSize: typography.fontSize.base,
+    lineHeight: typography.lineHeight.relaxed,
+  },
+} as const;

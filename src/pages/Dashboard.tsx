@@ -28,23 +28,22 @@ interface DashboardProps {
 
 const numberFormatter = new Intl.NumberFormat('he-IL');
 
-// Import Twitter dark theme
-import { TWITTER_COLORS } from '../styles/twitterTheme';
+import { colors, shadows } from '../styles/design-system';
 import { logger } from '../lib/logger';
 
 // Dashboard colors based on authentic Twitter/X dark theme
 const DASHBOARD_COLORS = {
-  background: TWITTER_COLORS.background, // #15202B - Twitter's dark blue-black
-  card: TWITTER_COLORS.card, // #192734 - Secondary dark surface
-  cardBorder: TWITTER_COLORS.cardBorder, // #38444D - Subtle blue-gray border
-  muted: TWITTER_COLORS.textSecondary, // #8899A6 - Blue-gray muted text
-  text: TWITTER_COLORS.text, // #E7E9EA - Off-white primary text
-  accent: TWITTER_COLORS.primary, // #1D9BF0 - Twitter blue
-  gold: TWITTER_COLORS.success, // Green for positive metrics
-  crimson: TWITTER_COLORS.error,
-  teal: TWITTER_COLORS.info,
-  emerald: TWITTER_COLORS.success,
-  shadow: TWITTER_COLORS.shadowLarge
+  background: colors.background.primary,
+  card: colors.ui.card,
+  cardBorder: colors.border.primary,
+  muted: colors.text.secondary,
+  text: colors.text.primary,
+  accent: colors.brand.primary,
+  gold: colors.status.success,
+  crimson: colors.status.error,
+  teal: colors.status.info,
+  emerald: colors.status.success,
+  shadow: shadows.xl
 };
 
 export function Dashboard({ dataStore, onNavigate }: DashboardProps) {

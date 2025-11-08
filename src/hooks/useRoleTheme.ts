@@ -1,76 +1,66 @@
 /**
  * useRoleTheme Hook
  *
- * Provides dynamic theme based on current user's role
- * Returns theme colors and styles that automatically adapt to the user's role
+ * Provides unified theme based on design system
+ * Simplified to use single Twitter-inspired theme across all roles
  */
 
 import { useMemo } from 'react';
 import { useAppServices } from '../context/AppServicesContext';
-import { getRoleTheme, getRoleColors, getRoleStyles, ADMIN_THEME } from '../styles/roleThemes';
-import type { RoleTheme } from '../styles/roleThemes';
+import { colors, spacing, borderRadius, shadows, typography, commonStyles } from '../styles/design-system';
 import { logger } from '../lib/logger';
 
 interface UseRoleThemeReturn {
-  theme: RoleTheme;
-  colors: RoleTheme['colors'];
-  styles: ReturnType<typeof getRoleStyles>;
+  colors: typeof colors;
+  commonStyles: typeof commonStyles;
   roleName: string;
   isLoading: boolean;
 }
 
 /**
- * Hook to get the current user's role-based theme
+ * Hook to get the current user's theme (now unified across all roles)
  */
 export function useRoleTheme(): UseRoleThemeReturn {
-  // Use try-catch to handle cases where context is not available
   let contextData: { userRole: any; loading: boolean } | null = null;
 
   try {
     contextData = useAppServices();
   } catch (error) {
-    // Context not available - use defaults
     logger.warn('useRoleTheme: AppServicesContext not available, using defaults');
   }
 
-  const userRole = contextData?.userRole ?? null;
+  const userRole = contextData?.userRole ?? 'user';
   const loading = contextData?.loading ?? true;
 
-  const theme = useMemo(() => {
-    if (!userRole) return ADMIN_THEME;
-    return getRoleTheme(userRole);
-  }, [userRole]);
-
-  const colors = useMemo(() => {
-    if (!userRole) return ADMIN_THEME.colors;
-    return getRoleColors(userRole);
-  }, [userRole]);
-
-  const styles = useMemo(() => {
-    if (!userRole) return getRoleStyles('infrastructure_owner');
-    return getRoleStyles(userRole);
+  const roleName = useMemo(() => {
+    const roleNames: Record<string, string> = {
+      infrastructure_owner: 'Infrastructure Owner',
+      business_owner: 'Business Owner',
+      manager: 'Manager',
+      dispatcher: 'Dispatcher',
+      driver: 'Driver',
+      warehouse: 'Warehouse',
+      sales: 'Sales',
+      customer_service: 'Customer Service',
+      user: 'User',
+    };
+    return roleNames[userRole] || 'User';
   }, [userRole]);
 
   return {
-    theme,
     colors,
-    styles,
-    roleName: theme.name,
+    commonStyles,
+    roleName,
     isLoading: loading,
   };
 }
 
 /**
- * Hook to get a specific role's theme (useful for previews or admin views)
+ * Hook to get theme (now returns same theme for all roles)
  */
-export function useSpecificRoleTheme(role: Parameters<typeof getRoleTheme>[0]): {
-  theme: RoleTheme;
-  colors: RoleTheme['colors'];
-  styles: ReturnType<typeof getRoleStyles>;
+export function useSpecificRoleTheme(): {
+  colors: typeof colors;
+  commonStyles: typeof commonStyles;
 } {
-  const theme = useMemo(() => getRoleTheme(role), [role]);
-  const colors = useMemo(() => getRoleColors(role), [role]);
-  const styles = useMemo(() => getRoleStyles(role), [role]);
-
-  return { theme, colors, styles };
+  return { colors, commonStyles };
 }

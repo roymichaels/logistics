@@ -221,3 +221,20 @@ export const backdropBlur = {
   xl: 'blur(16px)',
   '2xl': 'blur(20px)',
 } as const;
+
+// Gradient definitions for convenience
+export const gradients = {
+  primary: 'linear-gradient(135deg, #1DA1F2 0%, #1781BF 100%)',
+  card: 'linear-gradient(180deg, #192734 0%, #15202B 100%)',
+  overlay: 'linear-gradient(180deg, rgba(21, 32, 43, 0) 0%, rgba(21, 32, 43, 0.9) 100%)',
+  success: 'linear-gradient(135deg, #00BA7C 0%, #00A368 100%)',
+  warning: 'linear-gradient(135deg, #FFAD1F 0%, #FFA500 100%)',
+  error: 'linear-gradient(135deg, #F4212E 0%, #C9191E 100%)',
+} as const;
+
+// Navigation specific values (for glass morphism effects)
+export const navigation = {
+  background: 'rgba(21, 32, 43, 0.85)',
+  backdropFilter: 'blur(12px)',
+  border: 'rgba(56, 68, 77, 0.6)',
+} as const;

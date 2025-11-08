@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo, useContext } from 'react';
-import { ROYAL_COLORS } from '../styles/royalTheme';
-import { TWITTER_COLORS } from '../styles/twitterTheme';
+import { colors, spacing, borderRadius, shadows, typography, transitions, navigation, gradients } from '../styles/design-system';
+import { Button } from './atoms/Button';
 import { BusinessContextSelector } from './BusinessContextSelector';
 import { LanguageToggle } from './LanguageToggle';
 import { GlowingPortalLogo } from './GlowingPortalLogo';
@@ -89,16 +89,16 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
     <header
       className="header-container"
       style={{
-        borderBottom: `1px solid ${TWITTER_COLORS.border}`,
-        background: TWITTER_COLORS.navBackground,
-        backdropFilter: TWITTER_COLORS.navBackdrop
+        borderBottom: `1px solid ${navigation.border}`,
+        background: navigation.background,
+        backdropFilter: navigation.backdropFilter
       }}
     >
       {/* Logo/Brand */}
       <div className="header-logo-container">
         <GlowingPortalLogo size={40} pulseSpeed={2} />
         <div className="header-brand-container">
-          <div className="header-brand-title" style={{ color: TWITTER_COLORS.text }}>
+          <div className="header-brand-title" style={{ color: colors.text.primary }}>
             UndergroundLab
           </div>
         </div>
@@ -121,98 +121,34 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
             justifyContent: 'center'
           }}>
             {onCreateBusiness && (
-              <button
+              <Button
                 onClick={onCreateBusiness}
-                style={{
-                  padding: '10px 20px',
-                  background: TWITTER_COLORS.gradientPrimary,
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: TWITTER_COLORS.buttonPrimaryText,
-                  fontSize: '14px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  boxShadow: TWITTER_COLORS.shadow,
-                  transition: 'all 0.2s ease',
-                  fontFamily: 'inherit'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.background = TWITTER_COLORS.primaryHover;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.background = TWITTER_COLORS.gradientPrimary;
-                }}
+                variant="primary"
+                size="sm"
+                leftIcon={<span>🏢</span>}
               >
-                <span style={{ fontSize: '16px' }}>🏢</span>
-                <span>צור עסק</span>
-              </button>
+                צור עסק
+              </Button>
             )}
             {onBecomeDriver && user?.role !== 'driver' && (
-              <button
+              <Button
                 onClick={onBecomeDriver}
-                style={{
-                  padding: '10px 20px',
-                  background: TWITTER_COLORS.buttonSecondary,
-                  border: `1px solid ${TWITTER_COLORS.buttonSecondaryBorder}`,
-                  borderRadius: '8px',
-                  color: TWITTER_COLORS.buttonSecondaryText,
-                  fontSize: '14px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s ease',
-                  fontFamily: 'inherit'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.background = TWITTER_COLORS.backgroundHover;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.background = TWITTER_COLORS.buttonSecondary;
-                }}
+                variant="secondary"
+                size="sm"
+                leftIcon={<span>🚗</span>}
               >
-                <span style={{ fontSize: '16px' }}>🚗</span>
-                <span>הפוך לנהג</span>
-              </button>
+                הפוך לנהג
+              </Button>
             )}
             {onSearchBusiness && (
-              <button
+              <Button
                 onClick={onSearchBusiness}
-                style={{
-                  padding: '10px 20px',
-                  background: TWITTER_COLORS.buttonSecondary,
-                  border: `1px solid ${TWITTER_COLORS.buttonSecondaryBorder}`,
-                  borderRadius: '8px',
-                  color: TWITTER_COLORS.buttonSecondaryText,
-                  fontSize: '14px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s ease',
-                  fontFamily: 'inherit'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.background = TWITTER_COLORS.backgroundHover;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.background = TWITTER_COLORS.buttonSecondary;
-                }}
+                variant="secondary"
+                size="sm"
+                leftIcon={<span>🔍</span>}
               >
-                <span style={{ fontSize: '16px' }}>🔍</span>
-                <span>חפש עסק</span>
-              </button>
+                חפש עסק
+              </Button>
             )}
           </div>
         )}
@@ -227,14 +163,14 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className={`header-avatar-button ${dropdownOpen ? 'open' : ''}`}
             style={{
-              border: `2px solid ${TWITTER_COLORS.primary}`,
+              border: `2px solid ${colors.brand.primary}`,
               background: user?.photo_url
                 ? `url(${user.photo_url}) center/cover`
-                : TWITTER_COLORS.gradientPrimary,
-              color: TWITTER_COLORS.white,
+                : gradients.primary,
+              color: colors.white,
               boxShadow: dropdownOpen
-                ? `0 0 0 3px ${TWITTER_COLORS.accentGlow}`
-                : TWITTER_COLORS.shadow
+                ? shadows.glow
+                : shadows.sm
             }}
           >
             {!user?.photo_url && userInitial}
@@ -245,24 +181,24 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
           <div
             className="header-dropdown-menu"
             style={{
-              background: TWITTER_COLORS.card,
-              border: `1px solid ${TWITTER_COLORS.border}`
+              background: colors.ui.card,
+              border: `1px solid ${colors.border.primary}`
             }}
           >
             {/* User Info Section */}
             <div
               className="header-dropdown-user-info"
-              style={{ borderBottom: `1px solid ${TWITTER_COLORS.border}` }}
+              style={{ borderBottom: `1px solid ${colors.border.primary}` }}
             >
-              <div className="header-dropdown-username" style={{ color: TWITTER_COLORS.text }}>
+              <div className="header-dropdown-username" style={{ color: colors.text.primary }}>
                 {userName}
               </div>
               {user?.username && (
-                <div className="header-dropdown-handle" style={{ color: TWITTER_COLORS.textSecondary }}>
+                <div className="header-dropdown-handle" style={{ color: colors.text.secondary }}>
                   @{user.username}
                 </div>
               )}
-              <div className="header-dropdown-role" style={{ color: TWITTER_COLORS.primary }}>
+              <div className="header-dropdown-role" style={{ color: colors.brand.primary }}>
                 {user?.role === 'infrastructure_owner' ? 'בעל תשתית 👑' :
                  user?.role === 'business_owner' ? 'בעלים 👑' :
                  user?.role === 'manager' ? 'מנהל' :
@@ -279,7 +215,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
               <button
                 onClick={() => handleMenuClick('profile')}
                 className="header-dropdown-button"
-                style={{ color: TWITTER_COLORS.text }}
+                style={{ color: colors.text.primary }}
               >
                 <span className="header-dropdown-button-icon">👤</span>
                 <span className="header-dropdown-button-text">הפרופיל שלי</span>
@@ -288,7 +224,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
               <button
                 onClick={() => handleMenuClick('settings')}
                 className="header-dropdown-button"
-                style={{ color: TWITTER_COLORS.text }}
+                style={{ color: colors.text.primary }}
               >
                 <span className="header-dropdown-button-icon">⚙️</span>
                 <span className="header-dropdown-button-text">הגדרות</span>
@@ -296,7 +232,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
 
               <div
                 className="header-dropdown-divider"
-                style={{ background: TWITTER_COLORS.border }}
+                style={{ background: colors.border.primary }}
               />
 
               <button

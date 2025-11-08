@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { hebrew } from '../lib/i18n';
-import { ADMIN_THEME } from '../styles/roleThemes';
+import { colors } from '../styles/design-system';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -8,7 +8,7 @@ interface LandingPageProps {
 
 export function LandingPage({ onGetStarted }: LandingPageProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const theme = ADMIN_THEME.colors;
+  const theme = colors;
 
   useEffect(() => {
     setIsVisible(true);

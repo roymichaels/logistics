@@ -17,7 +17,7 @@ import { DraftOrderItem, ProductInventoryAvailability } from '../components/orde
 import { DriverCandidate } from '../lib/dispatchService';
 import { DispatchOrchestrator } from '../lib/dispatchOrchestrator';
 import { Toast } from '../components/Toast';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { colors, commonStyles } from '../styles/design-system';
 import { logger } from '../lib/logger';
 
 interface OrdersProps {
@@ -125,10 +125,10 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
 
   if (loading) {
     return (
-      <div style={ROYAL_STYLES.pageContainer}>
-        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>טוען הזמנות...</p>
+      <div style={commonStyles.pageContainer}>
+        <div style={commonStyles.emptyState}>
+          <div style={commonStyles.emptyStateIcon}>⏳</div>
+          <p style={commonStyles.emptyStateText}>טוען הזמנות...</p>
         </div>
       </div>
     );

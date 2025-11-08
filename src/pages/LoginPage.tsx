@@ -3,7 +3,7 @@ import { EthereumLogin } from '../components/EthereumLogin';
 import { SolanaLogin } from '../components/SolanaLogin';
 import { platformDetection } from '../lib/platformDetection';
 import { hebrew } from '../lib/i18n';
-import { ADMIN_THEME } from '../styles/roleThemes';
+import { colors } from '../styles/design-system';
 import { logger } from '../lib/logger';
 
 interface LoginPageProps {
@@ -29,7 +29,7 @@ export function LoginPage({
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [availableMethods, setAvailableMethods] = useState<Array<'ethereum' | 'solana' | 'telegram'>>([]);
 
-  const theme = ADMIN_THEME.colors;
+  const theme = colors;
 
   useEffect(() => {
     logger.info('🔐 LoginPage: useEffect running - detecting platform and auth methods');

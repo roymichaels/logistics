@@ -2,7 +2,7 @@ import React from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { hebrew } from '../lib/i18n';
 import { useAppServices } from '../context/AppServicesContext';
-import { TWITTER_COLORS } from '../styles/twitterTheme';
+import { colors, spacing, navigation } from '../styles/design-system';
 
 /**
  * 🧠 ROY MICHAELS MILITARIZED NAVIGATION
@@ -233,9 +233,9 @@ export function BottomNavigation({
           height: '56px',
           borderRadius: '50%',
           background: action?.disabled
-            ? TWITTER_COLORS.textTertiary
-            : TWITTER_COLORS.primary,
-          color: action?.disabled ? TWITTER_COLORS.textSecondary : '#FFFFFF',
+            ? colors.text.tertiary
+            : colors.brand.primary,
+          color: action?.disabled ? colors.text.secondary : colors.white,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -269,7 +269,7 @@ export function BottomNavigation({
       </div>
       <span style={{
         fontSize: '11px',
-        color: action?.disabled ? TWITTER_COLORS.textSecondary : TWITTER_COLORS.primary,
+        color: action?.disabled ? colors.text.secondary : colors.brand.primary,
         fontWeight: '700',
         whiteSpace: 'nowrap',
         lineHeight: '1.3125'
@@ -311,7 +311,7 @@ export function BottomNavigation({
         padding: '6px 4px',
         border: 'none',
         backgroundColor: 'transparent',
-        color: currentPage === tab.id ? TWITTER_COLORS.primary : TWITTER_COLORS.textSecondary,
+        color: currentPage === tab.id ? colors.brand.primary : colors.text.secondary,
         cursor: 'pointer',
         fontSize: '11px',
         fontWeight: currentPage === tab.id ? '700' : '400',
@@ -335,7 +335,7 @@ export function BottomNavigation({
           transform: 'translateX(-50%)',
           width: '40px',
           height: '4px',
-          background: TWITTER_COLORS.primary,
+          background: colors.brand.primary,
           borderRadius: '4px 4px 0 0'
         }} />
       )}
@@ -378,7 +378,7 @@ export function BottomNavigation({
           padding: '8px 4px',
           border: 'none',
           backgroundColor: 'transparent',
-          color: TWITTER_COLORS.textSecondary,
+          color: colors.text.secondary,
           cursor: 'pointer',
           fontSize: '11px',
           fontWeight: '600',

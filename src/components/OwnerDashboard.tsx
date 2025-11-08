@@ -3,10 +3,9 @@ import { DataStore, User } from '../data/types';
 import { formatCurrency, hebrew } from '../lib/i18n';
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { colors, commonStyles } from '../styles/design-system';
 import { FinancialDashboard } from './FinancialDashboard';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
-import { getRoleColors, getRoleStyles } from '../styles/roleThemes';
 import { CreateBusinessModal } from './CreateBusinessModal';
 import { logger } from '../lib/logger';
 

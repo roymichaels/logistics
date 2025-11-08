@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { telegram } from '../lib/telegram';
 import { DataStore, Product, User } from '../data/types';
 import { hebrew, formatCurrency } from '../lib/i18n';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { colors, spacing, commonStyles } from '../styles/design-system';
+import { Input } from '../components/atoms/Input';
 import { logger } from '../lib/logger';
 
 interface ProductsProps {
@@ -118,33 +119,33 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
 
   if (loading) {
     return (
-      <div style={ROYAL_STYLES.pageContainer}>
-        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>טוען מוצרים...</p>
+      <div style={commonStyles.pageContainer}>
+        <div style={commonStyles.emptyState}>
+          <div style={commonStyles.emptyStateIcon}>📦</div>
+          <p style={commonStyles.emptyStateText}>טוען מוצרים...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
-      <div style={ROYAL_STYLES.pageHeader}>
-        <div style={{ fontSize: '64px', marginBottom: '16px' }}>📦</div>
-        <h1 style={ROYAL_STYLES.pageTitle}>מוצרים</h1>
-        <p style={ROYAL_STYLES.pageSubtitle}>
+    <div style={commonStyles.pageContainer}>
+      <div style={commonStyles.pageHeader}>
+        <div style={commonStyles.emptyStateIcon}>📦</div>
+        <h1 style={commonStyles.pageTitle}>מוצרים</h1>
+        <p style={commonStyles.pageSubtitle}>
           ניהול קטלוג המוצרים
         </p>
       </div>
 
       {/* Search */}
-      <div style={{ marginBottom: '20px' }}>
-        <input
+      <div style={{ marginBottom: spacing['2xl'] }}>
+        <Input
           type="text"
           placeholder="🔍 חפש מוצר..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={ROYAL_STYLES.input}
+          fullWidth
         />
       </div>
 
