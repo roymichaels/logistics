@@ -7,6 +7,7 @@ import React, {
   useState
 } from 'react';
 import { getSupabase, initSupabase, isSupabaseInitialized } from '../lib/supabaseClient';
+import { logger } from '../lib/logger';
 
 export interface SupabaseReadyContextValue {
   isSupabaseReady: boolean;
