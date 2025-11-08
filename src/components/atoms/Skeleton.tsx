@@ -30,12 +30,12 @@ export function Skeleton({
 
   const animationStyles: Record<string, React.CSSProperties> = {
     pulse: {
-      animation: 'pulse 1.5s ease-in-out infinite',
+      animation: 'skeletonPulse 1.5s ease-in-out infinite',
     },
     wave: {
-      backgroundImage: `linear-gradient(90deg, ${colors.background.secondary} 25%, ${colors.background.tertiary} 50%, ${colors.background.secondary} 75%)`,
+      backgroundImage: `linear-gradient(90deg, ${colors.background.secondary} 0%, ${colors.background.tertiary} 50%, ${colors.background.secondary} 100%)`,
       backgroundSize: '200% 100%',
-      animation: 'wave 1.5s ease-in-out infinite',
+      animation: 'skeletonShimmer 1.5s ease-in-out infinite',
     },
     none: {},
   };
@@ -52,20 +52,20 @@ export function Skeleton({
   return (
     <>
       <style>{`
-        @keyframes pulse {
+        @keyframes skeletonPulse {
           0%, 100% {
             opacity: 1;
           }
           50% {
-            opacity: 0.5;
+            opacity: 0.4;
           }
         }
-        @keyframes wave {
+        @keyframes skeletonShimmer {
           0% {
-            background-position: 200% 0;
+            background-position: -200% 0;
           }
           100% {
-            background-position: -200% 0;
+            background-position: 200% 0;
           }
         }
       `}</style>

@@ -42,67 +42,102 @@ export function Button({
     sm: {
       padding: `${spacing.sm} ${spacing.lg}`,
       fontSize: typography.fontSize.sm,
-      borderRadius: borderRadius.md,
-      minHeight: '32px',
+      borderRadius: borderRadius['2xl'], // 20px - Twitter standard
+      minHeight: '36px',
+      fontWeight: typography.fontWeight.bold,
     },
     md: {
-      padding: `${spacing.md} ${spacing.xl}`,
+      padding: `${spacing.md} ${spacing['2xl']}`,
       fontSize: typography.fontSize.base,
-      borderRadius: borderRadius.lg,
+      borderRadius: borderRadius['2xl'], // 20px - Twitter standard
       minHeight: '40px',
+      fontWeight: typography.fontWeight.bold,
     },
     lg: {
-      padding: `${spacing.lg} ${spacing['2xl']}`,
+      padding: `${spacing.lg} ${spacing['3xl']}`,
       fontSize: typography.fontSize.lg,
-      borderRadius: borderRadius.xl,
-      minHeight: '48px',
+      borderRadius: borderRadius['2xl'], // 20px - Twitter standard
+      minHeight: '44px',
+      fontWeight: typography.fontWeight.bold,
     },
   };
 
   const variantStyles: Record<string, React.CSSProperties> = {
     primary: {
       background: colors.brand.primary,
-      color: colors.text.inverse,
-      boxShadow: colors.brand.primary === '#00D9FF' ? '0 0 16px rgba(0, 217, 255, 0.3)' : 'none',
+      color: colors.white,
+      boxShadow: shadows.sm,
+      border: 'none',
     },
     secondary: {
       background: 'transparent',
       color: colors.brand.primary,
-      border: `2px solid ${colors.brand.primary}`,
+      border: `1px solid ${colors.border.primary}`,
+      boxShadow: 'none',
     },
     success: {
       background: colors.status.success,
       color: colors.white,
+      boxShadow: shadows.sm,
+      border: 'none',
     },
     warning: {
       background: colors.status.warning,
       color: colors.text.inverse,
+      boxShadow: shadows.sm,
+      border: 'none',
     },
     danger: {
       background: colors.status.error,
       color: colors.white,
+      boxShadow: shadows.sm,
+      border: 'none',
     },
     ghost: {
       background: 'transparent',
       color: colors.text.primary,
       border: `1px solid ${colors.border.primary}`,
+      boxShadow: 'none',
     },
     link: {
       background: 'transparent',
       color: colors.brand.primary,
       padding: '0',
       minHeight: 'auto',
+      boxShadow: 'none',
+      border: 'none',
     },
   };
 
   const hoverStyles: Record<string, React.CSSProperties> = {
-    primary: { background: colors.brand.primaryHover },
-    secondary: { background: colors.brand.primaryFaded },
-    success: { filter: 'brightness(1.1)' },
-    warning: { filter: 'brightness(1.1)' },
-    danger: { filter: 'brightness(1.1)' },
-    ghost: { background: colors.ui.cardHover },
-    link: { textDecoration: 'underline' },
+    primary: {
+      background: colors.brand.primaryHover,
+      transform: 'scale(0.98)',
+    },
+    secondary: {
+      background: colors.brand.primaryFaded,
+      borderColor: colors.border.hover,
+    },
+    success: {
+      filter: 'brightness(1.1)',
+      transform: 'scale(0.98)',
+    },
+    warning: {
+      filter: 'brightness(1.1)',
+      transform: 'scale(0.98)',
+    },
+    danger: {
+      filter: 'brightness(1.1)',
+      transform: 'scale(0.98)',
+    },
+    ghost: {
+      background: colors.ui.cardHover,
+      borderColor: colors.border.hover,
+    },
+    link: {
+      textDecoration: 'underline',
+      opacity: 0.8,
+    },
   };
 
   const [isHovered, setIsHovered] = React.useState(false);

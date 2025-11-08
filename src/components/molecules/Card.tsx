@@ -23,20 +23,22 @@ export function Card({
     default: {
       background: colors.ui.card,
       border: `1px solid ${colors.border.primary}`,
+      boxShadow: 'none',
     },
     elevated: {
       background: colors.ui.card,
-      boxShadow: shadows.lg,
-      border: 'none',
+      boxShadow: shadows.md,
+      border: `1px solid ${colors.border.secondary}`,
     },
     outlined: {
       background: 'transparent',
       border: `1px solid ${colors.border.primary}`,
+      boxShadow: 'none',
     },
   };
 
   const cardStyles: React.CSSProperties = {
-    borderRadius: borderRadius['2xl'],
+    borderRadius: borderRadius.xl, // 16px - Twitter card radius
     padding: noPadding ? 0 : spacing[padding],
     transition: transitions.normal,
     cursor: hoverable ? 'pointer' : 'default',
@@ -45,8 +47,8 @@ export function Card({
       ? {
           background: colors.ui.cardHover,
           border: `1px solid ${colors.border.hover}`,
-          boxShadow: shadows.xl,
-          transform: 'translateY(-2px)',
+          boxShadow: shadows.md,
+          transform: 'scale(1.01)',
         }
       : {}),
     ...style,

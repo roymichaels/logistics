@@ -1,86 +1,86 @@
 /**
- * UndergroundLab Dark Theme Color System
- * Professional secure business platform design
- * Neutral dark theme with distinctive accent colors
+ * Twitter/X Dark Theme Color System
+ * Authentic Twitter design system colors
+ * Based on Twitter's current dark mode theme
  */
 
 export const TWITTER_COLORS = {
-  // Background colors - Neutral dark theme
-  background: '#0A0E14', // Deep slate background
-  backgroundSecondary: '#131920', // Secondary dark surface
-  backgroundHover: '#1C2128', // Hover states
+  // Background colors - Twitter's dark blue-black theme
+  background: '#15202B', // Twitter's main dark background
+  backgroundSecondary: '#192734', // Elevated surfaces
+  backgroundHover: '#1C2833', // Hover states
 
-  // Primary accent - Deep cyan/teal (distinctive from Twitter)
-  primary: '#00D9FF', // Bright cyan
-  primaryHover: '#00C4E6',
-  primaryPressed: '#00B0CC',
-  primaryFaded: 'rgba(0, 217, 255, 0.1)',
+  // Primary accent - Twitter blue
+  primary: '#1DA1F2', // Twitter blue
+  primaryHover: '#1A91DA',
+  primaryPressed: '#1781BF',
+  primaryFaded: 'rgba(29, 161, 242, 0.1)',
 
   // Text colors
-  text: '#E8EAED', // Primary text (soft white)
-  textSecondary: '#9BA1A6', // Secondary text (neutral gray)
-  textTertiary: '#6B7280', // Muted text
-  textInverse: '#0A0E14', // Text on light backgrounds
+  text: '#E7E9EA', // Primary text (off-white)
+  textSecondary: '#8899A6', // Secondary text (blue-gray)
+  textTertiary: '#536471', // Muted text
+  textInverse: '#0F1419', // Text on light backgrounds
 
-  // Border colors - Neutral gray borders
-  border: '#2D333B',
-  borderHover: '#3D444D',
+  // Border colors - Twitter's subtle borders
+  border: '#38444D',
+  borderHover: '#536471',
 
   // Status colors
-  success: '#10B981', // Emerald green
-  error: '#EF4444', // Red
-  warning: '#F59E0B', // Amber
-  info: '#06B6D4', // Cyan
+  success: '#00BA7C', // Twitter green
+  error: '#F4212E', // Twitter red
+  warning: '#FFAD1F', // Twitter yellow
+  info: '#1DA1F2', // Twitter blue
 
   // Card and surface colors
-  card: '#131920',
-  cardBorder: '#2D333B',
-  cardHover: '#1C2128',
+  card: '#192734',
+  cardBorder: '#38444D',
+  cardHover: '#1C2833',
 
   // Accent colors
-  accent: '#00D9FF',
-  accentFaded: 'rgba(0, 217, 255, 0.1)',
-  accentGlow: 'rgba(0, 217, 255, 0.25)',
+  accent: '#1DA1F2',
+  accentFaded: 'rgba(29, 161, 242, 0.1)',
+  accentGlow: 'rgba(29, 161, 242, 0.3)',
 
   // Shadow and glow effects
-  shadow: '0 1px 3px rgba(0, 0, 0, 0.4)',
-  shadowLarge: '0 4px 16px rgba(0, 0, 0, 0.5)',
-  glow: '0 0 12px rgba(0, 217, 255, 0.3)',
-  glowLarge: '0 0 24px rgba(0, 217, 255, 0.4)',
+  shadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
+  shadowLarge: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  glow: '0 0 16px rgba(29, 161, 242, 0.4)',
+  glowLarge: '0 0 24px rgba(29, 161, 242, 0.5)',
 
   // Button colors
-  buttonPrimary: '#00D9FF',
-  buttonPrimaryHover: '#00C4E6',
-  buttonPrimaryText: '#0A0E14',
+  buttonPrimary: '#1DA1F2',
+  buttonPrimaryHover: '#1A91DA',
+  buttonPrimaryText: '#FFFFFF',
   buttonSecondary: 'transparent',
-  buttonSecondaryBorder: '#3D444D',
-  buttonSecondaryText: '#E8EAED',
+  buttonSecondaryBorder: '#536471',
+  buttonSecondaryText: '#E7E9EA',
 
   // Special elements
-  highlight: 'rgba(0, 217, 255, 0.12)',
-  overlay: 'rgba(10, 14, 20, 0.75)',
+  highlight: 'rgba(29, 161, 242, 0.1)',
+  overlay: 'rgba(91, 112, 131, 0.4)',
 
   // Gradients
-  gradientPrimary: 'linear-gradient(135deg, #00D9FF 0%, #0891B2 100%)',
-  gradientCard: 'linear-gradient(180deg, #131920 0%, #0A0E14 100%)',
-  gradientOverlay: 'linear-gradient(180deg, rgba(10, 14, 20, 0) 0%, rgba(10, 14, 20, 0.9) 100%)',
+  gradientPrimary: 'linear-gradient(135deg, #1DA1F2 0%, #1781BF 100%)',
+  gradientCard: 'linear-gradient(180deg, #192734 0%, #15202B 100%)',
+  gradientOverlay: 'linear-gradient(180deg, rgba(21, 32, 43, 0) 0%, rgba(21, 32, 43, 0.9) 100%)',
 
   // Navigation
-  navBackground: 'rgba(10, 14, 20, 0.9)',
-  navBackdrop: 'blur(16px)',
-  navBorder: 'rgba(45, 51, 59, 0.8)',
+  navBackground: 'rgba(21, 32, 43, 0.85)',
+  navBackdrop: 'blur(12px)',
+  navBorder: 'rgba(56, 68, 77, 0.6)',
 
   // Status indicators
-  online: '#10B981',
-  offline: '#6B7280',
-  busy: '#EF4444',
-  away: '#F59E0B',
+  online: '#00BA7C',
+  offline: '#536471',
+  busy: '#F4212E',
+  away: '#FFAD1F',
 
   // Chart colors
-  chartPrimary: '#00D9FF',
-  chartSecondary: '#8B5CF6',
-  chartTertiary: '#10B981',
-  chartQuaternary: '#EF4444',
+  chartPrimary: '#1DA1F2',
+  chartSecondary: '#794BC4',
+  chartTertiary: '#00BA7C',
+  chartQuaternary: '#F4212E',
 
   // White and transparent
   white: '#FFFFFF',
@@ -93,50 +93,50 @@ export const TWITTER_DARK_THEME = {
 
   // Component-specific colors
   header: {
-    background: 'rgba(10, 14, 20, 0.9)',
-    backdrop: 'blur(16px)',
-    border: 'rgba(45, 51, 59, 0.8)',
-    text: TWITTER_COLORS.text,
-    logo: TWITTER_COLORS.primary
+    background: 'rgba(21, 32, 43, 0.85)',
+    backdrop: 'blur(12px)',
+    border: 'rgba(56, 68, 77, 0.6)',
+    text: '#E7E9EA',
+    logo: '#1DA1F2'
   },
 
   navigation: {
-    background: 'rgba(10, 14, 20, 0.9)',
-    backdrop: 'blur(16px)',
-    border: 'rgba(45, 51, 59, 0.8)',
-    icon: TWITTER_COLORS.textSecondary,
-    iconActive: TWITTER_COLORS.primary,
-    text: TWITTER_COLORS.textSecondary,
-    textActive: TWITTER_COLORS.primary,
-    actionButton: TWITTER_COLORS.primary,
-    actionButtonGlow: TWITTER_COLORS.glow
+    background: 'rgba(21, 32, 43, 0.85)',
+    backdrop: 'blur(12px)',
+    border: 'rgba(56, 68, 77, 0.6)',
+    icon: '#8899A6',
+    iconActive: '#1DA1F2',
+    text: '#8899A6',
+    textActive: '#1DA1F2',
+    actionButton: '#1DA1F2',
+    actionButtonGlow: '0 0 16px rgba(29, 161, 242, 0.4)'
   },
 
   dashboard: {
-    background: TWITTER_COLORS.background,
-    card: TWITTER_COLORS.card,
-    cardBorder: TWITTER_COLORS.cardBorder,
-    text: TWITTER_COLORS.text,
-    textMuted: TWITTER_COLORS.textSecondary,
-    accent: TWITTER_COLORS.primary,
-    success: TWITTER_COLORS.success,
-    warning: TWITTER_COLORS.warning,
-    error: TWITTER_COLORS.error
+    background: '#15202B',
+    card: '#192734',
+    cardBorder: '#38444D',
+    text: '#E7E9EA',
+    textMuted: '#8899A6',
+    accent: '#1DA1F2',
+    success: '#00BA7C',
+    warning: '#FFAD1F',
+    error: '#F4212E'
   },
 
   form: {
-    background: TWITTER_COLORS.backgroundSecondary,
-    border: TWITTER_COLORS.border,
-    borderFocus: TWITTER_COLORS.primary,
-    text: TWITTER_COLORS.text,
-    placeholder: TWITTER_COLORS.textSecondary,
-    error: TWITTER_COLORS.error
+    background: '#192734',
+    border: '#38444D',
+    borderFocus: '#1DA1F2',
+    text: '#E7E9EA',
+    placeholder: '#8899A6',
+    error: '#F4212E'
   },
 
   modal: {
-    background: TWITTER_COLORS.card,
-    overlay: 'rgba(10, 14, 20, 0.75)',
-    border: TWITTER_COLORS.border
+    background: '#192734',
+    overlay: 'rgba(91, 112, 131, 0.4)',
+    border: '#38444D'
   }
 };
 

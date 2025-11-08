@@ -33,7 +33,7 @@ export function Input({
     paddingRight: rightIcon ? spacing['4xl'] : spacing.lg,
     background: colors.background.secondary,
     border: `1px solid ${error ? colors.status.error : isFocused ? colors.border.focus : colors.border.primary}`,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius['2xl'], // 20px - Twitter standard for inputs
     color: colors.text.primary,
     fontSize: typography.fontSize.base,
     fontFamily: typography.fontFamily.primary,
@@ -41,6 +41,8 @@ export function Input({
     transition: transitions.normal,
     opacity: disabled ? 0.5 : 1,
     cursor: disabled ? 'not-allowed' : 'text',
+    minHeight: '44px',
+    boxShadow: isFocused ? `0 0 0 2px ${colors.border.focus}` : 'none',
     ...style,
   };
 
@@ -105,7 +107,7 @@ export function TextArea({
     padding: `${spacing.md} ${spacing.lg}`,
     background: colors.background.secondary,
     border: `1px solid ${error ? colors.status.error : isFocused ? colors.border.focus : colors.border.primary}`,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.xl, // 16px for textarea
     color: colors.text.primary,
     fontSize: typography.fontSize.base,
     fontFamily: typography.fontFamily.primary,
@@ -115,6 +117,8 @@ export function TextArea({
     minHeight: '100px',
     opacity: disabled ? 0.5 : 1,
     cursor: disabled ? 'not-allowed' : 'text',
+    boxShadow: isFocused ? `0 0 0 2px ${colors.border.focus}` : 'none',
+    lineHeight: typography.lineHeight.normal,
     ...style,
   };
 

@@ -246,13 +246,16 @@ export default function App() {
     };
   }, [dataStore, refreshUserRole]);
 
-  // Apply theme to body - use Twitter dark theme colors
+  // Apply Twitter's authentic dark theme to body
   useEffect(() => {
-    document.body.style.backgroundColor = '#15202B'; // Twitter dark background
-    document.body.style.color = '#E7E9EA'; // Twitter text color
+    document.body.style.backgroundColor = '#15202B'; // Twitter's exact dark background
+    document.body.style.color = '#E7E9EA'; // Twitter's primary text color
     document.body.style.margin = '0';
     document.body.style.padding = '0';
-    document.body.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    document.body.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+    document.body.style.fontSize = '15px'; // Twitter's base font size
+    document.body.style.WebkitFontSmoothing = 'antialiased';
+    document.body.style.MozOsxFontSmoothing = 'grayscale';
   }, [theme]);
 
   useEffect(() => {
@@ -492,7 +495,7 @@ export default function App() {
         height: '100vh',
         backgroundColor: '#15202B',
         color: '#E7E9EA',
-        fontSize: '16px'
+        fontSize: '15px'
       }}>
         {hebrew.loading}
       </div>
@@ -620,8 +623,8 @@ export default function App() {
           textAlign: 'center'
         }}>
           <div style={{ maxWidth: '500px' }}>
-            <div style={{ fontSize: '64px', marginBottom: '24px' }}>⚠️</div>
-            <h1 style={{ fontSize: '28px', marginBottom: '16px', fontWeight: '700' }}>
+            <div style={{ fontSize: '48px', marginBottom: '20px' }}>⚠️</div>
+            <h1 style={{ fontSize: '23px', marginBottom: '12px', fontWeight: '700', letterSpacing: '-0.5px' }}>
               זוהה בעיה באימות
             </h1>
             <p style={{ fontSize: '18px', marginBottom: '32px', opacity: 0.8, lineHeight: '1.6' }}>
@@ -644,15 +647,17 @@ export default function App() {
                 window.location.reload();
               }}
               style={{
-                padding: '14px 32px',
-                fontSize: '16px',
-                fontWeight: '600',
-                backgroundColor: '#1D9BF0',
-                color: '#ffffff',
+                padding: '12px 32px',
+                fontSize: '15px',
+                fontWeight: '700',
+                backgroundColor: '#1DA1F2',
+                color: '#FFFFFF',
                 border: 'none',
-                borderRadius: '12px',
+                borderRadius: '20px',
                 cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)'
+                minHeight: '44px',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
+                transition: 'all 200ms ease-in-out'
               }}
             >
               איפוס וניסיון מחדש
@@ -694,11 +699,11 @@ export default function App() {
               animation: spin 1s linear infinite;
             }
           `}</style>
-          <div className="spinner" style={{ marginBottom: '20px' }} />
-          <div style={{ fontSize: '18px', marginBottom: '10px', fontWeight: '600' }}>
+          <div className="spinner" style={{ marginBottom: '16px' }} />
+          <div style={{ fontSize: '17px', marginBottom: '8px', fontWeight: '700' }}>
             מאמת זהות...
           </div>
-          <div style={{ fontSize: '14px', opacity: 0.7 }}>
+          <div style={{ fontSize: '13px', color: '#8899A6' }}>
             Authenticating via Telegram
           </div>
         </div>
@@ -870,8 +875,8 @@ export default function App() {
           minHeight: '100vh',
           backgroundColor: '#15202B',
           color: '#E7E9EA',
-          paddingBottom: '80px',
-          paddingTop: '60px'
+          paddingBottom: '53px',
+          paddingTop: '53px'
         }}>
           {/* Header */}
           <Header

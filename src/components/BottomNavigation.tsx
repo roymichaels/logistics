@@ -216,7 +216,7 @@ export function BottomNavigation({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '6px',
+        gap: '4px',
         padding: '8px 4px',
         border: 'none',
         backgroundColor: 'transparent',
@@ -224,24 +224,24 @@ export function BottomNavigation({
         fontSize: '11px',
         fontWeight: '600',
         position: 'relative',
-        transition: 'all 0.2s ease'
+        transition: 'all 200ms ease-in-out'
       }}
     >
       <div
         style={{
-          width: '48px',
-          height: '48px',
-          borderRadius: '12px',
+          width: '44px',
+          height: '44px',
+          borderRadius: '50%',
           background: action?.disabled
             ? TWITTER_COLORS.textTertiary
-            : TWITTER_COLORS.gradientPrimary,
-          color: action?.disabled ? TWITTER_COLORS.textSecondary : TWITTER_COLORS.buttonPrimaryText,
+            : TWITTER_COLORS.primary,
+          color: action?.disabled ? TWITTER_COLORS.textSecondary : '#FFFFFF',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '24px',
-          boxShadow: action?.disabled ? 'none' : TWITTER_COLORS.shadow,
-          transition: 'all 0.2s ease'
+          fontSize: '20px',
+          boxShadow: action?.disabled ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.12)',
+          transition: 'all 200ms ease-in-out'
         }}
       >
         {action?.icon}
@@ -285,23 +285,22 @@ export function BottomNavigation({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '6px',
-        padding: '8px 4px',
+        gap: '4px',
+        padding: '6px 4px',
         border: 'none',
         backgroundColor: 'transparent',
         color: currentPage === tab.id ? TWITTER_COLORS.primary : TWITTER_COLORS.textSecondary,
         cursor: 'pointer',
         fontSize: '11px',
-        fontWeight: currentPage === tab.id ? '600' : '500',
+        fontWeight: currentPage === tab.id ? '700' : '400',
         position: 'relative',
-        transition: 'all 0.2s ease',
-        transform: currentPage === tab.id ? 'scale(1.05)' : 'scale(1)'
+        transition: 'all 200ms ease-in-out',
+        transform: 'scale(1)'
       }}
     >
       <span style={{
-        fontSize: currentPage === tab.id ? '24px' : '22px',
-        filter: currentPage === tab.id ? `drop-shadow(0 0 8px ${TWITTER_COLORS.accentGlow})` : 'none',
-        transition: 'all 0.2s ease'
+        fontSize: '26px',
+        transition: 'all 200ms ease-in-out'
       }}>
         {tab.icon}
       </span>
@@ -309,14 +308,13 @@ export function BottomNavigation({
       {currentPage === tab.id && (
         <div style={{
           position: 'absolute',
-          bottom: '4px',
+          bottom: '0',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: '32px',
-          height: '3px',
-          background: `linear-gradient(90deg, transparent, ${TWITTER_COLORS.primary}, transparent)`,
-          borderRadius: '2px',
-          boxShadow: `0 0 8px ${TWITTER_COLORS.accentGlow}`
+          width: '40px',
+          height: '4px',
+          background: TWITTER_COLORS.primary,
+          borderRadius: '4px 4px 0 0'
         }} />
       )}
     </button>
@@ -367,9 +365,8 @@ export function BottomNavigation({
         }}
       >
         <span style={{
-          fontSize: '22px',
-          filter: `drop-shadow(0 0 6px ${TWITTER_COLORS.accentGlow})`,
-          transition: 'all 0.2s ease'
+          fontSize: '26px',
+          transition: 'all 200ms ease-in-out'
         }}>
           ☰
         </span>
@@ -411,13 +408,14 @@ export function BottomNavigation({
           right: 0,
           background: TWITTER_COLORS.navBackground,
           backdropFilter: TWITTER_COLORS.navBackdrop,
+          WebkitBackdropFilter: TWITTER_COLORS.navBackdrop,
           borderTop: `1px solid ${TWITTER_COLORS.navBorder}`,
-          boxShadow: TWITTER_COLORS.shadowLarge,
+          boxShadow: 'none',
           display: 'flex',
-          padding: '8px 8px 12px 8px',
+          padding: '0',
           zIndex: 1000,
           direction: 'rtl',
-          height: '72px',
+          height: '53px',
           alignItems: 'center'
         }}
         data-business-id={currentBusinessId ?? undefined}

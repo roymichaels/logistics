@@ -62,34 +62,39 @@ export function Modal({
     left: 0,
     right: 0,
     bottom: 0,
-    background: colors.ui.overlay,
+    background: colors.ui.overlay, // Twitter's overlay
     backdropFilter: 'blur(4px)',
+    WebkitBackdropFilter: 'blur(4px)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: zIndex.modal,
     padding: spacing['2xl'],
     overflowY: 'auto',
+    animation: 'fadeIn 200ms ease-in-out',
   };
 
   const modalStyles: React.CSSProperties = {
     background: colors.ui.card,
     border: `1px solid ${colors.border.primary}`,
-    borderRadius: borderRadius['2xl'],
+    borderRadius: borderRadius.xl, // 16px - Twitter modal radius
     width: '100%',
     ...sizeStyles[size],
     maxHeight: size === 'full' ? '95vh' : '90vh',
     display: 'flex',
     flexDirection: 'column',
     position: 'relative',
+    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.25)',
+    animation: 'modalSlideIn 300ms cubic-bezier(0.4, 0, 0.2, 1)',
   };
 
   const headerStyles: React.CSSProperties = {
-    padding: spacing['2xl'],
+    padding: `${spacing.lg} ${spacing.xl}`,
     borderBottom: `1px solid ${colors.border.primary}`,
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    minHeight: '53px', // Twitter's standard header height
   };
 
   const bodyStyles: React.CSSProperties = {
@@ -110,19 +115,49 @@ export function Modal({
     background: 'transparent',
     border: 'none',
     color: colors.text.secondary,
-    fontSize: '24px',
+    fontSize: '20px',
     cursor: 'pointer',
     padding: spacing.sm,
     lineHeight: 1,
+    width: '36px',
+    height: '36px',
+    borderRadius: borderRadius.full,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'background 200ms ease-in-out',
   };
 
   return (
-    <div style={overlayStyles} onClick={closeOnOverlayClick ? onClose : undefined}>
+    <>
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes modalSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
+      <div style={overlayStyles} onClick={closeOnOverlayClick ? onClose : undefined}>
       <div style={modalStyles} onClick={(e) => e.stopPropagation()}>
         {(title || showCloseButton) && (
           <div style={headerStyles}>
             {title && (
-              <h2 style={{ margin: 0, fontSize: '20px', color: colors.text.primary }}>
+              <h2 style={{
+                margin: 0,
+                fontSize: '20px',
+                fontWeight: 700,
+                color: colors.text.primary,
+                letterSpacing: '-0.5px'
+              }}>
                 {title}
               </h2>
             )}
@@ -135,7 +170,8 @@ export function Modal({
         )}
         <div style={bodyStyles}>{children}</div>
         {footer && <div style={footerStyles}>{footer}</div>}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
