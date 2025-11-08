@@ -257,6 +257,11 @@ export async function fetchUserRegistrationRecord(telegramId: string): Promise<U
 export async function listUserRegistrationRecords(filters?: {
   status?: UserRegistrationStatus;
 }): Promise<UserRegistration[]> {
+  const supabase = getSupabaseInstance();
+  if (!supabase) {
+    throw new Error('Supabase client not initialized');
+  }
+
   // First, try to get from user_registrations table
   let query = supabase
     .from('user_registrations')
@@ -398,6 +403,11 @@ export async function approveUserRegistrationRecord(
   telegramId: string,
   input: ApproveUserRegistrationInput
 ): Promise<UserRegistration> {
+  const supabase = getSupabaseInstance();
+  if (!supabase) {
+    throw new Error('Supabase client not initialized');
+  }
+
   // Try to find in user_registrations first
   const registration = await fetchUserRegistrationRecord(telegramId);
 
