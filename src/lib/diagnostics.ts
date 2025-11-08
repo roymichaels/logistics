@@ -1,11 +1,11 @@
 /**
-import { logger } from './logger';
  * Unified Diagnostics System
  *
  * Consolidated diagnostic utilities for authentication, roles, initialization, and profiles.
  * Provides a single entry point for all debugging and troubleshooting needs.
  */
 
+import { logger } from './logger';
 import { getSupabase } from './supabaseClient';
 import type { User } from '../data/types';
 import { ROLE_PERMISSIONS, hasPermission } from './rolePermissions';
