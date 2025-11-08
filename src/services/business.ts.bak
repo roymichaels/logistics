@@ -1,5 +1,4 @@
 import { ensureSession, callEdgeFunction } from './serviceHelpers';
-import { logger } from '../lib/logger';
 import { switchContext, type SwitchContextOptions } from './auth';
 
 export interface BusinessRecord {

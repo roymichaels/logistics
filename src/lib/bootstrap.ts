@@ -1,5 +1,6 @@
 import { BootstrapConfig } from '../data/types';
 import { telegram } from './telegram';
+import { logger } from './logger';
 
 interface BootstrapResult {
   config: BootstrapConfig;
@@ -12,12 +13,12 @@ async function getDebugLog() {
     const module = await import('../components/DebugPanel');
     return module.debugLog;
   } catch (e) {
-    // Fallback if DebugPanel not available
+    // Fallback if DebugPanel not available - use logger
     return {
-      info: console.log,
-      warn: console.warn,
-      error: console.error,
-      success: console.log
+      info: logger.info.bind(logger),
+      warn: logger.warn.bind(logger),
+      error: logger.error.bind(logger),
+      success: logger.info.bind(logger)
     };
   }
 }

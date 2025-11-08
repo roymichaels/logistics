@@ -42,7 +42,7 @@ export async function resolveUserPermissions(
   });
 
   if (error) {
-    logger.error('Failed to resolve permissions:', error);
+    console.error('Failed to resolve permissions:', error);
     throw new Error(`Permission resolution failed: ${error.message}`);
   }
 
@@ -67,7 +67,7 @@ export async function hasPermission(
     const resolved = await resolveUserPermissions(userId, businessId);
     return resolved.permissions.includes(permission);
   } catch (error) {
-    logger.error('Permission check failed:', error);
+    console.error('Permission check failed:', error);
     return false;
   }
 }
@@ -84,7 +84,7 @@ export async function hasAnyPermission(
     const resolved = await resolveUserPermissions(userId, businessId);
     return permissions.some(p => resolved.permissions.includes(p));
   } catch (error) {
-    logger.error('Permission check failed:', error);
+    console.error('Permission check failed:', error);
     return false;
   }
 }
@@ -101,7 +101,7 @@ export async function hasAllPermissions(
     const resolved = await resolveUserPermissions(userId, businessId);
     return permissions.every(p => resolved.permissions.includes(p));
   } catch (error) {
-    logger.error('Permission check failed:', error);
+    console.error('Permission check failed:', error);
     return false;
   }
 }
@@ -117,7 +117,7 @@ export async function getUserPermissions(
     const resolved = await resolveUserPermissions(userId, businessId);
     return resolved.permissions;
   } catch (error) {
-    logger.error('Failed to get user permissions:', error);
+    console.error('Failed to get user permissions:', error);
     return [];
   }
 }
@@ -133,7 +133,7 @@ export async function canViewFinancials(
     const resolved = await resolveUserPermissions(userId, businessId);
     return resolved.can_see_financials;
   } catch (error) {
-    logger.error('Permission check failed:', error);
+    console.error('Permission check failed:', error);
     return false;
   }
 }
@@ -148,7 +148,7 @@ export async function canViewCrossBusinessData(
     const resolved = await resolveUserPermissions(userId);
     return resolved.can_see_cross_business;
   } catch (error) {
-    logger.error('Permission check failed:', error);
+    console.error('Permission check failed:', error);
     return false;
   }
 }
@@ -191,7 +191,7 @@ export async function getUserScopeLevel(
     const resolved = await resolveUserPermissions(userId, businessId);
     return resolved.scope_level;
   } catch (error) {
-    logger.error('Failed to get scope level:', error);
+    console.error('Failed to get scope level:', error);
     return 'business';
   }
 }
@@ -205,7 +205,7 @@ export async function requiresBusinessContext(userId: string): Promise<boolean> 
     // Infrastructure owners don't need business context
     return resolved.scope_level === 'business';
   } catch (error) {
-    logger.error('Failed to check business context requirement:', error);
+    console.error('Failed to check business context requirement:', error);
     return true;
   }
 }

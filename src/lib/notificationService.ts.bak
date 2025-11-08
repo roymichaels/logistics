@@ -57,7 +57,7 @@ export class NotificationService {
       // Register service worker if available
       if ('serviceWorker' in navigator) {
         this.serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js');
-        logger.info('Service worker registered successfully');
+        console.log('Service worker registered successfully');
       }
 
       // Request notification permission
@@ -65,7 +65,7 @@ export class NotificationService {
         await Notification.requestPermission();
       }
     } catch (error) {
-      logger.warn('Failed to initialize notification service:', error);
+      console.warn('Failed to initialize notification service:', error);
     }
   }
 
@@ -88,7 +88,7 @@ export class NotificationService {
         await this.savePreferences();
       }
     } catch (error) {
-      logger.error('Failed to load notification preferences:', error);
+      console.error('Failed to load notification preferences:', error);
       this.preferences = this.getDefaultPreferences(this.currentUser.telegram_id.toString());
     }
   }
@@ -133,7 +133,7 @@ export class NotificationService {
         JSON.stringify(this.preferences)
       );
     } catch (error) {
-      logger.error('Failed to save notification preferences:', error);
+      console.error('Failed to save notification preferences:', error);
     }
   }
 
@@ -179,7 +179,7 @@ export class NotificationService {
 
       return true;
     } catch (error) {
-      logger.error('Failed to send notification:', error);
+      console.error('Failed to send notification:', error);
       return false;
     }
   }
@@ -257,7 +257,7 @@ export class NotificationService {
         requireInteraction: this.getNotificationPriority(payload.data?.type || 'system_alert') === 'high'
       });
     } catch (error) {
-      logger.error('Failed to show push notification:', error);
+      console.error('Failed to show push notification:', error);
     }
   }
 
@@ -294,7 +294,7 @@ export class NotificationService {
       const updated = scheduled.filter((n: any) => n.id !== id);
       localStorage.setItem('scheduled_notifications', JSON.stringify(updated));
     } catch (error) {
-      logger.error('Failed to remove scheduled notification:', error);
+      console.error('Failed to remove scheduled notification:', error);
     }
   }
 
@@ -319,7 +319,7 @@ export class NotificationService {
         window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
       }
     } catch (error) {
-      logger.error('Failed to send Telegram notification:', error);
+      console.error('Failed to send Telegram notification:', error);
     }
   }
 
@@ -391,7 +391,7 @@ export class NotificationService {
       const active = scheduled.filter((n: any) => new Date(n.scheduleAt) > now);
       localStorage.setItem('scheduled_notifications', JSON.stringify(active));
     } catch (error) {
-      logger.error('Failed to cleanup notifications:', error);
+      console.error('Failed to cleanup notifications:', error);
     }
   }
 }

@@ -1,5 +1,4 @@
 /**
-import { logger } from './logger';
  * Unified Diagnostics System
  *
  * Consolidated diagnostic utilities for authentication, roles, initialization, and profiles.
@@ -136,25 +135,25 @@ export namespace AuthDiagnostics {
     const info = await getDebugInfo();
 
     console.group('🔐 Authentication Debug Info');
-    logger.info('Session Status:', info.hasSession ? '✅ Active' : '❌ No Session');
-    logger.info('Session Valid:', info.sessionValid ? '✅ Valid' : '⚠️ Expired');
-    logger.info('User ID:', info.userId || 'N/A');
-    logger.info('Email:', info.email || 'N/A');
+    console.log('Session Status:', info.hasSession ? '✅ Active' : '❌ No Session');
+    console.log('Session Valid:', info.sessionValid ? '✅ Valid' : '⚠️ Expired');
+    console.log('User ID:', info.userId || 'N/A');
+    console.log('Email:', info.email || 'N/A');
 
     console.group('📋 JWT Claims (app_metadata)');
-    logger.info('role:', info.claims.role || '❌ MISSING');
-    logger.info('app_role:', info.claims.app_role || '⚠️ Not set');
-    logger.info('workspace_id:', info.claims.workspace_id || '⚠️ Not set');
-    logger.info('user_id:', info.claims.user_id || '⚠️ Not set');
-    logger.info('telegram_id:', info.claims.telegram_id || '❌ MISSING');
+    console.log('role:', info.claims.role || '❌ MISSING');
+    console.log('app_role:', info.claims.app_role || '⚠️ Not set');
+    console.log('workspace_id:', info.claims.workspace_id || '⚠️ Not set');
+    console.log('user_id:', info.claims.user_id || '⚠️ Not set');
+    console.log('telegram_id:', info.claims.telegram_id || '❌ MISSING');
     console.groupEnd();
 
-    logger.info('Full app_metadata:', info.appMetadata);
-    logger.info('Full user_metadata:', info.userMetadata);
+    console.log('Full app_metadata:', info.appMetadata);
+    console.log('Full user_metadata:', info.userMetadata);
 
     if (info.expiresAt) {
       const expiresIn = info.expiresAt - Math.floor(Date.now() / 1000);
-      logger.info('Expires in:', expiresIn > 0 ? `${Math.floor(expiresIn / 60)} minutes` : 'EXPIRED');
+      console.log('Expires in:', expiresIn > 0 ? `${Math.floor(expiresIn / 60)} minutes` : 'EXPIRED');
     }
 
     console.groupEnd();
@@ -202,14 +201,14 @@ export namespace AuthDiagnostics {
       const { data, error } = await supabase.rpc('debug_auth_claims');
 
       if (error) {
-        logger.error('❌ RLS debug function failed:', error);
+        console.error('❌ RLS debug function failed:', error);
         return { error: error.message };
       }
 
-      logger.info('🔍 RLS Debug Claims from Database:', data);
+      console.log('🔍 RLS Debug Claims from Database:', data);
       return data;
     } catch (err) {
-      logger.error('❌ Failed to test RLS:', err);
+      console.error('❌ Failed to test RLS:', err);
       return { error: err instanceof Error ? err.message : 'Unknown error' };
     }
   }
@@ -218,7 +217,7 @@ export namespace AuthDiagnostics {
    * Run comprehensive authentication diagnostics
    */
   export async function runFullDiagnostics(): Promise<DiagnosticResult> {
-    logger.info('🔍 Running authentication diagnostics...');
+    console.log('🔍 Running authentication diagnostics...');
 
     const result: DiagnosticResult = {
       timestamp: new Date().toISOString(),
@@ -233,7 +232,7 @@ export namespace AuthDiagnostics {
     };
 
     // Check 1: Telegram WebApp data
-    logger.info('\n📱 Check 1: Telegram WebApp Data');
+    console.log('\n📱 Check 1: Telegram WebApp Data');
     try {
       const WebApp = (window as any)?.Telegram?.WebApp;
       if (WebApp) {
@@ -253,25 +252,25 @@ export namespace AuthDiagnostics {
         };
 
         if (initData && user) {
-          logger.info('✅ Telegram data available', result.checks.telegramData.details);
+          console.log('✅ Telegram data available', result.checks.telegramData.details);
         } else {
-          logger.error('❌ Telegram data missing or incomplete', result.checks.telegramData.details);
+          console.error('❌ Telegram data missing or incomplete', result.checks.telegramData.details);
           result.recommendations.push('App must be opened from Telegram to access WebApp data');
         }
       } else {
         result.checks.telegramData.status = 'fail';
         result.checks.telegramData.details = { error: 'Telegram WebApp SDK not loaded' };
-        logger.error('❌ Telegram WebApp SDK not available');
+        console.error('❌ Telegram WebApp SDK not available');
         result.recommendations.push('Ensure app is running inside Telegram Mini App');
       }
     } catch (err) {
       result.checks.telegramData.status = 'fail';
       result.checks.telegramData.details = { error: String(err) };
-      logger.error('❌ Error checking Telegram data', err);
+      console.error('❌ Error checking Telegram data', err);
     }
 
     // Check 2: Supabase session
-    logger.info('\n🔐 Check 2: Supabase Session');
+    console.log('\n🔐 Check 2: Supabase Session');
     const supabase = getSupabase();
     try {
       const { data: { session }, error } = await supabase.auth.getSession();
@@ -281,14 +280,14 @@ export namespace AuthDiagnostics {
           status: 'fail',
           details: { error: error.message }
         };
-        logger.error('❌ Session error', error);
+        console.error('❌ Session error', error);
         result.recommendations.push('Check Supabase configuration and network connectivity');
       } else if (!session) {
         result.checks.session = {
           status: 'fail',
           details: { error: 'No active session' }
         };
-        logger.error('❌ No active session');
+        console.error('❌ No active session');
         result.recommendations.push('Authentication may have failed - check browser console for errors');
       } else {
         result.checks.session = {
@@ -300,10 +299,10 @@ export namespace AuthDiagnostics {
             expiresAt: session.expires_at
           }
         };
-        logger.info('✅ Session active', result.checks.session.details);
+        console.log('✅ Session active', result.checks.session.details);
 
         // Check 3: JWT Claims
-        logger.info('\n🎫 Check 3: JWT Custom Claims');
+        console.log('\n🎫 Check 3: JWT Custom Claims');
         try {
           const payload = JSON.parse(atob(session.access_token.split('.')[1]));
 
@@ -329,10 +328,10 @@ export namespace AuthDiagnostics {
           };
 
           if (missingClaims.length === 0) {
-            logger.info('✅ All required JWT claims present', claims);
+            console.log('✅ All required JWT claims present', claims);
           } else {
-            logger.error('❌ Missing JWT claims:', missingClaims);
-            logger.info('Available claims:', claims);
+            console.error('❌ Missing JWT claims:', missingClaims);
+            console.log('Available claims:', claims);
             result.recommendations.push('JWT missing custom claims - telegram-verify Edge Function may have failed');
             result.recommendations.push('Check Supabase Edge Function logs for telegram-verify errors');
           }
@@ -346,12 +345,12 @@ export namespace AuthDiagnostics {
             status: 'fail',
             details: { error: 'Could not decode JWT', message: String(err) }
           };
-          logger.error('❌ Failed to decode JWT', err);
+          console.error('❌ Failed to decode JWT', err);
           result.recommendations.push('JWT token may be malformed or corrupted');
         }
 
         // Check 4: User record in database
-        logger.info('\n👤 Check 4: User Record');
+        console.log('\n👤 Check 4: User Record');
         try {
           const { data: user, error: userError } = await supabase
             .from('users')
@@ -364,32 +363,32 @@ export namespace AuthDiagnostics {
               status: 'fail',
               details: { error: userError.message }
             };
-            logger.error('❌ Error fetching user record', userError);
+            console.error('❌ Error fetching user record', userError);
             result.recommendations.push('Check RLS policies on users table');
           } else if (!user) {
             result.checks.userRecord = {
               status: 'fail',
               details: { error: 'User record not found in database' }
             };
-            logger.error('❌ User record not found');
+            console.error('❌ User record not found');
             result.recommendations.push('User record missing - authentication may have failed to create user');
           } else {
             result.checks.userRecord = {
               status: 'pass',
               details: user
             };
-            logger.info('✅ User record found', user);
+            console.log('✅ User record found', user);
           }
         } catch (err) {
           result.checks.userRecord = {
             status: 'fail',
             details: { error: String(err) }
           };
-          logger.error('❌ Exception fetching user record', err);
+          console.error('❌ Exception fetching user record', err);
         }
       }
     } catch (err) {
-      logger.error('❌ Error during session check', err);
+      console.error('❌ Error during session check', err);
     }
 
     // Generate summary
@@ -408,18 +407,18 @@ export namespace AuthDiagnostics {
       result.summary = `⚠️ ${passCount}/${totalCount} checks passed - authentication is partially working`;
     }
 
-    logger.info('\n' + '='.repeat(60));
-    logger.info(result.summary);
-    logger.info('='.repeat(60));
+    console.log('\n' + '='.repeat(60));
+    console.log(result.summary);
+    console.log('='.repeat(60));
 
     if (result.recommendations.length > 0) {
-      logger.info('\n💡 Recommendations:');
+      console.log('\n💡 Recommendations:');
       result.recommendations.forEach((rec, i) => {
-        logger.info(`${i + 1}. ${rec}`);
+        console.log(`${i + 1}. ${rec}`);
       });
     }
 
-    logger.info('\n📊 Full diagnostic result stored in window.__AUTH_DIAGNOSTICS__');
+    console.log('\n📊 Full diagnostic result stored in window.__AUTH_DIAGNOSTICS__');
     if (typeof window !== 'undefined') {
       (window as any).__AUTH_DIAGNOSTICS__ = result;
     }
@@ -449,66 +448,66 @@ export namespace InitDiagnostics {
 
   export function logStatus() {
     const status = getStatus();
-    logger.info('📊 Initialization Status:', status);
+    console.log('📊 Initialization Status:', status);
 
     if (!status.supabaseInitialized) {
-      logger.warn('⚠️ Supabase is not initialized');
+      console.warn('⚠️ Supabase is not initialized');
     }
 
     if (!status.telegramAvailable) {
-      logger.warn('⚠️ Telegram WebApp SDK is not available');
+      console.warn('⚠️ Telegram WebApp SDK is not available');
     }
 
     if (!status.telegramInitData) {
-      logger.warn('⚠️ Telegram initData is empty');
+      console.warn('⚠️ Telegram initData is empty');
     }
 
     if (!status.telegramUser) {
-      logger.warn('⚠️ Telegram user data is not available');
+      console.warn('⚠️ Telegram user data is not available');
     }
 
     return status;
   }
 
   export function runFullDiagnostics() {
-    logger.info('🔍 === FULL INITIALIZATION DIAGNOSTICS ===');
+    console.log('🔍 === FULL INITIALIZATION DIAGNOSTICS ===');
 
     const status = logStatus();
 
-    logger.info('\n📦 Window Objects:');
-    logger.info('  __SUPABASE_CLIENT__:', !!(window as any).__SUPABASE_CLIENT__);
-    logger.info('  __SUPABASE_INITIALIZED__:', !!(window as any).__SUPABASE_INITIALIZED__);
-    logger.info('  __SUPABASE_SESSION__:', !!(window as any).__SUPABASE_SESSION__);
-    logger.info('  __JWT_CLAIMS__:', !!(window as any).__JWT_CLAIMS__);
-    logger.info('  Telegram:', !!(window as any).Telegram);
-    logger.info('  Telegram.WebApp:', !!(window as any).Telegram?.WebApp);
+    console.log('\n📦 Window Objects:');
+    console.log('  __SUPABASE_CLIENT__:', !!(window as any).__SUPABASE_CLIENT__);
+    console.log('  __SUPABASE_INITIALIZED__:', !!(window as any).__SUPABASE_INITIALIZED__);
+    console.log('  __SUPABASE_SESSION__:', !!(window as any).__SUPABASE_SESSION__);
+    console.log('  __JWT_CLAIMS__:', !!(window as any).__JWT_CLAIMS__);
+    console.log('  Telegram:', !!(window as any).Telegram);
+    console.log('  Telegram.WebApp:', !!(window as any).Telegram?.WebApp);
 
     if ((window as any).Telegram?.WebApp) {
       const tg = (window as any).Telegram.WebApp;
-      logger.info('\n📱 Telegram WebApp Details:');
-      logger.info('  version:', tg.version);
-      logger.info('  platform:', tg.platform);
-      logger.info('  colorScheme:', tg.colorScheme);
-      logger.info('  isExpanded:', tg.isExpanded);
-      logger.info('  viewportHeight:', tg.viewportHeight);
-      logger.info('  initData length:', tg.initData?.length || 0);
-      logger.info('  initData preview:', tg.initData?.substring(0, 100) || 'EMPTY');
-      logger.info('  user:', tg.initDataUnsafe?.user || 'NO USER');
+      console.log('\n📱 Telegram WebApp Details:');
+      console.log('  version:', tg.version);
+      console.log('  platform:', tg.platform);
+      console.log('  colorScheme:', tg.colorScheme);
+      console.log('  isExpanded:', tg.isExpanded);
+      console.log('  viewportHeight:', tg.viewportHeight);
+      console.log('  initData length:', tg.initData?.length || 0);
+      console.log('  initData preview:', tg.initData?.substring(0, 100) || 'EMPTY');
+      console.log('  user:', tg.initDataUnsafe?.user || 'NO USER');
     }
 
     if ((window as any).__SUPABASE_SESSION__) {
       const session = (window as any).__SUPABASE_SESSION__;
-      logger.info('\n🔐 Session Details:');
-      logger.info('  user.id:', session.user?.id);
-      logger.info('  access_token length:', session.access_token?.length || 0);
-      logger.info('  expires_at:', session.expires_at ? new Date(session.expires_at * 1000).toISOString() : 'none');
+      console.log('\n🔐 Session Details:');
+      console.log('  user.id:', session.user?.id);
+      console.log('  access_token length:', session.access_token?.length || 0);
+      console.log('  expires_at:', session.expires_at ? new Date(session.expires_at * 1000).toISOString() : 'none');
     }
 
     if ((window as any).__JWT_CLAIMS__) {
-      logger.info('\n🎫 JWT Claims:', (window as any).__JWT_CLAIMS__);
+      console.log('\n🎫 JWT Claims:', (window as any).__JWT_CLAIMS__);
     }
 
-    logger.info('\n🔍 === END DIAGNOSTICS ===\n');
+    console.log('\n🔍 === END DIAGNOSTICS ===\n');
 
     return status;
   }
@@ -524,13 +523,13 @@ export namespace RoleDiagnostics {
    */
   export function generateReport(user: User | null): RoleDiagnosticReport | null {
     if (!user) {
-      logger.warn('⚠️ Cannot generate role diagnostic: user is null');
+      console.warn('⚠️ Cannot generate role diagnostic: user is null');
       return null;
     }
 
     const roleInfo = ROLE_PERMISSIONS[user.role];
     if (!roleInfo) {
-      logger.error('❌ Invalid role detected:', user.role);
+      console.error('❌ Invalid role detected:', user.role);
       return null;
     }
 
@@ -803,15 +802,15 @@ export namespace ProfileDiagnostics {
       const stats = this.getStats();
 
       console.group('📊 Profile Fetch Report');
-      logger.info('Total attempts:', stats.total);
-      logger.info('Successful:', stats.successful);
-      logger.info('Failed:', stats.failed);
-      logger.info('Cache hits:', stats.cacheHits);
-      logger.info('Avg duration:', `${stats.avgDuration}ms`);
-      logger.info('Recent failures (last 5):', stats.recentFailures);
+      console.log('Total attempts:', stats.total);
+      console.log('Successful:', stats.successful);
+      console.log('Failed:', stats.failed);
+      console.log('Cache hits:', stats.cacheHits);
+      console.log('Avg duration:', `${stats.avgDuration}ms`);
+      console.log('Recent failures (last 5):', stats.recentFailures);
 
       if (stats.recentFailures > 0) {
-        logger.warn('⚠️ Recent failures detected!');
+        console.warn('⚠️ Recent failures detected!');
         console.table(this.attempts.slice(0, 5).map(a => ({
           timestamp: new Date(a.timestamp).toLocaleString(),
           source: a.source,
@@ -826,7 +825,7 @@ export namespace ProfileDiagnostics {
 
     clear(): void {
       this.attempts = [];
-      logger.info('🗑️ Profile fetch history cleared');
+      console.log('🗑️ Profile fetch history cleared');
     }
   }
 
@@ -900,9 +899,9 @@ if (typeof window !== 'undefined') {
   (window as any).getInitStatus = InitDiagnostics.getStatus;
   (window as any).__profileDebugger = ProfileDiagnostics.profileDebugger;
 
-  logger.info('💡 Diagnostics available:');
-  logger.info('  - window.runAuthDiagnostics()');
-  logger.info('  - window.runInitDiagnostics()');
-  logger.info('  - window.getInitStatus()');
-  logger.info('  - window.__profileDebugger');
+  console.log('💡 Diagnostics available:');
+  console.log('  - window.runAuthDiagnostics()');
+  console.log('  - window.runInitDiagnostics()');
+  console.log('  - window.getInitStatus()');
+  console.log('  - window.__profileDebugger');
 }

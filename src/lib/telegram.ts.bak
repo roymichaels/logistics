@@ -26,7 +26,7 @@ class TelegramService {
       this.sdkLoaded = true;
       this.initialize();
     } catch (error) {
-      logger.info('🌐 Telegram SDK not available - running in standard web mode');
+      console.log('🌐 Telegram SDK not available - running in standard web mode');
       this.sdkLoaded = false;
       this.initialized = false;
     }
@@ -59,7 +59,7 @@ class TelegramService {
 
       this.initialized = true;
     } catch (error) {
-      logger.error('❌ Failed to initialize Telegram SDK:', error);
+      console.error('❌ Failed to initialize Telegram SDK:', error);
       this.initialized = false;
     }
   }
@@ -159,7 +159,7 @@ class TelegramService {
         this.WebApp.MainButton.hide();
       }
     } catch (error) {
-      logger.info('[Telegram] MainButton error:', error);
+      console.log('[Telegram] MainButton error:', error);
     }
   }
 
@@ -172,7 +172,7 @@ class TelegramService {
     try {
       this.WebApp.MainButton.hide();
     } catch (error) {
-      logger.info('[Telegram] MainButton hide error:', error);
+      console.log('[Telegram] MainButton hide error:', error);
     }
   }
 
@@ -186,7 +186,7 @@ class TelegramService {
       this.WebApp.BackButton.onClick(onClick);
       this.WebApp.BackButton.show();
     } catch (error) {
-      logger.info('[Telegram] BackButton not supported in this version');
+      console.log('[Telegram] BackButton not supported in this version');
     }
   }
 
@@ -199,7 +199,7 @@ class TelegramService {
     try {
       this.WebApp.BackButton.hide();
     } catch (error) {
-      logger.info('[Telegram] BackButton hide error:', error);
+      console.log('[Telegram] BackButton hide error:', error);
     }
   }
 
@@ -225,7 +225,7 @@ class TelegramService {
           break;
       }
     } catch (error) {
-      logger.info('[Telegram] HapticFeedback not supported in this version');
+      console.log('[Telegram] HapticFeedback not supported in this version');
     }
   }
 
@@ -237,7 +237,7 @@ class TelegramService {
       try {
         this.WebApp.showAlert(message);
       } catch (error) {
-        logger.info('[Telegram] showAlert not supported, using fallback');
+        console.log('[Telegram] showAlert not supported, using fallback');
         alert(message);
       }
     } else {
@@ -256,7 +256,7 @@ class TelegramService {
             resolve(confirmed);
           });
         } catch (error) {
-          logger.info('[Telegram] showConfirm not supported, using fallback');
+          console.log('[Telegram] showConfirm not supported, using fallback');
           resolve(confirm(message));
         }
       } else {
@@ -276,7 +276,7 @@ class TelegramService {
             resolve(buttonId);
           });
         } catch (error) {
-          logger.info('[Telegram] showPopup not supported, using alert fallback');
+          console.log('[Telegram] showPopup not supported, using alert fallback');
           alert(params.message || '');
           resolve(null);
         }
@@ -304,7 +304,7 @@ class TelegramService {
       try {
         this.WebApp.openLink(url, options);
       } catch (error) {
-        logger.info('[Telegram] openLink error:', error);
+        console.log('[Telegram] openLink error:', error);
         window.open(url, '_blank');
       }
     } else {
@@ -320,7 +320,7 @@ class TelegramService {
       try {
         this.WebApp.openTelegramLink(url);
       } catch (error) {
-        logger.info('[Telegram] openTelegramLink error:', error);
+        console.log('[Telegram] openTelegramLink error:', error);
         window.open(url, '_blank');
       }
     } else {
@@ -347,7 +347,7 @@ class TelegramService {
           }
         });
       } catch (error) {
-        logger.info('[Telegram] requestContact not supported');
+        console.log('[Telegram] requestContact not supported');
         reject(error);
       }
     });
@@ -361,7 +361,7 @@ class TelegramService {
       try {
         this.WebApp.enableClosingConfirmation();
       } catch (error) {
-        logger.info('[Telegram] enableClosingConfirmation not supported');
+        console.log('[Telegram] enableClosingConfirmation not supported');
       }
     }
   }
@@ -374,7 +374,7 @@ class TelegramService {
       try {
         this.WebApp.disableClosingConfirmation();
       } catch (error) {
-        logger.info('[Telegram] disableClosingConfirmation not supported');
+        console.log('[Telegram] disableClosingConfirmation not supported');
       }
     }
   }
@@ -387,7 +387,7 @@ class TelegramService {
       try {
         this.WebApp.onEvent(eventType, handler);
       } catch (error) {
-        logger.info(`[Telegram] Event ${eventType} not supported`);
+        console.log(`[Telegram] Event ${eventType} not supported`);
       }
     }
   }
@@ -400,7 +400,7 @@ class TelegramService {
       try {
         this.WebApp.offEvent(eventType, handler);
       } catch (error) {
-        logger.info(`[Telegram] Event ${eventType} not supported`);
+        console.log(`[Telegram] Event ${eventType} not supported`);
       }
     }
   }

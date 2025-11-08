@@ -69,7 +69,7 @@ class RuntimeEnvironmentService {
       origin
     };
 
-    logger.info('🌍 Runtime environment detected:', this._env);
+    console.log('🌍 Runtime environment detected:', this._env);
 
     return this._env;
   }
@@ -143,7 +143,7 @@ class RuntimeEnvironmentService {
 
     // In WebContainer, don't use relative API endpoints
     if (env.isWebContainer) {
-      logger.warn('[Runtime] WebContainer detected - API endpoints may not be available');
+      console.warn('[Runtime] WebContainer detected - API endpoints may not be available');
       return '';
     }
 
@@ -195,14 +195,14 @@ class RuntimeEnvironmentService {
     const config = this.getConfig();
 
     console.group('🌍 Runtime Environment Info');
-    logger.info('Environment Type:', env.type);
-    logger.info('Origin:', env.origin);
-    logger.info('Is WebContainer:', env.isWebContainer);
-    logger.info('Is Local Dev:', env.isLocalDev);
-    logger.info('Is Production:', env.isProduction);
-    logger.info('Has Backend Services:', env.hasBackendServices);
-    logger.info('Supports WebSockets:', env.supportsWebSockets);
-    logger.info('Configuration:', config);
+    console.log('Environment Type:', env.type);
+    console.log('Origin:', env.origin);
+    console.log('Is WebContainer:', env.isWebContainer);
+    console.log('Is Local Dev:', env.isLocalDev);
+    console.log('Is Production:', env.isProduction);
+    console.log('Has Backend Services:', env.hasBackendServices);
+    console.log('Supports WebSockets:', env.supportsWebSockets);
+    console.log('Configuration:', config);
     console.groupEnd();
   }
 }

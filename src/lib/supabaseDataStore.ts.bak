@@ -1,5 +1,4 @@
 import { RealtimeChannel, createClient } from '@supabase/supabase-js';
-import { logger } from './logger';
 import { getSupabase, loadConfig } from './supabaseClient';
 import { ProfileDiagnostics } from './diagnostics';
 import { LEGACY_TO_CANONICAL_ROLE, CANONICAL_TO_LEGACY_ROLE } from './roleMappings';
@@ -75,7 +74,7 @@ function getSupabaseInstance() {
     supabaseInstance = getSupabase();
     return supabaseInstance;
   } catch (error) {
-    logger.warn('⚠️ Supabase client not yet available:', error);
+    console.warn('⚠️ Supabase client not yet available:', error);
     return null;
   }
 }
@@ -284,7 +283,7 @@ export async function listUserRegistrationRecords(filters?: {
   }
 
   // Fallback: fetch from users table and transform to UserRegistration format
-  logger.info('📊 Fetching users from users table as fallback');
+  console.log('📊 Fetching users from users table as fallback');
   let usersQuery = supabase
     .from('users')
     .select('*')
@@ -414,7 +413,7 @@ export async function approveUserRegistrationRecord(
 
   // If not in user_registrations, check users table directly
   if (!registration) {
-    logger.info('📊 Registration not found in user_registrations, checking users table');
+    console.log('📊 Registration not found in user_registrations, checking users table');
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
@@ -452,7 +451,7 @@ export async function approveUserRegistrationRecord(
       })
       .eq('telegram_id', telegramId);
 
-    if (error) logger.error('Failed to update user_registrations:', error);
+    if (error) console.error('Failed to update user_registrations:', error);
   }
 
   // ALWAYS update the users table (this is the main table)
@@ -607,10 +606,10 @@ export class SupabaseDataStore implements DataStore {
       });
 
       if (error) {
-        logger.error('Failed to establish Supabase session:', error);
+        console.error('Failed to establish Supabase session:', error);
       }
     } catch (error) {
-      logger.error('Unexpected Supabase auth error:', error);
+      console.error('Unexpected Supabase auth error:', error);
     }
   }
 
@@ -936,7 +935,7 @@ export class SupabaseDataStore implements DataStore {
       try {
         await this.authInitialization;
       } catch (error) {
-        logger.error('getProfile: Auth initialization failed:', error);
+        console.error('getProfile: Auth initialization failed:', error);
       }
     }
 
@@ -948,7 +947,7 @@ export class SupabaseDataStore implements DataStore {
 
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !sessionData?.session) {
-      logger.error('❌ getProfile: No authenticated session:', sessionError);
+      console.error('❌ getProfile: No authenticated session:', sessionError);
       throw new Error('Not authenticated - please log in first');
     }
 
@@ -963,7 +962,7 @@ export class SupabaseDataStore implements DataStore {
       .maybeSingle();
 
     if (error) {
-      logger.error('❌ getProfile: Database error:', error);
+      console.error('❌ getProfile: Database error:', error);
 
       // Check if this is an RLS policy violation
       if (error.code === '42501' || error.message?.includes('row-level security')) {
@@ -976,7 +975,7 @@ export class SupabaseDataStore implements DataStore {
     // Database response received
 
     if (!data) {
-      logger.error('❌ getProfile: User record not found for auth.uid():', authUid);
+      console.error('❌ getProfile: User record not found for auth.uid():', authUid);
       throw new Error('User profile not found. Your account may not be fully set up yet. Please contact support if this persists.');
     }
 
@@ -1015,7 +1014,7 @@ export class SupabaseDataStore implements DataStore {
           .maybeSingle();
 
         if (updateError) {
-          logger.error('⚠️ getProfile: Failed to update user data:', updateError);
+          console.error('⚠️ getProfile: Failed to update user data:', updateError);
           // Continue with existing data
         } else if (updated && updated.id) {
           this.setCachedUser(updated);
@@ -1025,7 +1024,7 @@ export class SupabaseDataStore implements DataStore {
     }
 
     if (!data || !data.id) {
-      logger.error('❌ getProfile: User data missing id field:', data);
+      console.error('❌ getProfile: User data missing id field:', data);
       throw new Error('User data incomplete: missing id');
     }
 
@@ -1086,22 +1085,22 @@ export class SupabaseDataStore implements DataStore {
 
   async getCurrentRole(): Promise<User['role'] | null> {
     if (!this.userTelegramId) {
-      logger.warn('getCurrentRole: No userTelegramId provided');
+      console.warn('getCurrentRole: No userTelegramId provided');
       return null;
     }
 
     // Wait for auth session to be established if it's in progress
     if (this.authInitialization) {
-      logger.info('getCurrentRole: Waiting for auth initialization...');
+      console.log('getCurrentRole: Waiting for auth initialization...');
       try {
         await this.authInitialization;
-        logger.info('getCurrentRole: Auth initialization complete');
+        console.log('getCurrentRole: Auth initialization complete');
       } catch (error) {
-        logger.error('getCurrentRole: Auth initialization failed:', error);
+        console.error('getCurrentRole: Auth initialization failed:', error);
       }
     }
 
-    logger.info(`🔍 getCurrentRole: Fetching role for telegram_id: ${this.userTelegramId}`);
+    console.log(`🔍 getCurrentRole: Fetching role for telegram_id: ${this.userTelegramId}`);
 
     // Create fresh client to bypass any caching
     const config = await loadConfig();
@@ -1113,7 +1112,7 @@ export class SupabaseDataStore implements DataStore {
       .eq('telegram_id', this.userTelegramId)
       .maybeSingle();
 
-    logger.info('🔍 getCurrentRole: RAW RESPONSE:', {
+    console.log('🔍 getCurrentRole: RAW RESPONSE:', {
       hasData: !!data,
       hasError: !!error,
       data: data ? JSON.stringify(data) : 'null',
@@ -1122,22 +1121,22 @@ export class SupabaseDataStore implements DataStore {
     });
 
     if (error) {
-      logger.error('❌ getCurrentRole: Database error:', error);
+      console.error('❌ getCurrentRole: Database error:', error);
       throw error;
     }
 
     if (!data) {
-      logger.warn('⚠️ getCurrentRole: No user found in database (RLS blocked?)');
+      console.warn('⚠️ getCurrentRole: No user found in database (RLS blocked?)');
       return null;
     }
 
-    logger.info(`✅ getCurrentRole: Successfully fetched role: ${data.role}`);
+    console.log(`✅ getCurrentRole: Successfully fetched role: ${data.role}`);
     this.user = data;
     return data.role;
   }
 
   clearUserCache(): void {
-    logger.info('🗑️ clearUserCache: Clearing cached user data and timestamp');
+    console.log('🗑️ clearUserCache: Clearing cached user data and timestamp');
     this.user = null;
     this.userCacheTimestamp = null;
   }
@@ -1183,11 +1182,11 @@ export class SupabaseDataStore implements DataStore {
       });
 
     if (insertError) {
-      logger.error('Failed to create user record:', insertError);
+      console.error('Failed to create user record:', insertError);
       throw new Error('Failed to create user record');
     }
 
-    logger.info(`✅ Created user record for ${this.userTelegramId}`);
+    console.log(`✅ Created user record for ${this.userTelegramId}`);
   }
 
   // Products
@@ -3175,7 +3174,7 @@ export class SupabaseDataStore implements DataStore {
   async listGroupChats(): Promise<GroupChat[]> {
     const supabase = getSupabaseInstance();
     if (!supabase) {
-      logger.warn('Supabase client not available');
+      console.warn('Supabase client not available');
       return [];
     }
 
@@ -3192,7 +3191,7 @@ export class SupabaseDataStore implements DataStore {
   async listChannels(): Promise<Channel[]> {
     const supabase = getSupabaseInstance();
     if (!supabase) {
-      logger.warn('Supabase client not available');
+      console.warn('Supabase client not available');
       return [];
     }
 
@@ -3236,7 +3235,7 @@ export class SupabaseDataStore implements DataStore {
   async getNotifications(): Promise<Notification[]> {
     const supabase = getSupabaseInstance();
     if (!supabase) {
-      logger.warn('Supabase client not available');
+      console.warn('Supabase client not available');
       return [];
     }
 
@@ -3253,7 +3252,7 @@ export class SupabaseDataStore implements DataStore {
   async markNotificationRead(id: string): Promise<void> {
     const supabase = getSupabaseInstance();
     if (!supabase) {
-      logger.warn('Supabase client not available');
+      console.warn('Supabase client not available');
       return;
     }
 
@@ -3273,7 +3272,7 @@ export class SupabaseDataStore implements DataStore {
   async listNotifications(filters?: { limit?: number; unreadOnly?: boolean }): Promise<Notification[]> {
     const supabase = getSupabaseInstance();
     if (!supabase) {
-      logger.warn('Supabase client not available');
+      console.warn('Supabase client not available');
       return [];
     }
 
@@ -3300,7 +3299,7 @@ export class SupabaseDataStore implements DataStore {
   async listMessages(chatId: string, limit: number = 100): Promise<any[]> {
     const supabase = getSupabaseInstance();
     if (!supabase) {
-      logger.warn('Supabase client not available');
+      console.warn('Supabase client not available');
       return [];
     }
 
@@ -3342,7 +3341,7 @@ export class SupabaseDataStore implements DataStore {
   async editMessage(messageId: string, content: string): Promise<void> {
     const supabase = getSupabaseInstance();
     if (!supabase) {
-      logger.warn('Supabase client not available');
+      console.warn('Supabase client not available');
       return;
     }
 
@@ -3361,7 +3360,7 @@ export class SupabaseDataStore implements DataStore {
   async deleteMessage(messageId: string): Promise<void> {
     const supabase = getSupabaseInstance();
     if (!supabase) {
-      logger.warn('Supabase client not available');
+      console.warn('Supabase client not available');
       return;
     }
 
@@ -3806,7 +3805,7 @@ export class SupabaseDataStore implements DataStore {
     primary_color: string;
     secondary_color: string;
   }): Promise<any> {
-    logger.info('🔄 createBusiness: Starting...', input);
+    console.log('🔄 createBusiness: Starting...', input);
 
     const supabase = getSupabase();
 
@@ -3819,7 +3818,7 @@ export class SupabaseDataStore implements DataStore {
     // Use the default infrastructure ID directly
     // This avoids RLS issues where users can't SELECT infrastructures they're not yet members of
     const infrastructureId = '73c82fd4-c0c5-406c-ae94-96d4094c8eae';
-    logger.info('✅ Using default infrastructure:', infrastructureId);
+    console.log('✅ Using default infrastructure:', infrastructureId);
 
     // Look up business_type_id
     const { data: businessType, error: typeError } = await supabase
@@ -3829,12 +3828,12 @@ export class SupabaseDataStore implements DataStore {
       .maybeSingle();
 
     if (typeError) {
-      logger.error('❌ Failed to lookup business type:', typeError);
+      console.error('❌ Failed to lookup business type:', typeError);
       throw new Error('Failed to lookup business type');
     }
 
     const businessTypeId = businessType?.id || null;
-    logger.info('✅ Business type ID:', businessTypeId);
+    console.log('✅ Business type ID:', businessTypeId);
 
     // Prepare settings JSONB with all custom fields
     const settings = {
@@ -3862,18 +3861,18 @@ export class SupabaseDataStore implements DataStore {
       .single();
 
     if (error) {
-      logger.error('❌ createBusiness: Error inserting:', error);
+      console.error('❌ createBusiness: Error inserting:', error);
       throw error;
     }
 
-    logger.info('✅ createBusiness: Created business:', data.id);
+    console.log('✅ createBusiness: Created business:', data.id);
 
     // Wait for database triggers to complete and verify business role was created
-    logger.info('⏳ Waiting for database triggers to complete...');
+    console.log('⏳ Waiting for database triggers to complete...');
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Verify business role was created by trigger before proceeding
-    logger.info('🔍 Verifying business role was created by trigger...');
+    console.log('🔍 Verifying business role was created by trigger...');
     let roleVerified = false;
     for (let attempt = 0; attempt < 5; attempt++) {
       const { data: roleCheck, error: roleCheckError } = await supabase
@@ -3884,41 +3883,41 @@ export class SupabaseDataStore implements DataStore {
         .maybeSingle();
 
       if (roleCheck && roleCheck.is_active) {
-        logger.info('✅ Business role verified:', roleCheck);
+        console.log('✅ Business role verified:', roleCheck);
         roleVerified = true;
         break;
       }
 
       if (attempt < 4) {
-        logger.info(`⏳ Business role not ready yet, waiting... (attempt ${attempt + 1}/5)`);
+        console.log(`⏳ Business role not ready yet, waiting... (attempt ${attempt + 1}/5)`);
         await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
       }
     }
 
     if (!roleVerified) {
-      logger.warn('⚠️ Business role not found after trigger wait - using link_user_to_business as fallback');
+      console.warn('⚠️ Business role not found after trigger wait - using link_user_to_business as fallback');
 
       // Use the new link_user_to_business function to ensure proper setup
       try {
-        logger.info('🔄 Calling link_user_to_business to ensure proper setup...');
+        console.log('🔄 Calling link_user_to_business to ensure proper setup...');
         const { data: linkResult, error: linkError } = await supabase.rpc('link_user_to_business', {
           p_user_id: user.id,
           p_business_id: data.id
         });
 
         if (linkError) {
-          logger.error('❌ link_user_to_business failed:', linkError);
+          console.error('❌ link_user_to_business failed:', linkError);
         } else {
-          logger.info('✅ link_user_to_business succeeded:', linkResult);
+          console.log('✅ link_user_to_business succeeded:', linkResult);
           roleVerified = true;
         }
       } catch (linkError) {
-        logger.error('❌ link_user_to_business error:', linkError);
+        console.error('❌ link_user_to_business error:', linkError);
       }
     }
 
     // Step 1: Set active business context using the new set_user_active_business function
-    logger.info('🔄 Setting active business context...');
+    console.log('🔄 Setting active business context...');
     let contextSwitchSucceeded = false;
 
     try {
@@ -3928,15 +3927,15 @@ export class SupabaseDataStore implements DataStore {
       });
 
       if (contextError) {
-        logger.warn('⚠️ set_user_active_business failed:', contextError);
-        logger.info('ℹ️ Will try fallback methods');
+        console.warn('⚠️ set_user_active_business failed:', contextError);
+        console.log('ℹ️ Will try fallback methods');
       } else {
-        logger.info('✅ Business context set successfully:', contextResult);
+        console.log('✅ Business context set successfully:', contextResult);
         contextSwitchSucceeded = true;
       }
     } catch (contextError) {
-      logger.warn('⚠️ set_user_active_business error:', contextError);
-      logger.info('ℹ️ Will try fallback methods');
+      console.warn('⚠️ set_user_active_business error:', contextError);
+      console.log('ℹ️ Will try fallback methods');
     }
 
     // Fallback: Try the old switch-context edge function if the RPC failed
@@ -3954,12 +3953,12 @@ export class SupabaseDataStore implements DataStore {
           });
 
           if (!switchResponse.error) {
-            logger.info('✅ Context switched via fallback edge function');
+            console.log('✅ Context switched via fallback edge function');
             contextSwitchSucceeded = true;
           }
         }
       } catch (fallbackError) {
-        logger.warn('⚠️ Fallback context switch also failed:', fallbackError);
+        console.warn('⚠️ Fallback context switch also failed:', fallbackError);
       }
     }
 
@@ -3969,7 +3968,7 @@ export class SupabaseDataStore implements DataStore {
       const retryDelay = 1000 * (retryCount + 1);
 
       try {
-        logger.info(`🔄 Syncing JWT claims (attempt ${retryCount + 1}/${maxRetries + 1})...`);
+        console.log(`🔄 Syncing JWT claims (attempt ${retryCount + 1}/${maxRetries + 1})...`);
 
         const syncResponse = await supabase.functions.invoke('sync-user-claims', {
           body: {
@@ -3980,24 +3979,24 @@ export class SupabaseDataStore implements DataStore {
         });
 
         if (syncResponse.error) {
-          logger.error('❌ JWT claims sync failed:', syncResponse.error);
-          logger.error('❌ Response data:', syncResponse.data);
+          console.error('❌ JWT claims sync failed:', syncResponse.error);
+          console.error('❌ Response data:', syncResponse.data);
 
           if (retryCount < maxRetries) {
-            logger.info(`⏳ Retrying in ${retryDelay}ms...`);
+            console.log(`⏳ Retrying in ${retryDelay}ms...`);
             await new Promise(resolve => setTimeout(resolve, retryDelay));
             return syncJwtClaims(retryCount + 1);
           }
           return false;
         }
 
-        logger.info('✅ JWT claims synced successfully:', syncResponse.data);
+        console.log('✅ JWT claims synced successfully:', syncResponse.data);
         return true;
       } catch (syncError) {
-        logger.error('❌ JWT claims sync error:', syncError);
+        console.error('❌ JWT claims sync error:', syncError);
 
         if (retryCount < maxRetries) {
-          logger.info(`⏳ Retrying in ${retryDelay}ms...`);
+          console.log(`⏳ Retrying in ${retryDelay}ms...`);
           await new Promise(resolve => setTimeout(resolve, retryDelay));
           return syncJwtClaims(retryCount + 1);
         }
@@ -4008,29 +4007,29 @@ export class SupabaseDataStore implements DataStore {
     const syncSuccess = await syncJwtClaims();
 
     if (!syncSuccess) {
-      logger.warn('⚠️ JWT claims sync failed after retries - business created but permissions may be delayed');
+      console.warn('⚠️ JWT claims sync failed after retries - business created but permissions may be delayed');
     }
 
     // Step 3: Refresh the user session to get updated claims (SYNCHRONOUS - wait for completion)
     let sessionRefreshed = false;
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        logger.info(`🔄 Refreshing user session (attempt ${attempt + 1}/3)...`);
+        console.log(`🔄 Refreshing user session (attempt ${attempt + 1}/3)...`);
         const { data: sessionData, error: refreshError } = await supabase.auth.refreshSession();
 
         if (refreshError) {
-          logger.warn(`⚠️ Session refresh attempt ${attempt + 1} failed:`, refreshError);
+          console.warn(`⚠️ Session refresh attempt ${attempt + 1} failed:`, refreshError);
           if (attempt < 2) {
             await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
             continue;
           }
         } else if (sessionData?.session) {
-          logger.info('✅ Session refreshed successfully');
+          console.log('✅ Session refreshed successfully');
           sessionRefreshed = true;
 
           // Verify the session has the new business context
           const appMetadata = sessionData.session.user.app_metadata;
-          logger.info('🔍 Session metadata:', {
+          console.log('🔍 Session metadata:', {
             business_id: appMetadata?.business_id,
             role: appMetadata?.role,
             business_role: appMetadata?.business_role
@@ -4038,7 +4037,7 @@ export class SupabaseDataStore implements DataStore {
           break;
         }
       } catch (refreshError) {
-        logger.warn(`⚠️ Session refresh error (attempt ${attempt + 1}):`, refreshError);
+        console.warn(`⚠️ Session refresh error (attempt ${attempt + 1}):`, refreshError);
         if (attempt < 2) {
           await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
         }
@@ -4046,14 +4045,14 @@ export class SupabaseDataStore implements DataStore {
     }
 
     if (!sessionRefreshed) {
-      logger.warn('⚠️ Failed to refresh session after 3 attempts');
-      logger.info('ℹ️ Business created successfully, but session may need manual refresh');
+      console.warn('⚠️ Failed to refresh session after 3 attempts');
+      console.log('ℹ️ Business created successfully, but session may need manual refresh');
       // Don't throw - business was created successfully, user can refresh the page
     }
 
     // Step 4: Query business role using user_business_roles table directly
     // (more reliable than the view during initial setup)
-    logger.info('🔄 Querying business role from database...');
+    console.log('🔄 Querying business role from database...');
 
     // Use retry logic for role query since triggers may still be executing
     let businessRole: any = null;
@@ -4064,7 +4063,7 @@ export class SupabaseDataStore implements DataStore {
       roleQueryAttempts++;
 
       try {
-        logger.info(`🔄 Querying business role (attempt ${roleQueryAttempts}/${maxRoleQueryAttempts})...`);
+        console.log(`🔄 Querying business role (attempt ${roleQueryAttempts}/${maxRoleQueryAttempts})...`);
 
         // Query the business_memberships view which has proper joins
         const { data: roleData, error: roleError } = await supabase
@@ -4075,25 +4074,25 @@ export class SupabaseDataStore implements DataStore {
           .maybeSingle();
 
         if (roleError) {
-          logger.error('❌ Failed to query business role:', roleError);
+          console.error('❌ Failed to query business role:', roleError);
 
           if (roleQueryAttempts < maxRoleQueryAttempts) {
             await new Promise(resolve => setTimeout(resolve, 500 * roleQueryAttempts));
             continue;
           }
         } else if (roleData) {
-          logger.info('✅ Business role found:', roleData);
+          console.log('✅ Business role found:', roleData);
           businessRole = roleData;
           break;
         } else {
-          logger.warn(`⚠️ No business role found yet (attempt ${roleQueryAttempts}) - waiting for triggers...`);
+          console.warn(`⚠️ No business role found yet (attempt ${roleQueryAttempts}) - waiting for triggers...`);
 
           if (roleQueryAttempts < maxRoleQueryAttempts) {
             await new Promise(resolve => setTimeout(resolve, 500 * roleQueryAttempts));
           }
         }
       } catch (roleQueryError) {
-        logger.error('❌ Error querying business role:', roleQueryError);
+        console.error('❌ Error querying business role:', roleQueryError);
 
         if (roleQueryAttempts < maxRoleQueryAttempts) {
           await new Promise(resolve => setTimeout(resolve, 500 * roleQueryAttempts));
@@ -4114,18 +4113,18 @@ export class SupabaseDataStore implements DataStore {
       };
 
       localStorage.setItem('active_business_role', JSON.stringify(businessRoleData));
-      logger.info('💾 Business role cached in localStorage for immediate UI access');
+      console.log('💾 Business role cached in localStorage for immediate UI access');
     } else {
-      logger.warn('⚠️ Business role not found after all retries - will be loaded on next page refresh');
+      console.warn('⚠️ Business role not found after all retries - will be loaded on next page refresh');
     }
 
     // Step 5: Wait for role propagation to ensure UI can access new role
-    logger.info('⏳ Waiting for role propagation...');
+    console.log('⏳ Waiting for role propagation...');
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Final summary
-    logger.info('🎉 Business creation flow complete!');
-    logger.info('📊 Summary:', {
+    console.log('🎉 Business creation flow complete!');
+    console.log('📊 Summary:', {
       businessId: data.id,
       businessName: data.name,
       contextSwitched: contextSwitchSucceeded,
@@ -4135,8 +4134,8 @@ export class SupabaseDataStore implements DataStore {
     });
 
     if (!sessionRefreshed || !businessRole) {
-      logger.info('ℹ️ Note: Some steps were incomplete. The business was created successfully.');
-      logger.info('ℹ️ If you don\'t see the business immediately, please refresh the page.');
+      console.log('ℹ️ Note: Some steps were incomplete. The business was created successfully.');
+      console.log('ℹ️ If you don\'t see the business immediately, please refresh the page.');
     }
 
     return data;
@@ -4380,7 +4379,7 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async createBusinessType(input: Omit<BusinessType, 'id' | 'created_at' | 'updated_at' | 'created_by'>): Promise<{ id: string }> {
-    logger.info('🔄 createBusinessType: Starting...', input);
+    console.log('🔄 createBusinessType: Starting...', input);
 
     // Get the current user's UUID from the users table
     const { data: user, error: userError } = await supabase
@@ -4390,16 +4389,16 @@ export class SupabaseDataStore implements DataStore {
       .maybeSingle();
 
     if (userError) {
-      logger.error('❌ createBusinessType: Error fetching user:', userError);
+      console.error('❌ createBusinessType: Error fetching user:', userError);
       throw userError;
     }
 
     if (!user) {
-      logger.error('❌ createBusinessType: User not found for telegram_id:', this.userTelegramId);
+      console.error('❌ createBusinessType: User not found for telegram_id:', this.userTelegramId);
       throw new Error('User not found');
     }
 
-    logger.info('✅ createBusinessType: Found user ID:', user.id);
+    console.log('✅ createBusinessType: Found user ID:', user.id);
 
     const { data, error } = await supabase
       .from('business_types')
@@ -4411,11 +4410,11 @@ export class SupabaseDataStore implements DataStore {
       .single();
 
     if (error) {
-      logger.error('❌ createBusinessType: Error inserting:', error);
+      console.error('❌ createBusinessType: Error inserting:', error);
       throw error;
     }
 
-    logger.info('✅ createBusinessType: Created business type:', data.id);
+    console.log('✅ createBusinessType: Created business type:', data.id);
     return { id: data.id };
   }
 
@@ -4438,7 +4437,7 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async listAllUsers(): Promise<any[]> {
-    logger.info('📋 listAllUsers: Fetching all users from database...');
+    console.log('📋 listAllUsers: Fetching all users from database...');
 
     const { data, error } = await supabase
       .from('users')
@@ -4446,11 +4445,11 @@ export class SupabaseDataStore implements DataStore {
       .order('name', { ascending: true });
 
     if (error) {
-      logger.error('❌ listAllUsers: Error fetching users:', error);
+      console.error('❌ listAllUsers: Error fetching users:', error);
       throw error;
     }
 
-    logger.info(`✅ listAllUsers: Loaded ${data?.length || 0} users from database:`, data);
+    console.log(`✅ listAllUsers: Loaded ${data?.length || 0} users from database:`, data);
     return data || [];
   }
 
@@ -4462,13 +4461,13 @@ export class SupabaseDataStore implements DataStore {
         .rpc('get_user_businesses');
 
       if (error) {
-        logger.error('Failed to get user businesses:', error);
+        console.error('Failed to get user businesses:', error);
         throw error;
       }
 
       return data || [];
     } catch (error) {
-      logger.error('getUserBusinesses: Error accessing Supabase:', error);
+      console.error('getUserBusinesses: Error accessing Supabase:', error);
       throw error;
     }
   }
@@ -4494,13 +4493,13 @@ export class SupabaseDataStore implements DataStore {
       .maybeSingle();
 
     if (error) {
-      logger.error('Failed to get active business context:', error);
+      console.error('Failed to get active business context:', error);
       return null;
     }
 
     return data;
     } catch (error) {
-      logger.error('getActiveBusinessContext: Error accessing Supabase:', error);
+      console.error('getActiveBusinessContext: Error accessing Supabase:', error);
       return null;
     }
   }
@@ -4514,11 +4513,11 @@ export class SupabaseDataStore implements DataStore {
         });
 
       if (error) {
-        logger.error('Failed to set active business context:', error);
+        console.error('Failed to set active business context:', error);
         throw error;
       }
     } catch (error) {
-      logger.error('setActiveBusinessContext: Error accessing Supabase:', error);
+      console.error('setActiveBusinessContext: Error accessing Supabase:', error);
       throw error;
     }
   }
@@ -4553,10 +4552,10 @@ export class SupabaseDataStore implements DataStore {
   // Direct Messaging and User Presence Functions
 
   async listAllUsersForMessaging(): Promise<User[]> {
-    logger.info('📋 listAllUsersForMessaging: Fetching all users for messaging...');
+    console.log('📋 listAllUsersForMessaging: Fetching all users for messaging...');
     const supabase = getSupabaseInstance();
     if (!supabase) {
-      logger.warn('Supabase client not available');
+      console.warn('Supabase client not available');
       return [];
     }
 
@@ -4566,11 +4565,11 @@ export class SupabaseDataStore implements DataStore {
       .order('name', { ascending: true });
 
     if (error) {
-      logger.error('❌ listAllUsersForMessaging: Error fetching users:', error);
+      console.error('❌ listAllUsersForMessaging: Error fetching users:', error);
       throw error;
     }
 
-    logger.info(`✅ listAllUsersForMessaging: Loaded ${data?.length || 0} users from database`);
+    console.log(`✅ listAllUsersForMessaging: Loaded ${data?.length || 0} users from database`);
     return (data || []).map((row: any) => ({
       telegram_id: row.telegram_id,
       role: row.role,
@@ -4603,7 +4602,7 @@ export class SupabaseDataStore implements DataStore {
   async listDirectMessageRooms(): Promise<any[]> {
     const supabase = getSupabaseInstance();
     if (!supabase) {
-      logger.warn('Supabase client not available');
+      console.warn('Supabase client not available');
       return [];
     }
 
@@ -4645,7 +4644,7 @@ export class SupabaseDataStore implements DataStore {
   async updateUserPresence(status: 'online' | 'away' | 'busy' | 'offline'): Promise<void> {
     const supabase = getSupabaseInstance();
     if (!supabase) {
-      logger.warn('Supabase client not available');
+      console.warn('Supabase client not available');
       return;
     }
 

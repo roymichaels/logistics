@@ -72,7 +72,7 @@ export class DriverService {
       if (error) throw error;
       return data;
     } catch (error) {
-      logger.error('Failed to get driver profile:', error);
+      console.error('Failed to get driver profile:', error);
       return null;
     }
   }
@@ -89,7 +89,7 @@ export class DriverService {
 
       if (error) throw error;
     } catch (error) {
-      logger.error('Failed to create/update driver profile:', error);
+      console.error('Failed to create/update driver profile:', error);
       throw error;
     }
   }
@@ -120,7 +120,7 @@ export class DriverService {
         })
         .eq('user_id', driverId);
     } catch (error) {
-      logger.error('Failed to update driver location:', error);
+      console.error('Failed to update driver location:', error);
       throw error;
     }
   }
@@ -137,7 +137,7 @@ export class DriverService {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      logger.error('Failed to get driver locations:', error);
+      console.error('Failed to get driver locations:', error);
       return [];
     }
   }
@@ -149,7 +149,7 @@ export class DriverService {
         .update({ is_available: isAvailable, updated_at: new Date().toISOString() })
         .eq('user_id', driverId);
     } catch (error) {
-      logger.error('Failed to set driver availability:', error);
+      console.error('Failed to set driver availability:', error);
       throw error;
     }
   }
@@ -192,7 +192,7 @@ export class DriverService {
         revenue_today: revenueToday
       };
     } catch (error) {
-      logger.error('Failed to get driver stats:', error);
+      console.error('Failed to get driver stats:', error);
       return {
         total_deliveries: 0,
         successful_deliveries: 0,
@@ -271,7 +271,7 @@ export class DriverService {
         .filter((d): d is AvailableDriver => d !== null)
         .sort((a, b) => b.score - a.score);
     } catch (error) {
-      logger.error('Failed to get available drivers:', error);
+      console.error('Failed to get available drivers:', error);
       return [];
     }
   }
@@ -308,7 +308,7 @@ export class DriverService {
 
       return data;
     } catch (error) {
-      logger.error('Failed to create order assignment:', error);
+      console.error('Failed to create order assignment:', error);
       throw error;
     }
   }
@@ -350,7 +350,7 @@ export class DriverService {
         }
       }
     } catch (error) {
-      logger.error('Failed to respond to assignment:', error);
+      console.error('Failed to respond to assignment:', error);
       throw error;
     }
   }
@@ -371,7 +371,7 @@ export class DriverService {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      logger.error('Failed to get driver assignments:', error);
+      console.error('Failed to get driver assignments:', error);
       return [];
     }
   }
@@ -398,7 +398,7 @@ export class DriverService {
         }
       }
     } catch (error) {
-      logger.error('Failed to check and handle timeouts:', error);
+      console.error('Failed to check and handle timeouts:', error);
     }
   }
 
@@ -439,7 +439,7 @@ export class DriverService {
         completionRate: stats.success_rate
       };
     } catch (error) {
-      logger.error('Failed to get driver performance metrics:', error);
+      console.error('Failed to get driver performance metrics:', error);
       return {
         onTimeDeliveryRate: 0,
         avgDeliveryTime: 0,
@@ -470,7 +470,7 @@ export class DriverService {
         })
         .eq('user_id', driverId);
     } catch (error) {
-      logger.error('Failed to update vehicle info:', error);
+      console.error('Failed to update vehicle info:', error);
       throw error;
     }
   }
@@ -504,7 +504,7 @@ export class DriverService {
         avgEarningsPerDelivery: stats.completed_today > 0 ? totalEarnings / stats.completed_today : 0
       };
     } catch (error) {
-      logger.error('Failed to get earnings summary:', error);
+      console.error('Failed to get earnings summary:', error);
       return {
         totalEarnings: 0,
         baseEarnings: 0,
@@ -537,7 +537,7 @@ export class DriverService {
         orderId: order.id
       }));
     } catch (error) {
-      logger.error('Failed to get rating history:', error);
+      console.error('Failed to get rating history:', error);
       return [];
     }
   }
@@ -559,7 +559,7 @@ export class DriverService {
         fuelEfficiencyScore: 8.5
       };
     } catch (error) {
-      logger.error('Failed to calculate efficiency:', error);
+      console.error('Failed to calculate efficiency:', error);
       return {
         deliveriesPerHour: 0,
         utilizationRate: 0,

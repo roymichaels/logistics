@@ -112,7 +112,7 @@ export class DriverAssignmentService {
         alternatives: scoredDrivers.slice(1, 4)
       };
     } catch (error) {
-      logger.error('Failed to find best driver:', error);
+      console.error('Failed to find best driver:', error);
       return {
         success: false,
         reason: 'error',
@@ -147,7 +147,7 @@ export class DriverAssignmentService {
 
       return true;
     } catch (error) {
-      logger.error('Failed to assign order to driver:', error);
+      console.error('Failed to assign order to driver:', error);
       return false;
     }
   }
@@ -213,7 +213,7 @@ export class DriverAssignmentService {
 
       return workload.sort((a, b) => b.utilizationPercent - a.utilizationPercent);
     } catch (error) {
-      logger.error('Failed to get workload distribution:', error);
+      console.error('Failed to get workload distribution:', error);
       return [];
     }
   }
@@ -264,7 +264,7 @@ export class DriverAssignmentService {
         .filter(a => zoneIds.includes(a.zone_id))
         .map(a => a.driver_id);
     } catch (error) {
-      logger.error('Failed to get drivers in zones:', error);
+      console.error('Failed to get drivers in zones:', error);
       return [];
     }
   }
@@ -303,7 +303,7 @@ export class DriverAssignmentService {
         reason: `עסוק ב-${stats.active_orders} הזמנות`
       };
     } catch (error) {
-      logger.error('Failed to predict availability:', error);
+      console.error('Failed to predict availability:', error);
       return {
         available: false,
         confidence: 0,
@@ -355,7 +355,7 @@ export class DriverAssignmentService {
         reason: `מומלץ להמתין ${waitTime} דקות עד שנהג יתפנה`
       };
     } catch (error) {
-      logger.error('Failed to get optimal assignment time:', error);
+      console.error('Failed to get optimal assignment time:', error);
       return {
         immediate: true,
         reason: 'לא ניתן לחשב זמן אופטימלי'

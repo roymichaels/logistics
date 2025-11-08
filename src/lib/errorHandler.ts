@@ -4,6 +4,8 @@
  * Handles application errors gracefully and provides recovery mechanisms
  */
 
+import { logger } from './logger';
+
 export interface ErrorHandlerOptions {
   logToConsole?: boolean;
   showUserMessage?: boolean;
@@ -40,9 +42,9 @@ class ErrorHandlerService {
       this.errorLog.shift();
     }
 
-    // Log to console if enabled
+    // Log to logger if enabled
     if (logToConsole) {
-      console.error(`[ErrorHandler] ${context || 'Error'}:`, err);
+      logger.error(context || 'Error', err);
     }
 
     // Show user message if enabled
@@ -60,9 +62,9 @@ class ErrorHandlerService {
   private showUserError(error: Error, context?: string): void {
     const message = this.getUserFriendlyMessage(error, context);
 
-    // Use native alert as fallback (can be replaced with toast/notification system)
+    // Log user-facing error
     if (typeof window !== 'undefined') {
-      console.warn(`[User Error] ${message}`);
+      logger.warn('User Error', { message });
       // Don't show alert for every error, just log it
       // alert(message);
     }
@@ -132,8 +134,8 @@ class ErrorHandlerService {
    * Handle API endpoint not found gracefully
    */
   handleMissingEndpoint(endpoint: string): void {
-    console.warn(`[ErrorHandler] API endpoint not found: ${endpoint}`);
-    console.warn(`This is expected in development environments without backend services`);
+    logger.warn('API endpoint not found', { endpoint });
+    logger.warn('This is expected in development environments without backend services');
   }
 
   /**
@@ -141,11 +143,11 @@ class ErrorHandlerService {
    */
   handleBlockedResource(resourceUrl: string): void {
     if (resourceUrl.includes('sentry.io')) {
-      console.info('[ErrorHandler] Sentry blocked by ad blocker - using local error tracking');
+      logger.info('Sentry blocked by ad blocker - using local error tracking');
       return;
     }
 
-    console.warn(`[ErrorHandler] Resource blocked: ${resourceUrl}`);
+    logger.warn('Resource blocked', { resourceUrl });
   }
 
   /**

@@ -71,7 +71,7 @@ export class InventoryService {
             entityId: input.product_id
           }
         });
-        logger.warn('Restock request queued for offline retry', queued);
+        console.warn('Restock request queued for offline retry', queued);
         return { id: queued.id };
       }
 
