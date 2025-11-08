@@ -84,7 +84,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
 
       setZones(zonesWithDrivers);
     } catch (error) {
-      console.error('Failed to load zones:', error);
+      logger.error('Failed to load zones:', error);
       Toast.error('שגיאה בטעינת אזורים');
     } finally {
       setLoading(false);
@@ -104,7 +104,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
       setSelectedDriverId('');
       await loadData();
     } catch (error) {
-      console.error('Failed to assign driver:', error);
+      logger.error('Failed to assign driver:', error);
       Toast.error('שגיאה בשיוך נהג');
     }
   };
@@ -118,7 +118,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
       Toast.success('נהג הוסר מהאזור');
       await loadData();
     } catch (error) {
-      console.error('Failed to unassign driver:', error);
+      logger.error('Failed to unassign driver:', error);
       Toast.error('שגיאה בהסרת נהג');
     }
   };

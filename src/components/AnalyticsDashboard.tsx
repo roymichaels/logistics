@@ -116,7 +116,7 @@ export function AnalyticsDashboard({ dataStore, user, businessId }: AnalyticsDas
         trendsData
       });
     } catch (error) {
-      console.error('Failed to load analytics:', error);
+      logger.error('Failed to load analytics:', error);
       Toast.error('שגיאה בטעינת נתוני ניתוח');
     } finally {
       setLoading(false);

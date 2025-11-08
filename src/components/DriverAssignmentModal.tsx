@@ -71,7 +71,7 @@ export function DriverAssignmentModal({
       Toast.success('הזמנה התקבלה בהצלחה!');
       onClose();
     } catch (error) {
-      console.error('Failed to accept assignment:', error);
+      logger.error('Failed to accept assignment:', error);
       Toast.error('שגיאה בקבלת ההזמנה');
     } finally {
       setIsAccepting(false);
@@ -87,7 +87,7 @@ export function DriverAssignmentModal({
       Toast.info('הזמנה נדחתה');
       onClose();
     } catch (error) {
-      console.error('Failed to decline assignment:', error);
+      logger.error('Failed to decline assignment:', error);
       Toast.error('שגיאה בדחיית ההזמנה');
     } finally {
       setIsDeclining(false);

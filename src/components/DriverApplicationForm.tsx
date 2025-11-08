@@ -197,7 +197,7 @@ export function DriverApplicationForm({ dataStore, onComplete, onCancel }: Drive
       Toast.success('הבקשה נשלחה בהצלחה! נבדוק אותה בקרוב');
       onComplete();
     } catch (error) {
-      console.error('Failed to submit application:', error);
+      logger.error('Failed to submit application:', error);
       haptic.notificationOccurred('error');
       Toast.error('שגיאה בשליחת הבקשה');
     } finally {

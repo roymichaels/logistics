@@ -52,7 +52,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
           .eq('id', user.id);
       }
     } catch (error) {
-      console.warn('Failed to save language preference to database:', error);
+      logger.warn('Failed to save language preference to database:', error);
       // Non-critical error, continue with localStorage
     }
   };
@@ -78,7 +78,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
           }
         }
       } catch (error) {
-        console.warn('Failed to load language preference from database:', error);
+        logger.warn('Failed to load language preference from database:', error);
         // Continue with localStorage value
       }
     };

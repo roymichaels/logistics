@@ -38,7 +38,7 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
 
       setProducts(productsList);
     } catch (error) {
-      console.error('Failed to load products:', error);
+      logger.error('Failed to load products:', error);
       telegram.showAlert('שגיאה בטעינת מוצרים');
     } finally {
       setLoading(false);
@@ -58,7 +58,7 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
       setShowCreateModal(false);
       loadData();
     } catch (error) {
-      console.error('Failed to create product:', error);
+      logger.error('Failed to create product:', error);
       telegram.showAlert('שגיאה ביצירת המוצר');
     }
   };
@@ -77,7 +77,7 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
       setSelectedProduct(null);
       loadData();
     } catch (error) {
-      console.error('Failed to update product:', error);
+      logger.error('Failed to update product:', error);
       telegram.showAlert('שגיאה בעדכון המוצר');
     }
   };
@@ -98,7 +98,7 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
       telegram.showAlert('המוצר נמחק');
       loadData();
     } catch (error) {
-      console.error('Failed to delete product:', error);
+      logger.error('Failed to delete product:', error);
       telegram.showAlert('שגיאה במחיקת המוצר');
     }
   };

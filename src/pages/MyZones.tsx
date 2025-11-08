@@ -50,7 +50,7 @@ export function MyZones({ dataStore }: MyZonesProps) {
       setStatus(statusRecord);
       setError(null);
     } catch (err) {
-      console.error('Failed to load zone data', err);
+      logger.error('Failed to load zone data', err);
       setError('שגיאה בטעינת נתוני האזורים');
       Toast.error('שגיאה בטעינת נתוני האזורים');
     } finally {
@@ -86,7 +86,7 @@ export function MyZones({ dataStore }: MyZonesProps) {
       haptic('soft');
       await loadData();
     } catch (err) {
-      console.error('Failed to update zone assignment', err);
+      logger.error('Failed to update zone assignment', err);
       Toast.error('שגיאה בעדכון שיוך האזור');
     } finally {
       setSavingZoneId(null);
@@ -125,7 +125,7 @@ export function MyZones({ dataStore }: MyZonesProps) {
       haptic('soft');
       await loadData();
     } catch (err) {
-      console.error('Failed to set active zone', err);
+      logger.error('Failed to set active zone', err);
       Toast.error('שגיאה בעדכון אזור הפעילות');
     } finally {
       setSavingZoneId(null);

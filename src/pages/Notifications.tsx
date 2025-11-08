@@ -60,7 +60,7 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
 
       setNotifications(filteredNotifications);
     } catch (error) {
-      console.error('Failed to load notifications:', error);
+      logger.error('Failed to load notifications:', error);
     } finally {
       setLoading(false);
     }
@@ -73,7 +73,7 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
       await dataStore.markNotificationAsRead(notificationId);
       await loadNotifications();
     } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+      logger.error('Failed to mark notification as read:', error);
       Toast.error('שגיאה בסימון התראה');
     }
   };
@@ -93,7 +93,7 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
       await loadNotifications();
       Toast.success('כל ההתראות סומנו כנקראו');
     } catch (error) {
-      console.error('Failed to mark all as read:', error);
+      logger.error('Failed to mark all as read:', error);
       Toast.error('שגיאה בסימון התראות');
     }
   };

@@ -139,7 +139,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
                 pending_orders: metrics.orders_in_progress,
               } as BusinessSummary;
             } catch (err) {
-              console.warn('⚠️ Failed to load metrics for business', biz.id, err);
+              logger.warn('⚠️ Failed to load metrics for business', biz.id, err);
               return {
                 id: biz.id,
                 name: biz.name,

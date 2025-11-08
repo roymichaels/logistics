@@ -98,7 +98,7 @@ export function EnhancedOrderEntry({
       setProducts(productsList);
       await loadInventoryData(productsList);
     } catch (error) {
-      console.error('Failed to load data:', error);
+      logger.error('Failed to load data:', error);
       Toast.error('שגיאה בטעינת נתונים');
     } finally {
       setLoading(false);
@@ -146,7 +146,7 @@ export function EnhancedOrderEntry({
 
       setInventoryAvailability(availabilityMap);
     } catch (error) {
-      console.error('Failed to load inventory:', error);
+      logger.error('Failed to load inventory:', error);
     }
   };
 
@@ -261,7 +261,7 @@ export function EnhancedOrderEntry({
         onSuccess(result.id);
       }
     } catch (error) {
-      console.error('Failed to create order:', error);
+      logger.error('Failed to create order:', error);
       telegram.hapticFeedback('notification', 'error');
       Toast.error('שגיאה ביצירת ההזמנה');
     } finally {

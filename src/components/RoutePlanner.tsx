@@ -64,7 +64,7 @@ export function RoutePlanner({ tasks, assignedDriver, onRouteOptimized, onClose 
       onRouteOptimized(result);
       haptic();
     } catch (error) {
-      console.error('Route optimization failed:', error);
+      logger.error('Route optimization failed:', error);
       haptic();
     } finally {
       setIsOptimizing(false);

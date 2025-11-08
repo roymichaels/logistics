@@ -72,7 +72,7 @@ export function InfrastructureWarehouseDashboard() {
         setSelectedWarehouse(data[0].id);
       }
     } catch (error) {
-      console.error('Failed to load warehouses:', error);
+      logger.error('Failed to load warehouses:', error);
     } finally {
       setLoading(false);
     }
@@ -134,7 +134,7 @@ export function InfrastructureWarehouseDashboard() {
 
       setPendingAllocations(allocations);
     } catch (error) {
-      console.error('Failed to load warehouse data:', error);
+      logger.error('Failed to load warehouse data:', error);
     }
   }
 
@@ -153,7 +153,7 @@ export function InfrastructureWarehouseDashboard() {
       Toast.success(response.message || 'ההקצאה אושרה בהצלחה');
       await loadWarehouseData();
     } catch (error: any) {
-      console.error('Failed to approve allocation:', error);
+      logger.error('Failed to approve allocation:', error);
       Toast.error(error.message || 'שגיאה באישור ההקצאה');
     }
   }
@@ -169,7 +169,7 @@ export function InfrastructureWarehouseDashboard() {
       Toast.success(response.message || 'ההקצאה נדחתה');
       await loadWarehouseData();
     } catch (error: any) {
-      console.error('Failed to reject allocation:', error);
+      logger.error('Failed to reject allocation:', error);
       Toast.error(error.message || 'שגיאה בדחיית ההקצאה');
     }
   }
@@ -188,7 +188,7 @@ export function InfrastructureWarehouseDashboard() {
       Toast.success(response.message || 'המלאי הועבר בהצלחה');
       await loadWarehouseData();
     } catch (error: any) {
-      console.error('Failed to fulfill allocation:', error);
+      logger.error('Failed to fulfill allocation:', error);
       Toast.error(error.message || 'שגיאה בביצוע ההעברה');
     }
   }

@@ -65,7 +65,7 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
         }
       }
     } catch (error) {
-      console.error('Failed to load tasks:', error);
+      logger.error('Failed to load tasks:', error);
       telegram.showAlert('שגיאה בטעינת משימות');
     } finally {
       setLoading(false);
@@ -85,7 +85,7 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
       setShowCreateModal(false);
       loadData();
     } catch (error) {
-      console.error('Failed to create task:', error);
+      logger.error('Failed to create task:', error);
       telegram.showAlert('שגיאה ביצירת המשימה');
     }
   };
@@ -104,7 +104,7 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
       setSelectedTask(null);
       loadData();
     } catch (error) {
-      console.error('Failed to update task:', error);
+      logger.error('Failed to update task:', error);
       telegram.showAlert('שגיאה בעדכון המשימה');
     }
   };
@@ -125,7 +125,7 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
       telegram.showAlert('המשימה נמחקה');
       loadData();
     } catch (error) {
-      console.error('Failed to delete task:', error);
+      logger.error('Failed to delete task:', error);
       telegram.showAlert('שגיאה במחיקת המשימה');
     }
   };

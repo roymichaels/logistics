@@ -53,7 +53,7 @@ export const MemoizedPageRouter = memo<{
   renderPage: () => React.ReactNode;
 }>(
   ({ currentPage, userRole, renderPage }) => {
-    console.log('🔄 MemoizedPageRouter rendering:', { currentPage, userRole });
+    logger.info('🔄 MemoizedPageRouter rendering:', { currentPage, userRole });
 
     return (
       <PageErrorBoundary>
@@ -89,7 +89,7 @@ export function withPerformanceMonitoring<P extends object>(
       renderCount.current++;
 
       if (renderCount.current > 10) {
-        console.warn(
+        logger.warn(
           `⚠️ ${componentName} has rendered ${renderCount.current} times. Consider optimization.`
         );
       }
@@ -107,7 +107,7 @@ export function withPerformanceMonitoring<P extends object>(
         const duration = perfMonitor.end(`render-${componentName}`);
         if (duration > 16) {
           // More than one frame (16ms at 60fps)
-          console.warn(
+          logger.warn(
             `⚠️ ${componentName} took ${duration.toFixed(2)}ms to render (>16ms)`
           );
         }

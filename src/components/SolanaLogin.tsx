@@ -83,11 +83,11 @@ Nonce: ${nonce}
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
 
-      console.log('✅ ארנק Solana מחובר והודעה נחתמה');
+      logger.info('✅ ארנק Solana מחובר והודעה נחתמה');
 
       onSuccess(address, signatureHex, message);
     } catch (error: any) {
-      console.error('❌ שגיאה בחיבור ארנק Solana:', error);
+      logger.error('❌ שגיאה בחיבור ארנק Solana:', error);
 
       let errorMessage = 'כשל בחיבור ארנק Solana';
 

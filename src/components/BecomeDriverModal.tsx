@@ -83,7 +83,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
         throw new Error('User not authenticated');
       }
 
-      console.log('🔄 Submitting driver application for user:', user.id);
+      logger.info('🔄 Submitting driver application for user:', user.id);
 
       // Create driver application record
       const applicationData = {
@@ -106,11 +106,11 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
         .single();
 
       if (appError) {
-        console.error('❌ Error creating driver application:', appError);
+        logger.error('❌ Error creating driver application:', appError);
         throw appError;
       }
 
-      console.log('✅ Driver application created:', application);
+      logger.info('✅ Driver application created:', application);
 
       // Create driver profile
       const { error: profileError } = await supabase
@@ -126,11 +126,11 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
         });
 
       if (profileError) {
-        console.error('❌ Error creating driver profile:', profileError);
+        logger.error('❌ Error creating driver profile:', profileError);
         throw profileError;
       }
 
-      console.log('✅ Driver profile created successfully');
+      logger.info('✅ Driver profile created successfully');
 
       Toast.success('הבקשה נשלחה בהצלחה! נציג יצור איתך קשר בקרוב');
       telegram.hapticFeedback('notification', 'success');
@@ -141,7 +141,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
 
       onClose();
     } catch (error) {
-      console.error('❌ Failed to submit driver application:', error);
+      logger.error('❌ Failed to submit driver application:', error);
       const errorMessage = error instanceof Error ? error.message : 'שגיאה בשליחת הבקשה';
       Toast.error(errorMessage + '. נסה שוב מאוחר יותר');
       telegram.hapticFeedback('notification', 'error');

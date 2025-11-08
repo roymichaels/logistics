@@ -79,7 +79,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
       await initializeEncryptedChatService();
       setEncryptionEnabled(true);
     } catch (error) {
-      console.error('Failed to initialize encrypted chat:', error);
+      logger.error('Failed to initialize encrypted chat:', error);
       setEncryptionEnabled(false);
     }
   };
@@ -88,7 +88,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
     try {
       await Promise.all([loadDirectMessages(), loadGroupChats(), loadUsers()]);
     } catch (error) {
-      console.error('Failed to load chat data:', error);
+      logger.error('Failed to load chat data:', error);
     } finally {
       setLoading(false);
     }
@@ -107,7 +107,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
               try {
                 otherUserInfo = await dataStore.getUserByTelegramId(dm.other_telegram_id);
               } catch (e) {
-                console.warn('Could not fetch user info for', dm.other_telegram_id);
+                logger.warn('Could not fetch user info for', dm.other_telegram_id);
               }
             }
             return {
@@ -121,7 +121,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
         setDirectMessageRooms(enhancedDMs);
       }
     } catch (error) {
-      console.error('Failed to load direct messages:', error);
+      logger.error('Failed to load direct messages:', error);
     }
   };
 
@@ -146,16 +146,16 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
         setGroupChats(chatsList);
       }
     } catch (error) {
-      console.error('Failed to load group chats:', error);
+      logger.error('Failed to load group chats:', error);
     }
   };
 
   const loadUsers = async () => {
     try {
       if (dataStore.listAllUsersForMessaging) {
-        console.log('🔍 Chat: Loading users for messaging...');
+        logger.info('🔍 Chat: Loading users for messaging...');
         const usersList = await dataStore.listAllUsersForMessaging();
-        console.log(`✅ Chat: Loaded ${usersList.length} users`);
+        logger.info(`✅ Chat: Loaded ${usersList.length} users`);
 
         const usersWithPresence = usersList
           .filter(u => u.telegram_id !== currentUser?.telegram_id)
@@ -166,11 +166,11 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
             last_seen: user.last_seen || null
           }));
 
-        console.log(`📊 Chat: Showing ${usersWithPresence.length} users (filtered out current user)`);
+        logger.info(`📊 Chat: Showing ${usersWithPresence.length} users (filtered out current user)`);
         setUsers(usersWithPresence);
       }
     } catch (error) {
-      console.error('Failed to load users:', error);
+      logger.error('Failed to load users:', error);
     }
   };
 
@@ -197,7 +197,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
         await loadDirectMessages(); // Refresh to update unread counts
       }
     } catch (error) {
-      console.error('Failed to load messages:', error);
+      logger.error('Failed to load messages:', error);
       setMessages([]);
     }
   };
@@ -213,7 +213,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
       setNewMessage('');
       haptic();
     } catch (error) {
-      console.error('Failed to send message:', error);
+      logger.error('Failed to send message:', error);
       telegram.showAlert('שליחת ההודעה נכשלה');
     }
   };
@@ -254,7 +254,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
       setActiveTab('conversations');
       await loadMessages(roomId, true);
     } catch (error) {
-      console.error('Failed to create/open direct message:', error);
+      logger.error('Failed to create/open direct message:', error);
       telegram.showAlert('לא ניתן לפתוח שיחה');
     }
   };

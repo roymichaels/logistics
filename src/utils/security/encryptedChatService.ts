@@ -209,7 +209,7 @@ export class EncryptedChatService {
           replyToId: encryptedMsg.replyToId
         });
       } catch (error) {
-        console.error('Failed to decrypt message:', error);
+        logger.error('Failed to decrypt message:', error);
         // Skip corrupted messages
       }
     }
@@ -427,7 +427,7 @@ export class EncryptedChatService {
               const chatKey = await EncryptionService.importKey(exportedKey);
               this.chatKeys.set(chatId, chatKey);
             } catch (error) {
-              console.error(`Failed to load chat key for ${chatId}:`, error);
+              logger.error(`Failed to load chat key for ${chatId}:`, error);
             }
           }
         }

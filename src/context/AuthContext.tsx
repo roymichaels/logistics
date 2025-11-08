@@ -32,7 +32,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
 
     authService.initialize().catch(error => {
-      console.error('❌ Auth initialization error:', error);
+      logger.error('❌ Auth initialization error:', error);
     });
 
     return () => {
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signOut = async () => {
     // Check for auth loop before logging out
     if (isInAuthLoop()) {
-      console.error('⚠️ Auth loop detected! Activating circuit breaker.');
+      logger.error('⚠️ Auth loop detected! Activating circuit breaker.');
       activateCircuitBreaker();
       return;
     }
@@ -63,13 +63,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (isCircuitBreakerActive()) {
       const diagnostics = getAuthLoopDiagnostics();
       const cooldownMinutes = Math.ceil(diagnostics.cooldownRemaining / 60000);
-      console.error(`🚫 Circuit breaker active. Please wait ${cooldownMinutes} minutes before trying again.`);
+      logger.error(`🚫 Circuit breaker active. Please wait ${cooldownMinutes} minutes before trying again.`);
       throw new Error(`Too many authentication attempts. Please wait ${cooldownMinutes} minutes and try again.`);
     }
 
     // Check for auth loop before authenticating
     if (isInAuthLoop()) {
-      console.error('⚠️ Auth loop detected! Activating circuit breaker.');
+      logger.error('⚠️ Auth loop detected! Activating circuit breaker.');
       activateCircuitBreaker();
       throw new Error('Authentication loop detected. Please wait 5 minutes and try again.');
     }

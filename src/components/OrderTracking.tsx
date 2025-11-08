@@ -95,7 +95,7 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
 
       setError(null);
     } catch (err) {
-      console.error('Failed to load order data:', err);
+      logger.error('Failed to load order data:', err);
       setError('שגיאה בטעינת נתוני ההזמנה');
       Toast.error('שגיאה בטעינת נתוני ההזמנה');
     } finally {
@@ -117,7 +117,7 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
           filter: `id=eq.${orderId}`
         },
         (payload: any) => {
-          console.log('Order update received:', payload);
+          logger.info('Order update received:', payload);
           loadOrderData();
         }
       )
@@ -130,7 +130,7 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
           filter: `order_id=eq.${orderId}`
         },
         (payload: any) => {
-          console.log('Status history update:', payload);
+          logger.info('Status history update:', payload);
           loadOrderData();
         }
       )

@@ -74,7 +74,7 @@ export function PerformanceWidget({ dataStore, theme, userRole }: WidgetProps) {
 
       setMetrics(newMetrics);
     } catch (error) {
-      console.error('Failed to load performance metrics:', error);
+      logger.error('Failed to load performance metrics:', error);
     } finally {
       setLoading(false);
     }
@@ -206,7 +206,7 @@ export function QuickActionsWidget({ dataStore, theme, userRole }: WidgetProps) 
   const handleAction = (action: string) => {
     haptic();
     // Handle action based on type
-    console.log('Quick action triggered:', action);
+    logger.info('Quick action triggered:', action);
   };
 
   const actions = getActionsForRole();
@@ -421,7 +421,7 @@ export function RecentActivityWidget({ dataStore, theme }: { dataStore: DataStor
 
       setActivities(mockActivities);
     } catch (error) {
-      console.error('Failed to load recent activities:', error);
+      logger.error('Failed to load recent activities:', error);
     } finally {
       setLoading(false);
     }

@@ -58,17 +58,17 @@ export function AppOwnerAnalytics({ onNavigate, currentUser, dataStore }: AppOwn
 
     setLoading(true);
     try {
-      console.log('⚡ AppOwner - Loading platform stats...');
+      logger.info('⚡ AppOwner - Loading platform stats...');
 
       const { data, error } = await dataStore.supabase
         .rpc('get_platform_stats');
 
       if (error) throw error;
 
-      console.log('✅ AppOwner - Stats loaded:', data);
+      logger.info('✅ AppOwner - Stats loaded:', data);
       setStats(data);
     } catch (error) {
-      console.error('❌ AppOwner - Failed to load stats:', error);
+      logger.error('❌ AppOwner - Failed to load stats:', error);
       Toast.error('שגיאה בטעינת נתוני המערכת');
     } finally {
       setLoading(false);

@@ -55,7 +55,7 @@ export function NotificationPreferencesComponent({
         setPreferences(defaultPrefs);
       }
     } catch (error) {
-      console.error('Failed to load preferences:', error);
+      logger.error('Failed to load preferences:', error);
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +127,7 @@ export function NotificationPreferencesComponent({
       haptic();
       onClose();
     } catch (error) {
-      console.error('Failed to save preferences:', error);
+      logger.error('Failed to save preferences:', error);
       haptic();
     }
   };

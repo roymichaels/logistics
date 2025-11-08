@@ -50,7 +50,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
     const checkSupabase = () => {
       const ready = isSupabaseInitialized() && !!dataStore.supabase;
       setSupabaseReady(ready);
-      console.log('🔍 Businesses: Supabase ready check:', { ready, hasDataStore: !!dataStore.supabase });
+      logger.info('🔍 Businesses: Supabase ready check:', { ready, hasDataStore: !!dataStore.supabase });
     };
 
     checkSupabase();
@@ -67,7 +67,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
 
       // Validate profile has required fields
       if (!profile || !profile.id) {
-        console.error('Invalid profile data:', profile);
+        logger.error('Invalid profile data:', profile);
         throw new Error('Failed to load user profile');
       }
 
@@ -108,7 +108,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
         setMyOwnerships(ownershipsData);
       }
     } catch (error) {
-      console.error('Failed to load businesses:', error);
+      logger.error('Failed to load businesses:', error);
     } finally {
       setLoading(false);
     }
@@ -120,7 +120,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
   // Diagnostic check for Create Business button visibility
   const createBusinessCheck = RoleDiagnostics.shouldShowCreateBusinessButton(user);
   if (user) {
-    console.log('🔍 Businesses Page - Create Business Button Check:', {
+    logger.info('🔍 Businesses Page - Create Business Button Check:', {
       userRole: user.role,
       shouldShow: createBusinessCheck.show,
       reason: createBusinessCheck.reason
@@ -186,7 +186,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
                 telegram.showAlert('טוען נתונים. אנא המתן...');
                 return;
               }
-              console.log('✅ Create Business button clicked', { supabaseReady, isSystemReady });
+              logger.info('✅ Create Business button clicked', { supabaseReady, isSystemReady });
               setShowCreateModal(true);
             }}
             disabled={!supabaseReady || !isSystemReady}
@@ -420,7 +420,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
         setOwners(data);
       }
     } catch (error) {
-      console.error('Failed to load owners:', error);
+      logger.error('Failed to load owners:', error);
     } finally {
       setLoading(false);
     }

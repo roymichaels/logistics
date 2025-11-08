@@ -66,9 +66,9 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
         setOrderPrefix(parsed.orderPrefix || '');
         setPrimaryColor(parsed.primaryColor || DEFAULT_COLORS[0].primary);
         setSecondaryColor(parsed.secondaryColor || DEFAULT_COLORS[0].secondary);
-        console.log('✅ Restored draft business data from localStorage');
+        logger.info('✅ Restored draft business data from localStorage');
       } catch (error) {
-        console.error('Failed to restore draft data:', error);
+        logger.error('Failed to restore draft data:', error);
       }
     }
   }, []);
@@ -91,7 +91,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
 
   const initializeOnboarding = async () => {
     if (!isSupabaseReady) {
-      console.log('⏳ BusinessOwnerOnboarding: Waiting for Supabase...');
+      logger.info('⏳ BusinessOwnerOnboarding: Waiting for Supabase...');
       return;
     }
 
@@ -107,7 +107,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
       // Business types loading removed - using automatic defaults
       setIsInitialized(true);
     } catch (error) {
-      console.error('❌ BusinessOwnerOnboarding: Initialization failed:', error);
+      logger.error('❌ BusinessOwnerOnboarding: Initialization failed:', error);
       setInitError('שגיאה באתחול המערכת. אנא נסה שוב.');
     } finally {
       setLoading(false);
@@ -174,7 +174,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
       setCurrentStep('completing');
       telegram.hapticFeedback('impact', 'medium');
 
-      console.log('🔄 Creating business with data:', {
+      logger.info('🔄 Creating business with data:', {
         name: businessName,
         name_hebrew: businessNameHebrew,
         business_type: 'logistics',
@@ -198,7 +198,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
         secondary_color: secondaryColor
       });
 
-      console.log('✅ Business created successfully:', result);
+      logger.info('✅ Business created successfully:', result);
 
       // Store business ID for recovery if needed
       if (result?.id) {
@@ -222,7 +222,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
 
       // Trigger a role refresh event to update the UI immediately
       // The App component and AppServicesProvider will handle the role refresh
-      console.log('🔄 Dispatching role-refresh event...');
+      logger.info('🔄 Dispatching role-refresh event...');
       window.dispatchEvent(new Event('role-refresh'));
 
       // Wait a moment for role refresh to complete
@@ -231,7 +231,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
       // Call onComplete to close the modal and let the app handle navigation
       onComplete();
     } catch (error) {
-      console.error('❌ Failed to create business:', error);
+      logger.error('❌ Failed to create business:', error);
 
       let errorMessage = 'שגיאה ביצירת העסק';
 

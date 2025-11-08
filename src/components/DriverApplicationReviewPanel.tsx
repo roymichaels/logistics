@@ -49,7 +49,7 @@ export function DriverApplicationReviewPanel() {
 
       setApplications(data || []);
     } catch (error) {
-      console.error('Failed to load applications:', error);
+      logger.error('Failed to load applications:', error);
       Toast.error('שגיאה בטעינת הבקשות');
     } finally {
       setLoading(false);
@@ -77,7 +77,7 @@ export function DriverApplicationReviewPanel() {
       setReviewNotes('');
       await loadApplications();
     } catch (error) {
-      console.error('Failed to approve application:', error);
+      logger.error('Failed to approve application:', error);
       Toast.error('שגיאה באישור הבקשה');
     } finally {
       setProcessing(false);
@@ -123,7 +123,7 @@ export function DriverApplicationReviewPanel() {
       setReviewNotes('');
       await loadApplications();
     } catch (error) {
-      console.error('Failed to reject application:', error);
+      logger.error('Failed to reject application:', error);
       Toast.error('שגיאה בדחיית הבקשה');
     } finally {
       setProcessing(false);

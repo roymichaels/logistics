@@ -77,7 +77,7 @@ export function SimilarPosts({ postId, limit = 5, onPostClick }: SimilarPostsPro
         setSimilarPosts([]);
       }
     } catch (err) {
-      console.error('Failed to load similar posts:', err);
+      logger.error('Failed to load similar posts:', err);
       setError(i18n.getTranslations().social.somethingWentWrong);
     } finally {
       setLoading(false);

@@ -33,7 +33,7 @@ function addLog(level: DebugLog['level'], message: string, data?: any) {
   if (debugLogs.length > 50) {
     debugLogs.shift();
   }
-  console.log(`[${level.toUpperCase()}]`, message, data || '');
+  logger.info(`[${level.toUpperCase()}]`, message, data || '');
   notifyListeners();
 }
 

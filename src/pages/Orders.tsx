@@ -86,7 +86,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
 
       setOrders(filteredOrders);
     } catch (error) {
-      console.error('Failed to load orders:', error);
+      logger.error('Failed to load orders:', error);
       telegram.showAlert('Failed to load orders');
     } finally {
       setLoading(false);
@@ -540,7 +540,7 @@ function OrderDetail({
       onUpdate();
       onBack();
     } catch (error) {
-      console.error('Failed to update order:', error);
+      logger.error('Failed to update order:', error);
       telegram.showAlert('Failed to update order status');
     }
   };
@@ -563,7 +563,7 @@ function OrderDetail({
           setSelectedZone(zones[0].id);
         }
       } catch (err) {
-        console.error('Failed to load zones for assignment', err);
+        logger.error('Failed to load zones for assignment', err);
         if (!cancelled) {
           setAssignError('שגיאה בטעינת רשימת האזורים');
         }
@@ -589,7 +589,7 @@ function OrderDetail({
       setCandidates(drivers);
       setAssignError(drivers.length === 0 ? 'אין נהגים זמינים עם מלאי מתאים באזור זה' : null);
     } catch (err) {
-      console.error('Failed to load driver candidates', err);
+      logger.error('Failed to load driver candidates', err);
       setAssignError('שגיאה בטעינת רשימת הנהגים');
     } finally {
       setAssignLoading(false);
@@ -624,7 +624,7 @@ function OrderDetail({
       onUpdate();
       onBack();
     } catch (err) {
-      console.error('Failed to assign order', err);
+      logger.error('Failed to assign order', err);
       setAssignError('שגיאה בהקצאת ההזמנה. נסה שוב.');
     } finally {
       setAssignLoading(false);
@@ -1288,7 +1288,7 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
           setProducts(list);
         }
       } catch (error) {
-        console.error('Failed to load products for order creation', error);
+        logger.error('Failed to load products for order creation', error);
         if (isMounted) {
           setProductsError('שגיאה בטעינת רשימת המוצרים');
         }
@@ -1332,7 +1332,7 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
           setInventoryError(null);
         }
       } catch (error) {
-        console.error('Failed to load inventory for order creation', error);
+        logger.error('Failed to load inventory for order creation', error);
         if (isMounted) {
           setInventoryError('שגיאה בטעינת נתוני המלאי');
         }
@@ -1489,7 +1489,7 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
       telegram.hapticFeedback('notification', 'success');
       onSuccess();
     } catch (error) {
-      console.error('Failed to create order:', error);
+      logger.error('Failed to create order:', error);
       telegram.showAlert('אירעה שגיאה ביצירת ההזמנה');
     } finally {
       setLoading(false);
@@ -1847,7 +1847,7 @@ function OrderDetailEnhanced({
         role: 'driver'
       } as User);
     } catch (error) {
-      console.error('Failed to load driver info:', error);
+      logger.error('Failed to load driver info:', error);
     } finally {
       setLoading(false);
     }
@@ -1889,7 +1889,7 @@ function OrderDetailEnhanced({
       onUpdate();
       onBack();
     } catch (error) {
-      console.error('Failed to update order:', error);
+      logger.error('Failed to update order:', error);
       telegram.showAlert('Failed to update order status');
     }
   };

@@ -38,7 +38,7 @@ export function SuperadminSetup({ user, onSuccess, theme }: SuperadminSetupProps
         setMode(result.passwordSet ? 'verify' : 'set');
       }
     } catch (err) {
-      console.error('Failed to check password status:', err);
+      logger.error('Failed to check password status:', err);
       setMode('set');
     }
   };
@@ -91,7 +91,7 @@ export function SuperadminSetup({ user, onSuccess, theme }: SuperadminSetupProps
         setError(result.error || 'שגיאה לא ידועה');
       }
     } catch (err) {
-      console.error('Superadmin auth failed:', err);
+      logger.error('Superadmin auth failed:', err);
       setError('שגיאה בחיבור לשרת');
     } finally {
       setLoading(false);

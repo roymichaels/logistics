@@ -68,7 +68,7 @@ export function InfrastructureDispatcherDashboard() {
         loadZoneCoverage()
       ]);
     } catch (error) {
-      console.error('Failed to load dispatcher data:', error);
+      logger.error('Failed to load dispatcher data:', error);
     } finally {
       setLoading(false);
     }
@@ -146,7 +146,7 @@ export function InfrastructureDispatcherDashboard() {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Failed to load drivers:', error);
+      logger.error('Failed to load drivers:', error);
       return;
     }
 
@@ -192,7 +192,7 @@ export function InfrastructureDispatcherDashboard() {
     const { data: zonesData, error } = await query;
 
     if (error) {
-      console.error('Failed to load zones:', error);
+      logger.error('Failed to load zones:', error);
       return;
     }
 
@@ -252,7 +252,7 @@ export function InfrastructureDispatcherDashboard() {
       alert('Driver assigned successfully');
       await loadOrders();
     } catch (error: any) {
-      console.error('Failed to assign driver:', error);
+      logger.error('Failed to assign driver:', error);
       alert(error.message || 'Failed to assign driver');
     }
   }
@@ -275,7 +275,7 @@ export function InfrastructureDispatcherDashboard() {
       alert('Driver unassigned successfully');
       await loadOrders();
     } catch (error: any) {
-      console.error('Failed to unassign driver:', error);
+      logger.error('Failed to unassign driver:', error);
       alert(error.message || 'Failed to unassign driver');
     }
   }

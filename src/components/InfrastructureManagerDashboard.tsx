@@ -63,7 +63,7 @@ export function InfrastructureManagerDashboard() {
         loadSessionHistory()
       ]);
     } catch (err) {
-      console.error('Failed to load data:', err);
+      logger.error('Failed to load data:', err);
       setError('Failed to load dashboard data');
     } finally {
       setLoading(false);
@@ -118,7 +118,7 @@ export function InfrastructureManagerDashboard() {
       .order('performed_at', { ascending: false });
 
     if (error) {
-      console.error('Failed to load session actions:', error);
+      logger.error('Failed to load session actions:', error);
       return;
     }
     setSessionActions(data || []);
@@ -152,7 +152,7 @@ export function InfrastructureManagerDashboard() {
       await loadActiveSessions();
       alert('Support override activated successfully');
     } catch (err: any) {
-      console.error('Failed to activate override:', err);
+      logger.error('Failed to activate override:', err);
       setError(err.message || 'Failed to activate support override');
     } finally {
       setActivating(false);
@@ -176,7 +176,7 @@ export function InfrastructureManagerDashboard() {
       await loadSessionHistory();
       alert('Support override deactivated');
     } catch (err: any) {
-      console.error('Failed to deactivate override:', err);
+      logger.error('Failed to deactivate override:', err);
       setError(err.message || 'Failed to deactivate override');
     }
   }

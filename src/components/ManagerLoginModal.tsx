@@ -35,7 +35,7 @@ export function ManagerLoginModal({
       setError('');
 
       if (newPin.length === PIN_LENGTH) {
-        console.log('🔑 PIN complete, verifying in 100ms...');
+        logger.info('🔑 PIN complete, verifying in 100ms...');
         setTimeout(() => verifyPin(newPin), 100);
       }
     }
@@ -59,26 +59,26 @@ export function ManagerLoginModal({
     try {
       telegram.hapticFeedback('notification', 'success');
     } catch (e) {
-      console.log('⚠️ Haptic feedback not available (web browser)');
+      logger.info('⚠️ Haptic feedback not available (web browser)');
     }
 
     try {
       // Call edge function to promote user (bypasses RLS)
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
-      console.log('🔐 Calling promote-manager edge function...');
-      console.log('   URL:', `${supabaseUrl}/functions/v1/promote-manager`);
-      console.log('   telegram_id:', userTelegramId);
-      console.log('   telegram_id type:', typeof userTelegramId);
-      console.log('   telegram_id empty?:', !userTelegramId);
-      console.log('   PIN length:', enteredPin.length);
+      logger.info('🔐 Calling promote-manager edge function...');
+      logger.info('   URL:', `${supabaseUrl}/functions/v1/promote-manager`);
+      logger.info('   telegram_id:', userTelegramId);
+      logger.info('   telegram_id type:', typeof userTelegramId);
+      logger.info('   telegram_id empty?:', !userTelegramId);
+      logger.info('   PIN length:', enteredPin.length);
 
       // Handle web browser mode: use a test telegram_id if none exists
       const effectiveTelegramId = userTelegramId || 'web_test_user';
 
       if (!userTelegramId) {
-        console.warn('⚠️ Running in web mode without Telegram ID');
-        console.warn('⚠️ Using fallback telegram_id:', effectiveTelegramId);
+        logger.warn('⚠️ Running in web mode without Telegram ID');
+        logger.warn('⚠️ Using fallback telegram_id:', effectiveTelegramId);
       }
 
       const response = await fetch(`${supabaseUrl}/functions/v1/promote-manager`, {
@@ -92,9 +92,9 @@ export function ManagerLoginModal({
         })
       });
 
-      console.log('📡 Response status:', response.status);
+      logger.info('📡 Response status:', response.status);
       const responseText = await response.text();
-      console.log('📡 Response body:', responseText);
+      logger.info('📡 Response body:', responseText);
 
       if (!response.ok) {
         let errorData;
@@ -103,24 +103,24 @@ export function ManagerLoginModal({
         } catch {
           errorData = { error: responseText || 'Failed to promote user' };
         }
-        console.error('❌ Promotion failed:', errorData);
+        logger.error('❌ Promotion failed:', errorData);
         throw new Error(errorData.error || 'Failed to promote user');
       }
 
       const result = JSON.parse(responseText);
-      console.log('✅ Manager promotion successful:', result);
-      console.log('📊 Promoted user role:', result.role);
-      console.log('👤 Promoted user:', result.user);
+      logger.info('✅ Manager promotion successful:', result);
+      logger.info('📊 Promoted user role:', result.role);
+      logger.info('👤 Promoted user:', result.user);
 
       Toast.success('משודרג למנהל!');
 
       onClose();
 
       // Give Supabase replication a moment to propagate (critical!)
-      console.log('⏳ Waiting 1.5s for Supabase replication...');
+      logger.info('⏳ Waiting 1.5s for Supabase replication...');
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      console.log('🔄 Reloading page to refresh role...');
+      logger.info('🔄 Reloading page to refresh role...');
 
       // Trigger success callback BEFORE reload
       onSuccess();
@@ -129,8 +129,8 @@ export function ManagerLoginModal({
       // This is the most reliable way to ensure the new role is picked up
       window.location.reload();
     } catch (error) {
-      console.error('❌ Failed to promote user:', error);
-      console.error('❌ Error stack:', error instanceof Error ? error.stack : 'no stack');
+      logger.error('❌ Failed to promote user:', error);
+      logger.error('❌ Error stack:', error instanceof Error ? error.stack : 'no stack');
       const errorMessage = error instanceof Error ? error.message : 'שגיאה בעדכון הרשאות';
       Toast.error(errorMessage);
       setError(errorMessage);

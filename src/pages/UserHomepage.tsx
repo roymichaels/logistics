@@ -38,16 +38,16 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
         const { data: sessionData, error } = await supabase.auth.getSession();
 
         if (error || !sessionData?.session) {
-          console.error('❌ UserHomepage: No authenticated session');
+          logger.error('❌ UserHomepage: No authenticated session');
           Toast.error('לא מזוהה משתמש - אנא התחבר מחדש');
           setLoading(false);
           return;
         }
 
-        console.log('✅ UserHomepage: Authentication verified, session ready');
+        logger.info('✅ UserHomepage: Authentication verified, session ready');
         setAuthReady(true);
       } catch (error) {
-        console.error('❌ UserHomepage: Auth check failed:', error);
+        logger.error('❌ UserHomepage: Auth check failed:', error);
         Toast.error('שגיאה באימות');
         setLoading(false);
       }
@@ -67,34 +67,34 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
 
   const loadUser = async () => {
     try {
-      console.log('📥 UserHomepage: Loading user profile...');
+      logger.info('📥 UserHomepage: Loading user profile...');
       const profile = await dataStore.getProfile();
-      console.log('✅ UserHomepage: Profile loaded successfully:', profile.role);
+      logger.info('✅ UserHomepage: Profile loaded successfully:', profile.role);
 
       // Check for cached business role
       const cachedBusinessRoleStr = localStorage.getItem('active_business_role');
       if (cachedBusinessRoleStr) {
         try {
           const cachedBusinessRole = JSON.parse(cachedBusinessRoleStr);
-          console.log('✅ UserHomepage: Found cached business role:', cachedBusinessRole);
+          logger.info('✅ UserHomepage: Found cached business role:', cachedBusinessRole);
 
           // If user has business role, they should not be on this page
           if (cachedBusinessRole.role_code && cachedBusinessRole.role_code !== 'user') {
-            console.log('🔄 UserHomepage: User has business role, redirecting...');
+            logger.info('🔄 UserHomepage: User has business role, redirecting...');
             Toast.success(`ברוך הבא! אתה כעת ${cachedBusinessRole.role_name}`);
             // Trigger a page reload to let App.tsx redirect to appropriate page
             window.location.reload();
             return;
           }
         } catch (parseError) {
-          console.error('❌ Failed to parse cached business role:', parseError);
+          logger.error('❌ Failed to parse cached business role:', parseError);
           localStorage.removeItem('active_business_role');
         }
       }
 
       setUser(profile);
     } catch (error) {
-      console.error('Failed to load user profile:', error);
+      logger.error('Failed to load user profile:', error);
       const errorMessage = error instanceof Error ? error.message : 'שגיאה בטעינת פרופיל';
       Toast.error(errorMessage);
     } finally {
@@ -152,7 +152,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
         dataStore.clearUserCache();
       }
     } catch (error) {
-      console.error('Failed to request access:', error);
+      logger.error('Failed to request access:', error);
       Toast.error(`שגיאה: ${error instanceof Error ? error.message : 'לא ניתן לשלוח בקשה'}`);
     }
   };

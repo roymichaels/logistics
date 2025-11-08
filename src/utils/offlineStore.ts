@@ -285,7 +285,7 @@ async function processPendingMutations(): Promise<void> {
         break;
       }
 
-      console.error('Discarding offline mutation due to unrecoverable error', error);
+      logger.error('Discarding offline mutation due to unrecoverable error', error);
       await deleteMutation(mutation.id);
     }
   }
@@ -329,7 +329,7 @@ export const offlineStore = {
       const record = await readCollection<T>(name);
       return record?.data ?? [];
     } catch (error) {
-      console.warn(`Failed to read offline collection ${name}:`, error);
+      logger.warn(`Failed to read offline collection ${name}:`, error);
       return [];
     }
   },
@@ -338,7 +338,7 @@ export const offlineStore = {
     try {
       await putCollection<T>({ name, data, updatedAt: new Date().toISOString() });
     } catch (error) {
-      console.warn(`Failed to persist offline collection ${name}:`, error);
+      logger.warn(`Failed to persist offline collection ${name}:`, error);
     }
   },
 
@@ -347,7 +347,7 @@ export const offlineStore = {
     try {
       await deleteCollections(toClear);
     } catch (error) {
-      console.warn('Failed to clear offline collections:', error);
+      logger.warn('Failed to clear offline collections:', error);
     }
   },
 
@@ -355,7 +355,7 @@ export const offlineStore = {
     try {
       await clearAllStores();
     } catch (error) {
-      console.warn('Failed to clear offline data:', error);
+      logger.warn('Failed to clear offline data:', error);
     }
   },
 

@@ -330,7 +330,7 @@ export class SecurityManager {
 
       return newKey;
     } catch (error) {
-      console.error('Failed to get chat encryption key:', error);
+      logger.error('Failed to get chat encryption key:', error);
       return null;
     }
   }
@@ -400,7 +400,7 @@ export class SecurityManager {
         }
       }
     } catch (error) {
-      console.error('Failed to re-encrypt stored data:', error);
+      logger.error('Failed to re-encrypt stored data:', error);
       throw new Error('Failed to update encryption keys');
     }
   }

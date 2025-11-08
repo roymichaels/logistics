@@ -125,14 +125,14 @@ export function RoleChangeWorkflow({
           p_reason: reason,
         });
       } catch (auditError) {
-        console.warn('Failed to log audit trail:', auditError);
+        logger.warn('Failed to log audit trail:', auditError);
       }
 
       telegram.hapticFeedback('notification', 'success');
       Toast.success(`תפקיד עודכן בהצלחה ל${roleNames[selectedRole]}`);
       onSuccess();
     } catch (error) {
-      console.error('Failed to change role:', error);
+      logger.error('Failed to change role:', error);
       Toast.error('שגיאה בשינוי התפקיד');
     } finally {
       setLoading(false);

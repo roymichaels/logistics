@@ -52,7 +52,7 @@ export function AdminPanel({ dataStore, onNavigate }: AdminPanelProps) {
         pendingTasks: tasks.filter(t => t.status === 'pending').length
       });
     } catch (error) {
-      console.error('Failed to load admin data:', error);
+      logger.error('Failed to load admin data:', error);
     } finally {
       setLoading(false);
     }
@@ -385,7 +385,7 @@ function BulkOperations({ dataStore, theme, haptic }: {
 
       alert('פעולה הושלמה בהצלחה!');
     } catch (error) {
-      console.error('Bulk operation failed:', error);
+      logger.error('Bulk operation failed:', error);
       alert('שגיאה בביצוע הפעולה');
     } finally {
       setIsProcessing(false);
@@ -470,7 +470,7 @@ function DataExport({ dataStore, theme, haptic }: {
       link.click();
 
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed:', error);
       alert('שגיאה בייצוא הנתונים');
     } finally {
       setIsExporting(null);

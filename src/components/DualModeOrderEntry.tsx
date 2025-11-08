@@ -54,7 +54,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
       const allProducts = await dataStore.listProducts();
       setProducts(allProducts);
     } catch (error) {
-      console.error('Failed to load products:', error);
+      logger.error('Failed to load products:', error);
       Toast.error('שגיאה בטעינת מוצרים');
     }
   };
@@ -177,7 +177,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
       Toast.success('הזמנה נוצרה בהצלחה!');
       onOrderCreated(result.id);
     } catch (error) {
-      console.error('Failed to create order:', error);
+      logger.error('Failed to create order:', error);
       if (offlineStore.isOfflineError(error)) {
         try {
           const queued = await offlineStore.queueMutation('createOrder', { input: orderInput }, {
@@ -190,7 +190,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
           Toast.info('הזמנה נשמרה ותישלח כשנחזור לרשת.');
           onOrderCreated(queued.id);
         } catch (queueError) {
-          console.error('Failed to queue offline order:', queueError);
+          logger.error('Failed to queue offline order:', queueError);
           Toast.error('שגיאה ביצירת הזמנה');
         }
       } else {

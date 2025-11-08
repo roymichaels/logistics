@@ -80,7 +80,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
 
     setLoading(true);
     try {
-      console.log('🔍 UserManagement - Starting user load');
+      logger.info('🔍 UserManagement - Starting user load');
 
       // Simple session check - no polling, just verify once
       const { getSupabase } = await import('../lib/supabaseClient');
@@ -88,23 +88,23 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       const { data: sessionData } = await supabase.auth.getSession();
 
       if (!sessionData?.session) {
-        console.warn('⚠️ No active session - pull down to refresh');
+        logger.warn('⚠️ No active session - pull down to refresh');
         Toast.error('אין Session פעיל - יש למשוך למטה לרענן');
         setLoading(false);
         return;
       }
 
-      console.log('✅ Session verified, proceeding with queries');
+      logger.info('✅ Session verified, proceeding with queries');
 
       // Verify current user
       if (!currentUser?.id) {
-        console.error('❌ No authenticated user found');
+        logger.error('❌ No authenticated user found');
         Toast.error('שגיאה באימות - נסה להתחבר מחדש');
         setLoading(false);
         return;
       }
 
-      console.log('👤 Current user:', currentUser.role);
+      logger.info('👤 Current user:', currentUser.role);
 
       // Load from user_registrations table
       const [pending, approved] = await Promise.all([
@@ -112,7 +112,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
         userManager.getApprovedUsers()
       ]);
 
-      console.log('📊 UserManagement - Loaded registrations:', {
+      logger.info('📊 UserManagement - Loaded registrations:', {
         pending: pending.length,
         approved: approved.length,
         hasDataStore: !!dataStore,
@@ -123,9 +123,9 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       let allSystemUsers: UserRegistration[] = [];
       if (dataStore?.listAllUsers) {
         try {
-          console.log('🔎 UserManagement - Querying users table with role:', currentUser.role);
+          logger.info('🔎 UserManagement - Querying users table with role:', currentUser.role);
           const systemUsers = await dataStore.listAllUsers();
-          console.log('✅ UserManagement - Loaded system users:', systemUsers.length, systemUsers);
+          logger.info('✅ UserManagement - Loaded system users:', systemUsers.length, systemUsers);
 
           // Transform User[] to UserRegistration[] format
           allSystemUsers = systemUsers.map((user: any) => ({
@@ -145,16 +145,16 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
             updated_at: user.updated_at
           }));
         } catch (err) {
-          console.error('❌ Failed to load system users:', err);
+          logger.error('❌ Failed to load system users:', err);
           // If RLS policy blocks the query, show helpful error
           if (err?.message?.includes('policy')) {
-            console.error('🚫 RLS Policy blocked user query. This usually means JWT claims are missing.');
-            console.error('📝 Expected JWT claims: role, workspace_id, user_id');
-            console.error('👉 Current user data:', currentUser);
+            logger.error('🚫 RLS Policy blocked user query. This usually means JWT claims are missing.');
+            logger.error('📝 Expected JWT claims: role, workspace_id, user_id');
+            logger.error('👉 Current user data:', currentUser);
           }
         }
       } else {
-        console.warn('⚠️ dataStore or listAllUsers not available');
+        logger.warn('⚠️ dataStore or listAllUsers not available');
       }
 
       setPendingUsers(pending);
@@ -165,11 +165,11 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
         approvedMap.set(user.telegram_id, user);
       });
       const mergedApproved = Array.from(approvedMap.values());
-      console.log('📊 UserManagement - Final merged users:', mergedApproved.length);
+      logger.info('📊 UserManagement - Final merged users:', mergedApproved.length);
       setApprovedUsers(mergedApproved);
 
     } catch (error) {
-      console.error('❌ Failed to load users', error);
+      logger.error('❌ Failed to load users', error);
       Toast.error('שגיאה בטעינת נתוני המשתמשים');
     } finally {
       setLoading(false);
@@ -214,7 +214,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       if (error) throw error;
       setAuditLogs(data || []);
     } catch (error) {
-      console.error('Failed to load audit logs', error);
+      logger.error('Failed to load audit logs', error);
       Toast.error('שגיאה בטעינת יומן פעולות');
     } finally {
       setLoadingAudit(false);
@@ -229,7 +229,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       ? approvedUsers
       : [...pendingUsers, ...approvedUsers];
 
-    console.log('📊 UserManagement - Before filters:', {
+    logger.info('📊 UserManagement - Before filters:', {
       filterStatus,
       pendingCount: pendingUsers.length,
       approvedCount: approvedUsers.length,
@@ -244,7 +244,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
         user.last_name?.toLowerCase().includes(query) ||
         user.username?.toLowerCase().includes(query)
       );
-      console.log('📊 After search filter:', users.length);
+      logger.info('📊 After search filter:', users.length);
     }
 
     // Apply role filter
@@ -252,7 +252,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       users = users.filter(user =>
         (user.assigned_role || user.requested_role) === filterRole
       );
-      console.log('📊 After role filter:', users.length);
+      logger.info('📊 After role filter:', users.length);
     }
 
     return users;
@@ -320,7 +320,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
     if (!selectedUser) return;
 
     try {
-      console.log('🔄 Approving user:', {
+      logger.info('🔄 Approving user:', {
         telegram_id: selectedUser.telegram_id,
         username: selectedUser.username,
         selected_role: selectedRole
@@ -347,10 +347,10 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
               p_notes: null
             });
           } catch (auditError) {
-            console.warn('⚠️ Failed to log audit entry (non-critical):', auditError);
+            logger.warn('⚠️ Failed to log audit entry (non-critical):', auditError);
           }
         } else {
-          console.warn('⚠️ dataStore.supabase not available for audit logging');
+          logger.warn('⚠️ dataStore.supabase not available for audit logging');
         }
 
         Toast.success(`משתמש אושר בהצלחה כ${roleNames[selectedRole]}`);
@@ -361,7 +361,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
         Toast.error('שגיאה באישור המשתמש');
       }
     } catch (error) {
-      console.error('❌ Failed to approve user:', error);
+      logger.error('❌ Failed to approve user:', error);
       Toast.error('שגיאה באישור המשתמש: ' + (error instanceof Error ? error.message : String(error)));
     }
   };
@@ -376,7 +376,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
     if (!confirmed) return;
 
     try {
-      console.log('🔄 Role update via edge function:', {
+      logger.info('🔄 Role update via edge function:', {
         user_id: selectedUser.id,
         new_role: selectedRole
       });
@@ -405,12 +405,12 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Edge function error:', errorText);
+        logger.error('Edge function error:', errorText);
         throw new Error(errorText || 'Role update failed');
       }
 
       const result = await response.json();
-      console.log('✅ Role updated successfully:', result);
+      logger.info('✅ Role updated successfully:', result);
 
       telegram.hapticFeedback('notification', 'success');
       Toast.success(`תפקיד עודכן בהצלחה ל${roleNames[selectedRole]}`);
@@ -419,7 +419,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       setShowRoleModal(false);
       setSelectedUser(null);
     } catch (error) {
-      console.error('Failed to change role', error);
+      logger.error('Failed to change role', error);
       Toast.error('שגיאה בשינוי התפקיד: ' + (error instanceof Error ? error.message : String(error)));
     }
   };
@@ -447,7 +447,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
               p_reason: null
             });
           } catch (auditError) {
-            console.warn('⚠️ Failed to log deletion audit entry (non-critical):', auditError);
+            logger.warn('⚠️ Failed to log deletion audit entry (non-critical):', auditError);
           }
         }
 
@@ -458,7 +458,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
         Toast.error('לא ניתן למחוק את המשתמש');
       }
     } catch (error) {
-      console.error('Failed to delete user', error);
+      logger.error('Failed to delete user', error);
       Toast.error('שגיאה במחיקת המשתמש');
     }
   };

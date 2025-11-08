@@ -130,7 +130,7 @@ export function FinancialDashboard({ dataStore, user, businessId, onNavigate }: 
 
       setRevenueByCategory(categoryArray);
     } catch (error) {
-      console.error('Failed to load financial data:', error);
+      logger.error('Failed to load financial data:', error);
       Toast.error('שגיאה בטעינת נתונים כספיים');
     } finally {
       setLoading(false);
@@ -188,7 +188,7 @@ export function FinancialDashboard({ dataStore, user, businessId, onNavigate }: 
       Toast.success('דוח כספי יוצא בהצלחה');
       telegram.hapticFeedback('success');
     } catch (error) {
-      console.error('Failed to export financial report:', error);
+      logger.error('Failed to export financial report:', error);
       Toast.error('שגיאה בייצוא דוח כספי');
     }
   };

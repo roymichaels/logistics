@@ -44,13 +44,13 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
     const RETRY_DELAY = 1000;
 
     try {
-      console.log('📄 MyRole page: Loading user profile...', { forceRefresh, retryCount });
+      logger.info('📄 MyRole page: Loading user profile...', { forceRefresh, retryCount });
 
       const profile = forceRefresh
         ? await dataStore.getProfile(true)
         : await dataStore.getProfile();
 
-      console.log('✅ MyRole page: Profile loaded successfully', {
+      logger.info('✅ MyRole page: Profile loaded successfully', {
         telegram_id: profile.telegram_id,
         role: profile.role,
         name: profile.name
@@ -60,37 +60,37 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
 
       // AUTO-REDIRECT: If user has infrastructure_owner/business_owner/manager role, redirect to dashboard immediately
       if (profile.role === 'infrastructure_owner' || profile.role === 'business_owner' || profile.role === 'manager') {
-        console.log(`🔄 User has ${profile.role} role, redirecting to dashboard...`);
+        logger.info(`🔄 User has ${profile.role} role, redirecting to dashboard...`);
         Toast.success(`יש לך הרשאות ${profile.role}! מעביר למערכת...`);
         setTimeout(() => {
           onNavigate('dashboard');
         }, 500);
       } else if (profile.role === 'driver') {
-        console.log('🔄 User has driver role, redirecting to deliveries...');
+        logger.info('🔄 User has driver role, redirecting to deliveries...');
         setTimeout(() => {
           onNavigate('my-deliveries');
         }, 500);
       } else if (profile.role === 'warehouse') {
-        console.log('🔄 User has warehouse role, redirecting to inventory...');
+        logger.info('🔄 User has warehouse role, redirecting to inventory...');
         setTimeout(() => {
           onNavigate('warehouse-dashboard');
         }, 500);
       } else if (profile.role === 'sales') {
-        console.log('🔄 User has sales role, redirecting to orders...');
+        logger.info('🔄 User has sales role, redirecting to orders...');
         setTimeout(() => {
           onNavigate('orders');
         }, 500);
       } else if (profile.role === 'user') {
-        console.log('🔄 User has user role, redirecting to homepage...');
+        logger.info('🔄 User has user role, redirecting to homepage...');
         setTimeout(() => {
           onNavigate('user-homepage');
         }, 500);
       }
     } catch (error) {
-      console.error(`❌ MyRole page: Failed to load profile (attempt ${retryCount + 1}/${MAX_RETRIES + 1}):`, error);
+      logger.error(`❌ MyRole page: Failed to load profile (attempt ${retryCount + 1}/${MAX_RETRIES + 1}):`, error);
 
       if (retryCount < MAX_RETRIES) {
-        console.log(`🔄 Retrying in ${RETRY_DELAY}ms...`);
+        logger.info(`🔄 Retrying in ${RETRY_DELAY}ms...`);
         Toast.info(`מנסה לטעון שוב (${retryCount + 1}/${MAX_RETRIES})...`);
         setTimeout(() => {
           loadUser(forceRefresh, retryCount + 1);
@@ -110,32 +110,32 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
     try {
       telegram.hapticFeedback('impact', 'medium');
 
-      console.log('🔐 Starting promotion process...');
+      logger.info('🔐 Starting promotion process...');
 
       // Get telegram_id from user object or Telegram SDK
       let userTelegramId = user?.telegram_id;
 
       if (!userTelegramId && telegram.user?.id) {
         userTelegramId = String(telegram.user.id);
-        console.log('📱 Got telegram_id from Telegram SDK:', userTelegramId);
+        logger.info('📱 Got telegram_id from Telegram SDK:', userTelegramId);
       }
 
       if (!userTelegramId) {
-        console.error('❌ No telegram_id available');
-        console.log('User object:', user);
-        console.log('Telegram user:', telegram.user);
-        console.log('Telegram initData:', telegram.initData);
+        logger.error('❌ No telegram_id available');
+        logger.info('User object:', user);
+        logger.info('Telegram user:', telegram.user);
+        logger.info('Telegram initData:', telegram.initData);
         Toast.error('לא ניתן לזהות משתמש - אנא נסה שוב');
         return;
       }
 
-      console.log('🔐 Promoting user:', userTelegramId);
+      logger.info('🔐 Promoting user:', userTelegramId);
       Toast.info('מעדכן הרשאות...');
 
       // Load runtime configuration
       const config = await loadConfig();
 
-      console.log('📡 Calling edge function:', `${config.supabaseUrl}/functions/v1/promote-manager`);
+      logger.info('📡 Calling edge function:', `${config.supabaseUrl}/functions/v1/promote-manager`);
 
       const response = await fetch(`${config.supabaseUrl}/functions/v1/promote-manager`, {
         method: 'POST',
@@ -150,10 +150,10 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         })
       });
 
-      console.log('📡 Response status:', response.status);
+      logger.info('📡 Response status:', response.status);
 
       const responseText = await response.text();
-      console.log('📡 Response body:', responseText);
+      logger.info('📡 Response body:', responseText);
 
       if (!response.ok) {
         let errorMessage = 'Failed to promote user';
@@ -163,13 +163,13 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         } catch (e) {
           errorMessage = responseText || errorMessage;
         }
-        console.error('❌ Error response:', errorMessage);
+        logger.error('❌ Error response:', errorMessage);
         throw new Error(errorMessage);
       }
 
       const result = JSON.parse(responseText);
-      console.log('✅ User promoted successfully:', result);
-      console.log('✅ New role:', result.role);
+      logger.info('✅ User promoted successfully:', result);
+      logger.info('✅ New role:', result.role);
 
       Toast.success('בקשה נשלחה בהצלחה! מנהל יאשר בקרוב...');
 
@@ -181,15 +181,15 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
       }
 
       // Clear cached user data in the dataStore
-      console.log('🗑️ Clearing dataStore cache...');
+      logger.info('🗑️ Clearing dataStore cache...');
       if (dataStore?.clearUserCache) {
         dataStore.clearUserCache();
       }
 
       // Wait for admin approval - no need to reload
-      console.log('✅ Role request submitted, waiting for approval');
+      logger.info('✅ Role request submitted, waiting for approval');
     } catch (error) {
-      console.error('❌ Failed to promote user:', error);
+      logger.error('❌ Failed to promote user:', error);
       Toast.error(`שגיאה: ${error instanceof Error ? error.message : 'לא ניתן לעדכן הרשאות'}`);
     }
   };

@@ -77,7 +77,7 @@ export class PINAuthService {
       });
 
       if (error) {
-        console.error('PIN setup error:', error);
+        logger.error('PIN setup error:', error);
         return {
           success: false,
           error: error.message || 'Failed to setup PIN'
@@ -99,7 +99,7 @@ export class PINAuthService {
         message: data.message || 'PIN setup successfully'
       };
     } catch (error) {
-      console.error('PIN setup failed:', error);
+      logger.error('PIN setup failed:', error);
       return {
         success: false,
         error: 'Failed to setup PIN'
@@ -138,7 +138,7 @@ export class PINAuthService {
       });
 
       if (error) {
-        console.error('PIN verification error:', error);
+        logger.error('PIN verification error:', error);
         return {
           success: false,
           error: error.message || 'Failed to verify PIN'
@@ -173,7 +173,7 @@ export class PINAuthService {
         expiresAt: data.expires_at
       };
     } catch (error) {
-      console.error('PIN verification failed:', error);
+      logger.error('PIN verification failed:', error);
       return {
         success: false,
         error: 'PIN verification error'
@@ -228,7 +228,7 @@ export class PINAuthService {
       });
 
       if (error) {
-        console.error('PIN change error:', error);
+        logger.error('PIN change error:', error);
         return {
           success: false,
           error: error.message || 'Failed to change PIN'
@@ -247,7 +247,7 @@ export class PINAuthService {
         message: data.message || 'PIN changed successfully'
       };
     } catch (error) {
-      console.error('PIN change failed:', error);
+      logger.error('PIN change failed:', error);
       return {
         success: false,
         error: 'Failed to change PIN'
@@ -292,7 +292,7 @@ export class PINAuthService {
 
       return hasPin;
     } catch (error) {
-      console.error('Failed to check PIN setup status:', error);
+      logger.error('Failed to check PIN setup status:', error);
       return false;
     }
   }
@@ -326,7 +326,7 @@ export class PINAuthService {
 
       return new Date(data.locked_until) > new Date();
     } catch (error) {
-      console.error('Failed to check lockout status:', error);
+      logger.error('Failed to check lockout status:', error);
       return false;
     }
   }
@@ -371,7 +371,7 @@ export class PINAuthService {
 
       return { isLocked: false };
     } catch (error) {
-      console.error('Failed to get lockout info:', error);
+      logger.error('Failed to get lockout info:', error);
       return { isLocked: false };
     }
   }
@@ -401,7 +401,7 @@ export class PINAuthService {
     try {
       localStorage.removeItem('pin_session');
     } catch (error) {
-      console.error('Failed to clear PIN session:', error);
+      logger.error('Failed to clear PIN session:', error);
     }
   }
 
@@ -438,7 +438,7 @@ export class PINAuthService {
       };
       localStorage.setItem('pin_session', JSON.stringify(sessionData));
     } catch (error) {
-      console.error('Failed to store PIN session:', error);
+      logger.error('Failed to store PIN session:', error);
     }
   }
 
@@ -447,7 +447,7 @@ export class PINAuthService {
       const data = localStorage.getItem('pin_session');
       return data ? JSON.parse(data) : null;
     } catch (error) {
-      console.error('Failed to retrieve PIN session:', error);
+      logger.error('Failed to retrieve PIN session:', error);
       return null;
     }
   }
@@ -456,7 +456,7 @@ export class PINAuthService {
     try {
       localStorage.setItem('pin_setup_status', 'true');
     } catch (error) {
-      console.error('Failed to mark PIN as setup:', error);
+      logger.error('Failed to mark PIN as setup:', error);
     }
   }
 

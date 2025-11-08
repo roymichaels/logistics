@@ -63,7 +63,7 @@ export function SecurityGate({
       // Skip PIN entry completely - just allow access
       setLoading(false);
     } catch (error) {
-      console.error('Security initialization failed:', error);
+      logger.error('Security initialization failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Security initialization failed';
       setError(errorMessage);
       onSecurityError?.(errorMessage);
@@ -90,7 +90,7 @@ export function SecurityGate({
       });
 
       if (result.success) {
-        console.log('\u2705 PIN setup successful - logged to audit');
+        logger.info('\u2705 PIN setup successful - logged to audit');
         haptic();
         setShowPinEntry(false);
         setAuthState(await securityManager.getAuthenticationState());
@@ -98,7 +98,7 @@ export function SecurityGate({
         setError(result.error || 'PIN setup failed');
       }
     } catch (error) {
-      console.error('PIN setup error:', error);
+      logger.error('PIN setup error:', error);
       setError('PIN setup failed');
     }
   };
@@ -117,7 +117,7 @@ export function SecurityGate({
       );
 
       if (result.success) {
-        console.log('\u2705 PIN verified successfully - logged to audit');
+        logger.info('\u2705 PIN verified successfully - logged to audit');
         haptic();
         setShowPinEntry(false);
         setAuthState(await securityManager.getAuthenticationState());
@@ -126,13 +126,13 @@ export function SecurityGate({
           setShowChangePinPrompt(true);
         }
       } else {
-        console.log('\u274c PIN verification failed - logged to audit');
+        logger.info('\u274c PIN verification failed - logged to audit');
         setError(result.error || 'Authentication failed');
         // Refresh auth state to get updated lockout info
         setAuthState(await securityManager.getAuthenticationState());
       }
     } catch (error) {
-      console.error('PIN verification error:', error);
+      logger.error('PIN verification error:', error);
       setError('Authentication failed');
     }
   };
@@ -140,7 +140,7 @@ export function SecurityGate({
   const handlePinChange = async (pin: string) => {
     // This would be called for PIN change flow
     // Implementation would depend on having both current and new PIN
-    console.log('PIN change requested');
+    logger.info('PIN change requested');
   };
 
   const handlePinCancel = () => {
@@ -163,7 +163,7 @@ export function SecurityGate({
       setShowPinEntry(true);
       setError(null);
     } catch (error) {
-      console.error('Emergency reset failed:', error);
+      logger.error('Emergency reset failed:', error);
       setError('Reset failed');
     }
   };

@@ -80,7 +80,7 @@ export function EncryptedChatComponent({ chatId, onBack }: EncryptedChatComponen
       };
       setChat(mockChat);
     } catch (error) {
-      console.error('Failed to load chat info:', error);
+      logger.error('Failed to load chat info:', error);
       setError('Failed to load chat information');
     }
   };
@@ -93,7 +93,7 @@ export function EncryptedChatComponent({ chatId, onBack }: EncryptedChatComponen
       const decryptedMessages = await chatService.getMessages(chatId, 50);
       setMessages(decryptedMessages);
     } catch (error) {
-      console.error('Failed to load messages:', error);
+      logger.error('Failed to load messages:', error);
       setError('Failed to decrypt messages. This may indicate a security issue.');
     } finally {
       setLoading(false);
@@ -113,7 +113,7 @@ export function EncryptedChatComponent({ chatId, onBack }: EncryptedChatComponen
       // Reload messages to show the new one
       await loadMessages();
     } catch (error) {
-      console.error('Failed to send message:', error);
+      logger.error('Failed to send message:', error);
       setError('Failed to send encrypted message');
     } finally {
       setSending(false);

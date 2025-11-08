@@ -47,7 +47,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
       const data = await generateReportData(dateRange);
       setReportData(data);
     } catch (error) {
-      console.error('Failed to load reports:', error);
+      logger.error('Failed to load reports:', error);
       Toast.error('שגיאה בטעינת דוחות');
     } finally {
       setLoading(false);
@@ -131,7 +131,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
           .slice(0, 5)
       };
     } catch (error) {
-      console.error('Error generating report data:', error);
+      logger.error('Error generating report data:', error);
       return {
         totalOrders: 0,
         completedOrders: 0,

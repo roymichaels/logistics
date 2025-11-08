@@ -58,7 +58,7 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
       const profile = await dataStore.getProfile();
       setUser(profile);
     } catch (error) {
-      console.error('Failed to load profile:', error);
+      logger.error('Failed to load profile:', error);
       telegram.showAlert('Failed to load profile');
     } finally {
       setLoading(false);
@@ -87,7 +87,7 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
         window.location.reload();
       }, 1000);
     } catch (error) {
-      console.error('Failed to switch role:', error);
+      logger.error('Failed to switch role:', error);
       telegram.showAlert('שגיאה בהחלפת תפקיד');
     } finally {
       setSwitchingRole(false);
@@ -101,7 +101,7 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
       const diagnostics = await offlineStore.getDiagnostics();
       setOfflineDiagnostics(diagnostics);
     } catch (error) {
-      console.error('Failed to load offline diagnostics:', error);
+      logger.error('Failed to load offline diagnostics:', error);
       telegram.showAlert('שגיאה בטעינת נתוני מצב לא מקוון');
     } finally {
       setLoadingOfflineDiagnostics(false);
@@ -127,7 +127,7 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
       telegram.hapticFeedback('notification', 'success');
       telegram.showAlert('הנתונים הלא מקוונים נוקו בהצלחה');
     } catch (error) {
-      console.error('Failed to clear offline data:', error);
+      logger.error('Failed to clear offline data:', error);
       telegram.showAlert('שגיאה בניקוי נתונים לא מקוונים');
     } finally {
       setClearingOfflineData(false);

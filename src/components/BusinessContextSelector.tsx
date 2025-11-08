@@ -50,12 +50,12 @@ export function BusinessContextSelector({
         }
       }
     } catch (error: any) {
-      console.error('Failed to load business context:', error);
+      logger.error('Failed to load business context:', error);
 
       // Provide helpful error message for common database schema issues
       if (error?.code === '42703' || error?.message?.includes('column') || error?.message?.includes('does not exist')) {
-        console.error('⚠️ Database schema issue detected. This usually resolves after the database migration completes.');
-        console.error('💡 Tip: Try refreshing the page in a few seconds.');
+        logger.error('⚠️ Database schema issue detected. This usually resolves after the database migration completes.');
+        logger.error('💡 Tip: Try refreshing the page in a few seconds.');
       }
 
       // Don't show error toast during initialization - business features may not be implemented yet
@@ -103,16 +103,16 @@ export function BusinessContextSelector({
         detail: { businessId }
       }));
     } catch (error: any) {
-      console.error('Failed to switch business context:', error);
+      logger.error('Failed to switch business context:', error);
 
       // Provide helpful error message if the function is missing
       if (error?.code === 'PGRST202' || error?.message?.includes('set_user_active_business')) {
-        console.error('⚠️ Database function set_user_active_business not found - migrations may still be applying');
-        console.log('💡 Please try refreshing the page manually');
+        logger.error('⚠️ Database function set_user_active_business not found - migrations may still be applying');
+        logger.info('💡 Please try refreshing the page manually');
 
         Toast.show('פונקציה חסרה במסד הנתונים. אנא רענן את הדף.', 'error');
       } else {
-        console.error('Business context switch failed:', error);
+        logger.error('Business context switch failed:', error);
         Toast.show(hebrew.errors.switchFailed, 'error');
       }
     }

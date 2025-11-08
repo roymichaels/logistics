@@ -63,7 +63,7 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
   useEffect(() => {
     // Safety timeout: If loading takes more than 10 seconds, force render anyway
     const safetyTimeout = setTimeout(() => {
-      console.warn('⚠️ OwnerDashboard: Safety timeout reached, forcing loading to false');
+      logger.warn('⚠️ OwnerDashboard: Safety timeout reached, forcing loading to false');
       setLoading(false);
     }, 10000);
 
@@ -96,7 +96,7 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
           )
           .subscribe();
       } catch (error) {
-        console.error('Failed to set up realtime subscriptions:', error);
+        logger.error('Failed to set up realtime subscriptions:', error);
       }
     }
 
@@ -114,7 +114,7 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
           usersChannel.unsubscribe();
         }
       } catch (error) {
-        console.error('Failed to unsubscribe channels:', error);
+        logger.error('Failed to unsubscribe channels:', error);
       }
       clearInterval(interval);
     };
@@ -122,7 +122,7 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
 
   const loadSystemMetrics = async () => {
     if (!dataStore) {
-      console.warn('⚠️ OwnerDashboard: No dataStore available');
+      logger.warn('⚠️ OwnerDashboard: No dataStore available');
       setLoading(false);
       return;
     }
@@ -260,7 +260,7 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
         }
       }
     } catch (error) {
-      console.error('❌ OwnerDashboard: Failed to load system metrics:', error);
+      logger.error('❌ OwnerDashboard: Failed to load system metrics:', error);
       Toast.error('שגיאה בטעינת מדדי המערכת');
     } finally {
       setLoading(false);
@@ -304,7 +304,7 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
 
       Toast.success('הדוח יוצא בהצלחה');
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed:', error);
       Toast.error('שגיאה בייצוא נתונים');
     }
   };

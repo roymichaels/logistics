@@ -124,7 +124,7 @@ export function GroupChannelCreateModal({
       onSuccess();
       handleClose();
     } catch (err: any) {
-      console.error('Failed to create:', err);
+      logger.error('Failed to create:', err);
       setError(err.message || 'שגיאה ביצירת הפריט');
     } finally {
       setLoading(false);

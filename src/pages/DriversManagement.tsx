@@ -42,7 +42,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
   const loadDrivers = useCallback(async () => {
     try {
       if (!supabase) {
-        console.warn('⚠️ Supabase client not available yet, retrying...');
+        logger.warn('⚠️ Supabase client not available yet, retrying...');
         setLoading(false);
         return;
       }
@@ -84,7 +84,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
 
       setDrivers(driversWithDetails);
     } catch (error) {
-      console.error('Failed to load drivers:', error);
+      logger.error('Failed to load drivers:', error);
       Toast.error('שגיאה בטעינת נהגים');
     } finally {
       setLoading(false);
@@ -96,7 +96,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
     loadDrivers();
 
     if (!supabase) {
-      console.warn('Supabase client not available for subscriptions');
+      logger.warn('Supabase client not available for subscriptions');
       return;
     }
 

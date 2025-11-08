@@ -72,7 +72,7 @@ export function OrderCreationWizard({
         setCurrentStep('input');
       }
     } catch (error) {
-      console.error('Parsing failed:', error);
+      logger.error('Parsing failed:', error);
       setParsingResult({
         success: false,
         confidence: 0,
@@ -188,7 +188,7 @@ export function OrderCreationWizard({
       haptic();
 
     } catch (error) {
-      console.error('Failed to create order:', error);
+      logger.error('Failed to create order:', error);
       // Show error but don't change step
     } finally {
       setIsProcessing(false);

@@ -48,7 +48,7 @@ export function EnhancedOrderTracking({
       setOrder(orderData);
       setError(null);
     } catch (err) {
-      console.error('Failed to load order:', err);
+      logger.error('Failed to load order:', err);
       setError('שגיאה בטעינת פרטי ההזמנה');
       Toast.error('שגיאה בטעינת פרטי ההזמנה');
     } finally {

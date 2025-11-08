@@ -44,7 +44,7 @@ export function RecommendedUsers({ limit = 5, onFollow, onDismiss }: Recommended
       if (queryError) throw queryError;
       setRecommendedUsers(data || []);
     } catch (err) {
-      console.error('Failed to load recommendations:', err);
+      logger.error('Failed to load recommendations:', err);
       setError(i18n.getTranslations().social.somethingWentWrong);
     } finally {
       setLoading(false);
@@ -57,7 +57,7 @@ export function RecommendedUsers({ limit = 5, onFollow, onDismiss }: Recommended
       setRecommendedUsers(prev => prev.filter(u => u.id !== userId));
       if (onFollow) onFollow(userId);
     } catch (err) {
-      console.error('Failed to follow user:', err);
+      logger.error('Failed to follow user:', err);
     }
   };
 
@@ -74,7 +74,7 @@ export function RecommendedUsers({ limit = 5, onFollow, onDismiss }: Recommended
       setRecommendedUsers(prev => prev.filter(u => u.id !== userId));
       if (onDismiss) onDismiss(userId);
     } catch (err) {
-      console.error('Failed to dismiss recommendation:', err);
+      logger.error('Failed to dismiss recommendation:', err);
     }
   };
 
@@ -89,7 +89,7 @@ export function RecommendedUsers({ limit = 5, onFollow, onDismiss }: Recommended
 
       setRecommendedUsers(prev => prev.filter(u => u.id !== userId));
     } catch (err) {
-      console.error('Failed to mark as not interested:', err);
+      logger.error('Failed to mark as not interested:', err);
     }
   };
 

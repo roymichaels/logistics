@@ -42,7 +42,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
       setBusinesses(data);
       setFilteredBusinesses(data);
     } catch (error) {
-      console.error('Failed to load businesses:', error);
+      logger.error('Failed to load businesses:', error);
       Toast.error('שגיאה בטעינת רשימת העסקים');
     } finally {
       setLoading(false);
@@ -67,7 +67,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
       Toast.success(`בקשה נשלחה להצטרפות ל${selectedBusiness.name_hebrew || selectedBusiness.name}`);
       onClose();
     } catch (error) {
-      console.error('Failed to request joining business:', error);
+      logger.error('Failed to request joining business:', error);
       Toast.error('שגיאה בשליחת הבקשה');
     }
   };

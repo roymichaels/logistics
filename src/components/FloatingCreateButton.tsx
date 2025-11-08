@@ -262,9 +262,9 @@ export function FloatingCreateButton({
               navigator.geolocation.getCurrentPosition(
                 () => {
                   haptic();
-                  console.log('Location updated');
+                  logger.info('Location updated');
                 },
-                (error) => console.error('Location error:', error)
+                (error) => logger.error('Location error:', error)
               );
             }
           })

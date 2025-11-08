@@ -41,7 +41,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    logger.error('ErrorBoundary caught an error:', error, errorInfo);
 
     this.setState({
       error,
@@ -229,8 +229,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
  */
 export function GlobalErrorBoundary({ children }: { children: ReactNode }): JSX.Element {
   const handleError = (error: Error, errorInfo: ErrorInfo) => {
-    console.error('🚨 Global Error:', error);
-    console.error('Component Stack:', errorInfo.componentStack);
+    logger.error('🚨 Global Error:', error);
+    logger.error('Component Stack:', errorInfo.componentStack);
 
     // Log to analytics or error tracking service
     if (typeof window !== 'undefined') {
@@ -243,7 +243,7 @@ export function GlobalErrorBoundary({ children }: { children: ReactNode }): JSX.
         url: window.location.href,
       };
 
-      console.log('Error Data:', errorData);
+      logger.info('Error Data:', errorData);
     }
   };
 

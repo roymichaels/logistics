@@ -38,17 +38,17 @@ export function LiveDashboard({ dataStore, theme }: LiveDashboardProps) {
 
     // Set up real-time subscriptions
     const unsubscribeOrders = dataStore.subscribeToChanges?.('orders', (payload) => {
-      console.log('Orders updated:', payload);
+      logger.info('Orders updated:', payload);
       loadDashboardData();
     });
 
     const unsubscribeProducts = dataStore.subscribeToChanges?.('products', (payload) => {
-      console.log('Products updated:', payload);
+      logger.info('Products updated:', payload);
       loadDashboardData();
     });
 
     const unsubscribeTasks = dataStore.subscribeToChanges?.('tasks', (payload) => {
-      console.log('Tasks updated:', payload);
+      logger.info('Tasks updated:', payload);
       loadDashboardData();
     });
 
@@ -117,7 +117,7 @@ export function LiveDashboard({ dataStore, theme }: LiveDashboardProps) {
 
       setLastUpdate(new Date());
     } catch (error) {
-      console.error('Failed to load dashboard data:', error);
+      logger.error('Failed to load dashboard data:', error);
     } finally {
       setLoading(false);
     }
@@ -300,28 +300,28 @@ export function LiveDashboard({ dataStore, theme }: LiveDashboardProps) {
           icon="➕"
           color="#007aff"
           theme={theme}
-          onClick={() => console.log('Create order')}
+          onClick={() => logger.info('Create order')}
         />
         <QuickAction
           title="הקצאת משימה"
           icon="👥"
           color="#34c759"
           theme={theme}
-          onClick={() => console.log('Assign task')}
+          onClick={() => logger.info('Assign task')}
         />
         <QuickAction
           title="דוח יומי"
           icon="📊"
           color="#ff9500"
           theme={theme}
-          onClick={() => console.log('Daily report')}
+          onClick={() => logger.info('Daily report')}
         />
         <QuickAction
           title="ניהול מלאי"
           icon="📦"
           color="#5856d6"
           theme={theme}
-          onClick={() => console.log('Manage inventory')}
+          onClick={() => logger.info('Manage inventory')}
         />
       </div>
     </div>

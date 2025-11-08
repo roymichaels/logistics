@@ -47,7 +47,7 @@ export function ManagerOrderDashboard({
       setOrders(ordersList);
       setZones(zonesList);
     } catch (error) {
-      console.error('Failed to load orders:', error);
+      logger.error('Failed to load orders:', error);
       Toast.error('שגיאה בטעינת ההזמנות');
     } finally {
       setLoading(false);
@@ -200,7 +200,7 @@ export function ManagerOrderDashboard({
       setSelectedOrders(new Set());
       await loadData();
     } catch (error) {
-      console.error('Failed to cancel orders:', error);
+      logger.error('Failed to cancel orders:', error);
       Toast.error('שגיאה בביטול הזמנות');
     }
   };

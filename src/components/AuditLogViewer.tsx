@@ -57,7 +57,7 @@ export function AuditLogViewer({ dataStore, targetUserId, limitRecords = 50 }: A
 
       setLogs(data || []);
     } catch (error) {
-      console.error('Failed to load audit logs:', error);
+      logger.error('Failed to load audit logs:', error);
       Toast.error('שגיאה בטעינת יומן פעולות');
     } finally {
       setLoading(false);

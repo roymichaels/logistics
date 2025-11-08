@@ -59,7 +59,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
       setSelectedZone(statusRecord?.current_zone_id || '');
       setError(null);
     } catch (err) {
-      console.error('Failed to load driver status', err);
+      logger.error('Failed to load driver status', err);
       setError('שגיאה בטעינת נתוני הסטטוס');
       Toast.error('שגיאה בטעינת נתוני הסטטוס');
     } finally {
@@ -150,7 +150,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
       haptic('soft');
       await loadData();
     } catch (err) {
-      console.error('Failed to update driver status', err);
+      logger.error('Failed to update driver status', err);
       Toast.error('שגיאה בעדכון הסטטוס');
     } finally {
       setUpdating(false);
@@ -180,7 +180,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
         }
         await loadData();
       } catch (err) {
-        console.error('Failed to clear zone', err);
+        logger.error('Failed to clear zone', err);
         Toast.error('שגיאה בעדכון האזור');
       } finally {
         setUpdating(false);

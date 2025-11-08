@@ -51,7 +51,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
 
       setLogs(filteredLogs);
     } catch (error) {
-      console.error('Failed to load incoming logs:', error);
+      logger.error('Failed to load incoming logs:', error);
       Toast.error('שגיאה בטעינת יומני כניסות');
     } finally {
       setLoading(false);

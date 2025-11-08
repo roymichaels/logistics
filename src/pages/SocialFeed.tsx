@@ -23,7 +23,7 @@ export function SocialFeed() {
       const feedData = await dataStore.getFeed?.(feedFilters);
       setPosts(feedData || []);
     } catch (error) {
-      console.error('Failed to load feed:', error);
+      logger.error('Failed to load feed:', error);
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,7 @@ export function SocialFeed() {
       await dataStore.createPost?.(input);
       await loadFeed();
     } catch (error) {
-      console.error('Failed to create post:', error);
+      logger.error('Failed to create post:', error);
     }
   };
 
@@ -47,7 +47,7 @@ export function SocialFeed() {
       }
       await loadFeed();
     } catch (error) {
-      console.error('Failed to like/unlike post:', error);
+      logger.error('Failed to like/unlike post:', error);
     }
   };
 
@@ -56,7 +56,7 @@ export function SocialFeed() {
       await dataStore.repostPost?.(postId, comment);
       await loadFeed();
     } catch (error) {
-      console.error('Failed to repost:', error);
+      logger.error('Failed to repost:', error);
     }
   };
 
@@ -65,7 +65,7 @@ export function SocialFeed() {
       await dataStore.deletePost?.(postId);
       await loadFeed();
     } catch (error) {
-      console.error('Failed to delete post:', error);
+      logger.error('Failed to delete post:', error);
     }
   };
 

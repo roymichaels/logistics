@@ -36,7 +36,7 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
         setUsers(usersList.filter(u => u.telegram_id !== currentUser?.telegram_id));
       }
     } catch (error) {
-      console.error('Failed to load users:', error);
+      logger.error('Failed to load users:', error);
     }
   };
 
@@ -57,7 +57,7 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
         loadUpdates(selectedChannel.id);
       }
     } catch (error) {
-      console.error('Failed to load channels:', error);
+      logger.error('Failed to load channels:', error);
     } finally {
       setLoading(false);
     }
@@ -66,7 +66,7 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
   const loadUpdates = async (channelId: string) => {
     try {
       if (!dataStore.supabase) {
-        console.log('No Supabase client available');
+        logger.info('No Supabase client available');
         return;
       }
 
@@ -78,13 +78,13 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
         .limit(20);
 
       if (error) {
-        console.error('Failed to load channel updates:', error);
+        logger.error('Failed to load channel updates:', error);
         setUpdates([]);
       } else {
         setUpdates(data || []);
       }
     } catch (error) {
-      console.error('Failed to load updates:', error);
+      logger.error('Failed to load updates:', error);
       setUpdates([]);
     }
   };

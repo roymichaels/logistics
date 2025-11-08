@@ -13,7 +13,7 @@ class CacheService {
     try {
       return await offlineStore.getCollection<Task>('tasks');
     } catch (error) {
-      console.warn('Failed to load cached tasks:', error);
+      logger.warn('Failed to load cached tasks:', error);
       return [];
     }
   }
@@ -22,7 +22,7 @@ class CacheService {
     try {
       await offlineStore.setCollection('tasks', tasks);
     } catch (error) {
-      console.warn('Failed to cache tasks:', error);
+      logger.warn('Failed to cache tasks:', error);
     }
   }
 
@@ -30,7 +30,7 @@ class CacheService {
     try {
       return await offlineStore.getCollection<Order>('orders');
     } catch (error) {
-      console.warn('Failed to load cached orders:', error);
+      logger.warn('Failed to load cached orders:', error);
       return [];
     }
   }
@@ -39,7 +39,7 @@ class CacheService {
     try {
       await offlineStore.setCollection('orders', orders);
     } catch (error) {
-      console.warn('Failed to cache orders:', error);
+      logger.warn('Failed to cache orders:', error);
     }
   }
 
@@ -47,7 +47,7 @@ class CacheService {
     try {
       void offlineStore.clearCollections(['tasks', 'orders']);
     } catch (error) {
-      console.warn('Failed to clear cache:', error);
+      logger.warn('Failed to clear cache:', error);
     }
   }
 }

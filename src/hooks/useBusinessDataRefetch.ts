@@ -7,7 +7,7 @@ async function safeCall<T>(operation: () => Promise<T> | T, context: string) {
     return await operation();
   } catch (error) {
     debugLog.error(`❌ Failed to refresh ${context} after business switch`, error);
-    console.error(`Failed to refresh ${context} after business switch`, error);
+    logger.error(`Failed to refresh ${context} after business switch`, error);
     return undefined;
   }
 }

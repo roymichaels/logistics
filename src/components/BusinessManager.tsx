@@ -123,7 +123,7 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
           business_settings: (business as any).business_settings ?? null,
         }));
       } catch (serviceError) {
-        console.warn('⚠️ Failed to load businesses from service layer, falling back to dataStore', serviceError);
+        logger.warn('⚠️ Failed to load businesses from service layer, falling back to dataStore', serviceError);
       }
 
       if (mappedBusinesses) {
@@ -157,7 +157,7 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
       }
 
     } catch (error) {
-      console.error('Failed to load business data:', error);
+      logger.error('Failed to load business data:', error);
     } finally {
       setLoading(false);
     }
@@ -191,7 +191,7 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
   };
 
   const handleCreateBusiness = async () => {
-    console.log('🔄 Creating business...', newBusinessForm);
+    logger.info('🔄 Creating business...', newBusinessForm);
 
     if (!newBusinessForm.name || !newBusinessForm.name_hebrew) {
       alert('נא למלא את כל השדות החובה');
@@ -213,7 +213,7 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
           ownerRoleKey: 'business_owner',
         });
       } catch (serviceError) {
-        console.error('❌ createBusinessService failed, falling back to dataStore', serviceError);
+        logger.error('❌ createBusinessService failed, falling back to dataStore', serviceError);
         if (dataStore.createBusiness) {
           const fallback = await dataStore.createBusiness(newBusinessForm);
           createdBusiness = {
@@ -240,7 +240,7 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
         throw new Error('Business creation returned no data');
       }
 
-      console.log('✅ Business created:', createdBusiness);
+      logger.info('✅ Business created:', createdBusiness);
       haptic();
 
       setBusinessId(createdBusiness.id);
@@ -258,7 +258,7 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
 
       Toast.success(`העסק "${createdBusiness.name_hebrew || createdBusiness.name}" נוסף בהצלחה`);
     } catch (error) {
-      console.error('❌ Failed to create business:', error);
+      logger.error('❌ Failed to create business:', error);
       const message = error instanceof Error ? error.message : String(error);
       Toast.error(`שגיאה ביצירת עסק: ${message}`);
     }

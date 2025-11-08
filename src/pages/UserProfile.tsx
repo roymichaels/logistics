@@ -43,7 +43,7 @@ export function UserProfilePage({ userId }: UserProfileProps) {
         .single();
       setUser(userData);
     } catch (error) {
-      console.error('Failed to load profile:', error);
+      logger.error('Failed to load profile:', error);
     }
   };
 
@@ -53,7 +53,7 @@ export function UserProfilePage({ userId }: UserProfileProps) {
       const postsData = await dataStore.getUserPosts?.(targetUserId!, 50);
       setPosts(postsData || []);
     } catch (error) {
-      console.error('Failed to load posts:', error);
+      logger.error('Failed to load posts:', error);
     } finally {
       setLoading(false);
     }
@@ -64,7 +64,7 @@ export function UserProfilePage({ userId }: UserProfileProps) {
       const following = await dataStore.isFollowing?.(targetUserId!);
       setIsFollowing(!!following);
     } catch (error) {
-      console.error('Failed to check follow status:', error);
+      logger.error('Failed to check follow status:', error);
     }
   };
 
@@ -79,7 +79,7 @@ export function UserProfilePage({ userId }: UserProfileProps) {
       setIsFollowing(!isFollowing);
       await loadProfile();
     } catch (error) {
-      console.error('Failed to follow/unfollow:', error);
+      logger.error('Failed to follow/unfollow:', error);
     }
   };
 
@@ -92,7 +92,7 @@ export function UserProfilePage({ userId }: UserProfileProps) {
       }
       await loadPosts();
     } catch (error) {
-      console.error('Failed to like/unlike post:', error);
+      logger.error('Failed to like/unlike post:', error);
     }
   };
 
@@ -101,7 +101,7 @@ export function UserProfilePage({ userId }: UserProfileProps) {
       await dataStore.repostPost?.(postId, comment);
       await loadPosts();
     } catch (error) {
-      console.error('Failed to repost:', error);
+      logger.error('Failed to repost:', error);
     }
   };
 
@@ -110,7 +110,7 @@ export function UserProfilePage({ userId }: UserProfileProps) {
       await dataStore.deletePost?.(postId);
       await loadPosts();
     } catch (error) {
-      console.error('Failed to delete post:', error);
+      logger.error('Failed to delete post:', error);
     }
   };
 

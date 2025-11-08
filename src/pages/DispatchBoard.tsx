@@ -49,7 +49,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
       setOutstandingOrders(snapshot.outstandingOrders);
       setError(null);
     } catch (err) {
-      console.error('Failed to load dispatch data', err);
+      logger.error('Failed to load dispatch data', err);
       setError('שגיאה בטעינת נתוני הכיסוי');
       Toast.error('שגיאה בטעינת נתוני הכיסוי');
     } finally {
@@ -64,7 +64,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
 
     // Set up Supabase Realtime for live updates only if supabase is available
     if (!supabase) {
-      console.warn('⚠️ Supabase client not available, realtime updates disabled. Using polling fallback.');
+      logger.warn('⚠️ Supabase client not available, realtime updates disabled. Using polling fallback.');
 
       // Fallback to polling only
       const interval = setInterval(() => {
@@ -90,7 +90,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
             table: 'orders'
           },
           () => {
-            console.log('Order update detected, refreshing...');
+            logger.info('Order update detected, refreshing...');
             loadData();
           }
         )
@@ -106,13 +106,13 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
             table: 'driver_statuses'
           },
           () => {
-            console.log('Driver status update detected, refreshing...');
+            logger.info('Driver status update detected, refreshing...');
             loadData();
           }
         )
         .subscribe();
     } catch (err) {
-      console.error('Failed to setup realtime subscriptions:', err);
+      logger.error('Failed to setup realtime subscriptions:', err);
     }
 
     // Auto-refresh every 30 seconds
@@ -125,7 +125,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
         if (ordersChannel) ordersChannel.unsubscribe();
         if (driversChannel) driversChannel.unsubscribe();
       } catch (err) {
-        console.error('Error unsubscribing from channels:', err);
+        logger.error('Error unsubscribing from channels:', err);
       }
       clearInterval(interval);
     };
@@ -165,7 +165,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
       setShowDriverSelector(false);
       await loadData();
     } catch (error) {
-      console.error('Failed to assign driver:', error);
+      logger.error('Failed to assign driver:', error);
       Toast.error('שגיאה בשיוך נהג');
     }
   };

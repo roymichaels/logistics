@@ -36,19 +36,19 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       (window as any).__showProfileReport = () => ProfileDiagnostics.profileDebugger.printReport();
-      console.log('💡 Type window.__showProfileReport() to see profile fetch statistics');
+      logger.info('💡 Type window.__showProfileReport() to see profile fetch statistics');
     }
   }, []);
 
   const loadProfile = async (forceRefresh = false) => {
     try {
-      console.log('📄 Profile page: Loading profile...', { forceRefresh });
+      logger.info('📄 Profile page: Loading profile...', { forceRefresh });
 
       const profile = forceRefresh
         ? await dataStore.getProfile(true)
         : await dataStore.getProfile();
 
-      console.log('✅ Profile page: Profile loaded successfully', {
+      logger.info('✅ Profile page: Profile loaded successfully', {
         telegram_id: profile.telegram_id,
         role: profile.role,
         name: profile.name
@@ -56,7 +56,7 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
 
       setUser(profile);
     } catch (error) {
-      console.error('❌ Profile page: Failed to load profile:', error);
+      logger.error('❌ Profile page: Failed to load profile:', error);
       telegram.showAlert(`שגיאה בטעינת פרופיל: ${error instanceof Error ? error.message : 'שגיאה לא ידועה'}`);
     } finally {
       setLoading(false);

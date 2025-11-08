@@ -52,7 +52,7 @@ export function AdvancedSearch({ dataStore, theme, onResults, onClose }: Advance
       const profile = await dataStore.getProfile();
       setUsers([profile]);
     } catch (error) {
-      console.error('Failed to load users:', error);
+      logger.error('Failed to load users:', error);
     }
   };
 
@@ -119,7 +119,7 @@ export function AdvancedSearch({ dataStore, theme, onResults, onClose }: Advance
         saveToHistory(filters.query);
       }
     } catch (error) {
-      console.error('Search failed:', error);
+      logger.error('Search failed:', error);
     } finally {
       setIsSearching(false);
     }

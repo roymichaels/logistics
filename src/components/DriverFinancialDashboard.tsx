@@ -51,7 +51,7 @@ export function DriverFinancialDashboard({ driverId, dataStore }: DriverFinancia
         avgEarningsPerDelivery: summary.avgEarningsPerDelivery
       });
     } catch (error) {
-      console.error('Failed to load earnings:', error);
+      logger.error('Failed to load earnings:', error);
       Toast.error('שגיאה בטעינת נתוני הכנסות');
     } finally {
       setLoading(false);

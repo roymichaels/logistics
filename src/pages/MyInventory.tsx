@@ -53,7 +53,7 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
       setItems(mappedItems);
       setProducts(productList || []);
     } catch (err) {
-      console.error('Failed to load driver inventory', err);
+      logger.error('Failed to load driver inventory', err);
       Toast.error('שגיאה בטעינת המלאי האישי');
       setItems([]);
     } finally {
@@ -131,7 +131,7 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
       haptic('soft');
       await loadData();
     } catch (err) {
-      console.error('Failed to sync driver inventory', err);
+      logger.error('Failed to sync driver inventory', err);
       Toast.error('שגיאה בעדכון המלאי');
     } finally {
       setSyncing(false);

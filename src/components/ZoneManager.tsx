@@ -64,7 +64,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
       const zonesData = await dataStore.listZones(filters);
       setZones(zonesData);
     } catch (error) {
-      console.error('Failed to load zones:', error);
+      logger.error('Failed to load zones:', error);
       Toast.error('שגיאה בטעינת אזורים');
     } finally {
       setLoading(false);
@@ -90,7 +90,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
       resetForm();
       await loadZones();
     } catch (error) {
-      console.error('Failed to create zone:', error);
+      logger.error('Failed to create zone:', error);
       Toast.error('שגיאה ביצירת אזור');
     }
   };
@@ -124,7 +124,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
       resetForm();
       await loadZones();
     } catch (error) {
-      console.error('Failed to update zone:', error);
+      logger.error('Failed to update zone:', error);
       Toast.error('שגיאה בעדכון אזור');
     }
   };
@@ -144,7 +144,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
       Toast.success('אזור נמחק בהצלחה');
       await loadZones();
     } catch (error) {
-      console.error('Failed to delete zone:', error);
+      logger.error('Failed to delete zone:', error);
       Toast.error('שגיאה במחיקת אזור');
     }
   };

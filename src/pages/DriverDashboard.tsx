@@ -73,7 +73,7 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
         }
       }
     } catch (error) {
-      console.error('Failed to load driver data:', error);
+      logger.error('Failed to load driver data:', error);
       Toast.error('שגיאה בטעינת נתונים');
     } finally {
       setLoading(false);
@@ -134,7 +134,7 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
           }
         },
         (error) => {
-          console.error('Geolocation error:', error);
+          logger.error('Geolocation error:', error);
         },
         {
           enableHighAccuracy: true,
@@ -162,7 +162,7 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
       setPendingAssignment(null);
       await loadDriverData();
     } catch (error) {
-      console.error('Failed to accept assignment:', error);
+      logger.error('Failed to accept assignment:', error);
       throw error;
     }
   };
@@ -173,7 +173,7 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
       setPendingAssignment(null);
       await loadDriverData();
     } catch (error) {
-      console.error('Failed to decline assignment:', error);
+      logger.error('Failed to decline assignment:', error);
       throw error;
     }
   };
@@ -188,7 +188,7 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
       telegram.hapticFeedback('selection');
       Toast.success(newStatus ? 'עברת למצב מקוון' : 'עברת למצב לא מקוון');
     } catch (error) {
-      console.error('Failed to toggle online status:', error);
+      logger.error('Failed to toggle online status:', error);
       Toast.error('שגיאה בשינוי סטטוס');
     }
   };
@@ -206,7 +206,7 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
       Toast.success('סטטוס הזמנה עודכן');
       await loadDriverData();
     } catch (error) {
-      console.error('Failed to update order status:', error);
+      logger.error('Failed to update order status:', error);
       Toast.error('שגיאה בעדכון סטטוס');
     }
   };

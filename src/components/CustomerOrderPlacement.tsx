@@ -43,7 +43,7 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
       const productsList = await dataStore.listProducts?.() || [];
       setProducts(productsList);
     } catch (error) {
-      console.error('Failed to load products:', error);
+      logger.error('Failed to load products:', error);
       Toast.error('שגיאה בטעינת המוצרים');
     } finally {
       setLoading(false);
@@ -202,7 +202,7 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
         }
       }
     } catch (error) {
-      console.error('Failed to create order:', error);
+      logger.error('Failed to create order:', error);
       telegram.hapticFeedback('notification', 'error');
       Toast.error('שגיאה ביצירת ההזמנה');
     } finally {

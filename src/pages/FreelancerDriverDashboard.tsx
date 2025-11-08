@@ -51,7 +51,7 @@ export function FreelancerDriverDashboard({ dataStore, onNavigate }: FreelancerD
 
       setDriverProfile(driverData);
     } catch (error) {
-      console.error('Failed to load driver profile:', error);
+      logger.error('Failed to load driver profile:', error);
       Toast.error('שגיאה בטעינת פרופיל נהג');
     } finally {
       setLoading(false);
@@ -83,7 +83,7 @@ export function FreelancerDriverDashboard({ dataStore, onNavigate }: FreelancerD
       Toast.success(newOnlineStatus ? 'עברת למצב מקוון' : 'עברת למצב לא מקוון');
       haptic.notificationOccurred('success');
     } catch (error) {
-      console.error('Failed to toggle online status:', error);
+      logger.error('Failed to toggle online status:', error);
       Toast.error('שגיאה בעדכון סטטוס');
       haptic.notificationOccurred('error');
     }

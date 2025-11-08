@@ -134,7 +134,7 @@ export function DynamicRoleEditor({ userId, userRole, businessId }: DynamicRoleE
         setCustomRoles(customs);
       }
     } catch (error) {
-      console.error('Failed to load role data:', error);
+      logger.error('Failed to load role data:', error);
       alert('Failed to load role editor data');
     } finally {
       setLoading(false);
@@ -254,7 +254,7 @@ export function DynamicRoleEditor({ userId, userRole, businessId }: DynamicRoleE
       setEditMode('view');
       await loadData();
     } catch (error) {
-      console.error('Failed to save custom role:', error);
+      logger.error('Failed to save custom role:', error);
       alert('Failed to save custom role');
     } finally {
       setSaving(false);

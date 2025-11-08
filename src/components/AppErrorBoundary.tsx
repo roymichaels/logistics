@@ -22,7 +22,7 @@ export class AppErrorBoundary extends React.Component<AppErrorBoundaryProps, App
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('[AppErrorBoundary] Component error caught:', error, errorInfo);
+    logger.error('[AppErrorBoundary] Component error caught:', error, errorInfo);
 
     if (typeof window !== 'undefined' && (window as any).errorHandler) {
       (window as any).errorHandler.handle(error, 'AppErrorBoundary', {

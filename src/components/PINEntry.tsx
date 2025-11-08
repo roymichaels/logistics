@@ -198,7 +198,7 @@ export function PINEntry({
         }
       }
     } catch (error) {
-      console.error('PIN handling error:', error);
+      logger.error('PIN handling error:', error);
       setError('An error occurred');
       triggerShakeAnimation();
     } finally {

@@ -29,7 +29,7 @@ export function useRoleTheme(): UseRoleThemeReturn {
     contextData = useAppServices();
   } catch (error) {
     // Context not available - use defaults
-    console.warn('useRoleTheme: AppServicesContext not available, using defaults');
+    logger.warn('useRoleTheme: AppServicesContext not available, using defaults');
   }
 
   const userRole = contextData?.userRole ?? null;

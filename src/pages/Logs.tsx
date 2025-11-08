@@ -36,7 +36,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
         setProducts(productsList);
       }
     } catch (error) {
-      console.error('Failed to load products:', error);
+      logger.error('Failed to load products:', error);
     }
   };
 
@@ -68,7 +68,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
 
       setLogs(filteredLogs);
     } catch (error) {
-      console.error('Failed to load logs:', error);
+      logger.error('Failed to load logs:', error);
       Toast.error('שגיאה בטעינת יומן תנועות');
     } finally {
       setLoading(false);

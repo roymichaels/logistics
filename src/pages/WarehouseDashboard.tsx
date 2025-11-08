@@ -84,7 +84,7 @@ export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
         setAlerts(alertList);
         setLogs(recentLogs);
       } catch (error) {
-        console.error('Failed to load warehouse dashboard data', error);
+        logger.error('Failed to load warehouse dashboard data', error);
       } finally {
         if (!cancelled) {
           setLoading(false);

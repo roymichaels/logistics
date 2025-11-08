@@ -52,7 +52,7 @@ export function DriverDetailPanel({ driver, onClose, onUpdate, dataStore, driver
       setRecentLocations(locations);
       setDriverInventory(inventory);
     } catch (error) {
-      console.error('Failed to load driver data:', error);
+      logger.error('Failed to load driver data:', error);
     } finally {
       setLoadingData(false);
     }
@@ -66,7 +66,7 @@ export function DriverDetailPanel({ driver, onClose, onUpdate, dataStore, driver
       setEditing(false);
       onUpdate();
     } catch (error) {
-      console.error('Failed to update driver:', error);
+      logger.error('Failed to update driver:', error);
       Toast.error('שגיאה בעדכון פרטי הנהג');
     }
   };
@@ -78,7 +78,7 @@ export function DriverDetailPanel({ driver, onClose, onUpdate, dataStore, driver
       telegram.hapticFeedback('success');
       onUpdate();
     } catch (error) {
-      console.error('Failed to toggle availability:', error);
+      logger.error('Failed to toggle availability:', error);
       Toast.error('שגיאה בעדכון זמינות');
     }
   };

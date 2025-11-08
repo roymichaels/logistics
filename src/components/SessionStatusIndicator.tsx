@@ -217,8 +217,8 @@ export function SessionStatusIndicator({ showDetails = false, compact = false }:
           <button
             onClick={(e) => {
               e.stopPropagation();
-              console.log('=== SESSION TRACKER REPORT ===');
-              console.log(sessionTracker.getReport());
+              logger.info('=== SESSION TRACKER REPORT ===');
+              logger.info(sessionTracker.getReport());
               alert('Report printed to console');
             }}
             style={{

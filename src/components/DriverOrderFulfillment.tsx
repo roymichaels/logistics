@@ -64,7 +64,7 @@ export function DriverOrderFulfillment({
 
       setOrders(sortedOrders);
     } catch (error) {
-      console.error('Failed to load orders:', error);
+      logger.error('Failed to load orders:', error);
       Toast.error('שגיאה בטעינת המשלוחים');
     } finally {
       setLoading(false);
@@ -91,7 +91,7 @@ export function DriverOrderFulfillment({
       Toast.success('משלוח התחיל!');
       await loadOrders();
     } catch (error) {
-      console.error('Failed to start delivery:', error);
+      logger.error('Failed to start delivery:', error);
       Toast.error('שגיאה בהתחלת משלוח');
     }
   };
@@ -120,7 +120,7 @@ export function DriverOrderFulfillment({
       setProofImage(null);
       await loadOrders();
     } catch (error) {
-      console.error('Failed to complete delivery:', error);
+      logger.error('Failed to complete delivery:', error);
       const message = error instanceof Error ? error.message : 'שגיאה בסיום משלוח';
       Toast.error(message);
     } finally {

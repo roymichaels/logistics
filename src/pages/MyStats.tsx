@@ -28,7 +28,7 @@ export function MyStats({ dataStore }: MyStatsProps) {
           setUser(profile);
         }
       })
-      .catch((error) => console.warn('Failed to load profile for my stats page:', error));
+      .catch((error) => logger.warn('Failed to load profile for my stats page:', error));
 
     return () => {
       mounted = false;

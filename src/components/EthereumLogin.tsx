@@ -35,7 +35,7 @@ export function EthereumLogin({ onSuccess, onError }: EthereumLoginProps) {
           }
         })
         .catch((err: any) => {
-          console.error('Error checking existing accounts:', err);
+          logger.error('Error checking existing accounts:', err);
         });
     }
   }, []);
@@ -80,11 +80,11 @@ Nonce: ${nonce}
         params: [message, address],
       });
 
-      console.log('✅ ארנק Ethereum מחובר והודעה נחתמה');
+      logger.info('✅ ארנק Ethereum מחובר והודעה נחתמה');
 
       onSuccess(address, signature, message);
     } catch (error: any) {
-      console.error('❌ שגיאה בחיבור ארנק Ethereum:', error);
+      logger.error('❌ שגיאה בחיבור ארנק Ethereum:', error);
 
       let errorMessage = 'כשל בחיבור ארנק Ethereum';
 

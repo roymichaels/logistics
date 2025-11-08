@@ -81,20 +81,20 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       }
 
       if (roleRefreshPending) {
-        console.log('⏭️ Role refresh already pending, skipping duplicate request');
+        logger.info('⏭️ Role refresh already pending, skipping duplicate request');
         return;
       }
 
       setRoleRefreshPending(true);
 
       try {
-        console.log('🔄 AppServicesContext: Refreshing user role from database...', { userId: user.id });
+        logger.info('🔄 AppServicesContext: Refreshing user role from database...', { userId: user.id });
 
         userService.clearCache(user.id);
 
         const profile = await userService.getUserProfile(user.id, true);
 
-        console.log('✅ AppServicesContext: User profile refreshed', {
+        logger.info('✅ AppServicesContext: User profile refreshed', {
           role: profile.role,
           global_role: profile.global_role,
           business_id: profile.business_id
@@ -114,16 +114,16 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         setUserRole(effectiveRole);
 
         if (profile.business_id && profile.business_id !== currentBusinessId) {
-          console.log('🏢 AppServicesContext: Setting new business context:', profile.business_id);
+          logger.info('🏢 AppServicesContext: Setting new business context:', profile.business_id);
           setCurrentBusinessId(profile.business_id);
         }
 
         if (wasUser && isNowBusinessOwner) {
-          console.log('🎉 AppServicesContext: User became business owner - setting navigation flag');
+          logger.info('🎉 AppServicesContext: User became business owner - setting navigation flag');
           localStorage.setItem('force_dashboard_navigation', 'true');
         }
       } catch (err) {
-        console.error('❌ Failed to refresh user role', err);
+        logger.error('❌ Failed to refresh user role', err);
       } finally {
         setTimeout(() => setRoleRefreshPending(false), 1000);
       }
@@ -138,7 +138,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     }
 
     const handleRoleRefresh = async (event: Event) => {
-      console.log('🔄 AppServicesProvider: role-refresh event received');
+      logger.info('🔄 AppServicesProvider: role-refresh event received');
 
       try {
         // Small delay to ensure database transaction is complete
@@ -150,9 +150,9 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         // Force refresh the user role
         await refreshUserRole({ forceRefresh: true });
 
-        console.log('✅ AppServicesProvider: Role refresh completed');
+        logger.info('✅ AppServicesProvider: Role refresh completed');
       } catch (error) {
-        console.error('❌ AppServicesProvider: Role refresh failed:', error);
+        logger.error('❌ AppServicesProvider: Role refresh failed:', error);
       }
     };
 
@@ -164,7 +164,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   }, [value, user?.id, refreshUserRole]);
 
   useEffect(() => {
-    console.log('🔧 AppServicesProvider: useEffect running', {
+    logger.info('🔧 AppServicesProvider: useEffect running', {
       hasValue: !!value,
       hasAuth: !!auth,
       isAuthenticated: auth?.isAuthenticated,
@@ -173,18 +173,18 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     });
 
     if (value) {
-      console.log('🔧 AppServicesProvider: Using provided value, skipping initialization');
+      logger.info('🔧 AppServicesProvider: Using provided value, skipping initialization');
       return;
     }
 
     if (!auth) {
-      console.log('🔧 AppServicesProvider: No auth context available');
+      logger.info('🔧 AppServicesProvider: No auth context available');
       return;
     }
 
     // If auth is still loading, wait for it
     if (auth.isLoading) {
-      console.log('🔧 AppServicesProvider: Auth still loading, waiting...');
+      logger.info('🔧 AppServicesProvider: Auth still loading, waiting...');
       setLoading(true);
       return;
     }
@@ -192,7 +192,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     // If auth finished loading but user is not authenticated, set loading to false
     // This allows the App component to show the LoginPage
     if (!auth.isAuthenticated) {
-      console.log('🔧 AppServicesProvider: Auth finished loading, user not authenticated');
+      logger.info('🔧 AppServicesProvider: Auth finished loading, user not authenticated');
       setLoading(false);
       setUser(null);
       setUserRole(null);
@@ -204,7 +204,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
     // At this point, auth.isAuthenticated is true but we need to verify we have user data
     if (!auth.user) {
-      console.log('🔧 AppServicesProvider: Authenticated but no user data');
+      logger.info('🔧 AppServicesProvider: Authenticated but no user data');
       setError('No authenticated user');
       setLoading(false);
       return;
@@ -214,11 +214,11 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     let timeoutId: NodeJS.Timeout;
 
     const initialize = async () => {
-      console.log('🔧 AppServicesProvider: Starting initialization...');
+      logger.info('🔧 AppServicesProvider: Starting initialization...');
       try {
         timeoutId = setTimeout(() => {
           if (!cancelled) {
-            console.error('⚠️ AppServicesProvider initialization timeout after 30s');
+            logger.error('⚠️ AppServicesProvider initialization timeout after 30s');
             setError('Initialization timeout. Please refresh the page.');
             setLoading(false);
           }
@@ -246,7 +246,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         if (cancelled) return;
 
-        console.log('🔧 AppServicesProvider: Config set');
+        logger.info('🔧 AppServicesProvider: Config set');
         setConfig(appConfig);
 
         const appUser: User = {
@@ -258,18 +258,18 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
           role: auth.user.role as any,
         };
 
-        console.log('🔧 AppServicesProvider: User set:', { id: appUser.id, role: appUser.role });
+        logger.info('🔧 AppServicesProvider: User set:', { id: appUser.id, role: appUser.role });
         setUser(appUser);
         setUserRole(auth.user.role as AppUserRole);
 
         if (cancelled) return;
 
-        console.log('🔧 AppServicesProvider: Creating data store...');
+        logger.info('🔧 AppServicesProvider: Creating data store...');
         const store = await createFrontendDataStore(appConfig, 'real', appUser);
 
         if (cancelled) return;
 
-        console.log('🔧 AppServicesProvider: Data store created and set');
+        logger.info('🔧 AppServicesProvider: Data store created and set');
         setDataStore(store);
 
         try {
@@ -287,7 +287,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
             effectiveRole = 'user';
           }
 
-          console.log('👤 User profile loaded:', {
+          logger.info('👤 User profile loaded:', {
             role: profile.role,
             global_role: profile.global_role,
             effectiveRole,
@@ -301,12 +301,12 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
           if (cachedBusinessRoleStr) {
             try {
               const cachedBusinessRole = JSON.parse(cachedBusinessRoleStr);
-              console.log('✅ Found cached business role:', cachedBusinessRole);
+              logger.info('✅ Found cached business role:', cachedBusinessRole);
 
               // If user has a business role, use it instead of base role
               if (cachedBusinessRole.role_code) {
                 effectiveRole = cachedBusinessRole.role_code as AppUserRole;
-                console.log(`🔄 Overriding user role from '${profile.role}' to '${effectiveRole}' based on business role`);
+                logger.info(`🔄 Overriding user role from '${profile.role}' to '${effectiveRole}' based on business role`);
               }
 
               // Store business ID in context
@@ -314,14 +314,14 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
                 setCurrentBusinessId(cachedBusinessRole.business_id);
               }
             } catch (parseError) {
-              console.error('❌ Failed to parse cached business role:', parseError);
+              logger.error('❌ Failed to parse cached business role:', parseError);
               localStorage.removeItem('active_business_role');
             }
           } else {
             // No cached business role, use session or profile business_id
             const businessToSet = sessionBusinessId || profile.business_id;
             if (businessToSet) {
-              console.log('🏢 Setting business_id from session/profile:', businessToSet);
+              logger.info('🏢 Setting business_id from session/profile:', businessToSet);
               setCurrentBusinessId(businessToSet);
             }
           }
@@ -336,12 +336,12 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
           setUser(fullUser);
           setUserRole(effectiveRole);
         } catch (profileError) {
-          console.warn('⚠️ Failed to fetch extended profile', profileError);
+          logger.warn('⚠️ Failed to fetch extended profile', profileError);
         }
 
         if (!cancelled) {
           clearTimeout(timeoutId);
-          console.log('🔧 AppServicesProvider: Initialization complete, setting loading to false');
+          logger.info('🔧 AppServicesProvider: Initialization complete, setting loading to false');
           setLoading(false);
         }
       } catch (err) {
@@ -349,7 +349,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
           return;
         }
 
-        console.error('AppServicesProvider initialization failed:', err);
+        logger.error('AppServicesProvider initialization failed:', err);
 
         if (!cancelled) {
           clearTimeout(timeoutId);
@@ -380,7 +380,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       try {
         // Only attempt business context loading if dataStore is fully initialized
         if (!dataStore || typeof dataStore.getActiveBusinessContext !== 'function') {
-          console.log('⏳ AppServicesProvider: DataStore not ready for business context');
+          logger.info('⏳ AppServicesProvider: DataStore not ready for business context');
           return;
         }
 
@@ -390,7 +390,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         }
       } catch (err) {
         if (!cancelled) {
-          console.warn('⚠️ Failed to load active business context', err);
+          logger.warn('⚠️ Failed to load active business context', err);
           // Don't propagate error - business features may not be implemented yet
         }
       }

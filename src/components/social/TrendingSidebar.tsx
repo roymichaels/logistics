@@ -23,7 +23,7 @@ export function TrendingSidebar() {
       setTrending(trendingData);
       setSuggestedUsers(usersData);
     } catch (error) {
-      console.error('Failed to load sidebar data:', error);
+      logger.error('Failed to load sidebar data:', error);
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,7 @@ export function TrendingSidebar() {
       await dataStore.followUser?.(userId);
       setSuggestedUsers(prev => prev.filter(u => u.id !== userId));
     } catch (error) {
-      console.error('Failed to follow user:', error);
+      logger.error('Failed to follow user:', error);
     }
   };
 

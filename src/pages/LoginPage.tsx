@@ -20,8 +20,8 @@ export function LoginPage({
   onTelegramLogin,
   isLoading = false,
 }: LoginPageProps) {
-  console.log('🔐 LoginPage: Component mounting/rendering...');
-  console.log('🔐 LoginPage: Props:', { isLoading, hasEthereumLogin: !!onEthereumLogin, hasSolanaLogin: !!onSolanaLogin, hasTelegramLogin: !!onTelegramLogin });
+  logger.info('🔐 LoginPage: Component mounting/rendering...');
+  logger.info('🔐 LoginPage: Props:', { isLoading, hasEthereumLogin: !!onEthereumLogin, hasSolanaLogin: !!onSolanaLogin, hasTelegramLogin: !!onTelegramLogin });
 
   const [selectedMethod, setSelectedMethod] = useState<AuthMethod>(null);
   const [error, setError] = useState<string | null>(null);
@@ -31,16 +31,16 @@ export function LoginPage({
   const theme = ADMIN_THEME.colors;
 
   useEffect(() => {
-    console.log('🔐 LoginPage: useEffect running - detecting platform and auth methods');
+    logger.info('🔐 LoginPage: useEffect running - detecting platform and auth methods');
     const platform = platformDetection.detect();
     const methods = platformDetection.getAvailableAuthMethods();
 
-    console.log('🔐 LoginPage: Available auth methods:', methods);
+    logger.info('🔐 LoginPage: Available auth methods:', methods);
     setAvailableMethods(methods);
 
     // Only auto-select if exactly one method is available
     if (methods.length === 1) {
-      console.log('🔐 LoginPage: Auto-selecting only available method:', methods[0]);
+      logger.info('🔐 LoginPage: Auto-selecting only available method:', methods[0]);
       setSelectedMethod(methods[0]);
     }
     // If multiple methods available, let user choose (don't auto-select)
@@ -88,7 +88,7 @@ export function LoginPage({
   };
 
   if (isLoading) {
-    console.log('🔐 LoginPage: Rendering loading state');
+    logger.info('🔐 LoginPage: Rendering loading state');
     return (
       <div style={{
         display: 'flex',
@@ -121,8 +121,8 @@ export function LoginPage({
     );
   }
 
-  console.log('🔐 LoginPage: Rendering main login UI');
-  console.log('🔐 LoginPage: Selected method:', selectedMethod, 'Available methods:', availableMethods);
+  logger.info('🔐 LoginPage: Rendering main login UI');
+  logger.info('🔐 LoginPage: Selected method:', selectedMethod, 'Available methods:', availableMethods);
 
   return (
     <div style={{

@@ -77,7 +77,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
         : createRoyalFallback();
       setSnapshot(royalData);
     } catch (error) {
-      console.error('Failed to load royal dashboard', error);
+      logger.error('Failed to load royal dashboard', error);
       Toast.error('שגיאה בטעינת לוח הבקרה המלכותי');
       setSnapshot(createRoyalFallback());
     } finally {
@@ -157,10 +157,10 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
         Toast.success('הסיכום הועתק ללוח');
       } else {
         Toast.show('העתיקו את הסיכום ידנית:', 'info');
-        console.info(payload);
+        logger.info(payload);
       }
     } catch (error) {
-      console.error('Failed to deliver summary', error);
+      logger.error('Failed to deliver summary', error);
       Toast.error('לא הצלחנו לשדר את הסיכום');
     }
   }, [snapshot, summaryText, haptic]);
@@ -256,7 +256,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
                     onNavigate('businesses');
                   }
                 } catch (err) {
-                  console.error('Failed to refresh profile:', err);
+                  logger.error('Failed to refresh profile:', err);
                   Toast.error('שגיאה בטעינת נתונים. אנא נסה שנית.');
                 } finally {
                   setLoading(false);
@@ -886,7 +886,7 @@ function handleExport(snapshot: RoyalDashboardSnapshot, format: 'csv' | 'json', 
     }
     Toast.success('הדוח ירד בהצלחה');
   } catch (error) {
-    console.error('Failed to export dashboard', error);
+    logger.error('Failed to export dashboard', error);
     Toast.error('לא הצלחנו להפיק את הדוח');
   }
 }

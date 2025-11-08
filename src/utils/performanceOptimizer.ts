@@ -175,7 +175,7 @@ export class PerformanceMonitor {
   end(label: string): number {
     const startTime = this.marks.get(label);
     if (!startTime) {
-      console.warn(`No start mark found for "${label}"`);
+      logger.warn(`No start mark found for "${label}"`);
       return 0;
     }
 
@@ -183,7 +183,7 @@ export class PerformanceMonitor {
     this.marks.delete(label);
 
     if (duration > 100) {
-      console.warn(`⚠️ Slow operation "${label}": ${duration.toFixed(2)}ms`);
+      logger.warn(`⚠️ Slow operation "${label}": ${duration.toFixed(2)}ms`);
     }
 
     return duration;

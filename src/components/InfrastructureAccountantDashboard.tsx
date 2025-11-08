@@ -74,7 +74,7 @@ export function InfrastructureAccountantDashboard() {
         loadCostCenters(startDate, endDate)
       ]);
     } catch (error) {
-      console.error('Failed to load financial data:', error);
+      logger.error('Failed to load financial data:', error);
     } finally {
       setLoading(false);
     }
@@ -103,7 +103,7 @@ export function InfrastructureAccountantDashboard() {
     });
 
     if (error) {
-      console.error('Failed to load business revenue:', error);
+      logger.error('Failed to load business revenue:', error);
       return;
     }
     setBusinessRevenue(data || []);
@@ -119,7 +119,7 @@ export function InfrastructureAccountantDashboard() {
     });
 
     if (error) {
-      console.error('Failed to load period data:', error);
+      logger.error('Failed to load period data:', error);
       return;
     }
     setPeriodData(data || []);
@@ -132,7 +132,7 @@ export function InfrastructureAccountantDashboard() {
     });
 
     if (error) {
-      console.error('Failed to load profitability report:', error);
+      logger.error('Failed to load profitability report:', error);
       return;
     }
     setProfitabilityReport(data || []);
@@ -145,7 +145,7 @@ export function InfrastructureAccountantDashboard() {
     });
 
     if (error) {
-      console.error('Failed to load cost centers:', error);
+      logger.error('Failed to load cost centers:', error);
       return;
     }
     setCostCenters(data || []);
@@ -168,7 +168,7 @@ export function InfrastructureAccountantDashboard() {
       downloadCSV(csv, `financial_export_${dateRange}.csv`);
       alert('Financial data exported successfully');
     } catch (error: any) {
-      console.error('Failed to export data:', error);
+      logger.error('Failed to export data:', error);
       alert(error.message || 'Failed to export financial data');
     }
   }

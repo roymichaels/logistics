@@ -33,7 +33,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
     async function initializeModal() {
       if (!mounted) return;
 
-      console.log('🔄 CreateBusinessModal: Starting initialization...', {
+      logger.info('🔄 CreateBusinessModal: Starting initialization...', {
         hasUser: !!user,
         userId: user?.id,
         telegramId: user?.telegram_id,
@@ -43,7 +43,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
 
       if (!user) {
         setIsInitializing(false);
-        console.log('⚠️ CreateBusinessModal: No user provided');
+        logger.info('⚠️ CreateBusinessModal: No user provided');
         return;
       }
 
@@ -51,12 +51,12 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         setActualUserId(user.id);
         setIsReady(true);
         setIsInitializing(false);
-        console.log('✅ CreateBusinessModal: User ID already available', { userId: user.id });
+        logger.info('✅ CreateBusinessModal: User ID already available', { userId: user.id });
         return;
       }
 
       if (!isSupabaseReady) {
-        console.log('⏳ CreateBusinessModal: Global Supabase not ready yet');
+        logger.info('⏳ CreateBusinessModal: Global Supabase not ready yet');
         setIsInitializing(true);
         setIsReady(false);
         return;
@@ -65,12 +65,12 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       if (!user.telegram_id) {
         setInitError('לא נמצא מזהה משתמש. אנא התחבר מחדש.');
         setIsInitializing(false);
-        console.error('❌ CreateBusinessModal: No telegram_id found');
+        logger.error('❌ CreateBusinessModal: No telegram_id found');
         return;
       }
 
       try {
-        console.log('⏳ CreateBusinessModal: Waiting for Supabase initialization...');
+        logger.info('⏳ CreateBusinessModal: Waiting for Supabase initialization...');
 
         let supabaseClient = dataStore.supabase;
 
@@ -79,7 +79,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         }
 
         if (!mounted) {
-          console.log('🚫 CreateBusinessModal: Component unmounted during Supabase wait');
+          logger.info('🚫 CreateBusinessModal: Component unmounted during Supabase wait');
           return;
         }
 
@@ -87,7 +87,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
           throw new Error('Supabase client unavailable after initialization.');
         }
 
-        console.log('✅ CreateBusinessModal: Supabase client ready, querying user data...');
+        logger.info('✅ CreateBusinessModal: Supabase client ready, querying user data...');
 
         const { data: userData, error } = await supabaseClient
           .from('users')
@@ -96,25 +96,25 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
           .maybeSingle();
 
         if (!mounted) {
-          console.log('🚫 CreateBusinessModal: Component unmounted during query');
+          logger.info('🚫 CreateBusinessModal: Component unmounted during query');
           return;
         }
 
         if (error) {
-          console.error('❌ CreateBusinessModal: Database error:', error);
+          logger.error('❌ CreateBusinessModal: Database error:', error);
           setInitError('שגיאה בטעינת נתוני משתמש מהמסד נתונים');
           setIsInitializing(false);
           return;
         }
 
         if (!userData) {
-          console.error('❌ CreateBusinessModal: User not found in database');
+          logger.error('❌ CreateBusinessModal: User not found in database');
           setInitError('משתמש לא נמצא במערכת. אנא פנה למנהל.');
           setIsInitializing(false);
           return;
         }
 
-        console.log('✅ CreateBusinessModal: User data loaded successfully', { userId: userData.id });
+        logger.info('✅ CreateBusinessModal: User data loaded successfully', { userId: userData.id });
         setActualUserId(userData.id);
         setIsReady(true);
         setInitError(null);
@@ -122,7 +122,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       } catch (error) {
         if (!mounted) return;
 
-        console.error('❌ CreateBusinessModal: Initialization failed:', error);
+        logger.error('❌ CreateBusinessModal: Initialization failed:', error);
 
         const errorMessage = error instanceof Error
           ? error.message.includes('timeout')
@@ -192,10 +192,10 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       try {
         const { error: refreshError } = await supabaseClient.auth.refreshSession();
         if (refreshError) {
-          console.warn('Session refresh warning:', refreshError);
+          logger.warn('Session refresh warning:', refreshError);
         }
       } catch (refreshErr) {
-        console.warn('Session refresh failed:', refreshErr);
+        logger.warn('Session refresh failed:', refreshErr);
       }
 
       telegram.hapticFeedback('notification', 'success');
@@ -204,7 +204,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       onClose();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'שגיאה ביצירת עסק';
-      console.error('Business creation error:', error);
+      logger.error('Business creation error:', error);
       telegram.showAlert(errorMessage);
     } finally {
       setLoading(false);

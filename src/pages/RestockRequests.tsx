@@ -42,7 +42,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
 
       setRequests(allRequests);
     } catch (error) {
-      console.error('Failed to load restock requests:', error);
+      logger.error('Failed to load restock requests:', error);
       Toast.error('שגיאה בטעינת בקשות חידוש');
     } finally {
       setLoading(false);
@@ -73,7 +73,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
       setSelectedRequest(null);
       await loadData();
     } catch (error) {
-      console.error('Failed to approve request:', error);
+      logger.error('Failed to approve request:', error);
       Toast.error('שגיאה באישור הבקשה');
     } finally {
       setActionInProgress(false);
@@ -104,7 +104,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
       setSelectedRequest(null);
       await loadData();
     } catch (error) {
-      console.error('Failed to reject request:', error);
+      logger.error('Failed to reject request:', error);
       Toast.error('שגיאה בדחיית הבקשה');
     } finally {
       setActionInProgress(false);
@@ -135,7 +135,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
       setSelectedRequest(null);
       await loadData();
     } catch (error) {
-      console.error('Failed to fulfill request:', error);
+      logger.error('Failed to fulfill request:', error);
       Toast.error('שגיאה במימוש הבקשה');
     } finally {
       setActionInProgress(false);

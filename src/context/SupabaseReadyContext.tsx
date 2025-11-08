@@ -24,7 +24,7 @@ interface SupabaseReadyProviderProps {
 
 export function SupabaseReadyProvider({ children, value }: SupabaseReadyProviderProps) {
   const initialReady = isSupabaseInitialized();
-  console.log('⚙️ SupabaseReadyProvider: Initializing, isSupabaseInitialized:', initialReady);
+  logger.info('⚙️ SupabaseReadyProvider: Initializing, isSupabaseInitialized:', initialReady);
   const [isReady, setIsReady] = useState(() => initialReady);
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export function SupabaseReadyProvider({ children, value }: SupabaseReadyProvider
         if (!isMounted) {
           return;
         }
-        console.error('Failed to initialize Supabase client in SupabaseReadyProvider:', error);
+        logger.error('Failed to initialize Supabase client in SupabaseReadyProvider:', error);
         setIsReady(false);
       }
     };
@@ -72,7 +72,7 @@ export function SupabaseReadyProvider({ children, value }: SupabaseReadyProvider
       try {
         getSupabase();
       } catch (error) {
-        console.warn('SupabaseReadyProvider detected initialized flag without client. Re-running init.', error);
+        logger.warn('SupabaseReadyProvider detected initialized flag without client. Re-running init.', error);
         ensureClient();
       }
     }
@@ -82,7 +82,7 @@ export function SupabaseReadyProvider({ children, value }: SupabaseReadyProvider
       try {
         getSupabase();
       } catch (error) {
-        console.error('SupabaseReadyProvider failed to access Supabase client after ready event:', error);
+        logger.error('SupabaseReadyProvider failed to access Supabase client after ready event:', error);
       }
     };
 
@@ -110,7 +110,7 @@ export function SupabaseReadyProvider({ children, value }: SupabaseReadyProvider
     markSupabaseNotReady
   }), [isReady, markSupabaseReady, markSupabaseNotReady]);
 
-  console.log('⚙️ SupabaseReadyProvider: Rendering, isReady:', isReady);
+  logger.info('⚙️ SupabaseReadyProvider: Rendering, isReady:', isReady);
 
   return (
     <SupabaseReadyContext.Provider value={value ?? contextValue}>

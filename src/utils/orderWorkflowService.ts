@@ -30,7 +30,7 @@ export class OrderWorkflowService {
 
       return { success: true };
     } catch (error) {
-      console.error('Failed to assign order:', error);
+      logger.error('Failed to assign order:', error);
       return { success: false, error: 'שגיאה בהקצאת ההזמנה' };
     }
   }
@@ -48,7 +48,7 @@ export class OrderWorkflowService {
         action_url: `/orders/${order.id}`
       });
     } catch (error) {
-      console.error('Failed to notify driver:', error);
+      logger.error('Failed to notify driver:', error);
     }
   }
 }

@@ -83,7 +83,7 @@ export function DriverOrderMarketplace({
 
       setOrders(formattedOrders);
     } catch (error) {
-      console.error('Failed to load marketplace orders:', error);
+      logger.error('Failed to load marketplace orders:', error);
       Toast.error('שגיאה בטעינת הזמנות זמינות');
     } finally {
       setLoading(false);
@@ -182,7 +182,7 @@ export function DriverOrderMarketplace({
       loadMarketplaceOrders();
       onOrderAccepted?.(orderId);
     } catch (error) {
-      console.error('Failed to accept order:', error);
+      logger.error('Failed to accept order:', error);
       haptic.notificationOccurred('error');
       Toast.error('שגיאה בקבלת ההזמנה');
     } finally {
@@ -206,7 +206,7 @@ export function DriverOrderMarketplace({
       setOrders(prev => prev.filter(o => o.id !== marketplaceOrderId));
       Toast.info('ההזמנה הוסרה מהרשימה');
     } catch (error) {
-      console.error('Failed to log decline:', error);
+      logger.error('Failed to log decline:', error);
     }
   };
 

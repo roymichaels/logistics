@@ -91,7 +91,7 @@ export function ManagerInventory({ dataStore }: ManagerInventoryProps) {
         setAlerts(alertList);
         setLogs(recentLogs);
       } catch (error) {
-        console.error('Failed to load manager inventory data', error);
+        logger.error('Failed to load manager inventory data', error);
       } finally {
         if (!cancelled) {
           setLoading(false);

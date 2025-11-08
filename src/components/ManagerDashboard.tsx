@@ -84,7 +84,7 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
             table: 'orders'
           },
           () => {
-            console.log('Order update detected');
+            logger.info('Order update detected');
             loadDepartmentData();
           }
         )
@@ -100,13 +100,13 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
             table: 'restock_requests'
           },
           () => {
-            console.log('Restock request update detected');
+            logger.info('Restock request update detected');
             loadDepartmentData();
           }
         )
         .subscribe();
     } catch (error) {
-      console.error('Failed to set up realtime subscriptions:', error);
+      logger.error('Failed to set up realtime subscriptions:', error);
     }
 
     const interval = setInterval(() => {
@@ -122,7 +122,7 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
           restockChannel.unsubscribe();
         }
       } catch (error) {
-        console.error('Failed to unsubscribe channels:', error);
+        logger.error('Failed to unsubscribe channels:', error);
       }
       clearInterval(interval);
     };
@@ -258,7 +258,7 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
 
       setPendingApprovals(approvals);
     } catch (error) {
-      console.error('Failed to load department data:', error);
+      logger.error('Failed to load department data:', error);
       Toast.error('שגיאה בטעינת נתוני המחלקה');
     } finally {
       setLoading(false);
@@ -289,7 +289,7 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
         loadDepartmentData();
       }
     } catch (error) {
-      console.error('Failed to approve request:', error);
+      logger.error('Failed to approve request:', error);
       Toast.error('שגיאה באישור הבקשה');
     }
   };
@@ -318,7 +318,7 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
         loadDepartmentData();
       }
     } catch (error) {
-      console.error('Failed to reject request:', error);
+      logger.error('Failed to reject request:', error);
       Toast.error('שגיאה בדחיית הבקשה');
     }
   };

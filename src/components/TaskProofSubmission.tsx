@@ -39,7 +39,7 @@ export function TaskProofSubmission({ task, onSubmit, onCancel }: TaskProofSubmi
           });
         },
         (error) => {
-          console.warn('Location access denied:', error);
+          logger.warn('Location access denied:', error);
           setLocationError('לא ניתן לקבל מיקום נוכחי');
         }
       );
@@ -69,7 +69,7 @@ export function TaskProofSubmission({ task, onSubmit, onCancel }: TaskProofSubmi
       await onSubmit(proof);
       haptic();
     } catch (error) {
-      console.error('Failed to submit proof:', error);
+      logger.error('Failed to submit proof:', error);
       haptic();
     } finally {
       setIsSubmitting(false);

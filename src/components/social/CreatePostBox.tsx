@@ -80,7 +80,7 @@ export function CreatePostBox({ onSubmit, placeholder, replyToPostId }: CreatePo
       setMediaFiles([]);
       setUploadProgress(0);
     } catch (error) {
-      console.error('Failed to create post:', error);
+      logger.error('Failed to create post:', error);
       alert(i18n.getTranslations().social.postFailed);
     } finally {
       setIsSubmitting(false);

@@ -103,7 +103,7 @@ export function Inventory({ dataStore, onNavigate }: InventoryProps) {
       setInventory(filtered);
       setAlerts(lowStockAlerts);
     } catch (error) {
-      console.error('Failed to load inventory:', error);
+      logger.error('Failed to load inventory:', error);
       Toast.error('שגיאה בטעינת מלאי');
     } finally {
       setLoading(false);
@@ -128,7 +128,7 @@ export function Inventory({ dataStore, onNavigate }: InventoryProps) {
       loadInventory();
       setShowAdjustForm(false);
     } catch (error) {
-      console.error('Failed to adjust inventory:', error);
+      logger.error('Failed to adjust inventory:', error);
       Toast.error('שגיאה בעדכון מלאי');
     }
   };

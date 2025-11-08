@@ -207,7 +207,7 @@ export class SecurityAuditLogger {
   ): Promise<any[]> {
     const supabase = this.getSupabaseClient();
     if (!supabase) {
-      console.warn('Supabase not initialized, returning empty events');
+      logger.warn('Supabase not initialized, returning empty events');
       return [];
     }
 
@@ -226,7 +226,7 @@ export class SecurityAuditLogger {
       const { data, error } = await query;
 
       if (error) {
-        console.error('Failed to fetch security events:', error);
+        logger.error('Failed to fetch security events:', error);
         return [];
       }
 
@@ -240,7 +240,7 @@ export class SecurityAuditLogger {
             event_details: decryptedDetails
           });
         } catch (error) {
-          console.error('Failed to decrypt event details:', error);
+          logger.error('Failed to decrypt event details:', error);
           // Include event without details if decryption fails
           decryptedEvents.push({
             ...event,
@@ -251,7 +251,7 @@ export class SecurityAuditLogger {
 
       return decryptedEvents;
     } catch (error) {
-      console.error('Failed to get user security events:', error);
+      logger.error('Failed to get user security events:', error);
       return [];
     }
   }
@@ -318,7 +318,7 @@ export class SecurityAuditLogger {
 
       return alerts.filter(alert => !alert.acknowledged);
     } catch (error) {
-      console.error('Failed to get security alerts:', error);
+      logger.error('Failed to get security alerts:', error);
       return [];
     }
   }
@@ -342,7 +342,7 @@ export class SecurityAuditLogger {
 
       await storage.setItem('security_alerts', updatedAlerts);
     } catch (error) {
-      console.error('Failed to acknowledge alert:', error);
+      logger.error('Failed to acknowledge alert:', error);
     }
   }
 
@@ -367,7 +367,7 @@ export class SecurityAuditLogger {
 
         return encryptedDetails;
       } catch (error) {
-        console.error('Failed to encrypt event details:', error);
+        logger.error('Failed to encrypt event details:', error);
       }
     }
 
@@ -459,12 +459,12 @@ export class SecurityAuditLogger {
         .insert(dbEvents);
 
       if (error) {
-        console.error('Failed to insert security events:', error);
+        logger.error('Failed to insert security events:', error);
         // Re-queue failed events
         this.eventQueue.unshift(...eventsToProcess);
       }
     } catch (error) {
-      console.error('Failed to process event queue:', error);
+      logger.error('Failed to process event queue:', error);
     } finally {
       this.isProcessingQueue = false;
     }

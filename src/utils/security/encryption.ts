@@ -310,7 +310,7 @@ export class EncryptionService {
 
       return await this.importKey(keyData);
     } catch (error) {
-      console.error('Failed to retrieve encrypted key:', error);
+      logger.error('Failed to retrieve encrypted key:', error);
       return null;
     }
   }

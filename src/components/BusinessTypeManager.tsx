@@ -33,7 +33,7 @@ export function BusinessTypeManager({ dataStore, onClose }: BusinessTypeManagerP
         setBusinessTypes(types);
       }
     } catch (error) {
-      console.error('Failed to load business types:', error);
+      logger.error('Failed to load business types:', error);
     } finally {
       setLoading(false);
     }
@@ -46,7 +46,7 @@ export function BusinessTypeManager({ dataStore, onClose }: BusinessTypeManagerP
     }
 
     try {
-      console.log('🔄 Creating business type...', formData);
+      logger.info('🔄 Creating business type...', formData);
       if (dataStore.createBusinessType) {
         const result = await dataStore.createBusinessType({
           type_value: formData.type_value.toLowerCase().replace(/\s+/g, '_'),
@@ -59,7 +59,7 @@ export function BusinessTypeManager({ dataStore, onClose }: BusinessTypeManagerP
           display_order: businessTypes.length + 1
         });
 
-        console.log('✅ Business type created:', result);
+        logger.info('✅ Business type created:', result);
         haptic();
         setFormData({
           type_value: '',
@@ -72,11 +72,11 @@ export function BusinessTypeManager({ dataStore, onClose }: BusinessTypeManagerP
         await loadBusinessTypes();
         alert('סוג העסק נוסף בהצלחה!');
       } else {
-        console.error('❌ dataStore.createBusinessType is not available');
+        logger.error('❌ dataStore.createBusinessType is not available');
         alert('פונקציית יצירת סוג עסק לא זמינה');
       }
     } catch (error) {
-      console.error('❌ Failed to create business type:', error);
+      logger.error('❌ Failed to create business type:', error);
       alert(`שגיאה ביצירת סוג עסק: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
@@ -99,7 +99,7 @@ export function BusinessTypeManager({ dataStore, onClose }: BusinessTypeManagerP
         await loadBusinessTypes();
       }
     } catch (error) {
-      console.error('Failed to update business type:', error);
+      logger.error('Failed to update business type:', error);
       alert('שגיאה בעדכון סוג עסק');
     }
   };
@@ -114,7 +114,7 @@ export function BusinessTypeManager({ dataStore, onClose }: BusinessTypeManagerP
         await loadBusinessTypes();
       }
     } catch (error) {
-      console.error('Failed to delete business type:', error);
+      logger.error('Failed to delete business type:', error);
       alert('שגיאה במחיקת סוג עסק');
     }
   };

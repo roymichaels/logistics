@@ -62,7 +62,7 @@ export function DriverApplicationReview({ dataStore }: DriverApplicationReviewPr
 
       setApplications(formattedApps);
     } catch (error) {
-      console.error('Failed to load applications:', error);
+      logger.error('Failed to load applications:', error);
       Toast.error('שגיאה בטעינת בקשות');
     } finally {
       setLoading(false);
@@ -115,7 +115,7 @@ export function DriverApplicationReview({ dataStore }: DriverApplicationReviewPr
       setReviewNotes('');
       loadApplications();
     } catch (error) {
-      console.error('Failed to approve application:', error);
+      logger.error('Failed to approve application:', error);
       haptic.notificationOccurred('error');
       Toast.error('שגיאה באישור הבקשה');
     } finally {
@@ -169,7 +169,7 @@ export function DriverApplicationReview({ dataStore }: DriverApplicationReviewPr
       setReviewNotes('');
       loadApplications();
     } catch (error) {
-      console.error('Failed to reject application:', error);
+      logger.error('Failed to reject application:', error);
       haptic.notificationOccurred('error');
       Toast.error('שגיאה בדחיית הבקשה');
     } finally {

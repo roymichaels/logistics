@@ -52,7 +52,7 @@ export function BusinessContextSwitcher({
 
       setBusinesses(mappedContexts);
     } catch (error) {
-      console.error('Failed to load businesses:', error);
+      logger.error('Failed to load businesses:', error);
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ export function BusinessContextSwitcher({
       // Reload to apply new context
       window.location.reload();
     } catch (error) {
-      console.error('Failed to switch business:', error);
+      logger.error('Failed to switch business:', error);
       alert(error instanceof Error ? error.message : 'Failed to switch business context');
     } finally {
       setSwitching(false);

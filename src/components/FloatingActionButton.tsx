@@ -205,8 +205,8 @@ export function FloatingActionMenu({
           telegram.hapticFeedback('impact', 'medium');
           if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
-              () => console.log('Location updated'),
-              (error) => console.error('Location error:', error)
+              () => logger.info('Location updated'),
+              (error) => logger.error('Location error:', error)
             );
           }
         }

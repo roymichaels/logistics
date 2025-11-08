@@ -38,7 +38,7 @@ export class SecureStorage {
       // Update cache
       this.cache.set(key, value);
     } catch (error) {
-      console.error('SecureStorage: Failed to store item', error);
+      logger.error('SecureStorage: Failed to store item', error);
       throw new Error(`Failed to store encrypted data for key: ${key}`);
     }
   }
@@ -69,7 +69,7 @@ export class SecureStorage {
 
       return value;
     } catch (error) {
-      console.error('SecureStorage: Failed to retrieve item', error);
+      logger.error('SecureStorage: Failed to retrieve item', error);
       return null;
     }
   }

@@ -131,7 +131,7 @@ export function OrderAnalytics({ supabase, userRole }: OrderAnalyticsProps) {
         ordersPerHour
       });
     } catch (error) {
-      console.error('Failed to load analytics:', error);
+      logger.error('Failed to load analytics:', error);
     } finally {
       setLoading(false);
     }

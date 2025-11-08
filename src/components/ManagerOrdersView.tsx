@@ -84,7 +84,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
       setZones(zonesList);
       setDrivers(driversList);
     } catch (error) {
-      console.error('Failed to load orders data:', error);
+      logger.error('Failed to load orders data:', error);
       Toast.error('שגיאה בטעינת הנתונים');
     } finally {
       setLoading(false);
