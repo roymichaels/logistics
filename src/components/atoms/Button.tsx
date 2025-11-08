@@ -1,5 +1,5 @@
 import React from 'react';
-import { colors, spacing, borderRadius, typography, transitions } from '../../styles/design-system';
+import { colors, spacing, borderRadius, typography, transitions, shadows, microSpacing } from '../../styles/design-system';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'ghost' | 'link';
@@ -20,6 +20,7 @@ export function Button({
   children,
   disabled,
   style,
+  className,
   ...props
 }: ButtonProps) {
   const baseStyles: React.CSSProperties = {
@@ -30,33 +31,36 @@ export function Button({
     border: 'none',
     cursor: disabled || loading ? 'not-allowed' : 'pointer',
     fontFamily: typography.fontFamily.primary,
-    fontWeight: typography.fontWeight.semibold,
-    transition: transitions.normal,
+    fontWeight: typography.fontWeight.bold,
+    transition: `all ${transitions.normal}`,
     outline: 'none',
     opacity: disabled || loading ? 0.5 : 1,
     width: fullWidth ? '100%' : 'auto',
     whiteSpace: 'nowrap',
+    userSelect: 'none',
+    WebkitTapHighlightColor: 'transparent',
+    position: 'relative',
   };
 
   const sizeStyles: Record<string, React.CSSProperties> = {
     sm: {
       padding: `${spacing.sm} ${spacing.lg}`,
       fontSize: typography.fontSize.sm,
-      borderRadius: borderRadius['2xl'], // 20px - Twitter standard
+      borderRadius: borderRadius['2xl'],
       minHeight: '36px',
       fontWeight: typography.fontWeight.bold,
     },
     md: {
-      padding: `${spacing.md} ${spacing['2xl']}`,
+      padding: `${microSpacing['10']} ${spacing['2xl']}`,
       fontSize: typography.fontSize.base,
-      borderRadius: borderRadius['2xl'], // 20px - Twitter standard
+      borderRadius: borderRadius['2xl'],
       minHeight: '40px',
       fontWeight: typography.fontWeight.bold,
     },
     lg: {
-      padding: `${spacing.lg} ${spacing['3xl']}`,
+      padding: `${spacing.md} ${spacing['3xl']}`,
       fontSize: typography.fontSize.lg,
-      borderRadius: borderRadius['2xl'], // 20px - Twitter standard
+      borderRadius: borderRadius['2xl'],
       minHeight: '44px',
       fontWeight: typography.fontWeight.bold,
     },
@@ -71,7 +75,7 @@ export function Button({
     },
     secondary: {
       background: 'transparent',
-      color: colors.brand.primary,
+      color: colors.text.primary,
       border: `1px solid ${colors.border.primary}`,
       boxShadow: 'none',
     },
@@ -96,7 +100,7 @@ export function Button({
     ghost: {
       background: 'transparent',
       color: colors.text.primary,
-      border: `1px solid ${colors.border.primary}`,
+      border: 'none',
       boxShadow: 'none',
     },
     link: {
@@ -109,59 +113,80 @@ export function Button({
     },
   };
 
-  const hoverStyles: Record<string, React.CSSProperties> = {
-    primary: {
-      background: colors.brand.primaryHover,
-      transform: 'scale(0.98)',
-    },
-    secondary: {
-      background: colors.brand.primaryFaded,
-      borderColor: colors.border.hover,
-    },
-    success: {
-      filter: 'brightness(1.1)',
-      transform: 'scale(0.98)',
-    },
-    warning: {
-      filter: 'brightness(1.1)',
-      transform: 'scale(0.98)',
-    },
-    danger: {
-      filter: 'brightness(1.1)',
-      transform: 'scale(0.98)',
-    },
-    ghost: {
-      background: colors.ui.cardHover,
-      borderColor: colors.border.hover,
-    },
-    link: {
-      textDecoration: 'underline',
-      opacity: 0.8,
-    },
+  const [isHovered, setIsHovered] = React.useState(false);
+  const [isPressed, setIsPressed] = React.useState(false);
+
+  const getHoverStyles = (): React.CSSProperties => {
+    if (disabled || loading) return {};
+
+    const hoverMap: Record<string, React.CSSProperties> = {
+      primary: {
+        background: colors.brand.primaryHover,
+        boxShadow: shadows.md,
+      },
+      secondary: {
+        background: colors.ui.cardHover,
+        borderColor: colors.border.hover,
+      },
+      success: {
+        filter: 'brightness(1.1)',
+      },
+      warning: {
+        filter: 'brightness(1.1)',
+      },
+      danger: {
+        filter: 'brightness(1.1)',
+      },
+      ghost: {
+        background: colors.ui.cardHover,
+      },
+      link: {
+        textDecoration: 'underline',
+        opacity: 0.8,
+      },
+    };
+
+    return hoverMap[variant] || {};
   };
 
-  const [isHovered, setIsHovered] = React.useState(false);
+  const getPressedStyles = (): React.CSSProperties => {
+    if (disabled || loading || variant === 'link') return {};
+
+    return {
+      transform: 'scale(0.97)',
+      filter: 'brightness(0.95)',
+    };
+  };
 
   const combinedStyles: React.CSSProperties = {
     ...baseStyles,
     ...sizeStyles[size],
     ...variantStyles[variant],
-    ...(isHovered && !disabled && !loading ? hoverStyles[variant] : {}),
+    ...(isHovered ? getHoverStyles() : {}),
+    ...(isPressed ? getPressedStyles() : {}),
     ...style,
   };
 
   return (
     <button
       {...props}
+      className={className}
       disabled={disabled || loading}
       style={combinedStyles}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setIsPressed(false);
+      }}
+      onMouseDown={() => setIsPressed(true)}
+      onMouseUp={() => setIsPressed(false)}
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
     >
       {loading && <Spinner size={size === 'sm' ? 14 : size === 'lg' ? 20 : 16} />}
-      {!loading && leftIcon && <span>{leftIcon}</span>}
-      {children}
-      {!loading && rightIcon && <span>{rightIcon}</span>}
+      {!loading && leftIcon && <span style={{ display: 'flex', alignItems: 'center' }}>{leftIcon}</span>}
+      {children && <span>{children}</span>}
+      {!loading && rightIcon && <span style={{ display: 'flex', alignItems: 'center' }}>{rightIcon}</span>}
     </button>
   );
 }
@@ -174,7 +199,10 @@ function Spinner({ size = 16 }: { size?: number }) {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ animation: 'spin 1s linear infinite' }}
+      style={{
+        animation: 'spin 1s linear infinite',
+        display: 'flex',
+      }}
     >
       <style>{`
         @keyframes spin {

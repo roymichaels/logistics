@@ -24,6 +24,7 @@ import { debugLog } from './components/DebugPanel';
 import { hebrew } from './lib/i18n';
 import './lib/diagnostics'; // Load diagnostics for console debugging
 import './styles/transitions.css';
+import './styles/animations.css';
 import { useAppServices } from './context/AppServicesContext';
 import { useAuth } from './context/AuthContext';
 import { offlineStore } from './utils/offlineStore';

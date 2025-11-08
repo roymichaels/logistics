@@ -1,27 +1,33 @@
-/* Twitter-Style Header */
+/* Twitter-Style Header - Pixel Perfect */
 .header-container {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 53px; /* Twitter's exact header height */
-  background: rgba(21, 32, 43, 0.85); /* Twitter dark with transparency */
-  backdrop-filter: blur(12px); /* Twitter's blur effect */
+  height: 53px;
+  background: rgba(21, 32, 43, 0.85);
+  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
   z-index: 1000;
-  border-bottom: 1px solid #38444D; /* Twitter's border color */
+  border-bottom: 1px solid rgba(56, 68, 77, 0.6);
   box-shadow: none;
   will-change: transform;
+  transition: border-color 200ms ease-in-out;
+}
+
+.header-container:hover {
+  border-bottom-color: rgba(56, 68, 77, 0.8);
 }
 
 .header-logo-container {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: fit-content;
 }
 
 .header-logo-circle {
@@ -37,10 +43,16 @@
   font-size: 16px;
   box-shadow: none;
   transition: transform 200ms ease-in-out;
+  cursor: pointer;
+  user-select: none;
 }
 
 .header-logo-circle:hover {
   transform: scale(1.05);
+}
+
+.header-logo-circle:active {
+  transform: scale(0.95);
 }
 
 .header-brand-container {
@@ -50,10 +62,12 @@
 }
 
 .header-brand-title {
-  font-size: 15px; /* Twitter's base font size */
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0;
   color: #E7E9EA;
+  line-height: 1.3125;
+  user-select: none;
 }
 
 .header-brand-subtitle {
@@ -61,6 +75,7 @@
   font-family: cursive;
   font-style: italic;
   opacity: 0.7;
+  line-height: 1.3125;
 }
 
 .header-center-section {
@@ -68,6 +83,7 @@
   display: flex;
   justify-content: center;
   padding: 0 20px;
+  min-width: 0;
 }
 
 .header-dropdown-container {
@@ -75,7 +91,7 @@
 }
 
 .header-avatar-button {
-  width: 32px; /* Twitter's avatar size */
+  width: 32px;
   height: 32px;
   border-radius: 50%;
   display: flex;
@@ -84,32 +100,39 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: filter 200ms ease-in-out;
-  border: none;
+  transition: filter 200ms ease-in-out, box-shadow 200ms ease-in-out;
+  border: 2px solid #1DA1F2;
   outline: none;
   background-color: #192734;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .header-avatar-button:hover {
   filter: brightness(1.2);
 }
 
+.header-avatar-button:active {
+  transform: scale(0.95);
+}
+
 .header-avatar-button.open {
   filter: brightness(1.2);
-  box-shadow: 0 0 0 2px #1DA1F2;
+  box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.3);
 }
 
 .header-dropdown-menu {
   position: absolute;
   top: calc(100% + 8px);
-  right: 0; /* Align to right for better positioning */
+  right: 0;
   left: auto;
   min-width: 240px;
-  border-radius: 16px; /* Twitter's card radius */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Twitter's shadow */
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
-  animation: slideDown 200ms ease-in-out;
+  animation: slideDown 200ms cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid #38444D;
+  background: #192734;
 }
 
 .header-dropdown-user-info {
@@ -123,11 +146,13 @@
   font-weight: 700;
   margin-bottom: 2px;
   color: #E7E9EA;
+  line-height: 1.3125;
 }
 
 .header-dropdown-handle {
   font-size: 13px;
   color: #8899A6;
+  line-height: 1.3125;
 }
 
 .header-dropdown-role {
@@ -137,6 +162,7 @@
   color: #1DA1F2;
   font-weight: 400;
   display: block;
+  line-height: 1.3125;
 }
 
 .header-dropdown-items {
@@ -151,25 +177,37 @@
   font-size: 15px;
   text-align: right;
   cursor: pointer;
-  border-radius: 0;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   gap: 12px;
   transition: background 200ms ease-in-out;
   font-family: inherit;
   font-weight: 400;
+  color: #E7E9EA;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .header-dropdown-button:hover {
-  background: #1C2833; /* Twitter hover color */
+  background: #1C2833;
+}
+
+.header-dropdown-button:active {
+  background: #15202B;
+  transform: scale(0.98);
 }
 
 .header-dropdown-button.logout {
-  color: #F4212E; /* Twitter red */
+  color: #F4212E;
 }
 
 .header-dropdown-button.logout:hover {
   background: rgba(244, 33, 46, 0.1);
+}
+
+.header-dropdown-button.logout:active {
+  background: rgba(244, 33, 46, 0.15);
 }
 
 .header-dropdown-divider {
@@ -180,10 +218,14 @@
 
 .header-dropdown-button-icon {
   font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .header-dropdown-button-text {
   flex: 1;
+  text-align: right;
 }
 
 @keyframes slideDown {
@@ -205,5 +247,45 @@
 
   .header-center-section {
     padding: 0 8px;
+  }
+
+  .header-logo-container {
+    gap: 8px;
+  }
+
+  .header-dropdown-menu {
+    min-width: 200px;
+    right: -8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-container {
+    padding: 0 12px;
+  }
+
+  .header-brand-title {
+    font-size: 13px;
+  }
+
+  .header-center-section {
+    padding: 0 4px;
+  }
+}
+
+/* Smooth scrolling behavior */
+@media (prefers-reduced-motion: no-preference) {
+  .header-container {
+    transition: all 200ms ease-in-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-container,
+  .header-dropdown-button,
+  .header-avatar-button,
+  .header-logo-circle {
+    transition: none;
+    animation: none;
   }
 }

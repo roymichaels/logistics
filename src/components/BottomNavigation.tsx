@@ -229,8 +229,8 @@ export function BottomNavigation({
     >
       <div
         style={{
-          width: '44px',
-          height: '44px',
+          width: '56px',
+          height: '56px',
           borderRadius: '50%',
           background: action?.disabled
             ? TWITTER_COLORS.textTertiary
@@ -239,18 +239,40 @@ export function BottomNavigation({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '20px',
-          boxShadow: action?.disabled ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.12)',
-          transition: 'all 200ms ease-in-out'
+          fontSize: '24px',
+          boxShadow: action?.disabled ? 'none' : '0 2px 8px rgba(0, 0, 0, 0.15)',
+          transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+          transform: 'scale(1)',
+        }}
+        onMouseEnter={(e) => {
+          if (!action?.disabled) {
+            e.currentTarget.style.transform = 'scale(1.05)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(29, 161, 242, 0.3)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = action?.disabled ? 'none' : '0 2px 8px rgba(0, 0, 0, 0.15)';
+        }}
+        onMouseDown={(e) => {
+          if (!action?.disabled) {
+            e.currentTarget.style.transform = 'scale(0.95)';
+          }
+        }}
+        onMouseUp={(e) => {
+          if (!action?.disabled) {
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }
         }}
       >
         {action?.icon}
       </div>
       <span style={{
-        fontSize: '10px',
+        fontSize: '11px',
         color: action?.disabled ? TWITTER_COLORS.textSecondary : TWITTER_COLORS.primary,
-        fontWeight: '600',
-        whiteSpace: 'nowrap'
+        fontWeight: '700',
+        whiteSpace: 'nowrap',
+        lineHeight: '1.3125'
       }}>
         {action?.label}
       </span>
@@ -378,6 +400,29 @@ export function BottomNavigation({
   return (
     <>
       <style>{`
+        .bottom-nav-container {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: rgba(21, 32, 43, 0.85);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-top: 1px solid rgba(56, 68, 77, 0.6);
+          box-shadow: none;
+          display: flex;
+          padding: 0;
+          z-index: 1000;
+          direction: rtl;
+          height: 53px;
+          align-items: center;
+          transition: border-color 200ms ease-in-out;
+        }
+
+        .bottom-nav-container:hover {
+          border-top-color: rgba(56, 68, 77, 0.8);
+        }
+
         @media (min-width: 768px) {
           .bottom-nav-container {
             bottom: 0 !important;
@@ -389,35 +434,31 @@ export function BottomNavigation({
             flex-direction: column !important;
             padding: 16px 8px !important;
             border-top: none !important;
-            border-right: 1px solid ${TWITTER_COLORS.navBorder} !important;
+            border-right: 1px solid rgba(56, 68, 77, 0.6) !important;
             justify-content: flex-start !important;
             gap: 8px !important;
           }
+
+          .bottom-nav-container:hover {
+            border-right-color: rgba(56, 68, 77, 0.8) !important;
+          }
+
           .bottom-nav-container button {
             width: 100% !important;
             flex: 0 0 auto !important;
           }
         }
+
+        @media (prefers-reduced-motion: reduce) {
+          .bottom-nav-container,
+          .bottom-nav-container button {
+            transition: none !important;
+            animation: none !important;
+          }
+        }
       `}</style>
       <div
         className="bottom-nav-container"
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: TWITTER_COLORS.navBackground,
-          backdropFilter: TWITTER_COLORS.navBackdrop,
-          WebkitBackdropFilter: TWITTER_COLORS.navBackdrop,
-          borderTop: `1px solid ${TWITTER_COLORS.navBorder}`,
-          boxShadow: 'none',
-          display: 'flex',
-          padding: '0',
-          zIndex: 1000,
-          direction: 'rtl',
-          height: '53px',
-          alignItems: 'center'
-        }}
         data-business-id={currentBusinessId ?? undefined}
       >
         {navItems}
