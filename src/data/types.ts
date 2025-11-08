@@ -1,3 +1,107 @@
+// ============================================================================
+// Base Type Definitions
+// ============================================================================
+
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+// GeoJSON Types
+export interface GeoJSONCoordinate {
+  lat: number;
+  lng: number;
+}
+
+export interface GeoJSONPolygon {
+  type: 'Polygon';
+  coordinates: [number, number][][]; // [longitude, latitude]
+}
+
+// Zone Metadata
+export interface ZoneMetadata {
+  area_km2?: number;
+  population?: number;
+  average_delivery_time_minutes?: number;
+  peak_hours?: string[];
+  notes?: string;
+  custom_fields?: Record<string, string | number | boolean>;
+}
+
+// Zone Changes for Audit Log
+export interface ZoneChanges {
+  field: string;
+  old_value: string | number | boolean | null;
+  new_value: string | number | boolean | null;
+}
+
+// Business Address
+export interface BusinessAddress {
+  street: string;
+  city: string;
+  state?: string;
+  postal_code?: string;
+  country: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+}
+
+// Business Contact Info
+export interface BusinessContactInfo {
+  email?: string;
+  phone?: string;
+  website?: string;
+  support_email?: string;
+  support_phone?: string;
+}
+
+// Business Settings
+export interface BusinessSettings {
+  timezone?: string;
+  language?: string;
+  date_format?: string;
+  currency_symbol?: string;
+  tax_rate?: number;
+  delivery_fee?: number;
+  minimum_order_amount?: number;
+  max_delivery_distance_km?: number;
+  operating_hours?: {
+    day: string;
+    open: string;
+    close: string;
+  }[];
+  features?: {
+    enable_delivery?: boolean;
+    enable_pickup?: boolean;
+    enable_scheduling?: boolean;
+    enable_tracking?: boolean;
+  };
+}
+
+// Business User Permissions
+export interface BusinessUserPermissions {
+  can_create_orders?: boolean;
+  can_edit_orders?: boolean;
+  can_delete_orders?: boolean;
+  can_assign_drivers?: boolean;
+  can_manage_inventory?: boolean;
+  can_view_reports?: boolean;
+  can_manage_users?: boolean;
+  can_manage_settings?: boolean;
+  custom_permissions?: Record<string, boolean>;
+}
+
+// Realtime Payload
+export interface RealtimePayload<T = Record<string, unknown>> {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new: T;
+  old: T;
+  errors: string[] | null;
+}
+
+// ============================================================================
+// Domain Models
+// ============================================================================
+
 export interface User {
   id: string;
   telegram_id: string;
@@ -159,12 +263,12 @@ export interface Zone {
   color?: string | null;
   city?: string | null;
   region?: string | null;
-  polygon?: any | null;
+  polygon?: GeoJSONPolygon | null;
   active: boolean;
   business_id?: string | null;
   created_by?: string | null;
   updated_by?: string | null;
-  metadata?: Record<string, any> | null;
+  metadata?: ZoneMetadata | null;
   deleted_at?: string | null;
   created_at: string;
   updated_at: string;
@@ -177,9 +281,9 @@ export interface CreateZoneInput {
   color?: string | null;
   city?: string | null;
   region?: string | null;
-  polygon?: any | null;
+  polygon?: GeoJSONPolygon | null;
   business_id?: string | null;
-  metadata?: Record<string, any> | null;
+  metadata?: ZoneMetadata | null;
   active?: boolean;
 }
 
@@ -190,9 +294,9 @@ export interface UpdateZoneInput {
   color?: string | null;
   city?: string | null;
   region?: string | null;
-  polygon?: any | null;
+  polygon?: GeoJSONPolygon | null;
   active?: boolean;
-  metadata?: Record<string, any> | null;
+  metadata?: ZoneMetadata | null;
 }
 
 export interface ZoneAuditLog {
@@ -200,7 +304,7 @@ export interface ZoneAuditLog {
   zone_id: string;
   action: 'created' | 'updated' | 'deleted' | 'restored';
   changed_by: string;
-  changes: Record<string, any>;
+  changes: ZoneChanges;
   created_at: string;
 }
 
@@ -284,7 +388,7 @@ export interface InventoryLog {
   reference_id?: string | null;
   created_by: string;
   created_at: string;
-  metadata?: Record<string, any> | null;
+  metadata?: ZoneMetadata | null;
   product?: Product;
 }
 
@@ -559,7 +663,7 @@ export interface Route {
 
 export interface DataStore {
   // Supabase client access (for direct database operations)
-  supabase?: any;
+  supabase?: SupabaseClient;
 
   // Auth & Profile
   getProfile(): Promise<User>;
@@ -702,7 +806,7 @@ export interface DataStore {
   setActiveBusinessContext?(business_id: string): Promise<void>;
 
   // Real-time subscriptions
-  subscribeToChanges?(table: string, callback: (payload: any) => void): () => void;
+  subscribeToChanges?(table: string, callback: (payload: RealtimePayload) => void): () => void;
 
   // Social Media Features
   getUserProfile?(user_id?: string): Promise<UserProfile | null>;
@@ -866,9 +970,9 @@ export interface Business {
   default_currency: 'ILS' | 'USD' | 'EUR';
   order_number_prefix: string;
   order_number_sequence: number;
-  address?: any;
-  contact_info?: any;
-  business_settings?: any;
+  address?: BusinessAddress | null;
+  contact_info?: BusinessContactInfo | null;
+  business_settings?: BusinessSettings | null;
   active: boolean;
   created_at: string;
   updated_at: string;
@@ -881,7 +985,7 @@ export interface BusinessUser {
   role: Exclude<User['role'], 'infrastructure_owner'>;
   ownership_percentage?: number;
   commission_percentage?: number;
-  permissions?: any;
+  permissions?: BusinessUserPermissions | null;
   is_primary: boolean;
   active: boolean;
   assigned_at: string;

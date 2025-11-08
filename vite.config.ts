@@ -71,9 +71,60 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            vendor: ['react', 'react-dom'],
-            telegram: ['./src/lib/telegram']
+          manualChunks(id) {
+            // React and React DOM in separate vendor chunk
+            if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+              return 'react-vendor';
+            }
+
+            // Supabase client in separate chunk
+            if (id.includes('node_modules/@supabase/')) {
+              return 'supabase';
+            }
+
+            // All other node_modules in vendor chunk
+            if (id.includes('node_modules/')) {
+              return 'vendor';
+            }
+
+            // Data store (large file) in separate chunk
+            if (id.includes('/src/lib/supabaseDataStore')) {
+              return 'data-store';
+            }
+
+            // Services layer
+            if (id.includes('/src/services/') || id.includes('/src/lib/dispatchService') ||
+                id.includes('/src/lib/inventoryService') || id.includes('/src/lib/notificationService')) {
+              return 'services';
+            }
+
+            // Authentication & user management
+            if (id.includes('/src/lib/authService') || id.includes('/src/lib/userService') ||
+                id.includes('/src/context/AuthContext')) {
+              return 'auth';
+            }
+
+            // Telegram integration
+            if (id.includes('/src/lib/telegram') || id.includes('/@twa-dev/')) {
+              return 'telegram';
+            }
+
+            // Large page components
+            if (id.includes('/src/pages/Dashboard') || id.includes('/src/pages/Orders')) {
+              return 'pages-main';
+            }
+
+            if (id.includes('/src/pages/Chat') || id.includes('/src/pages/Channels')) {
+              return 'pages-messaging';
+            }
+
+            if (id.includes('/src/pages/DriversManagement') || id.includes('/src/pages/DriverDashboard') ||
+                id.includes('/src/pages/DriverStatus')) {
+              return 'pages-drivers';
+            }
+
+            // Keep default behavior for other files
+            return undefined;
           },
           entryFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
           chunkFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
