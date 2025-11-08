@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { logger } from './logger';
 
 let client: SupabaseClient | null = null;
 let configPromise: Promise<{supabaseUrl: string; supabaseAnonKey: string}> | null = null;
@@ -27,7 +28,7 @@ async function loadConfig(): Promise<{supabaseUrl: string; supabaseAnonKey: stri
       const buildTimeKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
       if (buildTimeUrl && buildTimeKey && buildTimeUrl !== 'undefined' && buildTimeKey !== 'undefined') {
-        console.log('✅ Using build-time configuration (local dev)');
+        logger.info('Using build-time configuration (local dev)');
         config = {
           supabaseUrl: buildTimeUrl,
           supabaseAnonKey: buildTimeKey,
@@ -36,7 +37,7 @@ async function loadConfig(): Promise<{supabaseUrl: string; supabaseAnonKey: stri
       }
 
       // Fallback to runtime config from Edge Function
-      console.log('🔄 Fetching runtime configuration...');
+      logger.info('Fetching runtime configuration...');
 
       // Use a hardcoded project URL for the config endpoint
       // This is the only hardcoded value, and it's safe because it's just the project identifier
@@ -59,11 +60,11 @@ async function loadConfig(): Promise<{supabaseUrl: string; supabaseAnonKey: stri
         throw new Error('Invalid configuration received from server');
       }
 
-      console.log('✅ Runtime configuration loaded successfully');
+      logger.info('Runtime configuration loaded successfully');
       config = runtimeConfig;
       return config;
     } catch (error) {
-      console.error('❌ Failed to load configuration:', error);
+      logger.error('Failed to load configuration', error);
       throw new Error('Failed to initialize application configuration');
     }
   })();
@@ -143,7 +144,7 @@ export async function initSupabase(): Promise<SupabaseClient> {
         window.dispatchEvent(new Event('supabase-reset'));
       }
 
-      console.error('❌ Supabase initialization failed:', error);
+      logger.error('Supabase initialization failed', error);
       throw error;
     }
   })();
@@ -215,7 +216,7 @@ export async function waitForSupabaseInit(maxWaitMs: number = 10000, checkInterv
       try {
         return await initPromise;
       } catch (error) {
-        console.warn('Supabase initialization failed, retrying...', error);
+        logger.warn('Supabase initialization failed, retrying...', { error });
       }
     }
 
