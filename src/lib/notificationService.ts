@@ -1,3 +1,4 @@
+import { logger } from './logger';
 import { DataStore, User, Notification } from '../data/types';
 
 export interface PushNotificationPayload {

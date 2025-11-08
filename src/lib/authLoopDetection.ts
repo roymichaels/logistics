@@ -5,6 +5,8 @@
  * and prevents the loop by implementing circuit breaker pattern.
  */
 
+
+import { logger } from './logger';
 interface AuthAttempt {
   timestamp: number;
   type: 'login' | 'logout';

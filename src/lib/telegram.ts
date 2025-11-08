@@ -4,6 +4,8 @@
  * This service provides a clean interface to interact with Telegram Mini Apps SDK.
  * Now supports optional Telegram integration - works in both Telegram and standard web contexts.
  */
+
+import { logger } from './logger';
 class TelegramService {
   private initialized = false;
   private userData: any = null;

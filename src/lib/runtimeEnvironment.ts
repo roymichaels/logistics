@@ -8,6 +8,8 @@
  * - Netlify/Vercel deployment
  */
 
+import { logger } from './logger';
+
 export interface RuntimeEnvironment {
   type: 'production' | 'development' | 'webcontainer' | 'preview';
   isWebContainer: boolean;

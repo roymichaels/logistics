@@ -1,3 +1,4 @@
+import { logger } from './logger';
 import { DataStore, Order } from '../data/types';
 import { DriverService, DriverProfile, AvailableDriver } from './driverService';
 

@@ -5,6 +5,7 @@
  * that fetches permissions from the database via the resolve-permissions Edge Function.
  */
 
+import { logger } from './logger';
 import { supabase } from './supabaseClient';
 import type { PermissionProfile } from '../services/types';
 

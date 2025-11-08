@@ -1,3 +1,4 @@
+import { logger } from './logger';
 import { getSupabase } from './supabaseClient';
 import { AuthUser } from './authService';
 import { CANONICAL_TO_LEGACY_ROLE } from './roleMappings';
