@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { hebrew } from '../lib/i18n';
 import { english } from '../lib/i18n';
 import { supabase } from '../lib/supabaseClient';
+import { logger } from '../lib/logger';
 
 type Language = 'he' | 'en';
 

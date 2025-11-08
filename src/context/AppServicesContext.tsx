@@ -11,6 +11,7 @@ import { createFrontendDataStore, FrontendDataStore } from '../lib/frontendDataS
 import { debugLog } from '../components/DebugPanel';
 import { useAuth } from './AuthContext';
 import { userService } from '../lib/userService';
+import { logger } from '../lib/logger';
 
 export type AppUserRole =
   | 'user'

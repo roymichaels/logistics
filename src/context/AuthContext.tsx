@@ -8,6 +8,7 @@ import {
   resetAuthLoopDetection,
   getAuthLoopDiagnostics
 } from '../lib/authLoopDetection';
+import { logger } from '../lib/logger';
 
 interface AuthContextValue extends AuthState {
   signOut: () => Promise<void>;
