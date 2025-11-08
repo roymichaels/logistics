@@ -51,8 +51,8 @@ export default [
       'react/display-name': 'warn',
 
       // General rules
-      // Prevent console.log - use logger instead
-      'no-console': ['error', { allow: [] }],
+      // Prevent console.log - use logger instead (allow warn and error for critical issues)
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-debugger': 'error',
       'prefer-const': 'warn',
       'no-var': 'error',

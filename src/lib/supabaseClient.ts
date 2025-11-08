@@ -39,9 +39,9 @@ async function loadConfig(): Promise<{supabaseUrl: string; supabaseAnonKey: stri
       // Fallback to runtime config from Edge Function
       logger.info('Fetching runtime configuration...');
 
-      // Use a hardcoded project URL for the config endpoint
-      // This is the only hardcoded value, and it's safe because it's just the project identifier
-      const configUrl = 'https://ncuyyjvvzeaqqjganbzz.supabase.co/functions/v1/app-config';
+      // Use the project URL for the config endpoint
+      // This should match the actual Supabase project URL from environment variables
+      const configUrl = 'https://loxoontsctworiabrcbc.supabase.co/functions/v1/app-config';
 
       const response = await fetch(configUrl, {
         method: 'GET',

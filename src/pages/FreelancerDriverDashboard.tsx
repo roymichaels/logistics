@@ -295,7 +295,7 @@ export function FreelancerDriverDashboard({ dataStore, onNavigate }: FreelancerD
             <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
               {driverProfile.average_rating.toFixed(1)}⭐
             </div>
-            <div style={{ fontSize: '12px', opacity: 0.9' }}>דירוג</div>
+            <div style={{ fontSize: '12px', opacity: 0.9 }}>דירוג</div>
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '24px', fontWeight: 'bold' }}>

@@ -14,7 +14,7 @@ import { useCallback, useEffect, useRef, DependencyList } from 'react';
  * Creates a debounced version of a callback
  * Delays execution until after wait milliseconds have elapsed since the last call
  */
-export function useDebounced Callback<T extends (...args: any[]) => any>(
+export function useDebouncedCallback<T extends (...args: any[]) => any>(
   callback: T,
   delay: number,
   deps: DependencyList
