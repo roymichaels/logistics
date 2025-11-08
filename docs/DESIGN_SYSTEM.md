@@ -441,11 +441,80 @@ The component library is optimized for:
 - Lazy loading support
 - Memoization where appropriate
 
+## Advanced Patterns
+
+The design system implements powerful composition patterns for maximum reusability:
+
+- **Polymorphic Components** (Box, Flex, Stack, HStack, Center)
+- **Compound Components** (Accordion, with sub-components)
+- **Render Props Pattern** (VisibilityToggle, useToggle hook)
+
+See [ADVANCED_COMPOSITION_PATTERNS.md](./ADVANCED_COMPOSITION_PATTERNS.md) for comprehensive examples and usage patterns.
+
+### Quick Examples
+
+#### Polymorphic Box
+
+```typescript
+import { Box, Stack, HStack } from '@/components/atoms';
+
+// Flexible layout with semantic HTML
+<Box as="section" padding="lg">
+  <Stack spacing="md">
+    <HStack align="center" spacing="sm">
+      <Icon />
+      <Text>Label</Text>
+    </HStack>
+  </Stack>
+</Box>
+```
+
+#### Compound Components
+
+```typescript
+import { Accordion } from '@/components/molecules';
+
+<Accordion defaultValue="item-1">
+  <Accordion.Item value="item-1">
+    <Accordion.Trigger>Question?</Accordion.Trigger>
+    <Accordion.Content>Answer</Accordion.Content>
+  </Accordion.Item>
+</Accordion>
+```
+
+#### Render Props
+
+```typescript
+import { VisibilityToggle, useToggle } from '@/components/molecules';
+
+// Pattern 1: Render props
+<VisibilityToggle>
+  {({ isVisible, toggle }) => (
+    <>
+      <Button onClick={toggle}>Toggle</Button>
+      {isVisible && <Content />}
+    </>
+  )}
+</VisibilityToggle>
+
+// Pattern 2: Custom hook
+function MyComponent() {
+  const modal = useToggle();
+  return (
+    <>
+      <Button onClick={modal.setTrue}>Open</Button>
+      <Modal isOpen={modal.value} onClose={modal.setFalse} />
+    </>
+  );
+}
+```
+
 ## Support
 
 For questions or issues with the design system:
 
 1. Check this documentation
-2. Review the example components in `/src/pages/ExampleDashboard.tsx`
-3. Examine existing component implementations
-4. Consult the team for complex use cases
+2. Review [Advanced Composition Patterns](./ADVANCED_COMPOSITION_PATTERNS.md)
+3. Review the example components in `/src/pages/ExampleDashboard.tsx`
+4. Examine existing component implementations
+5. Consult the team for complex use cases

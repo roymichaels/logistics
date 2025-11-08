@@ -1,12 +1,12 @@
 import React from 'react';
-import '../styles/transitions.css';
+import { Skeleton, SkeletonGroup } from './atoms/Skeleton';
+import { spacing } from '../styles/design-system';
 
 interface LoadingSkeletonProps {
   type?: 'text' | 'title' | 'card' | 'list';
   count?: number;
   height?: string;
   width?: string;
-  style?: React.CSSProperties;
 }
 
 export function LoadingSkeleton({
@@ -14,102 +14,54 @@ export function LoadingSkeleton({
   count = 1,
   height,
   width,
-  style = {}
 }: LoadingSkeletonProps) {
-  const baseStyle: React.CSSProperties = {
-    ...style,
-    backgroundColor: '#f0f0f0',
-    backgroundImage: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
-    backgroundSize: '200% 100%',
-    animation: 'shimmer 1.5s infinite',
-    borderRadius: '4px',
-  };
-
   if (type === 'text') {
     return (
-      <>
-        {Array.from({ length: count }).map((_, i) => (
-          <div
-            key={i}
-            className="skeleton skeleton-text"
-            style={{
-              ...baseStyle,
-              height: height || '16px',
-              width: width || '100%',
-              marginBottom: i < count - 1 ? '8px' : 0,
-            }}
-          />
-        ))}
-      </>
+      <SkeletonGroup count={count} spacing="sm">
+        <Skeleton height={height || '16px'} width={width || '100%'} variant="text" />
+      </SkeletonGroup>
     );
   }
 
   if (type === 'title') {
-    return (
-      <div
-        className="skeleton skeleton-title"
-        style={{
-          ...baseStyle,
-          height: height || '24px',
-          width: width || '60%',
-          marginBottom: '12px',
-        }}
-      />
-    );
+    return <Skeleton height={height || '24px'} width={width || '60%'} variant="text" />;
   }
 
   if (type === 'card') {
     return (
-      <>
-        {Array.from({ length: count }).map((_, i) => (
-          <div
-            key={i}
-            className="skeleton skeleton-card"
-            style={{
-              ...baseStyle,
-              padding: '16px',
-              marginBottom: i < count - 1 ? '16px' : 0,
-              height: height || '120px',
-            }}
-          >
-            <div style={{ ...baseStyle, height: '20px', width: '60%', marginBottom: '12px' }} />
-            <div style={{ ...baseStyle, height: '14px', width: '80%', marginBottom: '8px' }} />
-            <div style={{ ...baseStyle, height: '14px', width: '90%' }} />
+      <SkeletonGroup count={count} spacing="lg">
+        <div
+          style={{
+            padding: spacing.lg,
+            background: 'rgba(255,255,255,0.02)',
+            borderRadius: '12px',
+          }}
+        >
+          <Skeleton height="20px" width="60%" variant="text" />
+          <div style={{ marginTop: spacing.md }}>
+            <Skeleton height="14px" width="80%" variant="text" />
           </div>
-        ))}
-      </>
+          <div style={{ marginTop: spacing.sm }}>
+            <Skeleton height="14px" width="90%" variant="text" />
+          </div>
+        </div>
+      </SkeletonGroup>
     );
   }
 
   if (type === 'list') {
     return (
-      <>
-        {Array.from({ length: count }).map((_, i) => (
-          <div
-            key={i}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              marginBottom: i < count - 1 ? '12px' : 0,
-            }}
-          >
-            <div
-              style={{
-                ...baseStyle,
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                flexShrink: 0,
-              }}
-            />
-            <div style={{ flex: 1 }}>
-              <div style={{ ...baseStyle, height: '16px', width: '70%', marginBottom: '8px' }} />
-              <div style={{ ...baseStyle, height: '12px', width: '50%' }} />
+      <SkeletonGroup count={count} spacing="md">
+        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
+          <Skeleton height="40px" width="40px" variant="circular" />
+          <div style={{ flex: 1 }}>
+            <Skeleton height="16px" width="70%" variant="text" />
+            <div style={{ marginTop: spacing.sm }}>
+              <Skeleton height="12px" width="50%" variant="text" />
             </div>
           </div>
-        ))}
-      </>
+        </div>
+      </SkeletonGroup>
     );
   }
 
@@ -118,10 +70,12 @@ export function LoadingSkeleton({
 
 export function PageLoadingSkeleton() {
   return (
-    <div style={{ padding: '20px' }} className="page-enter">
+    <div style={{ padding: spacing['2xl'] }}>
       <LoadingSkeleton type="title" />
-      <LoadingSkeleton type="text" count={2} />
-      <div style={{ marginTop: '24px' }}>
+      <div style={{ marginTop: spacing.md }}>
+        <LoadingSkeleton type="text" count={2} />
+      </div>
+      <div style={{ marginTop: spacing['3xl'] }}>
         <LoadingSkeleton type="card" count={3} />
       </div>
     </div>
@@ -130,7 +84,7 @@ export function PageLoadingSkeleton() {
 
 export function ListLoadingSkeleton({ count = 5 }: { count?: number }) {
   return (
-    <div style={{ padding: '20px' }} className="page-enter">
+    <div style={{ padding: spacing['2xl'] }}>
       <LoadingSkeleton type="list" count={count} />
     </div>
   );

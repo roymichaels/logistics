@@ -39,6 +39,68 @@ import { colors, spacing, typography } from './styles/design-system';
 }}>
 ```
 
+## Advanced Patterns
+
+The system supports powerful composition patterns for 90%+ reusability:
+
+### Polymorphic Components
+
+Components that can render as any HTML element:
+
+```typescript
+import { Box, Stack, HStack, Flex } from './components/atoms';
+
+// Flexible layouts with semantic HTML
+<Box as="section" padding="lg">
+  <Stack spacing="md">
+    <HStack align="center" spacing="sm">
+      <Text>Item 1</Text>
+      <Badge>New</Badge>
+    </HStack>
+  </Stack>
+</Box>
+```
+
+### Compound Components
+
+Related components that work together:
+
+```typescript
+import { Accordion } from './components/molecules';
+
+<Accordion>
+  <Accordion.Item value="faq-1">
+    <Accordion.Trigger>What is this?</Accordion.Trigger>
+    <Accordion.Content>Detailed answer...</Accordion.Content>
+  </Accordion.Item>
+</Accordion>
+```
+
+### Render Props Pattern
+
+Maximum flexibility with function children:
+
+```typescript
+import { VisibilityToggle, useToggle } from './components/molecules';
+
+// Pattern 1: Render props
+<VisibilityToggle>
+  {({ isVisible, toggle }) => (
+    <>
+      <Button onClick={toggle}>Toggle</Button>
+      {isVisible && <Modal>Content</Modal>}
+    </>
+  )}
+</VisibilityToggle>
+
+// Pattern 2: Custom hook
+const modal = useToggle();
+<Button onClick={modal.setTrue}>Open</Button>
+<Modal isOpen={modal.value} onClose={modal.setFalse} />
+```
+
+See **[ADVANCED_COMPOSITION_PATTERNS.md](./docs/ADVANCED_COMPOSITION_PATTERNS.md)** for comprehensive examples.
+
 ## Common Patterns
 
 ### Creating a Button
@@ -180,8 +242,9 @@ See `/src/pages/ExampleDashboard.tsx` for a complete working example showing:
 Comprehensive guides available in `/docs/`:
 
 1. **[DESIGN_SYSTEM.md](./docs/DESIGN_SYSTEM.md)** - Complete component reference
-2. **[MIGRATION_GUIDE.md](./docs/MIGRATION_GUIDE.md)** - Step-by-step migration instructions
-3. **[ATOMIC_DESIGN_REFACTOR_SUMMARY.md](./docs/ATOMIC_DESIGN_REFACTOR_SUMMARY.md)** - Implementation details
+2. **[ADVANCED_COMPOSITION_PATTERNS.md](./docs/ADVANCED_COMPOSITION_PATTERNS.md)** - Polymorphic components, compound components, render props
+3. **[MIGRATION_GUIDE.md](./docs/MIGRATION_GUIDE.md)** - Step-by-step migration instructions
+4. **[ATOMIC_DESIGN_REFACTOR_SUMMARY.md](./docs/ATOMIC_DESIGN_REFACTOR_SUMMARY.md)** - Implementation details
 
 ## Benefits
 
