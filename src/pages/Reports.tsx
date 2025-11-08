@@ -5,6 +5,7 @@ import { DataStore, User, Order } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { formatCurrency } from '../lib/i18n';
 import { Toast } from '../components/Toast';
+import { logger } from '../lib/logger';
 
 interface ReportsProps {
   dataStore: DataStore;

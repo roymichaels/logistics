@@ -5,6 +5,7 @@ import type { Post, CreatePostInput } from '../data/types';
 import { PostCard } from '../components/social/PostCard';
 import { CreatePostBox } from '../components/social/CreatePostBox';
 import { TrendingSidebar } from '../components/social/TrendingSidebar';
+import { logger } from '../lib/logger';
 
 export function SocialFeed() {
   const { dataStore } = useAppServices();

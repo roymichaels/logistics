@@ -3,6 +3,7 @@ import { DataStore } from '../data/types';
 import { Toast } from './Toast';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { ImageUpload } from './ImageUpload';
+import { logger } from '../lib/logger';
 
 interface DriverApplicationFormProps {
   dataStore: DataStore;

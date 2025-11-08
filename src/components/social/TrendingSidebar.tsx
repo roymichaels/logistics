@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAppServices } from '../../context/AppServicesContext';
 import { i18n } from '../../lib/i18n';
 import type { TrendingTopic, User } from '../../data/types';
+import { logger } from '../../lib/logger';
 
 export function TrendingSidebar() {
   const { dataStore } = useAppServices();

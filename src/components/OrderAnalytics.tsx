@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { logger } from '../lib/logger';
 
 interface OrderAnalyticsProps {
   supabase: any;

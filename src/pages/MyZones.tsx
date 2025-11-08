@@ -4,6 +4,7 @@ import { DataStore, DriverStatusRecord, DriverZoneAssignment, Zone } from '../da
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { Toast } from '../components/Toast';
 import { hebrew } from '../lib/i18n';
+import { logger } from '../lib/logger';
 
 interface MyZonesProps {
   dataStore: DataStore;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { PINAuthService, PINValidator } from '../utils/security/pinAuth';
+import { logger } from '../lib/logger';
 
 interface PINEntryProps {
   mode: 'setup' | 'verify' | 'change';

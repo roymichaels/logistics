@@ -5,6 +5,7 @@
  */
 
 import { getSupabase } from '../../lib/supabaseClient';
+import { logger } from '../../lib/logger';
 
 export interface PINSettings {
   maxFailedAttempts: number;

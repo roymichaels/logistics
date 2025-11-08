@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DataStore } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from './Toast';
+import { logger } from '../lib/logger';
 
 interface AuditLogViewerProps {
   dataStore: DataStore;

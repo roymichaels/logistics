@@ -9,6 +9,7 @@ import { SecurityManager, AuthenticationState, initializeGlobalSecurityManager }
 import { SecurityAuditLogger } from '../utils/security/auditLogger';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { hebrew } from '../lib/i18n';
+import { logger } from '../lib/logger';
 
 interface SecurityGateProps {
   userId: string;

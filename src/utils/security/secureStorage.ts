@@ -4,6 +4,7 @@
  */
 
 import { EncryptionService } from './encryption';
+import { logger } from '../../lib/logger';
 
 export interface SecureStorageConfig {
   encryptionKey: CryptoKey;

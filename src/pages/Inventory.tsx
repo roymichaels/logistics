@@ -4,6 +4,7 @@ import { DataStore, Product, InventoryRecord, InventoryAlert, InventoryLocation 
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
 import { formatCurrency } from '../lib/i18n';
+import { logger } from '../lib/logger';
 
 interface InventoryProps {
   dataStore: DataStore;

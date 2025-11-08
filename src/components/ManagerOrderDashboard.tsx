@@ -4,6 +4,7 @@ import { OrderFilters, OrderMetrics, OrderViewMode } from '../types/orderManagem
 import { ORDER_STATUS_COLORS, PRIORITY_COLORS, ORDER_CARD_STYLES } from '../styles/orderTheme';
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
+import { logger } from '../lib/logger';
 
 interface ManagerOrderDashboardProps {
   dataStore: DataStore;

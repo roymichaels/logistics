@@ -23,6 +23,7 @@ import {
   PERMISSION_DESCRIPTIONS,
 } from '../lib/rolePermissions';
 import { roleNames, roleIcons } from '../lib/i18n';
+import { logger } from '../lib/logger';
 
 interface RoleChangeWorkflowProps {
   currentUser: User;

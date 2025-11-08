@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Order, DataStore } from '../data/types';
 import { ORDER_STATUS_COLORS, ORDER_TIMELINE_STYLES } from '../styles/orderTheme';
 import { Toast } from './Toast';
+import { logger } from '../lib/logger';
 
 interface EnhancedOrderTrackingProps {
   orderId: string;

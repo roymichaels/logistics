@@ -8,6 +8,7 @@ import { FinancialDashboard } from './FinancialDashboard';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
 import { getRoleColors, getRoleStyles } from '../styles/roleThemes';
 import { CreateBusinessModal } from './CreateBusinessModal';
+import { logger } from '../lib/logger';
 
 interface OwnerDashboardProps {
   dataStore: DataStore;

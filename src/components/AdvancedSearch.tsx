@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
+import { logger } from '../lib/logger';
 
 interface AdvancedSearchProps {
   dataStore: DataStore;

@@ -7,6 +7,7 @@ import { PINAuthService } from './pinAuth';
 import { EncryptionService } from './encryption';
 import { SecureStorage, SecureSessionManager, SecureConfigManager } from './secureStorage';
 import { getSecurityAuditLogger } from './auditLogger';
+import { logger } from '../../lib/logger';
 
 export interface SecurityManagerConfig {
   userId: string;

@@ -4,6 +4,7 @@ import { SolanaLogin } from '../components/SolanaLogin';
 import { platformDetection } from '../lib/platformDetection';
 import { hebrew } from '../lib/i18n';
 import { ADMIN_THEME } from '../styles/roleThemes';
+import { logger } from '../lib/logger';
 
 interface LoginPageProps {
   onEthereumLogin: (address: string, signature: string, message: string) => Promise<void>;

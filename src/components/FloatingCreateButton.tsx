@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
+import { logger } from '../lib/logger';
 
 type RoleKey =
   | 'user'

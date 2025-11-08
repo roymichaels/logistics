@@ -9,6 +9,7 @@ import { useMemo } from 'react';
 import { useAppServices } from '../context/AppServicesContext';
 import { getRoleTheme, getRoleColors, getRoleStyles, ADMIN_THEME } from '../styles/roleThemes';
 import type { RoleTheme } from '../styles/roleThemes';
+import { logger } from '../lib/logger';
 
 interface UseRoleThemeReturn {
   theme: RoleTheme;

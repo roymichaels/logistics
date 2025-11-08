@@ -6,6 +6,7 @@ import { telegram } from '../lib/telegram';
 import { CreateBusinessModal } from '../components/CreateBusinessModal';
 import { RoleDiagnostics } from '../lib/diagnostics';
 import { isSupabaseInitialized } from '../lib/supabaseClient';
+import { logger } from '../lib/logger';
 
 interface BusinessesProps {
   dataStore: DataStore;

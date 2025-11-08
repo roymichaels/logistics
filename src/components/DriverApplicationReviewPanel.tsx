@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { Toast } from './Toast';
 import { getSupabase } from '../lib/supabaseClient';
+import { logger } from '../lib/logger';
 
 interface DriverApplication {
   id: string;

@@ -4,6 +4,7 @@ import { DataStore, User } from '../data/types';
 import { roleNames, roleIcons } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { ProfileDiagnostics } from '../lib/diagnostics';
+import { logger } from '../lib/logger';
 
 interface ProfileProps {
   dataStore: DataStore;

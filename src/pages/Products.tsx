@@ -3,6 +3,7 @@ import { telegram } from '../lib/telegram';
 import { DataStore, Product, User } from '../data/types';
 import { hebrew, formatCurrency } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { logger } from '../lib/logger';
 
 interface ProductsProps {
   dataStore: DataStore;

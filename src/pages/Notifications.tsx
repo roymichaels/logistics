@@ -3,6 +3,7 @@ import { telegram } from '../lib/telegram';
 import { DataStore, Notification } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
+import { logger } from '../lib/logger';
 
 interface NotificationsProps {
   dataStore: DataStore;

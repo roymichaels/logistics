@@ -10,6 +10,7 @@ import { CreateBusinessModal } from './CreateBusinessModal';
 import { DataStore, User } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { fetchInfrastructureOverview, fetchBusinessMetrics } from '../services/metrics';
+import { logger } from '../lib/logger';
 
 interface InfrastructureOwnerDashboardProps {
   dataStore: DataStore;

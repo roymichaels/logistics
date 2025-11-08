@@ -5,6 +5,7 @@
 
 import { EncryptionService, MessageEncryption, SessionKeyManager } from './encryption';
 import { getGlobalSecurityManager } from './securityManager';
+import { logger } from '../../lib/logger';
 
 export interface EncryptedMessage {
   id: string;

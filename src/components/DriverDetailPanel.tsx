@@ -4,6 +4,7 @@ import { DriverService, DriverProfile, DriverStats } from '../lib/driverService'
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
 import { useRoleTheme } from '../hooks/useRoleTheme';
+import { logger } from '../lib/logger';
 
 interface DriverWithDetails {
   profile: DriverProfile;

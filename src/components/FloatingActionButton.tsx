@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { telegram } from '../lib/telegram';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { useAppServices } from '../context/AppServicesContext';
+import { logger } from '../lib/logger';
 
 interface FloatingActionMenuProps {
   onNavigate: (page: string) => void;

@@ -3,6 +3,7 @@ import { ROYAL_COLORS } from '../styles/royalTheme';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import type { User, DataStore } from '../data/types';
 import { telegram } from '../lib/telegram';
+import { logger } from '../lib/logger';
 
 interface GroupChannelCreateModalProps {
   isOpen: boolean;

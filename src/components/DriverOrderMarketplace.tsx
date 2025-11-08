@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { DataStore } from '../data/types';
 import { Toast } from './Toast';
 import { useTelegramUI } from '../hooks/useTelegramUI';
+import { logger } from '../lib/logger';
 
 interface MarketplaceOrder {
   id: string;

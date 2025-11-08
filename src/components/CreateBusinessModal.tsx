@@ -4,6 +4,7 @@ import { telegram } from '../lib/telegram';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { waitForSupabaseInit } from '../lib/supabaseClient';
 import { useSupabaseReady } from '../context/SupabaseReadyContext';
+import { logger } from '../lib/logger';
 
 interface CreateBusinessModalProps {
   dataStore: DataStore;

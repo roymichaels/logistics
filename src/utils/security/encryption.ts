@@ -1,3 +1,5 @@
+import { logger } from '../../lib/logger';
+
 /**
  * End-to-End Encryption Service
  * Implements AES-256-GCM for symmetric encryption and RSA for key exchange

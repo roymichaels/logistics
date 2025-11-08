@@ -1,5 +1,6 @@
 import { Task, Order } from '../data/types';
 import { offlineStore } from './offlineStore';
+import { logger } from '../lib/logger';
 
 class CacheService {
   private readonly CACHE_PREFIX = 'logistics_app_';

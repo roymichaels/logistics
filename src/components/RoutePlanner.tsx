@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { Task, User } from '../data/types';
 import { RouteOptimizer, Location, OptimizationResult, RouteOptimizationOptions } from '../lib/routeOptimization';
+import { logger } from '../lib/logger';
 
 interface RoutePlannerProps {
   tasks: Task[];

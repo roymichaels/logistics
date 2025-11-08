@@ -30,6 +30,7 @@ const numberFormatter = new Intl.NumberFormat('he-IL');
 
 // Import Twitter dark theme
 import { TWITTER_COLORS } from '../styles/twitterTheme';
+import { logger } from '../lib/logger';
 
 // Dashboard colors based on authentic Twitter/X dark theme
 const DASHBOARD_COLORS = {

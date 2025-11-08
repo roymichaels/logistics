@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TWITTER_COLORS } from '../styles/twitterTheme';
+import { logger } from '../lib/logger';
 
 interface EthereumLoginProps {
   onSuccess: (walletAddress: string, signature: string, message: string) => void;

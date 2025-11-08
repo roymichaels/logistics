@@ -11,6 +11,7 @@
 import React, { memo, useMemo, useCallback } from 'react';
 import { GlobalErrorBoundary, PageErrorBoundary } from './ErrorBoundary';
 import { perfMonitor } from '../utils/performanceOptimizer';
+import { logger } from '../lib/logger';
 
 interface OptimizedAppWrapperProps {
   children: React.ReactNode;

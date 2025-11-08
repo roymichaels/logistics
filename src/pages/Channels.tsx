@@ -6,6 +6,7 @@ import { DataStore, Channel, User } from '../data/types';
 import { hebrew } from '../lib/i18n';
 import { GroupChannelCreateModal } from '../components/GroupChannelCreateModal';
 import { hasPermission } from '../lib/rolePermissions';
+import { logger } from '../lib/logger';
 
 interface ChannelsProps {
   dataStore: DataStore;

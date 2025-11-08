@@ -6,6 +6,7 @@ import { StorefrontOrderBuilder } from './StorefrontOrderBuilder';
 import { ORDER_FORM_STYLES } from '../styles/orderTheme';
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
+import { logger } from '../lib/logger';
 
 interface EnhancedOrderEntryProps {
   dataStore: DataStore;

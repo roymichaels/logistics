@@ -1,5 +1,6 @@
 import React from 'react';
 import { telegram } from '../lib/telegram';
+import { logger } from '../lib/logger';
 
 interface AppErrorBoundaryProps {
   children: React.ReactNode;

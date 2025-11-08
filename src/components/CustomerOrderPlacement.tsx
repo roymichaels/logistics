@@ -4,6 +4,7 @@ import { DraftOrderItem, ProductInventoryAvailability } from './orderTypes';
 import { ORDER_FORM_STYLES, ORDER_CARD_STYLES } from '../styles/orderTheme';
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
+import { logger } from '../lib/logger';
 
 interface CustomerOrderPlacementProps {
   dataStore: DataStore;

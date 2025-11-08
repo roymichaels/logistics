@@ -4,6 +4,7 @@ import { useRoleTheme } from '../hooks/useRoleTheme';
 import { formatCurrency, hebrew } from '../lib/i18n';
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
+import { logger } from '../lib/logger';
 
 interface ManagerDashboardProps {
   dataStore: DataStore;

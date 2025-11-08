@@ -7,6 +7,7 @@ import { userManager } from '../lib/userManager';
 import { offlineStore, type OfflineDiagnostics } from '../utils/offlineStore';
 import { PINEntry } from '../components/PINEntry';
 import { getGlobalSecurityManager } from '../utils/security/securityManager';
+import { logger } from '../lib/logger';
 
 const ROYAL_COLORS = {
   background: 'radial-gradient(125% 125% at 50% 0%, rgba(95, 46, 170, 0.55) 0%, rgba(12, 2, 25, 0.95) 45%, #03000a 100%)',

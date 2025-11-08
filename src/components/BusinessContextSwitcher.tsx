@@ -7,6 +7,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { fetchBusinessContexts, switchBusinessContext } from '../services/business';
+import { logger } from '../lib/logger';
 
 interface BusinessContext {
   business_id: string;

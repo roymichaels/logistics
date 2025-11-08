@@ -4,6 +4,7 @@ import { Toast } from '../components/Toast';
 import { telegram } from '../lib/telegram';
 import { TelegramModal } from '../components/TelegramModal';
 import { ZoneManager } from '../components/ZoneManager';
+import { logger } from '../lib/logger';
 
 interface ZoneManagementProps {
   dataStore: DataStore;

@@ -9,6 +9,7 @@
  */
 
 import { useCallback, useEffect, useRef, DependencyList } from 'react';
+import { logger } from '../lib/logger';
 
 /**
  * Creates a debounced version of a callback

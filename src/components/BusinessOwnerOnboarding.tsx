@@ -5,6 +5,7 @@ import { telegram } from '../lib/telegram';
 import { Toast } from './Toast';
 import { waitForSupabaseInit } from '../lib/supabaseClient';
 import { useSupabaseReady } from '../context/SupabaseReadyContext';
+import { logger } from '../lib/logger';
 
 interface BusinessOwnerOnboardingProps {
   dataStore: DataStore;

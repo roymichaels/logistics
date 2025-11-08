@@ -10,6 +10,7 @@ import {
 import { Toast } from '../components/Toast';
 import { DispatchOrchestrator, ZoneCoverageResult } from '../lib/dispatchOrchestrator';
 import { telegram } from '../lib/telegram';
+import { logger } from '../lib/logger';
 
 interface DispatchBoardProps {
   dataStore: DataStore;

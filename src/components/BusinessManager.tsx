@@ -8,6 +8,7 @@ import {
   type BusinessRecord,
 } from '../services/business';
 import { Toast } from './Toast';
+import { logger } from '../lib/logger';
 
 interface Business {
   id: string;

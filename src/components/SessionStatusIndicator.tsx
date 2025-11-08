@@ -8,6 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { sessionTracker } from '../lib/sessionTracker';
 import { ROYAL_COLORS } from '../styles/royalTheme';
+import { logger } from '../lib/logger';
 
 interface SessionStatusProps {
   showDetails?: boolean;

@@ -3,6 +3,7 @@ import { useAppServices } from '../context/AppServicesContext';
 import { useAuth } from '../context/AuthContext';
 import type { UserProfile, Post, User } from '../data/types';
 import { PostCard } from '../components/social/PostCard';
+import { logger } from '../lib/logger';
 
 interface UserProfileProps {
   userId?: string;

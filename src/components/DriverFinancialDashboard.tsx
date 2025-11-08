@@ -4,6 +4,7 @@ import { DriverService } from '../lib/driverService';
 import { useRoleTheme } from '../hooks/useRoleTheme';
 import { telegram } from '../lib/telegram';
 import { Toast } from './Toast';
+import { logger } from '../lib/logger';
 
 interface DriverFinancialDashboardProps {
   driverId: string;

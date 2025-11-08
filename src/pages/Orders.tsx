@@ -18,6 +18,7 @@ import { DriverCandidate } from '../lib/dispatchService';
 import { DispatchOrchestrator } from '../lib/dispatchOrchestrator';
 import { Toast } from '../components/Toast';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { logger } from '../lib/logger';
 
 interface OrdersProps {
   dataStore: FrontendDataStore;

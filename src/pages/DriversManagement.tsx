@@ -7,6 +7,7 @@ import { useRoleTheme } from '../hooks/useRoleTheme';
 import { DriverDetailPanel } from '../components/DriverDetailPanel';
 import { DriverMapView } from '../components/DriverMapView';
 import { DriverPerformanceChart } from '../components/DriverPerformanceChart';
+import { logger } from '../lib/logger';
 
 interface DriversManagementProps {
   dataStore: DataStore;

@@ -1,4 +1,5 @@
 import { DataStore, Order, User } from '../data/types';
+import { logger } from '../lib/logger';
 
 export class OrderWorkflowService {
   constructor(private dataStore: DataStore) {}

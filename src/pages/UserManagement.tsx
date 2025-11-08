@@ -25,6 +25,7 @@ import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
 import { AuthDiagnostics } from '../lib/diagnostics';
 import { sessionTracker } from '../lib/sessionTracker';
+import { logger } from '../lib/logger';
 
 interface UserManagementProps {
   onNavigate: (page: string) => void;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ImageUpload } from './ImageUpload';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { Task } from '../data/types';
+import { logger } from '../lib/logger';
 
 interface TaskProofSubmissionProps {
   task: Task;

@@ -3,6 +3,7 @@ import { DataStore, Zone, CreateZoneInput, UpdateZoneInput } from '../data/types
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
 import { TelegramModal } from './TelegramModal';
+import { logger } from '../lib/logger';
 
 interface ZoneManagerProps {
   dataStore: DataStore;

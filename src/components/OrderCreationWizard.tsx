@@ -3,6 +3,7 @@ import { useTelegramUI } from '../hooks/useTelegramUI';
 import { HebrewOrderParser, parseHebrewOrder, ParsingResult, ParsedOrder } from '../lib/orderTextParser';
 import { DataStore } from '../data/types';
 import { useAppServices } from '../context/AppServicesContext';
+import { logger } from '../lib/logger';
 
 interface OrderCreationWizardProps {
   dataStore: DataStore;

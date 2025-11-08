@@ -16,6 +16,7 @@ import type { DataStore, Order, User, Zone, DriverStatusRecord } from '../data/t
 import { hasPermission } from '../lib/rolePermissions';
 import { Toast } from './Toast';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { logger } from '../lib/logger';
 
 interface ManagerOrdersViewProps {
   dataStore: DataStore;

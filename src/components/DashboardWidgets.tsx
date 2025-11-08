@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { DataStore, Task, Order, User } from '../data/types';
+import { logger } from '../lib/logger';
 
 interface WidgetProps {
   dataStore: DataStore;

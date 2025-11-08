@@ -6,6 +6,7 @@ import { getStatusBadgeStyle } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
 import { telegram } from '../lib/telegram';
 import { useRoleTheme } from '../hooks/useRoleTheme';
+import { logger } from '../lib/logger';
 
 interface DriverDashboardProps {
   dataStore: DataStore;

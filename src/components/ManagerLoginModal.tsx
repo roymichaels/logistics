@@ -3,6 +3,7 @@ import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
 import { DataStore } from '../data/types';
 import { useTelegramUI } from '../hooks/useTelegramUI';
+import { logger } from '../lib/logger';
 
 interface ManagerLoginModalProps {
   isOpen: boolean;

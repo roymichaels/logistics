@@ -17,6 +17,7 @@ import React, { useState, useEffect } from 'react';
 import { telegram } from '../lib/telegram';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
+import { logger } from '../lib/logger';
 
 interface AppOwnerAnalyticsProps {
   onNavigate: (page: string) => void;

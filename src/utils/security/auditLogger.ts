@@ -6,6 +6,7 @@
 import { getSupabase, isSupabaseInitialized } from '../../lib/supabaseClient';
 import { getGlobalSecurityManager } from './securityManager';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { logger } from '../../lib/logger';
 
 export interface SecurityEvent {
   eventType: 'pin_setup' | 'pin_verify' | 'pin_change' | 'pin_reset' |

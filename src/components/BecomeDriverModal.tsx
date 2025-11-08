@@ -3,6 +3,7 @@ import { ROYAL_COLORS } from '../styles/royalTheme';
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
 import { getSupabase } from '../lib/supabaseClient';
+import { logger } from '../lib/logger';
 
 interface BecomeDriverModalProps {
   onClose: () => void;

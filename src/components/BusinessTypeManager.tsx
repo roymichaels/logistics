@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, BusinessType } from '../data/types';
 import { useTelegramUI } from '../hooks/useTelegramUI';
+import { logger } from '../lib/logger';
 
 interface BusinessTypeManagerProps {
   dataStore: DataStore;

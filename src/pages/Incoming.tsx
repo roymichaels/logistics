@@ -4,6 +4,7 @@ import { useTelegramUI } from '../hooks/useTelegramUI';
 import { hebrew, formatDate, formatTime } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
+import { logger } from '../lib/logger';
 
 interface IncomingProps {
   dataStore: DataStore;

@@ -5,6 +5,7 @@ import { DriverOrderMarketplace } from '../components/DriverOrderMarketplace';
 import { DriverEarningsDashboard } from '../components/DriverEarningsDashboard';
 import { Toast } from '../components/Toast';
 import { useTelegramUI } from '../hooks/useTelegramUI';
+import { logger } from '../lib/logger';
 
 interface DriverProfile {
   id: string;

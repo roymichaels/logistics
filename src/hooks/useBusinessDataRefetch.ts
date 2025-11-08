@@ -1,6 +1,7 @@
 import { useCallback, useContext } from 'react';
 import { AppServicesContext } from '../context/AppServicesContext';
 import { debugLog } from '../components/DebugPanel';
+import { logger } from '../lib/logger';
 
 async function safeCall<T>(operation: () => Promise<T> | T, context: string) {
   try {

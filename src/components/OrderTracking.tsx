@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES, getStatusBadgeStyle } from '../styles/royalTheme';
 import { Toast } from './Toast';
+import { logger } from '../lib/logger';
 
 interface OrderTrackingProps {
   orderId: string;

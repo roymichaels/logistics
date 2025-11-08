@@ -4,6 +4,7 @@ import { useAppServices } from '../../context/AppServicesContext';
 import { MediaUploadService } from '../../services/mediaUpload';
 import { i18n } from '../../lib/i18n';
 import type { CreatePostInput, PostVisibility, MediaType } from '../../data/types';
+import { logger } from '../../lib/logger';
 
 interface CreatePostBoxProps {
   onSubmit: (input: CreatePostInput) => Promise<void>;

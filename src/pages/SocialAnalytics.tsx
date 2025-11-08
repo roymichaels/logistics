@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppServices } from '../context/AppServicesContext';
 import { useAuth } from '../context/AuthContext';
+import { logger } from '../lib/logger';
 
 interface AnalyticsData {
   totalPosts: number;

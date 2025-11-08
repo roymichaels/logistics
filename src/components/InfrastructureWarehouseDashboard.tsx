@@ -12,6 +12,7 @@ import {
   fulfillAllocation as fulfillAllocationService,
 } from '../services/inventory';
 import { Toast } from './Toast';
+import { logger } from '../lib/logger';
 
 interface WarehouseStock {
   warehouse_id: string;

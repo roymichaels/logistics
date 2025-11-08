@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { NotificationPreferences, NotificationService, NotificationType } from '../lib/notificationService';
+import { logger } from '../lib/logger';
 
 interface NotificationPreferencesProps {
   notificationService: NotificationService;

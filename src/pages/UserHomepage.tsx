@@ -4,6 +4,7 @@ import { FrontendDataStore } from '../lib/frontendDataStore';
 import { Toast } from '../components/Toast';
 import { telegram } from '../lib/telegram';
 import { loadConfig } from '../lib/supabaseClient';
+import { logger } from '../lib/logger';
 
 interface UserHomepageProps {
   dataStore: FrontendDataStore;

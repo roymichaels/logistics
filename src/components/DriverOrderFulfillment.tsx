@@ -4,6 +4,7 @@ import { ORDER_STATUS_COLORS } from '../styles/orderTheme';
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
 import { deliverOrder } from '../services/inventory';
+import { logger } from '../lib/logger';
 
 interface DriverOrderFulfillmentProps {
   dataStore: DataStore;

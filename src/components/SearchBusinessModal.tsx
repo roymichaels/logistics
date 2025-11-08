@@ -3,6 +3,7 @@ import { ROYAL_COLORS } from '../styles/royalTheme';
 import { listBusinesses, type BusinessRecord } from '../services/business';
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
+import { logger } from '../lib/logger';
 
 interface SearchBusinessModalProps {
   onClose: () => void;

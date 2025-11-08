@@ -3,6 +3,7 @@ import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { DataStore, DriverInventoryRecord, Product } from '../data/types';
 import { Toast } from '../components/Toast';
+import { logger } from '../lib/logger';
 
 interface MyInventoryProps {
   dataStore: DataStore;
