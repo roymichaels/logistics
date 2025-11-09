@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { DataStore, User } from '../data/types';
 import { hebrew } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
@@ -9,7 +9,7 @@ import { ProfitDistributionModal } from '../components/ProfitDistributionModal';
 import { BusinessSettingsModal } from '../components/BusinessSettingsModal';
 import { getBusinessEquityBreakdown, getAvailableEquity, type EquityStakeholder } from '../services/equity';
 import { RoleDiagnostics } from '../lib/diagnostics';
-import { isSupabaseInitialized } from '../lib/supabaseClient';
+import { isSupabaseInitialized, waitForSupabaseInit } from '../lib/supabaseClient';
 import { logger } from '../lib/logger';
 
 interface BusinessesProps {
@@ -44,29 +44,76 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [isSystemReady, setIsSystemReady] = useState(false);
-  const [supabaseReady, setSupabaseReady] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
+  const [initStage, setInitStage] = useState<'checking' | 'loading_profile' | 'loading_businesses' | 'ready'>('checking');
+  const loadDataCalledRef = useRef(false);
+  const initTimeoutRef = useRef<NodeJS.Timeout>();
 
+  // Initialize and load data when component mounts
   useEffect(() => {
-    loadData();
-  }, []);
+    // Prevent multiple simultaneous loads
+    if (loadDataCalledRef.current) {
+      return;
+    }
 
-  useEffect(() => {
-    const checkSupabase = () => {
-      const ready = isSupabaseInitialized() && !!dataStore.supabase;
-      setSupabaseReady(ready);
+    loadDataCalledRef.current = true;
+
+    // Set initialization timeout (10 seconds)
+    initTimeoutRef.current = setTimeout(() => {
+      if (loading) {
+        logger.error('⏱️ Businesses page initialization timeout after 10 seconds');
+        setInitError('Initialization timeout. Please refresh the page.');
+        setLoading(false);
+      }
+    }, 10000);
+
+    // Wait for Supabase to be ready, then load data
+    const initialize = async () => {
+      try {
+        setInitStage('checking');
+        logger.info('🔄 Businesses: Waiting for Supabase initialization...');
+
+        // Wait for Supabase with timeout
+        await waitForSupabaseInit(8000, 100);
+
+        // Verify dataStore has supabase client
+        if (!dataStore?.supabase) {
+          throw new Error('DataStore supabase client not available');
+        }
+
+        logger.info('✅ Businesses: Supabase ready, loading data...');
+        await loadData();
+      } catch (error) {
+        logger.error('❌ Businesses: Initialization failed', error);
+        setInitError(error instanceof Error ? error.message : 'Failed to initialize');
+        setLoading(false);
+      }
     };
 
-    checkSupabase();
+    initialize();
 
-    const intervalId = setInterval(checkSupabase, 500);
+    // Cleanup timeout on unmount
+    return () => {
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+      }
+      loadDataCalledRef.current = false;
+    };
+  }, []);
 
-    return () => clearInterval(intervalId);
-  }, [dataStore]);
+  const loadData = useCallback(async () => {
+    if (!dataStore?.supabase) {
+      logger.warn('⚠️ loadData called but dataStore.supabase not ready');
+      return;
+    }
 
-  const loadData = async () => {
     setLoading(true);
+    setInitError(null);
+
     try {
+      setInitStage('loading_profile');
+      logger.info('👤 Businesses: Loading user profile...');
+
       const profile = await dataStore.getProfile();
 
       // Validate profile has required fields
@@ -77,12 +124,8 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
 
       setUser(profile);
 
-      if (!dataStore.supabase) {
-        setLoading(false);
-        return;
-      }
-
-      setIsSystemReady(true);
+      setInitStage('loading_businesses');
+      logger.info('🏢 Businesses: Loading business data...');
 
       // Load all businesses (for infrastructure owners)
       if (profile.role === 'infrastructure_owner' || profile.global_role === 'infrastructure_owner') {
@@ -158,12 +201,20 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
       if (!ownershipsFound) {
         logger.info('ℹ️ No ownerships found for user');
       }
+
+      setInitStage('ready');
+      logger.info('✅ Businesses: All data loaded successfully');
     } catch (error) {
       logger.error('Failed to load businesses:', error);
+      setInitError(error instanceof Error ? error.message : 'Failed to load data');
     } finally {
+      // Clear timeout since we finished (success or error)
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+      }
       setLoading(false);
     }
-  };
+  }, [dataStore]);
 
   const totalOwnershipPercentage = myOwnerships.reduce((sum, o) => sum + o.ownership_percentage, 0);
   const businessesIOwn = myOwnerships.filter(o => o.ownership_percentage > 0).length;
@@ -171,12 +222,71 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
   // Diagnostic check for Create Business button visibility
   const createBusinessCheck = RoleDiagnostics.shouldShowCreateBusinessButton(user);
 
+  // Show initialization error
+  if (initError) {
+    return (
+      <div style={ROYAL_STYLES.pageContainer}>
+        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+          <h2 style={{ color: ROYAL_COLORS.text, marginBottom: '12px', fontSize: '20px' }}>
+            שגיאה בטעינת העמוד
+          </h2>
+          <p style={{ color: ROYAL_COLORS.muted, marginBottom: '24px' }}>
+            {initError}
+          </p>
+          <button
+            onClick={() => {
+              setInitError(null);
+              setLoading(true);
+              loadDataCalledRef.current = false;
+              window.location.reload();
+            }}
+            style={{
+              ...ROYAL_STYLES.buttonPrimary,
+              padding: '12px 24px',
+            }}
+          >
+            רענן עמוד
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show enhanced loading screen with stage indicators
   if (loading) {
+    const loadingMessages = {
+      checking: 'מכין מערכת...',
+      loading_profile: 'טוען פרופיל משתמש...',
+      loading_businesses: 'טוען עסקים...',
+      ready: 'מסיים...'
+    };
+
     return (
       <div style={ROYAL_STYLES.pageContainer}>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏢</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>טוען עסקים...</p>
+          <div style={{
+            display: 'inline-block',
+            width: '40px',
+            height: '40px',
+            border: '4px solid rgba(29, 155, 240, 0.2)',
+            borderTopColor: ROYAL_COLORS.accent,
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            marginBottom: '16px'
+          }} />
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+          <p style={{ color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '8px' }}>
+            {loadingMessages[initStage]}
+          </p>
+          <p style={{ color: ROYAL_COLORS.muted, fontSize: '14px' }}>
+            אנא המתן...
+          </p>
         </div>
       </div>
     );
@@ -223,52 +333,20 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
         <div style={{ marginBottom: '24px' }}>
           <button
             onClick={() => {
-              if (!supabaseReady) {
-                telegram.showAlert('המערכת עדיין נטענת. אנא המתן רגע...');
-                return;
-              }
-              if (!isSystemReady) {
-                telegram.showAlert('טוען נתונים. אנא המתן...');
-                return;
-              }
-              logger.info('✅ Create Business button clicked', { supabaseReady, isSystemReady });
+              logger.info('✅ Create Business button clicked');
               setShowCreateModal(true);
+              telegram.hapticFeedback('selection');
             }}
-            disabled={!supabaseReady || !isSystemReady}
             style={{
               ...ROYAL_STYLES.buttonPrimary,
               width: '100%',
-              opacity: (supabaseReady && isSystemReady) ? 1 : 0.6,
-              cursor: (supabaseReady && isSystemReady) ? 'pointer' : 'not-allowed',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px'
             }}
           >
-            {!supabaseReady ? (
-              <>
-                <span style={{
-                  display: 'inline-block',
-                  width: '14px',
-                  height: '14px',
-                  border: '2px solid rgba(255,255,255,0.3)',
-                  borderTopColor: 'white',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
-                }}></span>
-                <style>{`
-                  @keyframes spin {
-                    to { transform: rotate(360deg); }
-                  }
-                `}</style>
-                מכין מערכת...
-              </>
-            ) : !isSystemReady ? (
-              'טוען נתונים...'
-            ) : (
-              '+ צור עסק חדש'
-            )}
+            + צור עסק חדש
           </button>
         </div>
       ) : null}
