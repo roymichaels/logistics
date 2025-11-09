@@ -1,16 +1,15 @@
 /**
- * Business Owner Dashboard
- *
- * Financial-focused dashboard for business owners showing revenue, costs, profit,
- * ownership distribution, team performance, and operational metrics.
+ * Business Owner Dashboard - Refactored
+ * Financial-focused dashboard using unified design system
  */
 
 import React, { useEffect, useState } from 'react';
 import { getSupabase } from '../lib/supabaseClient';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { fetchBusinessMetrics } from '../services/metrics';
 import { BusinessBottomNav } from './BusinessBottomNav';
 import { useLanguage } from '../context/LanguageContext';
+import { DashboardHeader, MetricCard, MetricGrid, Section, LoadingState, EmptyState } from './dashboard';
+import { theme, colors, spacing, typography, borderRadius, components, getStatusBadgeStyle } from '../styles/theme';
 
 interface FinancialMetrics {
   revenue_today: number;
@@ -60,37 +59,21 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [activePage, setActivePage] = useState('dashboard');
-  const { t, formatCurrency, isRTL } = useLanguage();
+  const { formatCurrency, isRTL } = useLanguage();
 
   // Handle case where businessId is missing
   if (!businessId) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <div style={{ fontSize: '48px', marginBottom: '20px' }}>🏢</div>
-        <h2 style={{ color: ROYAL_COLORS.text, marginBottom: '16px' }}>
-          ברוכים הבאים!
-        </h2>
-        <p style={{ color: ROYAL_COLORS.muted, marginBottom: '24px', maxWidth: '400px', margin: '0 auto 24px' }}>
-          נראה שאתה עדיין לא יצרת עסק. בוא ניצור את העסק הראשון שלך!
-        </p>
-        <button
-          onClick={() => {
-            window.location.hash = '#businesses';
+      <div style={theme.components.pageContainer}>
+        <EmptyState
+          icon="🏢"
+          title="ברוכים הבאים!"
+          description="נראה שאתה עדיין לא יצרת עסק. בוא ניצור את העסק הראשון שלך!"
+          action={{
+            label: 'צור עסק חדש',
+            onClick: () => { window.location.hash = '#businesses'; }
           }}
-          style={{
-            padding: '12px 32px',
-            backgroundColor: ROYAL_COLORS.gold,
-            color: ROYAL_COLORS.backgroundSolid,
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          צור עסק חדש
-        </button>
+        />
       </div>
     );
   }
@@ -171,7 +154,6 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
 
       const teamMembers: TeamMember[] = await Promise.all(
         (teamData || []).map(async (member: any) => {
-          // Get orders completed by this user
           const { data: orderStats } = await supabase
             .from('orders')
             .select('id, total_amount')
@@ -185,7 +167,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
             role: member.roles?.label || 'Unknown',
             orders_completed: orderStats?.length || 0,
             revenue_generated: orderStats?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0,
-            active_status: 'active', // Would come from driver_status table in real implementation
+            active_status: 'active',
           };
         })
       );
@@ -217,625 +199,374 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
       }));
 
       setRecentOrders(recent);
-    } catch {
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
     } finally {
       setLoading(false);
     }
   }
 
   if (loading) {
-    return (
-      <div style={{ ...ROYAL_STYLES.pageContainer, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ width: '48px', height: '48px', border: `4px solid ${ROYAL_COLORS.cardBorder}`, borderTop: `4px solid ${ROYAL_COLORS.accent}`, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
-          <p style={{ color: ROYAL_COLORS.muted }}>Loading business dashboard...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState variant="page" />;
   }
+
+  const handleExportReport = () => {
+    console.log('Export report clicked');
+  };
+
+  const handleManageTeam = () => {
+    console.log('Manage team clicked');
+  };
 
   return (
     <>
       <div style={{
-        minHeight: '100vh',
-        paddingTop: '20px',
-        paddingBottom: '90px',
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-        padding: '20px 20px 90px 20px',
-        direction: isRTL ? 'rtl' : 'ltr'
+        ...theme.components.pageContainer,
+        direction: isRTL ? 'rtl' : 'ltr',
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          {/* Header Section */}
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(124, 58, 237, 0.15) 100%)',
-            borderRadius: '24px',
-            padding: '32px',
-            marginBottom: '32px',
-            border: '1px solid rgba(139, 92, 246, 0.3)',
-            backdropFilter: 'blur(10px)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-              <div>
-                <h1 style={{ margin: '0 0 12px 0', fontSize: '36px', fontWeight: '700', color: '#ffffff' }}>Business Dashboard</h1>
-                <p style={{ margin: 0, fontSize: '16px', color: 'rgba(255, 255, 255, 0.8)' }}>Financial overview and operational metrics</p>
-              </div>
-              <div style={{ display: 'flex', gap: '12px' }}>
+          {/* Dashboard Header */}
+          <DashboardHeader
+            title="Business Dashboard"
+            subtitle="Financial overview and operational metrics"
+            role="business_owner"
+            roleLabel="Business Owner"
+            icon="💼"
+            actions={
+              <>
                 <button style={{
-                  padding: '12px 24px',
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  border: '2px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '12px',
-                  color: '#ffffff',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}>Export Report</button>
+                  ...components.button.secondary,
+                  fontSize: typography.fontSize.sm,
+                }}>
+                  Export Report
+                </button>
                 <button style={{
-                  padding: '12px 24px',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  color: '#ffffff',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
-                }}>Manage Team</button>
-              </div>
-            </div>
-          </div>
+                  ...components.button.primary,
+                  fontSize: typography.fontSize.sm,
+                }}>
+                  Manage Team
+                </button>
+              </>
+            }
+          />
 
-          {/* Financial Overview Section */}
-          <div style={{
-            marginBottom: '24px'
-          }}>
-            <h2 style={{ margin: '0 0 20px 0', fontSize: '24px', fontWeight: '700', color: '#ffffff' }}>Financial Overview</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-              {/* Profit Card */}
+          {/* Financial Overview Metrics */}
+          <MetricGrid columns={4}>
+            <MetricCard
+              label="Profit (Month)"
+              value={`₪${metrics?.profit_month.toLocaleString()}`}
+              subtitle={`${metrics?.profit_margin.toFixed(1)}% margin`}
+              icon="💎"
+              variant="success"
+              size="medium"
+            />
+            <MetricCard
+              label="Costs (Month)"
+              value={`₪${metrics?.costs_month.toLocaleString()}`}
+              subtitle="Operating expenses"
+              icon="📊"
+              variant="default"
+              size="medium"
+            />
+            <MetricCard
+              label="Revenue (Month)"
+              value={`₪${metrics?.revenue_month.toLocaleString()}`}
+              subtitle={`₪${metrics?.revenue_today.toLocaleString()} today`}
+              icon="💰"
+              variant="primary"
+              size="medium"
+            />
+            <MetricCard
+              label="Orders (Month)"
+              value={`${metrics?.orders_month}`}
+              subtitle={`₪${metrics?.average_order_value.toFixed(0)} avg`}
+              icon="📦"
+              variant="default"
+              size="medium"
+            />
+          </MetricGrid>
+
+          {/* Ownership Distribution */}
+          {ownership.length > 0 && (
+            <Section title="Ownership Distribution" subtitle="Equity and profit sharing breakdown">
               <div style={{
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                borderRadius: '20px',
-                padding: '28px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '20px',
-                boxShadow: '0 8px 32px rgba(16, 185, 129, 0.3)',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                gap: spacing.lg,
               }}>
-                <div style={{ fontSize: '48px' }}>💎</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', marginBottom: '8px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: '500' }}>Profit (Month)</div>
-                  <div style={{ fontSize: '32px', fontWeight: '700', marginBottom: '6px', color: '#ffffff' }}>₪{metrics?.profit_month.toLocaleString()}</div>
-                  <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.8)' }}>{metrics?.profit_margin.toFixed(1)}% margin</div>
-                </div>
+                {ownership.map((owner, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      padding: spacing.xl,
+                      border: `1px solid ${colors.border.primary}`,
+                      borderRadius: borderRadius.lg,
+                      background: colors.background.secondary,
+                    }}
+                  >
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: spacing.md,
+                      marginBottom: spacing.lg,
+                      paddingBottom: spacing.lg,
+                      borderBottom: `1px solid ${colors.border.secondary}`,
+                    }}>
+                      <div style={{
+                        width: '48px',
+                        height: '48px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: theme.gradients.primary,
+                        borderRadius: '50%',
+                        fontSize: '24px',
+                      }}>
+                        👤
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          fontSize: typography.fontSize.lg,
+                          fontWeight: typography.fontWeight.bold,
+                          color: colors.text.primary,
+                          marginBottom: spacing.xs,
+                        }}>
+                          {owner.owner_name}
+                        </div>
+                        <div style={{
+                          fontSize: typography.fontSize.sm,
+                          color: colors.text.secondary,
+                        }}>
+                          {owner.ownership_percentage}% ownership
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        padding: spacing.sm,
+                        background: colors.background.tertiary,
+                        borderRadius: borderRadius.md,
+                      }}>
+                        <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                          Profit Share:
+                        </span>
+                        <span style={{ fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>
+                          {owner.profit_share_percentage}%
+                        </span>
+                      </div>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        padding: spacing.sm,
+                        background: colors.status.successFaded,
+                        border: `1px solid ${colors.status.success}`,
+                        borderRadius: borderRadius.md,
+                      }}>
+                        <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                          Est. Monthly Share:
+                        </span>
+                        <span style={{ fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.bold, color: colors.status.success }}>
+                          ₪{owner.estimated_monthly_share.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
+            </Section>
+          )}
 
-              {/* Costs Card */}
-              <div style={{
-                background: 'linear-gradient(135deg, rgba(30, 30, 60, 0.8) 0%, rgba(20, 20, 40, 0.9) 100%)',
-                borderRadius: '20px',
-                padding: '28px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '20px',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <div style={{ fontSize: '48px' }}>📊</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', marginBottom: '8px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: '500' }}>Costs (Month)</div>
-                  <div style={{ fontSize: '32px', fontWeight: '700', marginBottom: '6px', color: '#fbbf24' }}>₪{metrics?.costs_month.toLocaleString()}</div>
-                  <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)' }}>Operating expenses</div>
-                </div>
+          {/* Team Performance */}
+          <Section title="Team Performance" subtitle="Member contributions and activity">
+            {team.length === 0 ? (
+              <EmptyState
+                icon="👥"
+                title="No team members"
+                description="Team members will appear here after they are invited to the system"
+              />
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{
+                      background: colors.background.tertiary,
+                      borderBottom: `2px solid ${colors.border.primary}`,
+                    }}>
+                      <th style={{
+                        textAlign: 'left',
+                        padding: spacing.md,
+                        fontSize: typography.fontSize.xs,
+                        fontWeight: typography.fontWeight.bold,
+                        color: colors.text.secondary,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}>Name</th>
+                      <th style={{
+                        textAlign: 'left',
+                        padding: spacing.md,
+                        fontSize: typography.fontSize.xs,
+                        fontWeight: typography.fontWeight.bold,
+                        color: colors.text.secondary,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}>Role</th>
+                      <th style={{
+                        textAlign: 'left',
+                        padding: spacing.md,
+                        fontSize: typography.fontSize.xs,
+                        fontWeight: typography.fontWeight.bold,
+                        color: colors.text.secondary,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}>Orders</th>
+                      <th style={{
+                        textAlign: 'left',
+                        padding: spacing.md,
+                        fontSize: typography.fontSize.xs,
+                        fontWeight: typography.fontWeight.bold,
+                        color: colors.text.secondary,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}>Revenue Generated</th>
+                      <th style={{
+                        textAlign: 'left',
+                        padding: spacing.md,
+                        fontSize: typography.fontSize.xs,
+                        fontWeight: typography.fontWeight.bold,
+                        color: colors.text.secondary,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {team.map(member => (
+                      <tr
+                        key={member.id}
+                        style={{
+                          borderBottom: `1px solid ${colors.border.secondary}`,
+                        }}
+                      >
+                        <td style={{
+                          padding: `${spacing.lg} ${spacing.md}`,
+                          fontSize: typography.fontSize.sm,
+                          color: colors.text.primary,
+                          fontWeight: typography.fontWeight.semibold,
+                        }}>
+                          {member.name}
+                        </td>
+                        <td style={{ padding: `${spacing.lg} ${spacing.md}` }}>
+                          <span style={{
+                            ...components.badge.base,
+                            ...components.badge.info,
+                          }}>
+                            {member.role}
+                          </span>
+                        </td>
+                        <td style={{
+                          padding: `${spacing.lg} ${spacing.md}`,
+                          fontSize: typography.fontSize.sm,
+                          color: colors.text.primary,
+                        }}>
+                          {member.orders_completed}
+                        </td>
+                        <td style={{
+                          padding: `${spacing.lg} ${spacing.md}`,
+                          fontSize: typography.fontSize.sm,
+                          color: colors.status.success,
+                          fontWeight: typography.fontWeight.bold,
+                        }}>
+                          ₪{member.revenue_generated.toLocaleString()}
+                        </td>
+                        <td style={{ padding: `${spacing.lg} ${spacing.md}` }}>
+                          <span style={getStatusBadgeStyle(member.active_status)}>
+                            {member.active_status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
+            )}
+          </Section>
 
-              {/* Revenue Card */}
-              <div style={{
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #1A8CD8 100%)',
-                borderRadius: '20px',
-                padding: '28px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '20px',
-                boxShadow: '0 8px 32px rgba(139, 92, 246, 0.3)',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
-              }}>
-                <div style={{ fontSize: '48px' }}>💰</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', marginBottom: '8px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: '500' }}>Revenue (Month)</div>
-                  <div style={{ fontSize: '32px', fontWeight: '700', marginBottom: '6px', color: '#ffffff' }}>₪{metrics?.revenue_month.toLocaleString()}</div>
-                  <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.8)' }}>₪{metrics?.revenue_today.toLocaleString()} today</div>
-                </div>
+          {/* Recent Orders */}
+          <Section title="Recent Orders" subtitle="Latest transactions and deliveries">
+            {recentOrders.length === 0 ? (
+              <EmptyState
+                icon="📦"
+                title="No orders yet"
+                description="Orders will appear here as they are created"
+              />
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
+                {recentOrders.map(order => (
+                  <div
+                    key={order.id}
+                    style={{
+                      padding: spacing.lg,
+                      border: `1px solid ${colors.border.primary}`,
+                      borderRadius: borderRadius.lg,
+                      transition: 'all 200ms ease',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = colors.brand.primary;
+                      e.currentTarget.style.boxShadow = theme.shadows.md;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = colors.border.primary;
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: spacing.sm,
+                    }}>
+                      <div style={{
+                        fontSize: typography.fontSize.base,
+                        fontWeight: typography.fontWeight.semibold,
+                        color: colors.text.primary,
+                      }}>
+                        {order.customer_name}
+                      </div>
+                      <div style={{
+                        fontSize: typography.fontSize.lg,
+                        fontWeight: typography.fontWeight.bold,
+                        color: colors.status.success,
+                      }}>
+                        ₪{order.total_amount.toLocaleString()}
+                      </div>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      gap: spacing.md,
+                      alignItems: 'center',
+                      fontSize: typography.fontSize.sm,
+                      color: colors.text.secondary,
+                    }}>
+                      <span style={getStatusBadgeStyle(order.status)}>
+                        {order.status}
+                      </span>
+                      {order.assigned_driver_name && (
+                        <span>🚗 {order.assigned_driver_name}</span>
+                      )}
+                      <span>{new Date(order.created_at).toLocaleString()}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
-
-              {/* Orders Card */}
-              <div style={{
-                background: 'linear-gradient(135deg, rgba(30, 30, 60, 0.8) 0%, rgba(20, 20, 40, 0.9) 100%)',
-                borderRadius: '20px',
-                padding: '28px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '20px',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <div style={{ fontSize: '48px' }}>📦</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', marginBottom: '8px', color: 'rgba(255, 255, 255, 0.7)', fontWeight: '500' }}>Orders (Month)</div>
-                  <div style={{ fontSize: '32px', fontWeight: '700', marginBottom: '6px', color: '#60a5fa' }}>avg {metrics?.orders_month}</div>
-                  <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)' }}>₪{metrics?.average_order_value.toFixed(0)} avg</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-      {/* Ownership Distribution */}
-      <div className="section ownership-section">
-        <h2>Ownership Distribution</h2>
-        <div className="ownership-grid">
-          {ownership.map((owner, index) => (
-            <div key={index} className="ownership-card">
-              <div className="owner-header">
-                <div className="owner-icon">👤</div>
-                <div className="owner-info">
-                  <div className="owner-name">{owner.owner_name}</div>
-                  <div className="ownership-pct">{owner.ownership_percentage}% ownership</div>
-                </div>
-              </div>
-              <div className="owner-financials">
-                <div className="financial-item">
-                  <span className="label">Profit Share:</span>
-                  <span className="value">{owner.profit_share_percentage}%</span>
-                </div>
-                <div className="financial-item highlighted">
-                  <span className="label">Est. Monthly Share:</span>
-                  <span className="value">₪{owner.estimated_monthly_share.toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Team Performance */}
-      <div className="section team-section">
-        <h2>Team Performance</h2>
-        <div className="team-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Role</th>
-                <th>Orders</th>
-                <th>Revenue Generated</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {team.map(member => (
-                <tr key={member.id}>
-                  <td className="team-name">{member.name}</td>
-                  <td>
-                    <span className="role-badge">{member.role}</span>
-                  </td>
-                  <td>{member.orders_completed}</td>
-                  <td className="revenue">₪{member.revenue_generated.toLocaleString()}</td>
-                  <td>
-                    <span className={`status-badge ${member.active_status}`}>
-                      {member.active_status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Recent Orders */}
-      <div className="section orders-section">
-        <h2>Recent Orders</h2>
-        <div className="orders-list">
-          {recentOrders.map(order => (
-            <div key={order.id} className="order-item">
-              <div className="order-main">
-                <div className="order-customer">{order.customer_name}</div>
-                <div className="order-amount">₪{order.total_amount.toLocaleString()}</div>
-              </div>
-              <div className="order-meta">
-                <span className={`status-badge ${order.status}`}>{order.status}</span>
-                {order.assigned_driver_name && (
-                  <span className="driver-name">🚗 {order.assigned_driver_name}</span>
-                )}
-                <span className="order-time">{new Date(order.created_at).toLocaleString()}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
+            )}
+          </Section>
         </div>
       </div>
 
       <BusinessBottomNav activePage={activePage} onNavigate={setActivePage} />
-
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-
-      <style jsx>{`
-        .business-owner-dashboard {
-          padding: 24px;
-          max-width: 1400px;
-          margin: 0 auto;
-        }
-
-        .dashboard-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 32px;
-          padding: 24px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          border-radius: 12px;
-          color: white;
-        }
-
-        .dashboard-header h1 {
-          margin: 0 0 8px 0;
-          font-size: 32px;
-        }
-
-        .subtitle {
-          margin: 0;
-          opacity: 0.9;
-          font-size: 16px;
-        }
-
-        .action-buttons {
-          display: flex;
-          gap: 12px;
-        }
-
-        .btn-primary,
-        .btn-secondary {
-          padding: 10px 20px;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-          border: none;
-        }
-
-        .btn-primary {
-          background: white;
-          color: #667eea;
-        }
-
-        .btn-primary:hover {
-          background: #f9fafb;
-        }
-
-        .btn-secondary {
-          background: rgba(255, 255, 255, 0.2);
-          color: white;
-          border: 2px solid rgba(255, 255, 255, 0.4);
-        }
-
-        .btn-secondary:hover {
-          background: rgba(255, 255, 255, 0.3);
-        }
-
-        .section {
-          margin-bottom: 32px;
-          background: white;
-          border-radius: 12px;
-          padding: 24px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .section h2 {
-          margin: 0 0 20px 0;
-          font-size: 20px;
-          color: #111827;
-        }
-
-        .metrics-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 16px;
-        }
-
-        .metric-card {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          padding: 20px;
-          background: #f9fafb;
-          border-radius: 12px;
-          border: 2px solid #e5e7eb;
-        }
-
-        .metric-card.primary {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          border: none;
-        }
-
-        .metric-card.success {
-          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-          color: white;
-          border: none;
-        }
-
-        .metric-icon {
-          font-size: 32px;
-        }
-
-        .metric-content {
-          flex: 1;
-        }
-
-        .metric-label {
-          font-size: 13px;
-          margin-bottom: 6px;
-          opacity: 0.8;
-        }
-
-        .metric-value {
-          font-size: 28px;
-          font-weight: 700;
-          margin-bottom: 4px;
-        }
-
-        .metric-meta {
-          font-size: 12px;
-          opacity: 0.7;
-        }
-
-        .ownership-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-          gap: 16px;
-        }
-
-        .ownership-card {
-          padding: 20px;
-          border: 2px solid #e5e7eb;
-          border-radius: 12px;
-        }
-
-        .owner-header {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 16px;
-          padding-bottom: 16px;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .owner-icon {
-          width: 48px;
-          height: 48px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          border-radius: 50%;
-          font-size: 24px;
-        }
-
-        .owner-info {
-          flex: 1;
-        }
-
-        .owner-name {
-          font-size: 16px;
-          font-weight: 700;
-          color: #111827;
-          margin-bottom: 4px;
-        }
-
-        .ownership-pct {
-          font-size: 13px;
-          color: #6b7280;
-        }
-
-        .owner-financials {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .financial-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 8px;
-          background: #f9fafb;
-          border-radius: 6px;
-        }
-
-        .financial-item.highlighted {
-          background: #ecfdf5;
-          border: 1px solid #10b981;
-        }
-
-        .financial-item .label {
-          font-size: 13px;
-          color: #6b7280;
-        }
-
-        .financial-item .value {
-          font-size: 15px;
-          font-weight: 700;
-          color: #111827;
-        }
-
-        .financial-item.highlighted .value {
-          color: #059669;
-        }
-
-        .team-table {
-          overflow-x: auto;
-        }
-
-        .team-table table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        .team-table th {
-          text-align: left;
-          padding: 12px;
-          background: #f9fafb;
-          border-bottom: 2px solid #e5e7eb;
-          font-size: 12px;
-          font-weight: 700;
-          color: #6b7280;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .team-table td {
-          padding: 16px 12px;
-          border-bottom: 1px solid #e5e7eb;
-          font-size: 14px;
-          color: #111827;
-        }
-
-        .team-name {
-          font-weight: 600;
-        }
-
-        .role-badge {
-          display: inline-block;
-          padding: 4px 12px;
-          background: #eff6ff;
-          color: #1e40af;
-          border-radius: 6px;
-          font-size: 12px;
-          font-weight: 600;
-        }
-
-        .revenue {
-          font-weight: 700;
-          color: #059669;
-        }
-
-        .status-badge {
-          display: inline-block;
-          padding: 4px 12px;
-          border-radius: 6px;
-          font-size: 12px;
-          font-weight: 600;
-        }
-
-        .status-badge.active {
-          background: #d1fae5;
-          color: #065f46;
-        }
-
-        .status-badge.new,
-        .status-badge.confirmed {
-          background: #dbeafe;
-          color: #1e40af;
-        }
-
-        .status-badge.preparing {
-          background: #fef3c7;
-          color: #92400e;
-        }
-
-        .status-badge.out_for_delivery {
-          background: #e0e7ff;
-          color: #3730a3;
-        }
-
-        .status-badge.delivered {
-          background: #d1fae5;
-          color: #065f46;
-        }
-
-        .orders-list {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .order-item {
-          padding: 16px;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          transition: all 0.2s;
-        }
-
-        .order-item:hover {
-          border-color: #667eea;
-          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
-        }
-
-        .order-main {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 8px;
-        }
-
-        .order-customer {
-          font-size: 15px;
-          font-weight: 600;
-          color: #111827;
-        }
-
-        .order-amount {
-          font-size: 16px;
-          font-weight: 700;
-          color: #059669;
-        }
-
-        .order-meta {
-          display: flex;
-          gap: 12px;
-          align-items: center;
-          font-size: 12px;
-          color: #6b7280;
-        }
-
-        .driver-name {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-        }
-
-        .loading-state {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          min-height: 400px;
-          padding: 48px;
-        }
-
-        .spinner {
-          width: 48px;
-          height: 48px;
-          border: 4px solid #f3f4f6;
-          border-top-color: #667eea;
-          border-radius: 50%;
-          animation: spin 0.8s linear infinite;
-          margin-bottom: 16px;
-        }
-
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </>
   );
 }

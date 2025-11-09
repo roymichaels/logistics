@@ -1,16 +1,16 @@
 /**
- * Infrastructure Owner Dashboard
- *
- * Global control panel with cross-business analytics, system health, and administrative tools.
+ * Infrastructure Owner Dashboard - Refactored
+ * Global control panel using unified design system
  */
 
 import React, { useEffect, useState, useRef } from 'react';
 import { getSupabase, isSupabaseInitialized } from '../lib/supabaseClient';
 import { CreateBusinessModal } from './CreateBusinessModal';
 import { DataStore, User } from '../data/types';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { fetchInfrastructureOverview, fetchBusinessMetrics } from '../services/metrics';
 import { logger } from '../lib/logger';
+import { DashboardHeader, MetricCard, MetricGrid, Section, LoadingState, EmptyState } from './dashboard';
+import { theme, colors, spacing, typography, borderRadius, components, getStatusBadgeStyle } from '../styles/theme';
 
 interface InfrastructureOwnerDashboardProps {
   dataStore: DataStore;
@@ -105,7 +105,6 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
       }
 
       const supabase = getSupabase();
-
       const overview = await fetchInfrastructureOverview();
 
       setMetrics({
@@ -140,7 +139,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
                 pending_orders: metrics.orders_in_progress,
               } as BusinessSummary;
             } catch (err) {
-              logger.warn('⚠️ Failed to load metrics for business', biz.id, err);
+              logger.warn('Failed to load metrics for business', biz.id, err);
               return {
                 id: biz.id,
                 name: biz.name,
@@ -168,14 +167,12 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
       } else {
         const activities: RecentActivity[] = await Promise.all(
           (activityData || []).map(async (activity: any) => {
-            // Fetch actor name
             const { data: actor } = await supabase
               .from('users')
               .select('name')
               .eq('id', activity.actor_id)
               .maybeSingle();
 
-            // Fetch business name if business_id exists
             let businessName = 'מערכת';
             if (activity.business_id) {
               const { data: business } = await supabase
@@ -209,9 +206,12 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
             .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => loadDashboardData())
             .subscribe();
           subscriptionRef.current = subscription;
-        } catch {}
+        } catch (error) {
+          logger.error('Failed to set up subscription', error);
+        }
       }
-    } catch {
+    } catch (error) {
+      logger.error('Failed to load dashboard data', error);
     } finally {
       setLoading(false);
       loadingRef.current = false;
@@ -219,163 +219,349 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
   }
 
   if (loading) {
-    return (
-      <div style={{ ...ROYAL_STYLES.pageContainer, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ width: '48px', height: '48px', border: `4px solid ${ROYAL_COLORS.cardBorder}`, borderTop: `4px solid ${ROYAL_COLORS.accent}`, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
-          <p style={{ color: ROYAL_COLORS.muted }}>טוען לוח בקרת תשתית...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState variant="page" />;
   }
 
+  const getSystemHealthColor = () => {
+    if (metrics?.systemHealth === 'healthy') return colors.status.success;
+    if (metrics?.systemHealth === 'warning') return colors.status.warning;
+    return colors.status.error;
+  };
+
+  const getSystemHealthLabel = () => {
+    if (metrics?.systemHealth === 'healthy') return 'תקין';
+    if (metrics?.systemHealth === 'warning') return 'אזהרה';
+    return 'קריטי';
+  };
+
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
-      <div style={{ ...ROYAL_STYLES.card, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px', background: ROYAL_COLORS.gradientPurple, color: ROYAL_COLORS.textBright, boxShadow: ROYAL_COLORS.glowPurpleStrong }}>
-        <div>
-          <h1 style={{ margin: '0 0 8px 0', fontSize: '32px' }}>מרכז בקרת תשתית</h1>
-          <p style={{ margin: 0, opacity: 0.9, fontSize: '16px' }}>פיקוח וניהול פלטפורמה גלובלית</p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'rgba(255, 255, 255, 0.2)', borderRadius: '8px' }}>
-          <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: metrics?.systemHealth === 'healthy' ? ROYAL_COLORS.success : metrics?.systemHealth === 'warning' ? ROYAL_COLORS.warning : ROYAL_COLORS.error, animation: 'pulse 2s infinite' }} />
-          <span style={{ fontSize: '14px', fontWeight: '600' }}>{metrics?.systemHealth === 'healthy' ? 'תקין' : metrics?.systemHealth === 'warning' ? 'אזהרה' : 'קריטי'}</span>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-        <div style={{ ...ROYAL_STYLES.card, display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ fontSize: '36px' }}>🏢</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '28px', fontWeight: '700', color: ROYAL_COLORS.accent, marginBottom: '4px', textShadow: ROYAL_COLORS.glowPurple }}>{metrics?.totalBusinesses}</div>
-            <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '2px' }}>סך עסקים</div>
-            <div style={{ fontSize: '12px', color: ROYAL_COLORS.mutedDark }}>{metrics?.activeBusinesses} פעילים</div>
-          </div>
-        </div>
-
-        <div style={{ ...ROYAL_STYLES.card, display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ fontSize: '36px' }}>💰</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '28px', fontWeight: '700', color: ROYAL_COLORS.gold, marginBottom: '4px', textShadow: ROYAL_COLORS.glowGold }}>₪{metrics?.totalRevenue.toLocaleString()}</div>
-            <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '2px' }}>הכנסות היום</div>
-            <div style={{ fontSize: '12px', color: ROYAL_COLORS.mutedDark }}>בכל העסקים</div>
-          </div>
-        </div>
-
-        <div style={{ ...ROYAL_STYLES.card, display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ fontSize: '36px' }}>📦</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '28px', fontWeight: '700', color: ROYAL_COLORS.accent, marginBottom: '4px', textShadow: ROYAL_COLORS.glowPurple }}>{metrics?.totalOrders}</div>
-            <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '2px' }}>סך הזמנות</div>
-            <div style={{ fontSize: '12px', color: ROYAL_COLORS.mutedDark }}>בכל הפלטפורמה</div>
-          </div>
-        </div>
-
-        <div style={{ ...ROYAL_STYLES.card, display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ fontSize: '36px' }}>🚗</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '28px', fontWeight: '700', color: ROYAL_COLORS.info, marginBottom: '4px' }}>{metrics?.activeDrivers}</div>
-            <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '2px' }}>נהגים פעילים</div>
-            <div style={{ fontSize: '12px', color: ROYAL_COLORS.mutedDark }}>תשתית + עסקים</div>
-          </div>
-        </div>
-
-        <div style={{ ...ROYAL_STYLES.card, display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(245, 158, 11, 0.1)', border: `2px solid ${ROYAL_COLORS.warning}` }}>
-          <div style={{ fontSize: '36px' }}>⚠️</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '28px', fontWeight: '700', color: ROYAL_COLORS.warning, marginBottom: '4px' }}>{metrics?.pendingAllocations}</div>
-            <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '2px' }}>הקצאות ממתינות</div>
-            <div style={{ fontSize: '12px', color: ROYAL_COLORS.mutedDark }}>דורש אישור</div>
-          </div>
-        </div>
-      </div>
-
-      <div style={ROYAL_STYLES.card}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0, fontSize: '20px', color: ROYAL_COLORS.text }}>סקירת עסקים</h2>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button
-              onClick={() => {
-                if (!isSystemReady) {
-                  return;
+    <div style={theme.components.pageContainer}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        {/* Dashboard Header */}
+        <DashboardHeader
+          title="מרכז בקרת תשתית"
+          subtitle="פיקוח וניהול פלטפורמה גלובלית"
+          role="infrastructure_owner"
+          roleLabel="Infrastructure Owner"
+          icon="🏗️"
+          variant="gradient"
+          actions={
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: spacing.sm,
+              padding: `${spacing.sm} ${spacing.lg}`,
+              background: 'rgba(255, 255, 255, 0.2)',
+              borderRadius: borderRadius.full,
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+            }}>
+              <span style={{
+                width: '12px',
+                height: '12px',
+                borderRadius: '50%',
+                background: getSystemHealthColor(),
+                animation: 'pulse 2s infinite',
+              }} />
+              <span style={{
+                fontSize: typography.fontSize.sm,
+                fontWeight: typography.fontWeight.semibold,
+                color: colors.white,
+              }}>
+                {getSystemHealthLabel()}
+              </span>
+              <style>{`
+                @keyframes pulse {
+                  0%, 100% { opacity: 1; }
+                  50% { opacity: 0.6; }
                 }
-                setShowCreateModal(true);
-              }}
-              disabled={!isSystemReady}
-              style={{
-                ...ROYAL_STYLES.buttonPrimary,
-                opacity: isSystemReady ? 1 : 0.6,
-                cursor: isSystemReady ? 'pointer' : 'not-allowed'
-              }}
-              title={isSystemReady ? undefined : 'המערכת בתהליך אתחול...'}
-            >
-              + צור עסק חדש
-            </button>
-            <button
-              onClick={() => onNavigate('businesses')}
-              style={ROYAL_STYLES.buttonSecondary}
-            >ראה הכל</button>
-          </div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-          {businesses.slice(0, 6).map(business => (
-            <div key={business.id} style={{ padding: '16px', border: `2px solid ${ROYAL_COLORS.cardBorder}`, borderRadius: '12px', background: ROYAL_COLORS.secondary, opacity: business.active ? 1 : 0.6, transition: 'all 0.2s' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ margin: 0, fontSize: '16px', color: ROYAL_COLORS.text }}>{business.name}</h3>
-                <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '6px', fontWeight: '600', background: business.active ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)', color: business.active ? ROYAL_COLORS.success : ROYAL_COLORS.error }}>
-                  {business.active ? 'פעיל' : 'לא פעיל'}
-                </span>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <span style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.text }}>{business.total_orders}</span>
-                  <span style={{ fontSize: '11px', color: ROYAL_COLORS.muted, marginTop: '2px' }}>הזמנות</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <span style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.gold }}>₪{business.revenue_today.toLocaleString()}</span>
-                  <span style={{ fontSize: '11px', color: ROYAL_COLORS.muted, marginTop: '2px' }}>היום</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <span style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.info }}>{business.active_drivers}</span>
-                  <span style={{ fontSize: '11px', color: ROYAL_COLORS.muted, marginTop: '2px' }}>נהגים</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <span style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.warning }}>{business.pending_orders}</span>
-                  <span style={{ fontSize: '11px', color: ROYAL_COLORS.muted, marginTop: '2px' }}>ממתינים</span>
-                </div>
-              </div>
+              `}</style>
             </div>
-          ))}
-        </div>
-      </div>
+          }
+        />
 
-      <div style={ROYAL_STYLES.card}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0, fontSize: '20px', color: ROYAL_COLORS.text }}>פעילות מערכת אחרונה</h2>
-          <button style={ROYAL_STYLES.buttonSecondary}>ראה יומן ביקורת</button>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {recentActivity.map(activity => {
-            const severityColors = { critical: ROYAL_COLORS.error, warning: ROYAL_COLORS.warning, info: ROYAL_COLORS.info };
-            const borderColor = severityColors[activity.severity as keyof typeof severityColors] || ROYAL_COLORS.cardBorder;
-            return (
-              <div key={activity.id} style={{ display: 'flex', gap: '12px', padding: '12px', borderLeft: `3px solid ${borderColor}`, background: ROYAL_COLORS.secondary, borderRadius: '8px' }}>
-                <div style={{ fontSize: '20px' }}>
-                  {activity.severity === 'critical' && '🔴'}
-                  {activity.severity === 'warning' && '⚠️'}
-                  {activity.severity === 'info' && 'ℹ️'}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
-                    <strong>{activity.actor_name}</strong> {activity.description}
+        {/* Platform Metrics */}
+        <MetricGrid columns={3}>
+          <MetricCard
+            label="Total Businesses"
+            value={metrics?.totalBusinesses || 0}
+            subtitle={`${metrics?.activeBusinesses || 0} active`}
+            icon="🏢"
+            variant="primary"
+          />
+          <MetricCard
+            label="Revenue Today"
+            value={`₪${metrics?.totalRevenue.toLocaleString()}`}
+            subtitle="Across all businesses"
+            icon="💰"
+            variant="success"
+          />
+          <MetricCard
+            label="Total Orders"
+            value={metrics?.totalOrders || 0}
+            subtitle="Platform-wide"
+            icon="📦"
+            variant="default"
+          />
+          <MetricCard
+            label="Active Drivers"
+            value={metrics?.activeDrivers || 0}
+            subtitle="Infrastructure + Businesses"
+            icon="🚗"
+            variant="default"
+          />
+          <MetricCard
+            label="Pending Allocations"
+            value={metrics?.pendingAllocations || 0}
+            subtitle="Requires approval"
+            icon="⚠️"
+            variant="warning"
+          />
+        </MetricGrid>
+
+        {/* Business Overview */}
+        <Section
+          title="סקירת עסקים"
+          actions={
+            <>
+              <button
+                onClick={() => {
+                  if (!isSystemReady) return;
+                  setShowCreateModal(true);
+                }}
+                disabled={!isSystemReady}
+                style={{
+                  ...components.button.primary,
+                  fontSize: typography.fontSize.sm,
+                  opacity: isSystemReady ? 1 : 0.6,
+                  cursor: isSystemReady ? 'pointer' : 'not-allowed',
+                }}
+                title={isSystemReady ? undefined : 'המערכת בתהליך אתחול...'}
+              >
+                + צור עסק חדש
+              </button>
+              <button
+                onClick={() => onNavigate('businesses')}
+                style={{
+                  ...components.button.secondary,
+                  fontSize: typography.fontSize.sm,
+                }}
+              >
+                ראה הכל
+              </button>
+            </>
+          }
+        >
+          {businesses.length === 0 ? (
+            <EmptyState
+              icon="🏢"
+              title="No businesses yet"
+              description="Create your first business to get started"
+              action={{
+                label: '+ Create Business',
+                onClick: () => setShowCreateModal(true),
+              }}
+            />
+          ) : (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+              gap: spacing.lg,
+            }}>
+              {businesses.slice(0, 6).map(business => (
+                <div
+                  key={business.id}
+                  style={{
+                    padding: spacing.lg,
+                    border: `1px solid ${colors.border.primary}`,
+                    borderRadius: borderRadius.lg,
+                    background: colors.background.secondary,
+                    opacity: business.active ? 1 : 0.6,
+                    transition: 'all 200ms ease',
+                  }}
+                >
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: spacing.md,
+                  }}>
+                    <h3 style={{
+                      margin: 0,
+                      fontSize: typography.fontSize.lg,
+                      color: colors.text.primary,
+                      fontWeight: typography.fontWeight.semibold,
+                    }}>
+                      {business.name}
+                    </h3>
+                    <span style={getStatusBadgeStyle(business.active ? 'active' : 'inactive')}>
+                      {business.active ? 'פעיל' : 'לא פעיל'}
+                    </span>
                   </div>
-                  <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
-                    {activity.business_name} • {new Date(activity.created_at).toLocaleString()}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gap: spacing.md,
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: spacing.xs,
+                    }}>
+                      <span style={{
+                        fontSize: typography.fontSize.xl,
+                        fontWeight: typography.fontWeight.bold,
+                        color: colors.text.primary,
+                      }}>
+                        {business.total_orders}
+                      </span>
+                      <span style={{
+                        fontSize: typography.fontSize.xs,
+                        color: colors.text.secondary,
+                      }}>
+                        הזמנות
+                      </span>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: spacing.xs,
+                    }}>
+                      <span style={{
+                        fontSize: typography.fontSize.xl,
+                        fontWeight: typography.fontWeight.bold,
+                        color: colors.status.success,
+                      }}>
+                        ₪{business.revenue_today.toLocaleString()}
+                      </span>
+                      <span style={{
+                        fontSize: typography.fontSize.xs,
+                        color: colors.text.secondary,
+                      }}>
+                        היום
+                      </span>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: spacing.xs,
+                    }}>
+                      <span style={{
+                        fontSize: typography.fontSize.xl,
+                        fontWeight: typography.fontWeight.bold,
+                        color: colors.brand.primary,
+                      }}>
+                        {business.active_drivers}
+                      </span>
+                      <span style={{
+                        fontSize: typography.fontSize.xs,
+                        color: colors.text.secondary,
+                      }}>
+                        נהגים
+                      </span>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: spacing.xs,
+                    }}>
+                      <span style={{
+                        fontSize: typography.fontSize.xl,
+                        fontWeight: typography.fontWeight.bold,
+                        color: colors.status.warning,
+                      }}>
+                        {business.pending_orders}
+                      </span>
+                      <span style={{
+                        fontSize: typography.fontSize.xs,
+                        color: colors.text.secondary,
+                      }}>
+                        ממתינים
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              ))}
+            </div>
+          )}
+        </Section>
+
+        {/* Recent System Activity */}
+        <Section
+          title="פעילות מערכת אחרונה"
+          actions={
+            <button style={{
+              ...components.button.secondary,
+              fontSize: typography.fontSize.sm,
+            }}>
+              ראה יומן ביקורת
+            </button>
+          }
+        >
+          {recentActivity.length === 0 ? (
+            <EmptyState
+              icon="📋"
+              title="No recent activity"
+              description="System activity will appear here"
+            />
+          ) : (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: spacing.md,
+            }}>
+              {recentActivity.map(activity => {
+                const getSeverityColor = () => {
+                  if (activity.severity === 'critical') return colors.status.error;
+                  if (activity.severity === 'warning') return colors.status.warning;
+                  return colors.brand.primary;
+                };
+
+                const getSeverityIcon = () => {
+                  if (activity.severity === 'critical') return '🔴';
+                  if (activity.severity === 'warning') return '⚠️';
+                  return 'ℹ️';
+                };
+
+                return (
+                  <div
+                    key={activity.id}
+                    style={{
+                      display: 'flex',
+                      gap: spacing.md,
+                      padding: spacing.md,
+                      borderLeft: `3px solid ${getSeverityColor()}`,
+                      background: colors.background.tertiary,
+                      borderRadius: borderRadius.md,
+                    }}
+                  >
+                    <div style={{ fontSize: '20px' }}>
+                      {getSeverityIcon()}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontSize: typography.fontSize.sm,
+                        color: colors.text.primary,
+                        marginBottom: spacing.xs,
+                      }}>
+                        <strong>{activity.actor_name}</strong> {activity.description}
+                      </div>
+                      <div style={{
+                        fontSize: typography.fontSize.xs,
+                        color: colors.text.secondary,
+                      }}>
+                        {activity.business_name} • {new Date(activity.created_at).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Section>
       </div>
 
       {/* Create Business Modal */}
@@ -390,16 +576,6 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
           }}
         />
       )}
-
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `}</style>
     </div>
   );
 }
