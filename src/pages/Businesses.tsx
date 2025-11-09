@@ -4,6 +4,10 @@ import { hebrew } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { telegram } from '../lib/telegram';
 import { CreateBusinessModal } from '../components/CreateBusinessModal';
+import { AddEquityStakeholderModal } from '../components/AddEquityStakeholderModal';
+import { ProfitDistributionModal } from '../components/ProfitDistributionModal';
+import { BusinessSettingsModal } from '../components/BusinessSettingsModal';
+import { getBusinessEquityBreakdown, getAvailableEquity, type EquityStakeholder } from '../services/equity';
 import { RoleDiagnostics } from '../lib/diagnostics';
 import { isSupabaseInitialized } from '../lib/supabaseClient';
 import { logger } from '../lib/logger';
@@ -400,8 +404,14 @@ function BusinessCard({ business, dataStore, onUpdate }: {
   onUpdate: () => void;
 }) {
   const [owners, setOwners] = useState<BusinessOwnership[]>([]);
+  const [equityStakeholders, setEquityStakeholders] = useState<EquityStakeholder[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [activeTab, setActiveTab] = useState<'legacy' | 'equity'>('equity');
+  const [showAddEquity, setShowAddEquity] = useState(false);
+  const [showDistribution, setShowDistribution] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [availableEquity, setAvailableEquity] = useState<number>(100);
 
   const loadOwners = async () => {
     if (!dataStore.supabase || loading) return;
@@ -427,9 +437,26 @@ function BusinessCard({ business, dataStore, onUpdate }: {
     }
   };
 
+  const loadEquityData = async () => {
+    setLoading(true);
+    try {
+      const [stakeholders, available] = await Promise.all([
+        getBusinessEquityBreakdown(business.id),
+        getAvailableEquity(business.id),
+      ]);
+      setEquityStakeholders(stakeholders);
+      setAvailableEquity(available);
+    } catch (error) {
+      logger.error('Failed to load equity data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (expanded && owners.length === 0) {
+    if (expanded && owners.length === 0 && equityStakeholders.length === 0) {
       loadOwners();
+      loadEquityData();
     }
   }, [expanded]);
 
@@ -482,6 +509,60 @@ function BusinessCard({ business, dataStore, onUpdate }: {
 
       {expanded && (
         <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: `1px solid ${ROYAL_COLORS.border}` }}>
+          {/* Tab Selector */}
+          <div
+            style={{
+              display: 'flex',
+              backgroundColor: ROYAL_COLORS.secondary,
+              marginBottom: '16px',
+              borderRadius: '8px',
+              padding: '4px',
+            }}
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveTab('equity');
+                telegram.hapticFeedback('selection');
+              }}
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                backgroundColor: activeTab === 'equity' ? ROYAL_COLORS.card : 'transparent',
+                color: activeTab === 'equity' ? ROYAL_COLORS.text : ROYAL_COLORS.muted,
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                fontWeight: activeTab === 'equity' ? '600' : '400',
+              }}
+            >
+              💎 ניהול הון
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveTab('legacy');
+                telegram.hapticFeedback('selection');
+              }}
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                backgroundColor: activeTab === 'legacy' ? ROYAL_COLORS.card : 'transparent',
+                color: activeTab === 'legacy' ? ROYAL_COLORS.text : ROYAL_COLORS.muted,
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                fontWeight: activeTab === 'legacy' ? '600' : '400',
+              }}
+            >
+              📋 בעלויות (ישן)
+            </button>
+          </div>
+
+          {activeTab === 'equity' ? (
+            <div>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '20px', color: ROYAL_COLORS.muted }}>
               טוען בעלים...
@@ -526,6 +607,203 @@ function BusinessCard({ business, dataStore, onUpdate }: {
             </div>
           )}
 
+              {/* Available Equity Banner */}
+              <div
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: '8px',
+                  background: availableEquity > 50
+                    ? 'rgba(52, 199, 89, 0.1)'
+                    : availableEquity > 20
+                    ? 'rgba(255, 193, 7, 0.1)'
+                    : 'rgba(255, 59, 48, 0.1)',
+                  border: `1px solid ${
+                    availableEquity > 50
+                      ? 'rgba(52, 199, 89, 0.3)'
+                      : availableEquity > 20
+                      ? 'rgba(255, 193, 7, 0.3)'
+                      : 'rgba(255, 59, 48, 0.3)'
+                  }`,
+                  marginBottom: '16px',
+                }}
+              >
+                <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '4px' }}>
+                  💰 הון זמין: {availableEquity.toFixed(2)}%
+                </div>
+                <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                  מוקצה: {(100 - availableEquity).toFixed(2)}% | סה"כ: 100%
+                </div>
+              </div>
+
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: ROYAL_COLORS.muted }}>
+                  טוען נתוני הון...
+                </div>
+              ) : equityStakeholders.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <div style={{ fontSize: '48px', marginBottom: '12px' }}>💎</div>
+                  <div style={{ fontSize: '16px', color: ROYAL_COLORS.text, marginBottom: '8px', fontWeight: '600' }}>
+                    אין בעלי מניות
+                  </div>
+                  <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                    הוסף בעלי מניות לעסק
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+                  {equityStakeholders.map((stakeholder) => (
+                    <div
+                      key={stakeholder.stakeholder_id}
+                      style={{
+                        padding: '12px',
+                        borderRadius: '8px',
+                        background: ROYAL_COLORS.secondary,
+                        border: `1px solid ${ROYAL_COLORS.border}`,
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '2px' }}>
+                            {stakeholder.stakeholder_name}
+                          </div>
+                          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                            {stakeholder.equity_type === 'founder' ? '👨‍💼 מייסד' :
+                             stakeholder.equity_type === 'investor' ? '💰 משקיע' :
+                             stakeholder.equity_type === 'employee' ? '👤 עובד' : '🤝 שותף'}
+                            {!stakeholder.is_fully_vested && (
+                              <span style={{ marginRight: '8px', color: ROYAL_COLORS.warning }}>
+                                ⏳ {stakeholder.vested_percentage.toFixed(0)}% הבשיל
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'left' }}>
+                          <div style={{
+                            fontSize: '16px',
+                            fontWeight: '700',
+                            color: ROYAL_COLORS.accent,
+                          }}>
+                            {stakeholder.equity_percentage.toFixed(2)}%
+                          </div>
+                          <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>
+                            רווחים: {stakeholder.profit_share_percentage.toFixed(1)}%
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{
+                        display: 'flex',
+                        gap: '12px',
+                        paddingTop: '8px',
+                        borderTop: `1px solid ${ROYAL_COLORS.border}`,
+                        fontSize: '12px',
+                        color: ROYAL_COLORS.muted,
+                      }}>
+                        <span>{stakeholder.voting_rights ? '✓ זכויות הצבעה' : '✗ ללא הצבעה'}</span>
+                        {stakeholder.vesting_end_date && (
+                          <span>📅 הבשלה: {new Date(stakeholder.vesting_end_date).toLocaleDateString('he-IL')}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowAddEquity(true);
+                      telegram.hapticFeedback('selection');
+                    }}
+                    disabled={availableEquity <= 0}
+                    style={{
+                      ...ROYAL_STYLES.buttonPrimary,
+                      flex: 1,
+                      opacity: availableEquity <= 0 ? 0.5 : 1,
+                      fontSize: '14px',
+                    }}
+                  >
+                    + הוסף בעל מניות
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDistribution(true);
+                      telegram.hapticFeedback('selection');
+                    }}
+                    disabled={equityStakeholders.length === 0}
+                    style={{
+                      ...ROYAL_STYLES.buttonSecondary,
+                      flex: 1,
+                      opacity: equityStakeholders.length === 0 ? 0.5 : 1,
+                      fontSize: '14px',
+                    }}
+                  >
+                    💰 רווחים
+                  </button>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowSettings(true);
+                    telegram.hapticFeedback('selection');
+                  }}
+                  style={{
+                    ...ROYAL_STYLES.buttonSecondary,
+                    fontSize: '14px',
+                  }}
+                >
+                  ⚙️ הגדרות עסק
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '20px', color: ROYAL_COLORS.muted }}>
+              טוען בעלים...
+            </div>
+          ) : owners.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '20px', color: ROYAL_COLORS.muted }}>
+              אין בעלים רשומים במערכת הישנה
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {owners.map((owner) => (
+                <div
+                  key={owner.id}
+                  style={{
+                    padding: '12px',
+                    borderRadius: '8px',
+                    background: ROYAL_COLORS.secondary,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600' }}>
+                      {owner.owner?.name || owner.owner?.username || 'משתמש'}
+                    </div>
+                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                      {owner.equity_type === 'founder' ? 'מייסד' :
+                       owner.equity_type === 'investor' ? 'משקיע' :
+                       owner.equity_type === 'employee' ? 'עובד' : 'שותף'}
+                    </div>
+                  </div>
+                  <div style={{
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    color: ROYAL_COLORS.accent
+                  }}>
+                    {owner.ownership_percentage}%
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           {availableOwnership > 0 && (
             <button
               onClick={(e) => {
@@ -538,10 +816,48 @@ function BusinessCard({ business, dataStore, onUpdate }: {
                 marginTop: '12px'
               }}
             >
-              + הוסף בעלים
+              + הוסף בעלים (ישן)
             </button>
           )}
+            </div>
+          )}
         </div>
+      )}
+
+      {/* Modals */}
+      {showAddEquity && (
+        <AddEquityStakeholderModal
+          businessId={business.id}
+          businessName={business.name}
+          dataStore={dataStore}
+          onClose={() => setShowAddEquity(false)}
+          onSuccess={() => {
+            loadEquityData();
+            onUpdate();
+          }}
+        />
+      )}
+      {showDistribution && (
+        <ProfitDistributionModal
+          businessId={business.id}
+          businessName={business.name}
+          onClose={() => setShowDistribution(false)}
+          onSuccess={() => {
+            loadEquityData();
+            onUpdate();
+          }}
+        />
+      )}
+      {showSettings && (
+        <BusinessSettingsModal
+          businessId={business.id}
+          businessName={business.name}
+          dataStore={dataStore}
+          onClose={() => setShowSettings(false)}
+          onSuccess={() => {
+            onUpdate();
+          }}
+        />
       )}
     </div>
   );
