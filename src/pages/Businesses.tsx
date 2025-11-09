@@ -86,7 +86,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
       setIsSystemReady(true);
 
       // Load all businesses (for infrastructure owners)
-      if (profile.role === 'infrastructure_owner') {
+      if (profile.role === 'infrastructure_owner' || profile.global_role === 'infrastructure_owner') {
         const { data: businessData, error: businessError } = await dataStore.supabase
           .from('businesses')
           .select('*')
@@ -97,20 +97,67 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
         }
       }
 
-      // Load user's ownerships
-      const { data: ownershipsData, error: ownershipsError } = await dataStore.supabase
-        .from('business_ownership')
-        .select(`
-          *,
-          business:businesses(*),
-          owner:users(*)
-        `)
-        .eq('owner_user_id', profile.id)
-        .eq('active', true)
-        .order('ownership_percentage', { ascending: false });
+      // Load user's ownerships - try equity table first, then fall back to legacy ownership table
+      let ownershipsFound = false;
 
-      if (!ownershipsError && ownershipsData) {
-        setMyOwnerships(ownershipsData);
+      // Try business_equity table (new system)
+      const { data: equityData, error: equityError } = await dataStore.supabase
+        .from('business_equity')
+        .select(`
+          id,
+          business_id,
+          stakeholder_id,
+          equity_percentage,
+          equity_type,
+          profit_share_percentage,
+          voting_rights,
+          is_active,
+          business:businesses(*)
+        `)
+        .eq('stakeholder_id', profile.id)
+        .eq('is_active', true)
+        .order('equity_percentage', { ascending: false });
+
+      if (!equityError && equityData && equityData.length > 0) {
+        // Transform equity data to match BusinessOwnership interface
+        const transformedOwnerships = equityData.map((equity: any) => ({
+          id: equity.id,
+          business_id: equity.business_id,
+          owner_user_id: equity.stakeholder_id,
+          ownership_percentage: equity.equity_percentage,
+          equity_type: equity.equity_type,
+          profit_share_percentage: equity.profit_share_percentage,
+          voting_rights: equity.voting_rights,
+          active: equity.is_active,
+          business: equity.business
+        }));
+        setMyOwnerships(transformedOwnerships);
+        ownershipsFound = true;
+        logger.info('✅ Loaded ownerships from business_equity:', transformedOwnerships);
+      }
+
+      // Fall back to legacy business_ownership table if no equity records found
+      if (!ownershipsFound) {
+        const { data: ownershipsData, error: ownershipsError } = await dataStore.supabase
+          .from('business_ownership')
+          .select(`
+            *,
+            business:businesses(*),
+            owner:users(*)
+          `)
+          .eq('owner_user_id', profile.id)
+          .eq('active', true)
+          .order('ownership_percentage', { ascending: false });
+
+        if (!ownershipsError && ownershipsData && ownershipsData.length > 0) {
+          setMyOwnerships(ownershipsData);
+          ownershipsFound = true;
+          logger.info('✅ Loaded ownerships from business_ownership (legacy):', ownershipsData);
+        }
+      }
+
+      if (!ownershipsFound) {
+        logger.info('ℹ️ No ownerships found for user');
       }
     } catch (error) {
       logger.error('Failed to load businesses:', error);
@@ -178,8 +225,9 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
         </div>
       </div>
 
-      {/* Infrastructure Owner: Create Business Button */}
-      {user?.role === 'infrastructure_owner' ? (
+      {/* Create Business Button - for infrastructure_owner and business_owner */}
+      {(user?.role === 'infrastructure_owner' || user?.global_role === 'infrastructure_owner' ||
+        user?.role === 'business_owner' || user?.global_role === 'business_owner') ? (
         <div style={{ marginBottom: '24px' }}>
           <button
             onClick={() => {
@@ -231,22 +279,6 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
             )}
           </button>
         </div>
-      ) : user ? (
-        <div style={{
-          padding: '16px',
-          borderRadius: '12px',
-          background: 'rgba(255, 193, 7, 0.1)',
-          border: '1px solid rgba(255, 193, 7, 0.3)',
-          marginBottom: '24px',
-          textAlign: 'center',
-          color: ROYAL_COLORS.muted,
-          fontSize: '14px'
-        }}>
-          ℹ️ רק בעלי תשתית יכולים ליצור עסקים חדשים
-          <div style={{ fontSize: '12px', marginTop: '8px', opacity: 0.7 }}>
-            התפקיד שלך: {user.role}
-          </div>
-        </div>
       ) : null}
 
       {/* My Ownerships List */}
@@ -273,7 +305,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
       )}
 
       {/* All Businesses (Infrastructure Owner Only) */}
-      {user?.role === 'infrastructure_owner' && businesses.length > 0 && (
+      {(user?.role === 'infrastructure_owner' || user?.global_role === 'infrastructure_owner') && businesses.length > 0 && (
         <div>
           <h2 style={{
             margin: '0 0 16px 0',

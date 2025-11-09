@@ -67,10 +67,10 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
       <div style={theme.components.pageContainer}>
         <EmptyState
           icon="🏢"
-          title="ברוכים הבאים!"
-          description="נראה שאתה עדיין לא יצרת עסק. בוא ניצור את העסק הראשון שלך!"
+          title="ברוכים הבאים בעל העסק!"
+          description="כדי להתחיל, עליך לבחור עסק או ליצור עסק חדש. לחץ על הכפתור למטה כדי לעבור לעמוד הניהול של העסקים שלך."
           action={{
-            label: 'צור עסק חדש',
+            label: 'עבור לעמוד עסקים',
             onClick: () => { window.location.hash = '#businesses'; }
           }}
         />

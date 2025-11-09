@@ -543,8 +543,8 @@ export namespace RoleDiagnostics {
     }
 
     if (user.role === 'business_owner' && !user.business_id) {
-      issues.push('Business owner missing business_id');
-      recommendations.push('Assign business_id to this business owner');
+      // Note: business_owner without business_id is valid - they may not have created a business yet
+      recommendations.push('Business owner can create a business through the Businesses page');
     }
 
     let expectedDashboard = 'Unknown';
@@ -631,23 +631,30 @@ export namespace RoleDiagnostics {
       return { show: false, reason: 'User is not authenticated' };
     }
 
-    if (user.role !== 'infrastructure_owner') {
+    // Both infrastructure_owner and business_owner can create businesses
+    const canCreateBusiness =
+      user.role === 'infrastructure_owner' ||
+      (user as any).global_role === 'infrastructure_owner' ||
+      user.role === 'business_owner' ||
+      (user as any).global_role === 'business_owner';
+
+    if (!canCreateBusiness) {
       return {
         show: false,
-        reason: `Role '${user.role}' does not have permission to create businesses. Only 'infrastructure_owner' can create businesses.`
+        reason: `Role '${user.role}' does not have permission to create businesses. Only 'infrastructure_owner' and 'business_owner' can create businesses.`
       };
     }
 
     if (!hasPermission(user, 'business:create')) {
       return {
         show: false,
-        reason: 'User does not have business:create permission despite having infrastructure_owner role. This indicates a permission system misconfiguration.'
+        reason: 'User does not have business:create permission. This indicates a permission system misconfiguration.'
       };
     }
 
     return {
       show: true,
-      reason: 'User is infrastructure owner with business:create permission'
+      reason: `User with role '${user.role}' has business:create permission`
     };
   }
 
@@ -682,11 +689,11 @@ export namespace RoleDiagnostics {
 
       case 'business_owner':
         if (!user.business_id) {
-          warnings.push('Business owner missing business_id - will show error screen');
+          // Business owner without business_id is valid - they can create one
           return {
             component: 'BusinessOwnerDashboard',
-            props: { userId: user.id, businessId: null },
-            warnings
+            props: { userId: user.id, businessId: '' },
+            warnings: ['Business owner can create or select a business']
           };
         }
         return {

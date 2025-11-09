@@ -255,7 +255,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   }
 
   // Infrastructure Owner gets platform-wide system dashboard
-  if (user?.role === 'infrastructure_owner') {
+  if (user?.role === 'infrastructure_owner' || (user as any)?.global_role === 'infrastructure_owner') {
     // Routing to InfrastructureOwnerDashboard
     return <InfrastructureOwnerDashboard dataStore={dataStore} user={user} onNavigate={onNavigate} />;
   }
@@ -265,38 +265,55 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   const isBusinessOwner = user?.role === 'business_owner' || (user as any)?.global_role === 'business_owner';
 
   if (isBusinessOwner) {
-    // Business owners need a business context
-    if (!user.business_id) {
-      // Show a loading/retry state instead of error - business_id might still be syncing
-      return (
-        <div style={{
-          minHeight: '100vh',
-          background: 'var(--tg-theme-bg-color, #ffffff)',
-          padding: '40px 20px',
-          color: 'var(--tg-theme-text-color, #000)',
-          direction: 'rtl',
-          textAlign: 'center',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              border: '4px solid rgba(0,0,0,0.1)',
-              borderTop: '4px solid var(--tg-theme-button-color, #007aff)',
-              borderRadius: '50%',
-              animation: 'spin 0.8s linear infinite',
-              margin: '0 auto 24px'
-            }} />
-            <h2 style={{ fontSize: '24px', marginBottom: '16px' }}>
-              טוען נתוני עסק...
-            </h2>
-            <p style={{ fontSize: '16px', color: 'var(--tg-theme-hint-color, #999)', marginBottom: '32px' }}>
-              מסנכרן את הפרופיל שלך עם העסק. אנא המתן...
-            </p>
-            <button
+    // Business owners can use the dashboard even without business_id - it will show appropriate empty state
+    // Pass the business_id if available, otherwise pass null
+    const businessId = user.business_id || (user as any).active_business_id || null;
+
+    return (
+      <BusinessOwnerDashboard
+        businessId={businessId || ''}
+        userId={user.id}
+      />
+    );
+  }
+
+  // Manager dashboard - moved down
+  if (user?.role === 'manager' || (user as any)?.global_role === 'manager') {
+    return <ManagerDashboard dataStore={dataStore} />;
+  }
+
+  // Legacy handling - Show loading/retry state if no business context
+  if (!user?.business_id) {
+    // Show a loading/retry state instead of error - business_id might still be syncing
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'var(--tg-theme-bg-color, #ffffff)',
+        padding: '40px 20px',
+        color: 'var(--tg-theme-text-color, #000)',
+        direction: 'rtl',
+        textAlign: 'center',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            border: '4px solid rgba(0,0,0,0.1)',
+            borderTop: '4px solid var(--tg-theme-button-color, #007aff)',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+            margin: '0 auto 24px'
+          }} />
+          <h2 style={{ fontSize: '24px', marginBottom: '16px' }}>
+            טוען נתוני עסק...
+          </h2>
+          <p style={{ fontSize: '16px', color: 'var(--tg-theme-hint-color, #999)', marginBottom: '32px' }}>
+            מסנכרן את הפרופיל שלך עם העסק. אנא המתן...
+          </p>
+          <button
               onClick={async () => {
                 // Manual refresh requested
                 try {
@@ -338,13 +355,6 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
           </div>
         </div>
       );
-    }
-    return <BusinessOwnerDashboard businessId={user.business_id} userId={user.id} />;
-  }
-
-  // Manager gets department-specific dashboard
-  if (user?.role === 'manager') {
-    return <ManagerDashboard dataStore={dataStore} user={user} onNavigate={onNavigate} />;
   }
 
   // Redirect users with 'user' role to UserHomepage
