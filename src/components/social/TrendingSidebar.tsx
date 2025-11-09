@@ -3,6 +3,7 @@ import { useAppServices } from '../../context/AppServicesContext';
 import { i18n } from '../../lib/i18n';
 import type { TrendingTopic, User } from '../../data/types';
 import { logger } from '../../lib/logger';
+import { TWITTER_COLORS } from '../../styles/twitterTheme';
 
 export function TrendingSidebar() {
   const { dataStore } = useAppServices();
@@ -40,29 +41,87 @@ export function TrendingSidebar() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="bg-gray-50 rounded-2xl overflow-hidden">
-        <div className="p-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{
+        background: TWITTER_COLORS.backgroundSecondary,
+        borderRadius: '16px',
+        overflow: 'hidden',
+        border: `1px solid ${TWITTER_COLORS.border}`
+      }}>
+        <div style={{ padding: '12px 16px' }}>
           <input
             type="text"
             placeholder={i18n.getTranslations().social.searchPlaceholder}
             aria-label={i18n.getTranslations().social.search}
-            className="w-full px-4 py-2 bg-white border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              background: TWITTER_COLORS.background,
+              border: `1px solid ${TWITTER_COLORS.border}`,
+              borderRadius: '9999px',
+              color: TWITTER_COLORS.text,
+              fontSize: '15px',
+              outline: 'none',
+              transition: 'all 200ms ease-in-out'
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = TWITTER_COLORS.primary;
+              e.currentTarget.style.background = TWITTER_COLORS.background;
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = TWITTER_COLORS.border;
+              e.currentTarget.style.background = TWITTER_COLORS.background;
+            }}
           />
         </div>
       </div>
 
-      <div className="bg-gray-50 rounded-2xl overflow-hidden">
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold">{i18n.getTranslations().social.trending}</h2>
+      <div style={{
+        background: TWITTER_COLORS.backgroundSecondary,
+        borderRadius: '16px',
+        overflow: 'hidden',
+        border: `1px solid ${TWITTER_COLORS.border}`
+      }}>
+        <div style={{
+          padding: '12px 16px',
+          borderBottom: `1px solid ${TWITTER_COLORS.border}`
+        }}>
+          <h2 style={{
+            fontSize: '20px',
+            fontWeight: '800',
+            color: TWITTER_COLORS.text,
+            margin: 0
+          }}>{i18n.getTranslations().social.trending}</h2>
         </div>
 
         {loading ? (
-          <div className="p-4 text-center text-gray-500">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
+          <div style={{
+            padding: '16px',
+            textAlign: 'center',
+            color: TWITTER_COLORS.textSecondary
+          }}>
+            <div style={{
+              width: '24px',
+              height: '24px',
+              border: `3px solid ${TWITTER_COLORS.border}`,
+              borderTopColor: TWITTER_COLORS.primary,
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto'
+            }} />
+            <style>{`
+              @keyframes spin {
+                to { transform: rotate(360deg); }
+              }
+            `}</style>
           </div>
         ) : trending.length === 0 ? (
-          <div className="p-4 text-center text-gray-500 text-sm">
+          <div style={{
+            padding: '16px',
+            textAlign: 'center',
+            color: TWITTER_COLORS.textSecondary,
+            fontSize: '14px'
+          }}>
             {i18n.getTranslations().social.noTrendingYet}
           </div>
         ) : (
@@ -70,17 +129,37 @@ export function TrendingSidebar() {
             {trending.map((topic, index) => (
               <div
                 key={topic.id}
-                className="p-4 hover:bg-gray-100 transition-colors cursor-pointer border-b border-gray-200 last:border-b-0"
+                style={{
+                  padding: '12px 16px',
+                  borderBottom: index < trending.length - 1 ? `1px solid ${TWITTER_COLORS.border}` : 'none',
+                  cursor: 'pointer',
+                  transition: 'background-color 200ms ease-in-out'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = TWITTER_COLORS.backgroundHover; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500">
+                <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between' }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{
+                      fontSize: '13px',
+                      color: TWITTER_COLORS.textSecondary,
+                      margin: '0 0 2px 0'
+                    }}>
                       {index + 1} · {i18n.getTranslations().social.trending}
                     </p>
-                    <p className="font-bold text-gray-900">
+                    <p style={{
+                      fontWeight: '700',
+                      color: TWITTER_COLORS.text,
+                      fontSize: '15px',
+                      margin: '0 0 2px 0'
+                    }}>
                       #{topic.hashtag?.tag}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p style={{
+                      fontSize: '13px',
+                      color: TWITTER_COLORS.textSecondary,
+                      margin: 0
+                    }}>
                       {topic.posts_count} {topic.posts_count === 1 ? i18n.getTranslations().social.post : i18n.getTranslations().social.posts}
                     </p>
                   </div>
@@ -90,53 +169,136 @@ export function TrendingSidebar() {
           </div>
         )}
 
-        <div className="p-4 border-t border-gray-200">
-          <button className="text-blue-500 hover:underline text-sm" aria-label={i18n.getTranslations().social.showMore}>
+        <div style={{
+          padding: '16px',
+          borderTop: `1px solid ${TWITTER_COLORS.border}`
+        }}>
+          <button
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: TWITTER_COLORS.primary,
+              fontSize: '15px',
+              cursor: 'pointer',
+              padding: 0,
+              fontWeight: '400'
+            }}
+            aria-label={i18n.getTranslations().social.showMore}
+            onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
+          >
             {i18n.getTranslations().social.showMore}
           </button>
         </div>
       </div>
 
       {suggestedUsers.length > 0 && (
-        <div className="bg-gray-50 rounded-2xl overflow-hidden">
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-xl font-bold">{i18n.getTranslations().social.whoToFollow}</h2>
+        <div style={{
+          background: TWITTER_COLORS.backgroundSecondary,
+          borderRadius: '16px',
+          overflow: 'hidden',
+          border: `1px solid ${TWITTER_COLORS.border}`
+        }}>
+          <div style={{
+            padding: '12px 16px',
+            borderBottom: `1px solid ${TWITTER_COLORS.border}`
+          }}>
+            <h2 style={{
+              fontSize: '20px',
+              fontWeight: '800',
+              color: TWITTER_COLORS.text,
+              margin: 0
+            }}>{i18n.getTranslations().social.whoToFollow}</h2>
           </div>
 
           <div>
-            {suggestedUsers.map((user) => (
+            {suggestedUsers.map((user, index) => (
               <div
                 key={user.id}
-                className="p-4 hover:bg-gray-100 transition-colors border-b border-gray-200 last:border-b-0"
+                style={{
+                  padding: '12px 16px',
+                  borderBottom: index < suggestedUsers.length - 1 ? `1px solid ${TWITTER_COLORS.border}` : 'none',
+                  transition: 'background-color 200ms ease-in-out'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = TWITTER_COLORS.backgroundHover; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
               >
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0">
+                <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+                  <div style={{ flexShrink: 0 }}>
                     {user.photo_url ? (
                       <img
                         src={user.photo_url}
                         alt={user.name || 'User'}
-                        className="w-12 h-12 rounded-full"
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          objectFit: 'cover'
+                        }}
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        background: TWITTER_COLORS.primary,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: TWITTER_COLORS.white,
+                        fontSize: '15px',
+                        fontWeight: '700'
+                      }}>
                         {(user.name?.[0] || user.username?.[0] || 'U').toUpperCase()}
                       </div>
                     )}
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-gray-900 truncate hover:underline cursor-pointer">
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{
+                      fontWeight: '700',
+                      color: TWITTER_COLORS.text,
+                      fontSize: '15px',
+                      margin: '0 0 2px 0',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
+                    >
                       {user.name || user.username || 'Unknown'}
                     </p>
                     {user.username && (
-                      <p className="text-gray-500 text-sm truncate">@{user.username}</p>
+                      <p style={{
+                        color: TWITTER_COLORS.textSecondary,
+                        fontSize: '15px',
+                        margin: 0,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}>@{user.username}</p>
                     )}
                   </div>
 
                   <button
                     onClick={() => handleFollow(user.id)}
-                    className="px-4 py-1.5 bg-black text-white rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors"
+                    style={{
+                      padding: '6px 16px',
+                      background: TWITTER_COLORS.white,
+                      color: TWITTER_COLORS.textInverse,
+                      borderRadius: '9999px',
+                      fontSize: '14px',
+                      fontWeight: '700',
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'all 200ms ease-in-out',
+                      flexShrink: 0
+                    }}
                     aria-label={`${i18n.getTranslations().social.follow} ${user.name || user.username}`}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#e7e7e8'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = TWITTER_COLORS.white; }}
                   >
                     {i18n.getTranslations().social.follow}
                   </button>
@@ -145,21 +307,64 @@ export function TrendingSidebar() {
             ))}
           </div>
 
-          <div className="p-4 border-t border-gray-200">
-            <button className="text-blue-500 hover:underline text-sm" aria-label={i18n.getTranslations().social.showMore}>
+          <div style={{
+            padding: '16px',
+            borderTop: `1px solid ${TWITTER_COLORS.border}`
+          }}>
+            <button
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: TWITTER_COLORS.primary,
+                fontSize: '15px',
+                cursor: 'pointer',
+                padding: 0,
+                fontWeight: '400'
+              }}
+              aria-label={i18n.getTranslations().social.showMore}
+              onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
+            >
               {i18n.getTranslations().social.showMore}
             </button>
           </div>
         </div>
       )}
 
-      <div className="text-xs text-gray-500 px-4 space-x-2">
-        <a href="#" className="hover:underline">Terms of Service</a>
-        <a href="#" className="hover:underline">Privacy Policy</a>
-        <a href="#" className="hover:underline">Cookie Policy</a>
-        <a href="#" className="hover:underline">Accessibility</a>
-        <a href="#" className="hover:underline">Ads info</a>
-        <p className="mt-2">© 2025 Social Platform</p>
+      <div style={{
+        fontSize: '13px',
+        color: TWITTER_COLORS.textSecondary,
+        padding: '0 16px',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '8px'
+      }}>
+        <a href="#" style={{ color: TWITTER_COLORS.textSecondary, textDecoration: 'none' }}
+           onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+           onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}>
+          Terms of Service
+        </a>
+        <a href="#" style={{ color: TWITTER_COLORS.textSecondary, textDecoration: 'none' }}
+           onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+           onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}>
+          Privacy Policy
+        </a>
+        <a href="#" style={{ color: TWITTER_COLORS.textSecondary, textDecoration: 'none' }}
+           onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+           onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}>
+          Cookie Policy
+        </a>
+        <a href="#" style={{ color: TWITTER_COLORS.textSecondary, textDecoration: 'none' }}
+           onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+           onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}>
+          Accessibility
+        </a>
+        <a href="#" style={{ color: TWITTER_COLORS.textSecondary, textDecoration: 'none' }}
+           onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+           onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}>
+          Ads info
+        </a>
+        <p style={{ margin: '8px 0 0 0', width: '100%' }}>© 2025 Social Platform</p>
       </div>
     </div>
   );
