@@ -4646,12 +4646,29 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async markDirectMessageAsRead(roomId: string): Promise<void> {
-    const { error } = await supabase.rpc('reset_dm_unread_count', {
-      p_room_id: roomId,
-      p_telegram_id: this.userTelegramId
-    });
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      logger.warn('Supabase client not available');
+      return;
+    }
 
-    if (error) throw error;
+    try {
+      const { error } = await supabase.rpc('reset_dm_unread_count', {
+        p_room_id: roomId,
+        p_telegram_id: this.userTelegramId
+      });
+
+      if (error) {
+        // Gracefully handle missing function
+        if (error.code === 'PGRST202' || error.code === '42883') {
+          logger.warn('reset_dm_unread_count function not available:', error.message);
+          return;
+        }
+        throw error;
+      }
+    } catch (error) {
+      logger.warn('Failed to mark direct message as read:', error);
+    }
   }
 
   async updateUserPresence(status: 'online' | 'away' | 'busy' | 'offline'): Promise<void> {
@@ -4687,14 +4704,32 @@ export class SupabaseDataStore implements DataStore {
   }
 
   async getUserPresence(telegramId: string): Promise<any> {
-    const { data, error } = await supabase
-      .from('user_presence')
-      .select('*')
-      .eq('telegram_id', telegramId)
-      .maybeSingle();
+    const supabase = getSupabaseInstance();
+    if (!supabase) {
+      logger.warn('Supabase client not available');
+      return null;
+    }
 
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('user_presence')
+        .select('*')
+        .eq('telegram_id', telegramId)
+        .maybeSingle();
+
+      if (error) {
+        // Gracefully handle missing table
+        if (error.code === 'PGRST205' || error.code === 'PGRST204' || error.code === '42P01') {
+          logger.warn('User presence table not ready:', error.message);
+          return null;
+        }
+        throw error;
+      }
+      return data;
+    } catch (error) {
+      logger.warn('Failed to get user presence:', error);
+      return null;
+    }
   }
 
   async createMessageReadReceipt(messageId: string): Promise<void> {

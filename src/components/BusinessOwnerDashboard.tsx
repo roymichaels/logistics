@@ -81,17 +81,46 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
   useEffect(() => {
     loadDashboardData();
 
-    // Real-time updates
+    // Real-time updates with error handling
     const supabase = getSupabase();
-    const subscription = supabase
-      .channel(`business-${businessId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `business_id=eq.${businessId}` }, () => {
-        loadDashboardData();
-      })
-      .subscribe();
+    if (!supabase) {
+      console.warn('Supabase not available for real-time subscriptions');
+      return;
+    }
+
+    let subscription: any = null;
+
+    try {
+      subscription = supabase
+        .channel(`business-${businessId}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `business_id=eq.${businessId}`
+        }, (payload) => {
+          console.log('Real-time order update received:', payload);
+          loadDashboardData();
+        })
+        .subscribe((status: string, error?: Error) => {
+          if (error) {
+            console.error('Subscription error:', error);
+          } else {
+            console.log('Subscription status:', status);
+          }
+        });
+    } catch (error) {
+      console.error('Failed to set up real-time subscription:', error);
+    }
 
     return () => {
-      subscription.unsubscribe();
+      if (subscription) {
+        try {
+          subscription.unsubscribe();
+        } catch (error) {
+          console.error('Error unsubscribing:', error);
+        }
+      }
     };
   }, [businessId]);
 
@@ -100,105 +129,152 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
       setLoading(true);
 
       const supabase = getSupabase();
+      if (!supabase) {
+        console.error('Supabase client not available');
+        return;
+      }
+
       const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
-      const kpi = await fetchBusinessMetrics(businessId);
+      // Load metrics with fallback
+      try {
+        const kpi = await fetchBusinessMetrics(businessId);
 
-      const revenueMonth = kpi.revenue_month;
-      const costsMonth = revenueMonth * 0.6;
-      const profitMonth = revenueMonth - costsMonth;
-      const profitMargin = revenueMonth > 0 ? (profitMonth / revenueMonth) * 100 : 0;
+        const revenueMonth = kpi.revenue_month;
+        const costsMonth = revenueMonth * 0.6;
+        const profitMonth = revenueMonth - costsMonth;
+        const profitMargin = revenueMonth > 0 ? (profitMonth / revenueMonth) * 100 : 0;
 
-      setMetrics({
-        revenue_today: kpi.revenue_today,
-        revenue_month: revenueMonth,
-        costs_month: costsMonth,
-        profit_month: profitMonth,
-        profit_margin: profitMargin,
-        orders_today: kpi.orders_today,
-        orders_month: kpi.orders_month,
-        average_order_value: kpi.average_order_value,
-      });
+        setMetrics({
+          revenue_today: kpi.revenue_today,
+          revenue_month: revenueMonth,
+          costs_month: costsMonth,
+          profit_month: profitMonth,
+          profit_margin: profitMargin,
+          orders_today: kpi.orders_today,
+          orders_month: kpi.orders_month,
+          average_order_value: kpi.average_order_value,
+        });
+      } catch (error) {
+        console.error('Failed to load metrics:', error);
+        setMetrics({
+          revenue_today: 0,
+          revenue_month: 0,
+          costs_month: 0,
+          profit_month: 0,
+          profit_margin: 0,
+          orders_today: 0,
+          orders_month: 0,
+          average_order_value: 0,
+        });
+      }
 
-      // Load ownership information
-      const { data: ownershipData } = await supabase
-        .from('user_business_roles')
-        .select(`
-          ownership_percentage,
-          commission_percentage,
-          users (name)
-        `)
-        .eq('business_id', businessId)
-        .eq('is_active', true)
-        .gt('ownership_percentage', 0);
+      // Load ownership information with fallback
+      try {
+        const { data: ownershipData } = await supabase
+          .from('user_business_roles')
+          .select(`
+            ownership_percentage,
+            commission_percentage,
+            users (name)
+          `)
+          .eq('business_id', businessId)
+          .eq('is_active', true)
+          .gt('ownership_percentage', 0);
 
-      const owners: OwnershipInfo[] = (ownershipData || []).map((item: any) => ({
-        owner_name: item.users.name || 'Unknown',
-        ownership_percentage: item.ownership_percentage,
-        profit_share_percentage: item.commission_percentage || item.ownership_percentage,
-        estimated_monthly_share: (profitMonth * (item.ownership_percentage / 100)),
-      }));
+        const owners: OwnershipInfo[] = (ownershipData || []).map((item: any) => ({
+          owner_name: item.users?.name || 'Unknown',
+          ownership_percentage: item.ownership_percentage || 0,
+          profit_share_percentage: item.commission_percentage || item.ownership_percentage || 0,
+          estimated_monthly_share: ((metrics?.profit_month || 0) * ((item.ownership_percentage || 0) / 100)),
+        }));
 
-      setOwnership(owners);
+        setOwnership(owners);
+      } catch (error) {
+        console.error('Failed to load ownership data:', error);
+        setOwnership([]);
+      }
 
-      // Load team members
-      const { data: teamData } = await supabase
-        .from('user_business_roles')
-        .select(`
-          user_id,
-          users (id, name),
-          roles (label)
-        `)
-        .eq('business_id', businessId)
-        .eq('is_active', true);
+      // Load team members with fallback
+      try {
+        const { data: teamData } = await supabase
+          .from('user_business_roles')
+          .select(`
+            user_id,
+            users (id, name),
+            roles (label)
+          `)
+          .eq('business_id', businessId)
+          .eq('is_active', true);
 
-      const teamMembers: TeamMember[] = await Promise.all(
-        (teamData || []).map(async (member: any) => {
-          const { data: orderStats } = await supabase
-            .from('orders')
-            .select('id, total_amount')
-            .eq('business_id', businessId)
-            .eq('created_by', member.user_id)
-            .gte('created_at', firstDayOfMonth);
+        const teamMembers: TeamMember[] = await Promise.all(
+          (teamData || []).map(async (member: any) => {
+            try {
+              const { data: orderStats } = await supabase
+                .from('orders')
+                .select('id, total_amount')
+                .eq('business_id', businessId)
+                .eq('created_by', member.user_id)
+                .gte('created_at', firstDayOfMonth);
 
-          return {
-            id: member.user_id,
-            name: member.users.name || 'Unknown',
-            role: member.roles?.label || 'Unknown',
-            orders_completed: orderStats?.length || 0,
-            revenue_generated: orderStats?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0,
-            active_status: 'active',
-          };
-        })
-      );
+              return {
+                id: member.user_id,
+                name: member.users?.name || 'Unknown',
+                role: member.roles?.label || 'Unknown',
+                orders_completed: orderStats?.length || 0,
+                revenue_generated: orderStats?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0,
+                active_status: 'active',
+              };
+            } catch (error) {
+              console.error('Failed to load stats for member:', member.user_id, error);
+              return {
+                id: member.user_id,
+                name: member.users?.name || 'Unknown',
+                role: member.roles?.label || 'Unknown',
+                orders_completed: 0,
+                revenue_generated: 0,
+                active_status: 'active',
+              };
+            }
+          })
+        );
 
-      setTeam(teamMembers);
+        setTeam(teamMembers);
+      } catch (error) {
+        console.error('Failed to load team data:', error);
+        setTeam([]);
+      }
 
-      // Load recent orders
-      const { data: ordersRecent } = await supabase
-        .from('orders')
-        .select(`
-          id,
-          customer_name,
-          total_amount,
-          status,
-          created_at,
-          assigned_driver_user:assigned_driver (name)
-        `)
-        .eq('business_id', businessId)
-        .order('created_at', { ascending: false })
-        .limit(10);
+      // Load recent orders with fallback
+      try {
+        const { data: ordersRecent } = await supabase
+          .from('orders')
+          .select(`
+            id,
+            customer_name,
+            total_amount,
+            status,
+            created_at,
+            assigned_driver_user:assigned_driver (name)
+          `)
+          .eq('business_id', businessId)
+          .order('created_at', { ascending: false })
+          .limit(10);
 
-      const recent: RecentOrder[] = (ordersRecent || []).map((order: any) => ({
-        id: order.id,
-        customer_name: order.customer_name,
-        total_amount: order.total_amount,
-        status: order.status,
-        created_at: order.created_at,
-        assigned_driver_name: order.assigned_driver_user?.name,
-      }));
+        const recent: RecentOrder[] = (ordersRecent || []).map((order: any) => ({
+          id: order.id,
+          customer_name: order.customer_name,
+          total_amount: order.total_amount,
+          status: order.status,
+          created_at: order.created_at,
+          assigned_driver_name: order.assigned_driver_user?.name,
+        }));
 
-      setRecentOrders(recent);
+        setRecentOrders(recent);
+      } catch (error) {
+        console.error('Failed to load recent orders:', error);
+        setRecentOrders([]);
+      }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
