@@ -55,7 +55,6 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
     const checkSupabase = () => {
       const ready = isSupabaseInitialized() && !!dataStore.supabase;
       setSupabaseReady(ready);
-      logger.info('🔍 Businesses: Supabase ready check:', { ready, hasDataStore: !!dataStore.supabase });
     };
 
     checkSupabase();
@@ -171,13 +170,6 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
 
   // Diagnostic check for Create Business button visibility
   const createBusinessCheck = RoleDiagnostics.shouldShowCreateBusinessButton(user);
-  if (user) {
-    logger.info('🔍 Businesses Page - Create Business Button Check:', {
-      userRole: user.role,
-      shouldShow: createBusinessCheck.show,
-      reason: createBusinessCheck.reason
-    });
-  }
 
   if (loading) {
     return (

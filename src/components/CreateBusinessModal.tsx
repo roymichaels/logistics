@@ -266,7 +266,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ padding: '20px', paddingBottom: '32px' }}>
+        <form onSubmit={handleSubmit} style={{ paddingTop: '20px', paddingRight: '20px', paddingBottom: '32px', paddingLeft: '20px' }}>
           <div style={{
             padding: '16px',
             background: 'rgba(102, 126, 234, 0.08)',

@@ -4607,30 +4607,42 @@ export class SupabaseDataStore implements DataStore {
       return [];
     }
 
-    const { data, error } = await supabase
-      .from('direct_message_participants')
-      .select(`
-        *,
-        room:chat_rooms(
-          id,
-          name,
-          last_message_at,
-          last_message_preview,
-          last_message_sender
-        )
-      `)
-      .eq('telegram_id', this.userTelegramId)
-      .order('updated_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('direct_message_participants')
+        .select(`
+          *,
+          room:chat_rooms(
+            id,
+            name,
+            last_message_at,
+            last_message_preview,
+            last_message_sender
+          )
+        `)
+        .eq('telegram_id', this.userTelegramId)
+        .order('updated_at', { ascending: false });
 
-    if (error) throw error;
+      if (error) {
+        // Gracefully handle missing table during development
+        if (error.code === 'PGRST205' || error.code === 'PGRST204') {
+          logger.warn('Direct message participants table not ready:', error.message);
+          return [];
+        }
+        throw error;
+      }
 
-    return (data || []).map((row: any) => ({
-      room_id: row.room_id,
-      other_telegram_id: row.other_telegram_id,
-      unread_count: row.unread_count,
-      last_read_at: row.last_read_at,
-      room: row.room
-    }));
+      return (data || []).map((row: any) => ({
+        room_id: row.room_id,
+        other_telegram_id: row.other_telegram_id,
+        unread_count: row.unread_count || 0,
+        last_read_at: row.last_read_at,
+        room: row.room
+      }));
+    } catch (error) {
+      logger.error('Failed to load direct message rooms:', error);
+      return [];
+    }
   }
 
   async markDirectMessageAsRead(roomId: string): Promise<void> {
@@ -4649,16 +4661,29 @@ export class SupabaseDataStore implements DataStore {
       return;
     }
 
-    const { error } = await supabase
-      .from('user_presence')
-      .upsert({
-        telegram_id: this.userTelegramId,
-        status,
-        last_activity: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      });
+    try {
+      const { error } = await supabase
+        .from('user_presence')
+        .upsert({
+          telegram_id: this.userTelegramId,
+          status,
+          last_activity: new Date().toISOString(),
+          last_seen: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
 
-    if (error) throw error;
+      if (error) {
+        // Gracefully handle missing table or columns during development
+        if (error.code === 'PGRST205' || error.code === 'PGRST204') {
+          logger.warn('User presence table not ready:', error.message);
+          return;
+        }
+        throw error;
+      }
+    } catch (error) {
+      // Silently fail for presence updates to not disrupt user experience
+      logger.warn('Failed to update user presence:', error);
+    }
   }
 
   async getUserPresence(telegramId: string): Promise<any> {

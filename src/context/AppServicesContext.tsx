@@ -165,27 +165,16 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   }, [value, user?.id, refreshUserRole]);
 
   useEffect(() => {
-    logger.info('🔧 AppServicesProvider: useEffect running', {
-      hasValue: !!value,
-      hasAuth: !!auth,
-      isAuthenticated: auth?.isAuthenticated,
-      authLoading: auth?.isLoading,
-      hasAuthUser: !!auth?.user
-    });
-
     if (value) {
-      logger.info('🔧 AppServicesProvider: Using provided value, skipping initialization');
       return;
     }
 
     if (!auth) {
-      logger.info('🔧 AppServicesProvider: No auth context available');
       return;
     }
 
     // If auth is still loading, wait for it
     if (auth.isLoading) {
-      logger.info('🔧 AppServicesProvider: Auth still loading, waiting...');
       setLoading(true);
       return;
     }
@@ -193,7 +182,6 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     // If auth finished loading but user is not authenticated, set loading to false
     // This allows the App component to show the LoginPage
     if (!auth.isAuthenticated) {
-      logger.info('🔧 AppServicesProvider: Auth finished loading, user not authenticated');
       setLoading(false);
       setUser(null);
       setUserRole(null);
@@ -205,7 +193,6 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
     // At this point, auth.isAuthenticated is true but we need to verify we have user data
     if (!auth.user) {
-      logger.info('🔧 AppServicesProvider: Authenticated but no user data');
       setError('No authenticated user');
       setLoading(false);
       return;
@@ -215,7 +202,6 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     let timeoutId: NodeJS.Timeout;
 
     const initialize = async () => {
-      logger.info('🔧 AppServicesProvider: Starting initialization...');
       try {
         timeoutId = setTimeout(() => {
           if (!cancelled) {
@@ -247,7 +233,6 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         if (cancelled) return;
 
-        logger.info('🔧 AppServicesProvider: Config set');
         setConfig(appConfig);
 
         const appUser: User = {
@@ -259,18 +244,15 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
           role: auth.user.role as any,
         };
 
-        logger.info('🔧 AppServicesProvider: User set:', { id: appUser.id, role: appUser.role });
         setUser(appUser);
         setUserRole(auth.user.role as AppUserRole);
 
         if (cancelled) return;
 
-        logger.info('🔧 AppServicesProvider: Creating data store...');
         const store = await createFrontendDataStore(appConfig, 'real', appUser);
 
         if (cancelled) return;
 
-        logger.info('🔧 AppServicesProvider: Data store created and set');
         setDataStore(store);
 
         try {
@@ -342,7 +324,6 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         if (!cancelled) {
           clearTimeout(timeoutId);
-          logger.info('🔧 AppServicesProvider: Initialization complete, setting loading to false');
           setLoading(false);
         }
       } catch (err) {

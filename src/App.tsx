@@ -157,8 +157,6 @@ type Page =
   | 'social-analytics';
 
 export default function App() {
-  console.log('🎨 App component rendering...');
-
   const {
     user,
     userRole,
@@ -171,8 +169,6 @@ export default function App() {
     currentBusinessId
   } = useAppServices();
   const { authenticateWithEthereum, authenticateWithSolana, authenticate: authenticateWithTelegram, isAuthenticated } = useAuth();
-
-  console.log('🎨 App state:', { user: !!user, userRole, loading, error, isAuthenticated });
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [showOrderWizard, setShowOrderWizard] = useState(false);
   const [showBusinessManager, setShowBusinessManager] = useState(false);
@@ -201,7 +197,6 @@ export default function App() {
   // Listen for role refresh events (after manager promotion or business creation)
   useEffect(() => {
     const handleRoleRefresh = async () => {
-      console.log('🔄 Role refresh requested, fetching fresh role from database...');
 
       try {
         // Small delay to ensure DB transaction is complete
@@ -211,7 +206,6 @@ export default function App() {
         // Check if we need to force navigation to dashboard
         const forceDashboard = localStorage.getItem('force_dashboard_navigation');
         if (forceDashboard === 'true') {
-          console.log('🎯 Forcing navigation to dashboard after role change');
           localStorage.removeItem('force_dashboard_navigation');
 
           // Navigate to dashboard after a short delay to ensure state is updated
@@ -227,7 +221,6 @@ export default function App() {
 
     // Listen for custom role refresh event
     const handleCustomRefresh = () => {
-      console.log('🎯 Custom role-refresh event received!');
       handleRoleRefresh();
     };
 
@@ -236,7 +229,6 @@ export default function App() {
     // Check URL for refresh parameter (legacy support)
     const params = new URLSearchParams(window.location.search);
     if (params.has('refresh') && dataStore) {
-      console.log('🔄 Detected refresh parameter in URL, triggering role refresh');
       handleRoleRefresh();
       // Clean up URL parameter
       window.history.replaceState({}, '', window.location.pathname);
@@ -364,12 +356,10 @@ export default function App() {
 
       // Force navigation if role changed
       if (roleChanged && hasRole) {
-        console.log(`🔄 User role changed from ${initialPageRole} to ${userRole}, navigating to ${defaultPage}`);
         setCurrentPage(defaultPage);
       }
       // Standard navigation when already on dashboard
       else if (currentPage === 'dashboard') {
-        console.log(`🔄 Role changed from ${initialPageRole} to ${userRole}, navigating to ${defaultPage}`);
         setCurrentPage(defaultPage);
       }
     }
@@ -418,13 +408,11 @@ export default function App() {
 
   const handleShowScanBarcode = () => {
     // Implement barcode scanning functionality
-    console.log('Scan barcode action triggered');
     telegram.showAlert('פונקציונליות סריקת ברקוד תתווסף בקרוב');
   };
 
   const handleShowContactCustomer = () => {
     // Show contact customer interface
-    console.log('Contact customer action triggered');
     telegram.showAlert('פונקציונליות יצירת קשר עם לקוח תתווסף בקרוב');
   };
 
@@ -441,7 +429,6 @@ export default function App() {
 
   const handleShowCreateRoute = () => {
     // Show route planning interface
-    console.log('Create route action triggered');
     telegram.showAlert('פונקציונליות תכנון מסלולים תתווסף בקרוב');
     setCurrentPage('my-zones');
   };
@@ -487,7 +474,6 @@ export default function App() {
   };
 
   if (loading) {
-    console.log('🎨 App: Rendering loading state');
     return (
       <div style={{
         display: 'flex',
@@ -505,7 +491,6 @@ export default function App() {
 
   // Show landing page first for new web visitors
   if (showLandingPage && !loading && !error) {
-    console.log('🎨 App: Rendering landing page');
     return (
       <LandingPage
         onGetStarted={() => {
@@ -522,8 +507,6 @@ export default function App() {
     const hasCompletedOnboarding = localStorage.getItem(`onboarding_completed_${user?.id}`);
 
     if (!hasCompletedOnboarding || showOnboarding) {
-      console.log('🎨 App: Rendering onboarding flow');
-
       // Onboarding Hub - pathway selection
       if (!onboardingPathway) {
         return (
@@ -596,16 +579,12 @@ export default function App() {
   }
 
   if (error) {
-    console.log('🎨 App: Rendering error display:', error);
     return <ErrorDisplay error={error} theme={theme} />;
   }
 
   // Show LoginPage when not authenticated (for web users)
   // Telegram users will auto-authenticate via the telegram service
-  if (!isLoggedIn && !isAuthenticated) {
-    console.log('🎨 App: User not authenticated, showing login flow...');
-    console.log('🎨 App: isLoggedIn:', isLoggedIn, 'isAuthenticated:', isAuthenticated);
-
+  if (!isLoggedIn || !isAuthenticated) {
     // Check if circuit breaker is active
     if (isCircuitBreakerActive()) {
       const diagnostics = getAuthLoopDiagnostics();
@@ -643,7 +622,6 @@ export default function App() {
             </div>
             <button
               onClick={() => {
-                console.log('🔄 Manual reset of auth loop detection');
                 resetAuthLoopDetection();
                 window.location.reload();
               }}
@@ -670,7 +648,6 @@ export default function App() {
 
     // Detect platform and decide whether to show login page
     const platform = platformDetection.detect();
-    console.log('🎨 App: Platform detection result:', platform);
 
     // If in Telegram and auto-auth should happen, show loading
     if (platform.isTelegram && telegram.isAvailable) {
@@ -712,7 +689,6 @@ export default function App() {
     }
 
     // Show login page for web users
-    console.log('🎨 App: Rendering LoginPage component');
     return (
       <LoginPage
         onEthereumLogin={authenticateWithEthereum}
@@ -729,7 +705,6 @@ export default function App() {
   }
 
   if (!dataStore) {
-    console.log('🎨 App: No dataStore, showing initialization message');
     return (
       <div style={{
         display: 'flex',
@@ -851,7 +826,6 @@ export default function App() {
     return <Dashboard dataStore={dataStore} onNavigate={handleNavigate} />;
   };
 
-  console.log('🎨 App: Rendering main app content with SecurityGate');
 
   return (
     <SecurityGate
@@ -960,7 +934,6 @@ export default function App() {
           <SearchBusinessModal
             onClose={() => setShowSearchBusiness(false)}
             onBusinessSelected={(businessId) => {
-              console.log('Business selected:', businessId);
               setShowSearchBusiness(false);
             }}
           />
