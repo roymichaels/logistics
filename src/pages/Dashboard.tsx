@@ -30,6 +30,7 @@ const numberFormatter = new Intl.NumberFormat('he-IL');
 
 import { colors, shadows } from '../styles/design-system';
 import { logger } from '../lib/logger';
+import { TWITTER_COLORS } from '../styles/twitterTheme';
 
 // Dashboard colors based on authentic Twitter/X dark theme
 const DASHBOARD_COLORS = {
@@ -50,6 +51,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   const [user, setUser] = useState<User | null>(null);
   const [snapshot, setSnapshot] = useState<RoyalDashboardSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { mainButton, backButton, haptic } = useTelegramUI();
   const showSkeleton = useSkeleton(220);
   const hasTelegramSend = typeof window !== 'undefined' && !!window.Telegram?.WebApp?.sendData;
@@ -60,9 +62,14 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     }
 
     try {
+      setError(null);
       const profile = await dataStore.getProfile();
 
-      // Profile loaded
+      if (!profile) {
+        setError('לא נמצא פרופיל משתמש');
+        setLoading(false);
+        return;
+      }
 
       setUser(profile);
 
@@ -76,9 +83,11 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
         ? await dataStore.getRoyalDashboardSnapshot()
         : createRoyalFallback();
       setSnapshot(royalData);
-    } catch (error) {
-      logger.error('Failed to load royal dashboard', error);
-      Toast.error('שגיאה בטעינת לוח הבקרה המלכותי');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'שגיאה לא ידועה';
+      logger.error('Failed to load royal dashboard', err);
+      setError(errorMessage);
+      Toast.error('שגיאה בטעינת לוח הבקרה');
       setSnapshot(createRoyalFallback());
     } finally {
       setLoading(false);
@@ -179,6 +188,52 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
 
     return cleanup;
   }, [dataStore, loadDashboard, handleInventoryAlert]);
+
+  // Show error state if there's an error
+  if (error && !loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: DASHBOARD_COLORS.background,
+        padding: '40px 20px',
+        color: DASHBOARD_COLORS.text,
+        direction: 'rtl',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ maxWidth: '500px', textAlign: 'center' }}>
+          <div style={{ fontSize: '64px', marginBottom: '24px' }}>⚠️</div>
+          <h2 style={{ fontSize: '24px', marginBottom: '16px', fontWeight: '700' }}>
+            שגיאה בטעינת לוח הבקרה
+          </h2>
+          <p style={{ fontSize: '16px', color: DASHBOARD_COLORS.muted, marginBottom: '32px', lineHeight: '1.6' }}>
+            {error}
+          </p>
+          <button
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              loadDashboard();
+            }}
+            style={{
+              padding: '14px 32px',
+              fontSize: '16px',
+              fontWeight: '600',
+              backgroundColor: DASHBOARD_COLORS.accent,
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)'
+            }}
+          >
+            נסה שוב
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Wait for both user profile and dataStore to be ready
   if (loading || !dataStore || !user) {
