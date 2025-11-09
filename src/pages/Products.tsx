@@ -3,6 +3,7 @@ import { telegram } from '../lib/telegram';
 import { DataStore, Product, User } from '../data/types';
 import { hebrew, formatCurrency } from '../lib/i18n';
 import { colors, spacing, commonStyles } from '../styles/design-system';
+import { ROYAL_STYLES, ROYAL_COLORS } from '../styles/royalTheme';
 import { Input } from '../components/atoms/Input';
 import { logger } from '../lib/logger';
 

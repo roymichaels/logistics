@@ -4,6 +4,7 @@ import { formatCurrency, hebrew } from '../lib/i18n';
 import { Toast } from './Toast';
 import { telegram } from '../lib/telegram';
 import { colors, commonStyles } from '../styles/design-system';
+import { ROYAL_STYLES, ROYAL_COLORS } from '../styles/royalTheme';
 import { FinancialDashboard } from './FinancialDashboard';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
 import { CreateBusinessModal } from './CreateBusinessModal';

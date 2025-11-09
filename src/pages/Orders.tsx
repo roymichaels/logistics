@@ -18,6 +18,7 @@ import { DriverCandidate } from '../lib/dispatchService';
 import { DispatchOrchestrator } from '../lib/dispatchOrchestrator';
 import { Toast } from '../components/Toast';
 import { colors, commonStyles } from '../styles/design-system';
+import { ROYAL_STYLES, ROYAL_COLORS, getStatusColor } from '../styles/royalTheme';
 import { logger } from '../lib/logger';
 
 interface OrdersProps {
