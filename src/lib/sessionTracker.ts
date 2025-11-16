@@ -2,10 +2,11 @@
  * SESSION TRACKER - Comprehensive Diagnostics
  *
  * This module provides real-time tracking and diagnostics for session and authentication issues.
- * Every checkpoint logs to console and stores in a trackable history.
+ * Every checkpoint logs to logger and stores in a trackable history.
  */
 
 import { getSupabase } from './supabaseClient';
+import { logger } from './logger';
 
 export interface SessionCheckpoint {
   timestamp: number;
@@ -32,13 +33,16 @@ class SessionTracker {
     this.checkpoints.push(entry);
 
     const emoji = status === 'success' ? '✅' : status === 'warning' ? '⚠️' : '❌';
-    const style = status === 'success' ? 'color: green' : status === 'warning' ? 'color: orange' : 'color: red';
+    const logMessage = `${emoji} [SessionTracker] ${checkpoint}: ${message}`;
 
-    console.log(
-      `%c[SessionTracker] ${emoji} ${checkpoint}: ${message}`,
-      style,
-      data || ''
-    );
+    // Log to structured logger
+    if (status === 'error') {
+      logger.error(logMessage, undefined, data);
+    } else if (status === 'warning') {
+      logger.warn(logMessage, data);
+    } else {
+      logger.debug(logMessage, data);
+    }
 
     if (typeof window !== 'undefined') {
       (window as any).__SESSION_TRACKER__ = this.checkpoints;
@@ -206,7 +210,9 @@ Total Checkpoints: ${this.checkpoints.length}
 export const sessionTracker = new SessionTracker();
 
 export function printSessionReport() {
-  console.log(sessionTracker.getReport());
+  const report = sessionTracker.getReport();
+  logger.info('Session Tracker Report', { report });
+  return report;
 }
 
 if (typeof window !== 'undefined') {

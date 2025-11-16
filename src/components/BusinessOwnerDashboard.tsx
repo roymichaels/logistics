@@ -10,6 +10,7 @@ import { BusinessBottomNav } from './BusinessBottomNav';
 import { useLanguage } from '../context/LanguageContext';
 import { DashboardHeader, MetricCard, MetricGrid, Section, LoadingState, EmptyState } from './dashboard';
 import { theme, colors, spacing, typography, borderRadius, components, getStatusBadgeStyle } from '../styles/theme';
+import { logger } from '../lib/logger';
 
 interface FinancialMetrics {
   revenue_today: number;
@@ -84,7 +85,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
     // Real-time updates with error handling
     const supabase = getSupabase();
     if (!supabase) {
-      console.warn('Supabase not available for real-time subscriptions');
+      logger.warn('Supabase not available for real-time subscriptions');
       return;
     }
 
@@ -99,18 +100,18 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
           table: 'orders',
           filter: `business_id=eq.${businessId}`
         }, (payload) => {
-          console.log('Real-time order update received:', payload);
+          logger.debug('Real-time order update received', { payload });
           loadDashboardData();
         })
         .subscribe((status: string, error?: Error) => {
           if (error) {
-            console.error('Subscription error:', error);
+            logger.error('Subscription error', error);
           } else {
-            console.log('Subscription status:', status);
+            logger.debug('Subscription status', { status });
           }
         });
     } catch (error) {
-      console.error('Failed to set up real-time subscription:', error);
+      logger.error('Failed to set up real-time subscription', error as Error);
     }
 
     return () => {
@@ -118,7 +119,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
         try {
           subscription.unsubscribe();
         } catch (error) {
-          console.error('Error unsubscribing:', error);
+          logger.error('Error unsubscribing', error as Error);
         }
       }
     };
@@ -130,7 +131,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
 
       const supabase = getSupabase();
       if (!supabase) {
-        console.error('Supabase client not available');
+        logger.error('Supabase client not available', new Error('Supabase client not available'));
         return;
       }
 
@@ -156,7 +157,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
           average_order_value: kpi.average_order_value,
         });
       } catch (error) {
-        console.error('Failed to load metrics:', error);
+        logger.error('Failed to load metrics', error as Error);
         setMetrics({
           revenue_today: 0,
           revenue_month: 0,
@@ -191,7 +192,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
 
         setOwnership(owners);
       } catch (error) {
-        console.error('Failed to load ownership data:', error);
+        logger.error('Failed to load ownership data', error as Error);
         setOwnership([]);
       }
 
@@ -226,7 +227,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
                 active_status: 'active',
               };
             } catch (error) {
-              console.error('Failed to load stats for member:', member.user_id, error);
+              logger.error('Failed to load stats for member', error as Error, { memberId: member.user_id });
               return {
                 id: member.user_id,
                 name: member.users?.name || 'Unknown',
@@ -241,7 +242,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
 
         setTeam(teamMembers);
       } catch (error) {
-        console.error('Failed to load team data:', error);
+        logger.error('Failed to load team data', error as Error);
         setTeam([]);
       }
 
@@ -272,11 +273,11 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
 
         setRecentOrders(recent);
       } catch (error) {
-        console.error('Failed to load recent orders:', error);
+        logger.error('Failed to load recent orders', error as Error);
         setRecentOrders([]);
       }
     } catch (error) {
-      console.error('Failed to load dashboard data:', error);
+      logger.error('Failed to load dashboard data', error as Error);
     } finally {
       setLoading(false);
     }
@@ -287,11 +288,11 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
   }
 
   const handleExportReport = () => {
-    console.log('Export report clicked');
+    logger.debug('Export report clicked');
   };
 
   const handleManageTeam = () => {
-    console.log('Manage team clicked');
+    logger.debug('Manage team clicked');
   };
 
   return (

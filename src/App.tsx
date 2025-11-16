@@ -25,6 +25,7 @@ import { hebrew } from './lib/i18n';
 import './lib/diagnostics'; // Load diagnostics for console debugging
 import './styles/transitions.css';
 import './styles/animations.css';
+import { logger } from './lib/logger';
 import { useAppServices } from './context/AppServicesContext';
 import { useAuth } from './context/AuthContext';
 import { offlineStore } from './utils/offlineStore';
@@ -214,7 +215,7 @@ export default function App() {
           }, 500);
         }
       } catch (error) {
-        console.error('❌ Failed to refresh user role:', error);
+        logger.error('Failed to refresh user role', error as Error);
         debugLog.error('Role refresh failed', error);
       }
     };
@@ -275,7 +276,7 @@ export default function App() {
             };
           }
 
-          console.error('Failed to replay offline order mutation, discarding', error);
+          logger.error('Failed to replay offline order mutation, discarding', error as Error);
           return {
             status: 'discard' as const,
             message: error instanceof Error ? error.message : 'Unknown error'
@@ -303,7 +304,7 @@ export default function App() {
             };
           }
 
-          console.error('Failed to replay offline restock mutation, discarding', error);
+          logger.error('Failed to replay offline restock mutation, discarding', error as Error);
           return {
             status: 'discard' as const,
             message: error instanceof Error ? error.message : 'Unknown error'
@@ -386,7 +387,7 @@ export default function App() {
   // Errors are now handled by AppServicesProvider during initialization
   /*
   const handleAuthError = (error: string) => {
-    console.error('Authentication error:', error);
+    logger.error('Authentication error', new Error(error));
   };
   */
 
@@ -832,7 +833,7 @@ export default function App() {
       userId={user?.id || ''}
       telegramId={user?.telegram_id || ''}
       onSecurityError={(error) => {
-        console.error('Security error:', error);
+        logger.error('Security error', new Error(error));
         telegram.showAlert('שגיאת אבטחה: ' + error);
       }}
     >

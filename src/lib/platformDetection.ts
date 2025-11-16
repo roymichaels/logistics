@@ -9,6 +9,8 @@
  * - Solana Wallet Browser
  */
 
+import { logger } from './logger';
+
 export type Platform = 'telegram' | 'web' | 'mobile-web' | 'ethereum-wallet' | 'solana-wallet';
 
 export interface PlatformInfo {
@@ -65,7 +67,7 @@ class PlatformDetectionService {
       userAgent,
     };
 
-    console.log('🔍 Platform detected:', this._info);
+    logger.info('Platform detected', this._info);
 
     return this._info;
   }
@@ -105,7 +107,7 @@ class PlatformDetectionService {
 
       return false;
     } catch (error) {
-      console.warn('Error detecting Telegram context:', error);
+      logger.warn('Error detecting Telegram context', error);
       return false;
     }
   }

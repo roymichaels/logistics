@@ -27,6 +27,7 @@ import {
   RoyalDashboardLowStockAlert,
   RoyalDashboardRestockRequest
 } from '../data/types';
+import { logger } from './logger';
 
 export type DataStoreSubscriptionTopic =
   | 'orders'
@@ -1266,7 +1267,7 @@ export async function createFrontendDataStore(
     // Ensure we have telegram_id before creating datastore
     const telegramId = user?.telegram_id || user?.id?.toString();
     if (!telegramId) {
-      console.error('❌ Cannot create datastore: missing telegram_id', { user });
+      logger.error('Cannot create datastore: missing telegram_id', new Error('Missing telegram_id'), { user });
       throw new Error('Cannot create datastore without telegram_id');
     }
 

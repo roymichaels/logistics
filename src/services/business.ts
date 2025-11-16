@@ -140,10 +140,10 @@ export async function createBusiness(input: CreateBusinessInput): Promise<Busine
   try {
     const { error: refreshError } = await supabase.auth.refreshSession();
     if (refreshError) {
-      console.warn('Session refresh warning (non-fatal):', refreshError);
+      logger.warn('Session refresh warning (non-fatal)', refreshError);
     }
   } catch (refreshErr) {
-    console.warn('Session refresh failed (non-fatal):', refreshErr);
+    logger.warn('Session refresh failed (non-fatal)', refreshErr as Error);
   }
 
   return response.business;

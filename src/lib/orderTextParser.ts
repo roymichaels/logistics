@@ -1,4 +1,5 @@
 import { DataStore } from '../data/types';
+import { logger } from './logger';
 
 export interface ParsedOrderItem {
   quantity: number;
@@ -88,7 +89,7 @@ export class HebrewOrderParser {
         });
       });
     } catch (error) {
-      console.warn('Failed to load business products:', error);
+      logger.warn('Failed to load business products', error);
     }
   }
 
