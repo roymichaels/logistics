@@ -1,16 +1,17 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo, useContext } from 'react';
 import { colors, spacing, borderRadius, shadows, typography, transitions, navigation, gradients } from '../styles/design-system';
 import { Button } from './atoms/Button';
-import { BusinessContextSelector } from './BusinessContextSelector';
 import { LanguageToggle } from './LanguageToggle';
 import { GlowingPortalLogo } from './GlowingPortalLogo';
 import { requiresBusinessContext } from '../lib/rolePermissions';
 import { AppServicesContext } from '../context/AppServicesContext';
+import { UserBusinessAccess } from '../data/types';
 import {
   useDashboardRefetch,
   useInventoryRefetch,
   useOrdersRefetch
 } from '../hooks/useBusinessDataRefetch';
+import { logger } from '../lib/logger';
 import '../styles/header.css';
 
 interface HeaderProps {
@@ -29,7 +30,11 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
   const setBusinessId = context?.setBusinessId;
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [businessDropdownOpen, setBusinessDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const businessDropdownRef = useRef<HTMLDivElement>(null);
+  const [businesses, setBusinesses] = useState<UserBusinessAccess[]>([]);
+  const [loadingBusinesses, setLoadingBusinesses] = useState(false);
   const refetchOrders = useOrdersRefetch();
   const refetchInventory = useInventoryRefetch();
   const refetchDashboard = useDashboardRefetch();
@@ -39,13 +44,36 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false);
       }
+      if (businessDropdownRef.current && !businessDropdownRef.current.contains(event.target as Node)) {
+        setBusinessDropdownOpen(false);
+      }
     }
 
-    if (dropdownOpen) {
+    if (dropdownOpen || businessDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [dropdownOpen]);
+  }, [dropdownOpen, businessDropdownOpen]);
+
+  useEffect(() => {
+    if (user && dataStore && requiresBusinessContext(user)) {
+      loadBusinesses();
+    }
+  }, [user, dataStore]);
+
+  const loadBusinesses = async () => {
+    if (!dataStore.getUserBusinesses) return;
+
+    try {
+      setLoadingBusinesses(true);
+      const userBusinesses = await dataStore.getUserBusinesses();
+      setBusinesses(userBusinesses);
+    } catch (error: any) {
+      logger.error('Failed to load businesses:', error);
+    } finally {
+      setLoadingBusinesses(false);
+    }
+  };
 
   const userName = useMemo(() => user?.name || (user as any)?.first_name || 'משתמש', [user]);
   const userInitial = useMemo(() => userName[0]?.toUpperCase() || 'U', [userName]);
@@ -104,14 +132,85 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
         </div>
       </div>
 
-      {/* Center Section - Navigation or Business Context Selector */}
+      {/* Center Section - Compact Business Selector */}
       <div className="header-center-section">
         {user && dataStore && requiresBusinessContext(user) ? (
-          <BusinessContextSelector
-            dataStore={dataStore}
-            user={user}
-            onContextChanged={handleBusinessContextChange}
-          />
+          <div ref={businessDropdownRef} className="header-dropdown-container">
+            <button
+              onClick={() => setBusinessDropdownOpen(!businessDropdownOpen)}
+              className={`header-business-button ${businessDropdownOpen ? 'open' : ''}`}
+              style={{
+                background: colors.ui.card,
+                border: `1px solid ${colors.border.primary}`,
+                color: colors.text.primary,
+                boxShadow: businessDropdownOpen ? shadows.glow : shadows.sm
+              }}
+            >
+              <span style={{ fontSize: '18px' }}>🏢</span>
+            </button>
+
+            {businessDropdownOpen && (
+              <div
+                className="header-dropdown-menu header-business-dropdown"
+                style={{
+                  background: colors.ui.card,
+                  border: `1px solid ${colors.border.primary}`
+                }}
+              >
+                <div
+                  className="header-dropdown-user-info"
+                  style={{ borderBottom: `1px solid ${colors.border.primary}` }}
+                >
+                  <div className="header-dropdown-username" style={{ color: colors.text.primary }}>
+                    העסקים שלי
+                  </div>
+                </div>
+
+                <div className="header-dropdown-items">
+                  {loadingBusinesses ? (
+                    <div style={{ padding: '12px 16px', color: colors.text.secondary, textAlign: 'center' }}>
+                      טוען...
+                    </div>
+                  ) : businesses.length === 0 ? (
+                    <div style={{ padding: '12px 16px', color: colors.text.secondary, textAlign: 'center' }}>
+                      אין עסקים
+                    </div>
+                  ) : (
+                    businesses.map(business => {
+                      const isActive = business.business_id === currentBusinessId;
+                      return (
+                        <button
+                          key={business.business_id}
+                          onClick={() => {
+                            handleBusinessContextChange(business.business_id);
+                            onNavigate('businesses');
+                            setBusinessDropdownOpen(false);
+                          }}
+                          className="header-dropdown-button"
+                          style={{
+                            color: colors.text.primary,
+                            background: isActive ? 'rgba(29, 161, 242, 0.1)' : 'transparent'
+                          }}
+                        >
+                          <span className="header-dropdown-button-icon">
+                            {isActive ? '✓' : '🏢'}
+                          </span>
+                          <div style={{ flex: 1, textAlign: 'right' }}>
+                            <div className="header-dropdown-button-text">
+                              {business.business_name}
+                            </div>
+                            <div style={{ fontSize: '11px', color: colors.text.tertiary, marginTop: '2px' }}>
+                              {business.business_role}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         ) : user && (
           <div style={{
             display: 'flex',

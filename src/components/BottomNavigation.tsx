@@ -285,9 +285,9 @@ export function BottomNavigation({
   const hasSidebarButton = userRole && userRole !== 'user' && onOpenSidebar;
   const totalTabs = tabs.length;
 
-  // For RTL layout with action button in center:
-  // Structure: [צ'אט] [ACTION] [התראות] [משימות] [תפריט]
-  // Visual RTL: תפריט | משימות | התראות | פעולות | צ'אט
+  // For RTL layout with action button in center and תפריט on far right:
+  // Structure: [תפריט] [צ'אט] [ACTION] [התראות] [משימות]
+  // Visual RTL: משימות | התראות | פעולות | צ'אט | תפריט
   // With 3 tabs total: צ'אט (0), התראות (1), משימות (2)
   // Split: 1 tab left of action (צ'אט), 2 tabs right of action (התראות, משימות)
   const leftSideTabs = 1; // tabs to the left of center button
@@ -342,24 +342,7 @@ export function BottomNavigation({
     </button>
   );
 
-  // Add left side tabs (shown on right in RTL)
-  for (let i = 0; i < leftSideTabs; i++) {
-    const tab = tabs[i];
-    navItems.push(renderTab(tab));
-  }
-
-  // Add center action button
-  if (action) {
-    navItems.push(renderActionSlot());
-  }
-
-  // Add right side tabs (shown on left in RTL)
-  for (let i = leftSideTabs; i < totalTabs; i++) {
-    const tab = tabs[i];
-    navItems.push(renderTab(tab));
-  }
-
-  // Add תפריט button on the far left (shown on far right in RTL layout)
+  // Add תפריט button first (on the far right in RTL layout)
   if (hasSidebarButton) {
     navItems.push(
       <button
@@ -395,6 +378,23 @@ export function BottomNavigation({
         <span>תפריט</span>
       </button>
     );
+  }
+
+  // Add left side tabs (shown on right in RTL)
+  for (let i = 0; i < leftSideTabs; i++) {
+    const tab = tabs[i];
+    navItems.push(renderTab(tab));
+  }
+
+  // Add center action button
+  if (action) {
+    navItems.push(renderActionSlot());
+  }
+
+  // Add right side tabs (shown on left in RTL)
+  for (let i = leftSideTabs; i < totalTabs; i++) {
+    const tab = tabs[i];
+    navItems.push(renderTab(tab));
   }
 
   return (
