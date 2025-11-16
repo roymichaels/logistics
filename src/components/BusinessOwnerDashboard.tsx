@@ -255,7 +255,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
             total_amount,
             status,
             created_at,
-            assigned_driver_user:assigned_driver (name)
+            assigned_driver_user:assigned_driver_id (name)
           `)
           .eq('business_id', businessId)
           .order('created_at', { ascending: false })

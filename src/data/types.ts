@@ -533,6 +533,7 @@ export interface Order {
   total_amount: number;
   notes?: string;
   delivery_date?: string;
+  assigned_driver_id?: string;
   assigned_driver?: string;
   assigned_at?: string;
   accepted_at?: string;
