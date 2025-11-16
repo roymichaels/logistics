@@ -1,4 +1,4 @@
-import { RealtimeChannel, createClient } from '@supabase/supabase-js';
+import { RealtimeChannel, createClient, SupabaseClient } from '@supabase/supabase-js';
 import { logger } from './logger';
 import { getSupabase, loadConfig } from './supabaseClient';
 import { ProfileDiagnostics } from './diagnostics';
@@ -64,9 +64,9 @@ import {
   Business
 } from '../data/types';
 
-let supabaseInstance: any = null;
+let supabaseInstance: SupabaseClient | null = null;
 
-function getSupabaseInstance() {
+function getSupabaseInstance(): SupabaseClient | null {
   if (supabaseInstance) {
     return supabaseInstance;
   }
@@ -563,7 +563,7 @@ export class SupabaseDataStore implements DataStore {
   private subscriptions: Map<string, RealtimeChannel> = new Map();
   private eventListeners: Map<string, Set<Function>> = new Map();
   private authInitialization: Promise<void> | null = null;
-  private initialUserData: any = null;
+  private initialUserData: Partial<User> | null = null;
 
   get supabase() {
     return getSupabaseInstance();
@@ -584,7 +584,7 @@ export class SupabaseDataStore implements DataStore {
     // User cached
   }
 
-  constructor(private userTelegramId: string, authSession?: SupabaseAuthSessionPayload | null, initialUserData?: any) {
+  constructor(private userTelegramId: string, authSession?: SupabaseAuthSessionPayload | null, initialUserData?: Partial<User>) {
     this.initialUserData = initialUserData;
 
     if (authSession?.access_token && authSession.refresh_token) {
@@ -886,7 +886,7 @@ export class SupabaseDataStore implements DataStore {
     this.subscriptions.set('users', usersChannel);
   }
 
-  private notifyListeners(table: string, payload: any) {
+  private notifyListeners<T = Record<string, unknown>>(table: string, payload: RealtimePayload<T>) {
     const listeners = this.eventListeners.get(table);
     if (listeners) {
       listeners.forEach(callback => callback(payload));
@@ -894,7 +894,7 @@ export class SupabaseDataStore implements DataStore {
   }
 
   // Real-time subscription methods
-  subscribeToChanges(table: string, callback: (payload: any) => void) {
+  subscribeToChanges<T = Record<string, unknown>>(table: string, callback: (payload: RealtimePayload<T>) => void) {
     if (!this.eventListeners.has(table)) {
       this.eventListeners.set(table, new Set());
     }
@@ -1321,17 +1321,17 @@ export class SupabaseDataStore implements DataStore {
 
     if (error) throw error;
 
-    return (data || []).map((row: any) => ({
-      id: row.id,
-      product_id: row.product_id,
-      location_id: row.location_id,
-      on_hand_quantity: row.on_hand_quantity,
-      reserved_quantity: row.reserved_quantity,
-      damaged_quantity: row.damaged_quantity,
-      low_stock_threshold: row.low_stock_threshold,
-      updated_at: row.updated_at,
-      product: row.product || undefined,
-      location: row.location || undefined
+    return (data || []).map((row): InventoryRecord => ({
+      id: row.id as string,
+      product_id: row.product_id as string,
+      location_id: row.location_id as string,
+      on_hand_quantity: row.on_hand_quantity as number,
+      reserved_quantity: row.reserved_quantity as number,
+      damaged_quantity: row.damaged_quantity as number,
+      low_stock_threshold: row.low_stock_threshold as number,
+      updated_at: row.updated_at as string,
+      product: row.product as Product | undefined,
+      location: row.location as InventoryLocation | undefined
     }));
   }
 

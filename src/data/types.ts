@@ -4,6 +4,9 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+// Database Row Types for Query Results
+export type DatabaseRow = Record<string, unknown>;
+
 // GeoJSON Types
 export interface GeoJSONCoordinate {
   lat: number;
