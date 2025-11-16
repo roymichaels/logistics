@@ -98,7 +98,10 @@ export function Box<T extends React.ElementType = 'div'>({
     };
   };
 
+  // Build styles in correct order to avoid shorthand/longhand conflicts
+  // Custom style prop should come first, then component props override specific values
   const boxStyles: React.CSSProperties = {
+    ...style,
     ...getPaddingStyles(),
     ...getMarginStyles(),
     ...(background && { background }),
@@ -116,7 +119,6 @@ export function Box<T extends React.ElementType = 'div'>({
     ...(maxHeight && { maxHeight }),
     ...(position && { position }),
     ...(overflow && { overflow }),
-    ...style,
   };
 
   return (
