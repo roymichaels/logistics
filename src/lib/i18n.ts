@@ -255,6 +255,9 @@ export interface Translations {
     postVideo: string;
   };
 
+  // Landing page translations
+  landing: LandingTranslations;
+
   [key: string]: string | any;
 }
 
@@ -598,6 +601,9 @@ const hebrewTranslations: Translations = {
     postImage: 'תמונת פוסט',
     postVideo: 'וידאו פוסט',
   },
+
+  // Landing page translations - will be added below
+  landing: {} as LandingTranslations,
 };
 
 const hebrewLanding: LandingTranslations = {
@@ -1012,6 +1018,9 @@ const englishTranslations: Translations = {
     postImage: 'Post image',
     postVideo: 'Post video',
   },
+
+  // Landing page translations - will be added below
+  landing: {} as LandingTranslations,
 };
 
 const englishLanding: LandingTranslations = {
@@ -1297,6 +1306,10 @@ function formatTimeEN(date: string | Date): string {
     minute: '2-digit'
   }).format(d);
 }
+
+// Assign landing translations to main translation objects
+hebrewTranslations.landing = hebrewLanding;
+englishTranslations.landing = englishLanding;
 
 // Legacy exports for backward compatibility
 export const hebrew = {
