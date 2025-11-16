@@ -8,3 +8,5 @@
 export { BaseService } from '../base/BaseService';
 export { InventoryService } from './InventoryService';
 export { ZoneService } from './ZoneService';
+export { DriverService } from './DriverService';
+export { OrderService } from './OrderService';
