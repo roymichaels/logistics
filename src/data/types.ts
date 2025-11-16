@@ -7,6 +7,80 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 // Database Row Types for Query Results
 export type DatabaseRow = Record<string, unknown>;
 
+// Specific Database Row Types (for Supabase query results)
+export interface DriverInventoryRow {
+  driver_id: string;
+  product_id: string;
+  quantity: number;
+  updated_at: string;
+  location_id?: string | null;
+  location?: { name: string; id: string };
+  product?: { name: string; id: string; sku?: string };
+}
+
+export interface InventoryBalanceRow {
+  location_id: string;
+  on_hand_quantity: number;
+  reserved_quantity: number;
+  damaged_quantity: number;
+  location?: { name: string; id: string };
+}
+
+export interface RestockRequestRow {
+  id: string;
+  product_id: string;
+  requested_by: string;
+  requested_quantity: number;
+  status: string;
+  from_location_id?: string | null;
+  to_location_id: string;
+  approved_by?: string | null;
+  approved_quantity?: number | null;
+  fulfilled_by?: string | null;
+  fulfilled_quantity?: number | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ZoneRow {
+  id: string;
+  name: string;
+  code?: string | null;
+  description?: string | null;
+  color?: string | null;
+  city?: string | null;
+  region?: string | null;
+  polygon?: unknown;
+  active: boolean;
+  business_id?: string | null;
+  created_by?: string | null;
+  updated_by?: string | null;
+  metadata?: unknown;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DriverZoneAssignmentRow {
+  id: string;
+  driver_id: string;
+  zone_id: string;
+  active: boolean;
+  assigned_at: string;
+  unassigned_at?: string | null;
+  assigned_by?: string | null;
+  zone?: ZoneRow;
+}
+
+export interface DriverStatusRow {
+  driver_id: string;
+  status: string;
+  is_online: boolean;
+  current_zone_id?: string | null;
+  last_updated: string;
+  note?: string | null;
+}
+
 // GeoJSON Types
 export interface GeoJSONCoordinate {
   lat: number;
