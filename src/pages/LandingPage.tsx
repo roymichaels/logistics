@@ -85,10 +85,127 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           transform: scale(1.05);
           box-shadow: ${theme.glowPrimaryStrong};
         }
+
+        @media (max-width: 768px) {
+          .hero-section {
+            padding: 40px 20px !important;
+          }
+          .hero-emojis {
+            font-size: 48px !important;
+            gap: 12px !important;
+            margin-bottom: 12px !important;
+          }
+          .hero-title {
+            font-size: 32px !important;
+            margin-bottom: 12px !important;
+          }
+          .hero-subtitle {
+            font-size: 18px !important;
+            margin-bottom: 8px !important;
+          }
+          .hero-description {
+            font-size: 16px !important;
+            margin-bottom: 24px !important;
+          }
+          .cta-button {
+            padding: 14px 32px !important;
+            font-size: 18px !important;
+          }
+          .section-padding {
+            padding: 40px 20px !important;
+          }
+          .section-title {
+            font-size: 28px !important;
+            margin-bottom: 24px !important;
+          }
+          .section-subtitle {
+            display: none;
+          }
+          .grid-2-col {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 16px !important;
+          }
+          .capability-card {
+            padding: 20px 12px !important;
+          }
+          .capability-icon {
+            font-size: 40px !important;
+            margin-bottom: 12px !important;
+          }
+          .capability-title {
+            font-size: 16px !important;
+            margin-bottom: 8px !important;
+          }
+          .capability-desc {
+            font-size: 13px !important;
+          }
+          .feature-card {
+            padding: 18px !important;
+          }
+          .feature-icon {
+            font-size: 36px !important;
+            margin-bottom: 12px !important;
+          }
+          .feature-title {
+            font-size: 16px !important;
+            margin-bottom: 8px !important;
+          }
+          .feature-desc {
+            font-size: 13px !important;
+          }
+          .tech-card {
+            padding: 16px 12px !important;
+          }
+          .tech-icon {
+            font-size: 28px !important;
+            margin-bottom: 8px !important;
+          }
+          .tech-title {
+            font-size: 14px !important;
+            margin-bottom: 4px !important;
+          }
+          .tech-desc {
+            font-size: 11px !important;
+          }
+          .role-card {
+            padding: 16px 12px !important;
+          }
+          .role-icon {
+            font-size: 32px !important;
+            margin-bottom: 8px !important;
+          }
+          .role-title {
+            font-size: 15px !important;
+            margin-bottom: 6px !important;
+          }
+          .role-desc {
+            font-size: 12px !important;
+          }
+          .cta-section {
+            padding: 40px 20px !important;
+          }
+          .cta-title {
+            font-size: 28px !important;
+            margin-bottom: 20px !important;
+          }
+          .cta-desc {
+            font-size: 16px !important;
+            margin-bottom: 24px !important;
+          }
+          .footer-section {
+            padding: 24px 20px !important;
+          }
+          .footer-badges {
+            gap: 12px !important;
+          }
+          .footer-badge {
+            font-size: 12px !important;
+          }
+        }
       `}</style>
 
       {/* Hero Section */}
-      <div style={{
+      <div className="hero-section" style={{
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         color: theme.white,
         padding: '80px 20px',
@@ -96,7 +213,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div className={`fade-in-up ${isVisible ? '' : ''}`}>
-            <div style={{ fontSize: '72px', marginBottom: '20px', display: 'flex', justifyContent: 'center', gap: '20px' }}>
+            <div className="hero-emojis" style={{ fontSize: '72px', marginBottom: '20px', display: 'flex', justifyContent: 'center', gap: '20px' }}>
               <span>🏢</span>
               <span>💬</span>
               <span>📦</span>
@@ -104,7 +221,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             </div>
           </div>
 
-          <h1 className={`fade-in-up delay-1 ${isVisible ? '' : ''}`} style={{
+          <h1 className={`hero-title fade-in-up delay-1 ${isVisible ? '' : ''}`} style={{
             fontSize: '48px',
             fontWeight: '700',
             marginBottom: '20px',
@@ -113,7 +230,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             {hebrew.landing.title}
           </h1>
 
-          <p className={`fade-in-up delay-2 ${isVisible ? '' : ''}`} style={{
+          <p className={`hero-subtitle fade-in-up delay-2 ${isVisible ? '' : ''}`} style={{
             fontSize: '22px',
             marginBottom: '15px',
             lineHeight: '1.6',
@@ -125,7 +242,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             {hebrew.landing.subtitle}
           </p>
 
-          <p className={`fade-in-up delay-2 ${isVisible ? '' : ''}`} style={{
+          <p className={`hero-description fade-in-up delay-2 ${isVisible ? '' : ''}`} style={{
             fontSize: '18px',
             marginBottom: '40px',
             lineHeight: '1.6',
@@ -158,12 +275,12 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       </div>
 
       {/* Platform Capabilities Section */}
-      <div style={{
+      <div className="section-padding" style={{
         padding: '80px 20px',
         background: 'linear-gradient(to bottom, #f7f8fc, #ffffff)',
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <h2 style={{
+          <h2 className="section-title" style={{
             fontSize: '36px',
             fontWeight: '700',
             textAlign: 'center',
@@ -172,7 +289,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           }}>
             {hebrew.landing.platformCapabilities.title}
           </h2>
-          <p style={{
+          <p className="section-subtitle" style={{
             fontSize: '18px',
             textAlign: 'center',
             marginBottom: '50px',
@@ -181,7 +298,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             {hebrew.landing.platformCapabilities.subtitle}
           </p>
 
-          <div style={{
+          <div className="grid-2-col" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
             gap: '25px',
@@ -224,17 +341,17 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
                 }}
               >
-                <div style={{ fontSize: '56px', marginBottom: '20px' }}>
+                <div className="capability-icon" style={{ fontSize: '56px', marginBottom: '20px' }}>
                   {capability.icon}
                 </div>
-                <h3 style={{
+                <h3 className="capability-title" style={{
                   fontSize: '22px',
                   fontWeight: '600',
                   marginBottom: '12px',
                 }}>
                   {capability.title}
                 </h3>
-                <p style={{
+                <p className="capability-desc" style={{
                   fontSize: '15px',
                   lineHeight: '1.6',
                   opacity: 0.95,
@@ -248,13 +365,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       </div>
 
       {/* Features Grid Section */}
-      <div style={{
+      <div className="section-padding" style={{
         padding: '80px 20px',
         maxWidth: '1200px',
         margin: '0 auto',
         background: theme.backgroundDark,
       }}>
-        <h2 style={{
+        <h2 className="section-title" style={{
           fontSize: '36px',
           fontWeight: '700',
           textAlign: 'center',
@@ -264,7 +381,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           {hebrew.landing.features.title}
         </h2>
 
-        <div style={{
+        <div className="grid-2-col" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
           gap: '30px',
@@ -353,10 +470,10 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 textAlign: 'center',
               }}
             >
-              <div style={{ fontSize: '48px', marginBottom: '20px' }}>
+              <div className="feature-icon" style={{ fontSize: '48px', marginBottom: '20px' }}>
                 {feature.icon}
               </div>
-              <h3 style={{
+              <h3 className="feature-title" style={{
                 fontSize: '20px',
                 fontWeight: '600',
                 marginBottom: '12px',
@@ -364,7 +481,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               }}>
                 {feature.title}
               </h3>
-              <p style={{
+              <p className="feature-desc" style={{
                 fontSize: '15px',
                 lineHeight: '1.6',
                 color: theme.muted,
@@ -377,7 +494,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       </div>
 
       {/* Technology Section */}
-      <div style={{
+      <div className="section-padding" style={{
         padding: '80px 20px',
         background: theme.card,
       }}>
@@ -385,7 +502,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           maxWidth: '1200px',
           margin: '0 auto',
         }}>
-          <h2 style={{
+          <h2 className="section-title" style={{
             fontSize: '36px',
             fontWeight: '700',
             textAlign: 'center',
@@ -395,7 +512,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             {hebrew.landing.technology.title}
           </h2>
 
-          <div style={{
+          <div className="grid-2-col" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
             gap: '20px',
@@ -410,6 +527,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             ].map((tech, index) => (
               <div
                 key={index}
+                className="tech-card"
                 style={{
                   background: theme.backgroundDark,
                   border: `2px solid ${theme.cardBorder}`,
@@ -427,10 +545,10 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   e.currentTarget.style.borderColor = theme.cardBorder;
                 }}
               >
-                <div style={{ fontSize: '36px', marginBottom: '12px' }}>
+                <div className="tech-icon" style={{ fontSize: '36px', marginBottom: '12px' }}>
                   {tech.icon}
                 </div>
-                <h3 style={{
+                <h3 className="tech-title" style={{
                   fontSize: '16px',
                   fontWeight: '600',
                   marginBottom: '8px',
@@ -438,7 +556,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 }}>
                   {tech.title}
                 </h3>
-                <p style={{
+                <p className="tech-desc" style={{
                   fontSize: '13px',
                   color: theme.muted,
                 }}>
@@ -451,7 +569,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       </div>
 
       {/* User Roles Section */}
-      <div style={{
+      <div className="section-padding" style={{
         background: theme.backgroundDark,
         padding: '80px 20px',
       }}>
@@ -459,7 +577,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           maxWidth: '1200px',
           margin: '0 auto',
         }}>
-          <h2 style={{
+          <h2 className="section-title" style={{
             fontSize: '36px',
             fontWeight: '700',
             textAlign: 'center',
@@ -469,7 +587,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             {hebrew.landing.userRoles.title}
           </h2>
 
-          <div style={{
+          <div className="grid-2-col" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
             gap: '24px',
@@ -486,6 +604,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             ].map((user, index) => (
               <div
                 key={index}
+                className="role-card"
                 style={{
                   background: theme.card,
                   border: `2px solid ${theme.cardBorder}`,
@@ -503,10 +622,10 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
-                <div style={{ fontSize: '40px', marginBottom: '12px' }}>
+                <div className="role-icon" style={{ fontSize: '40px', marginBottom: '12px' }}>
                   {user.icon}
                 </div>
-                <h3 style={{
+                <h3 className="role-title" style={{
                   fontSize: '18px',
                   fontWeight: '600',
                   marginBottom: '8px',
@@ -514,7 +633,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 }}>
                   {user.role}
                 </h3>
-                <p style={{
+                <p className="role-desc" style={{
                   fontSize: '14px',
                   color: theme.muted,
                   lineHeight: '1.5',
@@ -528,21 +647,21 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       </div>
 
       {/* CTA Section */}
-      <div style={{
+      <div className="cta-section" style={{
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         color: theme.white,
         padding: '80px 20px',
         textAlign: 'center',
       }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <h2 style={{
+          <h2 className="cta-title" style={{
             fontSize: '36px',
             fontWeight: '700',
             marginBottom: '30px',
           }}>
             {hebrew.landing.cta.title}
           </h2>
-          <p style={{
+          <p className="cta-desc" style={{
             fontSize: '18px',
             marginBottom: '40px',
             lineHeight: '1.6',
@@ -572,7 +691,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       </div>
 
       {/* Footer */}
-      <div style={{
+      <div className="footer-section" style={{
         backgroundColor: theme.backgroundSolid,
         color: theme.text,
         padding: '40px 20px',
@@ -583,19 +702,19 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           maxWidth: '1200px',
           margin: '0 auto',
         }}>
-          <div style={{
+          <div className="footer-badges" style={{
             display: 'flex',
             justifyContent: 'center',
             gap: '30px',
             marginBottom: '20px',
             flexWrap: 'wrap',
           }}>
-            <span style={{ fontSize: '14px', opacity: 0.7 }}>🔒 {hebrew.landing.footer.secure}</span>
-            <span style={{ fontSize: '14px', opacity: 0.7 }}>⚡ {hebrew.landing.footer.fast}</span>
-            <span style={{ fontSize: '14px', opacity: 0.7 }}>📱 {hebrew.landing.footer.mobile}</span>
-            <span style={{ fontSize: '14px', opacity: 0.7 }}>⏱️ {hebrew.landing.footer.realtime}</span>
-            <span style={{ fontSize: '14px', opacity: 0.7 }}>🔐 {hebrew.landing.footer.encrypted}</span>
-            <span style={{ fontSize: '14px', opacity: 0.7 }}>📴 {hebrew.landing.footer.offline}</span>
+            <span className="footer-badge" style={{ fontSize: '14px', opacity: 0.7 }}>🔒 {hebrew.landing.footer.secure}</span>
+            <span className="footer-badge" style={{ fontSize: '14px', opacity: 0.7 }}>⚡ {hebrew.landing.footer.fast}</span>
+            <span className="footer-badge" style={{ fontSize: '14px', opacity: 0.7 }}>📱 {hebrew.landing.footer.mobile}</span>
+            <span className="footer-badge" style={{ fontSize: '14px', opacity: 0.7 }}>⏱️ {hebrew.landing.footer.realtime}</span>
+            <span className="footer-badge" style={{ fontSize: '14px', opacity: 0.7 }}>🔐 {hebrew.landing.footer.encrypted}</span>
+            <span className="footer-badge" style={{ fontSize: '14px', opacity: 0.7 }}>📴 {hebrew.landing.footer.offline}</span>
           </div>
           <p style={{
             fontSize: '14px',
