@@ -10,3 +10,12 @@ export { InventoryService } from './InventoryService';
 export { ZoneService } from './ZoneService';
 export { DriverService } from './DriverService';
 export { OrderService } from './OrderService';
+export { ContextService } from './ContextService';
+
+export type {
+  UserActiveContext,
+  Infrastructure,
+  Business,
+  UserBusinessAccess,
+  SwitchContextInput
+} from './ContextService';
