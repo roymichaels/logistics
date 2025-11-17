@@ -92,7 +92,12 @@ export default defineConfig(({ mode }) => {
               return 'data-store';
             }
 
-            // Services layer
+            // New service modules - separate chunk for new architecture
+            if (id.includes('/src/services/modules/')) {
+              return 'services-modules';
+            }
+
+            // Legacy services layer
             if (id.includes('/src/services/') || id.includes('/src/lib/dispatchService') ||
                 id.includes('/src/lib/inventoryService') || id.includes('/src/lib/notificationService')) {
               return 'services';
@@ -109,6 +114,30 @@ export default defineConfig(({ mode }) => {
               return 'telegram';
             }
 
+            // Design system components (atomic design)
+            if (id.includes('/src/components/atoms/') ||
+                id.includes('/src/components/molecules/') ||
+                id.includes('/src/components/organisms/')) {
+              return 'design-system';
+            }
+
+            // Dashboard components
+            if (id.includes('/src/components/dashboard/')) {
+              return 'dashboard-components';
+            }
+
+            // Social features
+            if (id.includes('/src/components/social/') || id.includes('/src/pages/SocialFeed') ||
+                id.includes('/src/pages/SocialAnalytics')) {
+              return 'social-features';
+            }
+
+            // Business management components
+            if (id.includes('BusinessOwnerDashboard') || id.includes('BusinessManager') ||
+                id.includes('InfrastructureOwnerDashboard')) {
+              return 'business-management';
+            }
+
             // Large page components
             if (id.includes('/src/pages/Dashboard') || id.includes('/src/pages/Orders')) {
               return 'pages-main';
@@ -119,8 +148,13 @@ export default defineConfig(({ mode }) => {
             }
 
             if (id.includes('/src/pages/DriversManagement') || id.includes('/src/pages/DriverDashboard') ||
-                id.includes('/src/pages/DriverStatus')) {
+                id.includes('/src/pages/DriverStatus') || id.includes('/src/pages/FreelancerDriverDashboard')) {
               return 'pages-drivers';
+            }
+
+            // Utility libraries
+            if (id.includes('/src/utils/security/')) {
+              return 'security-utils';
             }
 
             // Keep default behavior for other files
