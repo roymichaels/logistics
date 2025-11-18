@@ -528,6 +528,31 @@ export interface Translations {
     restockNeeded: string;
   };
 
+  myZonesPage: {
+    title: string;
+    subtitle: string;
+    systemNotSupported: string;
+    errorLoadingZones: string;
+    loadingZones: string;
+    youAreOnline: string;
+    youAreOffline: string;
+    activeZone: string;
+    refresh: string;
+    activeZoneLabel: string;
+    leaveZone: string;
+    joinZone: string;
+    setAsActiveZone: string;
+    noZonesAvailable: string;
+    cannotUpdateZoneAssignment: string;
+    joinedZoneSuccessfully: string;
+    leftZone: string;
+    errorUpdatingZoneAssignment: string;
+    cannotUpdateActiveZone: string;
+    zoneSetAsActive: string;
+    errorUpdatingActiveZone: string;
+    activeZoneUpdate: string;
+  };
+
   // User Management
   userManagement: {
     title: string;
@@ -1497,6 +1522,31 @@ const hebrewTranslations: Translations = {
     readyToShip: 'מוכן למשלוח',
     lowStock: 'מלאי נמוך',
     restockNeeded: 'נדרש חידוש מלאי',
+  },
+
+  myZonesPage: {
+    title: 'האזורים שלי',
+    subtitle: 'נהל את אזורי הפעילות שלך, הצטרף לאזורים חדשים וקבע את האזור הפעיל למעקב בזמן אמת',
+    systemNotSupported: 'המערכת אינה תומכת במעקב אזורים עבור נהגים',
+    errorLoadingZones: 'שגיאה בטעינת נתוני האזורים',
+    loadingZones: 'טוען נתוני אזורים…',
+    youAreOnline: '🟢 אתה מחובר למערכת',
+    youAreOffline: '⚪ אתה במצב לא מקוון',
+    activeZone: 'אזור פעיל',
+    refresh: 'רענן',
+    activeZoneLabel: 'אזור פעיל',
+    leaveZone: 'עזוב אזור',
+    joinZone: 'הצטרף לאזור',
+    setAsActiveZone: 'קבע כאזור פעיל',
+    noZonesAvailable: 'אין אזורים זמינים כעת. פנה למנהל לקבלת שיוך',
+    cannotUpdateZoneAssignment: 'לא ניתן לעדכן שיוך אזור במערכת הנוכחית',
+    joinedZoneSuccessfully: 'הצטרפת לאזור בהצלחה',
+    leftZone: 'נותקת מהאזור',
+    errorUpdatingZoneAssignment: 'שגיאה בעדכון שיוך האזור',
+    cannotUpdateActiveZone: 'לא ניתן לעדכן אזור פעיל במערכת הנוכחית',
+    zoneSetAsActive: 'האזור נקבע כאזור הפעיל שלך',
+    errorUpdatingActiveZone: 'שגיאה בעדכון אזור הפעילות',
+    activeZoneUpdate: 'עדכון אזור פעיל',
   },
 
   // User Management
@@ -2541,6 +2591,31 @@ const englishTranslations: Translations = {
     readyToShip: 'Ready to Ship',
     lowStock: 'Low Stock',
     restockNeeded: 'Restock Needed',
+  },
+
+  myZonesPage: {
+    title: 'My Zones',
+    subtitle: 'Manage your activity zones, join new zones and set your active zone for real-time tracking',
+    systemNotSupported: 'System does not support zone tracking for drivers',
+    errorLoadingZones: 'Error loading zone data',
+    loadingZones: 'Loading zone data…',
+    youAreOnline: '🟢 You are online',
+    youAreOffline: '⚪ You are offline',
+    activeZone: 'Active Zone',
+    refresh: 'Refresh',
+    activeZoneLabel: 'Active Zone',
+    leaveZone: 'Leave Zone',
+    joinZone: 'Join Zone',
+    setAsActiveZone: 'Set as Active Zone',
+    noZonesAvailable: 'No zones available. Contact manager for assignment',
+    cannotUpdateZoneAssignment: 'Cannot update zone assignment in current system',
+    joinedZoneSuccessfully: 'Joined zone successfully',
+    leftZone: 'Left the zone',
+    errorUpdatingZoneAssignment: 'Error updating zone assignment',
+    cannotUpdateActiveZone: 'Cannot update active zone in current system',
+    zoneSetAsActive: 'Zone set as your active zone',
+    errorUpdatingActiveZone: 'Error updating active zone',
+    activeZoneUpdate: 'Active zone update',
   },
 
   // User Management

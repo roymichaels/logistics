@@ -3,7 +3,7 @@ import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { DataStore, DriverStatusRecord, DriverZoneAssignment, Zone } from '../data/types';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { Toast } from '../components/Toast';
-import { hebrew } from '../lib/i18n';
+import { useI18n } from '../lib/i18n';
 import { logger } from '../lib/logger';
 
 interface MyZonesProps {
@@ -19,6 +19,7 @@ interface ZoneViewModel {
 
 export function MyZones({ dataStore }: MyZonesProps) {
   const { theme, backButton, haptic } = useTelegramUI();
+  const { translations, isRTL } = useI18n();
   const [zones, setZones] = useState<Zone[]>([]);
   const [assignments, setAssignments] = useState<DriverZoneAssignment[]>([]);
   const [status, setStatus] = useState<DriverStatusRecord | null>(null);
