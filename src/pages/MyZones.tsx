@@ -33,7 +33,7 @@ export function MyZones({ dataStore }: MyZonesProps) {
 
   const loadData = useCallback(async () => {
     if (!dataStore.listZones || !dataStore.listDriverZones || !dataStore.getDriverStatus) {
-      setError('המערכת אינה תומכת במעקב אזורים עבור נהגים.');
+      setError(translations.myZonesPage.systemNotSupported);
       setLoading(false);
       return;
     }
@@ -53,8 +53,8 @@ export function MyZones({ dataStore }: MyZonesProps) {
       setError(null);
     } catch (err) {
       logger.error('Failed to load zone data', err);
-      setError('שגיאה בטעינת נתוני האזורים');
-      Toast.error('שגיאה בטעינת נתוני האזורים');
+      setError(translations.myZonesPage.errorLoadingZones);
+      Toast.error(translations.myZonesPage.errorLoadingZones);
     } finally {
       setLoading(false);
     }
@@ -77,19 +77,19 @@ export function MyZones({ dataStore }: MyZonesProps) {
 
   const handleToggleZone = async (zone: Zone, active: boolean) => {
     if (!dataStore.assignDriverToZone) {
-      Toast.error('לא ניתן לעדכן שיוך אזור במערכת הנוכחית');
+      Toast.error(translations.myZonesPage.cannotUpdateZoneAssignment);
       return;
     }
 
     setSavingZoneId(zone.id);
     try {
       await dataStore.assignDriverToZone({ zone_id: zone.id, active });
-      Toast.success(active ? 'הצטרפת לאזור בהצלחה' : 'נותקת מהאזור');
+      Toast.success(active ? translations.myZonesPage.joinedZoneSuccessfully : translations.myZonesPage.leftZone);
       haptic('soft');
       await loadData();
     } catch (err) {
       logger.error('Failed to update zone assignment', err);
-      Toast.error('שגיאה בעדכון שיוך האזור');
+      Toast.error(translations.myZonesPage.errorUpdatingZoneAssignment);
     } finally {
       setSavingZoneId(null);
     }
@@ -106,7 +106,7 @@ export function MyZones({ dataStore }: MyZonesProps) {
 
   const handleSetActiveZone = async (zone: Zone) => {
     if (!dataStore.setDriverOnline && !dataStore.updateDriverStatus) {
-      Toast.error('לא ניתן לעדכן אזור פעיל במערכת הנוכחית');
+      Toast.error(translations.myZonesPage.cannotUpdateActiveZone);
       return;
     }
 
@@ -114,21 +114,21 @@ export function MyZones({ dataStore }: MyZonesProps) {
     try {
       await ensureZoneAssigned(zone);
       if (dataStore.setDriverOnline) {
-        await dataStore.setDriverOnline({ zone_id: zone.id, status: status?.status, note: 'עדכון אזור פעיל' });
+        await dataStore.setDriverOnline({ zone_id: zone.id, status: status?.status, note: translations.myZonesPage.activeZoneUpdate });
       } else if (dataStore.updateDriverStatus) {
         await dataStore.updateDriverStatus({
           status: status?.status && status.status !== 'off_shift' ? status.status : 'available',
           zone_id: zone.id,
           is_online: true,
-          note: 'עדכון אזור פעיל'
+          note: translations.myZonesPage.activeZoneUpdate
         });
       }
-      Toast.success('האזור נקבע כאזור הפעיל שלך');
+      Toast.success(translations.myZonesPage.zoneSetAsActive);
       haptic('soft');
       await loadData();
     } catch (err) {
       logger.error('Failed to set active zone', err);
-      Toast.error('שגיאה בעדכון אזור הפעילות');
+      Toast.error(translations.myZonesPage.errorUpdatingActiveZone);
     } finally {
       setSavingZoneId(null);
     }
@@ -146,12 +146,12 @@ export function MyZones({ dataStore }: MyZonesProps) {
         backgroundColor: theme.bg_color,
         color: theme.text_color,
         padding: '20px',
-        direction: 'rtl'
+        direction: isRTL ? 'rtl' : 'ltr'
       }}
     >
-      <h1 style={{ fontSize: '24px', margin: '0 0 16px' }}>{hebrew.my_zones}</h1>
+      <h1 style={{ fontSize: '24px', margin: '0 0 16px' }}>{translations.myZonesPage.title}</h1>
       <p style={{ margin: '0 0 16px', color: hintColor }}>
-        נהל את אזורי הפעילות שלך, הצטרף לאזורים חדשים וקבע את האזור הפעיל למעקב בזמן אמת.
+        {translations.myZonesPage.subtitle}
       </p>
 
       {error && (
@@ -170,9 +170,9 @@ export function MyZones({ dataStore }: MyZonesProps) {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <div style={{ color: hintColor }}>
-          {status?.is_online ? '🟢 אתה מחובר למערכת' : '⚪ אתה במצב לא מקוון'}
+          {status?.is_online ? translations.myZonesPage.youAreOnline : translations.myZonesPage.youAreOffline}
           {activeZoneId && status?.is_online && (
-            <span style={{ marginRight: '8px' }}>• אזור פעיל: {zones.find((zone) => zone.id === activeZoneId)?.name || activeZoneId}</span>
+            <span style={{ marginRight: '8px' }}>• {translations.myZonesPage.activeZone}: {zones.find((zone) => zone.id === activeZoneId)?.name || activeZoneId}</span>
           )}
         </div>
         <button
@@ -187,12 +187,12 @@ export function MyZones({ dataStore }: MyZonesProps) {
             cursor: 'pointer'
           }}
         >
-          רענן
+          {translations.myZonesPage.refresh}
         </button>
       </div>
 
       {loading ? (
-        <div style={{ color: hintColor }}>טוען נתוני אזורים…</div>
+        <div style={{ color: hintColor }}>{translations.myZonesPage.loadingZones}</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {zoneModels.map(({ zone, isAssigned }) => {
@@ -214,7 +214,7 @@ export function MyZones({ dataStore }: MyZonesProps) {
                     {zone.description && <div style={{ fontSize: '12px', color: hintColor }}>{zone.description}</div>}
                   </div>
                   {isActive && (
-                    <span style={{ fontSize: '12px', color: theme.button_color, fontWeight: 600 }}>אזור פעיל</span>
+                    <span style={{ fontSize: '12px', color: theme.button_color, fontWeight: 600 }}>{translations.myZonesPage.activeZoneLabel}</span>
                   )}
                 </div>
 
@@ -234,7 +234,7 @@ export function MyZones({ dataStore }: MyZonesProps) {
                       opacity: isLoadingZone(zone.id) ? 0.7 : 1
                     }}
                   >
-                    {isAssigned ? 'עזוב אזור' : 'הצטרף לאזור'}
+                    {isAssigned ? translations.myZonesPage.leaveZone : translations.myZonesPage.joinZone}
                   </button>
                   <button
                     onClick={() => handleSetActiveZone(zone)}
@@ -251,7 +251,7 @@ export function MyZones({ dataStore }: MyZonesProps) {
                       opacity: isLoadingZone(zone.id) ? 0.7 : 1
                     }}
                   >
-                    קבע כאזור פעיל
+                    {translations.myZonesPage.setAsActiveZone}
                   </button>
                 </div>
               </div>
@@ -269,7 +269,7 @@ export function MyZones({ dataStore }: MyZonesProps) {
                 color: hintColor
               }}
             >
-              אין אזורים זמינים כעת. פנה למנהל לקבלת שיוך.
+              {translations.myZonesPage.noZonesAvailable}
             </div>
           )}
         </div>
