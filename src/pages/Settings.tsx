@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { telegram } from '../lib/telegram';
 import { TelegramModal } from '../components/TelegramModal';
 import { DataStore, User, BootstrapConfig } from '../data/types';
-import { roleNames, roleIcons } from '../lib/i18n';
+import { roleNames, roleIcons, useI18n } from '../lib/i18n';
 import { userManager } from '../lib/userManager';
 import { offlineStore, type OfflineDiagnostics } from '../utils/offlineStore';
 import { PINEntry } from '../components/PINEntry';
@@ -28,6 +28,7 @@ interface SettingsProps {
 }
 
 export function Settings({ dataStore, onNavigate, config, currentUser }: SettingsProps) {
+  const { t, translations } = useI18n();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [switchingRole, setSwitchingRole] = useState(false);
@@ -81,15 +82,15 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
       const updatedProfile = await dataStore.getProfile();
       setUser(updatedProfile);
       telegram.hapticFeedback('notification', 'success');
-      telegram.showAlert(`עבר בהצלחה לתפקיד ${roleNames[selectedRole as keyof typeof roleNames]}!`);
-      
+      telegram.showAlert(`${translations.settingsPage.roleChanged}: ${roleNames[selectedRole as keyof typeof roleNames]}!`);
+
       // Refresh the page to update navigation
       setTimeout(() => {
         window.location.reload();
       }, 1000);
     } catch (error) {
       logger.error('Failed to switch role:', error);
-      telegram.showAlert('שגיאה בהחלפת תפקיד');
+      telegram.showAlert(translations.errors.failed);
     } finally {
       setSwitchingRole(false);
       setShowRoleModal(false);
@@ -103,7 +104,7 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
       setOfflineDiagnostics(diagnostics);
     } catch (error) {
       logger.error('Failed to load offline diagnostics:', error);
-      telegram.showAlert('שגיאה בטעינת נתוני מצב לא מקוון');
+      telegram.showAlert(translations.errors.loadFailed);
     } finally {
       setLoadingOfflineDiagnostics(false);
     }
@@ -126,10 +127,10 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
       await offlineStore.flushMutations();
       await refreshOfflineDiagnostics();
       telegram.hapticFeedback('notification', 'success');
-      telegram.showAlert('הנתונים הלא מקוונים נוקו בהצלחה');
+      telegram.showAlert(translations.settingsPage.cacheCleared);
     } catch (error) {
       logger.error('Failed to clear offline data:', error);
-      telegram.showAlert('שגיאה בניקוי נתונים לא מקוונים');
+      telegram.showAlert(translations.errors.failed);
     } finally {
       setClearingOfflineData(false);
     }
@@ -138,7 +139,7 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
   const handleChangePinSuccess = async (newPin: string) => {
     setShowChangePinModal(false);
     telegram.hapticFeedback('notification', 'success');
-    telegram.showAlert('קוד האבטחה שונה בהצלחה');
+    telegram.showAlert(translations.success.updated);
   };
 
   if (loading) {

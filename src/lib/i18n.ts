@@ -298,6 +298,379 @@ export interface Translations {
   // Landing page translations
   landing: LandingTranslations;
 
+  // Admin Panel
+  admin: {
+    title: string;
+    overview: string;
+    users: string;
+    bulk: string;
+    export: string;
+    systemStats: string;
+    totalOrders: string;
+    totalProducts: string;
+    totalTasks: string;
+    activeUsers: string;
+    todayOrders: string;
+    bulkOperations: string;
+    bulkUpdateStatus: string;
+    bulkAssignTasks: string;
+    bulkUpdatePrices: string;
+    markAllRead: string;
+    exportOrders: string;
+    exportProducts: string;
+    dateRange: string;
+    from: string;
+    to: string;
+  };
+
+  // Products
+  productsPage: {
+    title: string;
+    allProducts: string;
+    category: string;
+    searchProducts: string;
+    createProduct: string;
+    editProduct: string;
+    productName: string;
+    description: string;
+    price: string;
+    stock: string;
+    sku: string;
+    inStock: string;
+    lowStock: string;
+    outOfStock: string;
+    noProducts: string;
+  };
+
+  // Tasks
+  tasksPage: {
+    title: string;
+    myTasks: string;
+    allTasks: string;
+    createTask: string;
+    editTask: string;
+    taskTitle: string;
+    taskDescription: string;
+    assignedTo: string;
+    dueDate: string;
+    priority: string;
+    high: string;
+    medium: string;
+    low: string;
+    status: string;
+    inProgress: string;
+    noTasks: string;
+  };
+
+  // Inventory
+  inventoryPage: {
+    title: string;
+    aggregated: string;
+    byLocation: string;
+    onHand: string;
+    reserved: string;
+    damaged: string;
+    adjustInventory: string;
+    quantity: string;
+    reason: string;
+    location: string;
+    alerts: string;
+    noAlerts: string;
+  };
+
+  // Reports
+  reportsPage: {
+    title: string;
+    overview: string;
+    sales: string;
+    revenue: string;
+    orders: string;
+    performance: string;
+    dateRange: string;
+    day: string;
+    week: string;
+    month: string;
+    year: string;
+    totalRevenue: string;
+    averageOrder: string;
+    revenueByDay: string;
+    ordersByStatus: string;
+    topProducts: string;
+    salesCount: string;
+    loadingReport: string;
+    errorLoading: string;
+  };
+
+  // Settings
+  settingsPage: {
+    title: string;
+    account: string;
+    preferences: string;
+    security: string;
+    notifications: string;
+    changeRole: string;
+    currentRole: string;
+    selectNewRole: string;
+    switchRole: string;
+    roleChanged: string;
+    clearCache: string;
+    cacheCleared: string;
+    about: string;
+    version: string;
+    offlineData: string;
+    totalSize: string;
+    lastSync: string;
+    clearOfflineData: string;
+    changePIN: string;
+    enterNewPIN: string;
+    confirmPIN: string;
+  };
+
+  // Driver Dashboard
+  driverDashboard: {
+    title: string;
+    activeDeliveries: string;
+    completedToday: string;
+    earnings: string;
+    rating: string;
+    availableOrders: string;
+    myRoute: string;
+    acceptOrder: string;
+    startDelivery: string;
+    completeDelivery: string;
+    navigation: string;
+    customerInfo: string;
+    orderDetails: string;
+    noActiveDeliveries: string;
+  };
+
+  // Dispatch Board
+  dispatchBoard: {
+    title: string;
+    unassigned: string;
+    assigned: string;
+    inProgress: string;
+    availableDrivers: string;
+    assignDriver: string;
+    reassign: string;
+    viewRoute: string;
+    optimizeRoute: string;
+    driverLocation: string;
+    estimatedTime: string;
+    noOrders: string;
+  };
+
+  // Warehouse Dashboard
+  warehouseDashboard: {
+    title: string;
+    receiving: string;
+    picking: string;
+    packing: string;
+    shipping: string;
+    pendingReceiving: string;
+    pendingPicking: string;
+    readyToShip: string;
+    lowStock: string;
+    restockNeeded: string;
+  };
+
+  // User Management
+  userManagement: {
+    title: string;
+    allUsers: string;
+    activeUsers: string;
+    inviteUser: string;
+    editUser: string;
+    deleteUser: string;
+    userName: string;
+    email: string;
+    role: string;
+    status: string;
+    active: string;
+    inactive: string;
+    lastLogin: string;
+    permissions: string;
+    assignRole: string;
+    removeUser: string;
+    confirmDelete: string;
+  };
+
+  // Channels
+  channelsPage: {
+    title: string;
+    myChannels: string;
+    allChannels: string;
+    createChannel: string;
+    joinChannel: string;
+    leaveChannel: string;
+    channelName: string;
+    channelDescription: string;
+    members: string;
+    addMembers: string;
+    channelSettings: string;
+    privateChannel: string;
+    publicChannel: string;
+    noChannels: string;
+  };
+
+  // Chat
+  chatPage: {
+    title: string;
+    conversations: string;
+    newMessage: string;
+    typeMessage: string;
+    sendMessage: string;
+    encrypted: string;
+    online: string;
+    offline: string;
+    typing: string;
+    attachFile: string;
+    sendImage: string;
+    noConversations: string;
+    startChat: string;
+  };
+
+  // Zones
+  zonesPage: {
+    title: string;
+    allZones: string;
+    myZones: string;
+    createZone: string;
+    editZone: string;
+    zoneName: string;
+    coverage: string;
+    assignedDrivers: string;
+    activeOrders: string;
+    zoneCapacity: string;
+    viewMap: string;
+    noZones: string;
+  };
+
+  // Analytics
+  analyticsPage: {
+    title: string;
+    businessMetrics: string;
+    userGrowth: string;
+    orderTrends: string;
+    revenueForecast: string;
+    kpiDashboard: string;
+    customReport: string;
+    exportData: string;
+    dateComparison: string;
+    previousPeriod: string;
+    growth: string;
+  };
+
+  // Profile
+  profilePage: {
+    title: string;
+    editProfile: string;
+    personalInfo: string;
+    fullName: string;
+    phoneNumber: string;
+    address: string;
+    bio: string;
+    avatar: string;
+    changeAvatar: string;
+    updateProfile: string;
+    profileUpdated: string;
+    changePassword: string;
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  };
+
+  // Notifications
+  notificationsPage: {
+    title: string;
+    allNotifications: string;
+    unread: string;
+    markAsRead: string;
+    markAllRead: string;
+    clearAll: string;
+    orderUpdates: string;
+    systemAlerts: string;
+    messages: string;
+    noNotifications: string;
+    preferences: string;
+    enableNotifications: string;
+  };
+
+  // Incoming
+  incomingPage: {
+    title: string;
+    pendingReceiving: string;
+    received: string;
+    receiveShipment: string;
+    shipmentId: string;
+    expectedItems: string;
+    receivedItems: string;
+    inspectItems: string;
+    confirmReceiving: string;
+    reportIssue: string;
+    noIncoming: string;
+  };
+
+  // Restock Requests
+  restockPage: {
+    title: string;
+    pendingRequests: string;
+    approved: string;
+    rejected: string;
+    createRequest: string;
+    productName: string;
+    requestedQuantity: string;
+    urgency: string;
+    urgent: string;
+    normal: string;
+    low: string;
+    approveRequest: string;
+    rejectRequest: string;
+    noRequests: string;
+  };
+
+  // Logs
+  logsPage: {
+    title: string;
+    activityLog: string;
+    systemLogs: string;
+    userActions: string;
+    timestamp: string;
+    action: string;
+    user: string;
+    details: string;
+    filterByUser: string;
+    filterByAction: string;
+    exportLogs: string;
+    noLogs: string;
+  };
+
+  // My Stats
+  myStatsPage: {
+    title: string;
+    performance: string;
+    completedTasks: string;
+    hoursWorked: string;
+    efficiency: string;
+    achievements: string;
+    weeklyStats: string;
+    monthlyStats: string;
+    compareWithTeam: string;
+  };
+
+  // Businesses
+  businessesPage: {
+    title: string;
+    myBusinesses: string;
+    createBusiness: string;
+    businessName: string;
+    businessType: string;
+    switchBusiness: string;
+    manageBusiness: string;
+    businessSettings: string;
+    noBusinesses: string;
+  };
+
   [key: string]: string | any;
 }
 
@@ -680,6 +1053,379 @@ const hebrewTranslations: Translations = {
     userAvatar: 'תמונת משתמש',
     postImage: 'תמונת פוסט',
     postVideo: 'וידאו פוסט',
+  },
+
+  // Admin Panel
+  admin: {
+    title: 'פאנל ניהול',
+    overview: 'סקירה',
+    users: 'משתמשים',
+    bulk: 'פעולות מרובות',
+    export: 'ייצוא',
+    systemStats: 'סטטיסטיקות מערכת',
+    totalOrders: 'סה"כ הזמנות',
+    totalProducts: 'סה"כ מוצרים',
+    totalTasks: 'סה"כ משימות',
+    activeUsers: 'משתמשים פעילים',
+    todayOrders: 'הזמנות היום',
+    bulkOperations: 'פעולות מרובות',
+    bulkUpdateStatus: 'עדכון סטטוס מרובה',
+    bulkAssignTasks: 'הקצאת משימות מרובה',
+    bulkUpdatePrices: 'עדכון מחירים מרובה',
+    markAllRead: 'סמן הכל כנקרא',
+    exportOrders: 'ייצא הזמנות',
+    exportProducts: 'ייצא מוצרים',
+    dateRange: 'טווח תאריכים',
+    from: 'מ-',
+    to: 'עד-',
+  },
+
+  // Products
+  productsPage: {
+    title: 'מוצרים',
+    allProducts: 'כל המוצרים',
+    category: 'קטגוריה',
+    searchProducts: 'חפש מוצרים',
+    createProduct: 'צור מוצר',
+    editProduct: 'ערוך מוצר',
+    productName: 'שם המוצר',
+    description: 'תיאור',
+    price: 'מחיר',
+    stock: 'מלאי',
+    sku: 'מק"ט',
+    inStock: 'במלאי',
+    lowStock: 'מלאי נמוך',
+    outOfStock: 'אזל מהמלאי',
+    noProducts: 'אין מוצרים',
+  },
+
+  // Tasks
+  tasksPage: {
+    title: 'משימות',
+    myTasks: 'המשימות שלי',
+    allTasks: 'כל המשימות',
+    createTask: 'צור משימה',
+    editTask: 'ערוך משימה',
+    taskTitle: 'כותרת המשימה',
+    taskDescription: 'תיאור המשימה',
+    assignedTo: 'הוקצה ל',
+    dueDate: 'תאריך יעד',
+    priority: 'עדיפות',
+    high: 'גבוהה',
+    medium: 'בינונית',
+    low: 'נמוכה',
+    status: 'סטטוס',
+    inProgress: 'בתהליך',
+    noTasks: 'אין משימות',
+  },
+
+  // Inventory
+  inventoryPage: {
+    title: 'מלאי',
+    aggregated: 'מצטבר',
+    byLocation: 'לפי מיקום',
+    onHand: 'זמין',
+    reserved: 'שמור',
+    damaged: 'פגום',
+    adjustInventory: 'התאם מלאי',
+    quantity: 'כמות',
+    reason: 'סיבה',
+    location: 'מיקום',
+    alerts: 'התראות',
+    noAlerts: 'אין התראות',
+  },
+
+  // Reports
+  reportsPage: {
+    title: 'דוחות',
+    overview: 'סקירה',
+    sales: 'מכירות',
+    revenue: 'הכנסות',
+    orders: 'הזמנות',
+    performance: 'ביצועים',
+    dateRange: 'טווח תאריכים',
+    day: 'יום',
+    week: 'שבוע',
+    month: 'חודש',
+    year: 'שנה',
+    totalRevenue: 'סה"כ הכנסות',
+    averageOrder: 'ממוצע הזמנה',
+    revenueByDay: 'הכנסות לפי יום',
+    ordersByStatus: 'הזמנות לפי סטטוס',
+    topProducts: 'מוצרים מובילים',
+    salesCount: 'מספר מכירות',
+    loadingReport: 'טוען דוח...',
+    errorLoading: 'שגיאה בטעינת דוח',
+  },
+
+  // Settings
+  settingsPage: {
+    title: 'הגדרות',
+    account: 'חשבון',
+    preferences: 'העדפות',
+    security: 'אבטחה',
+    notifications: 'התראות',
+    changeRole: 'החלף תפקיד',
+    currentRole: 'תפקיד נוכחי',
+    selectNewRole: 'בחר תפקיד חדש',
+    switchRole: 'החלף תפקיד',
+    roleChanged: 'התפקיד הוחלף בהצלחה',
+    clearCache: 'נקה מטמון',
+    cacheCleared: 'המטמון נוקה',
+    about: 'אודות',
+    version: 'גרסה',
+    offlineData: 'נתונים לא מקוונים',
+    totalSize: 'גודל כולל',
+    lastSync: 'סנכרון אחרון',
+    clearOfflineData: 'נקה נתונים לא מקוונים',
+    changePIN: 'שנה PIN',
+    enterNewPIN: 'הזן PIN חדש',
+    confirmPIN: 'אשר PIN',
+  },
+
+  // Driver Dashboard
+  driverDashboard: {
+    title: 'לוח בקרה נהג',
+    activeDeliveries: 'משלוחים פעילים',
+    completedToday: 'הושלמו היום',
+    earnings: 'רווחים',
+    rating: 'דירוג',
+    availableOrders: 'הזמנות זמינות',
+    myRoute: 'המסלול שלי',
+    acceptOrder: 'קבל הזמנה',
+    startDelivery: 'התחל משלוח',
+    completeDelivery: 'השלם משלוח',
+    navigation: 'ניווט',
+    customerInfo: 'פרטי לקוח',
+    orderDetails: 'פרטי הזמנה',
+    noActiveDeliveries: 'אין משלוחים פעילים',
+  },
+
+  // Dispatch Board
+  dispatchBoard: {
+    title: 'מוקד תפעול',
+    unassigned: 'לא מוקצה',
+    assigned: 'מוקצה',
+    inProgress: 'בתהליך',
+    availableDrivers: 'נהגים זמינים',
+    assignDriver: 'הקצה נהג',
+    reassign: 'הקצה מחדש',
+    viewRoute: 'צפה במסלול',
+    optimizeRoute: 'אופטימיזציה',
+    driverLocation: 'מיקום נהג',
+    estimatedTime: 'זמן משוער',
+    noOrders: 'אין הזמנות',
+  },
+
+  // Warehouse Dashboard
+  warehouseDashboard: {
+    title: 'לוח בקרה מחסן',
+    receiving: 'קבלה',
+    picking: 'איסוף',
+    packing: 'אריזה',
+    shipping: 'משלוח',
+    pendingReceiving: 'ממתין לקבלה',
+    pendingPicking: 'ממתין לאיסוף',
+    readyToShip: 'מוכן למשלוח',
+    lowStock: 'מלאי נמוך',
+    restockNeeded: 'נדרש חידוש מלאי',
+  },
+
+  // User Management
+  userManagement: {
+    title: 'ניהול משתמשים',
+    allUsers: 'כל המשתמשים',
+    activeUsers: 'משתמשים פעילים',
+    inviteUser: 'הזמן משתמש',
+    editUser: 'ערוך משתמש',
+    deleteUser: 'מחק משתמש',
+    userName: 'שם משתמש',
+    email: 'אימייל',
+    role: 'תפקיד',
+    status: 'סטטוס',
+    active: 'פעיל',
+    inactive: 'לא פעיל',
+    lastLogin: 'התחברות אחרונה',
+    permissions: 'הרשאות',
+    assignRole: 'הקצה תפקיד',
+    removeUser: 'הסר משתמש',
+    confirmDelete: 'אשר מחיקה',
+  },
+
+  // Channels
+  channelsPage: {
+    title: 'ערוצים',
+    myChannels: 'הערוצים שלי',
+    allChannels: 'כל הערוצים',
+    createChannel: 'צור ערוץ',
+    joinChannel: 'הצטרף לערוץ',
+    leaveChannel: 'עזוב ערוץ',
+    channelName: 'שם הערוץ',
+    channelDescription: 'תיאור הערוץ',
+    members: 'חברים',
+    addMembers: 'הוסף חברים',
+    channelSettings: 'הגדרות ערוץ',
+    privateChannel: 'ערוץ פרטי',
+    publicChannel: 'ערוץ ציבורי',
+    noChannels: 'אין ערוצים',
+  },
+
+  // Chat
+  chatPage: {
+    title: 'צ\'אט',
+    conversations: 'שיחות',
+    newMessage: 'הודעה חדשה',
+    typeMessage: 'הקלד הודעה',
+    sendMessage: 'שלח הודעה',
+    encrypted: 'מוצפן',
+    online: 'מחובר',
+    offline: 'לא מחובר',
+    typing: 'מקליד...',
+    attachFile: 'צרף קובץ',
+    sendImage: 'שלח תמונה',
+    noConversations: 'אין שיחות',
+    startChat: 'התחל שיחה',
+  },
+
+  // Zones
+  zonesPage: {
+    title: 'אזורים',
+    allZones: 'כל האזורים',
+    myZones: 'האזורים שלי',
+    createZone: 'צור אזור',
+    editZone: 'ערוך אזור',
+    zoneName: 'שם האזור',
+    coverage: 'כיסוי',
+    assignedDrivers: 'נהגים משוייכים',
+    activeOrders: 'הזמנות פעילות',
+    zoneCapacity: 'קיבולת אזור',
+    viewMap: 'צפה במפה',
+    noZones: 'אין אזורים',
+  },
+
+  // Analytics
+  analyticsPage: {
+    title: 'אנליטיקה',
+    businessMetrics: 'מדדי עסק',
+    userGrowth: 'גידול משתמשים',
+    orderTrends: 'מגמות הזמנות',
+    revenueForecast: 'תחזית הכנסות',
+    kpiDashboard: 'לוח מחוונים',
+    customReport: 'דוח מותאם',
+    exportData: 'ייצא נתונים',
+    dateComparison: 'השוואת תקופות',
+    previousPeriod: 'תקופה קודמת',
+    growth: 'גידול',
+  },
+
+  // Profile
+  profilePage: {
+    title: 'פרופיל',
+    editProfile: 'ערוך פרופיל',
+    personalInfo: 'מידע אישי',
+    fullName: 'שם מלא',
+    phoneNumber: 'מספר טלפון',
+    address: 'כתובת',
+    bio: 'ביוגרפיה',
+    avatar: 'תמונת פרופיל',
+    changeAvatar: 'שנה תמונה',
+    updateProfile: 'עדכן פרופיל',
+    profileUpdated: 'הפרופיל עודכן',
+    changePassword: 'שנה סיסמה',
+    currentPassword: 'סיסמה נוכחית',
+    newPassword: 'סיסמה חדשה',
+    confirmPassword: 'אשר סיסמה',
+  },
+
+  // Notifications
+  notificationsPage: {
+    title: 'התראות',
+    allNotifications: 'כל ההתראות',
+    unread: 'לא נקראו',
+    markAsRead: 'סמן כנקרא',
+    markAllRead: 'סמן הכל כנקרא',
+    clearAll: 'נקה הכל',
+    orderUpdates: 'עדכוני הזמנות',
+    systemAlerts: 'התראות מערכת',
+    messages: 'הודעות',
+    noNotifications: 'אין התראות',
+    preferences: 'העדפות',
+    enableNotifications: 'אפשר התראות',
+  },
+
+  // Incoming
+  incomingPage: {
+    title: 'כניסות',
+    pendingReceiving: 'ממתין לקבלה',
+    received: 'התקבל',
+    receiveShipment: 'קבל משלוח',
+    shipmentId: 'מזהה משלוח',
+    expectedItems: 'פריטים צפויים',
+    receivedItems: 'פריטים שהתקבלו',
+    inspectItems: 'בדוק פריטים',
+    confirmReceiving: 'אשר קבלה',
+    reportIssue: 'דווח על בעיה',
+    noIncoming: 'אין משלוחים נכנסים',
+  },
+
+  // Restock Requests
+  restockPage: {
+    title: 'בקשות חידוש מלאי',
+    pendingRequests: 'בקשות ממתינות',
+    approved: 'מאושר',
+    rejected: 'נדחה',
+    createRequest: 'צור בקשה',
+    productName: 'שם מוצר',
+    requestedQuantity: 'כמות מבוקשת',
+    urgency: 'דחיפות',
+    urgent: 'דחוף',
+    normal: 'רגיל',
+    low: 'נמוכה',
+    approveRequest: 'אשר בקשה',
+    rejectRequest: 'דחה בקשה',
+    noRequests: 'אין בקשות',
+  },
+
+  // Logs
+  logsPage: {
+    title: 'יומן פעילות',
+    activityLog: 'יומן פעילות',
+    systemLogs: 'לוגים מערכת',
+    userActions: 'פעולות משתמשים',
+    timestamp: 'חותמת זמן',
+    action: 'פעולה',
+    user: 'משתמש',
+    details: 'פרטים',
+    filterByUser: 'סנן לפי משתמש',
+    filterByAction: 'סנן לפי פעולה',
+    exportLogs: 'ייצא לוגים',
+    noLogs: 'אין לוגים',
+  },
+
+  // My Stats
+  myStatsPage: {
+    title: 'הסטטיסטיקות שלי',
+    performance: 'ביצועים',
+    completedTasks: 'משימות שהושלמו',
+    hoursWorked: 'שעות עבודה',
+    efficiency: 'יעילות',
+    achievements: 'הישגים',
+    weeklyStats: 'סטטיסטיקות שבועיות',
+    monthlyStats: 'סטטיסטיקות חודשיות',
+    compareWithTeam: 'השווה עם הצוות',
+  },
+
+  // Businesses
+  businessesPage: {
+    title: 'עסקים',
+    myBusinesses: 'העסקים שלי',
+    createBusiness: 'צור עסק',
+    businessName: 'שם העסק',
+    businessType: 'סוג העסק',
+    switchBusiness: 'החלף עסק',
+    manageBusiness: 'נהל עסק',
+    businessSettings: 'הגדרות עסק',
+    noBusinesses: 'אין עסקים',
   },
 
   // Landing page translations - will be added below
@@ -1137,6 +1883,379 @@ const englishTranslations: Translations = {
     userAvatar: 'User avatar',
     postImage: 'Post image',
     postVideo: 'Post video',
+  },
+
+  // Admin Panel
+  admin: {
+    title: 'Admin Panel',
+    overview: 'Overview',
+    users: 'Users',
+    bulk: 'Bulk Operations',
+    export: 'Export',
+    systemStats: 'System Statistics',
+    totalOrders: 'Total Orders',
+    totalProducts: 'Total Products',
+    totalTasks: 'Total Tasks',
+    activeUsers: 'Active Users',
+    todayOrders: 'Today Orders',
+    bulkOperations: 'Bulk Operations',
+    bulkUpdateStatus: 'Bulk Update Status',
+    bulkAssignTasks: 'Bulk Assign Tasks',
+    bulkUpdatePrices: 'Bulk Update Prices',
+    markAllRead: 'Mark All Read',
+    exportOrders: 'Export Orders',
+    exportProducts: 'Export Products',
+    dateRange: 'Date Range',
+    from: 'From',
+    to: 'To',
+  },
+
+  // Products
+  productsPage: {
+    title: 'Products',
+    allProducts: 'All Products',
+    category: 'Category',
+    searchProducts: 'Search Products',
+    createProduct: 'Create Product',
+    editProduct: 'Edit Product',
+    productName: 'Product Name',
+    description: 'Description',
+    price: 'Price',
+    stock: 'Stock',
+    sku: 'SKU',
+    inStock: 'In Stock',
+    lowStock: 'Low Stock',
+    outOfStock: 'Out of Stock',
+    noProducts: 'No Products',
+  },
+
+  // Tasks
+  tasksPage: {
+    title: 'Tasks',
+    myTasks: 'My Tasks',
+    allTasks: 'All Tasks',
+    createTask: 'Create Task',
+    editTask: 'Edit Task',
+    taskTitle: 'Task Title',
+    taskDescription: 'Task Description',
+    assignedTo: 'Assigned To',
+    dueDate: 'Due Date',
+    priority: 'Priority',
+    high: 'High',
+    medium: 'Medium',
+    low: 'Low',
+    status: 'Status',
+    inProgress: 'In Progress',
+    noTasks: 'No Tasks',
+  },
+
+  // Inventory
+  inventoryPage: {
+    title: 'Inventory',
+    aggregated: 'Aggregated',
+    byLocation: 'By Location',
+    onHand: 'On Hand',
+    reserved: 'Reserved',
+    damaged: 'Damaged',
+    adjustInventory: 'Adjust Inventory',
+    quantity: 'Quantity',
+    reason: 'Reason',
+    location: 'Location',
+    alerts: 'Alerts',
+    noAlerts: 'No Alerts',
+  },
+
+  // Reports
+  reportsPage: {
+    title: 'Reports',
+    overview: 'Overview',
+    sales: 'Sales',
+    revenue: 'Revenue',
+    orders: 'Orders',
+    performance: 'Performance',
+    dateRange: 'Date Range',
+    day: 'Day',
+    week: 'Week',
+    month: 'Month',
+    year: 'Year',
+    totalRevenue: 'Total Revenue',
+    averageOrder: 'Average Order',
+    revenueByDay: 'Revenue by Day',
+    ordersByStatus: 'Orders by Status',
+    topProducts: 'Top Products',
+    salesCount: 'Sales Count',
+    loadingReport: 'Loading report...',
+    errorLoading: 'Error loading report',
+  },
+
+  // Settings
+  settingsPage: {
+    title: 'Settings',
+    account: 'Account',
+    preferences: 'Preferences',
+    security: 'Security',
+    notifications: 'Notifications',
+    changeRole: 'Change Role',
+    currentRole: 'Current Role',
+    selectNewRole: 'Select New Role',
+    switchRole: 'Switch Role',
+    roleChanged: 'Role changed successfully',
+    clearCache: 'Clear Cache',
+    cacheCleared: 'Cache cleared',
+    about: 'About',
+    version: 'Version',
+    offlineData: 'Offline Data',
+    totalSize: 'Total Size',
+    lastSync: 'Last Sync',
+    clearOfflineData: 'Clear Offline Data',
+    changePIN: 'Change PIN',
+    enterNewPIN: 'Enter new PIN',
+    confirmPIN: 'Confirm PIN',
+  },
+
+  // Driver Dashboard
+  driverDashboard: {
+    title: 'Driver Dashboard',
+    activeDeliveries: 'Active Deliveries',
+    completedToday: 'Completed Today',
+    earnings: 'Earnings',
+    rating: 'Rating',
+    availableOrders: 'Available Orders',
+    myRoute: 'My Route',
+    acceptOrder: 'Accept Order',
+    startDelivery: 'Start Delivery',
+    completeDelivery: 'Complete Delivery',
+    navigation: 'Navigation',
+    customerInfo: 'Customer Info',
+    orderDetails: 'Order Details',
+    noActiveDeliveries: 'No active deliveries',
+  },
+
+  // Dispatch Board
+  dispatchBoard: {
+    title: 'Dispatch Board',
+    unassigned: 'Unassigned',
+    assigned: 'Assigned',
+    inProgress: 'In Progress',
+    availableDrivers: 'Available Drivers',
+    assignDriver: 'Assign Driver',
+    reassign: 'Reassign',
+    viewRoute: 'View Route',
+    optimizeRoute: 'Optimize',
+    driverLocation: 'Driver Location',
+    estimatedTime: 'Estimated Time',
+    noOrders: 'No Orders',
+  },
+
+  // Warehouse Dashboard
+  warehouseDashboard: {
+    title: 'Warehouse Dashboard',
+    receiving: 'Receiving',
+    picking: 'Picking',
+    packing: 'Packing',
+    shipping: 'Shipping',
+    pendingReceiving: 'Pending Receiving',
+    pendingPicking: 'Pending Picking',
+    readyToShip: 'Ready to Ship',
+    lowStock: 'Low Stock',
+    restockNeeded: 'Restock Needed',
+  },
+
+  // User Management
+  userManagement: {
+    title: 'User Management',
+    allUsers: 'All Users',
+    activeUsers: 'Active Users',
+    inviteUser: 'Invite User',
+    editUser: 'Edit User',
+    deleteUser: 'Delete User',
+    userName: 'Username',
+    email: 'Email',
+    role: 'Role',
+    status: 'Status',
+    active: 'Active',
+    inactive: 'Inactive',
+    lastLogin: 'Last Login',
+    permissions: 'Permissions',
+    assignRole: 'Assign Role',
+    removeUser: 'Remove User',
+    confirmDelete: 'Confirm Delete',
+  },
+
+  // Channels
+  channelsPage: {
+    title: 'Channels',
+    myChannels: 'My Channels',
+    allChannels: 'All Channels',
+    createChannel: 'Create Channel',
+    joinChannel: 'Join Channel',
+    leaveChannel: 'Leave Channel',
+    channelName: 'Channel Name',
+    channelDescription: 'Channel Description',
+    members: 'Members',
+    addMembers: 'Add Members',
+    channelSettings: 'Channel Settings',
+    privateChannel: 'Private Channel',
+    publicChannel: 'Public Channel',
+    noChannels: 'No Channels',
+  },
+
+  // Chat
+  chatPage: {
+    title: 'Chat',
+    conversations: 'Conversations',
+    newMessage: 'New Message',
+    typeMessage: 'Type a message',
+    sendMessage: 'Send Message',
+    encrypted: 'Encrypted',
+    online: 'Online',
+    offline: 'Offline',
+    typing: 'Typing...',
+    attachFile: 'Attach File',
+    sendImage: 'Send Image',
+    noConversations: 'No Conversations',
+    startChat: 'Start Chat',
+  },
+
+  // Zones
+  zonesPage: {
+    title: 'Zones',
+    allZones: 'All Zones',
+    myZones: 'My Zones',
+    createZone: 'Create Zone',
+    editZone: 'Edit Zone',
+    zoneName: 'Zone Name',
+    coverage: 'Coverage',
+    assignedDrivers: 'Assigned Drivers',
+    activeOrders: 'Active Orders',
+    zoneCapacity: 'Zone Capacity',
+    viewMap: 'View Map',
+    noZones: 'No Zones',
+  },
+
+  // Analytics
+  analyticsPage: {
+    title: 'Analytics',
+    businessMetrics: 'Business Metrics',
+    userGrowth: 'User Growth',
+    orderTrends: 'Order Trends',
+    revenueForecast: 'Revenue Forecast',
+    kpiDashboard: 'KPI Dashboard',
+    customReport: 'Custom Report',
+    exportData: 'Export Data',
+    dateComparison: 'Date Comparison',
+    previousPeriod: 'Previous Period',
+    growth: 'Growth',
+  },
+
+  // Profile
+  profilePage: {
+    title: 'Profile',
+    editProfile: 'Edit Profile',
+    personalInfo: 'Personal Info',
+    fullName: 'Full Name',
+    phoneNumber: 'Phone Number',
+    address: 'Address',
+    bio: 'Bio',
+    avatar: 'Avatar',
+    changeAvatar: 'Change Avatar',
+    updateProfile: 'Update Profile',
+    profileUpdated: 'Profile updated',
+    changePassword: 'Change Password',
+    currentPassword: 'Current Password',
+    newPassword: 'New Password',
+    confirmPassword: 'Confirm Password',
+  },
+
+  // Notifications
+  notificationsPage: {
+    title: 'Notifications',
+    allNotifications: 'All Notifications',
+    unread: 'Unread',
+    markAsRead: 'Mark as Read',
+    markAllRead: 'Mark All as Read',
+    clearAll: 'Clear All',
+    orderUpdates: 'Order Updates',
+    systemAlerts: 'System Alerts',
+    messages: 'Messages',
+    noNotifications: 'No Notifications',
+    preferences: 'Preferences',
+    enableNotifications: 'Enable Notifications',
+  },
+
+  // Incoming
+  incomingPage: {
+    title: 'Incoming',
+    pendingReceiving: 'Pending Receiving',
+    received: 'Received',
+    receiveShipment: 'Receive Shipment',
+    shipmentId: 'Shipment ID',
+    expectedItems: 'Expected Items',
+    receivedItems: 'Received Items',
+    inspectItems: 'Inspect Items',
+    confirmReceiving: 'Confirm Receiving',
+    reportIssue: 'Report Issue',
+    noIncoming: 'No Incoming Shipments',
+  },
+
+  // Restock Requests
+  restockPage: {
+    title: 'Restock Requests',
+    pendingRequests: 'Pending Requests',
+    approved: 'Approved',
+    rejected: 'Rejected',
+    createRequest: 'Create Request',
+    productName: 'Product Name',
+    requestedQuantity: 'Requested Quantity',
+    urgency: 'Urgency',
+    urgent: 'Urgent',
+    normal: 'Normal',
+    low: 'Low',
+    approveRequest: 'Approve Request',
+    rejectRequest: 'Reject Request',
+    noRequests: 'No Requests',
+  },
+
+  // Logs
+  logsPage: {
+    title: 'Activity Log',
+    activityLog: 'Activity Log',
+    systemLogs: 'System Logs',
+    userActions: 'User Actions',
+    timestamp: 'Timestamp',
+    action: 'Action',
+    user: 'User',
+    details: 'Details',
+    filterByUser: 'Filter by User',
+    filterByAction: 'Filter by Action',
+    exportLogs: 'Export Logs',
+    noLogs: 'No Logs',
+  },
+
+  // My Stats
+  myStatsPage: {
+    title: 'My Statistics',
+    performance: 'Performance',
+    completedTasks: 'Completed Tasks',
+    hoursWorked: 'Hours Worked',
+    efficiency: 'Efficiency',
+    achievements: 'Achievements',
+    weeklyStats: 'Weekly Statistics',
+    monthlyStats: 'Monthly Statistics',
+    compareWithTeam: 'Compare with Team',
+  },
+
+  // Businesses
+  businessesPage: {
+    title: 'Businesses',
+    myBusinesses: 'My Businesses',
+    createBusiness: 'Create Business',
+    businessName: 'Business Name',
+    businessType: 'Business Type',
+    switchBusiness: 'Switch Business',
+    manageBusiness: 'Manage Business',
+    businessSettings: 'Business Settings',
+    noBusinesses: 'No Businesses',
   },
 
   // Landing page translations - will be added below
