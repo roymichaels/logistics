@@ -12,7 +12,7 @@ import {
   useOrdersRefetch
 } from '../hooks/useBusinessDataRefetch';
 import { logger } from '../lib/logger';
-import { i18n } from '../lib/i18n';
+import { useI18n } from '../lib/i18n';
 import '../styles/header.css';
 
 interface HeaderProps {
@@ -29,6 +29,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
   const dataStore = context?.dataStore;
   const currentBusinessId = context?.currentBusinessId;
   const setBusinessId = context?.setBusinessId;
+  const { t, translations } = useI18n();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [businessDropdownOpen, setBusinessDropdownOpen] = useState(false);
@@ -76,7 +77,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
     }
   };
 
-  const userName = useMemo(() => user?.name || (user as any)?.first_name || 'משתמש', [user]);
+  const userName = useMemo(() => user?.name || (user as any)?.first_name || t('phrases', 'user'), [user, translations]);
   const userInitial = useMemo(() => userName[0]?.toUpperCase() || 'U', [userName]);
 
   const handleMenuClick = useCallback((action: 'profile' | 'settings' | 'logout') => {
@@ -163,18 +164,18 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                   style={{ borderBottom: `1px solid ${colors.border.primary}` }}
                 >
                   <div className="header-dropdown-username" style={{ color: colors.text.primary }}>
-                    {i18n.getTranslations().header.myBusinesses}
+                    {translations.header.myBusinesses}
                   </div>
                 </div>
 
                 <div className="header-dropdown-items">
                   {loadingBusinesses ? (
                     <div style={{ padding: '12px 16px', color: colors.text.secondary, textAlign: 'center' }}>
-                      {i18n.getTranslations().header.loading}
+                      {translations.header.loading}
                     </div>
                   ) : businesses.length === 0 ? (
                     <div style={{ padding: '12px 16px', color: colors.text.secondary, textAlign: 'center' }}>
-                      {i18n.getTranslations().header.noBusinesses}
+                      {translations.header.noBusinesses}
                     </div>
                   ) : (
                     businesses.map(business => {
@@ -227,7 +228,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 size="sm"
                 leftIcon={<span>🏢</span>}
               >
-                {i18n.getTranslations().header.createBusiness}
+                {translations.header.createBusiness}
               </Button>
             )}
             {onBecomeDriver && user?.role !== 'driver' && (
@@ -237,7 +238,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 size="sm"
                 leftIcon={<span>🚗</span>}
               >
-                {i18n.getTranslations().header.becomeDriver}
+                {translations.header.becomeDriver}
               </Button>
             )}
             {onSearchBusiness && (
@@ -247,7 +248,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 size="sm"
                 leftIcon={<span>🔍</span>}
               >
-                {i18n.getTranslations().header.searchBusiness}
+                {translations.header.searchBusiness}
               </Button>
             )}
           </div>
@@ -299,14 +300,14 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 </div>
               )}
               <div className="header-dropdown-role" style={{ color: colors.brand.primary }}>
-                {user?.role === 'infrastructure_owner' ? 'בעל תשתית 👑' :
-                 user?.role === 'business_owner' ? 'בעלים 👑' :
-                 user?.role === 'manager' ? 'מנהל' :
-                 user?.role === 'dispatcher' ? 'מוקדן' :
-                 user?.role === 'driver' ? 'נהג' :
-                 user?.role === 'warehouse' ? 'מחסנאי' :
-                 user?.role === 'sales' ? 'מכירות' :
-                 user?.role === 'customer_service' ? 'שירות' : user?.role}
+                {user?.role === 'infrastructure_owner' ? translations.roles.infrastructureOwner :
+                 user?.role === 'business_owner' ? translations.roles.businessOwner :
+                 user?.role === 'manager' ? translations.roles.manager :
+                 user?.role === 'dispatcher' ? translations.roles.dispatcher :
+                 user?.role === 'driver' ? translations.roles.driver :
+                 user?.role === 'warehouse' ? translations.roles.warehouse :
+                 user?.role === 'sales' ? translations.roles.sales :
+                 user?.role === 'customer_service' ? translations.roles.customerService : user?.role}
               </div>
             </div>
 
@@ -318,7 +319,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 style={{ color: colors.text.primary }}
               >
                 <span className="header-dropdown-button-icon">👤</span>
-                <span className="header-dropdown-button-text">{i18n.getTranslations().header.myProfile}</span>
+                <span className="header-dropdown-button-text">{translations.header.myProfile}</span>
               </button>
 
               <button
@@ -327,7 +328,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 style={{ color: colors.text.primary }}
               >
                 <span className="header-dropdown-button-icon">⚙️</span>
-                <span className="header-dropdown-button-text">{i18n.getTranslations().settings}</span>
+                <span className="header-dropdown-button-text">{translations.settings}</span>
               </button>
 
               <div
@@ -340,7 +341,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 className="header-dropdown-button logout"
               >
                 <span className="header-dropdown-button-icon">🚪</span>
-                <span className="header-dropdown-button-text">{i18n.getTranslations().header.logout}</span>
+                <span className="header-dropdown-button-text">{translations.header.logout}</span>
               </button>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
-import { hebrew } from '../lib/i18n';
+import { useI18n } from '../lib/i18n';
 import { useAppServices } from '../context/AppServicesContext';
 import { colors, spacing, navigation } from '../styles/design-system';
 
@@ -70,6 +70,7 @@ export function BottomNavigation({
 }: BottomNavigationProps) {
   const { theme, haptic } = useTelegramUI();
   const { currentBusinessId } = useAppServices();
+  const { translations } = useI18n();
 
   /**
    * 🔐 UNIFIED BOTTOM NAVIGATION
@@ -79,12 +80,12 @@ export function BottomNavigation({
     // ⛔ USER: Unassigned - View Only
     user: {
       tabs: [
-        { id: 'chat', label: 'צ\'אט', icon: '💬' },
-        { id: 'notifications', label: 'התראות', icon: '🔔' },
-        { id: 'tasks', label: 'משימות', icon: '✅' }
+        { id: 'chat', label: translations.chat, icon: '💬' },
+        { id: 'notifications', label: translations.notifications, icon: '🔔' },
+        { id: 'tasks', label: translations.tasks, icon: '✅' }
       ],
       action: {
-        label: 'פעולות',
+        label: translations.phrases.actions,
         icon: '⚡'
       }
     },
@@ -92,12 +93,12 @@ export function BottomNavigation({
     // 🏗️ INFRASTRUCTURE_OWNER: Platform administrator
     infrastructure_owner: {
       tabs: [
-        { id: 'chat', label: 'צ\'אט', icon: '💬' },
-        { id: 'notifications', label: 'התראות', icon: '🔔' },
-        { id: 'tasks', label: 'משימות', icon: '✅' }
+        { id: 'chat', label: translations.chat, icon: '💬' },
+        { id: 'notifications', label: translations.notifications, icon: '🔔' },
+        { id: 'tasks', label: translations.tasks, icon: '✅' }
       ],
       action: {
-        label: 'פעולות',
+        label: translations.phrases.actions,
         icon: '⚡'
       }
     },
@@ -105,12 +106,12 @@ export function BottomNavigation({
     // 👑 BUSINESS_OWNER: Full business access
     business_owner: {
       tabs: [
-        { id: 'chat', label: 'צ\'אט', icon: '💬' },
-        { id: 'notifications', label: 'התראות', icon: '🔔' },
-        { id: 'tasks', label: 'משימות', icon: '✅' }
+        { id: 'chat', label: translations.chat, icon: '💬' },
+        { id: 'notifications', label: translations.notifications, icon: '🔔' },
+        { id: 'tasks', label: translations.tasks, icon: '✅' }
       ],
       action: {
-        label: 'פעולות',
+        label: translations.phrases.actions,
         icon: '⚡'
       }
     },
@@ -118,12 +119,12 @@ export function BottomNavigation({
     // 📊 MANAGER: Full management
     manager: {
       tabs: [
-        { id: 'chat', label: 'צ\'אט', icon: '💬' },
-        { id: 'notifications', label: 'התראות', icon: '🔔' },
-        { id: 'tasks', label: 'משימות', icon: '✅' }
+        { id: 'chat', label: translations.chat, icon: '💬' },
+        { id: 'notifications', label: translations.notifications, icon: '🔔' },
+        { id: 'tasks', label: translations.tasks, icon: '✅' }
       ],
       action: {
-        label: 'פעולות',
+        label: translations.phrases.actions,
         icon: '⚡'
       }
     },
@@ -131,12 +132,12 @@ export function BottomNavigation({
     // 🚦 DISPATCHER: Route planning and driver assignment
     dispatcher: {
       tabs: [
-        { id: 'chat', label: 'צ\'אט', icon: '💬' },
-        { id: 'notifications', label: 'התראות', icon: '🔔' },
-        { id: 'tasks', label: 'משימות', icon: '✅' }
+        { id: 'chat', label: translations.chat, icon: '💬' },
+        { id: 'notifications', label: translations.notifications, icon: '🔔' },
+        { id: 'tasks', label: translations.tasks, icon: '✅' }
       ],
       action: {
-        label: 'פעולות',
+        label: translations.phrases.actions,
         icon: '⚡'
       }
     },
@@ -144,12 +145,12 @@ export function BottomNavigation({
     // 🛒 SALES: Order focused
     sales: {
       tabs: [
-        { id: 'chat', label: 'צ\'אט', icon: '💬' },
-        { id: 'notifications', label: 'התראות', icon: '🔔' },
-        { id: 'tasks', label: 'משימות', icon: '✅' }
+        { id: 'chat', label: translations.chat, icon: '💬' },
+        { id: 'notifications', label: translations.notifications, icon: '🔔' },
+        { id: 'tasks', label: translations.tasks, icon: '✅' }
       ],
       action: {
-        label: 'פעולות',
+        label: translations.phrases.actions,
         icon: '⚡'
       }
     },
@@ -157,12 +158,12 @@ export function BottomNavigation({
     // 🏷️ WAREHOUSE: Inventory focused
     warehouse: {
       tabs: [
-        { id: 'chat', label: 'צ\'אט', icon: '💬' },
-        { id: 'notifications', label: 'התראות', icon: '🔔' },
-        { id: 'tasks', label: 'משימות', icon: '✅' }
+        { id: 'chat', label: translations.chat, icon: '💬' },
+        { id: 'notifications', label: translations.notifications, icon: '🔔' },
+        { id: 'tasks', label: translations.tasks, icon: '✅' }
       ],
       action: {
-        label: 'פעולות',
+        label: translations.phrases.actions,
         icon: '⚡'
       }
     },
@@ -170,12 +171,12 @@ export function BottomNavigation({
     // 🚚 DRIVER: Delivery focused
     driver: {
       tabs: [
-        { id: 'chat', label: 'צ\'אט', icon: '💬' },
-        { id: 'notifications', label: 'התראות', icon: '🔔' },
-        { id: 'tasks', label: 'משימות', icon: '✅' }
+        { id: 'chat', label: translations.chat, icon: '💬' },
+        { id: 'notifications', label: translations.notifications, icon: '🔔' },
+        { id: 'tasks', label: translations.tasks, icon: '✅' }
       ],
       action: {
-        label: 'פעולות',
+        label: translations.phrases.actions,
         icon: '⚡'
       }
     },
@@ -183,12 +184,12 @@ export function BottomNavigation({
     // 📞 CUSTOMER_SERVICE: Support and order tracking
     customer_service: {
       tabs: [
-        { id: 'chat', label: 'צ\'אט', icon: '💬' },
-        { id: 'notifications', label: 'התראות', icon: '🔔' },
-        { id: 'tasks', label: 'משימות', icon: '✅' }
+        { id: 'chat', label: translations.chat, icon: '💬' },
+        { id: 'notifications', label: translations.notifications, icon: '🔔' },
+        { id: 'tasks', label: translations.tasks, icon: '✅' }
       ],
       action: {
-        label: 'פעולות',
+        label: translations.phrases.actions,
         icon: '⚡'
       }
     }

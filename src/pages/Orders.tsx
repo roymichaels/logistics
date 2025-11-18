@@ -20,6 +20,7 @@ import { Toast } from '../components/Toast';
 import { colors, commonStyles } from '../styles/design-system';
 import { ROYAL_STYLES, ROYAL_COLORS, getStatusColor } from '../styles/royalTheme';
 import { logger } from '../lib/logger';
+import { useI18n } from '../lib/i18n';
 
 interface OrdersProps {
   dataStore: FrontendDataStore;
@@ -35,6 +36,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showModeSelector, setShowModeSelector] = useState(false);
+  const { t, translations } = useI18n();
 
   const theme = telegram.themeParams;
   const dispatchOrchestrator = useMemo(() => new DispatchOrchestrator(dataStore), [dataStore]);
@@ -115,7 +117,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
   const handleCreateOrder = () => {
     // Check permissions
     if (!user || !['owner', 'manager', 'sales'].includes(user.role)) {
-      telegram.showAlert('אין לך הרשאה ליצור הזמנות');
+      telegram.showAlert(translations.errors.noPermission);
       return;
     }
 
@@ -129,7 +131,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
       <div style={commonStyles.pageContainer}>
         <div style={commonStyles.emptyState}>
           <div style={commonStyles.emptyStateIcon}>⏳</div>
-          <p style={commonStyles.emptyStateText}>טוען הזמנות...</p>
+          <p style={commonStyles.emptyStateText}>{translations.phrases.loadingOrders}</p>
         </div>
       </div>
     );

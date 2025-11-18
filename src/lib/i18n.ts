@@ -37,6 +37,12 @@ export interface Translations {
   my_zones: string;
   driver_status: string;
   dispatch_board: string;
+  channels: string;
+  profile: string;
+  notifications: string;
+  chat: string;
+  zones: string;
+  users: string;
 
   // Roles
   owner: string;
@@ -147,6 +153,27 @@ export interface Translations {
   errors: {
     loadFailed: string;
     switchFailed: string;
+    noPermission: string;
+    failed: string;
+    unknownError: string;
+  };
+
+  // Success messages
+  success: {
+    saved: string;
+    created: string;
+    updated: string;
+    deleted: string;
+  };
+
+  // Common phrases
+  phrases: {
+    loadingOrders: string;
+    loadingData: string;
+    noData: string;
+    user: string;
+    actions: string;
+    menu: string;
   };
 
   // Social Media Features
@@ -397,6 +424,12 @@ const hebrewTranslations: Translations = {
   my_zones: 'האזורים שלי',
   driver_status: 'סטטוס נהג',
   dispatch_board: 'מוקד תפעול',
+  channels: 'ערוצים',
+  profile: 'פרופיל',
+  notifications: 'התראות',
+  chat: 'צ\'אט',
+  zones: 'אזורים',
+  users: 'משתמשים',
 
   // Roles
   owner: 'בעלים',
@@ -507,6 +540,27 @@ const hebrewTranslations: Translations = {
   errors: {
     loadFailed: 'טעינת הנתונים נכשלה',
     switchFailed: 'מעבר בין עסקים נכשל',
+    noPermission: 'אין לך הרשאה',
+    failed: 'הפעולה נכשלה',
+    unknownError: 'שגיאה לא ידועה',
+  },
+
+  // Success messages
+  success: {
+    saved: 'נשמר בהצלחה',
+    created: 'נוצר בהצלחה',
+    updated: 'עודכן בהצלחה',
+    deleted: 'נמחק בהצלחה',
+  },
+
+  // Common phrases
+  phrases: {
+    loadingOrders: 'טוען הזמנות...',
+    loadingData: 'טוען נתונים...',
+    noData: 'אין נתונים',
+    user: 'משתמש',
+    actions: 'פעולות',
+    menu: 'תפריט',
   },
 
   // Social Media Features
@@ -827,6 +881,12 @@ const englishTranslations: Translations = {
   my_zones: 'My Zones',
   driver_status: 'Driver Status',
   dispatch_board: 'Dispatch Board',
+  channels: 'Channels',
+  profile: 'Profile',
+  notifications: 'Notifications',
+  chat: 'Chat',
+  zones: 'Zones',
+  users: 'Users',
 
   // Roles
   owner: 'Owner',
@@ -937,6 +997,27 @@ const englishTranslations: Translations = {
   errors: {
     loadFailed: 'Failed to load data',
     switchFailed: 'Failed to switch business',
+    noPermission: 'You do not have permission',
+    failed: 'Operation failed',
+    unknownError: 'Unknown error',
+  },
+
+  // Success messages
+  success: {
+    saved: 'Saved successfully',
+    created: 'Created successfully',
+    updated: 'Updated successfully',
+    deleted: 'Deleted successfully',
+  },
+
+  // Common phrases
+  phrases: {
+    loadingOrders: 'Loading orders...',
+    loadingData: 'Loading data...',
+    noData: 'No data',
+    user: 'User',
+    actions: 'Actions',
+    menu: 'Menu',
   },
 
   // Social Media Features
@@ -1390,3 +1471,46 @@ export const roleIcons = {
   customer_service: '📞',
   user: '👤',
 };
+
+// ============================================================================
+// React Hook for Components
+// ============================================================================
+
+/**
+ * React hook for accessing translations in components
+ * Usage: const { t, isRTL, formatDate } = useI18n();
+ */
+export function useI18n() {
+  const translations = i18n.getTranslations();
+  const isRTL = i18n.isRTL();
+  const language = i18n.getLanguage();
+
+  // Helper to get nested translation keys
+  const t = (key: string, ...path: string[]): string => {
+    if (path.length === 0) {
+      return translations[key] || key;
+    }
+
+    let value: any = translations[key];
+    for (const p of path) {
+      if (value && typeof value === 'object') {
+        value = value[p];
+      } else {
+        return key;
+      }
+    }
+    return typeof value === 'string' ? value : key;
+  };
+
+  return {
+    t,
+    translations,
+    isRTL,
+    language,
+    setLanguage: (lang: Language) => i18n.setLanguage(lang),
+    formatCurrency: language === 'he' ? formatCurrency : formatCurrencyEN,
+    formatDate: language === 'he' ? formatDate : formatDateEN,
+    formatTime: language === 'he' ? formatTime : formatTimeEN,
+    formatDateTime,
+  };
+}

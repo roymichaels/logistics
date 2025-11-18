@@ -1,10 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { hebrew } from '../lib/i18n';
-import { english } from '../lib/i18n';
+import { i18n, hebrew, english, type Language } from '../lib/i18n';
 import { supabase } from '../lib/supabaseClient';
 import { logger } from '../lib/logger';
-
-type Language = 'he' | 'en';
 
 interface LanguageContextType {
   language: Language;
@@ -26,7 +23,10 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   const [language, setLanguageState] = useState<Language>(() => {
     // Check localStorage first
     const stored = localStorage.getItem('app_language');
-    return (stored === 'en' || stored === 'he') ? stored : 'he'; // Default to Hebrew
+    const lang = (stored === 'en' || stored === 'he') ? stored : 'he'; // Default to Hebrew
+    // Initialize i18n service with stored language
+    i18n.setLanguage(lang);
+    return lang;
   });
 
   const translations = language === 'he' ? hebrew : english;
@@ -41,6 +41,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   // Save to localStorage and database when language changes
   const setLanguage = async (lang: Language) => {
     setLanguageState(lang);
+    i18n.setLanguage(lang); // Sync with i18n service
     localStorage.setItem('app_language', lang);
 
     // Try to save to database if user is logged in

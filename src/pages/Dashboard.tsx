@@ -19,7 +19,7 @@ import {
   RoyalDashboardZoneCoverage,
   RoyalDashboardChartPoint
 } from '../data/types';
-import { formatCurrency, hebrew } from '../lib/i18n';
+import { formatCurrency, useI18n } from '../lib/i18n';
 
 interface DashboardProps {
   dataStore: FrontendDataStore;
@@ -55,6 +55,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   const { mainButton, backButton, haptic } = useTelegramUI();
   const showSkeleton = useSkeleton(220);
   const hasTelegramSend = typeof window !== 'undefined' && !!window.Telegram?.WebApp?.sendData;
+  const { translations } = useI18n();
 
   const loadDashboard = useCallback(async () => {
     if (!dataStore) {
@@ -66,7 +67,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
       const profile = await dataStore.getProfile();
 
       if (!profile) {
-        setError('לא נמצא פרופיל משתמש');
+        setError(translations.errors.loadFailed);
         setLoading(false);
         return;
       }
@@ -84,10 +85,10 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
         : createRoyalFallback();
       setSnapshot(royalData);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'שגיאה לא ידועה';
+      const errorMessage = err instanceof Error ? err.message : translations.errors.unknownError;
       logger.error('Failed to load royal dashboard', err);
       setError(errorMessage);
-      Toast.error('שגיאה בטעינת לוח הבקרה');
+      Toast.error(translations.errors.loadFailed);
       setSnapshot(createRoyalFallback());
     } finally {
       setLoading(false);
