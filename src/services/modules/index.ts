@@ -15,6 +15,7 @@ export { ProductCatalogService } from './ProductCatalogService';
 export { CustomerService } from './CustomerService';
 export { CartService } from './CartService';
 export { OrderManagementService } from './OrderManagementService';
+export { StorefrontService } from './StorefrontService';
 
 export type {
   UserActiveContext,
@@ -65,3 +66,15 @@ export type {
   CreateOrderFromCartInput,
   OrderWithDetails
 } from './OrderManagementService';
+
+export type {
+  StorefrontSettings,
+  StorefrontPage,
+  StorefrontNavigation,
+  StorefrontBanner,
+  CreateStorefrontInput,
+  UpdateStorefrontInput,
+  CreatePageInput,
+  CreateNavigationInput,
+  CreateBannerInput
+} from './StorefrontService';
