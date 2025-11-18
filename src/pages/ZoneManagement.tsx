@@ -5,6 +5,7 @@ import { telegram } from '../lib/telegram';
 import { TelegramModal } from '../components/TelegramModal';
 import { ZoneManager } from '../components/ZoneManager';
 import { logger } from '../lib/logger';
+import { useI18n } from '../lib/i18n';
 
 interface ZoneManagementProps {
   dataStore: DataStore;
@@ -30,6 +31,7 @@ interface ZoneWithDrivers extends Zone {
 }
 
 export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
+  const { translations, isRTL } = useI18n();
   const [viewMode, setViewMode] = useState<ViewMode>('manager');
   const [zones, setZones] = useState<ZoneWithDrivers[]>([]);
   const [drivers, setDrivers] = useState<User[]>([]);
@@ -86,7 +88,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
       setZones(zonesWithDrivers);
     } catch (error) {
       logger.error('Failed to load zones:', error);
-      Toast.error('שגיאה בטעינת אזורים');
+      Toast.error(translations.zoneManagementPage.errorLoadingZones);
     } finally {
       setLoading(false);
     }
@@ -100,13 +102,13 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
     try {
       telegram.hapticFeedback('medium');
       await dataStore.assignDriverToZone(selectedDriverId, selectedZone.id);
-      Toast.success('נהג שוייך לאזור בהצלחה');
+      Toast.success(translations.zoneManagementPage.driverAssignedSuccessfully);
       setShowAssignModal(false);
       setSelectedDriverId('');
       await loadData();
     } catch (error) {
       logger.error('Failed to assign driver:', error);
-      Toast.error('שגיאה בשיוך נהג');
+      Toast.error(translations.zoneManagementPage.errorAssigningDriver);
     }
   };
 
@@ -116,11 +118,11 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
     try {
       telegram.hapticFeedback('medium');
       await dataStore.unassignDriverFromZone(driverTelegramId, zoneId);
-      Toast.success('נהג הוסר מהאזור');
+      Toast.success(translations.zoneManagementPage.driverRemovedSuccessfully);
       await loadData();
     } catch (error) {
       logger.error('Failed to unassign driver:', error);
-      Toast.error('שגיאה בהסרת נהג');
+      Toast.error(translations.zoneManagementPage.errorRemovingDriver);
     }
   };
 
@@ -140,7 +142,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
           color: ROYAL_COLORS.text
         }}
       >
-        טוען...
+        {translations.zoneManagementPage.loading}
       </div>
     );
   }
@@ -197,9 +199,9 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
               🗺️
             </div>
             <div>
-              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>ניהול אזורים</h1>
+              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>{translations.zoneManagementPage.title}</h1>
               <p style={{ margin: '4px 0 0', color: ROYAL_COLORS.muted, fontSize: '14px' }}>
-                שיוך נהגים לאזורי פעילות
+                {translations.zoneManagementPage.subtitle}
               </p>
             </div>
           </div>
@@ -223,7 +225,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                 boxShadow: viewMode === 'manager' ? '0 4px 12px rgba(77, 208, 225, 0.3)' : 'none'
               }}
             >
-              ניהול אזורים
+              {translations.zoneManagementPage.zoneManagement}
             </button>
             <button
               onClick={() => {
@@ -243,7 +245,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                 boxShadow: viewMode === 'assignments' ? '0 4px 12px rgba(77, 208, 225, 0.3)' : 'none'
               }}
             >
-              שיוך נהגים
+              {translations.zoneManagementPage.assignDrivers}
             </button>
           </div>
         </header>
@@ -271,7 +273,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                 <div>
                   <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '700' }}>{zone.name}</h2>
                   <p style={{ margin: '4px 0 0', color: ROYAL_COLORS.muted, fontSize: '14px' }}>
-                    {zone.city} • {zone.assigned_drivers.length} נהגים משוייכים
+                    {zone.city} • {zone.assigned_drivers.length} {translations.zoneManagementPage.assignedDrivers}
                   </p>
                 </div>
                 <button
@@ -292,7 +294,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                     boxShadow: '0 8px 16px rgba(77, 208, 225, 0.3)'
                   }}
                 >
-                  + שייך נהג
+                  {translations.zoneManagementPage.assignDriver}
                 </button>
               </div>
 
@@ -307,7 +309,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                     border: '1px dashed rgba(29, 155, 240, 0.3)'
                   }}
                 >
-                  אין נהגים משוייכים לאזור זה
+                  {translations.zoneManagementPage.noDriversAssigned}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -350,7 +352,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                       <button
                         onClick={() => {
                           telegram.hapticFeedback('selection');
-                          telegram.showConfirm('האם להסיר נהג זה מהאזור?').then((confirmed) => {
+                          telegram.showConfirm(translations.zoneManagementPage.confirmRemoveDriver).then((confirmed) => {
                             if (confirmed) {
                               handleUnassignDriver(zone.id, driver.telegram_id);
                             }
@@ -367,7 +369,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                           cursor: 'pointer'
                         }}
                       >
-                        הסר
+                        {translations.zoneManagementPage.remove}
                       </button>
                     </div>
                   ))}
@@ -384,14 +386,14 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
           setShowAssignModal(false);
           setSelectedDriverId('');
         }}
-        title={`שיוך נהג ל${selectedZone?.name || ''}`}
+        title={`${translations.zoneManagementPage.assignDriverToZone}${selectedZone?.name || ''}`}
         primaryButton={{
-          text: 'שייך',
+          text: translations.zoneManagementPage.assign,
           onClick: handleAssignDriver,
           disabled: !selectedDriverId
         }}
         secondaryButton={{
-          text: 'ביטול',
+          text: translations.zoneManagementPage.cancel,
           onClick: () => {
             setShowAssignModal(false);
             setSelectedDriverId('');
@@ -409,7 +411,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                 borderRadius: '12px'
               }}
             >
-              כל הנהגים כבר משוייכים לאזור זה
+              {translations.zoneManagementPage.allDriversAssigned}
             </div>
           ) : (
             availableDriversForZone.map((driver) => (

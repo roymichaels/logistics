@@ -553,6 +553,62 @@ export interface Translations {
     activeZoneUpdate: string;
   };
 
+  zoneManagementPage: {
+    title: string;
+    subtitle: string;
+    loading: string;
+    errorLoadingZones: string;
+    zoneManagement: string;
+    assignDrivers: string;
+    assignedDrivers: string;
+    assignDriver: string;
+    noDriversAssigned: string;
+    remove: string;
+    confirmRemoveDriver: string;
+    assignDriverToZone: string;
+    assign: string;
+    cancel: string;
+    allDriversAssigned: string;
+    driverAssignedSuccessfully: string;
+    errorAssigningDriver: string;
+    driverRemovedSuccessfully: string;
+    errorRemovingDriver: string;
+    createZone: string;
+    editZone: string;
+    deleteZone: string;
+    zoneDetails: string;
+    boundaries: string;
+    activeDrivers: string;
+    coverage: string;
+    capacity: string;
+    utilization: string;
+  };
+
+  driversManagementPage: {
+    title: string;
+    loading: string;
+    errorLoadingDrivers: string;
+    driversOutOf: string;
+    refresh: string;
+    refreshing: string;
+    filter: string;
+    totalDrivers: string;
+    online: string;
+    inDelivery: string;
+    averageRating: string;
+    searchPlaceholder: string;
+    all: string;
+    offline: string;
+    busy: string;
+    available: string;
+    onBreak: string;
+    list: string;
+    map: string;
+    analytics: string;
+    noDriversFound: string;
+    tryChangingFilter: string;
+  };
+
   // User Management
   userManagement: {
     title: string;
@@ -1549,6 +1605,62 @@ const hebrewTranslations: Translations = {
     activeZoneUpdate: 'עדכון אזור פעיל',
   },
 
+  zoneManagementPage: {
+    title: 'ניהול אזורים',
+    subtitle: 'שיוך נהגים לאזורי פעילות',
+    loading: 'טוען...',
+    errorLoadingZones: 'שגיאה בטעינת אזורים',
+    zoneManagement: 'ניהול אזורים',
+    assignDrivers: 'שיוך נהגים',
+    assignedDrivers: 'נהגים משוייכים',
+    assignDriver: '+ שייך נהג',
+    noDriversAssigned: 'אין נהגים משוייכים לאזור זה',
+    remove: 'הסר',
+    confirmRemoveDriver: 'האם להסיר נהג זה מהאזור?',
+    assignDriverToZone: 'שיוך נהג ל',
+    assign: 'שייך',
+    cancel: 'ביטול',
+    allDriversAssigned: 'כל הנהגים כבר משוייכים לאזור זה',
+    driverAssignedSuccessfully: 'נהג שוייך לאזור בהצלחה',
+    errorAssigningDriver: 'שגיאה בשיוך נהג',
+    driverRemovedSuccessfully: 'נהג הוסר מהאזור',
+    errorRemovingDriver: 'שגיאה בהסרת נהג',
+    createZone: 'צור אזור',
+    editZone: 'ערוך אזור',
+    deleteZone: 'מחק אזור',
+    zoneDetails: 'פרטי אזור',
+    boundaries: 'גבולות',
+    activeDrivers: 'נהגים פעילים',
+    coverage: 'כיסוי',
+    capacity: 'קיבולת',
+    utilization: 'ניצולת',
+  },
+
+  driversManagementPage: {
+    title: 'ניהול נהגים',
+    loading: 'טוען נהגים...',
+    errorLoadingDrivers: 'שגיאה בטעינת נהגים',
+    driversOutOf: 'נהגים מתוך',
+    refresh: 'רענן',
+    refreshing: '⟳',
+    filter: 'סינון',
+    totalDrivers: 'סך נהגים',
+    online: 'מקוונים',
+    inDelivery: 'במשלוח',
+    averageRating: 'דירוג ממוצע',
+    searchPlaceholder: 'חפש לפי שם, טלפון או רכב...',
+    all: 'הכל',
+    offline: 'לא מקוון',
+    busy: 'עסוק',
+    available: 'זמין',
+    onBreak: 'בהפסקה',
+    list: 'רשימה',
+    map: 'מפה',
+    analytics: 'ניתוח',
+    noDriversFound: 'לא נמצאו נהגים',
+    tryChangingFilter: 'נסה לשנות את הסינון או החיפוש',
+  },
+
   // User Management
   userManagement: {
     title: 'ניהול משתמשים',
@@ -1834,20 +1946,6 @@ const hebrewTranslations: Translations = {
     urgentOrders: 'הזמנות דחופות',
     standardOrders: 'הזמנות רגילות',
     bulkAssign: 'הקצאה מרובה',
-  },
-
-  // Zone Management
-  zoneManagementPage: {
-    createZone: 'צור אזור',
-    editZone: 'ערוך אזור',
-    deleteZone: 'מחק אזור',
-    zoneDetails: 'פרטי אזור',
-    boundaries: 'גבולות',
-    activeDrivers: 'נהגים פעילים',
-    coverage: 'כיסוי',
-    capacity: 'קיבולת',
-    utilization: 'ניצולת',
-    assignDrivers: 'הקצה נהגים',
   },
 
   // Freelancer Driver
@@ -2618,6 +2716,62 @@ const englishTranslations: Translations = {
     activeZoneUpdate: 'Active zone update',
   },
 
+  zoneManagementPage: {
+    title: 'Zone Management',
+    subtitle: 'Assign drivers to activity zones',
+    loading: 'Loading...',
+    errorLoadingZones: 'Error loading zones',
+    zoneManagement: 'Zone Management',
+    assignDrivers: 'Assign Drivers',
+    assignedDrivers: 'Assigned Drivers',
+    assignDriver: '+ Assign Driver',
+    noDriversAssigned: 'No drivers assigned to this zone',
+    remove: 'Remove',
+    confirmRemoveDriver: 'Remove this driver from the zone?',
+    assignDriverToZone: 'Assign Driver to',
+    assign: 'Assign',
+    cancel: 'Cancel',
+    allDriversAssigned: 'All drivers are already assigned to this zone',
+    driverAssignedSuccessfully: 'Driver assigned to zone successfully',
+    errorAssigningDriver: 'Error assigning driver',
+    driverRemovedSuccessfully: 'Driver removed from zone',
+    errorRemovingDriver: 'Error removing driver',
+    createZone: 'Create Zone',
+    editZone: 'Edit Zone',
+    deleteZone: 'Delete Zone',
+    zoneDetails: 'Zone Details',
+    boundaries: 'Boundaries',
+    activeDrivers: 'Active Drivers',
+    coverage: 'Coverage',
+    capacity: 'Capacity',
+    utilization: 'Utilization',
+  },
+
+  driversManagementPage: {
+    title: 'Driver Management',
+    loading: 'Loading drivers...',
+    errorLoadingDrivers: 'Error loading drivers',
+    driversOutOf: 'drivers out of',
+    refresh: 'Refresh',
+    refreshing: '⟳',
+    filter: 'Filter',
+    totalDrivers: 'Total Drivers',
+    online: 'Online',
+    inDelivery: 'In Delivery',
+    averageRating: 'Average Rating',
+    searchPlaceholder: 'Search by name, phone or vehicle...',
+    all: 'All',
+    offline: 'Offline',
+    busy: 'Busy',
+    available: 'Available',
+    onBreak: 'On Break',
+    list: 'List',
+    map: 'Map',
+    analytics: 'Analytics',
+    noDriversFound: 'No drivers found',
+    tryChangingFilter: 'Try changing the filter or search',
+  },
+
   // User Management
   userManagement: {
     title: 'User Management',
@@ -2903,20 +3057,6 @@ const englishTranslations: Translations = {
     urgentOrders: 'Urgent Orders',
     standardOrders: 'Standard Orders',
     bulkAssign: 'Bulk Assign',
-  },
-
-  // Zone Management
-  zoneManagementPage: {
-    createZone: 'Create Zone',
-    editZone: 'Edit Zone',
-    deleteZone: 'Delete Zone',
-    zoneDetails: 'Zone Details',
-    boundaries: 'Boundaries',
-    activeDrivers: 'Active Drivers',
-    coverage: 'Coverage',
-    capacity: 'Capacity',
-    utilization: 'Utilization',
-    assignDrivers: 'Assign Drivers',
   },
 
   // Freelancer Driver
