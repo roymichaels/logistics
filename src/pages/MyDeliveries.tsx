@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { DataStore } from '../data/types';
+import { useI18n } from '../lib/i18n';
 
 interface MyDeliveriesProps {
   dataStore: DataStore;
@@ -18,6 +19,7 @@ interface Delivery {
 
 export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
   const { theme, backButton, haptic } = useTelegramUI();
+  const { translations, isRTL } = useI18n();
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const hintColor = theme.hint_color || '#999999';
 
@@ -60,9 +62,9 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
   };
 
   const statusLabel = {
-    assigned: 'מוכן ליציאה',
-    in_progress: 'בדרך',
-    delivered: 'סופק'
+    assigned: translations.myDeliveriesPage.readyToGo,
+    in_progress: translations.myDeliveriesPage.onTheWay,
+    delivered: translations.myDeliveriesPage.delivered
   } as const;
 
   const statusColor = {
@@ -78,12 +80,12 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
         backgroundColor: theme.bg_color,
         color: theme.text_color,
         padding: '20px',
-        direction: 'rtl'
+        direction: isRTL ? 'rtl' : 'ltr'
       }}
     >
-      <h1 style={{ fontSize: '24px', margin: '0 0 16px' }}>משלוחים שלי</h1>
+      <h1 style={{ fontSize: '24px', margin: '0 0 16px' }}>{translations.myDeliveriesPage.title}</h1>
       <p style={{ margin: '0 0 24px', color: hintColor }}>
-        המסלול היומי שלך עם סטטוס עדכני ומידע על הלקוחות.
+        {translations.myDeliveriesPage.subtitle}
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -102,7 +104,7 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
               <span style={{ fontSize: '12px', color: hintColor }}>{delivery.id}</span>
             </div>
             <div style={{ marginTop: '8px' }}>{delivery.address}</div>
-            <div style={{ marginTop: '4px', color: hintColor }}>חלון אספקה: {delivery.window}</div>
+            <div style={{ marginTop: '4px', color: hintColor }}>{translations.myDeliveriesPage.deliveryWindow}: {delivery.window}</div>
             <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {(['assigned', 'in_progress', 'delivered'] as Delivery['status'][]).map((status) => (
                 <button

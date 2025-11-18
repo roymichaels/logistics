@@ -7,6 +7,7 @@ import { Toast } from '../components/Toast';
 import { telegram } from '../lib/telegram';
 import { useRoleTheme } from '../hooks/useRoleTheme';
 import { logger } from '../lib/logger';
+import { useI18n } from '../lib/i18n';
 
 interface DriverDashboardProps {
   dataStore: DataStore;
@@ -28,6 +29,7 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
 
   const theme = telegram.themeParams;
   const { colors, styles } = useRoleTheme();
+  const { translations } = useI18n();
 
   const loadDriverData = useCallback(async () => {
     try {
@@ -35,7 +37,7 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
       setUser(profile);
 
       if (profile.role !== 'driver') {
-        Toast.error('דף זה זמין לנהגים בלבד');
+        Toast.error(translations.driverDashboardExtended.thisPageForDriversOnly);
         return;
       }
 
@@ -75,7 +77,7 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
       }
     } catch (error) {
       logger.error('Failed to load driver data:', error);
-      Toast.error('שגיאה בטעינת נתונים');
+      Toast.error(translations.driverDashboardExtended.errorLoadingData);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -187,10 +189,10 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
       await driverService.setDriverAvailability(user.telegram_id, newStatus);
       setIsOnline(newStatus);
       telegram.hapticFeedback('selection');
-      Toast.success(newStatus ? 'עברת למצב מקוון' : 'עברת למצב לא מקוון');
+      Toast.success(newStatus ? translations.driverDashboardExtended.wentOnline : translations.driverDashboardExtended.wentOffline);
     } catch (error) {
       logger.error('Failed to toggle online status:', error);
-      Toast.error('שגיאה בשינוי סטטוס');
+      Toast.error(translations.driverDashboardExtended.statusChangeError);
     }
   };
 
@@ -204,24 +206,24 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
     try {
       await dataStore.updateOrder?.(orderId, { status: newStatus });
       telegram.hapticFeedback('notification', 'success');
-      Toast.success('סטטוס הזמנה עודכן');
+      Toast.success(translations.success.updated);
       await loadDriverData();
     } catch (error) {
       logger.error('Failed to update order status:', error);
-      Toast.error('שגיאה בעדכון סטטוס');
+      Toast.error(translations.errors.failed);
     }
   };
 
   const getEarningsData = () => {
-    if (!stats) return { amount: 0, label: 'היום' };
+    if (!stats) return { amount: 0, label: translations.dashboardCommon.today };
 
     switch (earningsView) {
       case 'week':
-        return { amount: stats.revenue_today * 7, label: 'השבוע' }; // Simplified - should use actual weekly data
+        return { amount: stats.revenue_today * 7, label: translations.dashboardCommon.thisWeek }; // Simplified - should use actual weekly data
       case 'month':
-        return { amount: stats.revenue_today * 30, label: 'החודש' }; // Simplified - should use actual monthly data
+        return { amount: stats.revenue_today * 30, label: translations.dashboardCommon.thisMonth }; // Simplified - should use actual monthly data
       default:
-        return { amount: stats.revenue_today, label: 'היום' };
+        return { amount: stats.revenue_today, label: translations.dashboardCommon.today };
     }
   };
 
@@ -229,7 +231,7 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
     return (
       <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚗</div>
-        <div style={{ color: colors.muted }}>טוען לוח בקרה...</div>
+        <div style={{ color: colors.muted }}>{translations.common.loading}</div>
       </div>
     );
   }
@@ -238,7 +240,7 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
     return (
       <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>🚫</div>
-        <div style={{ color: colors.error }}>אין גישה - נהגים בלבד</div>
+        <div style={{ color: colors.error }}>{translations.driverDashboardExtended.thisPageForDriversOnly}</div>
       </div>
     );
   }

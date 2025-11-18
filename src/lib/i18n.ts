@@ -671,6 +671,148 @@ export interface Translations {
     noBusinesses: string;
   };
 
+  // My Deliveries
+  myDeliveriesPage: {
+    title: string;
+    subtitle: string;
+    deliveryId: string;
+    customer: string;
+    address: string;
+    deliveryWindow: string;
+    readyToGo: string;
+    onTheWay: string;
+    delivered: string;
+    noDeliveries: string;
+  };
+
+  // Driver Dashboard Extended
+  driverDashboardExtended: {
+    toggleOnline: string;
+    goOnline: string;
+    goOffline: string;
+    statusOnline: string;
+    statusOffline: string;
+    todayEarnings: string;
+    weekEarnings: string;
+    monthEarnings: string;
+    lastLocationUpdate: string;
+    updateLocation: string;
+    thisPageForDriversOnly: string;
+    errorLoadingData: string;
+    statusChangeError: string;
+    wentOnline: string;
+    wentOffline: string;
+    acceptingOrders: string;
+    notAcceptingOrders: string;
+    hello: string;
+    readyForNextDelivery: string;
+    refresh: string;
+    onlineAvailable: string;
+    offlineUnavailable: string;
+    willReceiveNotifications: string;
+    willNotReceiveOrders: string;
+    lastLocationUpdateAt: string;
+    close: string;
+    open: string;
+    earnings: string;
+    earningsForPeriod: string;
+    baseSalary: string;
+    tips: string;
+    bonuses: string;
+    active: string;
+    completedToday: string;
+    rating: string;
+    activeHours: string;
+    activeOrders: string;
+    noOrdersNow: string;
+    youAreOffline: string;
+    nextOrderWillAppear: string;
+    goOnlineToReceiveOrders: string;
+  };
+
+  // Dispatch Board Extended
+  dispatchBoardExtended: {
+    autoAssign: string;
+    manualAssign: string;
+    orderQueue: string;
+    driverMap: string;
+    filters: string;
+    priority: string;
+    urgentOrders: string;
+    standardOrders: string;
+    bulkAssign: string;
+  };
+
+  // Zone Management
+  zoneManagementPage: {
+    createZone: string;
+    editZone: string;
+    deleteZone: string;
+    zoneDetails: string;
+    boundaries: string;
+    activeDrivers: string;
+    coverage: string;
+    capacity: string;
+    utilization: string;
+    assignDrivers: string;
+  };
+
+  // Freelancer Driver
+  freelancerDriverPage: {
+    title: string;
+    marketplace: string;
+    availableOrders: string;
+    myAcceptedOrders: string;
+    earnings: string;
+    rating: string;
+    acceptOrder: string;
+    viewDetails: string;
+    noAvailableOrders: string;
+  };
+
+  // Infrastructure Owner Dashboard
+  infrastructureDashboardPage: {
+    title: string;
+    overview: string;
+    totalBusinesses: string;
+    activeDrivers: string;
+    warehouseCapacity: string;
+    systemHealth: string;
+    manageInfrastructure: string;
+    viewMetrics: string;
+  };
+
+  // Example Dashboard
+  exampleDashboardPage: {
+    title: string;
+    sampleData: string;
+    demoMode: string;
+    exampleMetrics: string;
+    testFeatures: string;
+  };
+
+  // Dashboard Common
+  dashboardCommon: {
+    metrics: string;
+    kpis: string;
+    charts: string;
+    recentActivity: string;
+    quickActions: string;
+    viewAll: string;
+    last7Days: string;
+    last30Days: string;
+    thisMonth: string;
+    thisWeek: string;
+    today: string;
+    total: string;
+    active: string;
+    pending: string;
+    growth: string;
+    change: string;
+    vs: string;
+    lastPeriod: string;
+  };
+
   [key: string]: string | any;
 }
 
@@ -1426,6 +1568,148 @@ const hebrewTranslations: Translations = {
     manageBusiness: 'נהל עסק',
     businessSettings: 'הגדרות עסק',
     noBusinesses: 'אין עסקים',
+  },
+
+  // My Deliveries
+  myDeliveriesPage: {
+    title: 'המשלוחים שלי',
+    subtitle: 'המסלול היומי שלך עם סטטוס עדכני ומידע על הלקוחות',
+    deliveryId: 'מזהה משלוח',
+    customer: 'לקוח',
+    address: 'כתובת',
+    deliveryWindow: 'חלון אספקה',
+    readyToGo: 'מוכן ליציאה',
+    onTheWay: 'בדרך',
+    delivered: 'סופק',
+    noDeliveries: 'אין משלוחים',
+  },
+
+  // Driver Dashboard Extended
+  driverDashboardExtended: {
+    toggleOnline: 'שנה סטטוס',
+    goOnline: 'עבור למצב מקוון',
+    goOffline: 'עבור למצב לא מקוון',
+    statusOnline: 'מקוון',
+    statusOffline: 'לא מקוון',
+    todayEarnings: 'רווחים היום',
+    weekEarnings: 'רווחים השבוע',
+    monthEarnings: 'רווחים החודש',
+    lastLocationUpdate: 'עדכון מיקום אחרון',
+    updateLocation: 'עדכן מיקום',
+    thisPageForDriversOnly: 'דף זה זמין לנהגים בלבד',
+    errorLoadingData: 'שגיאה בטעינת נתונים',
+    statusChangeError: 'שגיאה בשינוי סטטוס',
+    wentOnline: 'עברת למצב מקוון',
+    wentOffline: 'עברת למצב לא מקוון',
+    acceptingOrders: 'מקבל הזמנות',
+    notAcceptingOrders: 'לא מקבל הזמנות',
+    hello: 'שלום',
+    readyForNextDelivery: 'מוכן למשלוח הבא?',
+    refresh: 'רענן',
+    onlineAvailable: 'מקוון - זמין להזמנות',
+    offlineUnavailable: 'לא מקוון',
+    willReceiveNotifications: 'תקבל התראות על הזמנות חדשות',
+    willNotReceiveOrders: 'לא תקבל הזמנות חדשות',
+    lastLocationUpdateAt: 'עדכון מיקום אחרון',
+    close: 'סגור',
+    open: 'פתוח',
+    earnings: 'הכנסות',
+    earningsForPeriod: 'הכנסות',
+    baseSalary: 'משכורת בסיס',
+    tips: 'טיפים',
+    bonuses: 'בונוסים',
+    active: 'פעילות',
+    completedToday: 'הושלמו היום',
+    rating: 'דירוג',
+    activeHours: 'שעות פעילות',
+    activeOrders: 'הזמנות פעילות',
+    noOrdersNow: 'אין הזמנות כרגע',
+    youAreOffline: 'אתה לא מקוון',
+    nextOrderWillAppear: 'ההזמנה הבאה תופיע כאן בקרוב',
+    goOnlineToReceiveOrders: 'עבור למצב מקוון כדי לקבל הזמנות',
+  },
+
+  // Dispatch Board Extended
+  dispatchBoardExtended: {
+    autoAssign: 'הקצאה אוטומטית',
+    manualAssign: 'הקצאה ידנית',
+    orderQueue: 'תור הזמנות',
+    driverMap: 'מפת נהגים',
+    filters: 'סינונים',
+    priority: 'עדיפות',
+    urgentOrders: 'הזמנות דחופות',
+    standardOrders: 'הזמנות רגילות',
+    bulkAssign: 'הקצאה מרובה',
+  },
+
+  // Zone Management
+  zoneManagementPage: {
+    createZone: 'צור אזור',
+    editZone: 'ערוך אזור',
+    deleteZone: 'מחק אזור',
+    zoneDetails: 'פרטי אזור',
+    boundaries: 'גבולות',
+    activeDrivers: 'נהגים פעילים',
+    coverage: 'כיסוי',
+    capacity: 'קיבולת',
+    utilization: 'ניצולת',
+    assignDrivers: 'הקצה נהגים',
+  },
+
+  // Freelancer Driver
+  freelancerDriverPage: {
+    title: 'נהג עצמאי',
+    marketplace: 'שוק הזמנות',
+    availableOrders: 'הזמנות זמינות',
+    myAcceptedOrders: 'ההזמנות שלי',
+    earnings: 'רווחים',
+    rating: 'דירוג',
+    acceptOrder: 'קבל הזמנה',
+    viewDetails: 'צפה בפרטים',
+    noAvailableOrders: 'אין הזמנות זמינות',
+  },
+
+  // Infrastructure Owner Dashboard
+  infrastructureDashboardPage: {
+    title: 'לוח בקרה תשתית',
+    overview: 'סקירה כללית',
+    totalBusinesses: 'סה״כ עסקים',
+    activeDrivers: 'נהגים פעילים',
+    warehouseCapacity: 'קיבולת מחסן',
+    systemHealth: 'תקינות מערכת',
+    manageInfrastructure: 'נהל תשתית',
+    viewMetrics: 'צפה במדדים',
+  },
+
+  // Example Dashboard
+  exampleDashboardPage: {
+    title: 'לוח בקרה לדוגמה',
+    sampleData: 'נתונים לדוגמה',
+    demoMode: 'מצב הדגמה',
+    exampleMetrics: 'מדדים לדוגמה',
+    testFeatures: 'בדיקת תכונות',
+  },
+
+  // Dashboard Common
+  dashboardCommon: {
+    metrics: 'מדדים',
+    kpis: 'מדדי ביצוע',
+    charts: 'גרפים',
+    recentActivity: 'פעילות אחרונה',
+    quickActions: 'פעולות מהירות',
+    viewAll: 'צפה בהכל',
+    last7Days: '7 ימים אחרונים',
+    last30Days: '30 ימים אחרונים',
+    thisMonth: 'החודש',
+    thisWeek: 'השבוע',
+    today: 'היום',
+    total: 'סה״כ',
+    active: 'פעיל',
+    pending: 'ממתין',
+    growth: 'גידול',
+    change: 'שינוי',
+    vs: 'לעומת',
+    lastPeriod: 'תקופה קודמת',
   },
 
   // Landing page translations - will be added below
@@ -2256,6 +2540,148 @@ const englishTranslations: Translations = {
     manageBusiness: 'Manage Business',
     businessSettings: 'Business Settings',
     noBusinesses: 'No Businesses',
+  },
+
+  // My Deliveries
+  myDeliveriesPage: {
+    title: 'My Deliveries',
+    subtitle: 'Your daily route with current status and customer information',
+    deliveryId: 'Delivery ID',
+    customer: 'Customer',
+    address: 'Address',
+    deliveryWindow: 'Delivery Window',
+    readyToGo: 'Ready to Go',
+    onTheWay: 'On the Way',
+    delivered: 'Delivered',
+    noDeliveries: 'No Deliveries',
+  },
+
+  // Driver Dashboard Extended
+  driverDashboardExtended: {
+    toggleOnline: 'Toggle Status',
+    goOnline: 'Go Online',
+    goOffline: 'Go Offline',
+    statusOnline: 'Online',
+    statusOffline: 'Offline',
+    todayEarnings: 'Today\'s Earnings',
+    weekEarnings: 'Week Earnings',
+    monthEarnings: 'Month Earnings',
+    lastLocationUpdate: 'Last Location Update',
+    updateLocation: 'Update Location',
+    thisPageForDriversOnly: 'This page is for drivers only',
+    errorLoadingData: 'Error loading data',
+    statusChangeError: 'Error changing status',
+    wentOnline: 'Went online',
+    wentOffline: 'Went offline',
+    acceptingOrders: 'Accepting orders',
+    notAcceptingOrders: 'Not accepting orders',
+    hello: 'Hello',
+    readyForNextDelivery: 'Ready for the next delivery?',
+    refresh: 'Refresh',
+    onlineAvailable: 'Online - Available for orders',
+    offlineUnavailable: 'Offline',
+    willReceiveNotifications: 'You will receive notifications for new orders',
+    willNotReceiveOrders: 'You will not receive new orders',
+    lastLocationUpdateAt: 'Last location update',
+    close: 'Close',
+    open: 'Open',
+    earnings: 'Earnings',
+    earningsForPeriod: 'Earnings',
+    baseSalary: 'Base Salary',
+    tips: 'Tips',
+    bonuses: 'Bonuses',
+    active: 'Active',
+    completedToday: 'Completed Today',
+    rating: 'Rating',
+    activeHours: 'Active Hours',
+    activeOrders: 'Active Orders',
+    noOrdersNow: 'No orders right now',
+    youAreOffline: 'You are offline',
+    nextOrderWillAppear: 'The next order will appear here soon',
+    goOnlineToReceiveOrders: 'Go online to receive orders',
+  },
+
+  // Dispatch Board Extended
+  dispatchBoardExtended: {
+    autoAssign: 'Auto Assign',
+    manualAssign: 'Manual Assign',
+    orderQueue: 'Order Queue',
+    driverMap: 'Driver Map',
+    filters: 'Filters',
+    priority: 'Priority',
+    urgentOrders: 'Urgent Orders',
+    standardOrders: 'Standard Orders',
+    bulkAssign: 'Bulk Assign',
+  },
+
+  // Zone Management
+  zoneManagementPage: {
+    createZone: 'Create Zone',
+    editZone: 'Edit Zone',
+    deleteZone: 'Delete Zone',
+    zoneDetails: 'Zone Details',
+    boundaries: 'Boundaries',
+    activeDrivers: 'Active Drivers',
+    coverage: 'Coverage',
+    capacity: 'Capacity',
+    utilization: 'Utilization',
+    assignDrivers: 'Assign Drivers',
+  },
+
+  // Freelancer Driver
+  freelancerDriverPage: {
+    title: 'Freelancer Driver',
+    marketplace: 'Order Marketplace',
+    availableOrders: 'Available Orders',
+    myAcceptedOrders: 'My Accepted Orders',
+    earnings: 'Earnings',
+    rating: 'Rating',
+    acceptOrder: 'Accept Order',
+    viewDetails: 'View Details',
+    noAvailableOrders: 'No Available Orders',
+  },
+
+  // Infrastructure Owner Dashboard
+  infrastructureDashboardPage: {
+    title: 'Infrastructure Dashboard',
+    overview: 'Overview',
+    totalBusinesses: 'Total Businesses',
+    activeDrivers: 'Active Drivers',
+    warehouseCapacity: 'Warehouse Capacity',
+    systemHealth: 'System Health',
+    manageInfrastructure: 'Manage Infrastructure',
+    viewMetrics: 'View Metrics',
+  },
+
+  // Example Dashboard
+  exampleDashboardPage: {
+    title: 'Example Dashboard',
+    sampleData: 'Sample Data',
+    demoMode: 'Demo Mode',
+    exampleMetrics: 'Example Metrics',
+    testFeatures: 'Test Features',
+  },
+
+  // Dashboard Common
+  dashboardCommon: {
+    metrics: 'Metrics',
+    kpis: 'KPIs',
+    charts: 'Charts',
+    recentActivity: 'Recent Activity',
+    quickActions: 'Quick Actions',
+    viewAll: 'View All',
+    last7Days: 'Last 7 Days',
+    last30Days: 'Last 30 Days',
+    thisMonth: 'This Month',
+    thisWeek: 'This Week',
+    today: 'Today',
+    total: 'Total',
+    active: 'Active',
+    pending: 'Pending',
+    growth: 'Growth',
+    change: 'Change',
+    vs: 'vs',
+    lastPeriod: 'Last Period',
   },
 
   // Landing page translations - will be added below
