@@ -12,6 +12,9 @@ export { DriverService } from './DriverService';
 export { OrderService } from './OrderService';
 export { ContextService } from './ContextService';
 export { ProductCatalogService } from './ProductCatalogService';
+export { CustomerService } from './CustomerService';
+export { CartService } from './CartService';
+export { OrderManagementService } from './OrderManagementService';
 
 export type {
   UserActiveContext,
@@ -33,3 +36,32 @@ export type {
   CreateVariantInput,
   CreateReviewInput
 } from './ProductCatalogService';
+
+export type {
+  CustomerProfile,
+  CustomerAddress,
+  GuestCheckout,
+  Wishlist,
+  WishlistItem,
+  RecentlyViewedProduct,
+  CreateProfileInput,
+  CreateAddressInput,
+  CreateGuestCheckoutInput
+} from './CustomerService';
+
+export type {
+  ShoppingCart,
+  CartItem,
+  CartItemWithProduct,
+  CartSummary,
+  AddToCartInput
+} from './CartService';
+
+export type {
+  Order,
+  OrderItem,
+  OrderStatusHistory,
+  PaymentTransaction,
+  CreateOrderFromCartInput,
+  OrderWithDetails
+} from './OrderManagementService';
