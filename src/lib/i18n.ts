@@ -458,6 +458,12 @@ export interface Translations {
   // Settings
   settingsPage: {
     title: string;
+    subtitle: string;
+    basicSettings: string;
+    personalManagementSystem: string;
+    userProfile: string;
+    securitySection: string;
+    actions: string;
     account: string;
     preferences: string;
     security: string;
@@ -468,16 +474,65 @@ export interface Translations {
     switchRole: string;
     roleChanged: string;
     clearCache: string;
+    clearCacheSubtitle: string;
     cacheCleared: string;
+    cacheClearedSuccess: string;
+    confirmClearCache: string;
     about: string;
+    aboutSubtitle: string;
+    aboutMessage: string;
     version: string;
     offlineData: string;
+    offlineDataSubtitle: string;
     totalSize: string;
     lastSync: string;
     clearOfflineData: string;
     changePIN: string;
+    changePINSubtitle: string;
     enterNewPIN: string;
     confirmPIN: string;
+    lockApp: string;
+    lockAppSubtitle: string;
+    userManagement: string;
+    userManagementSubtitle: string;
+    logout: string;
+    logoutSubtitle: string;
+    confirmLogout: string;
+    closeApp: string;
+    closeAppSubtitle: string;
+    requestAdminAccess: string;
+    requestAdminAccessSubtitle: string;
+  };
+
+  profilePage: {
+    title: string;
+    subtitle: string;
+    loading: string;
+    errorLoading: string;
+    unknownError: string;
+    user: string;
+    role: string;
+    telegramId: string;
+    memberSince: string;
+    accountActions: string;
+    settings: string;
+    changeRole: string;
+    logout: string;
+    confirmLogout: string;
+    editProfile: string;
+    personalInfo: string;
+    fullName: string;
+    phoneNumber: string;
+    address: string;
+    bio: string;
+    avatar: string;
+    changeAvatar: string;
+    updateProfile: string;
+    profileUpdated: string;
+    changePassword: string;
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
   };
 
   // Driver Dashboard
@@ -694,25 +749,6 @@ export interface Translations {
     dateComparison: string;
     previousPeriod: string;
     growth: string;
-  };
-
-  // Profile
-  profilePage: {
-    title: string;
-    editProfile: string;
-    personalInfo: string;
-    fullName: string;
-    phoneNumber: string;
-    address: string;
-    bio: string;
-    avatar: string;
-    changeAvatar: string;
-    updateProfile: string;
-    profileUpdated: string;
-    changePassword: string;
-    currentPassword: string;
-    newPassword: string;
-    confirmPassword: string;
   };
 
   // Notifications
@@ -1510,26 +1546,50 @@ const hebrewTranslations: Translations = {
   // Settings
   settingsPage: {
     title: 'הגדרות',
+    subtitle: 'מערכת ניהול אישית',
+    basicSettings: 'הגדרות בסיסיות',
+    personalManagementSystem: 'מערכת ניהול אישית',
+    userProfile: 'פרופיל משתמש',
+    securitySection: 'אבטחה',
+    actions: 'פעולות',
     account: 'חשבון',
     preferences: 'העדפות',
     security: 'אבטחה',
     notifications: 'התראות',
-    changeRole: 'החלף תפקיד',
+    changeRole: 'שנה תפקיד',
     currentRole: 'תפקיד נוכחי',
     selectNewRole: 'בחר תפקיד חדש',
     switchRole: 'החלף תפקיד',
     roleChanged: 'התפקיד הוחלף בהצלחה',
     clearCache: 'נקה מטמון',
+    clearCacheSubtitle: 'מחק נתונים מקומיים',
     cacheCleared: 'המטמון נוקה',
+    cacheClearedSuccess: 'המטמון נוקה בהצלחה',
+    confirmClearCache: 'למחוק את כל הנתונים השמורים?',
     about: 'אודות',
+    aboutSubtitle: 'מידע על האפליקציה',
+    aboutMessage: 'מערכת ניהול לוגיסטיקה מלכותית\n\nנבנה עם React ו-Telegram WebApp SDK',
     version: 'גרסה',
     offlineData: 'נתונים לא מקוונים',
+    offlineDataSubtitle: 'בדוק בקשות מושהות ונקה אותן',
     totalSize: 'גודל כולל',
     lastSync: 'סנכרון אחרון',
     clearOfflineData: 'נקה נתונים לא מקוונים',
-    changePIN: 'שנה PIN',
+    changePIN: 'שינוי קוד אבטחה',
+    changePINSubtitle: 'עדכון הקוד הסודי שלך (PIN)',
     enterNewPIN: 'הזן PIN חדש',
     confirmPIN: 'אשר PIN',
+    lockApp: 'נעילת האפליקציה',
+    lockAppSubtitle: 'נעל את האפליקציה וחזור למסך קוד אבטחה',
+    userManagement: 'ניהול משתמשים',
+    userManagementSubtitle: 'אישור וניהול משתמשים במערכת',
+    logout: 'התנתק',
+    logoutSubtitle: 'נקה הפעלה וחזור למסך התחברות',
+    confirmLogout: 'האם אתה בטוח שברצונך להתנתק?',
+    closeApp: 'סגור אפליקציה',
+    closeAppSubtitle: 'חזור לטלגרם',
+    requestAdminAccess: 'בקש גישת מנהל',
+    requestAdminAccessSubtitle: 'הזן PIN למעבר לתפקיד מנהל',
   },
 
   // Driver Dashboard
@@ -1750,7 +1810,20 @@ const hebrewTranslations: Translations = {
 
   // Profile
   profilePage: {
-    title: 'פרופיל',
+    title: 'הפרופיל שלי',
+    subtitle: 'מידע אישי והגדרות חשבון',
+    loading: 'טוען פרופיל...',
+    errorLoading: 'שגיאה בטעינת פרופיל',
+    unknownError: 'שגיאה לא ידועה',
+    user: 'משתמש',
+    role: 'תפקיד',
+    telegramId: 'מזהה טלגרם',
+    memberSince: 'חבר מאז',
+    accountActions: 'פעולות חשבון',
+    settings: 'הגדרות',
+    changeRole: 'שנה תפקיד',
+    logout: 'התנתק',
+    confirmLogout: 'האם אתה בטוח שברצונך להתנתק?',
     editProfile: 'ערוך פרופיל',
     personalInfo: 'מידע אישי',
     fullName: 'שם מלא',
@@ -2621,6 +2694,12 @@ const englishTranslations: Translations = {
   // Settings
   settingsPage: {
     title: 'Settings',
+    subtitle: 'Personal Management System',
+    basicSettings: 'Basic Settings',
+    personalManagementSystem: 'Personal Management System',
+    userProfile: 'User Profile',
+    securitySection: 'Security',
+    actions: 'Actions',
     account: 'Account',
     preferences: 'Preferences',
     security: 'Security',
@@ -2631,16 +2710,34 @@ const englishTranslations: Translations = {
     switchRole: 'Switch Role',
     roleChanged: 'Role changed successfully',
     clearCache: 'Clear Cache',
+    clearCacheSubtitle: 'Delete local data',
     cacheCleared: 'Cache cleared',
+    cacheClearedSuccess: 'Cache cleared successfully',
+    confirmClearCache: 'Delete all saved data?',
     about: 'About',
+    aboutSubtitle: 'About the application',
+    aboutMessage: 'Royal Logistics Management System\n\nBuilt with React and Telegram WebApp SDK',
     version: 'Version',
     offlineData: 'Offline Data',
+    offlineDataSubtitle: 'Check and clear pending requests',
     totalSize: 'Total Size',
     lastSync: 'Last Sync',
     clearOfflineData: 'Clear Offline Data',
-    changePIN: 'Change PIN',
+    changePIN: 'Change Security Code',
+    changePINSubtitle: 'Update your secret code (PIN)',
     enterNewPIN: 'Enter new PIN',
     confirmPIN: 'Confirm PIN',
+    lockApp: 'Lock Application',
+    lockAppSubtitle: 'Lock the app and return to security code screen',
+    userManagement: 'User Management',
+    userManagementSubtitle: 'Approve and manage system users',
+    logout: 'Logout',
+    logoutSubtitle: 'Clear session and return to login screen',
+    confirmLogout: 'Are you sure you want to logout?',
+    closeApp: 'Close App',
+    closeAppSubtitle: 'Return to Telegram',
+    requestAdminAccess: 'Request Admin Access',
+    requestAdminAccessSubtitle: 'Enter PIN to switch to manager role',
   },
 
   // Driver Dashboard
@@ -2861,7 +2958,20 @@ const englishTranslations: Translations = {
 
   // Profile
   profilePage: {
-    title: 'Profile',
+    title: 'My Profile',
+    subtitle: 'Personal information and account settings',
+    loading: 'Loading profile...',
+    errorLoading: 'Error loading profile',
+    unknownError: 'Unknown error',
+    user: 'User',
+    role: 'Role',
+    telegramId: 'Telegram ID',
+    memberSince: 'Member Since',
+    accountActions: 'Account Actions',
+    settings: 'Settings',
+    changeRole: 'Change Role',
+    logout: 'Logout',
+    confirmLogout: 'Are you sure you want to logout?',
     editProfile: 'Edit Profile',
     personalInfo: 'Personal Info',
     fullName: 'Full Name',
