@@ -274,6 +274,14 @@
   }
 }
 
+/* Desktop adjustments for left sidebar */
+@media (min-width: 768px) {
+  .header-container {
+    left: 80px;
+    right: 0;
+  }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .header-brand-title {
