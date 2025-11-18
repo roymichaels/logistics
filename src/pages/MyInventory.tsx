@@ -4,6 +4,7 @@ import { useTelegramUI } from '../hooks/useTelegramUI';
 import { DataStore, DriverInventoryRecord, Product } from '../data/types';
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
+import { useI18n } from '../lib/i18n';
 
 interface MyInventoryProps {
   dataStore: DataStore;
@@ -22,6 +23,7 @@ interface EditableInventoryItem {
 
 export function MyInventory({ dataStore }: MyInventoryProps) {
   const { theme, backButton, haptic } = useTelegramUI();
+  const { translations, isRTL } = useI18n();
   const [items, setItems] = useState<EditableInventoryItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +57,7 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
       setProducts(productList || []);
     } catch (err) {
       logger.error('Failed to load driver inventory', err);
-      Toast.error('שגיאה בטעינת המלאי האישי');
+      Toast.error(translations.myInventoryPage.errorLoadingInventory);
       setItems([]);
     } finally {
       setLoading(false);
@@ -89,13 +91,13 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
 
   const handleAdd = () => {
     if (!selectedProductId) {
-      Toast.error('בחר מוצר להוספה');
+      Toast.error(translations.myInventoryPage.selectProductToAdd);
       return;
     }
 
     const product = products.find((p) => p.id === selectedProductId);
     if (!product) {
-      Toast.error('המוצר לא נמצא');
+      Toast.error(translations.myInventoryPage.productNotFound);
       return;
     }
 
@@ -114,7 +116,7 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
 
   const handleSync = async () => {
     if (!dataStore.syncDriverInventory) {
-      Toast.error('לא ניתן לסנכרן מלאי במערכת הנוכחית');
+      Toast.error(translations.myInventoryPage.cannotSyncInventory);
       return;
     }
 
@@ -126,14 +128,14 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
           quantity: item.draftQuantity,
           location_id: item.location_id
         })),
-        note: 'עדכון מלאי נהג באפליקציה'
+        note: translations.myInventoryPage.driverInventoryUpdate
       });
-      Toast.success(`המלאי עודכן (${result.updated} עודכנו, ${result.removed} הוסרו)`);
+      Toast.success(`${translations.myInventoryPage.inventoryUpdated} (${result.updated} ${translations.myInventoryPage.updated}, ${result.removed} ${translations.myInventoryPage.removed})`);
       haptic('soft');
       await loadData();
     } catch (err) {
       logger.error('Failed to sync driver inventory', err);
-      Toast.error('שגיאה בעדכון המלאי');
+      Toast.error(translations.myInventoryPage.errorUpdatingInventory);
     } finally {
       setSyncing(false);
     }
@@ -146,12 +148,12 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
         backgroundColor: theme.bg_color,
         color: theme.text_color,
         padding: '20px',
-        direction: 'rtl'
+        direction: isRTL ? 'rtl' : 'ltr'
       }}
     >
-      <h1 style={{ fontSize: '24px', margin: '0 0 8px' }}>המלאי שלי</h1>
+      <h1 style={{ fontSize: '24px', margin: '0 0 8px' }}>{translations.myInventoryPage.title}</h1>
       <p style={{ margin: '0 0 16px', color: hintColor }}>
-        סקירה ועריכה של המוצרים שברשותך. עדכן כמויות וסנכרן את השינויים למוקד.
+        {translations.myInventoryPage.subtitle}
       </p>
 
       <div
@@ -162,7 +164,7 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
           marginBottom: '16px'
         }}
       >
-        <div style={{ color: hintColor }}>סה"כ יחידות בטיוטה: {totalUnits}</div>
+        <div style={{ color: hintColor }}>{translations.myInventoryPage.totalDraftUnits}: {totalUnits}</div>
         <button
           onClick={handleSync}
           disabled={syncing || !dataStore.syncDriverInventory}
@@ -177,12 +179,12 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
             opacity: syncing ? 0.7 : 1
           }}
         >
-          {syncing ? 'מסנכרן…' : 'שמור שינויים'}
+          {syncing ? translations.myInventoryPage.syncing : translations.myInventoryPage.saveChanges}
         </button>
       </div>
 
       {loading ? (
-        <div style={{ color: hintColor }}>טוען מלאי אישי…</div>
+        <div style={{ color: hintColor }}>{translations.myInventoryPage.loadingPersonalInventory}</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {items.map((item) => (
@@ -197,11 +199,11 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontWeight: 600 }}>{item.product?.name || `מוצר ${item.product_id}`}</div>
+                  <div style={{ fontWeight: 600 }}>{item.product?.name || `${translations.myInventoryPage.product} ${item.product_id}`}</div>
                   <div style={{ fontSize: '12px', color: hintColor }}>SKU: {item.product?.sku || item.product_id}</div>
                   {item.location_id && (
                     <div style={{ fontSize: '12px', color: hintColor, marginTop: '4px' }}>
-                      מיקום: {item.location_id}
+                      {translations.myInventoryPage.location}: {item.location_id}
                     </div>
                   )}
                 </div>
@@ -215,13 +217,13 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
                     cursor: 'pointer'
                   }}
                 >
-                  הסר
+                  {translations.myInventoryPage.remove}
                 </button>
               </div>
 
               <div style={{ marginTop: '12px' }}>
                 <label style={{ display: 'block', fontSize: '12px', color: hintColor, marginBottom: '6px' }}>
-                  כמות ברכב
+                  {translations.myInventoryPage.quantityInVehicle}
                 </label>
                 <input
                   type="number"
@@ -252,14 +254,14 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
                 textAlign: 'center'
               }}
             >
-              אין פריטים שהוקצו לך כרגע.
+              {translations.myInventoryPage.noAssignedItems}
             </div>
           )}
         </div>
       )}
 
       <div style={{ marginTop: '24px' }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: '18px' }}>הוסף מוצר חדש</h2>
+        <h2 style={{ margin: '0 0 8px', fontSize: '18px' }}>{translations.myInventoryPage.addNewProduct}</h2>
         <div style={{ display: 'flex', gap: '8px' }}>
           <select
             value={selectedProductId}
@@ -273,7 +275,7 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
               color: theme.text_color
             }}
           >
-            <option value="">בחר מוצר מהרשימה</option>
+            <option value="">{translations.myInventoryPage.selectProductFromList}</option>
             {availableProducts.map((product) => (
               <option key={product.id} value={product.id}>
                 {product.name}
@@ -294,7 +296,7 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
               opacity: selectedProductId ? 1 : 0.6
             }}
           >
-            הוסף
+            {translations.myInventoryPage.add}
           </button>
         </div>
       </div>

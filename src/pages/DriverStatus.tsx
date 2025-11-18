@@ -8,7 +8,7 @@ import {
 } from '../data/types';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { Toast } from '../components/Toast';
-import { hebrew } from '../lib/i18n';
+import { useI18n } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { logger } from '../lib/logger';
 
@@ -17,15 +17,17 @@ interface DriverStatusProps {
   onNavigate: (page: string) => void;
 }
 
-const statusLabels: Record<DriverAvailabilityStatus, string> = {
-  available: 'זמין לקבלת משלוחים',
-  delivering: 'במשלוח פעיל',
-  on_break: 'בהפסקה',
-  off_shift: 'סיים משמרת'
-};
 
 export function DriverStatus({ dataStore }: DriverStatusProps) {
   const { theme, backButton, haptic } = useTelegramUI();
+  const { translations, isRTL } = useI18n();
+
+  const statusLabels: Record<DriverAvailabilityStatus, string> = {
+    available: translations.driverStatusPage.availableForDeliveries,
+    delivering: translations.driverStatusPage.activeDelivery,
+    on_break: translations.driverStatusPage.onBreak,
+    off_shift: translations.driverStatusPage.endedShift
+  };
   const [status, setStatus] = useState<DriverStatusRecord | null>(null);
   const [assignments, setAssignments] = useState<DriverZoneAssignment[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
@@ -40,7 +42,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
 
   const loadData = useCallback(async () => {
     if (!dataStore.getDriverStatus) {
-      setError('המערכת אינה תומכת במעקב סטטוס נהגים.');
+      setError(translations.driverStatusPage.systemNotSupported);
       setLoading(false);
       return;
     }
@@ -61,8 +63,8 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
       setError(null);
     } catch (err) {
       logger.error('Failed to load driver status', err);
-      setError('שגיאה בטעינת נתוני הסטטוס');
-      Toast.error('שגיאה בטעינת נתוני הסטטוס');
+      setError(translations.driverStatusPage.errorLoadingStatus);
+      Toast.error(translations.driverStatusPage.errorLoadingStatus);
     } finally {
       setLoading(false);
     }
@@ -81,7 +83,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
       }));
   }, [assignments, zones]);
 
-  const currentStatusLabel = status ? statusLabels[status.status] : 'לא זמין';
+  const currentStatusLabel = status ? statusLabels[status.status] : translations.driverStatusPage.notAvailable;
   const hintColor = theme.hint_color || '#999999';
 
   const ensureAssignment = useCallback(
@@ -102,7 +104,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
       !dataStore.setDriverOffline &&
       !dataStore.toggleDriverOnline
     ) {
-      Toast.error('לא ניתן לעדכן סטטוס נהג במערכת הנוכחית');
+      Toast.error(translations.driverStatusPage.cannotUpdateStatus);
       return;
     }
 
@@ -114,12 +116,12 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
             is_online: false,
             zone_id: null,
             status: 'off_shift',
-            note: 'נהג התנתק'
+            note: translations.driverStatusPage.driverDisconnected
           });
         } else if (dataStore.setDriverOffline) {
-          await dataStore.setDriverOffline({ note: 'נהג התנתק' });
+          await dataStore.setDriverOffline({ note: translations.driverStatusPage.driverDisconnected });
         } else if (dataStore.updateDriverStatus) {
-          await dataStore.updateDriverStatus({ status: 'off_shift', is_online: false, zone_id: null, note: 'נהג התנתק' });
+          await dataStore.updateDriverStatus({ status: 'off_shift', is_online: false, zone_id: null, note: translations.driverStatusPage.driverDisconnected });
         }
       } else {
         if (zoneId) {
@@ -130,29 +132,29 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
             zone_id: typeof zoneId === 'undefined' ? undefined : zoneId,
             is_online: true,
             status: nextStatus,
-            note: 'עדכון סטטוס נהג'
+            note: translations.driverStatusPage.driverStatusUpdate
           });
         } else if (dataStore.setDriverOnline) {
           await dataStore.setDriverOnline({
             status: nextStatus,
             zone_id: typeof zoneId === 'undefined' ? undefined : zoneId,
-            note: 'עדכון סטטוס נהג'
+            note: translations.driverStatusPage.driverStatusUpdate
           });
         } else if (dataStore.updateDriverStatus) {
           await dataStore.updateDriverStatus({
             status: nextStatus,
             zone_id: typeof zoneId === 'undefined' ? undefined : zoneId,
             is_online: onlineOverride ?? true,
-            note: 'עדכון סטטוס נהג'
+            note: translations.driverStatusPage.driverStatusUpdate
           });
         }
       }
-      Toast.success('סטטוס הנהג עודכן');
+      Toast.success(translations.driverStatusPage.statusUpdated);
       haptic('soft');
       await loadData();
     } catch (err) {
       logger.error('Failed to update driver status', err);
-      Toast.error('שגיאה בעדכון הסטטוס');
+      Toast.error(translations.driverStatusPage.errorUpdatingStatus);
     } finally {
       setUpdating(false);
     }
@@ -169,20 +171,20 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
             zone_id: null,
             is_online: status?.is_online ?? false,
             status: status?.status || 'available',
-            note: 'הסרת שיוך אזור'
+            note: translations.driverStatusPage.zoneRemoval
           });
         } else if (dataStore.updateDriverStatus) {
           await dataStore.updateDriverStatus({
             status: status?.status || 'available',
             zone_id: null,
             is_online: status?.is_online,
-            note: 'הסרת שיוך אזור'
+            note: translations.driverStatusPage.zoneRemoval
           });
         }
         await loadData();
       } catch (err) {
         logger.error('Failed to clear zone', err);
-        Toast.error('שגיאה בעדכון האזור');
+        Toast.error(translations.driverStatusPage.errorUpdatingZone);
       } finally {
         setUpdating(false);
       }
@@ -190,7 +192,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
     }
 
     if (!status?.is_online) {
-      Toast.error('חבר את עצמך למערכת לפני שינוי אזור פעיל');
+      Toast.error(translations.driverStatusPage.connectBeforeChangingZone);
       return;
     }
 
@@ -212,12 +214,12 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
         backgroundColor: theme.bg_color,
         color: theme.text_color,
         padding: '20px',
-        direction: 'rtl'
+        direction: isRTL ? 'rtl' : 'ltr'
       }}
     >
-      <h1 style={{ fontSize: '24px', margin: '0 0 8px' }}>{hebrew.driver_status}</h1>
+      <h1 style={{ fontSize: '24px', margin: '0 0 8px' }}>{translations.driverStatusPage.title}</h1>
       <p style={{ margin: '0 0 16px', color: hintColor }}>
-        עדכן את מצבך המבצעי ודווח למוקד על אזור הפעילות והזמינות שלך בזמן אמת.
+        {translations.driverStatusPage.subtitle}
       </p>
 
       {error && (
@@ -235,7 +237,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
       )}
 
       {loading ? (
-        <div style={{ color: hintColor }}>טוען נתוני סטטוס…</div>
+        <div style={{ color: hintColor }}>{translations.driverStatusPage.loadingStatus}</div>
       ) : status ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div
@@ -246,16 +248,16 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
               border: `1px solid ${hintColor}30`
             }}
           >
-            <div style={{ fontSize: '14px', color: hintColor, marginBottom: '4px' }}>סטטוס נוכחי</div>
+            <div style={{ fontSize: '14px', color: hintColor, marginBottom: '4px' }}>{translations.driverStatusPage.currentStatus}</div>
             <div style={{ fontSize: '20px', fontWeight: 700 }}>{currentStatusLabel}</div>
             <div style={{ fontSize: '12px', color: hintColor, marginTop: '4px' }}>
-              עודכן לאחרונה: {new Date(status.last_updated).toLocaleString()}
+              {translations.driverStatusPage.lastUpdated}: {new Date(status.last_updated).toLocaleString()}
             </div>
             <div style={{ fontSize: '12px', color: hintColor, marginTop: '4px' }}>
-              מצב מערכת: {status.is_online ? 'מחובר' : 'מנותק'}
+              {translations.driverStatusPage.systemStatus}: {status.is_online ? translations.driverStatusPage.connected : translations.driverStatusPage.disconnected}
             </div>
             {status.note && (
-              <div style={{ fontSize: '12px', color: hintColor, marginTop: '4px' }}>הערה: {status.note}</div>
+              <div style={{ fontSize: '12px', color: hintColor, marginTop: '4px' }}>{translations.driverStatusPage.note}: {status.note}</div>
             )}
           </div>
 
@@ -279,7 +281,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
                 cursor: updating ? 'wait' : 'pointer'
               }}
             >
-              אני זמין
+              {translations.driverStatusPage.available}
             </button>
             <button
               onClick={() => handleOnlineToggle(false)}
@@ -294,7 +296,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
                 cursor: updating ? 'wait' : 'pointer'
               }}
             >
-              סיים משמרת
+              {translations.driverStatusPage.endShift}
             </button>
           </div>
 
@@ -306,7 +308,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
               border: `1px solid ${hintColor}30`
             }}
           >
-            <div style={{ fontWeight: 600, marginBottom: '12px' }}>בחר סטטוס מבצעי</div>
+            <div style={{ fontWeight: 600, marginBottom: '12px' }}>{translations.driverStatusPage.selectOperationalStatus}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {(Object.keys(statusLabels) as DriverAvailabilityStatus[])
                 .filter((value) => value !== 'off_shift')
@@ -340,7 +342,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
               border: `1px solid ${hintColor}30`
             }}
           >
-            <div style={{ fontWeight: 600, marginBottom: '8px' }}>אזור פעיל</div>
+            <div style={{ fontWeight: 600, marginBottom: '8px' }}>{translations.driverStatusPage.activeZone}</div>
             {activeZoneOptions.length > 0 ? (
               <select
                 value={selectedZone}
@@ -355,7 +357,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
                   color: theme.text_color
                 }}
               >
-                <option value="">ללא אזור פעיל</option>
+                <option value="">{translations.driverStatusPage.noActiveZone}</option>
                 {activeZoneOptions.map((zone) => (
                   <option key={zone.id} value={zone.id}>
                     {zone.name}
@@ -364,13 +366,13 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
               </select>
             ) : (
               <div style={{ color: hintColor, fontSize: '14px' }}>
-                אין לך אזורים פעילים. היכנס לעמוד אזורי הפעילות שלך כדי להצטרף.
+                {translations.driverStatusPage.noActiveZones}
               </div>
             )}
           </div>
         </div>
       ) : (
-        <div style={{ color: hintColor }}>לא נמצאו נתוני סטטוס נהג.</div>
+        <div style={{ color: hintColor }}>{translations.driverStatusPage.noStatusFound}</div>
       )}
     </div>
   );

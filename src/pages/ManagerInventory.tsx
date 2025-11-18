@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { useTelegramUI } from '../hooks/useTelegramUI';
 import { logger } from '../lib/logger';
+import { useI18n } from '../lib/i18n';
 import {
   DataStore,
   InventoryRecord,
@@ -27,6 +28,7 @@ interface ProductSummary {
 
 export function ManagerInventory({ dataStore }: ManagerInventoryProps) {
   const { theme, backButton } = useTelegramUI();
+  const { translations, isRTL } = useI18n();
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<ProductSummary[]>([]);
   const [pendingRequests, setPendingRequests] = useState<RestockRequest[]>([]);
@@ -122,12 +124,12 @@ export function ManagerInventory({ dataStore }: ManagerInventoryProps) {
         color: theme.text_color,
         minHeight: '100vh',
         padding: '20px',
-        direction: 'rtl'
+        direction: isRTL ? 'rtl' : 'ltr'
       }}
     >
-      <h1 style={{ fontSize: '24px', margin: '0 0 16px' }}>בקרת מלאי למנהלים</h1>
+      <h1 style={{ fontSize: '24px', margin: '0 0 16px' }}>{translations.managerInventoryPage.title}</h1>
       <p style={{ margin: '0 0 24px', color: theme.hint_color }}>
-        סקירה מהירה של מלאי חסר, בקשות חידוש ממתינות ותנועות בולטות.
+        {translations.managerInventoryPage.subtitle}
       </p>
 
       <section
@@ -138,18 +140,18 @@ export function ManagerInventory({ dataStore }: ManagerInventoryProps) {
           marginBottom: '28px'
         }}
       >
-        <SummaryCard label="מוצרים בחוסר" value={summary.lowStockSku} theme={theme} accent="#ff3b30" />
-        <SummaryCard label="בקשות לאישור" value={summary.pending} theme={theme} accent="#ff9500" />
-        <SummaryCard label="מאושרות ממתינות" value={summary.approved} theme={theme} accent="#007aff" />
-        <SummaryCard label="התראות" value={summary.alertCount} theme={theme} accent={theme.button_color} />
+        <SummaryCard label={translations.managerInventoryPage.productsOutOfStock} value={summary.lowStockSku} theme={theme} accent="#ff3b30" />
+        <SummaryCard label={translations.managerInventoryPage.requestsForApproval} value={summary.pending} theme={theme} accent="#ff9500" />
+        <SummaryCard label={translations.managerInventoryPage.approvedPending} value={summary.approved} theme={theme} accent="#007aff" />
+        <SummaryCard label={translations.managerInventoryPage.alerts} value={summary.alertCount} theme={theme} accent={theme.button_color} />
       </section>
 
-      {loading && <div style={{ marginBottom: '16px', color: theme.hint_color }}>טוען נתונים...</div>}
+      {loading && <div style={{ marginBottom: '16px', color: theme.hint_color }}>{translations.managerInventoryPage.loadingData}</div>}
 
       <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '18px', margin: '0 0 12px' }}>מוצרים עם מלאי נמוך</h2>
+        <h2 style={{ fontSize: '18px', margin: '0 0 12px' }}>{translations.managerInventoryPage.lowStockProducts}</h2>
         {products.length === 0 ? (
-          <div style={{ color: theme.hint_color }}>אין נתונים להצגה.</div>
+          <div style={{ color: theme.hint_color }}>{translations.managerInventoryPage.noDataToDisplay}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {products.slice(0, 10).map((product) => {
@@ -170,10 +172,10 @@ export function ManagerInventory({ dataStore }: ManagerInventoryProps) {
                     <span style={{ fontSize: '12px', color: theme.hint_color }}>SKU: {product.sku}</span>
                   </div>
                   <div style={{ fontSize: '13px' }}>
-                    זמין: <strong>{product.onHand}</strong> | בהקצאה: <strong>{product.reserved}</strong>
+                    {translations.managerInventoryPage.available}: <strong>{product.onHand}</strong> | {translations.managerInventoryPage.allocated}: <strong>{product.reserved}</strong>
                   </div>
                   <div style={{ fontSize: '12px', color: theme.hint_color }}>
-                    מיקומים פעילים: {product.locations} | סף התראה: {product.lowStockThreshold}
+                    {translations.managerInventoryPage.activeLocations}: {product.locations} | {translations.managerInventoryPage.alertThreshold}: {product.lowStockThreshold}
                   </div>
                 </div>
               );
@@ -183,35 +185,35 @@ export function ManagerInventory({ dataStore }: ManagerInventoryProps) {
       </section>
 
       <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '18px', margin: '0 0 12px' }}>בקשות ממתינות לאישור</h2>
+        <h2 style={{ fontSize: '18px', margin: '0 0 12px' }}>{translations.managerInventoryPage.pendingRequests}</h2>
         {pendingRequests.length === 0 ? (
-          <div style={{ color: theme.hint_color }}>אין בקשות לאישור.</div>
+          <div style={{ color: theme.hint_color }}>{translations.managerInventoryPage.noRequestsForApproval}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {pendingRequests.map((request) => (
-              <RequestCard key={request.id} request={request} theme={theme} />
+              <RequestCard key={request.id} request={request} theme={theme} translations={translations} />
             ))}
           </div>
         )}
       </section>
 
       <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '18px', margin: '0 0 12px' }}>בקשות מאושרות</h2>
+        <h2 style={{ fontSize: '18px', margin: '0 0 12px' }}>{translations.managerInventoryPage.approvedRequests}</h2>
         {approvedRequests.length === 0 ? (
-          <div style={{ color: theme.hint_color }}>אין בקשות מאושרות הממתינות לטיפול.</div>
+          <div style={{ color: theme.hint_color }}>{translations.managerInventoryPage.noApprovedRequests}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {approvedRequests.map((request) => (
-              <RequestCard key={request.id} request={request} theme={theme} showApproval />
+              <RequestCard key={request.id} request={request} theme={theme} showApproval translations={translations} />
             ))}
           </div>
         )}
       </section>
 
       <section>
-        <h2 style={{ fontSize: '18px', margin: '0 0 12px' }}>תנועות מלאי אחרונות</h2>
+        <h2 style={{ fontSize: '18px', margin: '0 0 12px' }}>{translations.managerInventoryPage.recentMovements}</h2>
         {logs.length === 0 ? (
-          <div style={{ color: theme.hint_color }}>אין תיעוד זמין.</div>
+          <div style={{ color: theme.hint_color }}>{translations.managerInventoryPage.noDocumentation}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {logs.map((log) => (
@@ -231,7 +233,7 @@ export function ManagerInventory({ dataStore }: ManagerInventoryProps) {
                   </span>
                 </div>
                 <div style={{ fontSize: '13px' }}>
-                  שינוי: <strong>{log.quantity_change}</strong> ({log.change_type})
+                  {translations.managerInventoryPage.change}: <strong>{log.quantity_change}</strong> ({log.change_type})
                 </div>
                 {(log.from_location || log.to_location) && (
                   <div style={{ fontSize: '12px', color: theme.hint_color }}>
@@ -277,11 +279,13 @@ function SummaryCard({
 function RequestCard({
   request,
   theme,
-  showApproval
+  showApproval,
+  translations
 }: {
   request: RestockRequest;
   theme: any;
   showApproval?: boolean;
+  translations: any;
 }) {
   return (
     <div
@@ -299,19 +303,19 @@ function RequestCard({
         </span>
       </div>
       <div style={{ fontSize: '13px', marginBottom: '4px' }}>
-        כמות מבוקשת: <strong>{request.requested_quantity}</strong>
+        {translations.managerInventoryPage.requestedQuantity}: <strong>{request.requested_quantity}</strong>
       </div>
       {request.approved_quantity && (
         <div style={{ fontSize: '12px', color: theme.hint_color, marginBottom: '4px' }}>
-          כמות מאושרת: <strong>{request.approved_quantity}</strong>
+          {translations.managerInventoryPage.approvedQuantity}: <strong>{request.approved_quantity}</strong>
         </div>
       )}
       <div style={{ fontSize: '12px', color: theme.hint_color }}>
-        {request.from_location?.name || 'מקור לא משויך'} → {request.to_location?.name || 'יעד לא משויך'}
+        {request.from_location?.name || translations.managerInventoryPage.sourceNotAssigned} → {request.to_location?.name || translations.managerInventoryPage.targetNotAssigned}
       </div>
       {showApproval && request.approved_by && (
         <div style={{ fontSize: '12px', color: theme.hint_color, marginTop: '4px' }}>
-          אושר על ידי: {request.approved_by}
+          {translations.managerInventoryPage.approvedBy}: {request.approved_by}
         </div>
       )}
     </div>
