@@ -1,6 +1,8 @@
 import { getSupabase, isSupabaseInitialized } from './supabaseClient';
 import { telegram } from './telegram';
 import { logger } from './logger';
+import { sessionManager } from './sessionManager';
+import { sessionHealthMonitor } from './sessionHealthMonitor';
 
 export interface AuthUser {
   id: string;
@@ -126,8 +128,8 @@ class AuthService {
         return;
       }
 
-      // Backup the session for recovery
-      this.backupSession(session);
+      // Save session using the enhanced session manager
+      sessionManager.saveSession(session);
 
       const supabase = getSupabase();
       const telegramId = session.user.user_metadata?.telegram_id ||
@@ -203,8 +205,6 @@ class AuthService {
         });
       }
 
-      this.scheduleTokenRefresh(session);
-
       logger.info('Session update complete');
     } catch (error) {
       logger.error('Error handling session update', error);
@@ -219,32 +219,11 @@ class AuthService {
   }
 
   private scheduleTokenRefresh(session: any) {
+    // Token refresh is now handled by sessionManager
+    // This method is kept for backward compatibility
     if (this.tokenRefreshTimeout) {
       clearTimeout(this.tokenRefreshTimeout);
-    }
-
-    if (!session?.expires_at) {
-      return;
-    }
-
-    const expiresAt = session.expires_at * 1000;
-    const now = Date.now();
-    const timeUntilExpiry = expiresAt - now;
-    const refreshAt = timeUntilExpiry - TOKEN_REFRESH_MARGIN_MS;
-
-    if (refreshAt > 0) {
-      logger.debug('Token refresh scheduled', { minutesUntilRefresh: Math.round(refreshAt / 60000) });
-      this.tokenRefreshTimeout = setTimeout(() => {
-        logger.info('Proactively refreshing token before expiration');
-        this.refreshSession().catch(error => {
-          logger.error('Scheduled token refresh failed', error);
-        });
-      }, refreshAt);
-    } else {
-      logger.warn('Token expires soon, refreshing immediately');
-      this.refreshSession().catch(error => {
-        logger.error('Immediate token refresh failed', error);
-      });
+      this.tokenRefreshTimeout = null;
     }
   }
 
@@ -253,6 +232,12 @@ class AuthService {
       clearTimeout(this.tokenRefreshTimeout);
       this.tokenRefreshTimeout = null;
     }
+
+    // Stop health monitoring
+    sessionHealthMonitor.stop();
+
+    // Clear session using session manager
+    sessionManager.clearSession();
 
     if (this.sessionSyncChannel) {
       this.sessionSyncChannel.postMessage({ type: 'SIGNED_OUT' });
@@ -291,6 +276,7 @@ class AuthService {
 
   public async initialize(): Promise<void> {
     try {
+      logger.info('Starting authentication initialization');
       this.initializeAuthListener();
 
       if (!isSupabaseInitialized()) {
@@ -299,25 +285,41 @@ class AuthService {
 
       const supabase = getSupabase();
 
-      // Try to recover existing session
+      // First, try to restore session using the enhanced session manager
+      logger.debug('Attempting session restoration');
+      const restoredSession = await sessionManager.restoreSession(supabase);
+
+      if (restoredSession) {
+        logger.info('Session restored from storage');
+        await this.handleSessionUpdate(restoredSession, false);
+        // Start health monitoring instead of legacy health check
+        sessionHealthMonitor.start(supabase);
+        return;
+      }
+
+      // If no restored session, check for active Supabase session
+      logger.debug('Checking for active Supabase session');
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
       if (sessionError) {
         logger.error('Session recovery error', sessionError);
-        // Try to restore from backup if main session fails
-        const restored = await this.tryRestoreSessionFromBackup();
-        if (!restored) {
-          throw sessionError;
-        }
+        this.updateState({
+          isLoading: false,
+          isAuthenticated: false,
+          error: null,
+        });
         return;
       }
 
       if (sessionData.session) {
+        logger.info('Active Supabase session found');
         await this.handleSessionUpdate(sessionData.session);
-        this.startSessionHealthCheck();
+        // Start health monitoring instead of legacy health check
+        sessionHealthMonitor.start(supabase);
         return;
       }
 
+      logger.info('No session found, user needs to authenticate');
       this.updateState({
         isLoading: false,
         isAuthenticated: false,
@@ -333,119 +335,31 @@ class AuthService {
   }
 
   private async tryRestoreSessionFromBackup(): Promise<boolean> {
-    try {
-      const backupData = localStorage.getItem(SESSION_STORAGE_KEY);
-      if (!backupData) {
-        logger.debug('No session backup found');
-        return false;
-      }
-
-      let parsedBackup;
-      try {
-        parsedBackup = JSON.parse(backupData);
-      } catch (parseError) {
-        logger.error('Failed to parse session backup, clearing corrupted data');
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-        return false;
-      }
-
-      const { accessToken, refreshToken, expiresAt, userId, timestamp } = parsedBackup;
-
-      // Validate backup data
-      if (!accessToken || !refreshToken) {
-        logger.warn('Invalid backup data: missing tokens');
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-        return false;
-      }
-
-      // Check if backup is expired
-      if (expiresAt && Date.now() > expiresAt) {
-        logger.debug('Backup session expired, cleaning up');
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-        return false;
-      }
-
-      // Check if backup is too old (older than 7 days)
-      if (timestamp && Date.now() - timestamp > 7 * 24 * 60 * 60 * 1000) {
-        logger.debug('Backup session too old, cleaning up');
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-        return false;
-      }
-
-      logger.info('Attempting to restore session from backup', { userId });
-      const supabase = getSupabase();
-
-      const { data, error } = await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
-
-      if (error || !data.session) {
-        logger.error('Failed to restore backup session', error);
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-        return false;
-      }
-
-      logger.info('Session restored from backup successfully');
-      await this.handleSessionUpdate(data.session);
-      this.startSessionHealthCheck();
-      return true;
-    } catch (error) {
-      logger.error('Error restoring session from backup', error);
-      localStorage.removeItem(SESSION_STORAGE_KEY);
-      return false;
-    }
+    // Session restoration is now handled by sessionManager in initialize()
+    // This method is kept for backward compatibility
+    logger.debug('Legacy session restore method called, delegating to sessionManager');
+    return false;
   }
 
   private startSessionHealthCheck() {
-    // Clear any existing interval
+    // Legacy method - now handled by sessionHealthMonitor
+    // Keep for backward compatibility
     if (this.sessionHealthCheckInterval) {
       clearInterval(this.sessionHealthCheckInterval);
+      this.sessionHealthCheckInterval = null;
     }
 
-    // Check session health every 5 minutes
-    this.sessionHealthCheckInterval = setInterval(async () => {
-      try {
-        if (!isSupabaseInitialized()) {
-          return;
-        }
-
-        const supabase = getSupabase();
-        const { data, error } = await supabase.auth.getSession();
-
-        if (error || !data.session) {
-          logger.warn('Session health check failed, attempting refresh');
-          await this.refreshSession();
-        } else {
-          logger.debug('Session health check passed');
-          this.backupSession(data.session);
-        }
-      } catch (error) {
-        logger.error('Session health check error', error);
-      }
-    }, 5 * 60 * 1000); // 5 minutes
+    if (isSupabaseInitialized()) {
+      const supabase = getSupabase();
+      sessionHealthMonitor.start(supabase);
+    }
   }
 
   private backupSession(session: any) {
-    try {
-      if (!session?.access_token || !session?.refresh_token) {
-        logger.warn('Cannot backup session: missing tokens');
-        return;
-      }
-
-      // Include user metadata for faster recovery
-      const backupData = {
-        accessToken: session.access_token,
-        refreshToken: session.refresh_token,
-        expiresAt: session.expires_at ? session.expires_at * 1000 : Date.now() + 24 * 60 * 60 * 1000,
-        userId: session.user?.id,
-        userEmail: session.user?.email,
-        timestamp: Date.now()
-      };
-
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(backupData));
-    } catch (error) {
-      logger.error('Failed to backup session', error);
+    // Session backup is now handled by sessionManager
+    // This method is kept for backward compatibility
+    if (session) {
+      sessionManager.saveSession(session);
     }
   }
 
@@ -577,7 +491,10 @@ class AuthService {
 
   public async signOut(): Promise<void> {
     try {
-      // Stop session health check
+      // Stop session health monitoring
+      sessionHealthMonitor.stop();
+
+      // Stop legacy session health check
       if (this.sessionHealthCheckInterval) {
         clearInterval(this.sessionHealthCheckInterval);
         this.sessionHealthCheckInterval = null;
@@ -603,7 +520,7 @@ class AuthService {
 
   private clearStoredData() {
     try {
-      localStorage.removeItem(SESSION_STORAGE_KEY);
+      sessionManager.clearSession();
       localStorage.removeItem(USER_CONTEXT_KEY);
       // Don't clear all localStorage - preserve user preferences
     } catch (error) {
@@ -630,10 +547,12 @@ class AuthService {
 
       if (error) {
         logger.error('Session refresh failed', error);
-        const restored = await this.tryRestoreSessionFromBackup();
-        if (!restored) {
+        // Try one more time to restore from backup using session manager
+        const restoredSession = await sessionManager.restoreSession(supabase);
+        if (!restoredSession) {
           throw error;
         }
+        await this.handleSessionUpdate(restoredSession);
         return;
       }
 
@@ -790,6 +709,9 @@ class AuthService {
   }
 
   public cleanup(): void {
+    // Stop health monitoring
+    sessionHealthMonitor.stop();
+
     if (this.authUnsubscribe) {
       this.authUnsubscribe();
       this.authUnsubscribe = null;
@@ -807,6 +729,8 @@ class AuthService {
       this.sessionSyncChannel.close();
       this.sessionSyncChannel = null;
     }
+    // Cleanup session manager
+    sessionManager.cleanup();
     this.listeners.clear();
   }
 }

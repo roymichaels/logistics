@@ -7,6 +7,7 @@ import { SupabaseReadyProvider } from './context/SupabaseReadyContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { GlobalErrorBoundary } from './components/ErrorBoundary';
 import { initSupabase } from './lib/supabaseClient';
+import { sessionManager } from './lib/sessionManager';
 import './lib/diagnostics';
 import './lib/errorHandler'; // Initialize global error handler
 import { runtimeEnvironment } from './lib/runtimeEnvironment';
@@ -42,7 +43,10 @@ console.log('🌍 Environment:', runtimeEnvironment.env.type);
     const keysToPreserve = [
       'user_session',
       'twa-undergroundlab-session-backup',
+      'twa-undergroundlab-session-v2', // New session manager key
+      'twa-session-metadata',
       'twa-user-context',
+      'twa-device-id',
       'hasVisitedBefore'
     ];
 
@@ -139,14 +143,28 @@ function LoadingScreen() {
     try {
       console.log('⏱️ [TIMING] Starting Supabase initialization at', new Date().toISOString());
       const startTime = performance.now();
-      await initSupabase();
+      const supabase = await initSupabase();
       const endTime = performance.now();
       console.log(`✅ Supabase initialized successfully in ${(endTime - startTime).toFixed(2)}ms`);
+
+      // Try to restore session immediately after Supabase is ready
+      console.log('🔄 Attempting session restoration...');
+      const sessionStartTime = performance.now();
+      const restoredSession = await sessionManager.restoreSession(supabase);
+      const sessionEndTime = performance.now();
+
+      if (restoredSession) {
+        console.log(`✅ Session restored successfully in ${(sessionEndTime - sessionStartTime).toFixed(2)}ms`);
+        console.log('👤 User:', restoredSession.user.id);
+      } else {
+        console.log(`ℹ️ No existing session found (${(sessionEndTime - sessionStartTime).toFixed(2)}ms)`);
+      }
 
       // Mark as initialized globally
       if (typeof window !== 'undefined') {
         (window as any).__INIT_COMPLETE__ = true;
         (window as any).__INIT_TIMESTAMP__ = Date.now();
+        (window as any).__SESSION_RESTORED__ = !!restoredSession;
       }
     } catch (error) {
       console.error('❌ Failed to initialize Supabase:', error);
@@ -175,12 +193,16 @@ function LoadingScreen() {
     console.error('❌ Fatal error initializing app:', error);
     const rootElement = document.getElementById('root');
     if (rootElement) {
+      const errorMessage = error instanceof Error ? error.message : 'שגיאה לא ידועה';
+      const diagnostics = sessionManager.getDiagnostics();
+      console.log('🔍 Session Diagnostics:', diagnostics);
+
       rootElement.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; text-align: center; direction: rtl; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
           <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
           <h1 style="font-size: 24px; margin-bottom: 16px;">שגיאה בטעינת האפליקציה</h1>
           <p style="font-size: 16px; color: #666; margin-bottom: 24px; max-width: 400px;">
-            ${error instanceof Error ? error.message : 'שגיאה לא ידועה'}
+            ${errorMessage}
           </p>
           <button
             onclick="window.location.reload()"
@@ -188,6 +210,10 @@ function LoadingScreen() {
           >
             רענן דף
           </button>
+          <details style="margin-top: 24px; max-width: 400px; text-align: left;">
+            <summary style="cursor: pointer; color: #666; font-size: 14px;">Show technical details</summary>
+            <pre style="font-size: 12px; color: #666; margin-top: 12px; overflow: auto;">${JSON.stringify(diagnostics, null, 2)}</pre>
+          </details>
         </div>
       `;
     }

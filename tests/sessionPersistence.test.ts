@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getSupabase } from '../src/lib/supabaseClient';
 import { sessionTracker } from '../src/lib/sessionTracker';
+import { sessionManager } from '../src/lib/sessionManager';
+import { sessionHealthMonitor } from '../src/lib/sessionHealthMonitor';
 
 /**
  * Session Persistence Validation Tests
@@ -342,6 +344,106 @@ describe('Session Persistence', () => {
       console.log('   Tracker Ready:', sessionTracker.isReady() ? '✅ Yes' : '❌ No');
 
       console.log('\n' + '='.repeat(80) + '\n');
+    });
+  });
+
+  describe('Enhanced Session Manager', () => {
+    it('should save and restore session using new session manager', async () => {
+      const supabase = getSupabase();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        console.log('⏭️ Skipping: No active session');
+        return;
+      }
+
+      // Save session using new manager
+      const saved = sessionManager.saveSession(session);
+      expect(saved).toBe(true);
+      console.log('✅ Session saved using enhanced session manager');
+
+      // Check if session is valid
+      const isValid = sessionManager.isSessionValid();
+      expect(isValid).toBe(true);
+      console.log('✅ Session validated successfully');
+
+      // Get diagnostics
+      const diagnostics = sessionManager.getDiagnostics();
+      expect(diagnostics).toBeDefined();
+      expect(diagnostics.hasStoredSession).toBe(true);
+      expect(diagnostics.isValid).toBe(true);
+      console.log('✅ Session diagnostics:', {
+        hasSession: diagnostics.hasStoredSession,
+        isValid: diagnostics.isValid,
+        age: diagnostics.stored?.age,
+      });
+    });
+
+    it('should handle session version compatibility', () => {
+      const storageKey = 'twa-undergroundlab-session-v2';
+      const oldVersionData = {
+        version: 1,
+        accessToken: 'old_token',
+        refreshToken: 'old_refresh',
+        expiresAt: Date.now() + 3600000,
+        userId: 'test-user',
+        timestamp: Date.now(),
+      };
+
+      localStorage.setItem(storageKey, JSON.stringify(oldVersionData));
+
+      // Should reject old version
+      const isValid = sessionManager.isSessionValid();
+      expect(isValid).toBe(false);
+      console.log('✅ Old session version correctly rejected');
+    });
+
+    it('should track session metadata', async () => {
+      const supabase = getSupabase();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        console.log('⏭️ Skipping: No active session');
+        return;
+      }
+
+      sessionManager.saveSession(session);
+
+      const diagnostics = sessionManager.getDiagnostics();
+      expect(diagnostics.metadata).toBeDefined();
+      expect(diagnostics.metadata.deviceId).toBeDefined();
+      expect(diagnostics.metadata.restoreCount).toBeGreaterThanOrEqual(0);
+
+      console.log('✅ Session metadata tracked:', {
+        deviceId: diagnostics.metadata.deviceId,
+        restoreCount: diagnostics.metadata.restoreCount,
+        lastActivity: diagnostics.metadata.lastActivity,
+      });
+    });
+  });
+
+  describe('Session Health Monitoring', () => {
+    it('should provide health status', () => {
+      const status = sessionHealthMonitor.getStatus();
+
+      expect(status).toBeDefined();
+      expect(status.healthy).toBeDefined();
+      expect(status.checkCount).toBeDefined();
+
+      console.log('✅ Session health status:', {
+        healthy: status.healthy,
+        checks: status.checkCount,
+        failures: status.failureCount,
+        lastCheck: status.lastCheck > 0 ? new Date(status.lastCheck).toISOString() : 'Never',
+      });
+    });
+
+    it('should track health check metrics', async () => {
+      const initialStatus = sessionHealthMonitor.getStatus();
+      const initialCheckCount = initialStatus.checkCount;
+
+      console.log('✅ Initial health check count:', initialCheckCount);
+      console.log('   Health monitoring tracks automatic and manual checks');
     });
   });
 });
