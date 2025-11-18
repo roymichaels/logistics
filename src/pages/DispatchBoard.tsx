@@ -38,7 +38,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
 
   const loadData = useCallback(async () => {
     if (!dataStore.listDriverStatuses) {
-      setError('המערכת אינה תומכת במעקב אזורים עבור מוקדנים');
+      setError(translations.dispatchBoardPage.systemNotSupported);
       setLoading(false);
       return;
     }
@@ -51,8 +51,8 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
       setError(null);
     } catch (err) {
       logger.error('Failed to load dispatch data', err);
-      setError('שגיאה בטעינת נתוני הכיסוי');
-      Toast.error('שגיאה בטעינת נתוני הכיסוי');
+      setError(translations.dispatchBoardPage.errorLoadingCoverage);
+      Toast.error(translations.dispatchBoardPage.errorLoadingCoverage);
     } finally {
       setLoading(false);
     }
@@ -161,13 +161,13 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
     try {
       await dataStore.updateOrder?.(orderId, { assigned_driver: driverId });
       telegram.hapticFeedback('notification', 'success');
-      Toast.success('הנהג שוייך בהצלחה');
+      Toast.success(translations.dispatchBoardPage.driverAssignedSuccessfully);
       setSelectedOrder(null);
       setShowDriverSelector(false);
       await loadData();
     } catch (error) {
       logger.error('Failed to assign driver:', error);
-      Toast.error('שגיאה בשיוך נהג');
+      Toast.error(translations.dispatchBoardPage.errorAssigningDriver);
     }
   };
 
@@ -175,7 +175,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
     return (
       <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>📡</div>
-        <div style={{ color: colors.muted }}>טוען לוח תפעול...</div>
+        <div style={{ color: colors.muted }}>{translations.dispatchBoardPage.loadingDispatchBoard}</div>
       </div>
     );
   }
@@ -200,10 +200,10 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
               📡
             </div>
             <div>
-              <h1 style={{ ...styles.pageTitle, textAlign: 'right', marginBottom: '4px' }}>
-                מוקד תפעול
+              <h1 style={{ ...styles.pageTitle, textAlign: isRTL ? 'right' : 'left', marginBottom: '4px' }}>
+                {translations.dispatchBoardPage.title}
               </h1>
-              <p style={styles.pageSubtitle}>ניהול ושיוך בזמן אמת</p>
+              <p style={styles.pageSubtitle}>{translations.dispatchBoardPage.subtitle}</p>
             </div>
           </div>
           <div style={{
@@ -223,7 +223,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
               boxShadow: `0 0 8px ${colors.success}`,
               animation: 'pulse 2s infinite'
             }} />
-            <span style={{ fontSize: '12px', color: colors.success, fontWeight: '600' }}>זמן אמת</span>
+            <span style={{ fontSize: '12px', color: colors.success, fontWeight: '600' }}>{translations.dispatchBoardPage.realTime}</span>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -244,7 +244,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
               transition: 'all 0.3s ease'
             }}
           >
-            {viewMode === 'kanban' ? '📋 רשימה' : '📊 קנבן'}
+            {viewMode === 'kanban' ? translations.dispatchBoardPage.list : translations.dispatchBoardPage.kanban}
           </button>
           <button
             onClick={handleRefresh}
@@ -264,7 +264,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
             }}
           >
             <span style={{ fontSize: '18px' }}>🔄</span>
-            רענן
+            {translations.dispatchBoardPage.refresh}
           </button>
         </div>
       </div>
@@ -300,22 +300,22 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
         <div style={styles.statBox}>
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>🚗</div>
           <div style={{ ...styles.statValue, fontSize: '28px', color: colors.success }}>{totalOnline}</div>
-          <div style={styles.statLabel}>נהגים זמינים</div>
+          <div style={styles.statLabel}>{translations.dispatchBoardPage.availableDrivers}</div>
         </div>
         <div style={styles.statBox}>
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>🗺️</div>
           <div style={{ ...styles.statValue, fontSize: '28px', color: colors.info }}>{zones.length}</div>
-          <div style={styles.statLabel}>אזורי כיסוי</div>
+          <div style={styles.statLabel}>{translations.dispatchBoardPage.coverageZones}</div>
         </div>
         <div style={styles.statBox}>
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>🚚</div>
           <div style={{ ...styles.statValue, fontSize: '28px', color: colors.accent }}>{activeDeliveries}</div>
-          <div style={styles.statLabel}>במשלוח</div>
+          <div style={styles.statLabel}>{translations.dispatchBoardPage.inDelivery}</div>
         </div>
         <div style={styles.statBox}>
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>⏱️</div>
           <div style={{ ...styles.statValue, fontSize: '28px', color: colors.warning }}>{pendingAssignments}</div>
-          <div style={styles.statLabel}>ממתינים</div>
+          <div style={styles.statLabel}>{translations.dispatchBoardPage.waiting}</div>
         </div>
       </div>
 
@@ -335,7 +335,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: colors.text }}>
-                ⏳ ממתינים לשיוך
+                {translations.dispatchBoardPage.waitingForAssignment}
               </h3>
               <div style={{
                 padding: '6px 12px',
@@ -363,7 +363,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
               {getOrdersByStatus('pending').length === 0 && (
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: colors.muted }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>✅</div>
-                  <div style={{ fontSize: '14px' }}>אין הזמנות ממתינות</div>
+                  <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noWaitingOrders}</div>
                 </div>
               )}
             </div>
@@ -377,7 +377,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: colors.text }}>
-                📄 משוייכים
+                {translations.dispatchBoardPage.assigned}
               </h3>
               <div style={{
                 padding: '6px 12px',
@@ -397,7 +397,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
               {getOrdersByStatus('assigned').length === 0 && (
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: colors.muted }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>📎</div>
-                  <div style={{ fontSize: '14px' }}>אין הזמנות משוייכות</div>
+                  <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noAssignedOrders}</div>
                 </div>
               )}
             </div>
@@ -411,7 +411,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: colors.text }}>
-                🚚 בתהליך
+                {translations.dispatchBoardPage.inProgress}
               </h3>
               <div style={{
                 padding: '6px 12px',
@@ -431,7 +431,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
               {getOrdersByStatus('in_progress').length === 0 && (
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: colors.muted }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>🚦</div>
-                  <div style={{ fontSize: '14px' }}>אין משלוחים בתהליך</div>
+                  <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noDeliveriesInProgress}</div>
                 </div>
               )}
             </div>
@@ -445,7 +445,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: colors.text }}>
-                ✅ הושלמו
+                {translations.dispatchBoardPage.completed}
               </h3>
               <div style={{
                 padding: '6px 12px',
@@ -465,7 +465,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
               {getOrdersByStatus('completed').length === 0 && (
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: colors.muted }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>🎯</div>
-                  <div style={{ fontSize: '14px' }}>אין הזמנות שהושלמו</div>
+                  <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noCompletedOrders}</div>
                 </div>
               )}
             </div>
@@ -512,7 +512,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: colors.text }}>
-                שיוך נהג להזמנה
+                {translations.dispatchBoardPage.assignDriverToOrder}
               </h3>
               <button
                 onClick={() => {
@@ -571,17 +571,17 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                   }}
                 >
                   <div style={{ fontSize: '16px', fontWeight: '600', color: colors.text, marginBottom: '4px' }}>
-                    נהג #{driver.driver_id}
+                    {translations.dispatchBoardPage.driver} #{driver.driver_id}
                   </div>
                   <div style={{ fontSize: '13px', color: colors.success }}>
-                    ✅ זמין
+                    {translations.dispatchBoardPage.available}
                   </div>
                 </button>
               ))}
               {zones.flatMap(z => z.onlineDrivers).filter(d => d.status === 'available').length === 0 && (
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: colors.muted }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px' }}>🚫</div>
-                  <div>אין נהגים זמינים כרגע</div>
+                  <div>{translations.dispatchBoardPage.noAvailableDrivers}</div>
                 </div>
               )}
             </div>
@@ -640,7 +640,7 @@ function OrderCard({ order, colors, onAssign }: {
           color: colors.success,
           marginBottom: '12px'
         }}>
-          🚗 נהג: {order.assigned_driver}
+          🚗 {translations.dispatchBoardPage.driver}: {order.assigned_driver}
         </div>
       )}
 
@@ -661,7 +661,7 @@ function OrderCard({ order, colors, onAssign }: {
             boxShadow: colors.glowPrimary
           }}
         >
-          שייך נהג
+          {translations.dispatchBoardPage.assignDriver}
         </button>
       )}
     </div>
