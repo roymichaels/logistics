@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { telegram } from '../lib/telegram';
 import { DataStore, User } from '../data/types';
-import { roleNames, roleIcons } from '../lib/i18n';
+import { roleNames, roleIcons, useI18n } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { ProfileDiagnostics } from '../lib/diagnostics';
 import { logger } from '../lib/logger';
@@ -12,6 +12,7 @@ interface ProfileProps {
 }
 
 export function Profile({ dataStore, onNavigate }: ProfileProps) {
+  const { translations, isRTL } = useI18n();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const theme = telegram.themeParams;
@@ -58,7 +59,7 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
       setUser(profile);
     } catch (error) {
       logger.error('❌ Profile page: Failed to load profile:', error);
-      telegram.showAlert(`שגיאה בטעינת פרופיל: ${error instanceof Error ? error.message : 'שגיאה לא ידועה'}`);
+      telegram.showAlert(`${translations.profilePage.errorLoading}: ${error instanceof Error ? error.message : translations.profilePage.unknownError}`);
     } finally {
       setLoading(false);
     }
@@ -69,21 +70,21 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
       <div style={ROYAL_STYLES.pageContainer}>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>טוען פרופיל...</p>
+          <p style={{ color: ROYAL_COLORS.muted }}>{translations.profilePage.loading}</p>
         </div>
       </div>
     );
   }
 
-  const userName = user?.name || (user as any)?.first_name || 'משתמש';
+  const userName = user?.name || (user as any)?.first_name || translations.profilePage.user;
   const userInitial = userName[0]?.toUpperCase() || 'U';
 
   return (
     <div style={ROYAL_STYLES.pageContainer}>
       {/* Header */}
       <header style={ROYAL_STYLES.pageHeader}>
-        <h1 style={ROYAL_STYLES.pageTitle}>👤 הפרופיל שלי</h1>
-        <p style={ROYAL_STYLES.pageSubtitle}>מידע אישי והגדרות חשבון</p>
+        <h1 style={ROYAL_STYLES.pageTitle}>👤 {translations.profilePage.title}</h1>
+        <p style={ROYAL_STYLES.pageSubtitle}>{translations.profilePage.subtitle}</p>
       </header>
 
       {/* Profile Card */}
@@ -148,7 +149,7 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
             {roleIcons[user?.role as keyof typeof roleIcons] || '👤'}
           </span>
           <span style={{ fontSize: '16px', fontWeight: '600', color: ROYAL_COLORS.white }}>
-            {roleNames[user?.role as keyof typeof roleNames] || 'משתמש'}
+            {roleNames[user?.role as keyof typeof roleNames] || translations.profilePage.user}
           </span>
         </div>
 
@@ -167,12 +168,12 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
           textAlign: 'right'
         }}>
           <ProfileInfoRow
-            label="מזהה טלגרם"
+            label={translations.profilePage.telegramId}
             value={user?.telegram_id || 'N/A'}
           />
           {user?.created_at && (
             <ProfileInfoRow
-              label="חבר מאז"
+              label={translations.profilePage.memberSince}
               value={new Date(user.created_at).toLocaleDateString('he-IL')}
             />
           )}
@@ -185,26 +186,26 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
           ...ROYAL_STYLES.cardTitle,
           textAlign: 'right'
         }}>
-          פעולות חשבון
+          {translations.profilePage.accountActions}
         </h3>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <ProfileActionButton
             icon="⚙️"
-            title="הגדרות"
+            title={translations.profilePage.settings}
             onClick={() => onNavigate('settings')}
           />
           <ProfileActionButton
             icon="🔐"
-            title="שנה תפקיד"
+            title={translations.profilePage.changeRole}
             onClick={() => onNavigate('my-role')}
           />
           <ProfileActionButton
             icon="🚪"
-            title="התנתק"
+            title={translations.profilePage.logout}
             danger
             onClick={() => {
-              telegram.showConfirm('האם אתה בטוח שברצונך להתנתק?').then((confirmed) => {
+              telegram.showConfirm(translations.profilePage.confirmLogout).then((confirmed) => {
                 if (confirmed) {
                   localStorage.removeItem('user_session');
                   localStorage.clear();

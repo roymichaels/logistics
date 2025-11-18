@@ -204,9 +204,9 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
               ⚙️
             </div>
             <div>
-              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>הגדרות</h1>
+              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>{translations.settingsPage.title}</h1>
               <p style={{ margin: '4px 0 0', color: ROYAL_COLORS.muted, fontSize: '14px' }}>
-                {isUnassignedUser ? 'הגדרות בסיסיות' : 'מערכת ניהול אישית'}
+                {isUnassignedUser ? translations.settingsPage.basicSettings : translations.settingsPage.personalManagementSystem}
               </p>
             </div>
           </div>
@@ -224,7 +224,7 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
               marginBottom: '24px'
             }}
           >
-            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '700' }}>👤 פרופיל משתמש</h2>
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '700' }}>👤 {translations.settingsPage.userProfile}</h2>
             <div style={{
               padding: '20px',
               background: 'rgba(20, 8, 46, 0.6)',
@@ -293,11 +293,11 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
               marginBottom: '24px'
             }}
           >
-            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '700' }}>🔐 אבטחה</h2>
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '700' }}>🔐 {translations.settingsPage.securitySection}</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <RoyalActionButton
-                title="שינוי קוד אבטחה"
-                subtitle="עדכון הקוד הסודי שלך (PIN)"
+                title={translations.settingsPage.changePIN}
+                subtitle={translations.settingsPage.changePINSubtitle}
                 icon="🔑"
                 onClick={() => {
                   telegram.hapticFeedback('selection');
@@ -305,8 +305,8 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
                 }}
               />
               <RoyalActionButton
-                title="נעילת האפליקציה"
-                subtitle="נעל את האפליקציה וחזור למסך קוד אבטחה"
+                title={translations.settingsPage.lockApp}
+                subtitle={translations.settingsPage.lockAppSubtitle}
                 icon="🔒"
                 onClick={async () => {
                   telegram.hapticFeedback('selection');
@@ -348,33 +348,33 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
                     />
                   )}
                   <RoyalActionButton
-                    title="נקה מטמון"
-                    subtitle="מחק נתונים מקומיים"
+                    title={translations.settingsPage.clearCache}
+                    subtitle={translations.settingsPage.clearCacheSubtitle}
                     icon="🗑️"
                     onClick={() => {
                       telegram.hapticFeedback('selection');
-                      telegram.showConfirm('למחוק את כל הנתונים השמורים?').then((confirmed) => {
+                      telegram.showConfirm(translations.settingsPage.confirmClearCache).then((confirmed) => {
                         if (confirmed) {
-                          telegram.showAlert('המטמון נוקה בהצלחה');
+                          telegram.showAlert(translations.settingsPage.cacheClearedSuccess);
                         }
                       });
                     }}
                   />
                   <RoyalActionButton
-                    title="נתונים לא מקוונים"
-                    subtitle="בדוק בקשות מושהות ונקה אותן"
+                    title={translations.settingsPage.offlineData}
+                    subtitle={translations.settingsPage.offlineDataSubtitle}
                     icon="📡"
                     onClick={() => {
                       void handleOpenOfflineModal();
                     }}
                   />
                   <RoyalActionButton
-                    title="התנתק"
-                    subtitle="נקה הפעלה וחזור למסך התחברות"
+                    title={translations.settingsPage.logout}
+                    subtitle={translations.settingsPage.logoutSubtitle}
                     icon="🚪"
                     onClick={() => {
                       telegram.hapticFeedback('selection');
-                      telegram.showConfirm('האם אתה בטוח שברצונך להתנתק?').then((confirmed) => {
+                      telegram.showConfirm(translations.settingsPage.confirmLogout).then((confirmed) => {
                         if (confirmed) {
                           localStorage.removeItem('user_session');
                           localStorage.clear();
@@ -385,22 +385,21 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
                     }}
                   />
                   <RoyalActionButton
-                    title="אודות"
-                    subtitle="מידע על האפליקציה"
+                    title={translations.settingsPage.about}
+                    subtitle={translations.settingsPage.aboutSubtitle}
                     icon="ℹ️"
                     onClick={() => {
                       telegram.hapticFeedback('selection');
                       telegram.showAlert(
                         'Roy Michaels Command System v1.0.0\n\n' +
-                        'מערכת ניהול לוגיסטיקה מלכותית\n\n' +
-                        'נבנה עם React ו-Telegram WebApp SDK'
+                        translations.settingsPage.aboutMessage
                       );
                     }}
                   />
                   {telegram.isAvailable && (
                     <RoyalActionButton
-                      title="סגור אפליקציה"
-                      subtitle="חזור לטלגרם"
+                      title={translations.settingsPage.closeApp}
+                      subtitle={translations.settingsPage.closeAppSubtitle}
                       icon="❌"
                       onClick={() => {
                         telegram.hapticFeedback('selection');
@@ -428,8 +427,8 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
               <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '700' }}>⚡ פעולות</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <RoyalActionButton
-                  title="בקש גישת מנהל"
-                  subtitle="הזן PIN למעבר לתפקיד מנהל"
+                  title={translations.settingsPage.requestAdminAccess}
+                  subtitle={translations.settingsPage.requestAdminAccessSubtitle}
                   icon="🔐"
                   onClick={() => {
                     telegram.hapticFeedback('selection');
@@ -500,7 +499,7 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
       <TelegramModal
         isOpen={showCacheModal}
         onClose={() => setShowCacheModal(false)}
-        title="נקה מטמון"
+        title={translations.settingsPage.clearCache}
         primaryButton={{
           text: 'נקה',
           onClick: () => {
@@ -523,9 +522,9 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
       <TelegramModal
         isOpen={showAboutModal}
         onClose={() => setShowAboutModal(false)}
-        title="אודות האפליקציה"
+        title={translations.settingsPage.about}
         primaryButton={{
-          text: 'סגור',
+          text: translations.settingsPage.closeApp,
           onClick: () => setShowAboutModal(false)
         }}
       >
@@ -577,7 +576,7 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
               value={`${offlineDiagnostics?.collections.restockRequests.count ?? 0}`}
             />
             <RoyalInfoRow
-              label="פעולות ממתינות"
+              label={translations.settingsPage.offlineData}
               value={`${offlineDiagnostics?.mutations.pending ?? 0}`}
             />
             {offlineDiagnostics?.mutations.lastError && (
@@ -620,7 +619,7 @@ export function Settings({ dataStore, onNavigate, config, currentUser }: Setting
             mode="change"
             onSuccess={handleChangePinSuccess}
             onCancel={() => setShowChangePinModal(false)}
-            title="שינוי קוד אבטחה"
+            title={translations.settingsPage.changePIN}
             subtitle="הכנס את הקוד הנוכחי ולאחר מכן בחר קוד חדש"
           />
         </div>
