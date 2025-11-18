@@ -1,6 +1,7 @@
 import React from 'react';
 import { telegram } from '../lib/telegram';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { i18n } from '../lib/i18n';
 
 interface MenuItem {
   id: string;
@@ -124,7 +125,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
           right: 0,
           bottom: 0,
           background: 'rgba(0, 0, 0, 0.7)',
-          zIndex: 999,
+          zIndex: 1050,
           animation: 'fadeIn 0.3s ease'
         }}
         onClick={onClose}
@@ -141,7 +142,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
           background: 'linear-gradient(180deg, rgba(25, 0, 80, 0.98) 0%, rgba(12, 2, 25, 0.98) 100%)',
           backdropFilter: 'blur(20px)',
           boxShadow: '-8px 0 40px rgba(0, 0, 0, 0.5)',
-          zIndex: 1000,
+          zIndex: 1060,
           display: 'flex',
           flexDirection: 'column',
           animation: 'slideInRight 0.3s ease',
@@ -165,7 +166,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
               fontWeight: '700',
               color: ROYAL_COLORS.text
             }}>
-              תפקידי
+              {i18n.getTranslations().header.menu}
             </h2>
             <p style={{
               margin: '4px 0 0 0',
@@ -271,7 +272,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
             color: ROYAL_COLORS.muted,
             textAlign: 'center'
           }}>
-            גרסה 1.0.0
+            {i18n.isRTL() ? 'גרסה 1.0.0' : 'Version 1.0.0'}
           </div>
         </div>
       </div>

@@ -12,7 +12,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  z-index: 1000;
+  z-index: 1100;
   border-bottom: 1px solid rgba(56, 68, 77, 0.6);
   box-shadow: none;
   will-change: transform;
@@ -167,7 +167,7 @@
   animation: slideDown 200ms cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid #38444D;
   background: #192734;
-  z-index: 1001;
+  z-index: 1150;
 }
 
 .header-dropdown-user-info {

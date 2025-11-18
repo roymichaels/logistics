@@ -12,6 +12,7 @@ import {
   useOrdersRefetch
 } from '../hooks/useBusinessDataRefetch';
 import { logger } from '../lib/logger';
+import { i18n } from '../lib/i18n';
 import '../styles/header.css';
 
 interface HeaderProps {
@@ -162,18 +163,18 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                   style={{ borderBottom: `1px solid ${colors.border.primary}` }}
                 >
                   <div className="header-dropdown-username" style={{ color: colors.text.primary }}>
-                    העסקים שלי
+                    {i18n.getTranslations().header.myBusinesses}
                   </div>
                 </div>
 
                 <div className="header-dropdown-items">
                   {loadingBusinesses ? (
                     <div style={{ padding: '12px 16px', color: colors.text.secondary, textAlign: 'center' }}>
-                      טוען...
+                      {i18n.getTranslations().header.loading}
                     </div>
                   ) : businesses.length === 0 ? (
                     <div style={{ padding: '12px 16px', color: colors.text.secondary, textAlign: 'center' }}>
-                      אין עסקים
+                      {i18n.getTranslations().header.noBusinesses}
                     </div>
                   ) : (
                     businesses.map(business => {
@@ -226,7 +227,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 size="sm"
                 leftIcon={<span>🏢</span>}
               >
-                צור עסק
+                {i18n.getTranslations().header.createBusiness}
               </Button>
             )}
             {onBecomeDriver && user?.role !== 'driver' && (
@@ -236,7 +237,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 size="sm"
                 leftIcon={<span>🚗</span>}
               >
-                הפוך לנהג
+                {i18n.getTranslations().header.becomeDriver}
               </Button>
             )}
             {onSearchBusiness && (
@@ -246,7 +247,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 size="sm"
                 leftIcon={<span>🔍</span>}
               >
-                חפש עסק
+                {i18n.getTranslations().header.searchBusiness}
               </Button>
             )}
           </div>
@@ -317,7 +318,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 style={{ color: colors.text.primary }}
               >
                 <span className="header-dropdown-button-icon">👤</span>
-                <span className="header-dropdown-button-text">הפרופיל שלי</span>
+                <span className="header-dropdown-button-text">{i18n.getTranslations().header.myProfile}</span>
               </button>
 
               <button
@@ -326,7 +327,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 style={{ color: colors.text.primary }}
               >
                 <span className="header-dropdown-button-icon">⚙️</span>
-                <span className="header-dropdown-button-text">הגדרות</span>
+                <span className="header-dropdown-button-text">{i18n.getTranslations().settings}</span>
               </button>
 
               <div
@@ -339,7 +340,7 @@ export const Header = React.memo(function Header({ onNavigate, onLogout, onCreat
                 className="header-dropdown-button logout"
               >
                 <span className="header-dropdown-button-icon">🚪</span>
-                <span className="header-dropdown-button-text">התנתק</span>
+                <span className="header-dropdown-button-text">{i18n.getTranslations().header.logout}</span>
               </button>
             </div>
           </div>

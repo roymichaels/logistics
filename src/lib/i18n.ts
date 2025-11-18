@@ -58,6 +58,19 @@ export interface Translations {
     primary: string;
   };
 
+  // Header namespace
+  header: {
+    myBusinesses: string;
+    noBusinesses: string;
+    loading: string;
+    createBusiness: string;
+    becomeDriver: string;
+    searchBusiness: string;
+    myProfile: string;
+    logout: string;
+    menu: string;
+  };
+
   // Roles namespace
   roles: {
     infrastructureOwner: string;
@@ -403,6 +416,19 @@ const hebrewTranslations: Translations = {
     selectBusiness: 'בחר עסק',
     ownership: 'בעלות',
     primary: 'ראשי',
+  },
+
+  // Header translations
+  header: {
+    myBusinesses: 'העסקים שלי',
+    noBusinesses: 'אין עסקים',
+    loading: 'טוען...',
+    createBusiness: 'צור עסק',
+    becomeDriver: 'הפוך לנהג',
+    searchBusiness: 'חפש עסק',
+    myProfile: 'הפרופיל שלי',
+    logout: 'התנתק',
+    menu: 'תפריט',
   },
 
   // Roles namespace for role labels
@@ -820,6 +846,19 @@ const englishTranslations: Translations = {
     selectBusiness: 'Select Business',
     ownership: 'Ownership',
     primary: 'Primary',
+  },
+
+  // Header translations
+  header: {
+    myBusinesses: 'My Businesses',
+    noBusinesses: 'No Businesses',
+    loading: 'Loading...',
+    createBusiness: 'Create Business',
+    becomeDriver: 'Become Driver',
+    searchBusiness: 'Search Business',
+    myProfile: 'My Profile',
+    logout: 'Logout',
+    menu: 'Menu',
   },
 
   // Roles namespace for role labels

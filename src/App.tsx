@@ -335,15 +335,15 @@ export default function App() {
     }
 
     const roleDefaultPageMap: Record<string, Page> = {
-      owner: 'orders',
-      manager: 'orders',
-      business_owner: 'orders',
-      infrastructure_owner: 'businesses',
+      owner: 'dashboard',
+      manager: 'dashboard',
+      business_owner: 'dashboard',
+      infrastructure_owner: 'dashboard',
       warehouse: 'inventory',
       driver: 'my-deliveries',
-      sales: 'orders',
+      sales: 'dashboard',
       dispatcher: 'dispatch-board',
-      customer_service: 'orders',
+      customer_service: 'dashboard',
       user: 'user-homepage'
     };
 
