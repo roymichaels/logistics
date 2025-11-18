@@ -378,6 +378,60 @@ export interface Translations {
     noAlerts: string;
   };
 
+  // My Inventory
+  myInventoryPage: {
+    title: string;
+    subtitle: string;
+    totalUnits: string;
+    saveChanges: string;
+    syncing: string;
+    loadingInventory: string;
+    remove: string;
+    quantityInVehicle: string;
+    noItemsAssigned: string;
+    addNewProduct: string;
+    selectProduct: string;
+    add: string;
+    errorLoadingInventory: string;
+    selectProductToAdd: string;
+    productNotFound: string;
+    cannotSyncInventory: string;
+    inventoryUpdated: string;
+    updatedAndRemoved: string;
+    errorUpdatingInventory: string;
+    driverInventoryUpdate: string;
+  };
+
+  // Driver Status
+  driverStatusPage: {
+    title: string;
+    available: string;
+    delivering: string;
+    onBreak: string;
+    offShift: string;
+    notAvailable: string;
+    statusUnavailable: string;
+    errorLoadingStatus: string;
+    cannotUpdateStatus: string;
+    driverLoggedOut: string;
+  };
+
+  // Manager Inventory
+  managerInventoryPage: {
+    title: string;
+    subtitle: string;
+    lowStockProducts: string;
+    pendingApproval: string;
+    approvedPending: string;
+    alerts: string;
+    loadingData: string;
+    noData: string;
+    available: string;
+    allocated: string;
+    activeLocations: string;
+    alertThreshold: string;
+  };
+
   // Reports
   reportsPage: {
     title: string;
@@ -599,6 +653,7 @@ export interface Translations {
   // Incoming
   incomingPage: {
     title: string;
+    subtitle: string;
     pendingReceiving: string;
     received: string;
     receiveShipment: string;
@@ -609,6 +664,23 @@ export interface Translations {
     confirmReceiving: string;
     reportIssue: string;
     noIncoming: string;
+    all: string;
+    restocks: string;
+    transfers: string;
+    restock: string;
+    transfer: string;
+    incoming: string;
+    totalIncoming: string;
+    noIncomingOfType: string;
+    allIncomingWillAppear: string;
+    unknownProduct: string;
+    from: string;
+    to: string;
+    unknownLocation: string;
+    units: string;
+    id: string;
+    inventoryLogUnavailable: string;
+    errorLoadingIncoming: string;
   };
 
   // Restock Requests
@@ -1277,6 +1349,60 @@ const hebrewTranslations: Translations = {
     noAlerts: 'אין התראות',
   },
 
+  // My Inventory
+  myInventoryPage: {
+    title: 'המלאי שלי',
+    subtitle: 'סקירה ועריכה של המוצרים שברשותך. עדכן כמויות וסנכרן את השינויים למוקד',
+    totalUnits: 'סה״כ יחידות בטיוטה',
+    saveChanges: 'שמור שינויים',
+    syncing: 'מסנכרן…',
+    loadingInventory: 'טוען מלאי אישי…',
+    remove: 'הסר',
+    quantityInVehicle: 'כמות ברכב',
+    noItemsAssigned: 'אין פריטים שהוקצו לך כרגע',
+    addNewProduct: 'הוסף מוצר חדש',
+    selectProduct: 'בחר מוצר מהרשימה',
+    add: 'הוסף',
+    errorLoadingInventory: 'שגיאה בטעינת המלאי האישי',
+    selectProductToAdd: 'בחר מוצר להוספה',
+    productNotFound: 'המוצר לא נמצא',
+    cannotSyncInventory: 'לא ניתן לסנכרן מלאי במערכת הנוכחית',
+    inventoryUpdated: 'המלאי עודכן',
+    updatedAndRemoved: 'עודכנו, הוסרו',
+    errorUpdatingInventory: 'שגיאה בעדכון המלאי',
+    driverInventoryUpdate: 'עדכון מלאי נהג באפליקציה',
+  },
+
+  // Driver Status
+  driverStatusPage: {
+    title: 'סטטוס נהג',
+    available: 'זמין לקבלת משלוחים',
+    delivering: 'במשלוח פעיל',
+    onBreak: 'בהפסקה',
+    offShift: 'סיים משמרת',
+    notAvailable: 'לא זמין',
+    statusUnavailable: 'המערכת אינה תומכת במעקב סטטוס נהגים',
+    errorLoadingStatus: 'שגיאה בטעינת נתוני הסטטוס',
+    cannotUpdateStatus: 'לא ניתן לעדכן סטטוס נהג במערכת הנוכחית',
+    driverLoggedOut: 'נהג התנתק',
+  },
+
+  // Manager Inventory
+  managerInventoryPage: {
+    title: 'בקרת מלאי למנהלים',
+    subtitle: 'סקירה מהירה של מלאי חסר, בקשות חידוש ממתינות ותנועות בולטות',
+    lowStockProducts: 'מוצרים בחוסר',
+    pendingApproval: 'בקשות לאישור',
+    approvedPending: 'מאושרות ממתינות',
+    alerts: 'התראות',
+    loadingData: 'טוען נתונים...',
+    noData: 'אין נתונים להצגה',
+    available: 'זמין',
+    allocated: 'בהקצאה',
+    activeLocations: 'מיקומים פעילים',
+    alertThreshold: 'סף התראה',
+  },
+
   // Reports
   reportsPage: {
     title: 'דוחות',
@@ -1498,6 +1624,7 @@ const hebrewTranslations: Translations = {
   // Incoming
   incomingPage: {
     title: 'כניסות',
+    subtitle: 'מעקב אחר כניסות למחסן והעברות מלאי',
     pendingReceiving: 'ממתין לקבלה',
     received: 'התקבל',
     receiveShipment: 'קבל משלוח',
@@ -1508,6 +1635,23 @@ const hebrewTranslations: Translations = {
     confirmReceiving: 'אשר קבלה',
     reportIssue: 'דווח על בעיה',
     noIncoming: 'אין משלוחים נכנסים',
+    all: 'הכל',
+    restocks: 'חידושי מלאי',
+    transfers: 'העברות',
+    restock: 'חידוש מלאי',
+    transfer: 'העברה',
+    incoming: 'כניסה',
+    totalIncoming: 'סה״כ כניסות',
+    noIncomingOfType: 'אין כניסות מסוג זה',
+    allIncomingWillAppear: 'כל הכניסות והעברות למחסן יופיעו כאן',
+    unknownProduct: 'מוצר לא ידוע',
+    from: 'מ',
+    to: 'ל',
+    unknownLocation: 'מיקום לא ידוע',
+    units: 'יח׳',
+    id: 'מזהה',
+    inventoryLogUnavailable: 'רשימת יומני מלאי אינה זמינה',
+    errorLoadingIncoming: 'שגיאה בטעינת יומני כניסות',
   },
 
   // Restock Requests
@@ -2249,6 +2393,60 @@ const englishTranslations: Translations = {
     noAlerts: 'No Alerts',
   },
 
+  // My Inventory
+  myInventoryPage: {
+    title: 'My Inventory',
+    subtitle: 'Review and edit your products. Update quantities and sync changes to the hub',
+    totalUnits: 'Total draft units',
+    saveChanges: 'Save Changes',
+    syncing: 'Syncing…',
+    loadingInventory: 'Loading personal inventory…',
+    remove: 'Remove',
+    quantityInVehicle: 'Quantity in vehicle',
+    noItemsAssigned: 'No items assigned to you currently',
+    addNewProduct: 'Add new product',
+    selectProduct: 'Select product from list',
+    add: 'Add',
+    errorLoadingInventory: 'Error loading personal inventory',
+    selectProductToAdd: 'Select product to add',
+    productNotFound: 'Product not found',
+    cannotSyncInventory: 'Cannot sync inventory in current system',
+    inventoryUpdated: 'Inventory updated',
+    updatedAndRemoved: 'updated, removed',
+    errorUpdatingInventory: 'Error updating inventory',
+    driverInventoryUpdate: 'Driver inventory update in app',
+  },
+
+  // Driver Status
+  driverStatusPage: {
+    title: 'Driver Status',
+    available: 'Available for deliveries',
+    delivering: 'In active delivery',
+    onBreak: 'On break',
+    offShift: 'Off shift',
+    notAvailable: 'Not available',
+    statusUnavailable: 'System does not support driver status tracking',
+    errorLoadingStatus: 'Error loading status data',
+    cannotUpdateStatus: 'Cannot update driver status in current system',
+    driverLoggedOut: 'Driver logged out',
+  },
+
+  // Manager Inventory
+  managerInventoryPage: {
+    title: 'Manager Inventory Control',
+    subtitle: 'Quick overview of low stock, pending restock requests and notable movements',
+    lowStockProducts: 'Low Stock Products',
+    pendingApproval: 'Pending Approval',
+    approvedPending: 'Approved Pending',
+    alerts: 'Alerts',
+    loadingData: 'Loading data...',
+    noData: 'No data to display',
+    available: 'Available',
+    allocated: 'Allocated',
+    activeLocations: 'Active Locations',
+    alertThreshold: 'Alert Threshold',
+  },
+
   // Reports
   reportsPage: {
     title: 'Reports',
@@ -2470,6 +2668,7 @@ const englishTranslations: Translations = {
   // Incoming
   incomingPage: {
     title: 'Incoming',
+    subtitle: 'Track warehouse incoming and inventory transfers',
     pendingReceiving: 'Pending Receiving',
     received: 'Received',
     receiveShipment: 'Receive Shipment',
@@ -2480,6 +2679,23 @@ const englishTranslations: Translations = {
     confirmReceiving: 'Confirm Receiving',
     reportIssue: 'Report Issue',
     noIncoming: 'No Incoming Shipments',
+    all: 'All',
+    restocks: 'Restocks',
+    transfers: 'Transfers',
+    restock: 'Restock',
+    transfer: 'Transfer',
+    incoming: 'Incoming',
+    totalIncoming: 'Total Incoming',
+    noIncomingOfType: 'No incoming of this type',
+    allIncomingWillAppear: 'All warehouse incoming and transfers will appear here',
+    unknownProduct: 'Unknown Product',
+    from: 'From',
+    to: 'To',
+    unknownLocation: 'Unknown Location',
+    units: 'units',
+    id: 'ID',
+    inventoryLogUnavailable: 'Inventory log list is unavailable',
+    errorLoadingIncoming: 'Error loading incoming logs',
   },
 
   // Restock Requests

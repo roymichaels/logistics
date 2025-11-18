@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, InventoryLog } from '../data/types';
 import { useTelegramUI } from '../hooks/useTelegramUI';
-import { hebrew, formatDate, formatTime } from '../lib/i18n';
+import { useI18n } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
@@ -13,6 +13,7 @@ interface IncomingProps {
 
 export function Incoming({ dataStore, onNavigate }: IncomingProps) {
   const { theme } = useTelegramUI();
+  const { translations } = useI18n();
   const [logs, setLogs] = useState<InventoryLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'restock' | 'transfer'>('all');
@@ -26,7 +27,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
       setLoading(true);
 
       if (!dataStore.listInventoryLogs) {
-        Toast.error('רשימת יומני מלאי אינה זמינה');
+        Toast.error(translations.incomingPage.inventoryLogUnavailable);
         setLoading(false);
         return;
       }
@@ -53,7 +54,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
       setLogs(filteredLogs);
     } catch (error) {
       logger.error('Failed to load incoming logs:', error);
-      Toast.error('שגיאה בטעינת יומני כניסות');
+      Toast.error(translations.incomingPage.errorLoadingIncoming);
     } finally {
       setLoading(false);
     }
@@ -73,11 +74,11 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
   const getLogTypeLabel = (changeType: string) => {
     switch (changeType) {
       case 'restock':
-        return 'חידוש מלאי';
+        return translations.incomingPage.restock;
       case 'transfer':
-        return 'העברה';
+        return translations.incomingPage.transfer;
       default:
-        return 'כניסה';
+        return translations.incomingPage.incoming;
     }
   };
 
@@ -86,7 +87,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
       <div style={ROYAL_STYLES.pageContainer}>
         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚚</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>{hebrew.loading}</p>
+          <p style={{ color: ROYAL_COLORS.muted }}>{translations.common.loading}</p>
         </div>
       </div>
     );
@@ -97,9 +98,9 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
       {/* Header */}
       <div style={ROYAL_STYLES.pageHeader}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>🚚</div>
-        <h1 style={ROYAL_STYLES.pageTitle}>{hebrew.incoming}</h1>
+        <h1 style={ROYAL_STYLES.pageTitle}>{translations.incomingPage.title}</h1>
         <p style={ROYAL_STYLES.pageSubtitle}>
-          מעקב אחר כניסות למחסן והעברות מלאי
+          {translations.incomingPage.subtitle}
         </p>
       </div>
 
@@ -111,9 +112,9 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
         padding: '0 4px'
       }}>
         {[
-          { key: 'all', label: 'הכל', icon: '📦' },
-          { key: 'restock', label: 'חידושי מלאי', icon: '📥' },
-          { key: 'transfer', label: 'העברות', icon: '🔄' }
+          { key: 'all', label: translations.incomingPage.all, icon: '📦' },
+          { key: 'restock', label: translations.incomingPage.restocks, icon: '📥' },
+          { key: 'transfer', label: translations.incomingPage.transfers, icon: '🔄' }
         ].map(tab => (
           <button
             key={tab.key}
@@ -154,19 +155,19 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
       }}>
         <div style={ROYAL_STYLES.statBox}>
           <div style={ROYAL_STYLES.statValue}>{logs.length}</div>
-          <div style={ROYAL_STYLES.statLabel}>סה"כ כניסות</div>
+          <div style={ROYAL_STYLES.statLabel}>{translations.incomingPage.totalIncoming}</div>
         </div>
         <div style={ROYAL_STYLES.statBox}>
           <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.teal }}>
             {logs.filter(l => l.change_type === 'restock').length}
           </div>
-          <div style={ROYAL_STYLES.statLabel}>חידושי מלאי</div>
+          <div style={ROYAL_STYLES.statLabel}>{translations.incomingPage.restocks}</div>
         </div>
         <div style={ROYAL_STYLES.statBox}>
           <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.gold }}>
             {logs.filter(l => l.change_type === 'transfer').length}
           </div>
-          <div style={ROYAL_STYLES.statLabel}>העברות</div>
+          <div style={ROYAL_STYLES.statLabel}>{translations.incomingPage.transfers}</div>
         </div>
       </div>
 
@@ -176,10 +177,10 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
           <div style={ROYAL_STYLES.emptyState}>
             <div style={ROYAL_STYLES.emptyStateIcon}>📭</div>
             <h3 style={{ margin: '0 0 8px 0', color: ROYAL_COLORS.text }}>
-              אין כניסות {filter !== 'all' ? 'מסוג זה' : ''}
+              {translations.incomingPage.noIncoming} {filter !== 'all' ? translations.incomingPage.noIncomingOfType : ''}
             </h3>
             <div style={ROYAL_STYLES.emptyStateText}>
-              כל הכניסות והעברות למחסן יופיעו כאן
+              {translations.incomingPage.allIncomingWillAppear}
             </div>
           </div>
         </div>
@@ -221,7 +222,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
                     color: ROYAL_COLORS.text,
                     marginBottom: '4px'
                   }}>
-                    {log.product?.name || 'מוצר לא ידוע'}
+                    {log.product?.name || translations.incomingPage.unknownProduct}
                   </div>
 
                   {/* Type Badge */}
@@ -249,9 +250,9 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
                     marginBottom: '4px'
                   }}>
                     {log.from_location ? (
-                      <>מ: {log.from_location.name} → </>
+                      <>{translations.incomingPage.from}: {log.from_location.name} → </>
                     ) : null}
-                    ל: {log.to_location?.name || 'מיקום לא ידוע'}
+                    {translations.incomingPage.to}: {log.to_location?.name || translations.incomingPage.unknownLocation}
                   </div>
 
                   {/* Quantity and Date */}
@@ -266,7 +267,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
                       fontWeight: '700',
                       color: log.quantity_change > 0 ? ROYAL_COLORS.emerald : ROYAL_COLORS.crimson
                     }}>
-                      {log.quantity_change > 0 ? '+' : ''}{log.quantity_change} יח'
+                      {log.quantity_change > 0 ? '+' : ''}{log.quantity_change} {translations.incomingPage.units}
                     </div>
                     <div style={{
                       fontSize: '13px',
@@ -287,7 +288,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
                   fontSize: '12px',
                   color: ROYAL_COLORS.muted
                 }}>
-                  מזהה: {log.reference_id}
+                  {translations.incomingPage.id}: {log.reference_id}
                 </div>
               )}
             </div>
