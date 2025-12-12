@@ -3,6 +3,7 @@ import { telegram } from '../lib/telegram';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { useAppServices } from '../context/AppServicesContext';
 import { logger } from '../lib/logger';
+import { useAuth } from '../context/AuthContext';
 
 interface FloatingActionMenuProps {
   onNavigate: (page: string) => void;
@@ -26,6 +27,9 @@ export function FloatingActionMenu({
   onClose
 }: FloatingActionMenuProps) {
   const { user } = useAppServices();
+  const authCtx = useAuth();
+  const authRole = (authCtx?.user as any)?.role || null;
+  void authRole;
   const getRoleActions = (): RoleAction[] => {
     if (!user) return [];
 

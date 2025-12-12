@@ -1,0 +1,29 @@
+/* Global containment + overflow guard */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Ensure predictable sizing */
+*:not(input) {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  overflow-x: hidden !important;
+}
+
+.text-break {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Utility for nested flex containers */
+.max-w-full {
+  max-width: 100%;
+  overflow-x: hidden;
+}

@@ -28,6 +28,7 @@ import {
   RoyalDashboardRestockRequest
 } from '../data/types';
 import { logger } from './logger';
+import type { SxTDataStore } from './sxt/sxtDataStore';
 
 export type DataStoreSubscriptionTopic =
   | 'orders'
@@ -108,6 +109,78 @@ const mockProducts: Product[] = [
     warehouse_location: 'מחסן ב - מדף 3',
     created_at: '2024-01-20T09:00:00Z',
     updated_at: '2024-01-20T11:00:00Z'
+  },
+  {
+    id: '3',
+    name: 'סט אוזניות גיימינג',
+    sku: 'HEADSET-777',
+    price: 420,
+    stock_quantity: 60,
+    category: 'דיגיטל',
+    description: 'אוזניות עם מיקרופון ביטול רעשים',
+    warehouse_location: 'מחסן ב - מדף 4',
+    created_at: '2024-02-02T08:30:00Z',
+    updated_at: '2024-02-02T08:30:00Z'
+  },
+  {
+    id: '4',
+    name: 'כרטיס מתנה דיגיטלי',
+    sku: 'GIFT-100',
+    price: 100,
+    stock_quantity: 999,
+    category: 'מבצעים',
+    description: 'כרטיס מתנה נטען ללקוחות',
+    warehouse_location: 'דיגיטלי בלבד',
+    created_at: '2024-02-03T11:00:00Z',
+    updated_at: '2024-02-03T11:00:00Z'
+  },
+  {
+    id: '5',
+    name: 'שירות התקנה בבית לקוח',
+    sku: 'SERVICE-INSTALL',
+    price: 250,
+    stock_quantity: 999,
+    category: 'שירותים',
+    description: 'טכנאי מגיע ומתקין ציוד',
+    warehouse_location: 'שירות חיצוני',
+    created_at: '2024-02-04T09:15:00Z',
+    updated_at: '2024-02-04T09:15:00Z'
+  },
+  {
+    id: '6',
+    name: 'מדפסת לייזר קומפקטית',
+    sku: 'PRT-LZR-12',
+    price: 820,
+    stock_quantity: 35,
+    category: 'פיזי',
+    description: 'מדפסת לייזר מהירה לחיסכון בדפים',
+    warehouse_location: 'מחסן א - מדף 7',
+    created_at: '2024-02-05T10:45:00Z',
+    updated_at: '2024-02-05T10:45:00Z'
+  },
+  {
+    id: '7',
+    name: 'מסך 27" 2K',
+    sku: 'MON-27QHD',
+    price: 1290,
+    stock_quantity: 18,
+    category: 'חדש',
+    description: 'מסך QHD עם קצב רענון 144Hz',
+    warehouse_location: 'מחסן ג - מדף 2',
+    created_at: '2024-02-06T12:10:00Z',
+    updated_at: '2024-02-06T12:10:00Z'
+  },
+  {
+    id: '8',
+    name: 'נתב Mesh מהיר',
+    sku: 'ROUTER-MSH',
+    price: 640,
+    stock_quantity: 42,
+    category: 'חם',
+    description: 'כיסוי Wi‑Fi מלא לבית או למשרד',
+    warehouse_location: 'מחסן ג - מדף 5',
+    created_at: '2024-02-07T07:50:00Z',
+    updated_at: '2024-02-07T07:50:00Z'
   }
 ];
 
@@ -1277,4 +1350,30 @@ export async function createFrontendDataStore(
 
   // Fallback to mock data store for development/demo
   return attachSubscriptionHelpers(new HebrewLogisticsDataStore(user));
+}
+
+/**
+ * Create a datastore based on adapter selection.
+ * Defaults to Supabase to preserve existing behavior.
+ */
+export async function createDataStore(
+  cfg: BootstrapConfig,
+  mode: 'real',
+  user?: any,
+  identityProvider?: () => { walletType: string | null; walletAddress: string | null }
+): Promise<FrontendDataStore> {
+  const adapter = (cfg.adapters.data || 'supabase') as 'supabase' | 'postgres' | 'sxt';
+
+  // Prefer env flag override (VITE_USE_SXT=true) to force SxT
+  const useSxt = (import.meta as any)?.env?.VITE_USE_SXT === 'true';
+  const resolvedAdapter = useSxt ? 'sxt' : adapter;
+
+  if (resolvedAdapter === 'sxt') {
+    const { createSxTDataStore } = await import('./sxt/sxtDataStore');
+    const store = createSxTDataStore(cfg, user, identityProvider) as unknown as DataStore | SxTDataStore;
+    return attachSubscriptionHelpers(store);
+  }
+
+  // Fallback to existing Supabase/Postgres path
+  return createFrontendDataStore(cfg, mode, user);
 }

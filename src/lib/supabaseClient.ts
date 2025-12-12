@@ -13,6 +13,16 @@ if (typeof window !== 'undefined') {
 }
 
 async function loadConfig(): Promise<{supabaseUrl: string; supabaseAnonKey: string}> {
+  const raw = (import.meta as any)?.env?.VITE_USE_SXT;
+  const useSXT = (() => {
+    if (raw === undefined || raw === null || raw === '') return true; // default to SxT
+    return ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
+  })();
+  if (useSXT) {
+    console.log('Supabase disabled: running in SxT mode');
+    return { supabaseUrl: '', supabaseAnonKey: '' };
+  }
+
   if (config) {
     return config;
   }
@@ -73,6 +83,24 @@ async function loadConfig(): Promise<{supabaseUrl: string; supabaseAnonKey: stri
 }
 
 export async function initSupabase(): Promise<SupabaseClient> {
+  const raw = (import.meta as any)?.env?.VITE_USE_SXT;
+  const useSXT = (() => {
+    if (raw === undefined || raw === null || raw === '') return true; // default to SxT
+    return ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
+  })();
+  if (useSXT) {
+    console.log('Supabase disabled: running in SxT mode');
+    // Return inert client that won't error on access
+    const dummy = new Proxy({} as SupabaseClient, {
+      get() {
+        return () => null;
+      }
+    });
+    client = dummy;
+    isInitialized = true;
+    return dummy;
+  }
+
   // Check global flag first (survives React StrictMode double renders)
   if (typeof window !== 'undefined' && (window as any).__SUPABASE_INITIALIZED__) {
     if (client && isInitialized) {

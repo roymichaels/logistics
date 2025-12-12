@@ -260,6 +260,15 @@ export class PINAuthService {
    * Check if PIN is set up (check database)
    */
   async isPINSetup(): Promise<boolean> {
+    const raw = (import.meta as any)?.env?.VITE_USE_SXT;
+    const useSXT = (() => {
+      if (raw === undefined || raw === null || raw === '') return true;
+      return ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
+    })();
+    if (useSXT) {
+      return false;
+    }
+
     // First check local cache for quick response
     const localCheck = this.isLocallyMarkedAsSetup();
     if (localCheck) {
@@ -302,6 +311,15 @@ export class PINAuthService {
    * Check if account is currently locked
    */
   async isAccountLocked(): Promise<boolean> {
+    const raw = (import.meta as any)?.env?.VITE_USE_SXT;
+    const useSXT = (() => {
+      if (raw === undefined || raw === null || raw === '') return true;
+      return ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
+    })();
+    if (useSXT) {
+      return false;
+    }
+
     try {
       const supabase = getSupabase();
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -336,6 +354,15 @@ export class PINAuthService {
    * Get lockout information
    */
   async getLockoutInfo(): Promise<{ isLocked: boolean; lockedUntil?: Date; remainingTime?: number }> {
+    const raw = (import.meta as any)?.env?.VITE_USE_SXT;
+    const useSXT = (() => {
+      if (raw === undefined || raw === null || raw === '') return true;
+      return ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
+    })();
+    if (useSXT) {
+      return { isLocked: false };
+    }
+
     try {
       const supabase = getSupabase();
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();

@@ -1,0 +1,18 @@
+version: "3.9"
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kyc-api
+    ports:
+      - "8088:8080"
+    environment:
+      - INSIGHTFACE_MODEL_PATH=/models/insightface
+      - ANTI_SPOOF_MODEL_PATH=/models/anti_spoof
+      - PADDLE_OCR_MODEL_PATH=/models/paddleocr
+      - SPACE_TIME_ENDPOINT=${SPACE_TIME_ENDPOINT:-http://space-time-endpoint}
+      - SPACE_TIME_API_KEY=${SPACE_TIME_API_KEY:-replace_me}
+    volumes:
+      - ./models:/models:ro
+    restart: unless-stopped

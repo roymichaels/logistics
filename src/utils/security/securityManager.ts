@@ -29,6 +29,7 @@ export interface AuthenticationState {
 }
 
 export class SecurityManager {
+  private useSXT: boolean;
   private pinAuthService: PINAuthService;
   private masterKey: CryptoKey | null = null;
   private secureStorage: SecureStorage | null = null;
@@ -39,6 +40,11 @@ export class SecurityManager {
 
   constructor(config: SecurityManagerConfig) {
     this.config = config;
+    this.useSXT = (() => {
+      const raw = (import.meta as any)?.env?.VITE_USE_SXT;
+      if (raw === undefined || raw === null || raw === '') return true;
+      return ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
+    })();
     this.pinAuthService = new PINAuthService({
       maxFailedAttempts: 5,
       lockoutDurationMinutes: 15,
@@ -52,6 +58,9 @@ export class SecurityManager {
    * Initialize security manager
    */
   async initialize(): Promise<void> {
+    if (this.useSXT) {
+      return;
+    }
     // Check if PIN is set up
     const isPinSetup = await this.pinAuthService.isPINSetup();
     if (!isPinSetup && this.config.requirePinForAccess) {
@@ -69,6 +78,17 @@ export class SecurityManager {
    * Get current authentication state
    */
   async getAuthenticationState(): Promise<AuthenticationState> {
+    if (this.useSXT) {
+      return {
+        isAuthenticated: true,
+        isPinAuthenticated: true,
+        requiresPinSetup: false,
+        requiresPinChange: false,
+        sessionExpired: false,
+        lockoutActive: false
+      };
+    }
+
     const lockoutInfo = await this.pinAuthService.getLockoutInfo();
     const isPinSetup = await this.pinAuthService.isPINSetup();
 

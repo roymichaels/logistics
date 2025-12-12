@@ -2,6 +2,7 @@ import React from 'react';
 import { telegram } from '../lib/telegram';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { i18n } from '../lib/i18n';
+import { useAuth } from '../context/AuthContext';
 
 interface MenuItem {
   id: string;
@@ -19,6 +20,10 @@ interface RightSidebarMenuProps {
 }
 
 export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNavigate }: RightSidebarMenuProps) {
+  const authCtx = useAuth();
+  const authRole = (authCtx?.user as any)?.role || null;
+  void authRole;
+
   const getMenuItems = (): MenuItem[] => {
     if (!userRole) return [];
 

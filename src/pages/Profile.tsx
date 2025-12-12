@@ -1,10 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { telegram } from '../lib/telegram';
 import { DataStore, User } from '../data/types';
 import { roleNames, roleIcons, useI18n } from '../lib/i18n';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { ProfileDiagnostics } from '../lib/diagnostics';
 import { logger } from '../lib/logger';
+import { KycBadge } from '../components/kyc/KycBadge';
+import { GetVerifiedButton } from '../components/kyc/GetVerifiedButton';
+import { useTheme } from '../theme/tokens';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { SettingsCard } from '../components/ui/SettingsCard';
 
 interface ProfileProps {
   dataStore: DataStore;
@@ -12,54 +19,47 @@ interface ProfileProps {
 }
 
 export function Profile({ dataStore, onNavigate }: ProfileProps) {
-  const { translations, isRTL } = useI18n();
+  const { translations } = useI18n();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const theme = telegram.themeParams;
+  const [notificationsOn, setNotificationsOn] = useState(true);
+  const [privacyOn, setPrivacyOn] = useState(false);
+  const navigate = useNavigate();
+  const t = useTheme();
+
+  const kycStatus = (user as any)?.kycStatus || 'unverified';
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const shouldRefresh = params.has('refresh');
-
     loadProfile(shouldRefresh);
-
     if (shouldRefresh) {
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
 
   useEffect(() => {
-    telegram.setBackButton(() => {
-      onNavigate('dashboard');
-    });
+    telegram.setBackButton(() => onNavigate('dashboard'));
     return () => telegram.hideBackButton();
   }, [onNavigate]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      (window as any).__showProfileReport = () => ProfileDiagnostics.profileDebugger.printReport();
-      logger.info('💡 Type window.__showProfileReport() to see profile fetch statistics');
-    }
+    (window as any).__showProfileReport = () => ProfileDiagnostics.profileDebugger.printReport();
+    logger.info('💡 Type window.__showProfileReport() to see profile fetch statistics');
   }, []);
 
   const loadProfile = async (forceRefresh = false) => {
     try {
       logger.info('📄 Profile page: Loading profile...', { forceRefresh });
-
-      const profile = forceRefresh
-        ? await dataStore.getProfile(true)
-        : await dataStore.getProfile();
-
-      logger.info('✅ Profile page: Profile loaded successfully', {
-        telegram_id: profile.telegram_id,
-        role: profile.role,
-        name: profile.name
-      });
-
+      const profile = forceRefresh ? await dataStore.getProfile(true) : await dataStore.getProfile();
       setUser(profile);
     } catch (error) {
       logger.error('❌ Profile page: Failed to load profile:', error);
-      telegram.showAlert(`${translations.profilePage.errorLoading}: ${error instanceof Error ? error.message : translations.profilePage.unknownError}`);
+      telegram.showAlert(
+        `${translations.profilePage.errorLoading}: ${
+          error instanceof Error ? error.message : translations.profilePage.unknownError
+        }`
+      );
     } finally {
       setLoading(false);
     }
@@ -67,250 +67,317 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
 
   if (loading) {
     return (
-      <div style={ROYAL_STYLES.pageContainer}>
-        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>{translations.profilePage.loading}</p>
+      <div
+        style={{
+          background: t.colors.background,
+          color: t.colors.text,
+          minHeight: '100vh',
+          padding: '32px 20px',
+          direction: 'rtl',
+          display: 'grid',
+          placeItems: 'center',
+        }}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 42, marginBottom: 12 }}>⏳</div>
+          <p style={{ color: t.colors.muted }}>{translations.profilePage.loading}</p>
         </div>
       </div>
     );
   }
 
   const userName = user?.name || (user as any)?.first_name || translations.profilePage.user;
-  const userInitial = userName[0]?.toUpperCase() || 'U';
+  const userInitial = userName[0]?.toUpperCase?.() || 'U';
 
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
-      {/* Header */}
-      <header style={ROYAL_STYLES.pageHeader}>
-        <h1 style={ROYAL_STYLES.pageTitle}>👤 {translations.profilePage.title}</h1>
-        <p style={ROYAL_STYLES.pageSubtitle}>{translations.profilePage.subtitle}</p>
-      </header>
-
-      {/* Profile Card */}
-      <section style={{
-        ...ROYAL_STYLES.card,
-        textAlign: 'center'
-      }}>
-        {/* Avatar */}
-        <div style={{
-          width: '120px',
-          height: '120px',
-          margin: '0 auto 24px',
-          borderRadius: '50%',
-          background: user?.photo_url
-            ? `url(${user.photo_url}) center/cover`
-            : 'linear-gradient(135deg, rgba(29, 155, 240, 0.8), rgba(123, 63, 242, 0.8))',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '48px',
-          fontWeight: '700',
-          color: ROYAL_COLORS.white,
-          boxShadow: ROYAL_COLORS.glowPurpleStrong,
-          border: `3px solid ${ROYAL_COLORS.cardBorder}`
-        }}>
-          {!user?.photo_url && userInitial}
-        </div>
-
-        {/* Name */}
-        <h2 style={{
-          margin: '0 0 8px 0',
-          fontSize: '28px',
-          fontWeight: '700',
-          color: ROYAL_COLORS.text
-        }}>
-          {userName}
-        </h2>
-
-        {/* Username */}
-        {user?.username && (
-          <p style={{
-            margin: '0 0 16px 0',
-            fontSize: '16px',
-            color: ROYAL_COLORS.muted
-          }}>
-            @{user.username}
-          </p>
-        )}
-
-        {/* Role Badge */}
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '12px 20px',
-          background: ROYAL_COLORS.gradientPurple,
-          borderRadius: '12px',
-          marginBottom: '24px',
-          boxShadow: ROYAL_COLORS.glowPurple
-        }}>
-          <span style={{ fontSize: '20px' }}>
-            {roleIcons[user?.role as keyof typeof roleIcons] || '👤'}
-          </span>
-          <span style={{ fontSize: '16px', fontWeight: '600', color: ROYAL_COLORS.white }}>
-            {roleNames[user?.role as keyof typeof roleNames] || translations.profilePage.user}
-          </span>
-        </div>
-
-        {/* Divider */}
-        <div style={{
-          height: '1px',
-          background: ROYAL_COLORS.cardBorder,
-          margin: '24px 0'
-        }} />
-
-        {/* User Info */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          textAlign: 'right'
-        }}>
-          <ProfileInfoRow
-            label={translations.profilePage.telegramId}
-            value={user?.telegram_id || 'N/A'}
-          />
-          {user?.created_at && (
-            <ProfileInfoRow
-              label={translations.profilePage.memberSince}
-              value={new Date(user.created_at).toLocaleDateString('he-IL')}
-            />
-          )}
-        </div>
-      </section>
-
-      {/* Account Actions */}
-      <section style={ROYAL_STYLES.card}>
-        <h3 style={{
-          ...ROYAL_STYLES.cardTitle,
-          textAlign: 'right'
-        }}>
-          {translations.profilePage.accountActions}
-        </h3>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <ProfileActionButton
-            icon="⚙️"
-            title={translations.profilePage.settings}
-            onClick={() => onNavigate('settings')}
-          />
-          <ProfileActionButton
-            icon="🔐"
-            title={translations.profilePage.changeRole}
-            onClick={() => onNavigate('my-role')}
-          />
-          <ProfileActionButton
-            icon="🚪"
-            title={translations.profilePage.logout}
-            danger
-            onClick={() => {
-              telegram.showConfirm(translations.profilePage.confirmLogout).then((confirmed) => {
-                if (confirmed) {
-                  localStorage.removeItem('user_session');
-                  localStorage.clear();
-                  telegram.hapticFeedback('notification', 'success');
-                  window.location.reload();
-                }
-              });
-            }}
-          />
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function ProfileInfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '14px 18px',
-      background: ROYAL_COLORS.secondary,
-      borderRadius: '12px',
-      border: `1px solid ${ROYAL_COLORS.cardBorder}`
-    }}>
-      <span style={{
-        fontSize: '14px',
-        color: ROYAL_COLORS.text,
-        fontWeight: '600'
-      }}>
-        {value}
-      </span>
-      <span style={{
-        fontSize: '14px',
-        color: ROYAL_COLORS.muted
-      }}>
-        {label}
-      </span>
-    </div>
-  );
-}
-
-function ProfileActionButton({
-  icon,
-  title,
-  onClick,
-  danger = false
-}: {
-  icon: string;
-  title: string;
-  onClick: () => void;
-  danger?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
+    <div
       style={{
+        background: t.colors.background,
+        color: t.colors.text,
+        minHeight: '100vh',
+        padding: '16px 12px',
+        direction: 'rtl',
         display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        padding: '16px 20px',
-        background: danger
-          ? 'linear-gradient(120deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.2))'
-          : ROYAL_COLORS.secondary,
-        border: `1px solid ${danger ? ROYAL_COLORS.error : ROYAL_COLORS.cardBorder}`,
-        borderRadius: '12px',
-        cursor: 'pointer',
-        width: '100%',
-        textAlign: 'right',
-        transition: 'all 0.2s ease'
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = danger
-          ? '0 8px 20px rgba(239, 68, 68, 0.3)'
-          : ROYAL_COLORS.shadow;
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = 'none';
+        flexDirection: 'column',
+        gap: 'var(--space-md,14px)',
+        maxWidth: '100%',
+        overflowX: 'hidden',
       }}
     >
-      <div style={{
-        fontSize: '24px',
-        width: '40px',
-        height: '40px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: danger
-          ? 'rgba(239, 68, 68, 0.2)'
-          : 'rgba(29, 155, 240, 0.2)',
-        borderRadius: '10px'
-      }}>
-        {icon}
+      <header style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs,6px)', maxWidth: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>👤 {translations.profilePage.title}</h1>
+            <p style={{ margin: 0, color: t.colors.muted, lineHeight: 1.35 }}>{translations.profilePage.subtitle}</p>
+          </div>
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start' }}>
+            {kycStatus === 'verified' ? (
+              <KycBadge status="verified" label="Verified Identity" />
+            ) : (
+              <GetVerifiedButton label="Get Verified" onClick={() => navigate('/store/kyc/start')} />
+            )}
+          </div>
+        </div>
+      </header>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--space-md,14px)' }}>
+        <Card
+          style={{
+            background: t.colors.panel,
+            border: `1px solid ${t.colors.border}`,
+            borderRadius: t.radius.lg,
+            padding: 'var(--space-md,14px)',
+            boxShadow: t.shadows.glow,
+            width: '100%',
+            maxWidth: '100%',
+          }}
+        >
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 12,
+            width: '100%',
+            maxWidth: '100%',
+            textAlign: 'center'
+          }}>
+            <div
+              style={{
+                width: 96,
+                height: 96,
+                borderRadius: '50%',
+                background: user?.photo_url
+                  ? `url(${user.photo_url}) center/cover`
+                  : `linear-gradient(135deg, ${t.colors.primary}, ${t.colors.secondary})`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 32,
+                fontWeight: 800,
+                color: '#0b1020',
+                border: `2px solid ${t.colors.border}`,
+                boxShadow: t.shadows.glow,
+              }}
+            >
+              {!user?.photo_url && userInitial}
+            </div>
+            <div style={{ flex: 1, minWidth: 0, width: '100%', maxWidth: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, wordBreak: 'break-word', lineHeight: 1.2, maxWidth: '100%' }}>{userName}</h2>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 12px',
+                    borderRadius: t.radius.md,
+                    background: t.colors.primary + '22',
+                    border: `1px solid ${t.colors.primary}`,
+                    color: t.colors.text,
+                    fontWeight: 700,
+                  }}
+                >
+                  {roleIcons[user?.role as keyof typeof roleIcons] || '👤'}
+                  {roleNames[user?.role as keyof typeof roleNames] || translations.profilePage.user}
+                </span>
+              </div>
+              {user?.username && (
+                <p style={{ margin: '4px 0 0', color: t.colors.muted, wordBreak: 'break-all', overflowWrap: 'anywhere', textAlign: 'center' }}>
+                  @{user.username}
+                </p>
+              )}
+              <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <InfoPill label={translations.profilePage.telegramId} value={user?.telegram_id || 'N/A'} />
+                {user?.created_at && (
+                  <InfoPill
+                    label={translations.profilePage.memberSince}
+                    value={new Date(user.created_at).toLocaleDateString('he-IL')}
+                  />
+                )}
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0, width: '100%' }}>
+              <Button variant="secondary" onClick={() => navigate('/store/orders')} style={{ width: '100%' }}>
+                🧾 ההזמנות שלי
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  telegram.showConfirm(translations.profilePage.confirmLogout).then((confirmed) => {
+                    if (confirmed) {
+                      localStorage.clear();
+                      telegram.hapticFeedback('notification', 'success');
+                      window.location.reload();
+                    }
+                  });
+                }}
+                style={{ width: '100%' }}
+              >
+                🚪 התנתקות
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        <Card
+          style={{
+            background: t.colors.panel,
+            border: `1px solid ${t.colors.border}`,
+            borderRadius: t.radius.lg,
+            padding: 'var(--space-md,14px)',
+          }}
+        >
+          <SettingsCard title="העדפות חשבון" description="שינוי שפה, התראות ופרטיות">
+            <div style={{ display: 'grid', gap: 'var(--space-sm,10px)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
+                <span>שפת ממשק</span>
+                <select
+                  defaultValue="he"
+                  style={{
+                    background: t.colors.panel,
+                    color: t.colors.text,
+                    border: `1px solid ${t.colors.border}`,
+                    borderRadius: t.radius.md,
+                    padding: '10px 12px',
+                    minWidth: 140,
+                  }}
+                >
+                  <option value="he">עברית</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+              <ToggleRow
+                label="התראות"
+                enabled={notificationsOn}
+                onToggle={() => setNotificationsOn((v) => !v)}
+                accent={t.colors.primary}
+              />
+              <ToggleRow
+                label="פרטיות מורחבת"
+                enabled={privacyOn}
+                onToggle={() => setPrivacyOn((v) => !v)}
+                accent={t.colors.secondary}
+              />
+            </div>
+          </SettingsCard>
+        </Card>
+
+        <Card
+          style={{
+            background: t.colors.panel,
+            border: `1px solid ${t.colors.border}`,
+            borderRadius: t.radius.lg,
+            padding: 'var(--space-md,14px)',
+          }}
+        >
+          <SettingsCard title="אבטחה" description="שליטה בסיסית בחשבון (ממוקם כאן במקום מסך נפרד)">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+              <Button variant="secondary">שינוי סיסמה (בקרוב)</Button>
+              <Button variant="secondary">הפעלת אימות דו-שלבי (בקרוב)</Button>
+            </div>
+          </SettingsCard>
+        </Card>
+
+        <Card
+          style={{
+            background: t.colors.panel,
+            border: `1px solid ${t.colors.border}`,
+            borderRadius: t.radius.lg,
+            padding: 'var(--space-md,14px)',
+          }}
+        >
+          <SettingsCard title="חיבורים חברתיים" description="הוספת חשבונות חברתיים לצורך אימות עתידי">
+            <div style={{ display: 'grid', gap: 'var(--space-sm,10px)' }}>
+              <Input
+                placeholder="@username"
+                style={{
+                  background: t.colors.panel,
+                  color: t.colors.text,
+                  border: `1px solid ${t.colors.border}`,
+                  borderRadius: t.radius.md,
+                  padding: '12px 14px',
+                }}
+              />
+              <Button variant="secondary">עדכון פרופיל חברתי</Button>
+            </div>
+          </SettingsCard>
+        </Card>
+
+        <Card
+          style={{
+            background: t.colors.panel,
+            border: `1px solid ${t.colors.border}`,
+            borderRadius: t.radius.lg,
+            padding: 'var(--space-md,14px)',
+          }}
+        >
+          <SettingsCard title="אזור מסוכן" description="פעולות מחיקה יסופקו מאוחר יותר">
+            <Button
+              variant="ghost"
+              style={{ color: '#ef4444', borderColor: '#ef4444' }}
+              onClick={() => telegram.showAlert('מחיקת חשבון תתאפשר בהמשך')}
+            >
+              🗑️ מחיקת חשבון (בקרוב)
+            </Button>
+          </SettingsCard>
+        </Card>
       </div>
-      <span style={{
-        flex: 1,
-        fontSize: '16px',
-        fontWeight: '600',
-        color: danger ? ROYAL_COLORS.error : ROYAL_COLORS.text
-      }}>
-        {title}
+    </div>
+  );
+}
+
+function InfoPill({ label, value }: { label: string; value: string }) {
+  const t = useTheme();
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 6,
+        padding: 'var(--space-sm,10px) var(--space-sm,10px)',
+        borderRadius: t.radius.md,
+        background: t.colors.panel,
+        border: `1px solid ${t.colors.border}`,
+        color: t.colors.text,
+        fontWeight: 600,
+        flexWrap: 'wrap',
+        maxWidth: '100%',
+      }}
+    >
+      <span style={{ color: t.colors.muted, whiteSpace: 'nowrap' }}>{label}</span>
+      <span style={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', flex: 1, minWidth: 0 }}>
+        {value}
       </span>
-    </button>
+    </div>
+  );
+}
+
+function ToggleRow({
+  label,
+  enabled,
+  onToggle,
+  accent,
+}: {
+  label: string;
+  enabled: boolean;
+  onToggle: () => void;
+  accent: string;
+}) {
+  const t = useTheme();
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+      <span>{label}</span>
+      <Button
+        variant="ghost"
+        onClick={onToggle}
+        style={{
+          borderColor: enabled ? accent : t.colors.border,
+          color: enabled ? accent : t.colors.text,
+          background: enabled ? `${accent}22` : 'transparent',
+        }}
+      >
+        {enabled ? 'מופעל' : 'כבוי'}
+      </Button>
+    </div>
   );
 }

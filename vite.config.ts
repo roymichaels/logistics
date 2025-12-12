@@ -36,35 +36,44 @@ const cacheBustPlugin = () => ({
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
+  const useSXT =
+    process.env.VITE_USE_SXT === '1' ||
+    env.VITE_USE_SXT === '1';
+
   // Support both VITE_ prefixed (local dev) and non-prefixed (Netlify/Supabase) variables
   // Check process.env first for Netlify/CI environments
-  const supabaseUrl =
-    process.env.SUPABASE_URL ||
-    process.env.VITE_SUPABASE_URL ||
-    env.SUPABASE_URL ||
-    env.VITE_SUPABASE_URL ||
-    '';
+  const supabaseUrl = useSXT
+    ? ''
+    : (process.env.SUPABASE_URL ||
+      process.env.VITE_SUPABASE_URL ||
+      env.SUPABASE_URL ||
+      env.VITE_SUPABASE_URL ||
+      '');
 
-  const supabaseAnonKey =
-    process.env.SUPABASE_ANON_KEY ||
-    process.env.VITE_SUPABASE_ANON_KEY ||
-    env.SUPABASE_ANON_KEY ||
-    env.VITE_SUPABASE_ANON_KEY ||
-    '';
+  const supabaseAnonKey = useSXT
+    ? ''
+    : (process.env.SUPABASE_ANON_KEY ||
+      process.env.VITE_SUPABASE_ANON_KEY ||
+      env.SUPABASE_ANON_KEY ||
+      env.VITE_SUPABASE_ANON_KEY ||
+      '');
 
-  // Log what we found (for debugging)
-  console.log('\n🔍 Environment variable check:');
-  console.log(`   Mode: ${mode}`);
-  console.log(`   process.env.SUPABASE_URL: ${process.env.SUPABASE_URL ? '✅ Found' : '❌ Not found'}`);
-  console.log(`   process.env.VITE_SUPABASE_URL: ${process.env.VITE_SUPABASE_URL ? '✅ Found' : '❌ Not found'}`);
-  console.log(`   Final supabaseUrl: ${supabaseUrl ? '✅ ' + supabaseUrl.substring(0, 30) + '...' : '❌ Missing'}`);
-  console.log(`   Final supabaseAnonKey: ${supabaseAnonKey ? '✅ ' + supabaseAnonKey.substring(0, 20) + '...' : '❌ Missing'}\n`);
-
-  // Log environment variable status during build
-  if (supabaseUrl && supabaseAnonKey) {
-    console.log('✅ Environment variables found - will be used for local development\n');
+  if (useSXT) {
+    console.log('\n🔍 SxT mode enabled — skipping Supabase env check\n');
   } else {
-    console.log('ℹ️  No environment variables at build time - app will use runtime configuration\n');
+    // Log what we found (for debugging)
+    console.log('\n🔍 Environment variable check:');
+    console.log(`   Mode: ${mode}`);
+    console.log(`   process.env.SUPABASE_URL: ${process.env.SUPABASE_URL ? '✅ Found' : '❌ Not found'}`);
+    console.log(`   process.env.VITE_SUPABASE_URL: ${process.env.VITE_SUPABASE_URL ? '✅ Found' : '❌ Not found'}`);
+    console.log(`   Final supabaseUrl: ${supabaseUrl ? '✅ ' + supabaseUrl.substring(0, 30) + '...' : '❌ Missing'}`);
+    console.log(`   Final supabaseAnonKey: ${supabaseAnonKey ? '✅ ' + supabaseAnonKey.substring(0, 20) + '...' : '❌ Missing'}\n`);
+
+    if (supabaseUrl && supabaseAnonKey) {
+      console.log('✅ Environment variables found - will be used for local development\n');
+    } else {
+      console.log('ℹ️  No environment variables at build time - app will use runtime configuration\n');
+    }
   }
 
   return {

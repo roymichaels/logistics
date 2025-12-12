@@ -298,7 +298,7 @@
 
   .header-dropdown-menu {
     min-width: 200px;
-    left: -8px;
+    left: 0;
   }
 
   .header-business-dropdown {

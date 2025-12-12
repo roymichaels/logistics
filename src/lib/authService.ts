@@ -3,6 +3,7 @@ import { telegram } from './telegram';
 import { logger } from './logger';
 import { sessionManager } from './sessionManager';
 import { sessionHealthMonitor } from './sessionHealthMonitor';
+import { createLocalSession } from './auth/walletAuth';
 
 export interface AuthUser {
   id: string;
@@ -71,7 +72,23 @@ class AuthService {
     }
   }
 
+  private isSxtMode() {
+    const raw = (import.meta as any)?.env?.VITE_USE_SXT;
+    if (raw === undefined || raw === null || raw === '') return true;
+    return ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
+  }
+
   private initializeAuthListener() {
+    if (this.isSxtMode()) {
+      logger.info('Auth listener skipped in SxT mode');
+      this.updateState({
+        isLoading: false,
+        isAuthenticated: false,
+        user: null,
+        session: null,
+      });
+      return;
+    }
     // Only initialize once
     if (this.authListenerInitialized) {
       return;
@@ -275,6 +292,17 @@ class AuthService {
   }
 
   public async initialize(): Promise<void> {
+    if (this.isSxtMode()) {
+      logger.info('SxT mode: auth initialization skipped');
+      this.updateState({
+        isLoading: false,
+        isAuthenticated: false,
+        user: null,
+        session: null
+      });
+      return;
+    }
+
     try {
       logger.info('Starting authentication initialization');
       this.initializeAuthListener();
@@ -573,6 +601,25 @@ class AuthService {
     signature: string,
     message: string
   ): Promise<void> {
+    if (this.isSxtMode()) {
+      createLocalSession({ walletType: 'ethereum', walletAddress, issuedAt: Date.now() });
+      this.updateState({
+        isAuthenticated: true,
+        isLoading: false,
+        user: {
+          id: walletAddress,
+          username: walletAddress,
+          name: walletAddress,
+          photo_url: null,
+          role: 'user',
+          auth_method: 'ethereum'
+        } as any,
+        session: { wallet: walletAddress },
+        error: null
+      });
+      return;
+    }
+
     this.updateState({ isLoading: true, error: null });
 
     try {
@@ -643,6 +690,25 @@ class AuthService {
     signature: string,
     message: string
   ): Promise<void> {
+    if (this.isSxtMode()) {
+      createLocalSession({ walletType: 'solana', walletAddress, issuedAt: Date.now() });
+      this.updateState({
+        isAuthenticated: true,
+        isLoading: false,
+        user: {
+          id: walletAddress,
+          username: walletAddress,
+          name: walletAddress,
+          photo_url: null,
+          role: 'user',
+          auth_method: 'solana'
+        } as any,
+        session: { wallet: walletAddress },
+        error: null
+      });
+      return;
+    }
+
     this.updateState({ isLoading: true, error: null });
 
     try {

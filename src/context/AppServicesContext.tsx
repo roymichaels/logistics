@@ -7,7 +7,7 @@ import React, {
   useState
 } from 'react';
 import { BootstrapConfig, User } from '../data/types';
-import { createFrontendDataStore, FrontendDataStore } from '../lib/frontendDataStore';
+import { createFrontendDataStore, createDataStore, FrontendDataStore } from '../lib/frontendDataStore';
 import { debugLog } from '../components/DebugPanel';
 import { useAuth } from './AuthContext';
 import { userService } from '../lib/userService';
@@ -47,6 +47,8 @@ interface AppServicesProviderProps {
 }
 
 export function AppServicesProvider({ children, value }: AppServicesProviderProps) {
+  const rawSXT = (import.meta as any)?.env?.VITE_USE_SXT;
+  const useSXT = rawSXT === undefined || rawSXT === null || rawSXT === '' || ['1', 'true', 'yes'].includes(String(rawSXT).toLowerCase());
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<AppUserRole>(null);
   const [dataStore, setDataStore] = useState<FrontendDataStore | null>(null);
@@ -76,6 +78,12 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
   const refreshUserRole = useCallback(
     async ({ forceRefresh = true }: { forceRefresh?: boolean } = {}) => {
+      if (useSXT) {
+        // In SxT mode, roles are handled client-side; just ensure state is set
+        const sxtRole = (auth?.user as any)?.role || 'client';
+        setUserRole(sxtRole as AppUserRole);
+        return;
+      }
       if (!user?.id) {
         debugLog.warn('⚠️ Cannot refresh user role - no user ID');
         return;
@@ -213,7 +221,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         const appConfig: BootstrapConfig = {
           app: 'miniapp',
-          adapters: { data: 'supabase' },
+          adapters: { data: useSXT ? 'sxt' : 'supabase' },
           features: {
             offline_mode: true,
             photo_upload: true,
@@ -241,85 +249,93 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
           username: auth.user.username || undefined,
           name: auth.user.name,
           photo_url: auth.user.photo_url || undefined,
-          role: auth.user.role as any,
+          role: (auth.user as any).role as any,
         };
 
         setUser(appUser);
-        setUserRole(auth.user.role as AppUserRole);
+        setUserRole((auth.user as any).role as AppUserRole);
 
         if (cancelled) return;
 
-        const store = await createFrontendDataStore(appConfig, 'real', appUser);
+      const store = useSXT
+        ? await createDataStore(appConfig, 'real', appUser, () => ({
+            walletType: auth?.walletType ?? null,
+            walletAddress: auth?.walletAddress ?? null
+          }))
+        : await createFrontendDataStore(appConfig, 'real', appUser);
 
         if (cancelled) return;
 
         setDataStore(store);
 
-        try {
-          const profile = await userService.getUserProfile(auth.user.id, true);
+        // In SxT mode skip Supabase profile fetches
+        if (!useSXT) {
+          try {
+            const profile = await userService.getUserProfile(auth.user.id, true);
 
-          if (cancelled) return;
+            if (cancelled) return;
 
-          // Restore infrastructure and business context from session metadata
-          const infrastructureId = auth.session?.user?.app_metadata?.infrastructure_id || null;
-          const sessionBusinessId = auth.session?.user?.app_metadata?.business_id || null;
+            // Restore infrastructure and business context from session metadata
+            const infrastructureId = auth.session?.user?.app_metadata?.infrastructure_id || null;
+            const sessionBusinessId = auth.session?.user?.app_metadata?.business_id || null;
 
-          // Prefer global_role over role for business owners
-          let effectiveRole = (profile.global_role || profile.role) as AppUserRole;
-          if (!effectiveRole) {
-            effectiveRole = 'user';
-          }
-
-          logger.info('👤 User profile loaded:', {
-            role: profile.role,
-            global_role: profile.global_role,
-            effectiveRole,
-            business_id: profile.business_id,
-            session_business_id: sessionBusinessId,
-            infrastructure_id: infrastructureId
-          });
-
-          // Check for cached business role from localStorage (for context switching)
-          const cachedBusinessRoleStr = localStorage.getItem('active_business_role');
-          if (cachedBusinessRoleStr) {
-            try {
-              const cachedBusinessRole = JSON.parse(cachedBusinessRoleStr);
-              logger.info('✅ Found cached business role:', cachedBusinessRole);
-
-              // If user has a business role, use it instead of base role
-              if (cachedBusinessRole.role_code) {
-                effectiveRole = cachedBusinessRole.role_code as AppUserRole;
-                logger.info(`🔄 Overriding user role from '${profile.role}' to '${effectiveRole}' based on business role`);
-              }
-
-              // Store business ID in context
-              if (cachedBusinessRole.business_id) {
-                setCurrentBusinessId(cachedBusinessRole.business_id);
-              }
-            } catch (parseError) {
-              logger.error('❌ Failed to parse cached business role:', parseError);
-              localStorage.removeItem('active_business_role');
+            // Prefer global_role over role for business owners
+            let effectiveRole = (profile.global_role || profile.role) as AppUserRole;
+            if (!effectiveRole) {
+              effectiveRole = 'user';
             }
-          } else {
-            // No cached business role, use session or profile business_id
-            const businessToSet = sessionBusinessId || profile.business_id;
-            if (businessToSet) {
-              logger.info('🏢 Setting business_id from session/profile:', businessToSet);
-              setCurrentBusinessId(businessToSet);
+
+            logger.info('👤 User profile loaded:', {
+              role: profile.role,
+              global_role: profile.global_role,
+              effectiveRole,
+              business_id: profile.business_id,
+              session_business_id: sessionBusinessId,
+              infrastructure_id: infrastructureId
+            });
+
+            // Check for cached business role from localStorage (for context switching)
+            const cachedBusinessRoleStr = localStorage.getItem('active_business_role');
+            if (cachedBusinessRoleStr) {
+              try {
+                const cachedBusinessRole = JSON.parse(cachedBusinessRoleStr);
+                logger.info('✅ Found cached business role:', cachedBusinessRole);
+
+                // If user has a business role, use it instead of base role
+                if (cachedBusinessRole.role_code) {
+                  effectiveRole = cachedBusinessRole.role_code as AppUserRole;
+                  logger.info(`🔄 Overriding user role from '${profile.role}' to '${effectiveRole}' based on business role`);
+                }
+
+                // Store business ID in context
+                if (cachedBusinessRole.business_id) {
+                  setCurrentBusinessId(cachedBusinessRole.business_id);
+                }
+              } catch (parseError) {
+                logger.error('❌ Failed to parse cached business role:', parseError);
+                localStorage.removeItem('active_business_role');
+              }
+            } else {
+              // No cached business role, use session or profile business_id
+              const businessToSet = sessionBusinessId || profile.business_id;
+              if (businessToSet) {
+                logger.info('🏢 Setting business_id from session/profile:', businessToSet);
+                setCurrentBusinessId(businessToSet);
+              }
             }
+
+            const fullUser: User = {
+              ...appUser,
+              ...profile,
+              infrastructure_id: infrastructureId,
+              business_id: sessionBusinessId || profile.business_id
+            };
+
+            setUser(fullUser);
+            setUserRole(effectiveRole);
+          } catch (profileError) {
+            logger.warn('⚠️ Failed to fetch extended profile', profileError);
           }
-
-          const fullUser: User = {
-            ...appUser,
-            ...profile,
-            infrastructure_id: infrastructureId,
-            business_id: sessionBusinessId || profile.business_id
-          };
-
-          setUser(fullUser);
-          setUserRole(effectiveRole);
-        } catch (profileError) {
-          logger.warn('⚠️ Failed to fetch extended profile', profileError);
         }
 
         if (!cancelled) {

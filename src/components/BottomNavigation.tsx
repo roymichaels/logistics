@@ -3,6 +3,7 @@ import { useTelegramUI } from '../hooks/useTelegramUI';
 import { useI18n } from '../lib/i18n';
 import { useAppServices } from '../context/AppServicesContext';
 import { colors, spacing, navigation } from '../styles/design-system';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * 🧠 ROY MICHAELS MILITARIZED NAVIGATION
@@ -71,6 +72,9 @@ export function BottomNavigation({
   const { theme, haptic } = useTelegramUI();
   const { currentBusinessId } = useAppServices();
   const { translations } = useI18n();
+  const authCtx = useAuth();
+  const authRole = (authCtx?.user as any)?.role || null;
+  void authRole;
 
   /**
    * 🔐 UNIFIED BOTTOM NAVIGATION

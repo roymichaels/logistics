@@ -1,0 +1,111 @@
+:root {
+  --sf-bg: #0a1220;
+  --sf-panel: rgba(15, 20, 30, 0.86);
+  --sf-border: rgba(255, 255, 255, 0.08);
+  --sf-text: #e7e9ea;
+  --sf-subtle: rgba(231, 233, 234, 0.72);
+  --sf-accent: #1d9bf0;
+  --sf-accent-2: #00b7ff;
+}
+
+body.storefront-mode {
+  background: radial-gradient(circle at 18% 20%, rgba(29, 155, 240, 0.12), transparent 36%),
+    radial-gradient(circle at 82% 12%, rgba(0, 183, 255, 0.14), transparent 30%),
+    linear-gradient(135deg, #070f1b 0%, #0c1526 40%, #0a1321 100%);
+  color: var(--sf-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.storefront-topbar {
+  padding: 6px 10px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  backdrop-filter: blur(14px);
+  background: linear-gradient(90deg, rgba(7, 12, 20, 0.9), rgba(7, 12, 20, 0.75));
+  border-bottom: 1px solid var(--sf-border);
+  max-width: 100%;
+  overflow: visible;
+}
+
+.storefront-shell {
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+  color: var(--sf-text);
+}
+
+.storefront-main {
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+.sf-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text);
+  border: 1px solid var(--sf-border);
+  border-radius: 12px;
+  padding: var(--space-xs, 6px) var(--space-sm, 10px);
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 180ms ease;
+}
+
+.sf-btn:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.sf-avatar-pop {
+  position: absolute;
+  inset: auto;
+  min-width: 180px;
+  width: clamp(180px, 22vw, 260px);
+  background: #0e1625;
+  border: 1px solid var(--sf-border);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  z-index: 20;
+  padding: 4px 0;
+  max-width: min(260px, calc(100vw - 16px));
+  max-height: 70vh;
+  overflow-wrap: break-word;
+  overflow-y: auto;
+}
+
+.sf-menu-item {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--sf-text);
+  padding: 8px 12px;
+  text-align: right;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.sf-menu-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sf-category-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-inline: 4px;
+  scrollbar-width: none;
+}
+
+.sf-category-scroll::-webkit-scrollbar {
+  display: none;
+}

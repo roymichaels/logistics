@@ -1,0 +1,16 @@
+export const txColors = {
+  background: '#0f1218',
+  backgroundAlt: '#161b24',
+  surface: '#131927',
+  card: '#1a2132',
+  primary: '#1d9bf0', // Twitter blue
+  accent: '#6c5ce7', // subtle violet accent
+  success: '#2ecc71',
+  warning: '#f1c40f',
+  danger: '#e74c3c',
+  text: '#e6e9ee',
+  muted: '#9aa4b5',
+  border: 'rgba(255,255,255,0.08)',
+  shadow: '0 12px 32px rgba(0,0,0,0.35)',
+  gradient: 'linear-gradient(135deg, #1d9bf0, #6c5ce7)',
+};

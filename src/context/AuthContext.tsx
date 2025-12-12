@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { authService, AuthState, AuthUser } from '../lib/authService';
 import {
   recordAuthAttempt,
@@ -9,6 +9,15 @@ import {
   getAuthLoopDiagnostics
 } from '../lib/authLoopDetection';
 import { logger } from '../lib/logger';
+import { SxtAuthProvider, useSxtAuth } from './SxtAuthProvider';
+import {
+  createLocalSession,
+  getLocalSession,
+  clearLocalSession,
+  connectEthereumWallet,
+  connectSolanaWallet,
+  connectTonWallet,
+} from '../lib/auth/walletAuth';
 
 interface AuthContextValue extends AuthState {
   signOut: () => Promise<void>;
@@ -16,6 +25,14 @@ interface AuthContextValue extends AuthState {
   authenticate: () => Promise<void>;
   authenticateWithEthereum: (address: string, signature: string, message: string) => Promise<void>;
   authenticateWithSolana: (address: string, signature: string, message: string) => Promise<void>;
+  walletType: string | null;
+  walletAddress: string | null;
+  walletSession: any | null;
+  kycStatus: 'unverified' | 'pending' | 'verified';
+  loginWithEthereum: () => Promise<void>;
+  loginWithSolana: (adapter: any) => Promise<void>;
+  loginWithTon: () => Promise<void>;
+  logoutWallet: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -25,7 +42,18 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  const rawSXT = (import.meta as any)?.env?.VITE_USE_SXT;
+  const useSXT = rawSXT === undefined || rawSXT === null || rawSXT === '' || ['1', 'true', 'yes'].includes(String(rawSXT).toLowerCase());
+
+  if (useSXT) {
+    return <SxtShimProvider>{children}</SxtShimProvider>;
+  }
+
   const [authState, setAuthState] = useState<AuthState>(authService.getState());
+  const [walletType, setWalletType] = useState<string | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [walletSession, setWalletSession] = useState<any | null>(null);
+  const [kycStatus] = useState<'unverified' | 'pending' | 'verified'>('unverified');
 
   useEffect(() => {
     const unsubscribe = authService.subscribe((state) => {
@@ -121,6 +149,51 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await authService.authenticateWithSolana(address, signature, message);
   };
 
+  const walletAuthEnabled = (import.meta as any)?.env?.VITE_ENABLE_WALLET_AUTH;
+
+  const loginWithEthereum = async () => {
+    if (!walletAuthEnabled) return;
+    try {
+      const { address, session } = await connectEthereumWallet();
+      setWalletType('ethereum');
+      setWalletAddress(address);
+      setWalletSession(session);
+    } catch (error) {
+      logger.error('Ethereum wallet login failed', error);
+    }
+  };
+
+  const loginWithSolana = async (adapter: any) => {
+    if (!walletAuthEnabled) return;
+    try {
+      const { address, session } = await connectSolanaWallet(adapter);
+      setWalletType('solana');
+      setWalletAddress(address);
+      setWalletSession(session);
+    } catch (error) {
+      logger.error('Solana wallet login failed', error);
+    }
+  };
+
+  const loginWithTon = async () => {
+    if (!walletAuthEnabled) return;
+    try {
+      const { address, session } = await connectTonWallet();
+      setWalletType('ton');
+      setWalletAddress(address);
+      setWalletSession(session);
+    } catch (error) {
+      logger.error('TON wallet login failed', error);
+    }
+  };
+
+  const logoutWallet = () => {
+    setWalletType(null);
+    setWalletAddress(null);
+    setWalletSession(null);
+    clearLocalSession();
+  };
+
   const value: AuthContextValue = {
     ...authState,
     signOut,
@@ -128,9 +201,152 @@ export function AuthProvider({ children }: AuthProviderProps) {
     authenticate,
     authenticateWithEthereum,
     authenticateWithSolana,
+    walletType,
+    walletAddress,
+    walletSession,
+    kycStatus,
+    loginWithEthereum,
+    loginWithSolana,
+    loginWithTon,
+    logoutWallet,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+// Shim provider when running in SxT mode (bypass Supabase)
+function SxtShimProvider({ children }: { children: React.ReactNode }) {
+  const { user: sxtUser, role, isAuthenticated: sxtIsAuthenticated, isLoading: sxtIsLoading } = useSxtAuth();
+  const rawSXT = (import.meta as any)?.env?.VITE_USE_SXT;
+  const useSXT = rawSXT === undefined || rawSXT === null || rawSXT === '' || ['1', 'true', 'yes'].includes(String(rawSXT).toLowerCase());
+
+  const [user, setUser] = useState<{ walletType: string; walletAddress: string } | null>(() => {
+    if (sxtUser) {
+      return { walletType: sxtUser.walletType, walletAddress: sxtUser.walletAddress };
+    }
+    const stored = getLocalSession();
+    return stored && stored.walletAddress ? { walletType: stored.walletType, walletAddress: stored.walletAddress } : null;
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (sxtUser) return true;
+    const stored = getLocalSession();
+    return !!(stored && stored.walletAddress);
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(useSXT);
+  const [error, setError] = useState<string | null>(null);
+  const [kycStatus] = useState<'unverified' | 'pending' | 'verified'>('unverified');
+
+  // Rehydrate session on mount in SxT mode
+  useEffect(() => {
+    if (!useSXT) return;
+
+    // Prefer the session managed by SxtAuthProvider; fall back to walletAuth local session
+    if (sxtUser) {
+      setUser({ walletType: sxtUser.walletType, walletAddress: sxtUser.walletAddress });
+      setIsAuthenticated(true);
+      setIsLoading(false);
+      return;
+    }
+
+    const stored = getLocalSession();
+    if (stored && stored.walletAddress) {
+      setUser({ walletType: stored.walletType, walletAddress: stored.walletAddress });
+      setIsAuthenticated(true);
+    }
+    setIsLoading(false);
+  }, [useSXT, sxtUser]);
+
+  const loginWithEthereum = async () => {
+    try {
+      setIsLoading(true);
+      const session = await connectEthereumWallet();
+      const stored = createLocalSession({
+        walletType: 'ethereum',
+        walletAddress: session.address,
+        issuedAt: Date.now(),
+      });
+      setUser({ walletType: stored.walletType, walletAddress: stored.walletAddress });
+      setIsAuthenticated(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginWithSolana = async (adapter: any) => {
+    try {
+      setIsLoading(true);
+      const session = await connectSolanaWallet(adapter);
+      const stored = createLocalSession({
+        walletType: 'solana',
+        walletAddress: session.address,
+        issuedAt: Date.now(),
+      });
+      setUser({ walletType: stored.walletType, walletAddress: stored.walletAddress });
+      setIsAuthenticated(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginWithTon = async () => {
+    try {
+      setIsLoading(true);
+      const session = await connectTonWallet();
+      const stored = createLocalSession({
+        walletType: 'ton',
+        walletAddress: session.address,
+        issuedAt: Date.now(),
+      });
+      setUser({ walletType: stored.walletType, walletAddress: stored.walletAddress });
+      setIsAuthenticated(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = () => {
+    clearLocalSession();
+    setUser(null);
+    setIsAuthenticated(false);
+    setIsLoading(false);
+  };
+
+  const ctx = useMemo<AuthContextValue>(() => ({
+    user: user ? {
+      id: user.walletAddress,
+      username: user.walletAddress,
+      name: user.walletAddress,
+      photo_url: null,
+      role,
+      auth_method: user.walletType,
+      kycStatus,
+    } as any : null,
+    session: user,
+    isAuthenticated,
+    isLoading,
+    error,
+    signOut: async () => logout(),
+    refreshSession: async () => {},
+    authenticate: async () => {},
+    authenticateWithEthereum: async () => { await loginWithEthereum(); },
+    authenticateWithSolana: async () => { await loginWithSolana(null); },
+    walletType: user?.walletType || null,
+    walletAddress: user?.walletAddress || null,
+    walletSession: user || null,
+    kycStatus,
+    loginWithEthereum,
+    loginWithSolana,
+    loginWithTon,
+    logoutWallet: logout,
+  }), [user, role, isAuthenticated, isLoading, error, kycStatus]);
+
+  return <AuthContext.Provider value={ctx}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthContextValue {

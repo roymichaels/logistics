@@ -1,15 +1,21 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AppServicesProvider } from './context/AppServicesContext';
 import { SupabaseReadyProvider } from './context/SupabaseReadyContext';
+import { SxtAuthProvider } from './context/SxtAuthProvider';
 import { LanguageProvider } from './context/LanguageContext';
 import { GlobalErrorBoundary } from './components/ErrorBoundary';
 import { initSupabase } from './lib/supabaseClient';
 import { sessionManager } from './lib/sessionManager';
 import './lib/diagnostics';
 import './lib/errorHandler'; // Initialize global error handler
+import './styles/containment.css';
+import './styles/canonical-tokens.css';
+import './theme/responsive.css';
+import './shells/layout/layout.css';
 import { runtimeEnvironment } from './lib/runtimeEnvironment';
 
 // Detect runtime environment
@@ -47,7 +53,10 @@ console.log('🌍 Environment:', runtimeEnvironment.env.type);
       'twa-session-metadata',
       'twa-user-context',
       'twa-device-id',
-      'hasVisitedBefore'
+      'hasVisitedBefore',
+      // Preserve SxT / wallet sessions so refresh does not log users out
+      'sxt_session',
+      'sxt.wallet.session'
     ];
 
     const preservedData: Record<string, string> = {};
@@ -123,41 +132,52 @@ function LoadingScreen() {
     // Show loading screen
     root.render(<LoadingScreen />);
 
-    // Initialize Supabase with config
-    console.log('🔄 Initializing Supabase...');
-    console.log('🔄 Fetching runtime configuration...');
-
-    // Check environment variables
-    const buildTimeUrl = import.meta.env.VITE_SUPABASE_URL;
-    const buildTimeKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-    if (buildTimeUrl && buildTimeKey) {
-      console.log('✅ Build-time config available:', {
-        url: buildTimeUrl.substring(0, 30) + '...',
-        keyLength: buildTimeKey.length
-      });
-    } else {
-      console.log('⚠️ Build-time config not available, will fetch runtime config');
-    }
-
+    // Initialize Supabase (skipped in SxT mode)
     try {
-      console.log('⏱️ [TIMING] Starting Supabase initialization at', new Date().toISOString());
-      const startTime = performance.now();
-      const supabase = await initSupabase();
-      const endTime = performance.now();
-      console.log(`✅ Supabase initialized successfully in ${(endTime - startTime).toFixed(2)}ms`);
+      const useSXTRaw = (import.meta as any)?.env?.VITE_USE_SXT;
+      const useSXT = (() => {
+        if (useSXTRaw === undefined || useSXTRaw === null || useSXTRaw === '') return true; // default to SxT
+        return ['1', 'true', 'yes'].includes(String(useSXTRaw).toLowerCase());
+      })();
 
-      // Try to restore session immediately after Supabase is ready
-      console.log('🔄 Attempting session restoration...');
-      const sessionStartTime = performance.now();
-      const restoredSession = await sessionManager.restoreSession(supabase);
-      const sessionEndTime = performance.now();
+      let supabase: any = null;
+      let restoredSession: any = null;
 
-      if (restoredSession) {
-        console.log(`✅ Session restored successfully in ${(sessionEndTime - sessionStartTime).toFixed(2)}ms`);
-        console.log('👤 User:', restoredSession.user.id);
+      if (useSXT) {
+        console.log('SxT mode active — skipping Supabase initialization completely');
       } else {
-        console.log(`ℹ️ No existing session found (${(sessionEndTime - sessionStartTime).toFixed(2)}ms)`);
+        console.log('🔄 Initializing Supabase...');
+        console.log('🔄 Fetching runtime configuration...');
+
+        const buildTimeUrl = import.meta.env.VITE_SUPABASE_URL;
+        const buildTimeKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+        if (buildTimeUrl && buildTimeKey) {
+          console.log('✅ Build-time config available:', {
+            url: buildTimeUrl.substring(0, 30) + '...',
+            keyLength: buildTimeKey.length
+          });
+        } else {
+          console.log('⚠️ Build-time config not available, will fetch runtime config');
+        }
+
+        console.log('⏱️ [TIMING] Starting Supabase initialization at', new Date().toISOString());
+        const startTime = performance.now();
+        supabase = await initSupabase();
+        const endTime = performance.now();
+        console.log(`✅ Supabase initialized successfully in ${(endTime - startTime).toFixed(2)}ms`);
+
+        console.log('🔄 Attempting session restoration...');
+        const sessionStartTime = performance.now();
+        restoredSession = await sessionManager.restoreSession(supabase);
+        const sessionEndTime = performance.now();
+
+        if (restoredSession) {
+          console.log(`✅ Session restored successfully in ${(sessionEndTime - sessionStartTime).toFixed(2)}ms`);
+          console.log('👤 User:', restoredSession.user.id);
+        } else {
+          console.log(`ℹ️ No existing session found (${(sessionEndTime - sessionStartTime).toFixed(2)}ms)`);
+        }
       }
 
       // Mark as initialized globally
@@ -173,17 +193,32 @@ function LoadingScreen() {
 
     // Render the actual app
     console.log('✅ Rendering App component...');
+    const useSXTRaw = (import.meta as any)?.env?.VITE_USE_SXT;
+    const useSXT = useSXTRaw === undefined || useSXTRaw === null || useSXTRaw === '' || ['1', 'true', 'yes'].includes(String(useSXTRaw).toLowerCase());
+
     root.render(
       <React.StrictMode>
         <GlobalErrorBoundary>
           <LanguageProvider>
-            <AuthProvider>
-              <SupabaseReadyProvider>
-                <AppServicesProvider>
-                  <App />
-                </AppServicesProvider>
-              </SupabaseReadyProvider>
-            </AuthProvider>
+            <BrowserRouter>
+              {useSXT ? (
+                <SxtAuthProvider>
+                  <AuthProvider>
+                    <AppServicesProvider>
+                      <App />
+                    </AppServicesProvider>
+                  </AuthProvider>
+                </SxtAuthProvider>
+              ) : (
+                <AuthProvider>
+                  <SupabaseReadyProvider>
+                    <AppServicesProvider>
+                      <App />
+                    </AppServicesProvider>
+                  </SupabaseReadyProvider>
+                </AuthProvider>
+              )}
+            </BrowserRouter>
           </LanguageProvider>
         </GlobalErrorBoundary>
       </React.StrictMode>

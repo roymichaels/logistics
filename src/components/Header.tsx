@@ -14,6 +14,8 @@ import {
 import { logger } from '../lib/logger';
 import { useI18n } from '../lib/i18n';
 import '../styles/header.css';
+import { useAuth } from '../context/AuthContext';
+import { migrationFlags } from '../migration/flags';
 
 interface HeaderProps {
   onNavigate: (page: string) => void;
@@ -24,12 +26,19 @@ interface HeaderProps {
 }
 
 export const Header = React.memo(function Header({ onNavigate, onLogout, onCreateBusiness, onBecomeDriver, onSearchBusiness }: HeaderProps) {
+  if (migrationFlags.unifiedShell || migrationFlags.unifiedApp) {
+    return null;
+  }
+
   const context = useContext(AppServicesContext);
   const user = context?.user;
   const dataStore = context?.dataStore;
   const currentBusinessId = context?.currentBusinessId;
   const setBusinessId = context?.setBusinessId;
   const { t, translations } = useI18n();
+  const authCtx = useAuth();
+  const userRoleFromAuth = (authCtx?.user as any)?.role || null;
+  void userRoleFromAuth;
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [businessDropdownOpen, setBusinessDropdownOpen] = useState(false);

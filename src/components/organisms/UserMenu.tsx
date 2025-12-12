@@ -83,8 +83,10 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
   const dropdownStyles: React.CSSProperties = {
     position: 'absolute',
     top: 'calc(100% + 8px)',
-    right: 0,
+    left: 0,
+    right: 'auto',
     minWidth: '240px',
+    maxWidth: 'calc(100vw - 16px)',
     background: colors.ui.card,
     border: `1px solid ${colors.border.primary}`,
     borderRadius: borderRadius.xl,

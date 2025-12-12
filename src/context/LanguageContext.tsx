@@ -46,6 +46,11 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
     // Try to save to database if user is logged in
     try {
+      const raw = (import.meta as any)?.env?.VITE_USE_SXT;
+      const useSXT = raw === undefined || raw === null || raw === '' || ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
+      if (useSXT) {
+        return;
+      }
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await supabase
@@ -63,6 +68,11 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   useEffect(() => {
     const loadUserLanguagePreference = async () => {
       try {
+        const raw = (import.meta as any)?.env?.VITE_USE_SXT;
+        const useSXT = raw === undefined || raw === null || raw === '' || ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
+        if (useSXT) {
+          return;
+        }
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data, error } = await supabase
