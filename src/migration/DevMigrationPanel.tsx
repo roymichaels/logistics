@@ -1,40 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { Drawer } from '../components/primitives/Drawer';
-import { migrationFlags } from './flags';
-
-const STORAGE_KEY = 'migration-flags';
-
-type FlagKey = keyof typeof migrationFlags;
-
-function loadFlags(): typeof migrationFlags {
-  if (typeof window === 'undefined') return { ...migrationFlags };
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...migrationFlags };
-    return { ...migrationFlags, ...JSON.parse(raw) };
-  } catch {
-    return { ...migrationFlags };
-  }
-}
-
-function saveFlags(flags: typeof migrationFlags) {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(flags));
-}
+import React, { useState } from 'react';
+import { DevConsoleDrawer } from '../components/dev/DevConsoleDrawer';
 
 export function DevMigrationPanel() {
   if (process.env.NODE_ENV !== 'development') return null;
 
-  const [flags, setFlags] = useState(loadFlags);
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    saveFlags(flags);
-  }, [flags]);
-
-  const toggle = (key: FlagKey) => {
-    setFlags((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
 
   return (
     <>
@@ -44,49 +14,47 @@ export function DevMigrationPanel() {
           position: 'fixed',
           bottom: 16,
           right: 16,
-          zIndex: 11000,
-          padding: '10px 12px',
-          borderRadius: 'var(--radius-pill)',
-          border: '1px solid var(--color-border)',
-          background: 'var(--color-panel)',
-          color: 'var(--color-text)',
-          boxShadow: 'var(--shadow-md)',
-          cursor: 'pointer'
+          zIndex: 9999,
+          width: '48px',
+          height: '48px',
+          borderRadius: '50%',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(139, 92, 246, 0.8))',
+          color: '#fff',
+          boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3), 0 0 0 0 rgba(59, 130, 246, 0.4)',
+          cursor: 'pointer',
+          fontSize: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.2s ease',
+          backdropFilter: 'blur(10px)',
+          animation: 'pulse 2s infinite',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.1)';
+          e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.5), 0 0 0 4px rgba(59, 130, 246, 0.2)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3), 0 0 0 0 rgba(59, 130, 246, 0.4)';
         }}
       >
-        Migration
+        🛠️
       </button>
 
-      <Drawer isOpen={open} onClose={() => setOpen(false)}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, color: 'var(--color-text)' }}>
-          <h3 style={{ margin: 0 }}>Migration Flags</h3>
-          {(Object.keys(flags) as FlagKey[]).map((key) => (
-            <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <input
-                type="checkbox"
-                checked={flags[key]}
-                onChange={() => toggle(key)}
-              />
-              <span>{key}</span>
-            </label>
-          ))}
-          <button
-            onClick={() => {
-              setFlags({ ...migrationFlags });
-            }}
-            style={{
-              padding: '10px 12px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              background: 'transparent',
-              color: 'var(--color-text)',
-              cursor: 'pointer'
-            }}
-          >
-            Reset
-          </button>
-        </div>
-      </Drawer>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% {
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3), 0 0 0 0 rgba(59, 130, 246, 0.4);
+          }
+          50% {
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3), 0 0 0 8px rgba(59, 130, 246, 0);
+          }
+        }
+      `}</style>
+
+      <DevConsoleDrawer isOpen={open} onClose={() => setOpen(false)} />
     </>
   );
 }
