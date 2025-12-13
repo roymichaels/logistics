@@ -4,7 +4,7 @@ import { AppContainer } from '../shells/layout/AppContainer';
 import { PageContainer } from '../shells/layout/PageContainer';
 import { HeaderRoute, ModalRoute, DrawerRoute, PopoverRoute } from './MigrationRouter';
 import { useShell } from '../context/ShellContext';
-import { usePageTitle } from '../hooks/usePageTitle';
+import { usePageTitle, PageTitleProvider } from '../context/PageTitleContext';
 import { usePopoverResolver } from './MigrationRouter';
 import { usePopoverController } from '../hooks/usePopoverController';
 import { useDrawerResolver } from './MigrationRouter';
@@ -16,7 +16,7 @@ import { UIControllerProvider, UIControllerRenderer } from './controllers/uiCont
 import { DrawerControllerProvider } from './useDrawerController';
 import { DevMigrationPanel } from './DevMigrationPanel';
 
-export default function UnifiedShellRouter(props: any) {
+function UnifiedShellRouterContent(props: any) {
   const shell = useShell();
   const { title, subtitle } = usePageTitle();
   const { UserMenuPopover, BusinessContextPopover, StoreAvatarPopover } = usePopoverResolver();
@@ -33,7 +33,7 @@ export default function UnifiedShellRouter(props: any) {
     }
   })();
 
-  const resolvedTitle = title || 'App';
+  const resolvedTitle = title || 'UndergroundLab';
   const resolvedSubtitle = subtitle;
 
   const compact = useMemo(() => {
@@ -43,61 +43,69 @@ export default function UnifiedShellRouter(props: any) {
   }, []);
 
   return (
-    <NavControllerProvider>
-      <UIControllerProvider>
-        <DrawerControllerProvider>
-          <AppContainer>
-            <DataSandboxProvider>
-              <div style={{ ['--compact-enabled' as any]: compact ? '1' : '0' }}>
-                <HeaderRoute
-                  title={resolvedTitle}
-                  subtitle={resolvedSubtitle}
-                  onNavigate={shell?.handleNavigate}
-                  onLogout={shell?.handleLogout}
-                  dataStore={props?.dataStore}
-                  actions={props?.headerActions}
-                  showBackButton={migrationFlags.navigation && !!nav?.canGoBack}
-                  onBack={() => {
-                    if (migrationFlags.navigation) {
-                      nav?.back();
-                    }
-                  }}
-                  onMenuClick={(anchor) =>
-                    userMenu.open({
-                      open: true,
-                      anchorEl: anchor,
-                      onClose: () => userMenu.close(),
-                      children: props?.menuContent || null
-                    })
-                  }
-                  onAvatarClick={() =>
-                    avatarMenu.open({ open: true, anchorEl: null, onClose: () => avatarMenu.close(), children: null })
-                  }
-                  onBusinessContextClick={(anchor) =>
-                    businessMenu.open({
-                      open: true,
-                      anchorEl: anchor,
-                      onClose: () => businessMenu.close(),
-                      children: null
-                    })
-                  }
-                />
-                <PageContainer>{props?.children ? props.children : <Outlet />}</PageContainer>
-                <ModalRoute />
-                <DrawerRoute />
-                <PopoverRoute />
-                <UIControllerRenderer />
-                <NavLayer />
-                <userMenu.Render />
-                <businessMenu.Render />
-                <avatarMenu.Render />
-                <cartDrawer.Render />
-                {process.env.NODE_ENV === 'development' && <DevMigrationPanel />}
-              </div>
-            </DataSandboxProvider>
-          </AppContainer>
-        </DrawerControllerProvider>
-      </UIControllerProvider>
-    </NavControllerProvider>
+    <AppContainer>
+      <DataSandboxProvider>
+        <div style={{ ['--compact-enabled' as any]: compact ? '1' : '0' }}>
+          <HeaderRoute
+            title={resolvedTitle}
+            subtitle={resolvedSubtitle}
+            onNavigate={shell?.handleNavigate}
+            onLogout={shell?.handleLogout}
+            dataStore={props?.dataStore}
+            actions={props?.headerActions}
+            showBackButton={migrationFlags.navigation && !!nav?.canGoBack}
+            onBack={() => {
+              if (migrationFlags.navigation) {
+                nav?.back();
+              }
+            }}
+            onMenuClick={(anchor) =>
+              userMenu.open({
+                open: true,
+                anchorEl: anchor,
+                onClose: () => userMenu.close(),
+                children: props?.menuContent || null
+              })
+            }
+            onAvatarClick={() =>
+              avatarMenu.open({ open: true, anchorEl: null, onClose: () => avatarMenu.close(), children: null })
+            }
+            onBusinessContextClick={(anchor) =>
+              businessMenu.open({
+                open: true,
+                anchorEl: anchor,
+                onClose: () => businessMenu.close(),
+                children: null
+              })
+            }
+          />
+          <PageContainer>{props?.children ? props.children : <Outlet />}</PageContainer>
+          <ModalRoute />
+          <DrawerRoute />
+          <PopoverRoute />
+          <UIControllerRenderer />
+          <NavLayer />
+          <userMenu.Render />
+          <businessMenu.Render />
+          <avatarMenu.Render />
+          <cartDrawer.Render />
+          {process.env.NODE_ENV === 'development' && <DevMigrationPanel />}
+        </div>
+      </DataSandboxProvider>
+    </AppContainer>
+  );
+}
+
+export default function UnifiedShellRouter(props: any) {
+  return (
+    <PageTitleProvider>
+      <NavControllerProvider>
+        <UIControllerProvider>
+          <DrawerControllerProvider>
+            <UnifiedShellRouterContent {...props} />
+          </DrawerControllerProvider>
+        </UIControllerProvider>
+      </NavControllerProvider>
+    </PageTitleProvider>
   );
 }
