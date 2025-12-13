@@ -173,82 +173,50 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
       />
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: '1200px', margin: '0 auto' }}>
-        <header
-          style={{
-            padding: '24px',
-            background: 'linear-gradient(120deg, rgba(82, 36, 142, 0.55), rgba(20, 9, 49, 0.8))',
-            borderRadius: '22px',
-            border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-            boxShadow: ROYAL_COLORS.shadow,
-            marginBottom: '24px'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
-            <div
-              style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '16px',
-                background: 'linear-gradient(130deg, rgba(77, 208, 225, 0.7), rgba(29, 155, 240, 0.7))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '28px'
-              }}
-            >
-              🗺️
-            </div>
-            <div>
-              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>{translations.zoneManagementPage.title}</h1>
-              <p style={{ margin: '4px 0 0', color: ROYAL_COLORS.muted, fontSize: '14px' }}>
-                {translations.zoneManagementPage.subtitle}
-              </p>
-            </div>
-          </div>
+        {/* unified header handles title and icon */}
 
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button
-              onClick={() => {
-                setViewMode('manager');
-                telegram.hapticFeedback('selection');
-              }}
-              style={{
-                flex: 1,
-                padding: '12px',
-                background: viewMode === 'manager' ? `linear-gradient(120deg, ${ROYAL_COLORS.teal}, ${ROYAL_COLORS.accent})` : 'rgba(20, 8, 46, 0.6)',
-                border: viewMode === 'manager' ? 'none' : '1px solid rgba(29, 155, 240, 0.3)',
-                borderRadius: '12px',
-                color: ROYAL_COLORS.text,
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                boxShadow: viewMode === 'manager' ? '0 4px 12px rgba(77, 208, 225, 0.3)' : 'none'
-              }}
-            >
-              {translations.zoneManagementPage.zoneManagement}
-            </button>
-            <button
-              onClick={() => {
-                setViewMode('assignments');
-                telegram.hapticFeedback('selection');
-              }}
-              style={{
-                flex: 1,
-                padding: '12px',
-                background: viewMode === 'assignments' ? `linear-gradient(120deg, ${ROYAL_COLORS.teal}, ${ROYAL_COLORS.accent})` : 'rgba(20, 8, 46, 0.6)',
-                border: viewMode === 'assignments' ? 'none' : '1px solid rgba(29, 155, 240, 0.3)',
-                borderRadius: '12px',
-                color: ROYAL_COLORS.text,
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                boxShadow: viewMode === 'assignments' ? '0 4px 12px rgba(77, 208, 225, 0.3)' : 'none'
-              }}
-            >
-              {translations.zoneManagementPage.assignDrivers}
-            </button>
-          </div>
-        </header>
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+          <button
+            onClick={() => {
+              setViewMode('manager');
+              telegram.hapticFeedback('selection');
+            }}
+            style={{
+              flex: 1,
+              padding: '12px',
+              background: viewMode === 'manager' ? `linear-gradient(120deg, ${ROYAL_COLORS.teal}, ${ROYAL_COLORS.accent})` : 'rgba(20, 8, 46, 0.6)',
+              border: viewMode === 'manager' ? 'none' : '1px solid rgba(29, 155, 240, 0.3)',
+              borderRadius: '12px',
+              color: ROYAL_COLORS.text,
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: viewMode === 'manager' ? '0 4px 12px rgba(77, 208, 225, 0.3)' : 'none'
+            }}
+          >
+            {translations.zoneManagementPage.zoneManagement}
+          </button>
+          <button
+            onClick={() => {
+              setViewMode('assignments');
+              telegram.hapticFeedback('selection');
+            }}
+            style={{
+              flex: 1,
+              padding: '12px',
+              background: viewMode === 'assignments' ? `linear-gradient(120deg, ${ROYAL_COLORS.teal}, ${ROYAL_COLORS.accent})` : 'rgba(20, 8, 46, 0.6)',
+              border: viewMode === 'assignments' ? 'none' : '1px solid rgba(29, 155, 240, 0.3)',
+              borderRadius: '12px',
+              color: ROYAL_COLORS.text,
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: viewMode === 'assignments' ? '0 4px 12px rgba(77, 208, 225, 0.3)' : 'none'
+            }}
+          >
+            {translations.zoneManagementPage.assignDrivers}
+          </button>
+        </div>
 
         <div style={{ display: 'grid', gap: '20px' }}>
           {zones.map((zone) => (

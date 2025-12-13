@@ -47,34 +47,7 @@ export function Catalog({ dataStore, onNavigate }: CatalogProps) {
         position: 'relative',
       }}
     >
-      <section
-        style={{
-          padding: '28px 18px 18px',
-          textAlign: 'center',
-          position: 'relative',
-          overflow: 'hidden',
-          lineHeight: 1.25,
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(135deg, rgba(29,155,240,0.28), rgba(0,183,255,0.18))',
-            opacity: 0.4,
-            filter: 'blur(60px)',
-            pointerEvents: 'none',
-          }}
-        />
-        <div style={{ position: 'relative', zIndex: 2 }}>
-          <div style={{ fontSize: '30px', fontWeight: 800, letterSpacing: '-0.4px', marginBottom: '6px' }}>
-            ברוכים הבאים לחנות החכמה ✨
-          </div>
-          <div style={{ color: '#b9c4d9', fontSize: '15px', marginBottom: '18px' }}>
-            גלו את המוצרים הכי שווים — מותאם אישית רק בשבילכם
-          </div>
-        </div>
-      </section>
+      {/* unified header handles title and hero section */}
 
       <div style={{ padding: '0 12px 16px' }}>
         <div className="sf-category-scroll">

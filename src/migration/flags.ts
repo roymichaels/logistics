@@ -9,17 +9,17 @@ export const migrationFlags = {
   navigation: true,
   searchHeader: true,
 
-  // Feature flags - toggleable for gradual rollout
-  profile: false,
-  catalog: false,
-  kyc: false,
-  businessDashboard: false,
-  driverHome: false,
-  dataSandbox: false,
-  drawerAutoOpen: false,
-  search: false,
-  reactions: false,
-  productDetail: false
+  // Feature flags - FULLY ENABLED for unified platform
+  profile: true,
+  catalog: true,
+  kyc: true,
+  businessDashboard: true,
+  driverHome: true,
+  dataSandbox: true,
+  drawerAutoOpen: true,
+  search: true,
+  reactions: true,
+  productDetail: true
 };
 
 // Core unified shell is now ALWAYS enabled

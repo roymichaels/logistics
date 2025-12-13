@@ -104,21 +104,7 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
         overflowX: 'hidden',
       }}
     >
-      <header style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs,6px)', maxWidth: '100%' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>👤 {translations.profilePage.title}</h1>
-            <p style={{ margin: 0, color: t.colors.muted, lineHeight: 1.35 }}>{translations.profilePage.subtitle}</p>
-          </div>
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start' }}>
-            {kycStatus === 'verified' ? (
-              <KycBadge status="verified" label="Verified Identity" />
-            ) : (
-              <GetVerifiedButton label="Get Verified" onClick={() => navigate('/store/kyc/start')} />
-            )}
-          </div>
-        </div>
-      </header>
+      {/* unified header handles title */}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--space-md,14px)' }}>
         <Card
