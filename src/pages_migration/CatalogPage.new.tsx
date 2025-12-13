@@ -18,6 +18,7 @@ import FilterChipsNew from '../components/search/FilterChips.new';
 import useSearchAndFilter from '../controllers/useSearchAndFilter';
 import ReactionBarNew from '../components/reactions/ReactionBar.new';
 import useReactionStore from '../state/useReactionStore';
+import CartDrawerNew from '../components/cart/CartDrawer.new';
 
 type CatalogPageNewProps = {
   products?: Product[];
