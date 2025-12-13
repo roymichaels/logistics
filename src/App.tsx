@@ -1,28 +1,22 @@
-import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { telegram } from './lib/telegram';
-import { BottomNavigation } from './components/BottomNavigation';
 import { ErrorDisplay } from './components/ErrorDisplay';
 import { OrderCreationWizard } from './components/OrderCreationWizard';
 import { DualModeOrderEntry } from './components/DualModeOrderEntry';
 import { BusinessManager } from './components/BusinessManager';
 import { SuperadminSetup } from './components/SuperadminSetup';
-import { FloatingActionMenu } from './components/FloatingActionButton';
-import { Header } from './components/Header';
 import { SecurityGate } from './components/SecurityGate';
-import { RightSidebarMenu } from './components/RightSidebarMenu';
-import { SidebarToggleButton } from './components/SidebarToggleButton';
 import { LoginPage } from './pages/LoginPage';
 import { LandingPage } from './pages/LandingPage';
 import { OnboardingHub } from './components/OnboardingHub';
 import { BusinessOwnerOnboarding } from './components/BusinessOwnerOnboarding';
-import { TeamMemberOnboarding } from './components/TeamMemberOnboarding';
 import { SearchBusinessModal } from './components/SearchBusinessModal';
 import { BecomeDriverModal } from './components/BecomeDriverModal';
 import { ToastContainer } from './components/EnhancedToast';
 import { PageLoadingSkeleton } from './components/LoadingSkeleton';
 import { debugLog } from './components/DebugPanel';
 import { hebrew } from './lib/i18n';
-import './lib/diagnostics'; // Load diagnostics for console debugging
+import './lib/diagnostics';
 import './styles/transitions.css';
 import './styles/animations.css';
 import './styles/telegramx-vars.css';
@@ -36,116 +30,12 @@ import {
   getAuthLoopDiagnostics,
   resetAuthLoopDetection
 } from './lib/authLoopDetection';
-import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { StoreLayout } from './layouts/StoreLayout';
-import { BusinessLayout } from './layouts/BusinessLayout';
-import { DriverLayout } from './layouts/DriverLayout';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ShellProvider } from './shells/ShellProvider';
-import { TelegramXPage } from './components/ui/TelegramXPage';
-import MigrationRouter, {
-  ProfileRoute,
-  CatalogRoute,
-  KYCRoute,
-  BusinessDashboardRoute,
-  DriverHomeRoute,
-  ProductDetailRoute
-} from './migration/MigrationRouter';
+import MigrationRouter from './migration/MigrationRouter';
 import UnifiedShellRouter from './migration/UnifiedShellRouter';
-import { migrationFlags } from './migration/flags';
 
-// Pages (lazy loaded)
-const Dashboard = lazy(() =>
-  import('./pages/Dashboard').then((module) => ({ default: module.Dashboard }))
-);
-const Orders = lazy(() => import('./pages/Orders').then((module) => ({ default: module.Orders })));
-const Tasks = lazy(() => import('./pages/Tasks').then((module) => ({ default: module.Tasks })));
-const UserManagement = lazy(() =>
-  import('./pages/UserManagement').then((module) => ({ default: module.UserManagement }))
-);
-const Chat = lazy(() => import('./pages/Chat').then((module) => ({ default: module.Chat })));
-const Notifications = lazy(() =>
-  import('./pages/Notifications').then((module) => ({ default: module.Notifications }))
-);
-const Channels = lazy(() =>
-  import('./pages/Channels').then((module) => ({ default: module.Channels }))
-);
-const Products = lazy(() =>
-  import('./pages/Products').then((module) => ({ default: module.Products }))
-);
-const CatalogPage = lazy(() =>
-  import('./pages/Catalog').then((module) => ({ default: module.Catalog }))
-);
-const SandboxPage = lazy(() =>
-  import('./pages/Sandbox').then((module) => ({ default: module.Sandbox }))
-);
-const StartNewPage = lazy(() =>
-  import('./pages/StartNew').then((module) => ({ default: module.StartNew }))
-);
-const Reports = lazy(() =>
-  import('./pages/Reports').then((module) => ({ default: module.Reports }))
-);
-const Businesses = lazy(() =>
-  import('./pages/Businesses').then((module) => ({ default: module.Businesses }))
-);
-const MyStats = lazy(() =>
-  import('./pages/MyStats').then((module) => ({ default: module.MyStats }))
-);
-const Inventory = lazy(() =>
-  import('./pages/Inventory').then((module) => ({ default: module.Inventory }))
-);
-const Incoming = lazy(() =>
-  import('./pages/Incoming').then((module) => ({ default: module.Incoming }))
-);
-const RestockRequests = lazy(() =>
-  import('./pages/RestockRequests').then((module) => ({ default: module.RestockRequests }))
-);
-const Logs = lazy(() => import('./pages/Logs').then((module) => ({ default: module.Logs })));
-const MyDeliveries = lazy(() =>
-  import('./pages/MyDeliveries').then((module) => ({ default: module.MyDeliveries }))
-);
-const MyInventory = lazy(() =>
-  import('./pages/MyInventory').then((module) => ({ default: module.MyInventory }))
-);
-const MyZones = lazy(() =>
-  import('./pages/MyZones').then((module) => ({ default: module.MyZones }))
-);
-const DriverStatus = lazy(() =>
-  import('./pages/DriverStatus').then((module) => ({ default: module.DriverStatus }))
-);
-const DispatchBoard = lazy(() =>
-  import('./pages/DispatchBoard').then((module) => ({ default: module.DispatchBoard }))
-);
-const WarehouseDashboard = lazy(() =>
-  import('./pages/WarehouseDashboard').then((module) => ({ default: module.WarehouseDashboard }))
-);
-const ManagerInventory = lazy(() =>
-  import('./pages/ManagerInventory').then((module) => ({ default: module.ManagerInventory }))
-);
-const ZoneManagement = lazy(() =>
-  import('./pages/ZoneManagement').then((module) => ({ default: module.ZoneManagement }))
-);
-const MyRole = lazy(() =>
-  import('./pages/MyRole').then((module) => ({ default: module.MyRole }))
-);
-const Profile = lazy(() =>
-  import('./pages/Profile').then((module) => ({ default: module.Profile }))
-);
-const DriversManagement = lazy(() =>
-  import('./pages/DriversManagement').then((module) => ({ default: module.DriversManagement }))
-);
-const UserHomepage = lazy(() =>
-  import('./pages/UserHomepage').then((module) => ({ default: module.UserHomepage }))
-);
-const SocialFeed = lazy(() =>
-  import('./pages/SocialFeed').then((module) => ({ default: module.SocialFeed }))
-);
-const UserProfilePage = lazy(() =>
-  import('./pages/UserProfile').then((module) => ({ default: module.UserProfilePage }))
-);
-const SocialAnalytics = lazy(() =>
-  import('./pages/SocialAnalytics').then((module) => ({ default: module.SocialAnalytics }))
-);
-const KYCFlow = lazy(() => import('./pages/kyc/KYCFlow'));
+// All page components are now lazy-loaded in MigrationRouter
 
 type Page =
   | 'dashboard'
@@ -820,11 +710,9 @@ export default function App() {
     );
   }
 
-  const useUnifiedShell = migrationFlags.unifiedShell || migrationFlags.unifiedApp;
-
-  // Unified shell path (flag-gated)
-  if (useUnifiedShell) {
-    const unifiedRoutes = (
+  // Unified shell routing - single source of truth
+  const appShell = (
+    <>
       <Suspense fallback={<PageLoadingSkeleton />}>
         <ShellProvider
           value={{
@@ -864,349 +752,84 @@ export default function App() {
           </UnifiedShellRouter>
         </ShellProvider>
       </Suspense>
-    );
 
-    if (useSXT) {
-      return unifiedRoutes;
-    }
-
-    return (
-      <SecurityGate
-        userId={user?.id || ''}
-        telegramId={user?.telegram_id || ''}
-        onSecurityError={(error) => {
-          logger.error('Security error', new Error(error));
-          telegram.showAlert('שגיאת אבטחה: ' + error);
-        }}
-      >
-        {unifiedRoutes}
-      </SecurityGate>
-    );
-  }
-
-  const effectiveRole = useSXT ? (userRole || 'client') : userRole;
-  const isSxtClient = useSXT && (!effectiveRole || effectiveRole === 'client' || effectiveRole === 'user');
-  const isSxtBusiness = useSXT && effectiveRole === 'business';
-  const isSxtDriver = useSXT && effectiveRole === 'driver';
-  const isSxtAdmin = useSXT && effectiveRole === 'admin';
-
-  const renderPage = (pageOverride?: Page) => {
-    const page = pageOverride ?? currentPage;
-    // 🔐 MILITARIZED ROLE-BASED ACCESS CONTROL
-    const isAdmin = isSxtAdmin || isSxtBusiness || effectiveRole === 'infrastructure_owner' || effectiveRole === 'business_owner' || effectiveRole === 'manager';
-    const isOperational = isAdmin || isSxtDriver || effectiveRole === 'warehouse' || effectiveRole === 'sales';
-
-    // 👤 USER (unassigned): Keep on user homepage
-    // Exception: Don't redirect if they just became a business owner (check localStorage flag)
-    const isDashboardForced = localStorage.getItem('force_dashboard_navigation') === 'true';
-    if (userRole === 'user' && !isDashboardForced &&
-      currentPage !== 'catalog' && currentPage !== 'sandbox' && currentPage !== 'start-new') {
-      return <Navigate to="/store/catalog" replace />;
-    }
-
-    // In SxT client storefront mode, force allowed pages only
-    if (isSxtClient) {
-      // Allow storefront + chat for SxT clients
-      if (!['catalog', 'notifications', 'profile', 'chat'].includes(page)) {
-        return <Navigate to="/store/catalog" replace />;
-      }
-    }
-
-    switch (page) {
-      case 'orders':
-        if (!isOperational) break;
-        return <Orders dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'tasks':
-        if (!isOperational) break;
-        return <Tasks dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'products':
-        if (!isOperational) break;
-        return <Products dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'businesses':
-        if (!isAdmin) break;
-        return <Businesses dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'my-stats':
-        return <MyStats dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'my-role':
-        return <MyRole dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'user-homepage':
-        return <UserHomepage dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'inventory':
-        if (!isOperational) break;
-        return <Inventory dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'incoming':
-        if (!isOperational) break;
-        return <Incoming dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'restock-requests':
-        if (!isOperational) break;
-        return <RestockRequests dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'logs':
-        if (!isAdmin) break;
-        return <Logs dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'my-deliveries':
-        if (userRole !== 'driver') break;
-        return <MyDeliveries dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'my-inventory':
-        if (userRole !== 'driver') break;
-        return <MyInventory dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'my-zones':
-        if (userRole !== 'driver') break;
-        return <MyZones dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'driver-status':
-        if (!isAdmin && userRole !== 'dispatcher') break;
-        return <DriverStatus dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'dispatch-board':
-        if (!isAdmin && userRole !== 'dispatcher') break;
-        return <DispatchBoard dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'warehouse-dashboard':
-        if (userRole !== 'warehouse' && !isAdmin) break;
-        return <WarehouseDashboard dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'manager-inventory':
-        if (!isAdmin) break;
-        return <ManagerInventory dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'zone-management':
-        if (!isAdmin) break;
-        return <ZoneManagement dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'drivers-management':
-        if (!isAdmin) break;
-        return <DriversManagement dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'chat':
-        // Allow chat for any authenticated user when dataStore is available
-        return <Chat dataStore={dataStore} onNavigate={handleNavigate} currentUser={user} />;
-      case 'notifications':
-        return <Notifications dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'channels':
-        if (!isOperational) break;
-        return <Channels dataStore={dataStore} onNavigate={handleNavigate} currentUser={user} />;
-      case 'reports':
-        if (!isAdmin) break;
-        return <Reports dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'catalog':
-        return <CatalogPage dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'sandbox':
-        return <SandboxPage dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'start-new':
-        return <StartNewPage dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'customers':
-        if (!isOperational) break;
-        return <div style={{ padding: '20px', textAlign: 'center', direction: 'rtl' }}>עמוד לקוחות - בפיתוח</div>;
-      case 'users':
-        if (!isAdmin) break;
-        return <UserManagement onNavigate={handleNavigate} currentUser={user} dataStore={dataStore} />;
-      case 'profile':
-        return <Profile dataStore={dataStore} onNavigate={handleNavigate} />;
-      case 'social-feed':
-        return <SocialFeed />;
-      case 'social-profile':
-        return <UserProfilePage />;
-      case 'social-analytics':
-        return <SocialAnalytics />;
-      case 'kyc':
-        return <KYCFlow />;
-      default:
-        return useSXT
-          ? <CatalogPage dataStore={dataStore} onNavigate={handleNavigate} />
-          : <Dashboard dataStore={dataStore} onNavigate={handleNavigate} />;
-    }
-
-    // Fallback if no case matched (unauthorized access attempt)
-    return useSXT
-      ? <CatalogPage dataStore={dataStore} onNavigate={handleNavigate} />
-      : <Dashboard dataStore={dataStore} onNavigate={handleNavigate} />;
-  };
-
-  const appShell = (
-    <>
-      <Suspense fallback={<PageLoadingSkeleton />}>
-        <ShellProvider value={{
-          currentPage,
-          handleNavigate,
-          showSidebar,
-          setShowSidebar,
-          showActionMenu,
-          setShowActionMenu,
-          showOrderWizard,
-          openOrderWizard: handleShowCreateOrder,
-          closeOrderWizard: () => setShowOrderWizard(false),
-          showBusinessManager,
-          openBusinessManager: handleShowBusinessManager,
-          closeBusinessManager: () => setShowBusinessManager(false),
-          showSearchBusiness,
-          openSearchBusiness: handleShowSearchBusiness,
-          closeSearchBusiness: () => setShowSearchBusiness(false),
-          showBecomeDriver,
-          openBecomeDriver: handleShowBecomeDriver,
-          closeBecomeDriver: () => setShowBecomeDriver(false),
-          showCreateBusiness,
-          openCreateBusiness: handleShowCreateBusiness,
-          closeCreateBusiness: () => setShowCreateBusiness(false),
-          handleLogout,
-          handleShowCreateTask,
-          handleShowScanBarcode,
-          handleShowContactCustomer,
-          handleShowCheckInventory,
-          handleShowCreateRoute,
-          handleShowCreateUser,
-          handleShowCreateProduct,
-        }}>
-          <Routes>
-            {/* Storefront */}
-            <Route element={<StoreLayout />}>
-              <Route path="/store" element={<Navigate to="/store/catalog" replace />} />
-              <Route
-                path="/store/catalog"
-                element={
-                  <TelegramXPage>
-                    <CatalogRoute dataStore={dataStore} onNavigate={handleNavigate} />
-                  </TelegramXPage>
-                }
-              />
-              <Route
-                path="/store/cart"
-                element={<TelegramXPage><div style={{ padding: 20 }}>Cart (placeholder)</div></TelegramXPage>}
-              />
-              <Route
-                path="/store/checkout"
-                element={<TelegramXPage><div style={{ padding: 20 }}>Checkout (placeholder)</div></TelegramXPage>}
-              />
-              <Route path="/store/orders" element={<TelegramXPage>{renderPage('orders')}</TelegramXPage>} />
-              <Route
-                path="/store/profile"
-                element={<TelegramXPage><ProfileRoute dataStore={dataStore} onNavigate={handleNavigate} /></TelegramXPage>}
-              />
-              <Route path="/store/product/:id" element={renderPage('catalog')} />
-              <Route path="/store/kyc/*" element={<KYCFlow />} />
-              <Route path="kyc/*" element={<KYCFlow />} />
-              <Route path="kyc" element={<Navigate to="kyc/start" replace />} />
-            </Route>
-
-            {/* Business */}
-            <Route element={<BusinessLayout />}>
-              <Route path="/business" element={<Navigate to="/business/dashboard" replace />} />
-              <Route path="/business/dashboard" element={renderPage('dashboard')} />
-              <Route path="/business/products" element={renderPage('products')} />
-              <Route path="/business/orders" element={renderPage('orders')} />
-              <Route path="/business/restock" element={renderPage('restock-requests')} />
-              <Route path="/business/inventory" element={renderPage('inventory')} />
-              <Route path="/business/incoming" element={renderPage('incoming')} />
-              <Route path="/business/reports" element={renderPage('reports')} />
-              <Route path="/business/drivers" element={renderPage('drivers-management')} />
-              <Route path="/business/zones" element={renderPage('zone-management')} />
-              <Route path="/business/manager-inventory" element={renderPage('manager-inventory')} />
-              <Route path="/business/warehouse" element={renderPage('warehouse-dashboard')} />
-              <Route path="/business/dispatch" element={renderPage('dispatch-board')} />
-              <Route path="/sandbox" element={renderPage('sandbox')} />
-              <Route path="/start-new" element={renderPage('start-new')} />
-              <Route path="/admin/logs" element={renderPage('logs')} />
-              <Route path="/channels" element={renderPage('channels')} />
-              <Route path="/notifications" element={renderPage('notifications')} />
-              <Route path="/chat" element={renderPage('chat')} />
-            </Route>
-
-            {/* Driver */}
-            <Route element={<DriverLayout />}>
-              <Route path="/driver" element={<Navigate to="/driver/dashboard" replace />} />
-              <Route path="/driver/dashboard" element={renderPage('driver-status')} />
-              <Route path="/driver/tasks" element={renderPage('tasks')} />
-              <Route path="/driver/routes" element={renderPage('my-deliveries')} />
-              <Route path="/driver/my-deliveries" element={renderPage('my-deliveries')} />
-              <Route path="/driver/my-inventory" element={renderPage('my-inventory')} />
-              <Route path="/driver/my-zones" element={renderPage('my-zones')} />
-              <Route path="/driver/status" element={renderPage('driver-status')} />
-            </Route>
-
-            {/* Admin */}
-            <Route path="/admin/analytics" element={renderPage('reports')} />
-            <Route path="/admin/businesses" element={renderPage('businesses')} />
-            <Route path="/admin/users" element={renderPage('users')} />
-
-            {/* Legacy/default */}
-            <Route path="*" element={<Navigate to={pageToPath[currentPage] || '/store/catalog'} replace />} />
-          </Routes>
-        </ShellProvider>
-      </Suspense>
-
-        {/* Modals */}
-        {showOrderWizard && dataStore && (
-          userRole === 'sales' ? (
-            <DualModeOrderEntry
-              dataStore={dataStore}
-              onOrderCreated={handleOrderCreated}
-              onCancel={() => setShowOrderWizard(false)}
-            />
-          ) : (
-            <OrderCreationWizard
-              dataStore={dataStore}
-              onOrderCreated={handleOrderCreated}
-              onCancel={() => setShowOrderWizard(false)}
-            />
-          )
-        )}
-
-        {showBusinessManager && dataStore && (
-          <BusinessManager
+      {/* Legacy modals - TODO: migrate to unified modal controller in Phase 2 */}
+      {showOrderWizard && dataStore && (
+        userRole === 'sales' ? (
+          <DualModeOrderEntry
             dataStore={dataStore}
-            currentUserId={user?.telegram_id}
-            onClose={() => setShowBusinessManager(false)}
+            onOrderCreated={handleOrderCreated}
+            onCancel={() => setShowOrderWizard(false)}
           />
-        )}
-
-        {/* Search Business Modal */}
-        {showSearchBusiness && (
-          <SearchBusinessModal
-            onClose={() => setShowSearchBusiness(false)}
-            onBusinessSelected={(businessId) => {
-              setShowSearchBusiness(false);
-            }}
+        ) : (
+          <OrderCreationWizard
+            dataStore={dataStore}
+            onOrderCreated={handleOrderCreated}
+            onCancel={() => setShowOrderWizard(false)}
           />
-        )}
+        )
+      )}
 
-        {/* Become Driver Modal */}
-        {showBecomeDriver && (
-          <BecomeDriverModal
-            onClose={() => setShowBecomeDriver(false)}
-            onSuccess={() => {
-              refreshUserRole({ forceRefresh: true });
-            }}
-          />
-        )}
+      {showBusinessManager && dataStore && (
+        <BusinessManager
+          dataStore={dataStore}
+          currentUserId={user?.telegram_id}
+          onClose={() => setShowBusinessManager(false)}
+        />
+      )}
 
-        {/* Create Business Modal (reuses BusinessOwnerOnboarding) */}
-        {showCreateBusiness && dataStore && (
-          <div
-            style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'rgba(0, 0, 0, 0.7)',
-              backdropFilter: 'blur(8px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 9999,
-              padding: '20px'
-            }}
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
+      {showSearchBusiness && (
+        <SearchBusinessModal
+          onClose={() => setShowSearchBusiness(false)}
+          onBusinessSelected={(businessId) => {
+            setShowSearchBusiness(false);
+          }}
+        />
+      )}
+
+      {showBecomeDriver && (
+        <BecomeDriverModal
+          onClose={() => setShowBecomeDriver(false)}
+          onSuccess={() => {
+            refreshUserRole({ forceRefresh: true });
+          }}
+        />
+      )}
+
+      {showCreateBusiness && dataStore && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '20px'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowCreateBusiness(false);
+            }
+          }}
+        >
+          <div style={{ maxWidth: '800px', width: '100%', maxHeight: '90vh', overflow: 'auto' }}>
+            <BusinessOwnerOnboarding
+              dataStore={dataStore}
+              onComplete={() => {
                 setShowCreateBusiness(false);
-              }
-            }}
-          >
-            <div style={{ maxWidth: '800px', width: '100%', maxHeight: '90vh', overflow: 'auto' }}>
-              <BusinessOwnerOnboarding
-                dataStore={dataStore}
-                onComplete={() => {
-                  setShowCreateBusiness(false);
-                  refreshUserRole({ forceRefresh: true });
-                  telegram.showAlert('העסק נוצר בהצלחה!');
-                }}
-                onBack={() => setShowCreateBusiness(false)}
-              />
-            </div>
+                refreshUserRole({ forceRefresh: true });
+                telegram.showAlert('העסק נוצר בהצלחה!');
+              }}
+              onBack={() => setShowCreateBusiness(false)}
+            />
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Enhanced Toast Notifications */}
-        <ToastContainer />
+      <ToastContainer />
     </>
   );
 

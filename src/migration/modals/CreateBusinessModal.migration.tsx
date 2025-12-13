@@ -4,7 +4,7 @@ import { ModalHeader } from '../../components/primitives/modal-parts/ModalHeader
 import { ModalBody } from '../../components/primitives/modal-parts/ModalBody';
 import { ModalFooter } from '../../components/primitives/modal-parts/ModalFooter';
 import { toModalProps } from '../../adapters/modals/CreateBusinessModalAdapter';
-import Legacy from '../../components/CreateBusinessModal';
+import { CreateBusinessModal as Legacy } from '../../components/CreateBusinessModal';
 
 export default function CreateBusinessModalMigration(props: any) {
   const mapped = toModalProps(props);

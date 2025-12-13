@@ -4,7 +4,7 @@ import { ModalHeader } from '../../components/primitives/modal-parts/ModalHeader
 import { ModalBody } from '../../components/primitives/modal-parts/ModalBody';
 import { ModalFooter } from '../../components/primitives/modal-parts/ModalFooter';
 import { toModalProps } from '../../adapters/modals/NotificationPreferencesAdapter';
-import Legacy from '../../components/NotificationPreferences';
+import { NotificationPreferencesComponent as Legacy } from '../../components/NotificationPreferences';
 
 export default function NotificationPreferencesMigration(props: any) {
   const mapped = toModalProps(props);

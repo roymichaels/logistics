@@ -4,7 +4,7 @@ import { ModalHeader } from '../../components/primitives/modal-parts/ModalHeader
 import { ModalBody } from '../../components/primitives/modal-parts/ModalBody';
 import { ModalFooter } from '../../components/primitives/modal-parts/ModalFooter';
 import { toModalProps } from '../../adapters/modals/TelegramModalAdapter';
-import Legacy from '../../components/TelegramModal';
+import { TelegramModal as Legacy } from '../../components/TelegramModal';
 
 export default function TelegramModalMigration(props: any) {
   const mapped = toModalProps(props);

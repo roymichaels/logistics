@@ -4,7 +4,7 @@ import { ModalHeader } from '../../components/primitives/modal-parts/ModalHeader
 import { ModalBody } from '../../components/primitives/modal-parts/ModalBody';
 import { ModalFooter } from '../../components/primitives/modal-parts/ModalFooter';
 import { toModalProps } from '../../adapters/modals/RoleSelectionModalAdapter';
-import Legacy from '../../components/RoleSelectionModal';
+import { RoleSelectionModal as Legacy } from '../../components/RoleSelectionModal';
 
 export default function RoleSelectionModalMigration(props: any) {
   const mapped = toModalProps(props);

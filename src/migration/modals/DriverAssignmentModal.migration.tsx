@@ -4,7 +4,7 @@ import { ModalHeader } from '../../components/primitives/modal-parts/ModalHeader
 import { ModalBody } from '../../components/primitives/modal-parts/ModalBody';
 import { ModalFooter } from '../../components/primitives/modal-parts/ModalFooter';
 import { toModalProps } from '../../adapters/modals/DriverAssignmentAdapter';
-import Legacy from '../../components/DriverAssignmentModal';
+import { DriverAssignmentModal as Legacy } from '../../components/DriverAssignmentModal';
 
 export default function DriverAssignmentModalMigration(props: any) {
   const mapped = toModalProps(props);

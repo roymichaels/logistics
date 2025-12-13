@@ -4,7 +4,7 @@ import { DrawerHeader } from '../../components/primitives/drawer-parts/DrawerHea
 import { DrawerBody } from '../../components/primitives/drawer-parts/DrawerBody';
 import { DrawerFooter } from '../../components/primitives/drawer-parts/DrawerFooter';
 import { toDrawerProps } from '../../adapters/drawers/CartDrawerAdapter';
-import Legacy from '../../store/CartDrawer';
+import { CartDrawer as Legacy } from '../../store/CartDrawer';
 
 export default function CartDrawerMigration(props: any) {
   const mapped = toDrawerProps(props);

@@ -4,7 +4,7 @@ import { ModalHeader } from '../../components/primitives/modal-parts/ModalHeader
 import { ModalBody } from '../../components/primitives/modal-parts/ModalBody';
 import { ModalFooter } from '../../components/primitives/modal-parts/ModalFooter';
 import { toModalProps } from '../../adapters/modals/ProfitDistributionAdapter';
-import Legacy from '../../components/ProfitDistributionModal';
+import { ProfitDistributionModal as Legacy } from '../../components/ProfitDistributionModal';
 
 export default function ProfitDistributionModalMigration(props: any) {
   const mapped = toModalProps(props);
