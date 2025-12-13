@@ -19,7 +19,14 @@
     "db:push": "drizzle-kit push:pg --schema=./data/schema/pg.ts",
     "test": "vitest",
     "test:watch": "vitest --watch",
-    "collapse:migrations": "node scripts/collapse-migrations.cjs --stamp 20251015"
+    "collapse:migrations": "node scripts/collapse-migrations.cjs --stamp 20251015",
+    "clean:headers": "tsx scripts/auto-clean-headers.ts",
+    "clean:headers:dry": "tsx scripts/auto-clean-headers.ts --dry-run",
+    "clean:unused": "tsx scripts/purge-unused.ts",
+    "clean:unused:dry": "tsx scripts/purge-unused.ts --dry-run",
+    "migrate:force-shell": "tsx scripts/force-unified-shell.ts",
+    "migrate:force-shell:dry": "tsx scripts/force-unified-shell.ts --dry-run",
+    "migrate:full": "npm run clean:headers && npm run clean:unused && npm run migrate:force-shell"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.58.0",
@@ -44,6 +51,7 @@
     "supabase": "^2.48.3",
     "terser": "^5.44.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^4.4.0",
     "vitest": "^3.2.4"
