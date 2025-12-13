@@ -1,24 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { mockDataGenerator } from '../../../lib/mockDataGenerator';
 
 const mockDataSets = [
-  { id: 'products', label: 'Products', count: 50, enabled: true },
-  { id: 'orders', label: 'Orders', count: 120, enabled: true },
-  { id: 'users', label: 'Users', count: 25, enabled: false },
-  { id: 'drivers', label: 'Drivers', count: 15, enabled: false },
-  { id: 'businesses', label: 'Businesses', count: 10, enabled: true },
-  { id: 'inventory', label: 'Inventory', count: 200, enabled: false },
-  { id: 'messages', label: 'Messages', count: 500, enabled: false },
+  { id: 'products', label: 'Products', count: 50 },
+  { id: 'orders', label: 'Orders', count: 120 },
+  { id: 'users', label: 'Users', count: 25 },
+  { id: 'drivers', label: 'Drivers', count: 15 },
+  { id: 'businesses', label: 'Businesses', count: 10 },
+  { id: 'inventory', label: 'Inventory', count: 200 },
+  { id: 'messages', label: 'Messages', count: 500 },
 ];
 
 export function MocksPanel() {
-  const [mocks, setMocks] = useState(mockDataSets);
+  const [mocks, setMocks] = useState(() =>
+    mockDataSets.map(mock => ({
+      ...mock,
+      enabled: mockDataGenerator.isEnabled(mock.id as any),
+    }))
+  );
 
   const toggleMock = (id: string) => {
+    const mock = mocks.find(m => m.id === id);
+    if (!mock) return;
+
+    if (mock.enabled) {
+      mockDataGenerator.clear(id as any);
+    } else {
+      mockDataGenerator.generate(id as any, mock.count);
+    }
+
     setMocks((prev) =>
-      prev.map((mock) =>
-        mock.id === id ? { ...mock, enabled: !mock.enabled } : mock
+      prev.map((m) =>
+        m.id === id ? { ...m, enabled: !m.enabled } : m
       )
     );
+  };
+
+  const generateAll = () => {
+    mocks.forEach(mock => {
+      if (!mock.enabled) {
+        mockDataGenerator.generate(mock.id as any, mock.count);
+      }
+    });
+
+    setMocks(prev => prev.map(m => ({ ...m, enabled: true })));
+  };
+
+  const clearAll = () => {
+    mockDataGenerator.clearAll();
+    setMocks(prev => prev.map(m => ({ ...m, enabled: false })));
   };
 
   return (
@@ -105,28 +135,54 @@ export function MocksPanel() {
         </div>
       ))}
 
-      <button
-        style={{
-          marginTop: '8px',
-          padding: '10px 16px',
-          borderRadius: '8px',
-          border: '1px solid rgba(34, 197, 94, 0.3)',
-          backgroundColor: 'rgba(34, 197, 94, 0.1)',
-          color: '#22c55e',
-          fontSize: '13px',
-          fontWeight: '500',
-          cursor: 'pointer',
-          transition: 'all 0.15s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.15)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.1)';
-        }}
-      >
-        Generate All Mocks
-      </button>
+      <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+        <button
+          onClick={generateAll}
+          style={{
+            flex: 1,
+            padding: '10px 16px',
+            borderRadius: '8px',
+            border: '1px solid rgba(34, 197, 94, 0.3)',
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            color: '#22c55e',
+            fontSize: '13px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.15)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.1)';
+          }}
+        >
+          Generate All
+        </button>
+        <button
+          onClick={clearAll}
+          style={{
+            flex: 1,
+            padding: '10px 16px',
+            borderRadius: '8px',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            color: '#ef4444',
+            fontSize: '13px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+          }}
+        >
+          Clear All
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { migrationFlags } from '../../../migration/flags';
 
 const shells = [
   { id: 'unified', label: 'Unified Shell', description: 'Single unified shell for all contexts' },
@@ -7,8 +8,31 @@ const shells = [
   { id: 'store', label: 'Store Shell', description: 'Storefront shell' },
 ];
 
+const STORAGE_KEY = 'dev-console:active-shell';
+
 export function ShellsPanel() {
-  const [activeShell, setActiveShell] = useState('unified');
+  const [activeShell, setActiveShell] = useState(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored && shells.some(s => s.id === stored)) {
+      return stored;
+    }
+    return migrationFlags.unifiedShell ? 'unified' : 'business';
+  });
+
+  const handleShellChange = (shellId: string) => {
+    setActiveShell(shellId);
+    localStorage.setItem(STORAGE_KEY, shellId);
+
+    if (shellId === 'unified') {
+      (migrationFlags as any).unifiedShell = true;
+      (migrationFlags as any).unifiedApp = true;
+    } else {
+      (migrationFlags as any).unifiedShell = false;
+      (migrationFlags as any).unifiedApp = false;
+    }
+
+    window.location.reload();
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -53,7 +77,7 @@ export function ShellsPanel() {
         return (
           <button
             key={shell.id}
-            onClick={() => setActiveShell(shell.id)}
+            onClick={() => handleShellChange(shell.id)}
             style={{
               padding: '12px',
               borderRadius: '8px',

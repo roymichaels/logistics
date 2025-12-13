@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
+
+const ROLE_OVERRIDE_KEY = 'dev-console:role-override';
 
 export function RolesPanel() {
   const auth = useAuth();
+  const [roleOverride, setRoleOverride] = useState<string | null>(() =>
+    localStorage.getItem(ROLE_OVERRIDE_KEY)
+  );
 
   const roles = [
     { id: 'user', label: 'User', description: 'Basic user permissions' },
@@ -17,6 +22,25 @@ export function RolesPanel() {
     { id: 'superadmin', label: 'Super Admin', description: 'Full system access' },
   ];
 
+  const currentRole = roleOverride || auth?.user?.role || 'user';
+
+  const handleRoleClick = (roleId: string) => {
+    if (roleId === currentRole && roleOverride) {
+      localStorage.removeItem(ROLE_OVERRIDE_KEY);
+      setRoleOverride(null);
+    } else {
+      localStorage.setItem(ROLE_OVERRIDE_KEY, roleId);
+      setRoleOverride(roleId);
+    }
+    window.location.reload();
+  };
+
+  const clearOverride = () => {
+    localStorage.removeItem(ROLE_OVERRIDE_KEY);
+    setRoleOverride(null);
+    window.location.reload();
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div
@@ -30,17 +54,58 @@ export function RolesPanel() {
         <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)', marginBottom: '4px' }}>
           Current Role
         </div>
-        <div
-          style={{
-            fontSize: '13px',
-            fontWeight: '600',
-            color: '#a78bfa',
-            fontFamily: 'monospace',
-          }}
-        >
-          {auth?.user?.role || 'Not authenticated'}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div
+            style={{
+              fontSize: '13px',
+              fontWeight: '600',
+              color: '#a78bfa',
+              fontFamily: 'monospace',
+            }}
+          >
+            {currentRole}
+          </div>
+          {roleOverride && (
+            <span
+              style={{
+                fontSize: '10px',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                backgroundColor: 'rgba(251, 191, 36, 0.2)',
+                color: '#fbbf24',
+                fontWeight: '500',
+              }}
+            >
+              OVERRIDE
+            </span>
+          )}
         </div>
       </div>
+
+      {roleOverride && (
+        <button
+          onClick={clearOverride}
+          style={{
+            padding: '8px 12px',
+            borderRadius: '6px',
+            border: '1px solid rgba(251, 191, 36, 0.3)',
+            backgroundColor: 'rgba(251, 191, 36, 0.1)',
+            color: '#fbbf24',
+            fontSize: '12px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(251, 191, 36, 0.15)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(251, 191, 36, 0.1)';
+          }}
+        >
+          Clear Override
+        </button>
+      )}
 
       <div
         style={{
@@ -56,10 +121,11 @@ export function RolesPanel() {
       </div>
 
       {roles.map((role) => {
-        const isActive = auth?.user?.role === role.id;
+        const isActive = currentRole === role.id;
         return (
-          <div
+          <button
             key={role.id}
+            onClick={() => handleRoleClick(role.id)}
             style={{
               padding: '12px',
               borderRadius: '8px',
@@ -67,6 +133,19 @@ export function RolesPanel() {
                 ? 'rgba(139, 92, 246, 0.15)'
                 : 'rgba(255, 255, 255, 0.03)',
               border: `1px solid ${isActive ? 'rgba(139, 92, 246, 0.3)' : 'rgba(255, 255, 255, 0.06)'}`,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              textAlign: 'left',
+            }}
+            onMouseEnter={(e) => {
+              if (!isActive) {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive) {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
+              }
             }}
           >
             <div
@@ -99,7 +178,7 @@ export function RolesPanel() {
             >
               {role.description}
             </div>
-          </div>
+          </button>
         );
       })}
     </div>

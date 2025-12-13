@@ -1,18 +1,20 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const wireframes = [
-  { id: 'header', label: 'Header', status: 'ready' },
-  { id: 'sidebar', label: 'Sidebar', status: 'ready' },
-  { id: 'bottom-nav', label: 'Bottom Navigation', status: 'ready' },
-  { id: 'card', label: 'Card', status: 'ready' },
-  { id: 'modal', label: 'Modal', status: 'ready' },
-  { id: 'drawer', label: 'Drawer', status: 'ready' },
-  { id: 'sheet', label: 'Sheet', status: 'in-progress' },
-  { id: 'popover', label: 'Popover', status: 'in-progress' },
-  { id: 'table', label: 'Table', status: 'planned' },
+  { id: 'header', label: 'Header', status: 'ready', path: '/sandbox' },
+  { id: 'sidebar', label: 'Sidebar', status: 'ready', path: '/sandbox' },
+  { id: 'bottom-nav', label: 'Bottom Navigation', status: 'ready', path: '/sandbox' },
+  { id: 'card', label: 'Card', status: 'ready', path: '/sandbox' },
+  { id: 'modal', label: 'Modal', status: 'ready', path: '/sandbox' },
+  { id: 'drawer', label: 'Drawer', status: 'ready', path: '/sandbox' },
+  { id: 'sheet', label: 'Sheet', status: 'in-progress', path: '/sandbox' },
+  { id: 'popover', label: 'Popover', status: 'in-progress', path: '/sandbox' },
+  { id: 'table', label: 'Table', status: 'planned', path: '/sandbox' },
 ];
 
 export function WireframesPanel() {
+  const navigate = useNavigate();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div
@@ -39,6 +41,7 @@ export function WireframesPanel() {
         return (
           <div
             key={wireframe.id}
+            onClick={() => navigate(wireframe.path)}
             style={{
               padding: '12px',
               borderRadius: '8px',
