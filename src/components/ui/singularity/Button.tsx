@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors, borderRadius, typography, transitions } from '../../../styles/design-system/tokens';
 
 type Variant = 'filled' | 'outline' | 'ghost' | 'soft' | 'destructive';
 type Size = 'xs' | 'sm' | 'md' | 'lg';
@@ -19,22 +20,40 @@ export const SGButton: React.FC<Props> = ({ variant = 'filled', size = 'md', sty
       : '10px 14px';
 
   const baseStyle: React.CSSProperties = {
-    border: '1px solid transparent',
-    borderRadius: 12,
-    background: '#1d9bf0',
-    color: '#0b1020',
-    fontWeight: 700,
+    border: `1px solid ${colors.transparent}`,
+    borderRadius: parseInt(borderRadius.lg),
+    background: colors.brand.primary,
+    color: colors.background.elevated,
+    fontWeight: parseInt(typography.fontWeight.bold),
     padding,
     cursor: 'pointer',
-    transition: '200ms ease',
+    transition: transitions.normal,
   };
 
   const styles: Record<Variant, React.CSSProperties> = {
     filled: baseStyle,
-    outline: { ...baseStyle, background: 'transparent', color: '#e8ecf5', borderColor: 'rgba(255,255,255,0.24)' },
-    ghost: { ...baseStyle, background: 'transparent', color: '#e8ecf5', borderColor: 'transparent' },
-    soft: { ...baseStyle, background: 'rgba(29,155,240,0.12)', color: '#1d9bf0' },
-    destructive: { ...baseStyle, background: '#ef4444', color: '#fff' },
+    outline: {
+      ...baseStyle,
+      background: colors.transparent,
+      color: colors.text.primary,
+      borderColor: colors.border.primary
+    },
+    ghost: {
+      ...baseStyle,
+      background: colors.transparent,
+      color: colors.text.primary,
+      borderColor: colors.transparent
+    },
+    soft: {
+      ...baseStyle,
+      background: colors.brand.primaryFaded,
+      color: colors.brand.primary
+    },
+    destructive: {
+      ...baseStyle,
+      background: colors.status.error,
+      color: colors.white
+    },
   };
 
   return (

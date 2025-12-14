@@ -59,34 +59,42 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
 
   const loadDashboard = useCallback(async () => {
     if (!dataStore) {
+      logger.warn('[Dashboard] ⚠️ No dataStore available');
       return;
     }
+
+    logger.info('[Dashboard] 📊 Loading dashboard data');
 
     try {
       setError(null);
       const profile = await dataStore.getProfile();
 
       if (!profile) {
+        logger.error('[Dashboard] ❌ No profile found');
         setError(translations.errors.loadFailed);
         setLoading(false);
         return;
       }
 
+      logger.info('[Dashboard] ✅ Profile loaded', { role: profile.role, userId: profile.telegram_id });
       setUser(profile);
 
       // Owner and Manager get custom dashboards
       if (profile.role === 'infrastructure_owner' || profile.role === 'business_owner' || profile.role === 'manager') {
+        logger.info('[Dashboard] 🎭 Loading role-specific dashboard', { role: profile.role });
         setLoading(false);
         return;
       }
 
+      logger.info('[Dashboard] 📈 Loading royal dashboard snapshot');
       const royalData = dataStore.getRoyalDashboardSnapshot
         ? await dataStore.getRoyalDashboardSnapshot()
         : createRoyalFallback();
       setSnapshot(royalData);
+      logger.info('[Dashboard] ✅ Dashboard snapshot loaded');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : translations.errors.unknownError;
-      logger.error('Failed to load royal dashboard', err);
+      logger.error('[Dashboard] ❌ Failed to load royal dashboard', err);
       setError(errorMessage);
       Toast.error(translations.errors.loadFailed);
       setSnapshot(createRoyalFallback());
@@ -97,6 +105,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
 
   const handleInventoryAlert = useCallback(
     (payload: unknown) => {
+      logger.info('[Dashboard] 🔔 Received inventory alert event');
       const event = (payload ?? {}) as InventoryAlertPayload;
 
       setSnapshot(prev => {
@@ -144,8 +153,13 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   );
 
   useEffect(() => {
+    logger.info('[Dashboard] 📱 Mounting Dashboard page');
     backButton.hide();
     void loadDashboard();
+
+    return () => {
+      logger.info('[Dashboard] 📱 Unmounting Dashboard page');
+    };
   }, [backButton, loadDashboard]);
 
   const summaryText = useMemo(() => {
@@ -154,7 +168,12 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   }, [snapshot, user]);
 
   const handleSendSummary = useCallback(() => {
-    if (!snapshot) return;
+    if (!snapshot) {
+      logger.warn('[Dashboard] ⚠️ Cannot send summary - no snapshot');
+      return;
+    }
+
+    logger.info('[Dashboard] 📤 Sending dashboard summary');
 
     try {
       haptic('medium');
@@ -162,12 +181,14 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
       if (typeof window !== 'undefined' && window.Telegram?.WebApp?.sendData) {
         window.Telegram.WebApp.sendData(payload);
         Toast.success('הסיכום נשלח לטלגרם');
+        logger.info('[Dashboard] ✅ Summary sent to Telegram');
       } else if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(payload);
         Toast.success('הסיכום הועתק ללוח');
+        logger.info('[Dashboard] ✅ Summary copied to clipboard');
       } else {
         Toast.show('העתיקו את הסיכום ידנית:', 'info');
-        logger.info(payload);
+        logger.info('[Dashboard] ℹ️ Manual copy required', { payload });
       }
     } catch (error) {
       logger.error('Failed to deliver summary', error);

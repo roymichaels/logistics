@@ -11,6 +11,8 @@ import { UserListView } from '../components/UserListView';
 import { UserProfileModal } from '../components/UserProfileModal';
 import { GroupChannelCreateModal } from '../components/GroupChannelCreateModal';
 import { hasPermission } from '../lib/rolePermissions';
+import { useConversations, useMessages, useSendMessage, useMarkAsRead } from '../application/use-cases/useMessaging';
+import { eventBus } from '../foundation/events/EventBus';
 
 interface ChatProps {
   dataStore: DataStore;
@@ -23,11 +25,10 @@ type UserFilter = 'all' | 'online' | 'offline';
 
 export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
   const [activeTab, setActiveTab] = useState<ChatTab>('conversations');
-  const [directMessageRooms, setDirectMessageRooms] = useState<any[]>([]);
   const [groupChats, setGroupChats] = useState<GroupChat[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [selectedChatRoomId, setSelectedChatRoomId] = useState<string | null>(null);
   const [selectedChat, setSelectedChat] = useState<any | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -40,10 +41,17 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme, haptic, backButton } = useTelegramUI();
 
+  const userId = currentUser?.telegram_id || '';
+  const { conversations, refetch: refetchConversations } = useConversations(userId);
+  const { messages: roomMessages, refetch: refetchMessages } = useMessages(selectedChatRoomId || '', 100);
+  const { sendMessage: sendMessageCommand } = useSendMessage();
+  const { markAsRead } = useMarkAsRead();
+
   const canCreateGroup = currentUser && hasPermission(currentUser, 'groups:create');
   const userScope = currentUser?.role === 'infrastructure_owner' ? 'all' : 'business';
 
   useEffect(() => {
+    logger.info('[Chat] 📱 Mounting Chat page', { userId });
     initializeEncryption();
     loadData();
 
@@ -52,7 +60,25 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
       dataStore.updateUserPresence('online');
     }
 
+    const unsubscribeMessageSent = eventBus.subscribe('message:sent', () => {
+      logger.info('[Chat] 🔄 Received message:sent event, refreshing messages');
+      refetchMessages();
+    });
+    const unsubscribeMessageReceived = eventBus.subscribe('message:received', () => {
+      logger.info('[Chat] 🔄 Received message:received event, refreshing conversations and messages');
+      refetchConversations();
+      refetchMessages();
+    });
+    const unsubscribeRoomCreated = eventBus.subscribe('room:created', () => {
+      logger.info('[Chat] 🔄 Received room:created event, refreshing conversations');
+      refetchConversations();
+    });
+
     return () => {
+      logger.info('[Chat] 📱 Unmounting Chat page');
+      unsubscribeMessageSent.unsubscribe();
+      unsubscribeMessageReceived.unsubscribe();
+      unsubscribeRoomCreated.unsubscribe();
       // Set presence to offline when leaving
       if (dataStore.updateUserPresence) {
         dataStore.updateUserPresence('offline');
@@ -73,7 +99,15 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [roomMessages]);
+
+  const messages = roomMessages.map(msg => ({
+    id: msg.id,
+    user: msg.sender_id,
+    message: msg.content,
+    timestamp: msg.created_at,
+    avatar: '👤'
+  }));
 
   const initializeEncryption = async () => {
     try {
@@ -87,42 +121,11 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
 
   const loadData = async () => {
     try {
-      await Promise.all([loadDirectMessages(), loadGroupChats(), loadUsers()]);
+      await Promise.all([refetchConversations(), loadGroupChats(), loadUsers()]);
     } catch (error) {
-      logger.error('Failed to load chat data:', error);
+      logger.error('[Chat] ❌ Failed to load chat data:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadDirectMessages = async () => {
-    try {
-      if (dataStore.listDirectMessageRooms) {
-        const dms = await dataStore.listDirectMessageRooms();
-
-        // Enhance DMs with user info
-        const enhancedDMs = await Promise.all(
-          dms.map(async (dm) => {
-            let otherUserInfo: User | null = null;
-            if (dataStore.getUserByTelegramId) {
-              try {
-                otherUserInfo = await dataStore.getUserByTelegramId(dm.other_telegram_id);
-              } catch (e) {
-                logger.warn('Could not fetch user info for', dm.other_telegram_id);
-              }
-            }
-            return {
-              ...dm,
-              type: 'direct' as const,
-              otherUser: otherUserInfo
-            };
-          })
-        );
-
-        setDirectMessageRooms(enhancedDMs);
-      }
-    } catch (error) {
-      logger.error('Failed to load direct messages:', error);
     }
   };
 
@@ -176,45 +179,49 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
   };
 
   const loadMessages = async (chatId: string, isDirect: boolean = false) => {
-    try {
-      if (!dataStore.listMessages) {
-        setMessages([]);
-        return;
-      }
+    logger.info('[Chat] 📩 Loading messages', { chatId, isDirect });
+    setSelectedChatRoomId(chatId);
 
-      const chatMessages = await dataStore.listMessages(chatId, 100);
-      const formattedMessages = chatMessages.map(msg => ({
-        id: msg.id,
-        user: msg.sender_telegram_id,
-        message: msg.content,
-        timestamp: msg.sent_at,
-        avatar: '👤'
-      }));
-      setMessages(formattedMessages || []);
-
-      // Mark as read if it's a DM
-      if (isDirect && dataStore.markDirectMessageAsRead) {
-        await dataStore.markDirectMessageAsRead(chatId);
-        await loadDirectMessages(); // Refresh to update unread counts
+    if (isDirect) {
+      const messageIds = roomMessages.map(m => m.id);
+      if (messageIds.length > 0 && userId) {
+        await markAsRead(messageIds, userId);
+        refetchConversations();
       }
-    } catch (error) {
-      logger.error('Failed to load messages:', error);
-      setMessages([]);
     }
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedChat) return;
+    if (!newMessage.trim() || !selectedChat || !userId) return;
+
+    const roomId = selectedChat.id || selectedChat.room_id;
+    logger.info('[Chat] ✉️ Sending message', { roomId, length: newMessage.length });
 
     try {
-      if (dataStore.sendMessage) {
-        await dataStore.sendMessage(selectedChat.id || selectedChat.room_id, newMessage, 'text');
-        await loadMessages(selectedChat.id || selectedChat.room_id, selectedChat.type === 'direct');
+      const result = await sendMessageCommand({
+        roomId,
+        senderId: userId,
+        content: newMessage,
+        messageType: 'text'
+      });
+
+      if (result.success) {
+        logger.info('[Chat] ✅ Message sent successfully');
+        setNewMessage('');
+        haptic();
+        eventBus.emit({
+          type: 'message:sent',
+          eventType: 'messaging',
+          source: 'Chat',
+          timestamp: Date.now(),
+          data: { roomId, messageId: result.data.id }
+        });
+      } else {
+        logger.error('[Chat] ❌ Failed to send message:', result.error);
+        telegram.showAlert('שליחת ההודעה נכשלה');
       }
-      setNewMessage('');
-      haptic();
     } catch (error) {
-      logger.error('Failed to send message:', error);
+      logger.error('[Chat] ❌ Exception sending message:', error);
       telegram.showAlert('שליחת ההודעה נכשלה');
     }
   };
@@ -263,6 +270,23 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  const directMessageRooms = conversations
+    .filter(conv => conv.type === 'direct')
+    .map(conv => {
+      const otherUserId = conv.participants.find(p => p !== userId) || '';
+      return {
+        room_id: conv.id,
+        other_telegram_id: otherUserId,
+        type: 'direct' as const,
+        otherUser: null,
+        unread_count: conv.unread_count || 0,
+        room: {
+          last_message_at: conv.last_message?.created_at,
+          last_message_preview: conv.last_message?.content
+        }
+      };
+    });
 
   const filteredConversations = directMessageRooms.filter(dm => {
     if (!searchQuery) return true;
