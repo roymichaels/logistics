@@ -1,6 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { telegram } from '../lib/telegram';
-import { DataStore, Product, User } from '../data/types';
+import {
+  useCatalog,
+  useCategories,
+  useCreateProduct,
+  useUpdateProduct,
+  useDeleteProduct
+} from '../application/use-cases';
+import { useApp } from '../application/services/useApp';
+import { useAuth } from '../context/AuthContext';
+import { Diagnostics } from '../foundation/diagnostics/DiagnosticsStore';
+import { Toast } from '../components/Toast';
+import type { Product } from '../application/queries/catalog.queries';
 import { hebrew, formatCurrency } from '../lib/i18n';
 import { colors, spacing, commonStyles } from '../styles/design-system';
 import { ROYAL_STYLES, ROYAL_COLORS } from '../styles/royalTheme';
@@ -8,80 +19,85 @@ import { Input } from '../components/atoms/Input';
 import { logger } from '../lib/logger';
 
 interface ProductsProps {
-  dataStore: DataStore;
+  dataStore?: any;
   onNavigate: (page: string) => void;
 }
 
-export function Products({ dataStore, onNavigate }: ProductsProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+export function Products({ onNavigate }: ProductsProps) {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
+  const app = useApp();
+  const { user } = useAuth();
+
+  const { products, loading, error, refetch } = useCatalog({
+    category: filter === 'all' ? undefined : filter,
+    search: searchQuery || undefined,
+  });
+
+  const { categories } = useCategories();
+  const { createProduct, loading: creating } = useCreateProduct();
+  const { updateProduct, loading: updating } = useUpdateProduct();
+  const { deleteProduct, loading: deleting } = useDeleteProduct();
+
   useEffect(() => {
-    loadData();
-  }, [filter, searchQuery]);
+    const unsubscribe = app.events?.on('ProductCreated', () => {
+      Diagnostics.logEvent({ type: 'domain_event', message: 'ProductCreated received, refetching products' });
+      refetch();
+    });
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const profile = await dataStore.getProfile();
-      setUser(profile);
+    const unsubscribeUpdated = app.events?.on('ProductUpdated', () => {
+      Diagnostics.logEvent({ type: 'domain_event', message: 'ProductUpdated received, refetching products' });
+      refetch();
+    });
 
-      const productsList = await (dataStore.listProducts
-        ? dataStore.listProducts({
-            category: filter === 'all' ? undefined : filter,
-            q: searchQuery || undefined
-          })
-        : Promise.resolve([]));
+    const unsubscribeDeleted = app.events?.on('ProductDeleted', () => {
+      Diagnostics.logEvent({ type: 'domain_event', message: 'ProductDeleted received, refetching products' });
+      refetch();
+    });
 
-      setProducts(productsList);
-    } catch (error) {
-      logger.error('Failed to load products:', error);
-      telegram.showAlert('שגיאה בטעינת מוצרים');
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => {
+      unsubscribe?.();
+      unsubscribeUpdated?.();
+      unsubscribeDeleted?.();
+    };
+  }, [app.events, refetch]);
 
   const handleCreateProduct = async (productData: Partial<Product>) => {
-    try {
-      if (!dataStore.createProduct) {
-        telegram.showAlert('פעולה זו אינה נתמכת');
-        return;
-      }
+    Diagnostics.logEvent({ type: 'log', message: 'Creating product', data: productData });
 
-      await dataStore.createProduct(productData as any);
+    const result = await createProduct(productData as any);
+
+    if (result.success) {
       telegram.hapticFeedback('notification', 'success');
-      telegram.showAlert('המוצר נוצר בהצלחה');
+      Toast.success('המוצר נוצר בהצלחה');
+      Diagnostics.logEvent({ type: 'log', message: 'Product created successfully', data: result.data });
       setShowCreateModal(false);
-      loadData();
-    } catch (error) {
-      logger.error('Failed to create product:', error);
-      telegram.showAlert('שגיאה ביצירת המוצר');
+      refetch();
+    } else {
+      Toast.error(result.error.message || 'שגיאה ביצירת המוצר');
+      Diagnostics.logEvent({ type: 'error', message: 'Failed to create product', data: { error: result.error } });
     }
   };
 
   const handleUpdateProduct = async (productId: string, updates: Partial<Product>) => {
-    try {
-      if (!dataStore.updateProduct) {
-        telegram.showAlert('פעולה זו אינה נתמכת');
-        return;
-      }
+    Diagnostics.logEvent({ type: 'log', message: 'Updating product', data: { productId, updates } });
 
-      await dataStore.updateProduct(productId, updates);
+    const result = await updateProduct(productId, updates as any);
+
+    if (result.success) {
       telegram.hapticFeedback('notification', 'success');
-      telegram.showAlert('המוצר עודכן בהצלחה');
+      Toast.success('המוצר עודכן בהצלחה');
+      Diagnostics.logEvent({ type: 'log', message: 'Product updated successfully', data: { productId } });
       setShowEditModal(false);
       setSelectedProduct(null);
-      loadData();
-    } catch (error) {
-      logger.error('Failed to update product:', error);
-      telegram.showAlert('שגיאה בעדכון המוצר');
+      refetch();
+    } else {
+      Toast.error(result.error.message || 'שגיאה בעדכון המוצר');
+      Diagnostics.logEvent({ type: 'error', message: 'Failed to update product', data: { error: result.error } });
     }
   };
 
@@ -89,20 +105,18 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
     const confirmed = window.confirm('האם אתה בטוח שברצונך למחוק מוצר זה?');
     if (!confirmed) return;
 
-    try {
-      if (!dataStore.supabase) return;
+    Diagnostics.logEvent({ type: 'log', message: 'Deleting product', data: { productId } });
 
-      await dataStore.supabase
-        .from('products')
-        .delete()
-        .eq('id', productId);
+    const result = await deleteProduct(productId);
 
+    if (result.success) {
       telegram.hapticFeedback('notification', 'success');
-      telegram.showAlert('המוצר נמחק');
-      loadData();
-    } catch (error) {
-      logger.error('Failed to delete product:', error);
-      telegram.showAlert('שגיאה במחיקת המוצר');
+      Toast.success('המוצר נמחק');
+      Diagnostics.logEvent({ type: 'log', message: 'Product deleted successfully', data: { productId } });
+      refetch();
+    } else {
+      Toast.error(result.error.message || 'שגיאה במחיקת המוצר');
+      Diagnostics.logEvent({ type: 'error', message: 'Failed to delete product', data: { error: result.error } });
     }
   };
 
@@ -110,20 +124,49 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
                            user?.role === 'business_owner' ||
                            user?.role === 'manager';
 
-  const categories = ['all', ...new Set(products.map(p => p.category).filter(Boolean))];
+  const allCategories = ['all', ...categories];
 
-  const filteredProducts = products.filter(p => {
-    if (filter !== 'all' && p.category !== filter) return false;
-    if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    return true;
-  });
+  const filteredProducts = useMemo(() => {
+    return products.filter(p => {
+      if (filter !== 'all' && p.category !== filter) return false;
+      if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      return true;
+    });
+  }, [products, filter, searchQuery]);
 
-  if (loading) {
+  if (loading && products.length === 0) {
     return (
       <div style={commonStyles.pageContainer}>
         <div style={commonStyles.emptyState}>
           <div style={commonStyles.emptyStateIcon}>📦</div>
           <p style={commonStyles.emptyStateText}>טוען מוצרים...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={commonStyles.pageContainer}>
+        <div style={commonStyles.emptyState}>
+          <div style={commonStyles.emptyStateIcon}>❌</div>
+          <p style={commonStyles.emptyStateText}>{error.message || 'שגיאה בטעינת מוצרים'}</p>
+          <button
+            onClick={refetch}
+            style={{
+              marginTop: '16px',
+              padding: '12px 24px',
+              background: ROYAL_COLORS.gradientPurple,
+              border: 'none',
+              borderRadius: '12px',
+              color: ROYAL_COLORS.textBright,
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            נסה שוב
+          </button>
         </div>
       </div>
     );
@@ -139,7 +182,6 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
         </p>
       </div>
 
-      {/* Search */}
       <div style={{ marginBottom: spacing['2xl'] }}>
         <Input
           type="text"
@@ -150,8 +192,7 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
         />
       </div>
 
-      {/* Category Filter */}
-      {categories.length > 1 && (
+      {allCategories.length > 1 && (
         <div style={{
           display: 'flex',
           gap: '8px',
@@ -159,10 +200,14 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
           marginBottom: '20px',
           paddingBottom: '8px'
         }}>
-          {categories.map((cat) => (
+          {allCategories.map((cat) => (
             <button
               key={cat}
-              onClick={() => setFilter(cat)}
+              onClick={() => {
+                telegram.hapticFeedback('selection');
+                setFilter(cat);
+                Diagnostics.logEvent({ type: 'log', message: 'Category filter changed', data: { category: cat } });
+              }}
               style={{
                 ...ROYAL_STYLES.buttonSecondary,
                 padding: '8px 16px',
@@ -178,10 +223,12 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
         </div>
       )}
 
-      {/* Create Button */}
       {canManageProducts && (
         <button
-          onClick={() => setShowCreateModal(true)}
+          onClick={() => {
+            telegram.hapticFeedback('selection');
+            setShowCreateModal(true);
+          }}
           style={{
             ...ROYAL_STYLES.buttonPrimary,
             width: '100%',
@@ -192,7 +239,6 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
         </button>
       )}
 
-      {/* Products Grid */}
       {filteredProducts.length === 0 ? (
         <div style={ROYAL_STYLES.emptyState}>
           <div style={ROYAL_STYLES.emptyStateIcon}>📦</div>
@@ -216,20 +262,20 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
                 setShowEditModal(true);
               }}
               onDelete={() => handleDeleteProduct(product.id)}
+              deleting={deleting}
             />
           ))}
         </div>
       )}
 
-      {/* Create Modal */}
       {showCreateModal && (
         <ProductModal
           onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreateProduct}
+          loading={creating}
         />
       )}
 
-      {/* Edit Modal */}
       {showEditModal && selectedProduct && (
         <ProductModal
           product={selectedProduct}
@@ -238,17 +284,19 @@ export function Products({ dataStore, onNavigate }: ProductsProps) {
             setSelectedProduct(null);
           }}
           onSubmit={(updates) => handleUpdateProduct(selectedProduct.id, updates)}
+          loading={updating}
         />
       )}
     </div>
   );
 }
 
-function ProductCard({ product, canManage, onEdit, onDelete }: {
+function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
   product: Product;
   canManage: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  deleting: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -260,7 +308,6 @@ function ProductCard({ product, canManage, onEdit, onDelete }: {
       flexDirection: 'column'
     }}>
       <div onClick={() => setExpanded(!expanded)}>
-        {/* Product Image */}
         {product.image_url && (
           <div style={{
             width: '100%',
@@ -282,7 +329,6 @@ function ProductCard({ product, canManage, onEdit, onDelete }: {
           </div>
         )}
 
-        {/* Product Info */}
         <div>
           <h3 style={{
             margin: '0 0 8px 0',
@@ -345,7 +391,6 @@ function ProductCard({ product, canManage, onEdit, onDelete }: {
         </div>
       </div>
 
-      {/* Expanded Details */}
       {expanded && (
         <div style={{
           marginTop: '16px',
@@ -389,9 +434,12 @@ function ProductCard({ product, canManage, onEdit, onDelete }: {
                   e.stopPropagation();
                   onDelete();
                 }}
+                disabled={deleting}
                 style={{
                   ...ROYAL_STYLES.buttonDanger,
-                  flex: 0.5
+                  flex: 0.5,
+                  opacity: deleting ? 0.5 : 1,
+                  cursor: deleting ? 'not-allowed' : 'pointer'
                 }}
               >
                 🗑️
@@ -404,10 +452,11 @@ function ProductCard({ product, canManage, onEdit, onDelete }: {
   );
 }
 
-function ProductModal({ product, onClose, onSubmit }: {
+function ProductModal({ product, onClose, onSubmit, loading }: {
   product?: Product;
   onClose: () => void;
   onSubmit: (data: Partial<Product>) => void;
+  loading: boolean;
 }) {
   const [formData, setFormData] = useState({
     name: product?.name || '',
@@ -501,6 +550,7 @@ function ProductModal({ product, onClose, onSubmit }: {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 style={ROYAL_STYLES.input}
                 placeholder="שם המוצר"
+                disabled={loading}
               />
             </div>
 
@@ -523,6 +573,7 @@ function ProductModal({ product, onClose, onSubmit }: {
                   resize: 'vertical'
                 }}
                 placeholder="תיאור המוצר"
+                disabled={loading}
               />
             </div>
 
@@ -544,6 +595,7 @@ function ProductModal({ product, onClose, onSubmit }: {
                   onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                   style={ROYAL_STYLES.input}
                   placeholder="0.00"
+                  disabled={loading}
                 />
               </div>
 
@@ -563,6 +615,7 @@ function ProductModal({ product, onClose, onSubmit }: {
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   style={ROYAL_STYLES.input}
                   placeholder="קטגוריה"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -584,6 +637,7 @@ function ProductModal({ product, onClose, onSubmit }: {
                   onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                   style={ROYAL_STYLES.input}
                   placeholder="SKU"
+                  disabled={loading}
                 />
               </div>
 
@@ -603,6 +657,7 @@ function ProductModal({ product, onClose, onSubmit }: {
                   onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
                   style={ROYAL_STYLES.input}
                   placeholder="ברקוד"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -621,6 +676,7 @@ function ProductModal({ product, onClose, onSubmit }: {
                 value={formData.unit}
                 onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                 style={ROYAL_STYLES.input}
+                disabled={loading}
               >
                 <option value="יחידה">יחידה</option>
                 <option value="ק״ג">ק״ג</option>
@@ -646,6 +702,7 @@ function ProductModal({ product, onClose, onSubmit }: {
                 onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                 style={ROYAL_STYLES.input}
                 placeholder="https://..."
+                disabled={loading}
               />
             </div>
 
@@ -660,6 +717,7 @@ function ProductModal({ product, onClose, onSubmit }: {
                   height: '20px',
                   cursor: 'pointer'
                 }}
+                disabled={loading}
               />
               <label
                 htmlFor="active"
@@ -686,6 +744,7 @@ function ProductModal({ product, onClose, onSubmit }: {
                 ...ROYAL_STYLES.buttonSecondary,
                 flex: 1
               }}
+              disabled={loading}
             >
               ביטול
             </button>
@@ -693,10 +752,13 @@ function ProductModal({ product, onClose, onSubmit }: {
               type="submit"
               style={{
                 ...ROYAL_STYLES.buttonPrimary,
-                flex: 2
+                flex: 2,
+                opacity: loading ? 0.5 : 1,
+                cursor: loading ? 'not-allowed' : 'pointer'
               }}
+              disabled={loading}
             >
-              {product ? 'עדכן' : 'צור מוצר'}
+              {loading ? 'שומר...' : (product ? 'עדכן' : 'צור מוצר')}
             </button>
           </div>
         </form>

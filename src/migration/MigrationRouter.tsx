@@ -32,7 +32,7 @@ import { useAuth } from '../context/AuthContext';
 
 // Lazy-loaded pages from App.tsx
 const Dashboard = lazy(() => import('../pages/Dashboard').then((module) => ({ default: module.Dashboard })));
-const Orders = lazy(() => import('../pages/Orders').then((module) => ({ default: module.Orders })));
+const Orders = lazy(() => import('../pages/Orders.new').then((module) => ({ default: module.Orders })));
 const Tasks = lazy(() => import('../pages/Tasks').then((module) => ({ default: module.Tasks })));
 const UserManagement = lazy(() => import('../pages/UserManagement').then((module) => ({ default: module.UserManagement })));
 const Chat = lazy(() => import('../pages/Chat').then((module) => ({ default: module.Chat })));
@@ -57,7 +57,7 @@ const WarehouseDashboard = lazy(() => import('../pages/WarehouseDashboard').then
 const ManagerInventory = lazy(() => import('../pages/ManagerInventory').then((module) => ({ default: module.ManagerInventory })));
 const ZoneManagement = lazy(() => import('../pages/ZoneManagement').then((module) => ({ default: module.ZoneManagement })));
 const MyRole = lazy(() => import('../pages/MyRole').then((module) => ({ default: module.MyRole })));
-const DriversManagement = lazy(() => import('../pages/DriversManagement').then((module) => ({ default: module.DriversManagement })));
+const DriversManagement = lazy(() => import('../pages/DriversManagement.new').then((module) => ({ default: module.DriversManagement })));
 const UserHomepage = lazy(() => import('../pages/UserHomepage').then((module) => ({ default: module.UserHomepage })));
 const SocialFeed = lazy(() => import('../pages/SocialFeed').then((module) => ({ default: module.SocialFeed })));
 const UserProfilePage = lazy(() => import('../pages/UserProfile').then((module) => ({ default: module.UserProfilePage })));
