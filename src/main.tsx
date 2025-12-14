@@ -12,6 +12,7 @@ import { initSupabase } from './lib/supabaseClient';
 import { sessionManager } from './lib/sessionManager';
 import './lib/diagnostics';
 import './lib/errorHandler'; // Initialize global error handler
+import { initializeApplicationLayer } from './application/bootstrap';
 import './styles/containment.css';
 import './styles/canonical-tokens.css';
 import './theme/responsive.css';
@@ -23,6 +24,9 @@ runtimeEnvironment.detect();
 
 console.log('🚀 Starting app...');
 console.log('🌍 Environment:', runtimeEnvironment.env.type);
+
+// Initialize Application Layer (Domain Events, etc.)
+initializeApplicationLayer();
 
 // FORCE CLEAR ALL CACHES AND UNREGISTER SERVICE WORKERS
 (async () => {
