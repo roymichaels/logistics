@@ -17,3 +17,10 @@ export type { LoadingStateProps } from './LoadingState';
 
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
+
+export { StatsOverview } from './StatsOverview';
+export { RevenueChart } from './RevenueChart';
+export { OrdersChart } from './OrdersChart';
+export { AgentsWidget } from './AgentsWidget';
+export { ZoneCoverageWidget } from './ZoneCoverageWidget';
+export { QuickActionsPanel } from './QuickActionsPanel';
