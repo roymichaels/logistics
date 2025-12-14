@@ -9,6 +9,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { logger } from '../lib/logger';
+import { errorCollector } from '../foundation/diagnostics';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -48,6 +49,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       error,
       errorInfo,
     });
+
+    errorCollector.collectError(
+      error,
+      {
+        componentStack: errorInfo.componentStack,
+      },
+      'high',
+      ['react', 'boundary']
+    );
 
     // Call custom error handler
     this.props.onError?.(error, errorInfo);
