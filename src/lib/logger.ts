@@ -199,3 +199,17 @@ export const logger = new Logger();
 
 // Convenience exports
 export const { debug, info, warn, error, time, timeEnd, group, groupEnd } = logger;
+
+// Diagnostic logging utilities
+import { Diagnostics } from "../foundation/diagnostics/DiagnosticsStore";
+
+export const diag = {
+  log: (msg: string, payload?: any) =>
+    Diagnostics.log({ type: 'log', message: msg, payload, timestamp: Date.now() }),
+
+  warn: (msg: string, payload?: any) =>
+    Diagnostics.log({ type: 'warn', message: msg, payload, timestamp: Date.now() }),
+
+  error: (msg: string, payload?: any) =>
+    Diagnostics.log({ type: 'error', message: msg, payload, timestamp: Date.now() }),
+};

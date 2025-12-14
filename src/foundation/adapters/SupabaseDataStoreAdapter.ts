@@ -12,6 +12,19 @@ export class SupabaseDataStoreAdapter implements IDataStore {
     options: QueryOptions = {}
   ): AsyncResult<T[], Error> {
     try {
+      // Diagnostic logging
+      try {
+        const { Diagnostics } = require('../diagnostics/DiagnosticsStore');
+        Diagnostics.log({
+          type: 'query',
+          message: `Query → ${table}`,
+          payload: { operation: 'query', table, filters, options },
+          timestamp: Date.now()
+        });
+      } catch (e) {
+        // Silently ignore if diagnostics not available
+      }
+
       let query = this.client.from(table).select(options.select || '*');
 
       filters.forEach((filter) => {

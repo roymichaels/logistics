@@ -21,6 +21,8 @@ const tabs: TabConfig[] = [
   { id: 'wireframes', label: 'Wire', icon: '📐' },
   { id: 'pages', label: 'Pages', icon: '📄' },
   { id: 'mocks', label: 'Mocks', icon: '🎭' },
+  { id: 'diagnostics', label: 'Diag', icon: '🧪' },
+  { id: 'themes', label: 'Theme', icon: '🎨' },
 ];
 
 export function DevConsoleSidebar({ activeTab, onTabChange, onClose }: DevConsoleSidebarProps) {

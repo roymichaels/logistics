@@ -7,6 +7,8 @@ import { ShellsPanel } from './panels/ShellsPanel';
 import { WireframesPanel } from './panels/WireframesPanel';
 import { PagesPanel } from './panels/PagesPanel';
 import { MocksPanel } from './panels/MocksPanel';
+import { DiagnosticsPanel } from './panels/DiagnosticsPanel';
+import { ThemePanel } from './panels/ThemePanel';
 
 interface DevConsoleContentProps {
   activeTab: DevTab;
@@ -66,6 +68,8 @@ export function DevConsoleContent({ activeTab }: DevConsoleContentProps) {
         {activeTab === 'wireframes' && <WireframesPanel />}
         {activeTab === 'pages' && <PagesPanel />}
         {activeTab === 'mocks' && <MocksPanel />}
+        {activeTab === 'diagnostics' && <DiagnosticsPanel />}
+        {activeTab === 'themes' && <ThemePanel />}
       </div>
     </div>
   );
@@ -80,6 +84,8 @@ function getTitleForTab(tab: DevTab): string {
     wireframes: 'Wireframes',
     pages: 'Page Inspector',
     mocks: 'Mock Data',
+    diagnostics: 'Diagnostics',
+    themes: 'Theme Manager',
   };
   return titles[tab];
 }
@@ -93,6 +99,8 @@ function getDescriptionForTab(tab: DevTab): string {
     wireframes: 'View component wireframes',
     pages: 'Inspect page structure',
     mocks: 'Manage mock data',
+    diagnostics: 'View system diagnostics and events',
+    themes: 'Switch between available themes',
   };
   return descriptions[tab];
 }

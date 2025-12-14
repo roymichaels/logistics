@@ -15,6 +15,19 @@ class EventBus {
       source: event.source,
     });
 
+    // Diagnostic logging
+    try {
+      const { Diagnostics } = require('../diagnostics/DiagnosticsStore');
+      Diagnostics.log({
+        type: 'event',
+        message: `Event emitted: ${event.type}`,
+        payload: { eventType: event.eventType, source: event.source },
+        timestamp: Date.now()
+      });
+    } catch (e) {
+      // Silently ignore if diagnostics not available
+    }
+
     const typeSubscribers = this.subscribers.get(event.type) || new Set();
     const allSubscribers = [...typeSubscribers, ...this.globalSubscribers];
 
