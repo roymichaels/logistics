@@ -1,226 +1,150 @@
-import { useState, useCallback, useEffect } from 'react';
 import { useApp } from '../services/useApp';
+import { useQuery } from '../hooks/useQuery';
+import { useMutation } from '../hooks/useMutation';
+import { usePaginatedQuery } from '../hooks/usePaginatedQuery';
 import { DriverQueries, DriverCommands } from '../';
 import type { Driver } from '../queries/drivers.queries';
 import type { StartShiftInput, UpdateLocationInput } from '../commands/drivers.commands';
-import type { AsyncResult } from '@/foundation/types/Result';
-import type { ClassifiedError } from '@/foundation/error/ErrorTypes';
 
 export const useDrivers = (filters?: {
   status?: string;
   available_only?: boolean;
 }) => {
   const app = useApp();
-  const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
   const queries = new DriverQueries(app.db);
 
-  const fetchDrivers = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const filtersKey = JSON.stringify(filters || {});
+  const cacheKey = `drivers:list:${filtersKey}`;
 
-    const result = await queries.getDrivers(filters);
-
-    if (result.success) {
-      setDrivers(result.data);
-    } else {
-      setError(result.error);
-    }
-
-    setLoading(false);
-  }, [filters]);
-
-  useEffect(() => {
-    fetchDrivers();
-  }, [fetchDrivers]);
+  const result = useQuery<Driver[]>(
+    cacheKey,
+    () => queries.getDrivers(filters),
+    { ttl: 20000 }
+  );
 
   return {
-    drivers,
-    loading,
-    error,
-    refetch: fetchDrivers,
+    drivers: result.data || [],
+    loading: result.loading,
+    error: result.error,
+    stale: result.stale,
+    refetch: result.refetch,
   };
+};
+
+export const useDriversPaginated = (
+  filters?: {
+    status?: string;
+    available_only?: boolean;
+  },
+  pageSize = 20
+) => {
+  const app = useApp();
+  const queries = new DriverQueries(app.db);
+
+  const filtersKey = JSON.stringify(filters || {});
+  const baseKey = `drivers:page:${filtersKey}`;
+
+  const result = usePaginatedQuery<Driver>(
+    baseKey,
+    ({ page, pageSize: size, offset }) =>
+      queries.getDrivers({ ...filters, page, limit: size, offset }),
+    { pageSize, ttl: 20000, mode: 'offset' }
+  );
+
+  return result;
 };
 
 export const useDriver = (driverId: string) => {
   const app = useApp();
-  const [driver, setDriver] = useState<Driver | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
   const queries = new DriverQueries(app.db);
 
-  const fetchDriver = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const cacheKey = `drivers:detail:${driverId}`;
 
-    const result = await queries.getDriverById(driverId);
-
-    if (result.success) {
-      setDriver(result.data);
-    } else {
-      setError(result.error);
-    }
-
-    setLoading(false);
-  }, [driverId]);
-
-  useEffect(() => {
-    fetchDriver();
-  }, [fetchDriver]);
+  const result = useQuery<Driver>(
+    cacheKey,
+    () => queries.getDriverById(driverId),
+    { ttl: 10000, enabled: !!driverId }
+  );
 
   return {
-    driver,
-    loading,
-    error,
-    refetch: fetchDriver,
+    driver: result.data,
+    loading: result.loading,
+    error: result.error,
+    stale: result.stale,
+    refetch: result.refetch,
   };
 };
 
 export const useStartShift = () => {
   const app = useApp();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
   const commands = new DriverCommands(app.db);
 
-  const startShift = useCallback(async (input: StartShiftInput): AsyncResult<void, ClassifiedError> => {
-    setLoading(true);
-    setError(null);
-
-    const result = await commands.startShift(input);
-
-    if (!result.success) {
-      setError(result.error);
+  const mutation = useMutation<StartShiftInput, void>(
+    (input) => commands.startShift(input),
+    {
+      invalidatePatterns: [
+        'drivers:list',
+        'drivers:page:*',
+        'drivers:detail:*',
+        'drivers:available',
+      ],
+      emitEvent: 'driver.shift_started',
     }
-
-    setLoading(false);
-    return result;
-  }, []);
+  );
 
   return {
-    startShift,
-    loading,
-    error,
+    startShift: mutation.mutate,
+    startShiftAsync: mutation.mutateAsync,
+    loading: mutation.loading,
+    error: mutation.error,
+    reset: mutation.reset,
   };
 };
 
 export const useEndShift = () => {
   const app = useApp();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
   const commands = new DriverCommands(app.db);
 
-  const endShift = useCallback(async (driverId: string): AsyncResult<void, ClassifiedError> => {
-    setLoading(true);
-    setError(null);
-
-    const result = await commands.endShift(driverId);
-
-    if (!result.success) {
-      setError(result.error);
+  const mutation = useMutation<{ driverId: string }, void>(
+    ({ driverId }) => commands.endShift(driverId),
+    {
+      invalidatePatterns: [
+        'drivers:list',
+        'drivers:page:*',
+        'drivers:detail:*',
+        'drivers:available',
+      ],
+      emitEvent: 'driver.shift_ended',
     }
-
-    setLoading(false);
-    return result;
-  }, []);
+  );
 
   return {
-    endShift,
-    loading,
-    error,
+    endShift: (driverId: string) => mutation.mutate({ driverId }),
+    endShiftAsync: (driverId: string) => mutation.mutateAsync({ driverId }),
+    loading: mutation.loading,
+    error: mutation.error,
+    reset: mutation.reset,
   };
 };
 
 export const useUpdateDriverLocation = () => {
   const app = useApp();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
   const commands = new DriverCommands(app.db);
 
-  const updateLocation = useCallback(async (input: UpdateLocationInput): AsyncResult<void, ClassifiedError> => {
-    setLoading(true);
-    setError(null);
-
-    const result = await commands.updateLocation(input);
-
-    if (!result.success) {
-      setError(result.error);
+  const mutation = useMutation<UpdateLocationInput, void>(
+    (input) => commands.updateLocation(input),
+    {
+      invalidateKeys: [`drivers:detail:${(input: UpdateLocationInput) => input.driverId}`],
+      invalidatePatterns: ['drivers:location:*'],
+      emitEvent: 'driver.location_updated',
     }
-
-    setLoading(false);
-    return result;
-  }, []);
-
-  return {
-    updateLocation,
-    loading,
-    error,
-  };
-};
-
-export const useAcceptDelivery = () => {
-  const app = useApp();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
-  const commands = new DriverCommands(app.db);
-
-  const acceptDelivery = useCallback(
-    async (driverId: string, orderId: string): AsyncResult<void, ClassifiedError> => {
-      setLoading(true);
-      setError(null);
-
-      const result = await commands.acceptDelivery(driverId, orderId);
-
-      if (!result.success) {
-        setError(result.error);
-      }
-
-      setLoading(false);
-      return result;
-    },
-    []
   );
 
   return {
-    acceptDelivery,
-    loading,
-    error,
-  };
-};
-
-export const useCompleteDelivery = () => {
-  const app = useApp();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
-  const commands = new DriverCommands(app.db);
-
-  const completeDelivery = useCallback(
-    async (driverId: string, orderId: string): AsyncResult<void, ClassifiedError> => {
-      setLoading(true);
-      setError(null);
-
-      const result = await commands.completeDelivery(driverId, orderId);
-
-      if (!result.success) {
-        setError(result.error);
-      }
-
-      setLoading(false);
-      return result;
-    },
-    []
-  );
-
-  return {
-    completeDelivery,
-    loading,
-    error,
+    updateLocation: mutation.mutate,
+    updateLocationAsync: mutation.mutateAsync,
+    loading: mutation.loading,
+    error: mutation.error,
+    reset: mutation.reset,
   };
 };

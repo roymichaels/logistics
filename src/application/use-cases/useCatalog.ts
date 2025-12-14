@@ -1,10 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
 import { useApp } from '../services/useApp';
+import { useQuery } from '../hooks/useQuery';
+import { useMutation } from '../hooks/useMutation';
+import { usePaginatedQuery } from '../hooks/usePaginatedQuery';
 import { CatalogQueries, CatalogCommands } from '../';
 import type { Product } from '../queries/catalog.queries';
 import type { CreateProductInput, UpdateProductInput } from '../commands/catalog.commands';
-import type { AsyncResult } from '@/foundation/types/Result';
-import type { ClassifiedError } from '@/foundation/error/ErrorTypes';
 
 export const useCatalog = (filters?: {
   business_id?: string;
@@ -13,192 +13,163 @@ export const useCatalog = (filters?: {
   search?: string;
 }) => {
   const app = useApp();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
   const queries = new CatalogQueries(app.db);
 
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const filtersKey = JSON.stringify(filters || {});
+  const cacheKey = `products:list:${filters?.business_id || 'all'}:${filtersKey}`;
 
-    const result = await queries.getProducts(filters);
-
-    if (result.success) {
-      setProducts(result.data);
-    } else {
-      setError(result.error);
-    }
-
-    setLoading(false);
-  }, [filters]);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+  const result = useQuery<Product[]>(
+    cacheKey,
+    () => queries.getProducts(filters),
+    { ttl: 30000 }
+  );
 
   return {
-    products,
-    loading,
-    error,
-    refetch: fetchProducts,
+    products: result.data || [],
+    loading: result.loading,
+    error: result.error,
+    stale: result.stale,
+    refetch: result.refetch,
   };
+};
+
+export const useCatalogPaginated = (
+  filters?: {
+    business_id?: string;
+    category?: string;
+    available_only?: boolean;
+    search?: string;
+  },
+  pageSize = 20
+) => {
+  const app = useApp();
+  const queries = new CatalogQueries(app.db);
+
+  const filtersKey = JSON.stringify(filters || {});
+  const baseKey = `products:page:${filters?.business_id || 'all'}:${filtersKey}`;
+
+  const result = usePaginatedQuery<Product>(
+    baseKey,
+    ({ page, pageSize: size, offset }) =>
+      queries.getProducts({ ...filters, page, limit: size, offset }),
+    { pageSize, ttl: 30000, mode: 'infinite' }
+  );
+
+  return result;
 };
 
 export const useProduct = (productId: string) => {
   const app = useApp();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
   const queries = new CatalogQueries(app.db);
 
-  const fetchProduct = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const cacheKey = `products:detail:${productId}`;
 
-    const result = await queries.getProductById(productId);
-
-    if (result.success) {
-      setProduct(result.data);
-    } else {
-      setError(result.error);
-    }
-
-    setLoading(false);
-  }, [productId]);
-
-  useEffect(() => {
-    fetchProduct();
-  }, [fetchProduct]);
+  const result = useQuery<Product>(
+    cacheKey,
+    () => queries.getProductById(productId),
+    { ttl: 30000, enabled: !!productId }
+  );
 
   return {
-    product,
-    loading,
-    error,
-    refetch: fetchProduct,
-  };
-};
-
-export const useCategories = (businessId?: string) => {
-  const app = useApp();
-  const [categories, setCategories] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
-  const queries = new CatalogQueries(app.db);
-
-  const fetchCategories = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    const result = await queries.getCategories(businessId);
-
-    if (result.success) {
-      setCategories(result.data);
-    } else {
-      setError(result.error);
-    }
-
-    setLoading(false);
-  }, [businessId]);
-
-  useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
-
-  return {
-    categories,
-    loading,
-    error,
-    refetch: fetchCategories,
+    product: result.data,
+    loading: result.loading,
+    error: result.error,
+    stale: result.stale,
+    refetch: result.refetch,
   };
 };
 
 export const useCreateProduct = () => {
   const app = useApp();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
   const commands = new CatalogCommands(app.db);
 
-  const createProduct = useCallback(async (input: CreateProductInput): AsyncResult<{ id: string }, ClassifiedError> => {
-    setLoading(true);
-    setError(null);
-
-    const result = await commands.createProduct(input);
-
-    if (!result.success) {
-      setError(result.error);
+  const mutation = useMutation<CreateProductInput, { id: string }>(
+    (input) => commands.createProduct(input),
+    {
+      invalidatePatterns: ['products:list:*', 'products:page:*', 'catalog:*'],
+      emitEvent: 'product.created',
     }
-
-    setLoading(false);
-    return result;
-  }, []);
+  );
 
   return {
-    createProduct,
-    loading,
-    error,
+    createProduct: mutation.mutate,
+    createProductAsync: mutation.mutateAsync,
+    loading: mutation.loading,
+    error: mutation.error,
+    data: mutation.data,
+    reset: mutation.reset,
   };
 };
 
 export const useUpdateProduct = () => {
   const app = useApp();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
   const commands = new CatalogCommands(app.db);
 
-  const updateProduct = useCallback(
-    async (productId: string, updates: UpdateProductInput): AsyncResult<void, ClassifiedError> => {
-      setLoading(true);
-      setError(null);
-
-      const result = await commands.updateProduct(productId, updates);
-
-      if (!result.success) {
-        setError(result.error);
-      }
-
-      setLoading(false);
-      return result;
-    },
-    []
+  const mutation = useMutation<UpdateProductInput, void>(
+    (input) => commands.updateProduct(input),
+    {
+      invalidatePatterns: [
+        'products:list:*',
+        'products:page:*',
+        'products:detail:*',
+        'catalog:*',
+      ],
+      emitEvent: 'product.updated',
+    }
   );
 
   return {
-    updateProduct,
-    loading,
-    error,
+    updateProduct: mutation.mutate,
+    updateProductAsync: mutation.mutateAsync,
+    loading: mutation.loading,
+    error: mutation.error,
+    reset: mutation.reset,
   };
 };
 
 export const useDeleteProduct = () => {
   const app = useApp();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
   const commands = new CatalogCommands(app.db);
 
-  const deleteProduct = useCallback(async (productId: string): AsyncResult<void, ClassifiedError> => {
-    setLoading(true);
-    setError(null);
-
-    const result = await commands.deleteProduct(productId);
-
-    if (!result.success) {
-      setError(result.error);
+  const mutation = useMutation<{ productId: string }, void>(
+    ({ productId }) => commands.deleteProduct(productId),
+    {
+      invalidatePatterns: [
+        'products:list:*',
+        'products:page:*',
+        'products:detail:*',
+        'catalog:*',
+      ],
+      emitEvent: 'product.deleted',
     }
-
-    setLoading(false);
-    return result;
-  }, []);
+  );
 
   return {
-    deleteProduct,
-    loading,
-    error,
+    deleteProduct: (productId: string) => mutation.mutate({ productId }),
+    deleteProductAsync: (productId: string) => mutation.mutateAsync({ productId }),
+    loading: mutation.loading,
+    error: mutation.error,
+    reset: mutation.reset,
+  };
+};
+
+export const useCategories = (businessId?: string) => {
+  const app = useApp();
+  const queries = new CatalogQueries(app.db);
+
+  const cacheKey = `categories:list:${businessId || 'all'}`;
+
+  const result = useQuery<string[]>(
+    cacheKey,
+    () => queries.getCategories(businessId),
+    { ttl: 60000 }
+  );
+
+  return {
+    categories: result.data || [],
+    loading: result.loading,
+    error: result.error,
+    stale: result.stale,
+    refetch: result.refetch,
   };
 };

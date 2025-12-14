@@ -1,11 +1,12 @@
-import { useState, useCallback, useEffect } from 'react';
 import { useApp } from '../services/useApp';
+import { useQuery } from '../hooks/useQuery';
+import { useMutation } from '../hooks/useMutation';
+import { usePaginatedQuery } from '../hooks/usePaginatedQuery';
 import { OrderQueries, OrderCommands } from '../';
 import type { Order } from '../queries/orders.queries';
 import type { CreateOrderInput, AssignOrderInput } from '../commands/orders.commands';
 import type { AsyncResult } from '@/foundation/types/Result';
 import type { ClassifiedError } from '@/foundation/error/ErrorTypes';
-import { Err, Ok } from '@/foundation/types/Result';
 
 export const useOrders = (filters?: {
   business_id?: string;
@@ -13,202 +14,174 @@ export const useOrders = (filters?: {
   driver_id?: string;
 }) => {
   const app = useApp();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
   const queries = new OrderQueries(app.db);
 
-  const fetchOrders = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const filtersKey = JSON.stringify(filters || {});
+  const cacheKey = `orders:list:${filters?.business_id || 'all'}:${filtersKey}`;
 
-    const result = await queries.getOrders(filters);
-
-    if (result.success) {
-      setOrders(result.data);
-    } else {
-      setError(result.error);
-    }
-
-    setLoading(false);
-  }, [filters]);
-
-  useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
+  const result = useQuery<Order[]>(
+    cacheKey,
+    () => queries.getOrders(filters),
+    { ttl: 15000 }
+  );
 
   return {
-    orders,
-    loading,
-    error,
-    refetch: fetchOrders,
+    orders: result.data || [],
+    loading: result.loading,
+    error: result.error,
+    stale: result.stale,
+    refetch: result.refetch,
   };
+};
+
+export const useOrdersPaginated = (
+  filters?: {
+    business_id?: string;
+    status?: string;
+    driver_id?: string;
+  },
+  pageSize = 20
+) => {
+  const app = useApp();
+  const queries = new OrderQueries(app.db);
+
+  const filtersKey = JSON.stringify(filters || {});
+  const baseKey = `orders:page:${filters?.business_id || 'all'}:${filtersKey}`;
+
+  const result = usePaginatedQuery<Order>(
+    baseKey,
+    ({ page, pageSize: size, offset }) =>
+      queries.getOrders({ ...filters, page, limit: size, offset }),
+    { pageSize, ttl: 15000, mode: 'infinite' }
+  );
+
+  return result;
 };
 
 export const useOrder = (orderId: string) => {
   const app = useApp();
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
   const queries = new OrderQueries(app.db);
 
-  const fetchOrder = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const cacheKey = `orders:detail:${orderId}`;
 
-    const result = await queries.getOrderById(orderId);
-
-    if (result.success) {
-      setOrder(result.data);
-    } else {
-      setError(result.error);
-    }
-
-    setLoading(false);
-  }, [orderId]);
-
-  useEffect(() => {
-    fetchOrder();
-  }, [fetchOrder]);
+  const result = useQuery<Order>(
+    cacheKey,
+    () => queries.getOrderById(orderId),
+    { ttl: 10000, enabled: !!orderId }
+  );
 
   return {
-    order,
-    loading,
-    error,
-    refetch: fetchOrder,
+    order: result.data,
+    loading: result.loading,
+    error: result.error,
+    stale: result.stale,
+    refetch: result.refetch,
   };
 };
 
 export const useCreateOrder = () => {
   const app = useApp();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
   const commands = new OrderCommands(app.db);
 
-  const createOrder = useCallback(async (input: CreateOrderInput): AsyncResult<{ id: string }, ClassifiedError> => {
-    setLoading(true);
-    setError(null);
-
-    const result = await commands.createOrder(input);
-
-    if (!result.success) {
-      setError(result.error);
+  const mutation = useMutation<CreateOrderInput, { id: string }>(
+    (input) => commands.createOrder(input),
+    {
+      invalidatePatterns: ['orders:list:*', 'orders:page:*'],
+      emitEvent: 'order.created',
     }
-
-    setLoading(false);
-    return result;
-  }, []);
+  );
 
   return {
-    createOrder,
-    loading,
-    error,
+    createOrder: mutation.mutate,
+    createOrderAsync: mutation.mutateAsync,
+    loading: mutation.loading,
+    error: mutation.error,
+    data: mutation.data,
+    reset: mutation.reset,
   };
 };
 
 export const useAssignOrder = () => {
   const app = useApp();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
   const commands = new OrderCommands(app.db);
 
-  const assignOrder = useCallback(async (input: AssignOrderInput): AsyncResult<void, ClassifiedError> => {
-    setLoading(true);
-    setError(null);
-
-    const result = await commands.assignOrder(input);
-
-    if (!result.success) {
-      setError(result.error);
+  const mutation = useMutation<AssignOrderInput, void>(
+    (input) => commands.assignOrder(input),
+    {
+      invalidatePatterns: [
+        'orders:list:*',
+        'orders:page:*',
+        'orders:detail:*',
+        'drivers:orders:*',
+      ],
+      emitEvent: 'order.assigned',
     }
-
-    setLoading(false);
-    return result;
-  }, []);
+  );
 
   return {
-    assignOrder,
-    loading,
-    error,
+    assignOrder: mutation.mutate,
+    assignOrderAsync: mutation.mutateAsync,
+    loading: mutation.loading,
+    error: mutation.error,
+    reset: mutation.reset,
   };
 };
 
 export const useUpdateOrderStatus = () => {
   const app = useApp();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
   const commands = new OrderCommands(app.db);
 
-  const updateStatus = useCallback(
-    async (
-      orderId: string,
-      status: 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'cancelled'
-    ): AsyncResult<void, ClassifiedError> => {
-      setLoading(true);
-      setError(null);
-
-      const result = await commands.updateOrderStatus(orderId, status);
-
-      if (!result.success) {
-        setError(result.error);
-      }
-
-      setLoading(false);
-      return result;
-    },
-    []
+  const mutation = useMutation<
+    { orderId: string; status: 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'cancelled' },
+    void
+  >(
+    ({ orderId, status }) => commands.updateOrderStatus(orderId, status),
+    {
+      invalidatePatterns: [
+        'orders:list:*',
+        'orders:page:*',
+        'orders:detail:*',
+        'dashboard:*',
+      ],
+      emitEvent: 'order.status_updated',
+    }
   );
 
   return {
-    updateStatus,
-    loading,
-    error,
+    updateStatus: (orderId: string, status: 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'cancelled') =>
+      mutation.mutate({ orderId, status }),
+    updateStatusAsync: (orderId: string, status: 'pending' | 'assigned' | 'in_transit' | 'delivered' | 'cancelled') =>
+      mutation.mutateAsync({ orderId, status }),
+    loading: mutation.loading,
+    error: mutation.error,
+    reset: mutation.reset,
   };
 };
 
 export const useOrderStats = (businessId?: string) => {
   const app = useApp();
-  const [stats, setStats] = useState<{
+  const queries = new OrderQueries(app.db);
+
+  const cacheKey = `orders:stats:${businessId || 'all'}`;
+
+  const result = useQuery<{
     total: number;
     pending: number;
     assigned: number;
     in_transit: number;
     delivered: number;
     cancelled: number;
-  } | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ClassifiedError | null>(null);
-
-  const queries = new OrderQueries(app.db);
-
-  const fetchStats = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    const result = await queries.getOrderStats(businessId);
-
-    if (result.success) {
-      setStats(result.data);
-    } else {
-      setError(result.error);
-    }
-
-    setLoading(false);
-  }, [businessId]);
-
-  useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+  }>(
+    cacheKey,
+    () => queries.getOrderStats(businessId),
+    { ttl: 30000 }
+  );
 
   return {
-    stats,
-    loading,
-    error,
-    refetch: fetchStats,
+    stats: result.data,
+    loading: result.loading,
+    error: result.error,
+    stale: result.stale,
+    refetch: result.refetch,
   };
 };

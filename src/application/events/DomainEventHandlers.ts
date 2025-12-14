@@ -1,6 +1,7 @@
 import { DomainEvents } from '@/domain/events/DomainEvents';
 import { DiagnosticsStore } from '@/foundation/diagnostics/DiagnosticsStore';
 import { logger } from '@/lib/logger';
+import { cacheHydration } from '../cache/hydrationRules';
 
 export class DomainEventHandlers {
   private static initialized = false;
@@ -12,6 +13,8 @@ export class DomainEventHandlers {
     }
 
     logger.info('[DomainEventHandlers] Initializing event handlers');
+
+    cacheHydration.initialize();
 
     DomainEvents.on('order.created', (event) => {
       logger.info('[DomainEvents] Order created', event.payload);
@@ -323,6 +326,7 @@ export class DomainEventHandlers {
   }
 
   static reset() {
+    cacheHydration.reset();
     this.initialized = false;
     logger.info('[DomainEventHandlers] Event handlers reset');
   }
