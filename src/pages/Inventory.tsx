@@ -1,145 +1,147 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useTelegramUI } from '../hooks/useTelegramUI';
-import { DataStore, Product, InventoryRecord, InventoryAlert, InventoryLocation } from '../data/types';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { useInventory, useLowStockItems, useAdjustStock } from '../application/use-cases';
+import { useCatalog } from '../application/use-cases';
+import { useApp } from '../application/services/useApp';
+import { useTheme } from '../foundation/theme';
+import { logger } from '../lib/logger';
 import { Toast } from '../components/Toast';
 import { formatCurrency } from '../lib/i18n';
-import { logger } from '../lib/logger';
+import { Spinner } from '../components/ui/Spinner';
+import { Button } from '../components/atoms/Button';
+import type { Product } from '../application/queries/catalog.queries';
+import type { InventoryItem } from '../application/queries/inventory.queries';
 
 interface InventoryProps {
-  dataStore: DataStore;
   onNavigate: (page: string) => void;
 }
 
 interface AggregatedInventory {
-  product: Product;
+  product_id: string;
+  product_name: string;
   totalOnHand: number;
   totalReserved: number;
-  totalDamaged: number;
-  locations: {
-    location: InventoryLocation;
-    record: InventoryRecord;
-  }[];
   status: 'in_stock' | 'low' | 'out';
+  items: InventoryItem[];
 }
 
-export function Inventory({ dataStore, onNavigate }: InventoryProps) {
+export function Inventory({ onNavigate }: InventoryProps) {
   const { theme, backButton, haptic } = useTelegramUI();
-  const [inventory, setInventory] = useState<AggregatedInventory[]>([]);
-  const [alerts, setAlerts] = useState<InventoryAlert[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { theme: themeConfig } = useTheme();
+  const app = useApp();
+
+  const [filter, setFilter] = useState<'all' | 'low' | 'out'>('all');
   const [selectedProduct, setSelectedProduct] = useState<AggregatedInventory | null>(null);
   const [showAdjustForm, setShowAdjustForm] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'low' | 'out'>('all');
+  const [adjustmentData, setAdjustmentData] = useState({ quantity: 0, reason: '' });
+
+  const { products, loading: productsLoading } = useCatalog();
+  const { inventory, loading: inventoryLoading, error, refetch } = useInventory({});
+  const { items: lowStockItems } = useLowStockItems(app.auth.user?.active_business_id || '');
+  const { adjustStock, loading: adjusting } = useAdjustStock();
+
+  const loading = productsLoading || inventoryLoading;
 
   useEffect(() => {
     backButton.hide();
   }, [backButton]);
 
   useEffect(() => {
-    loadInventory();
+    logger.info('[Inventory] Component mounted, subscribing to events');
 
-    let unsubscribe: (() => void) | undefined;
-    if (dataStore.subscribeToChanges) {
-      unsubscribe = dataStore.subscribeToChanges('inventory', () => {
-        loadInventory();
-      });
-    }
+    const unsubInventory = app.events?.on('StockLow', () => {
+      logger.info('[Inventory] StockLow event received, refetching');
+      refetch();
+    });
+
+    const unsubProductUpdated = app.events?.on('ProductUpdated', () => {
+      logger.info('[Inventory] ProductUpdated event received, refetching');
+      refetch();
+    });
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      unsubInventory?.();
+      unsubProductUpdated?.();
     };
-  }, [filter]);
+  }, [app.events, refetch]);
 
-  const loadInventory = async () => {
-    try {
-      setLoading(true);
+  const aggregatedInventory = useMemo(() => {
+    if (!products || !inventory) return [];
 
-      const [products, inventoryRecords, locations, lowStockAlerts] = await Promise.all([
-        dataStore.listProducts?.() || [],
-        dataStore.listInventory?.() || [],
-        dataStore.listInventoryLocations?.() || [],
-        dataStore.getLowStockAlerts?.() || []
-      ]);
+    const productMap = new Map(products.map(p => [p.id, p]));
+    const inventoryByProduct = new Map<string, InventoryItem[]>();
 
-      const locationsMap = new Map(locations.map(loc => [loc.id, loc]));
-      const inventoryMap = new Map<string, InventoryRecord[]>();
+    inventory.forEach(item => {
+      const existing = inventoryByProduct.get(item.product_id) || [];
+      existing.push(item);
+      inventoryByProduct.set(item.product_id, existing);
+    });
 
-      inventoryRecords.forEach(record => {
-        const existing = inventoryMap.get(record.product_id) || [];
-        existing.push(record);
-        inventoryMap.set(record.product_id, existing);
-      });
+    const aggregated: AggregatedInventory[] = [];
 
-      const aggregated: AggregatedInventory[] = products.map(product => {
-        const productInventory = inventoryMap.get(product.id) || [];
-        const totalOnHand = productInventory.reduce((sum, r) => sum + (r.on_hand_quantity || 0), 0);
-        const totalReserved = productInventory.reduce((sum, r) => sum + (r.reserved_quantity || 0), 0);
-        const totalDamaged = productInventory.reduce((sum, r) => sum + (r.damaged_quantity || 0), 0);
+    inventoryByProduct.forEach((items, productId) => {
+      const product = productMap.get(productId);
+      if (!product) return;
 
-        const hasLowStock = productInventory.some(r =>
-          r.on_hand_quantity <= (r.low_stock_threshold || 0)
-        );
+      const totalOnHand = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+      const totalReserved = items.reduce((sum, item) => sum + (item.reserved_quantity || 0), 0);
 
-        const status = totalOnHand === 0 ? 'out' : hasLowStock ? 'low' : 'in_stock';
+      const hasLowStock = items.some(item =>
+        item.quantity <= (item.reorder_level || 0)
+      );
 
-        return {
-          product,
-          totalOnHand,
-          totalReserved,
-          totalDamaged,
-          locations: productInventory.map(record => ({
-            location: locationsMap.get(record.location_id)!,
-            record
-          })).filter(l => l.location),
-          status
-        };
-      });
+      const status = totalOnHand === 0 ? 'out' : hasLowStock ? 'low' : 'in_stock';
 
-      const filtered = aggregated.filter(item => {
-        if (filter === 'all') return true;
-        return item.status === filter;
-      });
-
-      setInventory(filtered);
-      setAlerts(lowStockAlerts);
-    } catch (error) {
-      logger.error('Failed to load inventory:', error);
-      Toast.error('שגיאה בטעינת מלאי');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAdjustInventory = async (productId: string, locationId: string, quantity: number, type: 'add' | 'remove' | 'damaged') => {
-    try {
-      if (!dataStore.adjustDriverInventory) {
-        Toast.error('פעולה זו אינה נתמכת');
-        return;
-      }
-
-      await dataStore.adjustDriverInventory({
+      aggregated.push({
         product_id: productId,
-        quantity: type === 'add' ? quantity : type === 'remove' ? -quantity : 0,
-        reason: type === 'damaged' ? 'Damaged goods' : type === 'add' ? 'Stock added' : 'Stock removed'
+        product_name: product.name,
+        totalOnHand,
+        totalReserved,
+        status,
+        items,
       });
+    });
 
+    return aggregated.filter(item => {
+      if (filter === 'all') return true;
+      return item.status === filter;
+    });
+  }, [products, inventory, filter]);
+
+  const handleAdjustInventory = async () => {
+    if (!selectedProduct) return;
+
+    logger.info('[Inventory] Adjusting inventory', {
+      productId: selectedProduct.product_id,
+      adjustment: adjustmentData,
+    });
+
+    const result = await adjustStock({
+      inventory_id: selectedProduct.items[0]?.id || '',
+      quantity_change: adjustmentData.quantity,
+      reason: adjustmentData.reason,
+    });
+
+    if (result.success) {
       Toast.success('המלאי עודכן בהצלחה');
+      logger.info('[Inventory] Inventory adjusted successfully');
       haptic();
-      loadInventory();
       setShowAdjustForm(false);
-    } catch (error) {
-      logger.error('Failed to adjust inventory:', error);
-      Toast.error('שגיאה בעדכון מלאי');
+      setSelectedProduct(null);
+      setAdjustmentData({ quantity: 0, reason: '' });
+      refetch();
+    } else {
+      Toast.error(result.error.message || 'שגיאה בעדכון מלאי');
+      logger.error('[Inventory] Failed to adjust inventory', result.error);
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'in_stock': return ROYAL_COLORS.emerald;
-      case 'low': return ROYAL_COLORS.gold;
-      case 'out': return ROYAL_COLORS.crimson;
-      default: return ROYAL_COLORS.muted;
+      case 'in_stock': return '#10b981';
+      case 'low': return '#f59e0b';
+      case 'out': return '#ef4444';
+      default: return '#6b7280';
     }
   };
 
@@ -152,159 +154,133 @@ export function Inventory({ dataStore, onNavigate }: InventoryProps) {
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'in_stock': return 'במלאי';
-      case 'low': return 'מלאי נמוך';
-      case 'out': return 'אזל מהמלאי';
-      default: return '';
-    }
-  };
-
-  if (loading) {
+  if (loading && aggregatedInventory.length === 0) {
     return (
       <div style={{
-        minHeight: '100vh',
-        background: ROYAL_COLORS.background,
         display: 'flex',
-        alignItems: 'center',
         justifyContent: 'center',
-        direction: 'rtl'
+        alignItems: 'center',
+        height: '100vh',
+        background: theme.bg_color,
       }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
-          <div style={{ color: ROYAL_COLORS.text, fontSize: '18px' }}>טוען מלאי...</div>
+          <Spinner />
+          <p style={{ marginTop: '16px', color: theme.text_color }}>טוען מלאי...</p>
         </div>
       </div>
     );
   }
 
-  if (selectedProduct) {
+  if (error) {
     return (
       <div style={{
-        minHeight: '100vh',
-        background: ROYAL_COLORS.background,
-        paddingTop: '16px',
-        paddingBottom: '80px',
-        direction: 'rtl'
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        background: theme.bg_color,
       }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '0 16px' }}>
-          <button
-            onClick={() => {
-              setSelectedProduct(null);
-              backButton.hide();
-            }}
+        <div style={{ textAlign: 'center', padding: '20px' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
+          <p style={{ color: theme.text_color, marginBottom: '20px' }}>
+            {error.message || 'שגיאה בטעינת מלאי'}
+          </p>
+          <Button onClick={refetch}>נסה שוב</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (showAdjustForm && selectedProduct) {
+    return (
+      <div style={{
+        padding: '20px',
+        background: theme.bg_color,
+        minHeight: '100vh',
+      }}>
+        <h2 style={{
+          color: theme.text_color,
+          marginBottom: '20px',
+          fontSize: '20px',
+          fontWeight: '600',
+        }}>
+          עדכן מלאי - {selectedProduct.product_name}
+        </h2>
+
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{
+            display: 'block',
+            marginBottom: '8px',
+            color: theme.text_color,
+            fontSize: '14px',
+          }}>
+            כמות (שינוי)
+          </label>
+          <input
+            type="number"
+            value={adjustmentData.quantity}
+            onChange={(e) => setAdjustmentData(prev => ({
+              ...prev,
+              quantity: parseInt(e.target.value) || 0
+            }))}
             style={{
-              background: 'transparent',
-              border: 'none',
-              color: ROYAL_COLORS.accent,
+              width: '100%',
+              padding: '12px',
+              borderRadius: '8px',
+              border: `1px solid ${theme.hint_color}`,
+              background: theme.secondary_bg_color,
+              color: theme.text_color,
               fontSize: '16px',
-              cursor: 'pointer',
-              marginBottom: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
             }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{
+            display: 'block',
+            marginBottom: '8px',
+            color: theme.text_color,
+            fontSize: '14px',
+          }}>
+            סיבה
+          </label>
+          <input
+            type="text"
+            value={adjustmentData.reason}
+            onChange={(e) => setAdjustmentData(prev => ({
+              ...prev,
+              reason: e.target.value
+            }))}
+            placeholder="למה המלאי משתנה?"
+            style={{
+              width: '100%',
+              padding: '12px',
+              borderRadius: '8px',
+              border: `1px solid ${theme.hint_color}`,
+              background: theme.secondary_bg_color,
+              color: theme.text_color,
+              fontSize: '16px',
+            }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <Button
+            onClick={handleAdjustInventory}
+            disabled={adjusting || !adjustmentData.reason}
+            style={{ flex: 1 }}
           >
-            ← חזרה
-          </button>
-
-          <h1 style={{
-            margin: '0 0 20px 0',
-            fontSize: '28px',
-            fontWeight: '700',
-            color: ROYAL_COLORS.text,
-            textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
-          }}>
-            {selectedProduct.product.name}
-          </h1>
-
-          <div style={{
-            ...ROYAL_STYLES.card,
-            marginBottom: '20px'
-          }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
-              <div>
-                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '4px' }}>מק"ט</div>
-                <div style={{ color: ROYAL_COLORS.text, fontSize: '18px', fontWeight: '600' }}>
-                  {selectedProduct.product.sku}
-                </div>
-              </div>
-              <div>
-                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '4px' }}>מחיר</div>
-                <div style={{ color: ROYAL_COLORS.gold, fontSize: '18px', fontWeight: '600' }}>
-                  {formatCurrency(selectedProduct.product.price)}
-                </div>
-              </div>
-              <div>
-                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '4px' }}>במלאי</div>
-                <div style={{ color: ROYAL_COLORS.emerald, fontSize: '18px', fontWeight: '600' }}>
-                  {selectedProduct.totalOnHand}
-                </div>
-              </div>
-              <div>
-                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '4px' }}>שמור</div>
-                <div style={{ color: ROYAL_COLORS.gold, fontSize: '18px', fontWeight: '600' }}>
-                  {selectedProduct.totalReserved}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <h2 style={{
-            margin: '24px 0 16px 0',
-            fontSize: '20px',
-            fontWeight: '600',
-            color: ROYAL_COLORS.text
-          }}>
-            מיקומים
-          </h2>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {selectedProduct.locations.map(({ location, record }) => (
-              <div key={location.id} style={{
-                ...ROYAL_STYLES.card,
-                padding: '16px'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '12px'
-                }}>
-                  <div>
-                    <div style={{ color: ROYAL_COLORS.text, fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
-                      {location.name}
-                    </div>
-                    <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px' }}>
-                      {location.type}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  <div>
-                    <div style={{ color: ROYAL_COLORS.muted, fontSize: '12px' }}>זמין</div>
-                    <div style={{ color: ROYAL_COLORS.emerald, fontSize: '20px', fontWeight: '600' }}>
-                      {record.on_hand_quantity}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ color: ROYAL_COLORS.muted, fontSize: '12px' }}>שמור</div>
-                    <div style={{ color: ROYAL_COLORS.gold, fontSize: '20px', fontWeight: '600' }}>
-                      {record.reserved_quantity || 0}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ color: ROYAL_COLORS.muted, fontSize: '12px' }}>פגום</div>
-                    <div style={{ color: ROYAL_COLORS.crimson, fontSize: '20px', fontWeight: '600' }}>
-                      {record.damaged_quantity || 0}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+            {adjusting ? 'מעדכן...' : 'עדכן'}
+          </Button>
+          <Button
+            onClick={() => {
+              setShowAdjustForm(false);
+              setAdjustmentData({ quantity: 0, reason: '' });
+            }}
+            style={{ flex: 1, background: theme.hint_color }}
+          >
+            ביטול
+          </Button>
         </div>
       </div>
     );
@@ -312,201 +288,178 @@ export function Inventory({ dataStore, onNavigate }: InventoryProps) {
 
   return (
     <div style={{
+      padding: '20px',
+      background: theme.bg_color,
       minHeight: '100vh',
-      background: ROYAL_COLORS.background,
-      paddingTop: '16px',
-      paddingBottom: '80px',
-      direction: 'rtl'
     }}>
-      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '0 16px' }}>
+      <div style={{ marginBottom: '24px' }}>
         <h1 style={{
-          margin: '0 0 20px 0',
           fontSize: '28px',
           fontWeight: '700',
-          color: ROYAL_COLORS.text,
-          textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
+          color: theme.text_color,
+          marginBottom: '8px',
         }}>
           📦 מלאי
         </h1>
+        <p style={{
+          color: theme.hint_color,
+          fontSize: '14px',
+        }}>
+          ניהול מלאי מוצרים
+        </p>
+      </div>
 
-        {alerts.length > 0 && (
-          <div style={{
-            ...ROYAL_STYLES.card,
-            marginBottom: '20px',
-            background: `${ROYAL_COLORS.crimson}15`,
-            borderColor: `${ROYAL_COLORS.crimson}40`
-          }}>
+      {lowStockItems && lowStockItems.length > 0 && (
+        <div style={{
+          background: '#fef3c7',
+          border: '1px solid #f59e0b',
+          borderRadius: '12px',
+          padding: '16px',
+          marginBottom: '20px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '20px' }}>⚠️</span>
+            <span style={{ color: '#78350f', fontWeight: '600' }}>
+              {lowStockItems.length} פריטים במלאי נמוך
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        marginBottom: '20px',
+        overflowX: 'auto',
+      }}>
+        {['all', 'low', 'out'].map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f as any)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '20px',
+              border: 'none',
+              background: filter === f ? theme.button_color : theme.secondary_bg_color,
+              color: filter === f ? theme.button_text_color : theme.text_color,
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {f === 'all' ? 'הכל' : f === 'low' ? 'מלאי נמוך' : 'אזל מהמלאי'}
+          </button>
+        ))}
+      </div>
+
+      <div style={{
+        display: 'grid',
+        gap: '12px',
+      }}>
+        {aggregatedInventory.map((item) => (
+          <div
+            key={item.product_id}
+            onClick={() => {
+              setSelectedProduct(item);
+              setShowAdjustForm(true);
+            }}
+            style={{
+              background: theme.secondary_bg_color,
+              borderRadius: '12px',
+              padding: '16px',
+              cursor: 'pointer',
+              border: `1px solid ${theme.hint_color}20`,
+            }}
+          >
             <div style={{
               display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              marginBottom: '12px'
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginBottom: '12px',
             }}>
-              <div style={{ fontSize: '24px' }}>⚠️</div>
+              <div style={{ flex: 1 }}>
+                <h3 style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: theme.text_color,
+                  marginBottom: '4px',
+                }}>
+                  {item.product_name}
+                </h3>
+              </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 12px',
+                borderRadius: '16px',
+                background: `${getStatusColor(item.status)}20`,
+              }}>
+                <span>{getStatusIcon(item.status)}</span>
+                <span style={{
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: getStatusColor(item.status),
+                }}>
+                  {item.status === 'in_stock' ? 'זמין' : item.status === 'low' ? 'נמוך' : 'אזל'}
+                </span>
+              </div>
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '12px',
+            }}>
               <div>
-                <div style={{ color: ROYAL_COLORS.text, fontWeight: '600', fontSize: '16px' }}>
-                  התראות מלאי נמוך
+                <div style={{
+                  fontSize: '12px',
+                  color: theme.hint_color,
+                  marginBottom: '4px',
+                }}>
+                  במלאי
                 </div>
-                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px' }}>
-                  {alerts.length} מוצרים דורשים תשומת לב
+                <div style={{
+                  fontSize: '20px',
+                  fontWeight: '700',
+                  color: theme.text_color,
+                }}>
+                  {item.totalOnHand}
+                </div>
+              </div>
+              <div>
+                <div style={{
+                  fontSize: '12px',
+                  color: theme.hint_color,
+                  marginBottom: '4px',
+                }}>
+                  שמור
+                </div>
+                <div style={{
+                  fontSize: '20px',
+                  fontWeight: '700',
+                  color: theme.text_color,
+                }}>
+                  {item.totalReserved}
                 </div>
               </div>
             </div>
           </div>
-        )}
-
-        <div style={{
-          display: 'flex',
-          gap: '8px',
-          marginBottom: '20px',
-          overflowX: 'auto'
-        }}>
-          {[
-            { id: 'all', label: 'הכל' },
-            { id: 'low', label: 'מלאי נמוך' },
-            { id: 'out', label: 'אזל' }
-          ].map(f => (
-            <button
-              key={f.id}
-              onClick={() => {
-                setFilter(f.id as any);
-                haptic();
-              }}
-              style={{
-                padding: '10px 20px',
-                borderRadius: '12px',
-                border: 'none',
-                background: filter === f.id
-                  ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
-                  : ROYAL_COLORS.card,
-                color: filter === f.id ? '#fff' : ROYAL_COLORS.text,
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                boxShadow: filter === f.id ? '0 4px 12px rgba(29, 155, 240, 0.3)' : 'none',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-
-        {inventory.length === 0 ? (
-          <div style={{
-            ...ROYAL_STYLES.emptyState,
-            padding: '60px 20px',
-            borderRadius: '16px',
-            background: ROYAL_COLORS.card
-          }}>
-            <div style={{ fontSize: '64px', marginBottom: '16px' }}>📦</div>
-            <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text, fontSize: '20px' }}>
-              אין פריטים להצגה
-            </h3>
-            <div style={{ ...ROYAL_STYLES.emptyStateText, fontSize: '15px' }}>
-              {filter !== 'all' ? 'נסה לשנות את הסינון' : 'לא נמצאו פריטי מלאי'}
-            </div>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {inventory.map(item => (
-              <div
-                key={item.product.id}
-                onClick={() => {
-                  setSelectedProduct(item);
-                  haptic();
-                  backButton.show(() => {
-                    setSelectedProduct(null);
-                    backButton.hide();
-                  });
-                }}
-                style={{
-                  ...ROYAL_STYLES.card,
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(29, 155, 240, 0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = ROYAL_COLORS.shadow;
-                }}
-              >
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  marginBottom: '12px'
-                }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{
-                      fontSize: '18px',
-                      fontWeight: '700',
-                      color: ROYAL_COLORS.text,
-                      marginBottom: '4px'
-                    }}>
-                      {item.product.name}
-                    </div>
-                    <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
-                      {item.product.sku} • {item.locations.length} מיקומים
-                    </div>
-                  </div>
-                  <div style={{
-                    padding: '6px 12px',
-                    borderRadius: '8px',
-                    background: `${getStatusColor(item.status)}20`,
-                    color: getStatusColor(item.status),
-                    fontSize: '12px',
-                    fontWeight: '600',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}>
-                    <span>{getStatusIcon(item.status)}</span>
-                    <span>{getStatusLabel(item.status)}</span>
-                  </div>
-                </div>
-
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '12px',
-                  paddingTop: '12px',
-                  borderTop: `1px solid ${ROYAL_COLORS.cardBorder}`
-                }}>
-                  <div>
-                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
-                      זמין
-                    </div>
-                    <div style={{ fontSize: '20px', fontWeight: '600', color: ROYAL_COLORS.emerald }}>
-                      {item.totalOnHand}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
-                      שמור
-                    </div>
-                    <div style={{ fontSize: '20px', fontWeight: '600', color: ROYAL_COLORS.gold }}>
-                      {item.totalReserved}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
-                      פגום
-                    </div>
-                    <div style={{ fontSize: '20px', fontWeight: '600', color: ROYAL_COLORS.crimson }}>
-                      {item.totalDamaged}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        ))}
       </div>
+
+      {aggregatedInventory.length === 0 && (
+        <div style={{
+          textAlign: 'center',
+          padding: '40px 20px',
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
+          <p style={{ color: theme.hint_color }}>
+            {filter === 'all' ? 'אין פריטי מלאי' : `אין פריטים ב${filter === 'low' ? 'מלאי נמוך' : 'מלאי אזל'}`}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
