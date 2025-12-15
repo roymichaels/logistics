@@ -54,7 +54,21 @@ export function Sandbox({ dataStore, onNavigate }: SandboxProps) {
               cursor: 'pointer'
             }}
           >
-            🚀 Modern Demo
+            🛍️ Customer Demo
+          </button>
+          <button
+            onClick={() => onNavigate('business-demo')}
+            style={{
+              padding: '10px 14px',
+              borderRadius: '10px',
+              background: '#8b5cf6',
+              color: '#fff',
+              border: 'none',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            🏢 Business Demo
           </button>
           <button
             onClick={() => onNavigate('catalog')}
