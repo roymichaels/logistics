@@ -41,13 +41,28 @@ export function Sandbox({ dataStore, onNavigate }: SandboxProps) {
           <h1 style={{ margin: 0, fontSize: '24px' }}>הסנדבוקסים שלי</h1>
           <p style={{ margin: 0, color: '#9ba7b6' }}>בחר סביבת עבודה או צור חדשה</p>
         </div>
-        <button
-          onClick={() => onNavigate('catalog')}
-          style={{
-            padding: '10px 14px',
-            borderRadius: '10px',
-            background: '#5c7cfa',
-            color: '#fff',
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => onNavigate('customer-demo')}
+            style={{
+              padding: '10px 14px',
+              borderRadius: '10px',
+              background: '#10b981',
+              color: '#fff',
+              border: 'none',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            🚀 Modern Demo
+          </button>
+          <button
+            onClick={() => onNavigate('catalog')}
+            style={{
+              padding: '10px 14px',
+              borderRadius: '10px',
+              background: '#5c7cfa',
+              color: '#fff',
             border: 'none',
             cursor: 'pointer',
             fontWeight: 600
@@ -55,6 +70,7 @@ export function Sandbox({ dataStore, onNavigate }: SandboxProps) {
         >
           חזרה לקטלוג
         </button>
+        </div>
       </div>
 
       <div style={{

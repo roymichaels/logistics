@@ -116,3 +116,6 @@ export function Label({ required, children, style, ...props }: LabelProps) {
     </label>
   );
 }
+
+export const Typography = Text;
+export type TypographyProps = TextProps;
