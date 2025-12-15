@@ -1,5 +1,5 @@
 import React from 'react';
-import { colors, borderRadius } from '../../styles/design-system';
+import { colors, borderRadius } from '../../design-system';
 
 export interface AvatarProps {
   src?: string;

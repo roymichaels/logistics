@@ -1,32 +1,29 @@
 import React from 'react';
-import { colors, spacing, borderRadius, typography } from '../../styles/design-system';
-import { getStatusColor, getStatusBackground } from '../../styles/design-system';
+import { colors, spacing, borderRadius, typography } from '../../design-system';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: 'success' | 'warning' | 'error' | 'info' | 'neutral';
   size?: 'sm' | 'md' | 'lg';
-  status?: string;
 }
 
 export function Badge({
   variant = 'neutral',
   size = 'md',
-  status,
   children,
   style,
   ...props
 }: BadgeProps) {
   const sizeStyles: Record<string, React.CSSProperties> = {
     sm: {
-      padding: `${spacing.xs} ${spacing.sm}`,
+      padding: `${spacing[1]} ${spacing[2]}`,
       fontSize: typography.fontSize.xs,
     },
     md: {
-      padding: `${spacing.sm} ${spacing.md}`,
+      padding: `${spacing[2]} ${spacing[3]}`,
       fontSize: typography.fontSize.sm,
     },
     lg: {
-      padding: `${spacing.sm} ${spacing.lg}`,
+      padding: `${spacing[2]} ${spacing[4]}`,
       fontSize: typography.fontSize.base,
     },
   };
@@ -59,14 +56,6 @@ export function Badge({
     },
   };
 
-  const statusStyle = status
-    ? {
-        background: getStatusBackground(status),
-        color: getStatusColor(status),
-        border: `1px solid ${getStatusColor(status)}`,
-      }
-    : variantStyles[variant];
-
   const badgeStyles: React.CSSProperties = {
     display: 'inline-flex',
     alignItems: 'center',
@@ -78,7 +67,7 @@ export function Badge({
     letterSpacing: '0.5px',
     whiteSpace: 'nowrap',
     ...sizeStyles[size],
-    ...statusStyle,
+    ...variantStyles[variant],
     ...style,
   };
 

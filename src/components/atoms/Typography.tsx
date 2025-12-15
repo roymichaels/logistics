@@ -1,5 +1,5 @@
 import React from 'react';
-import { colors, typography, spacing } from '../../styles/design-system';
+import { colors, typography, spacing } from '../../design-system';
 
 export interface TextProps extends React.HTMLAttributes<HTMLElement> {
   variant?: 'h1' | 'h2' | 'h3' | 'h4' | 'body' | 'small' | 'caption';
@@ -24,25 +24,25 @@ export function Text({
       fontSize: typography.fontSize['4xl'],
       fontWeight: typography.fontWeight.bold,
       lineHeight: typography.lineHeight.tight,
-      marginBottom: spacing.xl,
+      marginBottom: spacing[5],
     },
     h2: {
       fontSize: typography.fontSize['3xl'],
       fontWeight: typography.fontWeight.bold,
       lineHeight: typography.lineHeight.tight,
-      marginBottom: spacing.lg,
+      marginBottom: spacing[4],
     },
     h3: {
       fontSize: typography.fontSize['2xl'],
       fontWeight: typography.fontWeight.semibold,
       lineHeight: typography.lineHeight.tight,
-      marginBottom: spacing.md,
+      marginBottom: spacing[3],
     },
     h4: {
       fontSize: typography.fontSize.xl,
       fontWeight: typography.fontWeight.semibold,
       lineHeight: typography.lineHeight.normal,
-      marginBottom: spacing.md,
+      marginBottom: spacing[3],
     },
     body: {
       fontSize: typography.fontSize.base,
@@ -102,7 +102,7 @@ export function Label({ required, children, style, ...props }: LabelProps) {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
     color: colors.text.primary,
-    marginBottom: spacing.sm,
+    marginBottom: spacing[2],
     fontFamily: typography.fontFamily.primary,
     ...style,
   };
@@ -111,7 +111,7 @@ export function Label({ required, children, style, ...props }: LabelProps) {
     <label style={labelStyles} {...props}>
       {children}
       {required && (
-        <span style={{ color: colors.status.error, marginLeft: spacing.xs }}>*</span>
+        <span style={{ color: colors.status.error, marginLeft: spacing[1] }}>*</span>
       )}
     </label>
   );

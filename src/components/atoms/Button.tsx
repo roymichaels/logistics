@@ -1,5 +1,5 @@
 import React from 'react';
-import { colors, spacing, borderRadius, typography, transitions, shadows, microSpacing } from '../../styles/design-system';
+import { colors, spacing, borderRadius, typography, transitions, shadows } from '../../design-system';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'ghost' | 'link';
@@ -27,7 +27,7 @@ export function Button({
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sm,
+    gap: spacing[2],
     border: 'none',
     cursor: disabled || loading ? 'not-allowed' : 'pointer',
     fontFamily: typography.fontFamily.primary,
@@ -44,21 +44,21 @@ export function Button({
 
   const sizeStyles: Record<string, React.CSSProperties> = {
     sm: {
-      padding: `${spacing.sm} ${spacing.lg}`,
+      padding: `${spacing[2]} ${spacing[4]}`,
       fontSize: typography.fontSize.sm,
       borderRadius: borderRadius['2xl'],
       minHeight: '36px',
       fontWeight: typography.fontWeight.bold,
     },
     md: {
-      padding: `${microSpacing['10']} ${spacing['2xl']}`,
+      padding: `${spacing[3]} ${spacing[6]}`,
       fontSize: typography.fontSize.base,
       borderRadius: borderRadius['2xl'],
       minHeight: '40px',
       fontWeight: typography.fontWeight.bold,
     },
     lg: {
-      padding: `${spacing.md} ${spacing['3xl']}`,
+      padding: `${spacing[4]} ${spacing[8]}`,
       fontSize: typography.fontSize.lg,
       borderRadius: borderRadius['2xl'],
       minHeight: '44px',
@@ -121,7 +121,7 @@ export function Button({
 
     const hoverMap: Record<string, React.CSSProperties> = {
       primary: {
-        background: colors.brand.primaryHover,
+        background: colors.brand.hover,
         boxShadow: shadows.md,
       },
       secondary: {

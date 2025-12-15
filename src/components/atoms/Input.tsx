@@ -1,5 +1,5 @@
 import React from 'react';
-import { colors, spacing, borderRadius, typography, transitions, shadows, microSpacing } from '../../styles/design-system';
+import { colors, spacing, borderRadius, typography, transitions, shadows } from '../../design-system';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: boolean;
@@ -38,9 +38,9 @@ export function Input({
 
   const inputStyles: React.CSSProperties = {
     width: '100%',
-    padding: `${spacing.md} ${spacing.lg}`,
-    paddingLeft: leftIcon ? spacing['4xl'] : spacing.lg,
-    paddingRight: rightIcon ? spacing['4xl'] : spacing.lg,
+    padding: `${spacing[3]} ${spacing[4]}`,
+    paddingLeft: leftIcon ? spacing[10] : spacing[4],
+    paddingRight: rightIcon ? spacing[10] : spacing[4],
     background: colors.background.secondary,
     border: `1px solid ${error ? colors.status.error : isFocused ? colors.border.focus : colors.border.primary}`,
     borderRadius: borderRadius['2xl'],
@@ -70,19 +70,19 @@ export function Input({
 
   const leftIconStyles: React.CSSProperties = {
     ...iconStyles,
-    left: spacing.lg,
+    left: spacing[4],
   };
 
   const rightIconStyles: React.CSSProperties = {
     ...iconStyles,
-    right: spacing.lg,
+    right: spacing[4],
   };
 
   const errorMessageStyles: React.CSSProperties = {
-    marginTop: spacing.xs,
+    marginTop: spacing[1],
     fontSize: typography.fontSize.sm,
     color: colors.status.error,
-    paddingLeft: spacing.xs,
+    paddingLeft: spacing[1],
   };
 
   return (
@@ -138,7 +138,7 @@ export function TextArea({
 
   const textareaStyles: React.CSSProperties = {
     width: '100%',
-    padding: `${spacing.md} ${spacing.lg}`,
+    padding: `${spacing[3]} ${spacing[4]}`,
     background: colors.background.secondary,
     border: `1px solid ${error ? colors.status.error : isFocused ? colors.border.focus : colors.border.primary}`,
     borderRadius: borderRadius.xl,
@@ -161,7 +161,7 @@ export function TextArea({
     marginTop: spacing.xs,
     fontSize: typography.fontSize.sm,
     color: colors.status.error,
-    paddingLeft: spacing.xs,
+    paddingLeft: spacing[1],
   };
 
   return (

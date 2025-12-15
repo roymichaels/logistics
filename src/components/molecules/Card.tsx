@@ -1,9 +1,9 @@
 import React from 'react';
-import { colors, spacing, borderRadius, shadows, transitions, typography } from '../../styles/design-system';
+import { colors, spacing, borderRadius, shadows, transitions, typography } from '../../design-system';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'elevated' | 'outlined' | 'flat';
-  padding?: keyof typeof spacing;
+  padding?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12 | 16 | 20 | 24;
   hoverable?: boolean;
   noPadding?: boolean;
   interactive?: boolean;
@@ -11,7 +11,7 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function Card({
   variant = 'default',
-  padding = 'lg',
+  padding = 4,
   hoverable = false,
   noPadding = false,
   interactive = false,
@@ -113,8 +113,8 @@ export function CardHeader({ title, subtitle, action, noBorder = false }: CardHe
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
-        marginBottom: spacing.lg,
-        paddingBottom: noBorder ? 0 : spacing.md,
+        marginBottom: spacing[4],
+        paddingBottom: noBorder ? 0 : spacing[3],
         borderBottom: noBorder ? 'none' : `1px solid ${colors.border.primary}`,
       }}
     >
@@ -125,7 +125,7 @@ export function CardHeader({ title, subtitle, action, noBorder = false }: CardHe
             fontSize: typography.fontSize.xl,
             fontWeight: typography.fontWeight.bold,
             color: colors.text.primary,
-            marginBottom: subtitle ? spacing.xs : 0,
+            marginBottom: subtitle ? spacing[1] : 0,
             lineHeight: typography.lineHeight.tight,
           }}
         >
@@ -144,16 +144,16 @@ export function CardHeader({ title, subtitle, action, noBorder = false }: CardHe
           </p>
         )}
       </div>
-      {action && <div style={{ marginLeft: spacing.md }}>{action}</div>}
+      {action && <div style={{ marginLeft: spacing[3] }}>{action}</div>}
     </div>
   );
 }
 
 export interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
-  spacing?: keyof typeof spacing;
+  spacing?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12 | 16 | 20 | 24;
 }
 
-export function CardContent({ spacing: spacingSize = 'md', children, style, ...props }: CardContentProps) {
+export function CardContent({ spacing: spacingSize = 3, children, style, ...props }: CardContentProps) {
   return (
     <div
       style={{
@@ -178,9 +178,9 @@ export function CardFooter({ noBorder = false, children, style, ...props }: Card
         display: 'flex',
         justifyContent: 'flex-end',
         alignItems: 'center',
-        gap: spacing.md,
-        paddingTop: spacing.md,
-        marginTop: spacing.md,
+        gap: spacing[3],
+        paddingTop: spacing[3],
+        marginTop: spacing[3],
         borderTop: noBorder ? 'none' : `1px solid ${colors.border.primary}`,
         ...style,
       }}
