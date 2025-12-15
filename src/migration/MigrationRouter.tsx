@@ -65,6 +65,7 @@ const SocialAnalytics = lazy(() => import('../pages/SocialAnalytics').then((modu
 const KYCFlow = lazy(() => import('../pages/kyc/KYCFlow'));
 const CustomerExperienceDemo = lazy(() => import('../pages/modern/CustomerExperienceDemo').then((module) => ({ default: module.CustomerExperienceDemo })));
 const BusinessDemoPage = lazy(() => import('../pages/modern/BusinessDemoPage').then((module) => ({ default: module.BusinessDemoPage })));
+const DriverDemoPage = lazy(() => import('../pages/modern/DriverDemoPage').then((module) => ({ default: module.DriverDemoPage })));
 const PageLoadingSkeleton = () => <div style={{ padding: 20 }}>Loading...</div>;
 
 export function ProfileRoute(props: Record<string, unknown>) {
@@ -304,6 +305,9 @@ export default function MigrationRouter(props: { dataStore?: any; onNavigate?: (
 
         {/* Modern Business Tools Demo */}
         <Route path="/business-demo" element={<BusinessDemoPage dataStore={dataStore} />} />
+
+        {/* Modern Driver Experience Demo */}
+        <Route path="/driver-demo" element={<DriverDemoPage dataStore={dataStore} />} />
 
         {/* Business Routes */}
         <Route path="/business" element={<Navigate to="/business/dashboard" replace />} />

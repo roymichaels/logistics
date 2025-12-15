@@ -71,6 +71,20 @@ export function Sandbox({ dataStore, onNavigate }: SandboxProps) {
             🏢 Business Demo
           </button>
           <button
+            onClick={() => onNavigate('driver-demo')}
+            style={{
+              padding: '10px 14px',
+              borderRadius: '10px',
+              background: '#059669',
+              color: '#fff',
+              border: 'none',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            🚗 Driver Demo
+          </button>
+          <button
             onClick={() => onNavigate('catalog')}
             style={{
               padding: '10px 14px',
