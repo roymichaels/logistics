@@ -1,23 +1,32 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { Product } from '../data/types';
-import { CategoryTabs } from './CategoryTabs';
-import { ProductCard } from './ProductCard';
+import { AppShell, AppHeader } from '../layouts/AppShell';
+import { Section } from '../components/atoms/Section';
+import { Grid } from '../components/atoms/Grid';
+import { Chip } from '../components/atoms/Chip';
+import { Button } from '../components/atoms/Button';
+import { Text } from '../components/atoms/Typography';
+import { SearchBar } from '../components/molecules/SearchBar';
+import { ProductCard, ProductCardSkeleton } from '../components/molecules/ProductCard';
+import { CustomerBottomNav } from '../components/molecules/CustomerBottomNav';
+import { EmptyState } from '../components/molecules/EmptyState';
+import { Card } from '../components/molecules/Card';
 import { CartDrawer } from './CartDrawer';
-import { StoreHeader } from './StoreHeader';
-import { StoreFooter } from './StoreFooter';
+import { colors, spacing } from '../styles/design-system';
 
 interface CatalogPageProps {
   dataStore: any;
   onNavigate?: (dest: string) => void;
 }
 
-const CATEGORIES = ['הכל', 'חדש', 'חם', 'מבצעים', 'שירותים', 'דיגיטל', 'פיזי'];
+const CATEGORIES = ['All', 'New', 'Hot', 'Deals', 'Services', 'Digital', 'Physical'];
 
 export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [category, setCategory] = useState<string>('הכל');
+  const [category, setCategory] = useState<string>('All');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [isCartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
@@ -33,60 +42,218 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
       }
     }
     load();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [dataStore]);
 
-  const filtered = useMemo(() => {
-    if (category === 'הכל') return products;
-    return products.filter(p => (p.category || '').toLowerCase().includes(category.toLowerCase().replace('חם', '').trim()));
-  }, [products, category]);
+  const filteredProducts = useMemo(() => {
+    let result = products;
+
+    if (category !== 'All') {
+      result = result.filter((p) =>
+        (p.category || '').toLowerCase().includes(category.toLowerCase())
+      );
+    }
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.name.toLowerCase().includes(query) ||
+          (p.description || '').toLowerCase().includes(query) ||
+          (p.category || '').toLowerCase().includes(query)
+      );
+    }
+
+    return result;
+  }, [products, category, searchQuery]);
+
+  const currentPath = '/store/catalog';
+
+  const headerActions = (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => setCartOpen(true)}
+      style={{ fontSize: '20px', padding: spacing.sm }}
+    >
+      🛒
+    </Button>
+  );
+
+  const contentStyle: React.CSSProperties = {
+    paddingBottom: '80px',
+  };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(160deg,#13002b 0%,#000 60%)', color: '#e7e9ea', direction: 'rtl' }}>
-      <StoreHeader onCart={() => setCartOpen(true)} />
-
-      <section style={{ padding: '48px 16px 32px', textAlign: 'center' }}>
-        <div style={{ fontSize: '32px', fontWeight: 900, letterSpacing: '-0.5px', marginBottom: '8px' }}>ברוכים הבאים לחנות</div>
-        <div style={{ color: '#b8c2d8', fontSize: '16px', marginBottom: '18px' }}>קטלוג חכם — מותאם אישית לכל SandBox</div>
-        <button
-          onClick={() => onNavigate?.('sandbox')}
+    <AppShell
+      header={<AppHeader title="Store" right={headerActions} />}
+      bottomNav={
+        <CustomerBottomNav currentPath={currentPath} onNavigate={(path) => onNavigate?.(path)} />
+      }
+    >
+      <div style={contentStyle}>
+        <Section
+          title="Welcome to the Store"
           style={{
-            padding: '12px 20px',
-            borderRadius: '14px',
-            border: '1px solid rgba(255,255,255,0.14)',
-            background: 'linear-gradient(135deg,#6c5ce7,#00d4ff)',
-            color: '#0b1020',
-            fontWeight: 800,
-            cursor: 'pointer',
-            boxShadow: '0 12px 38px rgba(0,0,0,0.25)'
+            textAlign: 'center',
+            padding: spacing['3xl'],
+            background: `linear-gradient(135deg, ${colors.background.secondary}, ${colors.background.tertiary})`,
           }}
         >
-          🔥 הצטרפות ל-Sandbox הלקוח
-        </button>
-      </section>
+          <Text
+            variant="h2"
+            style={{
+              marginBottom: spacing.sm,
+              color: colors.text.primary,
+            }}
+          >
+            Smart Catalog
+          </Text>
+          <Text
+            variant="body"
+            color="secondary"
+            style={{
+              marginBottom: spacing.xl,
+            }}
+          >
+            Personalized for every SandBox
+          </Text>
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={() => onNavigate?.('sandbox')}
+          >
+            🔥 Join Customer Sandbox
+          </Button>
+        </Section>
 
-      <div style={{ padding: '0 16px 20px' }}>
-        <CategoryTabs categories={CATEGORIES} active={category} onSelect={setCategory} />
-      </div>
+        <Section
+          title="Search & Filter"
+          style={{
+            padding: `${spacing.lg} ${spacing.lg}`,
+          }}
+        >
+          <SearchBar
+            placeholder="Search products..."
+            onSearch={setSearchQuery}
+            onClear={() => setSearchQuery('')}
+          />
+        </Section>
 
-      <div style={{ padding: '0 16px 40px' }}>
-        {loading && <p style={{ color: '#9ba7b6' }}>טוען מוצרים...</p>}
-        {error && <p style={{ color: '#ff6b6b' }}>{error}</p>}
-        {!loading && !error && (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))',
-            gap: '16px'
-          }}>
-            {filtered.map((p) => (
-              <ProductCard key={p.id} product={p} onAdd={() => setCartOpen(true)} />
+        <Section
+          title="Categories"
+          style={{
+            padding: `0 ${spacing.lg} ${spacing.lg}`,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              gap: spacing.sm,
+              overflowX: 'auto',
+              padding: spacing.xs,
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
+          >
+            {CATEGORIES.map((cat) => (
+              <Chip
+                key={cat}
+                selected={cat === category}
+                clickable
+                onClick={() => setCategory(cat)}
+              >
+                {cat}
+              </Chip>
             ))}
           </div>
+        </Section>
+
+        {loading && (
+          <Section
+            title="Products"
+            style={{
+              padding: `0 ${spacing.lg} ${spacing.lg}`,
+            }}
+          >
+            <Grid minWidth="240px" gap={spacing.lg}>
+              <ProductCardSkeleton count={8} />
+            </Grid>
+          </Section>
+        )}
+
+        {error && (
+          <Section
+            style={{
+              padding: `0 ${spacing.lg} ${spacing.lg}`,
+            }}
+          >
+            <Card variant="outlined">
+              <EmptyState
+                variant="error"
+                title="Failed to load products"
+                description={error}
+                action={{
+                  label: 'Try Again',
+                  onClick: () => window.location.reload(),
+                }}
+              />
+            </Card>
+          </Section>
+        )}
+
+        {!loading && !error && filteredProducts.length === 0 && (
+          <Section
+            style={{
+              padding: `0 ${spacing.lg} ${spacing.lg}`,
+            }}
+          >
+            <EmptyState
+              variant="search"
+              title="No products found"
+              description="Try adjusting your search or filter criteria."
+              action={
+                searchQuery || category !== 'All'
+                  ? {
+                      label: 'Clear Filters',
+                      onClick: () => {
+                        setSearchQuery('');
+                        setCategory('All');
+                      },
+                    }
+                  : undefined
+              }
+            />
+          </Section>
+        )}
+
+        {!loading && !error && filteredProducts.length > 0 && (
+          <Section
+            title={`Products (${filteredProducts.length})`}
+            style={{
+              padding: `0 ${spacing.lg} ${spacing.lg}`,
+            }}
+          >
+            <Grid minWidth="240px" gap={spacing.lg}>
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={() => setCartOpen(true)}
+                  onClick={(p) => {
+                    console.log('Product clicked:', p.name);
+                  }}
+                />
+              ))}
+            </Grid>
+          </Section>
         )}
       </div>
 
-      <StoreFooter onNavigate={onNavigate} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setCartOpen(false)} />
-    </div>
+    </AppShell>
   );
 }

@@ -208,8 +208,7 @@ export async function resolveStoreAvatarPopover() {
     const mod = await import('../components/migration/popovers/StoreAvatarPopover.migration');
     return (mod as any).default;
   }
-  const mod = await import('../store/StoreHeader');
-  return (mod as any).default || (mod as any).StoreHeader;
+  return () => null;
 }
 
 export async function resolveNavProductPage() {
