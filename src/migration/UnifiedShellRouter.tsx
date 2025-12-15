@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
-import { Outlet } from 'react-router-dom';
-import { AppContainer } from '../shells/layout/AppContainer';
-import { PageContainer } from '../shells/layout/PageContainer';
+import { Outlet, useLocation } from 'react-router-dom';
+import { AppShell, AppHeader } from '../layouts/AppShell';
 import { HeaderRoute, ModalRoute, DrawerRoute, PopoverRoute } from './MigrationRouter';
 import { useShell } from '../context/ShellContext';
 import { usePageTitle, PageTitleProvider } from '../context/PageTitleContext';
@@ -15,10 +14,14 @@ import { DataSandboxProvider } from './data/DataSandboxContext';
 import { UIControllerProvider, UIControllerRenderer } from './controllers/uiController';
 import { DrawerControllerProvider } from './useDrawerController';
 import { DevMigrationPanel } from './DevMigrationPanel';
+import { getNavigationConfig } from '../config/navigation';
+import { useAppServices } from '../context/AppServicesContext';
 
 function UnifiedShellRouterContent(props: any) {
   const shell = useShell();
   const { title, subtitle } = usePageTitle();
+  const { userRole } = useAppServices();
+  const location = useLocation();
   const { UserMenuPopover, BusinessContextPopover, StoreAvatarPopover } = usePopoverResolver();
   const userMenu = usePopoverController(UserMenuPopover);
   const businessMenu = usePopoverController(BusinessContextPopover);
@@ -42,57 +45,96 @@ function UnifiedShellRouterContent(props: any) {
     return isMobile || !!isTelegram;
   }, []);
 
+  const navigationConfig = useMemo(() => {
+    return getNavigationConfig(userRole, location.pathname, (path: string) => {
+      if (shell?.handleNavigate) {
+        const pageMap: Record<string, string> = {
+          '/business/dashboard': 'dashboard',
+          '/business/products': 'products',
+          '/business/orders': 'orders',
+          '/business/inventory': 'inventory',
+          '/business/drivers': 'drivers-management',
+          '/business/zones': 'zone-management',
+          '/business/reports': 'reports',
+          '/driver/dashboard': 'driver-status',
+          '/driver/routes': 'my-deliveries',
+          '/driver/my-inventory': 'my-inventory',
+          '/driver/my-zones': 'my-zones',
+          '/store/catalog': 'catalog',
+          '/store/profile': 'profile',
+          '/store/orders': 'orders',
+        };
+        const page = pageMap[path];
+        if (page) {
+          shell.handleNavigate(page as any);
+        }
+      }
+    });
+  }, [userRole, location.pathname, shell]);
+
+  const header = (
+    <AppHeader
+      title={navigationConfig.headerTitle || resolvedTitle}
+      right={
+        <HeaderRoute
+          title={resolvedTitle}
+          subtitle={resolvedSubtitle}
+          onNavigate={shell?.handleNavigate}
+          onLogout={shell?.handleLogout}
+          dataStore={props?.dataStore}
+          actions={props?.headerActions}
+          showBackButton={migrationFlags.navigation && !!nav?.canGoBack}
+          onBack={() => {
+            if (migrationFlags.navigation) {
+              nav?.back();
+            }
+          }}
+          onMenuClick={(anchor) =>
+            userMenu.open({
+              open: true,
+              anchorEl: anchor,
+              onClose: () => userMenu.close(),
+              children: props?.menuContent || null
+            })
+          }
+          onAvatarClick={() =>
+            avatarMenu.open({ open: true, anchorEl: null, onClose: () => avatarMenu.close(), children: null })
+          }
+          onBusinessContextClick={(anchor) =>
+            businessMenu.open({
+              open: true,
+              anchorEl: anchor,
+              onClose: () => businessMenu.close(),
+              children: null
+            })
+          }
+        />
+      }
+    />
+  );
+
   return (
-    <AppContainer>
-      <DataSandboxProvider>
-        <div style={{ ['--compact-enabled' as any]: compact ? '1' : '0' }}>
-          <HeaderRoute
-            title={resolvedTitle}
-            subtitle={resolvedSubtitle}
-            onNavigate={shell?.handleNavigate}
-            onLogout={shell?.handleLogout}
-            dataStore={props?.dataStore}
-            actions={props?.headerActions}
-            showBackButton={migrationFlags.navigation && !!nav?.canGoBack}
-            onBack={() => {
-              if (migrationFlags.navigation) {
-                nav?.back();
-              }
-            }}
-            onMenuClick={(anchor) =>
-              userMenu.open({
-                open: true,
-                anchorEl: anchor,
-                onClose: () => userMenu.close(),
-                children: props?.menuContent || null
-              })
-            }
-            onAvatarClick={() =>
-              avatarMenu.open({ open: true, anchorEl: null, onClose: () => avatarMenu.close(), children: null })
-            }
-            onBusinessContextClick={(anchor) =>
-              businessMenu.open({
-                open: true,
-                anchorEl: anchor,
-                onClose: () => businessMenu.close(),
-                children: null
-              })
-            }
-          />
-          <PageContainer>{props?.children ? props.children : <Outlet />}</PageContainer>
-          <ModalRoute />
-          <DrawerRoute />
-          <PopoverRoute />
-          <UIControllerRenderer />
-          <NavLayer />
-          <userMenu.Render />
-          <businessMenu.Render />
-          <avatarMenu.Render />
-          <cartDrawer.Render />
-          {process.env.NODE_ENV === 'development' && <DevMigrationPanel />}
-        </div>
-      </DataSandboxProvider>
-    </AppContainer>
+    <DataSandboxProvider>
+      <div style={{ ['--compact-enabled' as any]: compact ? '1' : '0' }}>
+        <AppShell
+          header={header}
+          sidebar={navigationConfig.sidebar}
+          bottomNav={navigationConfig.bottomNav}
+        >
+          {props?.children ? props.children : <Outlet />}
+        </AppShell>
+        <ModalRoute />
+        <DrawerRoute />
+        <PopoverRoute />
+        <UIControllerRenderer />
+        <NavLayer />
+        <userMenu.Render />
+        <businessMenu.Render />
+        <avatarMenu.Render />
+        <cartDrawer.Render />
+        {process.env.NODE_ENV === 'development' && <DevMigrationPanel />}
+      </div>
+    </DataSandboxProvider>
   );
 }
 

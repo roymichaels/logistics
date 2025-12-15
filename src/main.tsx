@@ -8,10 +8,11 @@ import { SupabaseReadyProvider } from './context/SupabaseReadyContext';
 import { SxtAuthProvider } from './context/SxtAuthProvider';
 import { LanguageProvider } from './context/LanguageContext';
 import { GlobalErrorBoundary } from './components/ErrorBoundary';
+import { ThemeProvider } from './foundation/theme/ThemeProvider';
 import { initSupabase } from './lib/supabaseClient';
 import { sessionManager } from './lib/sessionManager';
 import './lib/diagnostics';
-import './lib/errorHandler'; // Initialize global error handler
+import './lib/errorHandler';
 import { initializeApplicationLayer } from './application/bootstrap';
 import './styles/containment.css';
 import './styles/canonical-tokens.css';
@@ -203,27 +204,29 @@ function LoadingScreen() {
     root.render(
       <React.StrictMode>
         <GlobalErrorBoundary>
-          <LanguageProvider>
-            <BrowserRouter>
-              {useSXT ? (
-                <SxtAuthProvider>
+          <ThemeProvider defaultTheme={{ variant: 'telegramx', mode: 'dark' }}>
+            <LanguageProvider>
+              <BrowserRouter>
+                {useSXT ? (
+                  <SxtAuthProvider>
+                    <AuthProvider>
+                      <AppServicesProvider>
+                        <App />
+                      </AppServicesProvider>
+                    </AuthProvider>
+                  </SxtAuthProvider>
+                ) : (
                   <AuthProvider>
-                    <AppServicesProvider>
-                      <App />
-                    </AppServicesProvider>
+                    <SupabaseReadyProvider>
+                      <AppServicesProvider>
+                        <App />
+                      </AppServicesProvider>
+                    </SupabaseReadyProvider>
                   </AuthProvider>
-                </SxtAuthProvider>
-              ) : (
-                <AuthProvider>
-                  <SupabaseReadyProvider>
-                    <AppServicesProvider>
-                      <App />
-                    </AppServicesProvider>
-                  </SupabaseReadyProvider>
-                </AuthProvider>
-              )}
-            </BrowserRouter>
-          </LanguageProvider>
+                )}
+              </BrowserRouter>
+            </LanguageProvider>
+          </ThemeProvider>
         </GlobalErrorBoundary>
       </React.StrictMode>
     );
