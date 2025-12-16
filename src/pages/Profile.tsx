@@ -8,10 +8,10 @@ import { logger } from '../lib/logger';
 import { KycBadge } from '../components/kyc/KycBadge';
 import { GetVerifiedButton } from '../components/kyc/GetVerifiedButton';
 import { useTheme } from '../theme/tokens';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { SettingsCard } from '../components/ui/SettingsCard';
+import { Card } from '../components/molecules/Card';
+import { Button } from '../components/atoms/Button';
+import { Input } from '../components/atoms/Input';
+import { SettingsCard } from '../components/molecules/SettingsCard';
 
 interface ProfileProps {
   dataStore: DataStore;

@@ -7,7 +7,7 @@ import { useTheme } from '../foundation/theme';
 import { logger } from '../lib/logger';
 import { Toast } from '../components/Toast';
 import { formatCurrency } from '../lib/i18n';
-import { Spinner } from '../components/ui/Spinner';
+import { Spinner } from '../components/atoms/Spinner';
 import { Button } from '../components/atoms/Button';
 import type { Product } from '../application/queries/catalog.queries';
 import type { InventoryItem } from '../application/queries/inventory.queries';

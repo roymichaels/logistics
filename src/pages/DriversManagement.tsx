@@ -1,165 +1,114 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { DataStore, User } from '../data/types';
-import { DriverService, DriverProfile, DriverStats } from '../lib/driverService';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useDrivers, useDriver, useStartShift, useEndShift, useUpdateDriverLocation } from '../application/use-cases';
+import { useApp } from '../application/services/useApp';
+import { Diagnostics } from '../foundation/diagnostics/DiagnosticsStore';
 import { Toast } from '../components/Toast';
 
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { DriverDetailPanel } from '../components/DriverDetailPanel';
-import { DriverMapView } from '../components/DriverMapView';
-import { DriverPerformanceChart } from '../components/DriverPerformanceChart';
 import { logger } from '../lib/logger';
+import type { FrontendDataStore } from '../lib/frontendDataStore';
 
 interface DriversManagementProps {
-  dataStore: DataStore;
+  dataStore: FrontendDataStore;
   onNavigate: (page: string) => void;
 }
 
 type ViewMode = 'list' | 'map' | 'analytics';
 type StatusFilter = 'all' | 'online' | 'offline' | 'busy' | 'available' | 'on_break';
 
-interface DriverWithDetails {
-  profile: DriverProfile;
-  stats: DriverStats;
-  user: User | null;
-  isOnline: boolean;
-  currentStatus: string;
-}
-
 export function DriversManagement({ dataStore }: DriversManagementProps) {
-  const [drivers, setDrivers] = useState<DriverWithDetails[]>([]);
-  const [selectedDriver, setSelectedDriver] = useState<DriverWithDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
-  const driverService = new DriverService(dataStore);
-  const supabase = dataStore?.supabase;
-  const loadDrivers = useCallback(async () => {
-    try {
-      if (!supabase) {
-        logger.warn('⚠️ Supabase client not available yet, retrying...');
-        setLoading(false);
-        return;
-      }
-
-      const { data: allUsers, error: usersError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('role', 'driver');
-
-      if (usersError) throw usersError;
-
-      const driversWithDetails = await Promise.all(
-        (allUsers || []).map(async (user: User) => {
-          const [profile, stats, status] = await Promise.all([
-            driverService.getDriverProfile(user.telegram_id),
-            driverService.getDriverStats(user.telegram_id),
-            dataStore.getDriverStatus?.(user.telegram_id)
-          ]);
-
-          return {
-            profile: profile || {
-              id: '',
-              user_id: user.telegram_id,
-              rating: 5.0,
-              total_deliveries: 0,
-              successful_deliveries: 0,
-              is_available: false,
-              max_orders_capacity: 5,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            },
-            stats,
-            user,
-            isOnline: status?.is_online || false,
-            currentStatus: status?.status || 'off_shift'
-          };
-        })
-      );
-
-      setDrivers(driversWithDetails);
-    } catch (error) {
-      logger.error('Failed to load drivers:', error);
-      Toast.error('שגיאה בטעינת נהגים');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [dataStore, driverService, supabase]);
-
-  useEffect(() => {
-    loadDrivers();
-
-    if (!supabase) {
-      logger.warn('Supabase client not available for subscriptions');
-      return;
-    }
-
-    const subscription = supabase
-      .channel('drivers-management')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'driver_profiles' },
-        () => loadDrivers()
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'driver_statuses' },
-        () => loadDrivers()
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [loadDrivers, supabase]);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await loadDrivers();
-
-  };
-
-  const filteredDrivers = drivers.filter(driver => {
-    if (statusFilter !== 'all') {
-      if (statusFilter === 'online' && !driver.isOnline) return false;
-      if (statusFilter === 'offline' && driver.isOnline) return false;
-      if (statusFilter === 'busy' && driver.stats.active_orders === 0) return false;
-      if (statusFilter === 'available' && (driver.stats.active_orders > 0 || !driver.isOnline)) return false;
-      if (statusFilter === 'on_break' && driver.currentStatus !== 'on_break') return false;
-    }
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      const name = driver.user?.name?.toLowerCase() || '';
-      const phone = driver.user?.phone?.toLowerCase() || '';
-      const vehicle = driver.profile.vehicle_plate?.toLowerCase() || '';
-
-      if (!name.includes(query) && !phone.includes(query) && !vehicle.includes(query)) {
-        return false;
-      }
-    }
-
-    return true;
+  const app = useApp();
+  const { drivers, loading, error, refetch } = useDrivers({
+    status: statusFilter === 'all' ? undefined : statusFilter,
+    available_only: statusFilter === 'available'
   });
 
-  const metrics = {
-    total: drivers.length,
-    online: drivers.filter(d => d.isOnline).length,
-    busy: drivers.filter(d => d.stats.active_orders > 0).length,
-    available: drivers.filter(d => d.isOnline && d.stats.active_orders === 0).length,
-    avgRating: drivers.reduce((sum, d) => sum + d.profile.rating, 0) / drivers.length || 5.0,
-    totalDeliveries: drivers.reduce((sum, d) => sum + d.stats.active_orders, 0)
+  useEffect(() => {
+    const unsubscribe = app.events?.on('DriverStatusChanged', () => {
+      Diagnostics.logEvent({ type: 'domain_event', message: 'DriverStatusChanged received, refetching drivers' });
+      refetch();
+    });
+
+    const unsubscribeShift = app.events?.on('ShiftStarted', () => {
+      Diagnostics.logEvent({ type: 'domain_event', message: 'ShiftStarted received, refetching drivers' });
+      refetch();
+    });
+
+    const unsubscribeShiftEnd = app.events?.on('ShiftEnded', () => {
+      Diagnostics.logEvent({ type: 'domain_event', message: 'ShiftEnded received, refetching drivers' });
+      refetch();
+    });
+
+    return () => {
+      unsubscribe?.();
+      unsubscribeShift?.();
+      unsubscribeShiftEnd?.();
+    };
+  }, [app.events, refetch]);
+
+  const handleRefresh = async () => {
+    Diagnostics.logEvent({ type: 'log', message: 'Manual refresh triggered' });
+    await refetch();
+
   };
 
-  if (loading) {
+  const filteredDrivers = useMemo(() => {
+    if (!searchQuery) return drivers;
+
+    const query = searchQuery.toLowerCase();
+    return drivers.filter(driver =>
+      driver.name?.toLowerCase().includes(query) ||
+      driver.phone?.toLowerCase().includes(query) ||
+      driver.vehicle_plate?.toLowerCase().includes(query)
+    );
+  }, [drivers, searchQuery]);
+
+  const metrics = useMemo(() => ({
+    total: drivers.length,
+    online: drivers.filter(d => d.is_online).length,
+    busy: drivers.filter(d => d.active_orders > 0).length,
+    available: drivers.filter(d => d.is_online && d.active_orders === 0).length,
+    avgRating: drivers.reduce((sum, d) => sum + (d.rating || 5.0), 0) / (drivers.length || 1),
+    totalDeliveries: drivers.reduce((sum, d) => sum + d.active_orders, 0)
+  }), [drivers]);
+
+  if (loading && drivers.length === 0) {
     return (
       <div style={{ ...ROYAL_STYLES.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚗</div>
-        <div style={{ color: ROYAL_COLORS.muted }}>טוען נהגים...</div>
+        <div style={{ color: ROYAL_COLORS.muted }}>Loading drivers...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ ...ROYAL_STYLES.pageContainer, textAlign: 'center' }}>
+        <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
+        <div style={{ color: ROYAL_COLORS.text, marginBottom: '16px' }}>
+          {error.message || 'Failed to load drivers'}
+        </div>
+        <button
+          onClick={refetch}
+          style={{
+            padding: '12px 24px',
+            background: ROYAL_COLORS.gradientPurple,
+            border: 'none',
+            borderRadius: '12px',
+            color: ROYAL_COLORS.textBright,
+            cursor: 'pointer',
+            fontSize: '16px',
+            fontWeight: '600'
+          }}
+        >
+          Try Again
+        </button>
       </div>
     );
   }
@@ -168,15 +117,15 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
     <div style={ROYAL_STYLES.pageContainer}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <h1 style={{ ...ROYAL_STYLES.pageTitle, margin: 0 }}>ניהול נהגים</h1>
+          <h1 style={{ ...ROYAL_STYLES.pageTitle, margin: 0 }}>Driver Management</h1>
           <p style={{ ...ROYAL_STYLES.pageSubtitle, margin: '4px 0 0 0' }}>
-            {filteredDrivers.length} נהגים מתוך {drivers.length}
+            {filteredDrivers.length} of {drivers.length} drivers
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
             onClick={handleRefresh}
-            disabled={refreshing}
+            disabled={loading}
             style={{
               padding: '10px 16px',
               background: 'transparent',
@@ -185,11 +134,11 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
               color: ROYAL_COLORS.accent,
               fontSize: '14px',
               fontWeight: '600',
-              cursor: refreshing ? 'not-allowed' : 'pointer',
-              opacity: refreshing ? 0.5 : 1
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.5 : 1
             }}
           >
-            {refreshing ? '⟳' : '🔄'} רענן
+            {loading ? '⟳' : '🔄'} Refresh
           </button>
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -204,7 +153,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
               cursor: 'pointer'
             }}
           >
-            🔍 סינון
+            🔍 Filter
           </button>
         </div>
       </div>
@@ -213,22 +162,22 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
         <div style={ROYAL_STYLES.statBox}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>👥</div>
           <div style={{ ...ROYAL_STYLES.statValue, fontSize: '28px' }}>{metrics.total}</div>
-          <div style={ROYAL_STYLES.statLabel}>סך נהגים</div>
+          <div style={ROYAL_STYLES.statLabel}>Total Drivers</div>
         </div>
         <div style={ROYAL_STYLES.statBox}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>🟢</div>
           <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.success, fontSize: '28px' }}>{metrics.online}</div>
-          <div style={ROYAL_STYLES.statLabel}>מקוונים</div>
+          <div style={ROYAL_STYLES.statLabel}>Online</div>
         </div>
         <div style={ROYAL_STYLES.statBox}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>🚚</div>
           <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.info, fontSize: '28px' }}>{metrics.busy}</div>
-          <div style={ROYAL_STYLES.statLabel}>במשלוח</div>
+          <div style={ROYAL_STYLES.statLabel}>Busy</div>
         </div>
         <div style={ROYAL_STYLES.statBox}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>⭐</div>
           <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.gold, fontSize: '28px' }}>{metrics.avgRating.toFixed(1)}</div>
-          <div style={ROYAL_STYLES.statLabel}>דירוג ממוצע</div>
+          <div style={ROYAL_STYLES.statLabel}>Avg Rating</div>
         </div>
       </div>
 
@@ -237,7 +186,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
           <div style={{ marginBottom: '16px' }}>
             <input
               type="text"
-              placeholder="חפש לפי שם, טלפון או רכב..."
+              placeholder="Search by name, phone or vehicle..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -255,12 +204,12 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
             {(['all', 'online', 'offline', 'busy', 'available', 'on_break'] as StatusFilter[]).map(filter => {
               const labels: Record<StatusFilter, string> = {
-                all: 'הכל',
-                online: 'מקוון',
-                offline: 'לא מקוון',
-                busy: 'עסוק',
-                available: 'זמין',
-                on_break: 'בהפסקה'
+                all: 'All',
+                online: 'Online',
+                offline: 'Offline',
+                busy: 'Busy',
+                available: 'Available',
+                on_break: 'On Break'
               };
 
               return (
@@ -269,6 +218,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                   onClick={() => {
                     setStatusFilter(filter);
 
+                    Diagnostics.logEvent({ type: 'log', message: 'Filter changed', data: { filter } });
                   }}
                   style={{
                     padding: '8px 16px',
@@ -291,7 +241,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
           <div style={{ display: 'flex', gap: '8px' }}>
             {(['list', 'map', 'analytics'] as ViewMode[]).map(mode => {
               const icons = { list: '📋', map: '🗺️', analytics: '📊' };
-              const labels = { list: 'רשימה', map: 'מפה', analytics: 'ניתוח' };
+              const labels = { list: 'List', map: 'Map', analytics: 'Analytics' };
 
               return (
                 <button
@@ -299,6 +249,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                   onClick={() => {
                     setViewMode(mode);
 
+                    Diagnostics.logEvent({ type: 'log', message: 'View mode changed', data: { mode } });
                   }}
                   style={{
                     flex: 1,
@@ -322,147 +273,146 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
       )}
 
       {viewMode === 'list' && (
-        <div style={{ display: 'grid', gridTemplateColumns: selectedDriver ? '1fr 1fr' : '1fr', gap: '20px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {filteredDrivers.length === 0 ? (
-              <div style={{ ...ROYAL_STYLES.card, textAlign: 'center', padding: '40px' }}>
-                <div style={{ fontSize: '64px', marginBottom: '16px', opacity: 0.5 }}>🚗</div>
-                <div style={{ fontSize: '18px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '8px' }}>
-                  לא נמצאו נהגים
-                </div>
-                <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
-                  נסה לשנות את הסינון או החיפוש
-                </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {filteredDrivers.length === 0 ? (
+            <div style={{ ...ROYAL_STYLES.card, textAlign: 'center', padding: '40px' }}>
+              <div style={{ fontSize: '64px', marginBottom: '16px', opacity: 0.5 }}>🚗</div>
+              <div style={{ fontSize: '18px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '8px' }}>
+                No drivers found
               </div>
-            ) : (
-              filteredDrivers.map(driver => (
-                <div
-                  key={driver.profile.user_id}
-                  onClick={() => {
-                    setSelectedDriver(driver);
+              <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                Try changing your filters or search query
+              </div>
+            </div>
+          ) : (
+            filteredDrivers.map(driver => (
+              <div
+                key={driver.id}
+                onClick={() => {
+                  setSelectedDriverId(driver.id);
 
-                  }}
-                  style={{
-                    ...ROYAL_STYLES.card,
-                    cursor: 'pointer',
-                    background: selectedDriver?.profile.user_id === driver.profile.user_id
-                      ? ROYAL_COLORS.gradientCard
-                      : ROYAL_COLORS.secondary,
-                    border: `2px solid ${selectedDriver?.profile.user_id === driver.profile.user_id
-                      ? ROYAL_COLORS.accent
-                      : ROYAL_COLORS.cardBorder}`,
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flex: 1 }}>
-                      <div style={{
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: '50%',
-                        background: driver.isOnline ? ROYAL_COLORS.gradientSuccess : ROYAL_COLORS.secondary,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '24px',
-                        border: `2px solid ${driver.isOnline ? ROYAL_COLORS.success : ROYAL_COLORS.cardBorder}`
-                      }}>
-                        🚗
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
-                          {driver.user?.name || driver.profile.user_id}
-                        </div>
-                        <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
-                          {driver.profile.vehicle_type || 'לא צוין'} • {driver.profile.vehicle_plate || 'אין'}
-                        </div>
-                      </div>
-                    </div>
+                  Diagnostics.logEvent({ type: 'nav', message: 'Navigate to driver detail', data: { driverId: driver.id } });
+                }}
+                style={{
+                  ...ROYAL_STYLES.card,
+                  cursor: 'pointer',
+                  background: selectedDriverId === driver.id
+                    ? ROYAL_COLORS.gradientCard
+                    : ROYAL_COLORS.secondary,
+                  border: `2px solid ${selectedDriverId === driver.id
+                    ? ROYAL_COLORS.accent
+                    : ROYAL_COLORS.cardBorder}`,
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flex: 1 }}>
                     <div style={{
-                      padding: '6px 12px',
-                      background: driver.isOnline ? `${ROYAL_COLORS.success}20` : `${ROYAL_COLORS.error}20`,
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      color: driver.isOnline ? ROYAL_COLORS.success : ROYAL_COLORS.error
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
+                      background: driver.is_online ? ROYAL_COLORS.gradientSuccess : ROYAL_COLORS.secondary,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '24px',
+                      border: `2px solid ${driver.is_online ? ROYAL_COLORS.success : ROYAL_COLORS.cardBorder}`
                     }}>
-                      {driver.isOnline ? '🟢 מקוון' : '⚫ לא מקוון'}
+                      🚗
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                        {driver.name || driver.id}
+                      </div>
+                      <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
+                        {driver.vehicle_type || 'Unknown'} • {driver.vehicle_plate || 'N/A'}
+                      </div>
                     </div>
                   </div>
-
-                  <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                    <div style={{
-                      flex: 1,
-                      padding: '10px',
-                      background: ROYAL_COLORS.background,
-                      borderRadius: '10px',
-                      textAlign: 'center'
-                    }}>
-                      <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.info }}>
-                        {driver.stats.active_orders}
-                      </div>
-                      <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>משלוחים פעילים</div>
-                    </div>
-                    <div style={{
-                      flex: 1,
-                      padding: '10px',
-                      background: ROYAL_COLORS.background,
-                      borderRadius: '10px',
-                      textAlign: 'center'
-                    }}>
-                      <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.gold }}>
-                        {driver.profile.rating.toFixed(1)}⭐
-                      </div>
-                      <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>דירוג</div>
-                    </div>
-                    <div style={{
-                      flex: 1,
-                      padding: '10px',
-                      background: ROYAL_COLORS.background,
-                      borderRadius: '10px',
-                      textAlign: 'center'
-                    }}>
-                      <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.success }}>
-                        {driver.stats.completed_today}
-                      </div>
-                      <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>היום</div>
-                    </div>
+                  <div style={{
+                    padding: '6px 12px',
+                    background: driver.is_online ? `${ROYAL_COLORS.success}20` : `${ROYAL_COLORS.error}20`,
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: driver.is_online ? ROYAL_COLORS.success : ROYAL_COLORS.error
+                  }}>
+                    {driver.is_online ? '🟢 Online' : '⚫ Offline'}
                   </div>
-
-                  {driver.user?.phone && (
-                    <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      📞 {driver.user.phone}
-                    </div>
-                  )}
                 </div>
-              ))
-            )}
-          </div>
 
-          {selectedDriver && (
-            <DriverDetailPanel
-              driver={selectedDriver}
-              onClose={() => setSelectedDriver(null)}
-              onUpdate={loadDrivers}
-              dataStore={dataStore}
-              driverService={driverService}
-            />
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+                  <div style={{
+                    flex: 1,
+                    padding: '10px',
+                    background: ROYAL_COLORS.background,
+                    borderRadius: '10px',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.info }}>
+                      {driver.active_orders || 0}
+                    </div>
+                    <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>Active</div>
+                  </div>
+                  <div style={{
+                    flex: 1,
+                    padding: '10px',
+                    background: ROYAL_COLORS.background,
+                    borderRadius: '10px',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.gold }}>
+                      {(driver.rating || 5.0).toFixed(1)}⭐
+                    </div>
+                    <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>Rating</div>
+                  </div>
+                  <div style={{
+                    flex: 1,
+                    padding: '10px',
+                    background: ROYAL_COLORS.background,
+                    borderRadius: '10px',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.success }}>
+                      {driver.completed_today || 0}
+                    </div>
+                    <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>Today</div>
+                  </div>
+                </div>
+
+                {driver.phone && (
+                  <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    📞 {driver.phone}
+                  </div>
+                )}
+              </div>
+            ))
           )}
         </div>
       )}
 
       {viewMode === 'map' && (
-        <DriverMapView
-          drivers={filteredDrivers}
-          onDriverSelect={setSelectedDriver}
-          selectedDriver={selectedDriver}
-        />
+        <div style={{ ...ROYAL_STYLES.card, padding: '40px', textAlign: 'center' }}>
+          <div style={{ fontSize: '64px', marginBottom: '16px' }}>🗺️</div>
+          <div style={{ fontSize: '18px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '8px' }}>
+            Map View
+          </div>
+          <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+            Map view coming soon
+          </div>
+        </div>
       )}
 
       {viewMode === 'analytics' && (
-        <DriverPerformanceChart
-          drivers={filteredDrivers}
-        />
+        <div style={{ ...ROYAL_STYLES.card, padding: '40px', textAlign: 'center' }}>
+          <div style={{ fontSize: '64px', marginBottom: '16px' }}>📊</div>
+          <div style={{ fontSize: '18px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '8px' }}>
+            Analytics View
+          </div>
+          <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+            Analytics view coming soon
+          </div>
+        </div>
       )}
     </div>
   );

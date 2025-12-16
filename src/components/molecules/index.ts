@@ -10,5 +10,6 @@ export * from './Modal';
 export * from './NavigationTab';
 export * from './ProductCard';
 export * from './SearchBar';
+export * from './SettingsCard';
 export * from './Toast';
 export * from './VisibilityToggle';
