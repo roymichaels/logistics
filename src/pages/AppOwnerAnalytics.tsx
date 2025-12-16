@@ -14,7 +14,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { telegram } from '../lib/telegram';
+
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
@@ -44,7 +44,7 @@ export function AppOwnerAnalytics({ onNavigate, currentUser, dataStore }: AppOwn
   const isAppOwner = currentUser?.role === 'app_owner';
 
   useEffect(() => {
-    telegram.setBackButton(() => onNavigate('dashboard'));
+
     return () => telegram.hideBackButton();
   }, [onNavigate]);
 
@@ -78,7 +78,7 @@ export function AppOwnerAnalytics({ onNavigate, currentUser, dataStore }: AppOwn
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    telegram.hapticFeedback('impact', 'light');
+
     await loadStats();
     setRefreshing(false);
     Toast.success('נתונים עודכנו בהצלחה');
@@ -378,7 +378,7 @@ function QuickActionButton({ icon, label, onClick }: { icon: string; label: stri
   return (
     <button
       onClick={() => {
-        telegram.hapticFeedback('selection');
+
         onClick();
       }}
       style={{

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { telegram } from '../lib/telegram';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { DataStore, Channel, User } from '../data/types';
 import { hebrew } from '../lib/i18n';
 import { GroupChannelCreateModal } from '../components/GroupChannelCreateModal';
@@ -21,7 +20,6 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
   const [loading, setLoading] = useState(true);
   const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
-  const { theme, haptic, backButton } = useTelegramUI();
 
   const canCreateChannel = currentUser && hasPermission(currentUser, 'channels:create');
 

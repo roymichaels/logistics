@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { telegram } from '../lib/telegram';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { DataStore, User, Order } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { formatCurrency } from '../lib/i18n';
@@ -29,7 +28,6 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
   const [dateRange, setDateRange] = useState<'day' | 'week' | 'month' | 'year'>('week');
   const [loading, setLoading] = useState(true);
   const [reportData, setReportData] = useState<ReportData | null>(null);
-  const { theme, haptic, backButton } = useTelegramUI();
 
   useEffect(() => {
     loadData();

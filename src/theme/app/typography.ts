@@ -1,4 +1,4 @@
-export const txTypography = {
+export const appTypography = {
   font: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   size: {
     xs: '12px',

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { logger } from '../lib/logger';
 import { useI18n } from '../lib/i18n';
 import {
@@ -27,7 +27,7 @@ interface ProductSummary {
 }
 
 export function ManagerInventory({ dataStore }: ManagerInventoryProps) {
-  const { theme, backButton } = useTelegramUI();
+
   const { translations, isRTL } = useI18n();
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<ProductSummary[]>([]);

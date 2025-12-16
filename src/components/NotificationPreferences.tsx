@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { NotificationPreferences, NotificationService, NotificationType } from '../lib/notificationService';
 import { logger } from '../lib/logger';
 
@@ -17,7 +17,6 @@ export function NotificationPreferencesComponent({
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
   const [hasPermission, setHasPermission] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { theme, haptic } = useTelegramUI();
 
   useEffect(() => {
     loadPreferences();

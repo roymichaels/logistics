@@ -4,7 +4,7 @@ import { DriverApplicationForm } from '../components/DriverApplicationForm';
 import { DriverOrderMarketplace } from '../components/DriverOrderMarketplace';
 import { DriverEarningsDashboard } from '../components/DriverEarningsDashboard';
 import { Toast } from '../components/Toast';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { logger } from '../lib/logger';
 
 interface DriverProfile {
@@ -27,7 +27,7 @@ interface FreelancerDriverDashboardProps {
 }
 
 export function FreelancerDriverDashboard({ dataStore, onNavigate }: FreelancerDriverDashboardProps) {
-  const { theme, haptic, mainButton } = useTelegramUI();
+
   const [user, setUser] = useState<User | null>(null);
   const [driverProfile, setDriverProfile] = useState<DriverProfile | null>(null);
   const [loading, setLoading] = useState(true);

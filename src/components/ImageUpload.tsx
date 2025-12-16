@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
 
 interface ImageUploadProps {
   onUpload: (file: File) => void;
@@ -19,7 +18,7 @@ export function ImageUpload({
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
-  const { theme, haptic } = useTelegramUI();
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = (files: FileList) => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { telegram } from '../lib/telegram';
+
 import { logger } from '../lib/logger';
 
 interface AppErrorBoundaryProps {
@@ -43,7 +43,7 @@ export class AppErrorBoundary extends React.Component<AppErrorBoundaryProps, App
         return this.props.fallback;
       }
 
-      const theme = telegram.themeParams;
+      const theme = 
 
       return (
         <div style={{

@@ -1,14 +1,14 @@
-import { telegramXTokens } from '../theme/telegramx/tokens';
+import { appTokens } from '../theme/app/tokens';
 
-export function createTelegramPadding() {
+export function createStandardPadding() {
   return {
     padding: '8px 10px',
   };
 }
 
-export function createTwitterCardPadding() {
+export function createCardPadding() {
   return {
-    padding: `${telegramXTokens.spacing.sm} ${telegramXTokens.spacing.md}`,
+    padding: `${appTokens.spacing.sm} ${appTokens.spacing.md}`,
   };
 }
 

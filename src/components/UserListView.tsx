@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { roleNames, roleIcons } from '../lib/i18n';
 import type { User } from '../data/types';
@@ -28,7 +28,6 @@ export function UserListView({
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const { theme, haptic } = useTelegramUI();
 
   const filteredUsers = useMemo(() => {
     let filtered = users;

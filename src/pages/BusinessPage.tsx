@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore } from '../data/types';
 import { logger } from '../lib/logger';
-import { telegram } from '../lib/telegram';
 
 interface BusinessPageProps {
   dataStore: DataStore;
@@ -74,16 +73,16 @@ export function BusinessPage({ dataStore, businessId, slug, onNavigate }: Busine
 
   const handleContactClick = () => {
     if (pageData?.page.whatsapp_number) {
-      telegram.openLink(`https://wa.me/${pageData.page.whatsapp_number}`);
+
     } else if (pageData?.page.display_phone) {
-      telegram.openLink(`tel:${pageData.page.display_phone}`);
+
     }
   };
 
   const handleDirectionsClick = () => {
     if (pageData?.page.latitude && pageData?.page.longitude) {
       const url = `https://maps.google.com/?q=${pageData.page.latitude},${pageData.page.longitude}`;
-      telegram.openLink(url);
+
     }
   };
 

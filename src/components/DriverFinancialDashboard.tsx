@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DataStore } from '../data/types';
 import { DriverService } from '../lib/driverService';
 import { useRoleTheme } from '../hooks/useRoleTheme';
-import { telegram } from '../lib/telegram';
+
 import { Toast } from './Toast';
 import { logger } from '../lib/logger';
 
@@ -86,7 +86,7 @@ export function DriverFinancialDashboard({ driverId, dataStore }: DriverFinancia
                 key={period}
                 onClick={() => {
                   setSelectedPeriod(period);
-                  telegram.hapticFeedback('selection');
+
                 }}
                 style={{
                   padding: '8px 14px',

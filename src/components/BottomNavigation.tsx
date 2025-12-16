@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { useI18n } from '../lib/i18n';
 import { useAppServices } from '../context/AppServicesContext';
 import { colors, spacing, navigation } from '../styles/design-system';
@@ -69,7 +69,7 @@ export function BottomNavigation({
   onShowCreateUser,
   onShowCreateProduct
 }: BottomNavigationProps) {
-  const { theme, haptic } = useTelegramUI();
+
   const { currentBusinessId } = useAppServices();
   const { translations } = useI18n();
   const authCtx = useAuth();

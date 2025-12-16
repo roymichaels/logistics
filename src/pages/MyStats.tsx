@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { DataStore, User } from '../data/types';
 import { logger } from '../lib/logger';
 
@@ -10,7 +10,7 @@ interface MyStatsProps {
 }
 
 export function MyStats({ dataStore }: MyStatsProps) {
-  const { theme, backButton } = useTelegramUI();
+
   const [user, setUser] = useState<User | null>(null);
   const accentColor = theme.button_color || '#007aff';
   const subtleBackground = theme.secondary_bg_color || '#f4f4f4';

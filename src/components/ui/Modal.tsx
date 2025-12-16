@@ -1,5 +1,5 @@
 import React from 'react';
-import { telegramXTokens } from '../../theme/telegramx/tokens';
+import { appTokens } from '../../theme/app/tokens';
 import { useTheme } from '../../theme/tokens';
 
 export type ModalProps = {
@@ -11,7 +11,7 @@ export type ModalProps = {
 
 export const Modal: React.FC<ModalProps> = ({ children, bottomSheet = false, tx = false, onClose }) => {
   const base = useTheme();
-  const t = tx ? telegramXTokens : base;
+  const t = tx ? appTokens : base;
 
   if (!bottomSheet) {
     return (

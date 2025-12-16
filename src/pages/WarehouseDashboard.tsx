@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { logger } from '../lib/logger';
 import {
   DataStore,
@@ -26,7 +26,7 @@ interface LocationSummary {
 }
 
 export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
-  const { theme, backButton } = useTelegramUI();
+
   const [loading, setLoading] = useState(true);
   const [locations, setLocations] = useState<LocationSummary[]>([]);
   const [restockRequests, setRestockRequests] = useState<RestockRequest[]>([]);

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { DataStore, User } from '../data/types';
 import { formatCurrency, hebrew } from '../lib/i18n';
 import { Toast } from './Toast';
-import { telegram } from '../lib/telegram';
+
 import { colors, commonStyles } from '../styles/design-system';
 import { ROYAL_STYLES, ROYAL_COLORS } from '../styles/royalTheme';
 import { FinancialDashboard } from './FinancialDashboard';
@@ -364,7 +364,7 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
         <button
           onClick={() => {
             loadSystemMetrics();
-            telegram.hapticFeedback('soft');
+
           }}
           style={{
             padding: '10px 16px',
@@ -406,7 +406,7 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
             key={view.id}
             onClick={() => {
               setSelectedView(view.id as any);
-              telegram.hapticFeedback('selection');
+
             }}
             style={{
               padding: '12px 20px',
@@ -538,7 +538,7 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
             <button
               onClick={() => {
                 setShowCreateBusinessModal(true);
-                telegram.hapticFeedback('selection');
+
               }}
               style={{
                 padding: '16px 24px',
@@ -856,7 +856,7 @@ function ActionButton({ label, icon, onClick, colors }: {
     <button
       onClick={() => {
         onClick();
-        telegram.hapticFeedback('selection');
+
       }}
       style={{
         padding: '18px 20px',

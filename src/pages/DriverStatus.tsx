@@ -6,7 +6,7 @@ import {
   DriverZoneAssignment,
   Zone
 } from '../data/types';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { Toast } from '../components/Toast';
 import { useI18n } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
@@ -17,9 +17,8 @@ interface DriverStatusProps {
   onNavigate: (page: string) => void;
 }
 
-
 export function DriverStatus({ dataStore }: DriverStatusProps) {
-  const { theme, backButton, haptic } = useTelegramUI();
+
   const { translations, isRTL } = useI18n();
 
   const statusLabels: Record<DriverAvailabilityStatus, string> = {

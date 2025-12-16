@@ -1,5 +1,5 @@
 import React from 'react';
-import { telegram } from '../../lib/telegram';
+
 import { ROYAL_COLORS, ROYAL_STYLES } from '../../styles/royalTheme';
 
 interface ModeSelectorModalProps {
@@ -59,7 +59,7 @@ export function ModeSelectorModal({ isOpen, onClose, onSelectMode }: ModeSelecto
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <button
             onClick={() => {
-              telegram.hapticFeedback('impact', 'medium');
+
               onSelectMode();
               onClose();
             }}
@@ -93,7 +93,7 @@ export function ModeSelectorModal({ isOpen, onClose, onSelectMode }: ModeSelecto
 
           <button
             onClick={() => {
-              telegram.hapticFeedback('impact', 'medium');
+
               onSelectMode();
               onClose();
             }}
@@ -126,7 +126,7 @@ export function ModeSelectorModal({ isOpen, onClose, onSelectMode }: ModeSelecto
 
           <button
             onClick={() => {
-              telegram.hapticFeedback('selection');
+
               onClose();
             }}
             style={{

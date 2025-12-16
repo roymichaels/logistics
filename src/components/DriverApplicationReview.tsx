@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { DataStore } from '../data/types';
 import { Toast } from './Toast';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { logger } from '../lib/logger';
 
 interface DriverApplication {
@@ -19,7 +19,7 @@ interface DriverApplicationReviewProps {
 }
 
 export function DriverApplicationReview({ dataStore }: DriverApplicationReviewProps) {
-  const { theme, haptic } = useTelegramUI();
+
   const [applications, setApplications] = useState<DriverApplication[]>([]);
   const [selectedApp, setSelectedApp] = useState<DriverApplication | null>(null);
   const [loading, setLoading] = useState(true);

@@ -11,7 +11,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { telegram } from '../lib/telegram';
+
 import type { DataStore, Order, User, Zone, DriverStatusRecord } from '../data/types';
 import { hasPermission } from '../lib/rolePermissions';
 import { Toast } from './Toast';
@@ -64,7 +64,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
     priority: 'all',
   });
 
-  const theme = telegram.themeParams;
+  const theme = 
   const canAssignOrders = hasPermission(user, 'orders:assign_driver');
   const canUpdateOrders = hasPermission(user, 'orders:update');
 
@@ -376,7 +376,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
               <button
                 key={status.value}
                 onClick={() => {
-                  telegram.hapticFeedback('selection');
+
                   setFilters({ ...filters, status: status.value as any });
                 }}
                 style={{

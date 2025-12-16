@@ -3,7 +3,7 @@ import { DataStore, User } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { formatCurrency, hebrew } from '../lib/i18n';
 import { Toast } from './Toast';
-import { telegram } from '../lib/telegram';
+
 import { logger } from '../lib/logger';
 
 interface FinancialDashboardProps {
@@ -187,7 +187,7 @@ export function FinancialDashboard({ dataStore, user, businessId, onNavigate }: 
       }
 
       Toast.success('דוח כספי יוצא בהצלחה');
-      telegram.hapticFeedback('success');
+
     } catch (error) {
       logger.error('Failed to export financial report:', error);
       Toast.error('שגיאה בייצוא דוח כספי');
@@ -231,7 +231,7 @@ export function FinancialDashboard({ dataStore, user, businessId, onNavigate }: 
             key={range}
             onClick={() => {
               setTimeRange(range as any);
-              telegram.hapticFeedback('selection');
+
             }}
             style={{
               padding: '8px 16px',

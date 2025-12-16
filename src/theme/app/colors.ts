@@ -1,10 +1,10 @@
-export const txColors = {
+export const appColors = {
   background: '#0f1218',
   backgroundAlt: '#161b24',
   surface: '#131927',
   card: '#1a2132',
-  primary: '#1d9bf0', // Twitter blue
-  accent: '#6c5ce7', // subtle violet accent
+  primary: '#1d9bf0',
+  accent: '#6c5ce7',
   success: '#2ecc71',
   warning: '#f1c40f',
   danger: '#e74c3c',

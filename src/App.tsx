@@ -21,7 +21,6 @@ import { useAppServices } from './context/AppServicesContext';
 import { useAuth } from './context/AuthContext';
 import { offlineStore } from './utils/offlineStore';
 import { platformDetection } from './lib/platformDetection';
-import { telegram } from './lib/telegram';
 import {
   isCircuitBreakerActive,
   getAuthLoopDiagnostics,
@@ -99,9 +98,7 @@ export default function App() {
   const [showLandingPage, setShowLandingPage] = useState(() => {
     // Check if user has visited before
     const hasVisited = localStorage.getItem('hasVisitedBefore');
-    const platform = platformDetection.detect();
-    // Skip landing page for Telegram users (auto-auth)
-    return !hasVisited && !platform.isTelegram;
+    return !hasVisited;
   });
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingPathway, setOnboardingPathway] = useState<'business_owner' | 'team_member' | null>(null);
@@ -112,7 +109,6 @@ export default function App() {
   // Derived state for login status
   const isLoggedIn = user !== null;
 
-  const theme = telegram.themeParams;
   const navigate = useNavigate();
   const location = useLocation();
 

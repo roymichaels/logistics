@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import { useRoleTheme } from '../hooks/useRoleTheme';
-import { telegram } from '../lib/telegram';
 
 interface DriverWithDetails {
   profile: any;
@@ -114,7 +113,7 @@ export function DriverPerformanceChart({ drivers }: DriverPerformanceChartProps)
               key={metric.key}
               onClick={() => {
                 setSelectedMetric(metric.key);
-                telegram.hapticFeedback('selection');
+
               }}
               style={{
                 padding: '10px 16px',

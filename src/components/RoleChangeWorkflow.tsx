@@ -10,9 +10,9 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { telegram } from '../lib/telegram';
+
 import type { User, UserRegistration } from '../data/types';
-import { TelegramModal } from './TelegramModal';
+
 import { Toast } from './Toast';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import {
@@ -129,7 +129,6 @@ export function RoleChangeWorkflow({
         logger.warn('Failed to log audit trail:', auditError);
       }
 
-      telegram.hapticFeedback('notification', 'success');
       Toast.success(`תפקיד עודכן בהצלחה ל${roleNames[selectedRole]}`);
       onSuccess();
     } catch (error) {
@@ -219,7 +218,7 @@ export function RoleChangeWorkflow({
                 key={role}
                 onClick={() => {
                   if (!isDisabled) {
-                    telegram.hapticFeedback('selection');
+
                     setSelectedRole(typedRole);
                   }
                 }}
@@ -425,56 +424,7 @@ export function RoleChangeWorkflow({
       </div>
 
       {/* Confirmation Modal */}
-      <TelegramModal
-        isOpen={showConfirmation}
-        onClose={() => setShowConfirmation(false)}
-        title="אישור שינוי תפקיד"
-        primaryButton={{
-          text: 'כן, שנה תפקיד',
-          onClick: confirmRoleChange,
-        }}
-        secondaryButton={{
-          text: 'ביטול',
-          onClick: () => setShowConfirmation(false),
-        }}
-      >
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
-          <p style={{ fontSize: '16px', color: ROYAL_COLORS.text, marginBottom: '8px' }}>
-            האם אתה בטוח שברצונך לשנות את תפקיד {userName}
-          </p>
-          <p style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '16px' }}>
-            מ<strong>{roleNames[currentRole]}</strong> ל<strong>{roleNames[selectedRole]}</strong>?
-          </p>
-
-          <div
-            style={{
-              padding: '12px',
-              background: ROYAL_COLORS.secondary,
-              borderRadius: '8px',
-              textAlign: 'right',
-            }}
-          >
-            <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>סיבה:</div>
-            <div style={{ fontSize: '14px', color: ROYAL_COLORS.text }}>{reason}</div>
-          </div>
-
-          {requiresApproval && (
-            <div
-              style={{
-                marginTop: '12px',
-                padding: '10px',
-                background: ROYAL_COLORS.warning + '10',
-                borderRadius: '8px',
-                fontSize: '13px',
-                color: ROYAL_COLORS.warning,
-              }}
-            >
-              שינוי זה ידרוש אישור נוסף מבעל הפלטפורמה
-            </div>
-          )}
-        </div>
-      </TelegramModal>
+      
     </div>
   );
 }

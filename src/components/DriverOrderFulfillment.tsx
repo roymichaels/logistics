@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Order, DataStore, User } from '../data/types';
 import { ORDER_STATUS_COLORS } from '../styles/orderTheme';
 import { Toast } from './Toast';
-import { telegram } from '../lib/telegram';
+
 import { deliverOrder } from '../services/inventory';
 import { logger } from '../lib/logger';
 
@@ -88,7 +88,7 @@ export function DriverOrderFulfillment({
   const handleStartDelivery = async (order: OrderWithDistance) => {
     try {
       await dataStore.updateOrder?.(order.id, { status: 'out_for_delivery' });
-      telegram.hapticFeedback('notification', 'success');
+
       Toast.success('משלוח התחיל!');
       await loadOrders();
     } catch (error) {
@@ -114,7 +114,6 @@ export function DriverOrderFulfillment({
         throw new Error('המערכת לא הצליחה לעדכן את המשלוח');
       }
 
-      telegram.hapticFeedback('notification', 'success');
       Toast.success('משלוח הושלם בהצלחה! 🎉');
 
       setSelectedOrder(null);
@@ -154,12 +153,12 @@ export function DriverOrderFulfillment({
     const encodedAddress = encodeURIComponent(address);
     const url = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
     window.open(url, '_blank');
-    telegram.hapticFeedback('impact', 'medium');
+
   };
 
   const callCustomer = (phone: string) => {
     window.location.href = `tel:${phone}`;
-    telegram.hapticFeedback('selection');
+
   };
 
   if (loading) {

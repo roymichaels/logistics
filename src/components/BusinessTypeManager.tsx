@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, BusinessType } from '../data/types';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { logger } from '../lib/logger';
 
 interface BusinessTypeManagerProps {
@@ -20,7 +20,6 @@ export function BusinessTypeManager({ dataStore, onClose }: BusinessTypeManagerP
     icon: '🏢',
     description: ''
   });
-  const { theme, haptic } = useTelegramUI();
 
   useEffect(() => {
     loadBusinessTypes();

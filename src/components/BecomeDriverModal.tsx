@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { Toast } from './Toast';
-import { telegram } from '../lib/telegram';
+
 import { getSupabase } from '../lib/supabaseClient';
 import { logger } from '../lib/logger';
 
@@ -75,7 +75,6 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
 
     try {
       setSubmitting(true);
-      telegram.hapticFeedback('impact', 'medium');
 
       const supabase = await getSupabase();
       const { data: { user } } = await supabase.auth.getUser();
@@ -134,7 +133,6 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
       logger.info('✅ Driver profile created successfully');
 
       Toast.success('הבקשה נשלחה בהצלחה! נציג יצור איתך קשר בקרוב');
-      telegram.hapticFeedback('notification', 'success');
 
       if (onSuccess) {
         onSuccess();
@@ -145,7 +143,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
       logger.error('❌ Failed to submit driver application:', error);
       const errorMessage = error instanceof Error ? error.message : 'שגיאה בשליחת הבקשה';
       Toast.error(errorMessage + '. נסה שוב מאוחר יותר');
-      telegram.hapticFeedback('notification', 'error');
+
     } finally {
       setSubmitting(false);
     }

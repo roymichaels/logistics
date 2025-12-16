@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { HebrewOrderParser, parseHebrewOrder, ParsingResult, ParsedOrder } from '../lib/orderTextParser';
 import { DataStore } from '../data/types';
 import { useAppServices } from '../context/AppServicesContext';
@@ -24,7 +24,7 @@ export function OrderCreationWizard({
   const [isProcessing, setIsProcessing] = useState(false);
   const [editedOrder, setEditedOrder] = useState<ParsedOrder | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { theme, haptic } = useTelegramUI();
+
   const { currentBusinessId } = useAppServices();
   const businessId = currentBusinessId ?? undefined;
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { DataStore, User } from '../data/types';
 import { hebrew } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { telegram } from '../lib/telegram';
+
 import { CreateBusinessModal } from '../components/CreateBusinessModal';
 import { AddEquityStakeholderModal } from '../components/AddEquityStakeholderModal';
 import { ProfitDistributionModal } from '../components/ProfitDistributionModal';
@@ -335,7 +335,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
             onClick={() => {
               logger.info('✅ Create Business button clicked');
               setShowCreateModal(true);
-              telegram.hapticFeedback('selection');
+
             }}
             style={{
               ...ROYAL_STYLES.buttonPrimary,
@@ -430,7 +430,7 @@ function OwnershipCard({ ownership, onNavigate }: {
 }) {
   return (
     <div
-      onClick={() => telegram.hapticFeedback('selection')}
+      onClick={() => }
       style={{
         ...ROYAL_STYLES.card,
         cursor: 'pointer',
@@ -570,7 +570,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
       <div
         onClick={() => {
           setExpanded(!expanded);
-          telegram.hapticFeedback('selection');
+
         }}
         style={{ cursor: 'pointer' }}
       >
@@ -625,7 +625,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
               onClick={(e) => {
                 e.stopPropagation();
                 setActiveTab('equity');
-                telegram.hapticFeedback('selection');
+
               }}
               style={{
                 flex: 1,
@@ -645,7 +645,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
               onClick={(e) => {
                 e.stopPropagation();
                 setActiveTab('legacy');
-                telegram.hapticFeedback('selection');
+
               }}
               style={{
                 flex: 1,
@@ -817,7 +817,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowAddEquity(true);
-                      telegram.hapticFeedback('selection');
+
                     }}
                     disabled={availableEquity <= 0}
                     style={{
@@ -833,7 +833,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowDistribution(true);
-                      telegram.hapticFeedback('selection');
+
                     }}
                     disabled={equityStakeholders.length === 0}
                     style={{
@@ -850,7 +850,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowSettings(true);
-                    telegram.hapticFeedback('selection');
+
                   }}
                   style={{
                     ...ROYAL_STYLES.buttonSecondary,
@@ -910,7 +910,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                telegram.showAlert('הוספת בעלים תהיה זמינה בקרוב');
+
               }}
               style={{
                 ...ROYAL_STYLES.buttonSecondary,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTheme } from '../../theme/tokens';
-import { telegramXTokens } from '../../theme/telegramx/tokens';
+import { appTokens } from '../../theme/app/tokens';
 
 export type CardProps = {
   children?: React.ReactNode;
@@ -13,7 +13,7 @@ export type CardProps = {
 
 export const Card: React.FC<CardProps> = ({ children, tx = false, clickable = false, style, className, ...rest }) => {
   const base = useTheme();
-  const t = tx ? telegramXTokens : base;
+  const t = tx ? appTokens : base;
   const Element: any = rest.as || (rest.href ? 'a' : rest.asElement || 'div');
 
   return (

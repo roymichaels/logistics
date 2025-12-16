@@ -1,31 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import UnifiedShellRouter from './UnifiedShellRouter';
-import {
-  resolveProfilePage,
-  resolveCatalogPage,
-  resolveKYCRoute,
-  resolveBusinessDashboard,
-  resolveDriverHome,
-  resolveHeader,
-  resolveModal,
-  resolveDrawer,
-  resolveStoreShell,
-  resolveBusinessShell,
-  resolveDriverShell,
-  resolveUserMenuPopover,
-  resolveBusinessContextPopover,
-  resolveStoreAvatarPopover,
-  resolveCreateBusinessModal,
-  resolveDriverAssignmentModal,
-  resolveTelegramModal,
-  resolveProfitDistributionModal,
-  resolveRoleSelectionModal,
-  resolveNotificationPreferencesModal,
-  resolveCartDrawer,
-  resolveAddProductDrawer,
-  resolveProductDetailPage
-} from './switchboard';
+
 import { usePageTitle } from '../hooks/usePageTitle';
 import { useAppServices } from '../context/AppServicesContext';
 import { useAuth } from '../context/AuthContext';

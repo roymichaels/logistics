@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, InventoryLog } from '../data/types';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { useI18n } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
@@ -12,7 +12,7 @@ interface IncomingProps {
 }
 
 export function Incoming({ dataStore, onNavigate }: IncomingProps) {
-  const { theme } = useTelegramUI();
+
   const { translations } = useI18n();
   const [logs, setLogs] = useState<InventoryLog[]>([]);
   const [loading, setLoading] = useState(true);

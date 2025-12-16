@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { useRoleTheme } from '../hooks/useRoleTheme';
 import {
   DataStore,
@@ -9,7 +9,7 @@ import {
 } from '../data/types';
 import { Toast } from '../components/Toast';
 import { DispatchOrchestrator, ZoneCoverageResult } from '../lib/dispatchOrchestrator';
-import { telegram } from '../lib/telegram';
+
 import { logger } from '../lib/logger';
 
 interface DispatchBoardProps {
@@ -20,7 +20,7 @@ interface DispatchBoardProps {
 type OrderStatus = 'pending' | 'assigned' | 'in_progress' | 'completed';
 
 export function DispatchBoard({ dataStore }: DispatchBoardProps) {
-  const { theme, backButton, haptic } = useTelegramUI();
+
   const { colors, styles } = useRoleTheme();
   const [zones, setZones] = useState<ZoneCoverageSnapshot[]>([]);
   const [unassignedDrivers, setUnassignedDrivers] = useState<DriverStatusRecord[]>([]);
@@ -160,7 +160,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
   const handleAssignDriver = async (orderId: string, driverId: string) => {
     try {
       await dataStore.updateOrder?.(orderId, { assigned_driver: driverId });
-      telegram.hapticFeedback('notification', 'success');
+
       Toast.success(translations.dispatchBoardPage.driverAssignedSuccessfully);
       setSelectedOrder(null);
       setShowDriverSelector(false);
@@ -230,7 +230,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           <button
             onClick={() => {
               setViewMode(viewMode === 'kanban' ? 'list' : 'kanban');
-              telegram.hapticFeedback('selection');
+
             }}
             style={{
               padding: '10px 16px',

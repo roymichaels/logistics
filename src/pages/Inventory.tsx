@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { useInventory, useLowStockItems, useAdjustStock } from '../application/use-cases';
 import { useCatalog } from '../application/use-cases';
 import { useApp } from '../application/services/useApp';
@@ -26,7 +26,7 @@ interface AggregatedInventory {
 }
 
 export function Inventory({ onNavigate }: InventoryProps) {
-  const { theme, backButton, haptic } = useTelegramUI();
+
   const { theme: themeConfig } = useTheme();
   const app = useApp();
 

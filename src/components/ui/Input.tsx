@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTheme } from '../../theme/tokens';
-import { telegramXTokens } from '../../theme/telegramx/tokens';
+import { appTokens } from '../../theme/app/tokens';
 
 export type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   tx?: boolean;
@@ -9,7 +9,7 @@ export type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
 
 export const Input: React.FC<InputProps> = ({ tx = false, label, style, children, ...rest }) => {
   const base = useTheme();
-  const t = tx ? telegramXTokens : base;
+  const t = tx ? appTokens : base;
 
   return (
     <label style={{ display: 'block', width: '100%' }}>

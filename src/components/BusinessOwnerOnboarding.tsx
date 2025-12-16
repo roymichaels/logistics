@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, BusinessType } from '../data/types';
 import { ROYAL_COLORS } from '../styles/royalTheme';
-import { telegram } from '../lib/telegram';
+
 import { Toast } from './Toast';
 import { waitForSupabaseInit } from '../lib/supabaseClient';
 import { useSupabaseReady } from '../context/SupabaseReadyContext';
@@ -147,7 +147,6 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
   };
 
   const handleNext = () => {
-    telegram.hapticFeedback('impact', 'light');
 
     if (currentStep === 'business_details') {
       if (!validateStep('business_details')) {
@@ -161,7 +160,6 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
   };
 
   const handleBack = () => {
-    telegram.hapticFeedback('impact', 'light');
 
     if (currentStep === 'business_details') {
       onBack();
@@ -173,7 +171,6 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
   const handleCreateBusiness = async () => {
     try {
       setCurrentStep('completing');
-      telegram.hapticFeedback('impact', 'medium');
 
       logger.info('🔄 Creating business with data:', {
         name: businessName,
@@ -209,7 +206,6 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
       // Clear the draft from localStorage
       localStorage.removeItem('business_onboarding_draft');
 
-      telegram.hapticFeedback('notification', 'success');
       Toast.success('העסק נוצר בהצלחה! מעביר אותך לתפקיד בעל העסק...');
 
       // Wait for the UI to show success message
@@ -249,7 +245,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
       }
 
       Toast.error(errorMessage);
-      telegram.hapticFeedback('notification', 'error');
+
       setCurrentStep('branding');
     }
   };
@@ -257,7 +253,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
   const selectColor = (color: { primary: string; secondary: string }) => {
     setPrimaryColor(color.primary);
     setSecondaryColor(color.secondary);
-    telegram.hapticFeedback('impact', 'light');
+
   };
 
   const getStepTitle = () => {
@@ -402,7 +398,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                       key={type.id}
                       onClick={() => {
                         setSelectedType(type.type_value);
-                        telegram.hapticFeedback('impact', 'light');
+
                       }}
                       style={{
                         padding: '20px',

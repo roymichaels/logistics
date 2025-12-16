@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ImageUpload } from './ImageUpload';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { Task } from '../data/types';
 import { logger } from '../lib/logger';
 
@@ -27,7 +27,6 @@ export function TaskProofSubmission({ task, onSubmit, onCancel }: TaskProofSubmi
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const { theme, haptic } = useTelegramUI();
 
   React.useEffect(() => {
     // Get current location

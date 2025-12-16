@@ -1,4 +1,4 @@
-export const txMotion = {
+export const appMotion = {
   fast: '120ms ease-out',
   base: '180ms ease',
   slow: '260ms ease',

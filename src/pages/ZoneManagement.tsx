@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, Zone, User } from '../data/types';
 import { Toast } from '../components/Toast';
-import { telegram } from '../lib/telegram';
-import { TelegramModal } from '../components/TelegramModal';
+
 import { ZoneManager } from '../components/ZoneManager';
 import { logger } from '../lib/logger';
 import { useI18n } from '../lib/i18n';
@@ -100,7 +99,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
     }
 
     try {
-      telegram.hapticFeedback('medium');
+
       await dataStore.assignDriverToZone(selectedDriverId, selectedZone.id);
       Toast.success(translations.zoneManagementPage.driverAssignedSuccessfully);
       setShowAssignModal(false);
@@ -116,7 +115,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
     if (!dataStore.unassignDriverFromZone) return;
 
     try {
-      telegram.hapticFeedback('medium');
+
       await dataStore.unassignDriverFromZone(driverTelegramId, zoneId);
       Toast.success(translations.zoneManagementPage.driverRemovedSuccessfully);
       await loadData();
@@ -179,7 +178,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
           <button
             onClick={() => {
               setViewMode('manager');
-              telegram.hapticFeedback('selection');
+
             }}
             style={{
               flex: 1,
@@ -199,7 +198,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
           <button
             onClick={() => {
               setViewMode('assignments');
-              telegram.hapticFeedback('selection');
+
             }}
             style={{
               flex: 1,
@@ -248,7 +247,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                   onClick={() => {
                     setSelectedZone(zone);
                     setShowAssignModal(true);
-                    telegram.hapticFeedback('selection');
+
                   }}
                   style={{
                     padding: '12px 20px',
@@ -319,10 +318,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                       </div>
                       <button
                         onClick={() => {
-                          telegram.hapticFeedback('selection');
-                          telegram.showConfirm(translations.zoneManagementPage.confirmRemoveDriver).then((confirmed) => {
-                            if (confirmed) {
-                              handleUnassignDriver(zone.id, driver.telegram_id);
+
                             }
                           });
                         }}
@@ -348,93 +344,6 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
         </div>
       </div>
 
-      <TelegramModal
-        isOpen={showAssignModal}
-        onClose={() => {
-          setShowAssignModal(false);
-          setSelectedDriverId('');
-        }}
-        title={`${translations.zoneManagementPage.assignDriverToZone}${selectedZone?.name || ''}`}
-        primaryButton={{
-          text: translations.zoneManagementPage.assign,
-          onClick: handleAssignDriver,
-          disabled: !selectedDriverId
-        }}
-        secondaryButton={{
-          text: translations.zoneManagementPage.cancel,
-          onClick: () => {
-            setShowAssignModal(false);
-            setSelectedDriverId('');
-          }
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {availableDriversForZone.length === 0 ? (
-            <div
-              style={{
-                padding: '20px',
-                textAlign: 'center',
-                color: ROYAL_COLORS.muted,
-                background: 'rgba(20, 8, 46, 0.4)',
-                borderRadius: '12px'
-              }}
-            >
-              {translations.zoneManagementPage.allDriversAssigned}
-            </div>
-          ) : (
-            availableDriversForZone.map((driver) => (
-              <button
-                key={driver.telegram_id}
-                onClick={() => {
-                  setSelectedDriverId(driver.telegram_id);
-                  telegram.hapticFeedback('selection');
-                }}
-                style={{
-                  padding: '16px',
-                  background:
-                    selectedDriverId === driver.telegram_id
-                      ? 'rgba(29, 155, 240, 0.3)'
-                      : 'rgba(20, 8, 46, 0.6)',
-                  border: `2px solid ${
-                    selectedDriverId === driver.telegram_id
-                      ? ROYAL_COLORS.accent
-                      : 'rgba(29, 155, 240, 0.2)'
-                  }`,
-                  borderRadius: '12px',
-                  color: ROYAL_COLORS.text,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  textAlign: 'right'
-                }}
-              >
-                <div
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '12px',
-                    background: 'linear-gradient(130deg, rgba(246, 201, 69, 0.7), rgba(29, 155, 240, 0.7))',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '18px',
-                    fontWeight: '700'
-                  }}
-                >
-                  {(driver.name && driver.name[0]) || '?'}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: '600', fontSize: '16px' }}>{driver.name}</div>
-                  <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
-                    ID: {driver.telegram_id}
-                  </div>
-                </div>
-              </button>
-            ))
-          )}
-        </div>
-      </TelegramModal>
     </div>
   );
 }

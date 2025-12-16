@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { telegram } from '../lib/telegram';
+
 import { useOrders, useOrder, useCreateOrder, useAssignOrder, useUpdateOrderStatus } from '../application/use-cases';
 import { useApp } from '../application/services/useApp';
 import { Diagnostics } from '../foundation/diagnostics/DiagnosticsStore';
@@ -28,19 +28,17 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
     status: filter === 'all' ? undefined : filter,
   });
 
-  const theme = telegram.themeParams;
+  const theme = 
 
   useEffect(() => {
-    telegram.setBackButton(() => {
-      if (selectedOrderId) {
-        setSelectedOrderId(null);
+
       } else if (showCreateForm) {
         setShowCreateForm(false);
       }
     });
 
     if (!selectedOrderId && !showCreateForm) {
-      telegram.hideBackButton();
+
     }
   }, [selectedOrderId, showCreateForm]);
 
@@ -68,7 +66,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
   }, [app.events, refetch]);
 
   const handleCreateOrder = () => {
-    telegram.hapticFeedback('selection');
+
     setShowModeSelector(true);
   };
 
@@ -187,7 +185,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
 
             <button
               onClick={() => {
-                telegram.hapticFeedback('impact', 'medium');
+
                 setShowModeSelector(false);
                 setShowCreateForm(true);
               }}
@@ -209,7 +207,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
 
             <button
               onClick={() => {
-                telegram.hapticFeedback('selection');
+
                 setShowModeSelector(false);
               }}
               style={{
@@ -250,7 +248,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
           <button
             key={status}
             onClick={() => {
-              telegram.hapticFeedback('selection');
+
               setFilter(status);
               Diagnostics.logEvent({ type: 'log', message: 'Filter changed', data: { status } });
             }}
@@ -300,7 +298,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
               key={order.id}
               order={order}
               onClick={() => {
-                telegram.hapticFeedback('selection');
+
                 setSelectedOrderId(order.id);
                 Diagnostics.logEvent({ type: 'nav', message: 'Navigate to order detail', data: { orderId: order.id } });
               }}
@@ -413,7 +411,7 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
     const result = await updateStatus(orderId, newStatus);
 
     if (result.success) {
-      telegram.hapticFeedback('notification', 'success');
+
       Toast.success('Order status updated');
       Diagnostics.logEvent({ type: 'log', message: 'Order status updated successfully', data: { orderId, newStatus } });
       onUpdate();
@@ -585,7 +583,7 @@ function CreateOrderForm({ dataStore, onCancel, onSuccess, theme }: {
     });
 
     if (result.success) {
-      telegram.hapticFeedback('notification', 'success');
+
       Toast.success('Order created successfully');
       Diagnostics.logEvent({ type: 'log', message: 'Order created successfully', data: result.data });
       onSuccess();

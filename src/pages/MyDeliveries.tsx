@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { DataStore } from '../data/types';
 import { useI18n } from '../lib/i18n';
 
@@ -18,7 +18,7 @@ interface Delivery {
 }
 
 export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
-  const { theme, backButton, haptic } = useTelegramUI();
+
   const { translations, isRTL } = useI18n();
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const hintColor = theme.hint_color || '#999999';

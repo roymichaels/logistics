@@ -1,5 +1,5 @@
 import { getSupabase, isSupabaseInitialized } from './supabaseClient';
-import { telegram } from './telegram';
+
 import { logger } from './logger';
 import { sessionManager } from './sessionManager';
 import { sessionHealthMonitor } from './sessionHealthMonitor';

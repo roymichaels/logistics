@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { DataStore, User } from '../data/types';
 import { logger } from '../lib/logger';
 
@@ -22,7 +22,6 @@ export function AdminPanel({ dataStore, onNavigate }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bulk' | 'export' | 'settings'>('overview');
   const [systemStats, setSystemStats] = useState<any>({});
   const [loading, setLoading] = useState(true);
-  const { theme, haptic, backButton } = useTelegramUI();
 
   useEffect(() => {
     loadData();

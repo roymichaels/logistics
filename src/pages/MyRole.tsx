@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
 import { Toast } from '../components/Toast';
-import { telegram } from '../lib/telegram';
+
 import { loadConfig } from '../lib/supabaseClient';
 import { ProfileDiagnostics } from '../lib/diagnostics';
 import { logger } from '../lib/logger';
@@ -109,7 +109,6 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
 
   const handleRequestRoleAccess = async () => {
     try {
-      telegram.hapticFeedback('impact', 'medium');
 
       logger.info('🔐 Starting promotion process...');
 

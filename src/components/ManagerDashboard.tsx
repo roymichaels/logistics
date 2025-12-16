@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
 import { formatCurrency, hebrew } from '../lib/i18n';
 import { Toast } from './Toast';
-import { telegram } from '../lib/telegram';
+
 import { logger } from '../lib/logger';
 import { DashboardHeader, MetricCard, MetricGrid, Section, LoadingState, EmptyState } from './dashboard';
 import { theme, colors, spacing, typography, borderRadius, components, getStatusBadgeStyle } from '../styles/theme';
@@ -257,7 +257,6 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
 
         if (error) throw error;
 
-        telegram.hapticFeedback('notification', 'success');
         Toast.success('הבקשה אושרה בהצלחה');
         loadDepartmentData();
       }
@@ -314,7 +313,7 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
             <button
               onClick={() => {
                 loadDepartmentData();
-                telegram.hapticFeedback('soft');
+
               }}
               style={{
                 ...components.button.secondary,
@@ -345,7 +344,7 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
               key={view.id}
               onClick={() => {
                 setSelectedView(view.id as any);
-                telegram.hapticFeedback('selection');
+
               }}
               style={{
                 padding: `${spacing.md} ${spacing.xl}`,
@@ -475,7 +474,7 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
                 <button
                   onClick={() => {
                     setSelectedView('approvals');
-                    telegram.hapticFeedback('selection');
+
                   }}
                   style={{
                     marginTop: spacing.md,
@@ -735,7 +734,7 @@ function ActionButton({ label, icon, onClick }: { label: string; icon: string; o
     <button
       onClick={() => {
         onClick();
-        telegram.hapticFeedback('selection');
+
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

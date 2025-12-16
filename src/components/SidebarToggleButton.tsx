@@ -1,5 +1,5 @@
 import React from 'react';
-import { telegram } from '../lib/telegram';
+
 import { ROYAL_COLORS } from '../styles/royalTheme';
 
 interface SidebarToggleButtonProps {
@@ -9,7 +9,7 @@ interface SidebarToggleButtonProps {
 
 export function SidebarToggleButton({ onClick, hasNotifications = false }: SidebarToggleButtonProps) {
   const handleClick = () => {
-    telegram.hapticFeedback('impact', 'light');
+
     onClick();
   };
 

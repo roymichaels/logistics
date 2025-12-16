@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, Zone, CreateZoneInput, UpdateZoneInput } from '../data/types';
 import { Toast } from './Toast';
-import { telegram } from '../lib/telegram';
-import { TelegramModal } from './TelegramModal';
+
 import { logger } from '../lib/logger';
 
 interface ZoneManagerProps {
@@ -84,7 +83,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
     }
 
     try {
-      telegram.hapticFeedback('medium');
+
       await dataStore.createZone(formData);
       Toast.success('אזור נוצר בהצלחה');
       setShowCreateModal(false);
@@ -108,7 +107,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
     }
 
     try {
-      telegram.hapticFeedback('medium');
+
       const updateData: UpdateZoneInput = {
         name: formData.name,
         code: formData.code || null,
@@ -140,7 +139,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
     if (!confirmed) return;
 
     try {
-      telegram.hapticFeedback('medium');
+
       await dataStore.deleteZone(zone.id, true);
       Toast.success('אזור נמחק בהצלחה');
       await loadZones();
@@ -261,7 +260,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
               onClick={() => {
                 resetForm();
                 setShowCreateModal(true);
-                telegram.hapticFeedback('selection');
+
               }}
               style={{
                 padding: '12px 24px',
@@ -443,7 +442,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
                     <button
                       onClick={() => {
                         openEditModal(zone);
-                        telegram.hapticFeedback('selection');
+
                       }}
                       style={{
                         padding: '10px 16px',
@@ -461,7 +460,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
                     <button
                       onClick={() => {
                         handleDeleteZone(zone);
-                        telegram.hapticFeedback('selection');
+
                       }}
                       style={{
                         padding: '10px 16px',
@@ -484,342 +483,6 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
         </div>
       </div>
 
-      <TelegramModal
-        isOpen={showCreateModal}
-        onClose={() => {
-          setShowCreateModal(false);
-          resetForm();
-        }}
-        title="יצירת אזור חדש"
-        primaryButton={{
-          text: 'צור אזור',
-          onClick: handleCreateZone
-        }}
-        secondaryButton={{
-          text: 'ביטול',
-          onClick: () => {
-            setShowCreateModal(false);
-            resetForm();
-          }
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600' }}>
-              שם האזור *
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="לדוגמה: צפון תל אביב"
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'rgba(20, 8, 46, 0.6)',
-                border: '1px solid rgba(29, 155, 240, 0.3)',
-                borderRadius: '12px',
-                color: ROYAL_COLORS.text,
-                fontSize: '14px',
-                outline: 'none'
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600' }}>
-              קוד אזור
-            </label>
-            <input
-              type="text"
-              value={formData.code || ''}
-              onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-              placeholder="לדוגמה: TLV-N"
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'rgba(20, 8, 46, 0.6)',
-                border: '1px solid rgba(29, 155, 240, 0.3)',
-                borderRadius: '12px',
-                color: ROYAL_COLORS.text,
-                fontSize: '14px',
-                outline: 'none'
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600' }}>
-              עיר
-            </label>
-            <input
-              type="text"
-              value={formData.city || ''}
-              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              placeholder="לדוגמה: תל אביב"
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'rgba(20, 8, 46, 0.6)',
-                border: '1px solid rgba(29, 155, 240, 0.3)',
-                borderRadius: '12px',
-                color: ROYAL_COLORS.text,
-                fontSize: '14px',
-                outline: 'none'
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600' }}>
-              אזור
-            </label>
-            <input
-              type="text"
-              value={formData.region || ''}
-              onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-              placeholder="לדוגמה: מרכז"
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'rgba(20, 8, 46, 0.6)',
-                border: '1px solid rgba(29, 155, 240, 0.3)',
-                borderRadius: '12px',
-                color: ROYAL_COLORS.text,
-                fontSize: '14px',
-                outline: 'none'
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600' }}>
-              תיאור
-            </label>
-            <textarea
-              value={formData.description || ''}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="תיאור האזור..."
-              rows={3}
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'rgba(20, 8, 46, 0.6)',
-                border: '1px solid rgba(29, 155, 240, 0.3)',
-                borderRadius: '12px',
-                color: ROYAL_COLORS.text,
-                fontSize: '14px',
-                outline: 'none',
-                resize: 'vertical',
-                fontFamily: 'inherit'
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600' }}>
-              צבע
-            </label>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {COLORS.map((color) => (
-                <button
-                  key={color}
-                  onClick={() => setFormData({ ...formData, color })}
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '10px',
-                    background: color,
-                    border: formData.color === color ? `3px solid ${ROYAL_COLORS.text}` : 'none',
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s'
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <input
-              type="checkbox"
-              id="activeCheckbox"
-              checked={formData.active}
-              onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-              style={{ width: '20px', height: '20px', cursor: 'pointer' }}
-            />
-            <label htmlFor="activeCheckbox" style={{ fontSize: '14px', cursor: 'pointer' }}>
-              אזור פעיל
-            </label>
-          </div>
-        </div>
-      </TelegramModal>
-
-      <TelegramModal
-        isOpen={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setSelectedZone(null);
-          resetForm();
-        }}
-        title="עריכת אזור"
-        primaryButton={{
-          text: 'שמור שינויים',
-          onClick: handleUpdateZone
-        }}
-        secondaryButton={{
-          text: 'ביטול',
-          onClick: () => {
-            setShowEditModal(false);
-            setSelectedZone(null);
-            resetForm();
-          }
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600' }}>
-              שם האזור *
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'rgba(20, 8, 46, 0.6)',
-                border: '1px solid rgba(29, 155, 240, 0.3)',
-                borderRadius: '12px',
-                color: ROYAL_COLORS.text,
-                fontSize: '14px',
-                outline: 'none'
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600' }}>
-              קוד אזור
-            </label>
-            <input
-              type="text"
-              value={formData.code || ''}
-              onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'rgba(20, 8, 46, 0.6)',
-                border: '1px solid rgba(29, 155, 240, 0.3)',
-                borderRadius: '12px',
-                color: ROYAL_COLORS.text,
-                fontSize: '14px',
-                outline: 'none'
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600' }}>
-              עיר
-            </label>
-            <input
-              type="text"
-              value={formData.city || ''}
-              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'rgba(20, 8, 46, 0.6)',
-                border: '1px solid rgba(29, 155, 240, 0.3)',
-                borderRadius: '12px',
-                color: ROYAL_COLORS.text,
-                fontSize: '14px',
-                outline: 'none'
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600' }}>
-              אזור
-            </label>
-            <input
-              type="text"
-              value={formData.region || ''}
-              onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'rgba(20, 8, 46, 0.6)',
-                border: '1px solid rgba(29, 155, 240, 0.3)',
-                borderRadius: '12px',
-                color: ROYAL_COLORS.text,
-                fontSize: '14px',
-                outline: 'none'
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600' }}>
-              תיאור
-            </label>
-            <textarea
-              value={formData.description || ''}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={3}
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'rgba(20, 8, 46, 0.6)',
-                border: '1px solid rgba(29, 155, 240, 0.3)',
-                borderRadius: '12px',
-                color: ROYAL_COLORS.text,
-                fontSize: '14px',
-                outline: 'none',
-                resize: 'vertical',
-                fontFamily: 'inherit'
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600' }}>
-              צבע
-            </label>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {COLORS.map((color) => (
-                <button
-                  key={color}
-                  onClick={() => setFormData({ ...formData, color })}
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '10px',
-                    background: color,
-                    border: formData.color === color ? `3px solid ${ROYAL_COLORS.text}` : 'none',
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s'
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <input
-              type="checkbox"
-              id="activeCheckboxEdit"
-              checked={formData.active}
-              onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-              style={{ width: '20px', height: '20px', cursor: 'pointer' }}
-            />
-            <label htmlFor="activeCheckboxEdit" style={{ fontSize: '14px', cursor: 'pointer' }}>
-              אזור פעיל
-            </label>
-          </div>
-        </div>
-      </TelegramModal>
     </div>
   );
 }

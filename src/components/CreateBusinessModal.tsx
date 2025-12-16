@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
-import { telegram } from '../lib/telegram';
+
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { waitForSupabaseInit } from '../lib/supabaseClient';
 import { useSupabaseReady } from '../context/SupabaseReadyContext';
@@ -147,7 +147,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
     e.preventDefault();
 
     if (!formData.name || !formData.name_hebrew) {
-      telegram.showAlert('אנא הזן שם עסק באנגלית ובעברית');
+
       return;
     }
 
@@ -199,14 +199,12 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         logger.warn('Session refresh failed:', refreshErr);
       }
 
-      telegram.hapticFeedback('notification', 'success');
-      telegram.showAlert('העסק נוצר בהצלחה!');
       onSuccess();
       onClose();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'שגיאה ביצירת עסק';
       logger.error('Business creation error:', error);
-      telegram.showAlert(errorMessage);
+
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { telegram } from '../lib/telegram';
+
 import { DataStore, User } from '../data/types';
 import { roleNames, roleIcons, useI18n } from '../lib/i18n';
 import { ProfileDiagnostics } from '../lib/diagnostics';
@@ -39,7 +39,7 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
   }, []);
 
   useEffect(() => {
-    telegram.setBackButton(() => onNavigate('dashboard'));
+
     return () => telegram.hideBackButton();
   }, [onNavigate]);
 
@@ -55,11 +55,7 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
       setUser(profile);
     } catch (error) {
       logger.error('❌ Profile page: Failed to load profile:', error);
-      telegram.showAlert(
-        `${translations.profilePage.errorLoading}: ${
-          error instanceof Error ? error.message : translations.profilePage.unknownError
-        }`
-      );
+
     } finally {
       setLoading(false);
     }
@@ -189,10 +185,7 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
               <Button
                 variant="ghost"
                 onClick={() => {
-                  telegram.showConfirm(translations.profilePage.confirmLogout).then((confirmed) => {
-                    if (confirmed) {
-                      localStorage.clear();
-                      telegram.hapticFeedback('notification', 'success');
+
                       window.location.reload();
                     }
                   });
@@ -301,7 +294,7 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
             <Button
               variant="ghost"
               style={{ color: '#ef4444', borderColor: '#ef4444' }}
-              onClick={() => telegram.showAlert('מחיקת חשבון תתאפשר בהמשך')}
+              onClick={() => }
             >
               🗑️ מחיקת חשבון (בקרוב)
             </Button>

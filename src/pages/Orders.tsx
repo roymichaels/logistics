@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { telegram } from '../lib/telegram';
+
 import type { FrontendDataStore } from '../lib/frontendDataStore';
 import { registerOrdersSubscriptions } from './subscriptionHelpers';
 import {
@@ -38,13 +38,11 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
   const [showModeSelector, setShowModeSelector] = useState(false);
   const { t, translations } = useI18n();
 
-  const theme = telegram.themeParams;
+  const theme = 
   const dispatchOrchestrator = useMemo(() => new DispatchOrchestrator(dataStore), [dataStore]);
 
   useEffect(() => {
-    telegram.setBackButton(() => {
-      if (selectedOrder) {
-        setSelectedOrder(null);
+
       } else if (showCreateForm) {
         setShowCreateForm(false);
       } else {
@@ -55,7 +53,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
 
     // Only show back button when in detail views
     if (!selectedOrder && !showCreateForm) {
-      telegram.hideBackButton();
+
     }
   }, [selectedOrder, showCreateForm, onNavigate]);
 
@@ -91,7 +89,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
       setOrders(filteredOrders);
     } catch (error) {
       logger.error('Failed to load orders:', error);
-      telegram.showAlert('Failed to load orders');
+
     } finally {
       setLoading(false);
     }
@@ -113,18 +111,15 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
     return unsubscribe;
   }, [dataStore, loadData]);
 
-
   const handleCreateOrder = () => {
     // Check permissions
     if (!user || !['owner', 'manager', 'sales'].includes(user.role)) {
-      telegram.showAlert(translations.errors.noPermission);
+
       return;
     }
 
-    telegram.hapticFeedback('selection');
     setShowModeSelector(true);
   };
-
 
   if (loading) {
     return (
@@ -218,7 +213,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
               {/* DM Mode */}
               <button
                 onClick={() => {
-                  telegram.hapticFeedback('impact', 'medium');
+
                   setShowModeSelector(false);
                   setShowCreateForm(true);
                 }}
@@ -253,7 +248,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
               {/* Storefront Mode */}
               <button
                 onClick={() => {
-                  telegram.hapticFeedback('impact', 'medium');
+
                   setShowModeSelector(false);
                   setShowCreateForm(true);
                 }}
@@ -287,7 +282,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
               {/* Cancel */}
               <button
                 onClick={() => {
-                  telegram.hapticFeedback('selection');
+
                   setShowModeSelector(false);
                 }}
                 style={{
@@ -333,7 +328,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
           <button
             key={status}
             onClick={() => {
-              telegram.hapticFeedback('selection');
+
               setFilter(status);
             }}
             style={{
@@ -367,7 +362,7 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
               key={order.id}
               order={order}
               onClick={() => {
-                telegram.hapticFeedback('selection');
+
                 setSelectedOrder(order);
               }}
             />
@@ -523,7 +518,7 @@ function OrderDetail({
   const handleStatusUpdate = async (newStatus: Order['status']) => {
     if (newStatus === 'assigned') {
       if (!canAssign) {
-        telegram.showAlert('אין לך הרשאה להקצות הזמנה לנהג');
+
         return;
       }
 
@@ -540,12 +535,12 @@ function OrderDetail({
 
     try {
       await dataStore.updateOrder?.(order.id, { status: newStatus });
-      telegram.hapticFeedback('notification', 'success');
+
       onUpdate();
       onBack();
     } catch (error) {
       logger.error('Failed to update order:', error);
-      telegram.showAlert('Failed to update order status');
+
     }
   };
 
@@ -623,7 +618,7 @@ function OrderDetail({
         setAssignError(reason);
         return;
       }
-      telegram.hapticFeedback('notification', 'success');
+
       Toast.success('ההזמנה הוקצתה לנהג בהצלחה');
       onUpdate();
       onBack();
@@ -1075,7 +1070,7 @@ function OrderDetail({
                         key={candidate.driverId}
                         onClick={() => {
                           setSelectedDriver(candidate.driverId);
-                          telegram.hapticFeedback('selection');
+
                         }}
                         style={{
                           textAlign: 'right',
@@ -1244,7 +1239,6 @@ function OrderDetail({
   );
 }
 
-
 function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }: {
   dataStore: DataStore;
   currentUser: User | null;
@@ -1354,7 +1348,6 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
     };
   }, [dataStore, enforceInventoryChecks]);
 
-
   const inventoryAvailability = useMemo(() => {
     const map: Record<string, ProductInventoryAvailability> = {};
     const locationNames = new Map(
@@ -1438,32 +1431,32 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
     event.preventDefault();
 
     if (!formData.customerName || !formData.customerAddress || !formData.customerPhone) {
-      telegram.showAlert('אנא מלאו שם, טלפון וכתובת לקוח');
+
       return;
     }
 
     if (activeItems.length === 0) {
-      telegram.showAlert('יש להוסיף לפחות פריט אחד להזמנה');
+
       return;
     }
 
     if (activeMode === 'dm' && dmState.errors.length > 0) {
-      telegram.showAlert('לא ניתן לשמור הזמנה עם שורות שלא זוהו');
+
       return;
     }
 
     if (enforceInventoryChecks && inventoryLoading) {
-      telegram.showAlert('ממתינים לטעינת נתוני המלאי, נסו שוב בעוד רגע');
+
       return;
     }
 
     if (enforceInventoryChecks && inventoryError) {
-      telegram.showAlert('לא ניתן לאמת מלאי עבור ההזמנה: ' + inventoryError);
+
       return;
     }
 
     if (enforceInventoryChecks && inventoryIssues.length > 0) {
-      telegram.showAlert('יש לפתור את בעיות המלאי שסומנו לפני השליחה');
+
       return;
     }
 
@@ -1490,11 +1483,10 @@ function CreateOrderForm({ dataStore, currentUser, onCancel, onSuccess, theme }:
         status: 'new'
       });
 
-      telegram.hapticFeedback('notification', 'success');
       onSuccess();
     } catch (error) {
       logger.error('Failed to create order:', error);
-      telegram.showAlert('אירעה שגיאה ביצירת ההזמנה');
+
     } finally {
       setLoading(false);
     }
@@ -1860,7 +1852,7 @@ function OrderDetailEnhanced({
   const handleStartChat = (userId: string, userName: string) => {
     // Navigate to chat with pre-selected user
     // You would implement creating a direct chat here
-    telegram.showAlert(`פתיחת צ'אט עם ${userName}...`);
+
     // In production: create direct chat and navigate to it
     onNavigate('chat');
   };
@@ -1889,12 +1881,11 @@ function OrderDetailEnhanced({
         });
       }
 
-      telegram.hapticFeedback('notification', 'success');
       onUpdate();
       onBack();
     } catch (error) {
       logger.error('Failed to update order:', error);
-      telegram.showAlert('Failed to update order status');
+
     }
   };
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { DataStore } from '../data/types';
 import { Toast } from './Toast';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { ImageUpload } from './ImageUpload';
 import { logger } from '../lib/logger';
 
@@ -38,7 +38,7 @@ interface ApplicationData {
 }
 
 export function DriverApplicationForm({ dataStore, onComplete, onCancel }: DriverApplicationFormProps) {
-  const { theme, haptic } = useTelegramUI();
+
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState<ApplicationData>({

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { DataStore, Task, Order, User } from '../data/types';
 import { logger } from '../lib/logger';
 
@@ -166,7 +166,6 @@ export function PerformanceWidget({ dataStore, theme, userRole }: WidgetProps) {
 
 // Quick Actions Widget
 export function QuickActionsWidget({ dataStore, theme, userRole }: WidgetProps) {
-  const { haptic } = useTelegramUI();
 
   const getActionsForRole = () => {
     switch (userRole) {

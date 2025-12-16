@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { PINAuthService, PINValidator } from '../utils/security/pinAuth';
 import { logger } from '../lib/logger';
 
@@ -29,7 +29,6 @@ export function PINEntry({
   const [shakeAnimation, setShakeAnimation] = useState(false);
   const [lockoutInfo, setLockoutInfo] = useState<{ isLocked: boolean; remainingTime?: number }>({ isLocked: false });
 
-  const { theme, haptic } = useTelegramUI();
   const pinAuthService = new PINAuthService();
 
   const PIN_LENGTH = 6;

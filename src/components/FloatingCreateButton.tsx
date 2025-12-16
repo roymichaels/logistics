@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { logger } from '../lib/logger';
 
 type RoleKey =
@@ -67,7 +67,6 @@ export function FloatingCreateButton({
   onTransferInventory
 }: FloatingCreateButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { theme, haptic } = useTelegramUI();
 
   const actions = useMemo<QuickAction[]>(() => {
     if (userRole === 'infrastructure_owner' || userRole === 'business_owner' || userRole === 'manager') {

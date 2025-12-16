@@ -3,7 +3,7 @@ import { useDrivers, useDriver, useStartShift, useEndShift, useUpdateDriverLocat
 import { useApp } from '../application/services/useApp';
 import { Diagnostics } from '../foundation/diagnostics/DiagnosticsStore';
 import { Toast } from '../components/Toast';
-import { telegram } from '../lib/telegram';
+
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { logger } from '../lib/logger';
 import type { FrontendDataStore } from '../lib/frontendDataStore';
@@ -24,7 +24,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
   const [showFilters, setShowFilters] = useState(false);
 
   const app = useApp();
-  const theme = telegram.themeParams;
+  const theme = 
 
   const { drivers, loading, error, refetch } = useDrivers({
     status: statusFilter === 'all' ? undefined : statusFilter,
@@ -57,7 +57,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
   const handleRefresh = async () => {
     Diagnostics.logEvent({ type: 'log', message: 'Manual refresh triggered' });
     await refetch();
-    telegram.hapticFeedback('soft');
+
   };
 
   const filteredDrivers = useMemo(() => {
@@ -219,7 +219,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                   key={filter}
                   onClick={() => {
                     setStatusFilter(filter);
-                    telegram.hapticFeedback('selection');
+
                     Diagnostics.logEvent({ type: 'log', message: 'Filter changed', data: { filter } });
                   }}
                   style={{
@@ -250,7 +250,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                   key={mode}
                   onClick={() => {
                     setViewMode(mode);
-                    telegram.hapticFeedback('selection');
+
                     Diagnostics.logEvent({ type: 'log', message: 'View mode changed', data: { mode } });
                   }}
                   style={{
@@ -292,7 +292,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                 key={driver.id}
                 onClick={() => {
                   setSelectedDriverId(driver.id);
-                  telegram.hapticFeedback('selection');
+
                   Diagnostics.logEvent({ type: 'nav', message: 'Navigate to driver detail', data: { driverId: driver.id } });
                 }}
                 style={{

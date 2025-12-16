@@ -1,5 +1,5 @@
 import React from 'react';
-import { telegram } from '../../lib/telegram';
+
 import { ROYAL_COLORS } from '../../styles/royalTheme';
 
 interface OrdersFiltersProps {
@@ -22,7 +22,7 @@ export function OrdersFilters({ filter, onFilterChange }: OrdersFiltersProps) {
         <button
           key={option.value}
           onClick={() => {
-            telegram.hapticFeedback('selection');
+
             onFilterChange(option.value);
           }}
           style={{

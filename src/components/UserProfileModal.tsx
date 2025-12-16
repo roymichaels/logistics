@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { roleNames, roleIcons } from '../lib/i18n';
 import type { User } from '../data/types';
@@ -25,7 +25,7 @@ export function UserProfileModal({
   onAssignTask,
   showActions = true
 }: UserProfileModalProps) {
-  const { theme, haptic } = useTelegramUI();
+
   const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {

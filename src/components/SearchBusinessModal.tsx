@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { listBusinesses, type BusinessRecord } from '../services/business';
 import { Toast } from './Toast';
-import { telegram } from '../lib/telegram';
+
 import { logger } from '../lib/logger';
 
 interface SearchBusinessModalProps {
@@ -58,7 +58,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
     if (!selectedBusiness) return;
 
     try {
-      telegram.hapticFeedback('impact', 'medium');
+
       Toast.info('שולח בקשה להצטרפות...');
 
       if (onBusinessSelected) {

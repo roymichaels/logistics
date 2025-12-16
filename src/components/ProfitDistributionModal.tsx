@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { telegram } from '../lib/telegram';
+
 import {
   calculateProfitDistribution,
   createProfitDistributions,
@@ -65,7 +65,7 @@ export function ProfitDistributionModal({
 
   const handleCalculate = async () => {
     if (totalProfit <= 0) {
-      telegram.showAlert('Total profit must be greater than 0');
+
       return;
     }
 
@@ -78,7 +78,7 @@ export function ProfitDistributionModal({
         totalProfit
       );
       setCalculations(result);
-      telegram.hapticFeedback('success');
+
     } catch (error) {
       logger.error('Failed to calculate distribution:', error);
       Toast.error('Failed to calculate distribution');
@@ -89,14 +89,14 @@ export function ProfitDistributionModal({
 
   const handleCreate = async () => {
     if (calculations.length === 0) {
-      telegram.showAlert('Please calculate distribution first');
+
       return;
     }
 
     setLoading(true);
     try {
       await createProfitDistributions(businessId, periodStart, periodEnd, totalProfit, currency);
-      telegram.hapticFeedback('success');
+
       Toast.success('Profit distributions created successfully');
       setShowConfirm(false);
       setCalculations([]);
@@ -117,7 +117,7 @@ export function ProfitDistributionModal({
         payment_date: new Date().toISOString().split('T')[0],
         payment_method: 'bank_transfer',
       });
-      telegram.hapticFeedback('success');
+
       Toast.success('Distribution marked as paid');
       loadDistributions();
     } catch (error) {

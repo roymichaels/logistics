@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, InventoryLog, Product } from '../data/types';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { hebrew, formatDate, formatTime } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
@@ -14,7 +14,7 @@ interface LogsProps {
 type LogFilterType = 'all' | 'restock' | 'transfer' | 'adjustment' | 'reservation' | 'release' | 'sale';
 
 export function Logs({ dataStore, onNavigate }: LogsProps) {
-  const { theme } = useTelegramUI();
+
   const [logs, setLogs] = useState<InventoryLog[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);

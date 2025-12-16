@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { telegram } from '../lib/telegram';
+
 import { DataStore } from '../data/types';
 import { Toast } from './Toast';
 import { logger } from '../lib/logger';
@@ -125,7 +125,6 @@ export function BusinessSettingsModal({
 
       if (error) throw error;
 
-      telegram.hapticFeedback('success');
       Toast.success('Business settings updated successfully');
       onSuccess();
       onClose();

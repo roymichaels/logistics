@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { ROYAL_COLORS } from '../styles/royalTheme';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import type { User, DataStore } from '../data/types';
-import { telegram } from '../lib/telegram';
+
 import { logger } from '../lib/logger';
 
 interface GroupChannelCreateModalProps {
@@ -33,8 +33,6 @@ export function GroupChannelCreateModal({
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const { theme, haptic } = useTelegramUI();
 
   const filteredUsers = useMemo(() => {
     if (!searchQuery) return availableUsers;
@@ -95,7 +93,6 @@ export function GroupChannelCreateModal({
           throw insertError;
         }
 
-        telegram.showAlert('הקבוצה נוצרה בהצלחה!');
       } else {
         // Create channel
         if (!dataStore.supabase) {
@@ -119,7 +116,6 @@ export function GroupChannelCreateModal({
           throw insertError;
         }
 
-        telegram.showAlert('הערוץ נוצר בהצלחה!');
       }
 
       onSuccess();

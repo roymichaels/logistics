@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User } from '../data/types';
 import { ROYAL_COLORS } from '../styles/royalTheme';
-import { telegram } from '../lib/telegram';
+
 import { Toast } from './Toast';
 import { hebrew, roleNames, roleIcons } from '../lib/i18n';
 
@@ -144,7 +144,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
   const [expandedRole, setExpandedRole] = useState<User['role'] | null>(null);
 
   const handleRoleSelect = (role: User['role']) => {
-    telegram.hapticFeedback('impact', 'light');
+
     if (expandedRole === role) {
       setExpandedRole(null);
     } else {
@@ -159,8 +159,6 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
       return;
     }
 
-    telegram.hapticFeedback('impact', 'light');
-
     if (currentStep === 'role_selection') {
       setCurrentStep('role_details');
     } else if (currentStep === 'role_details') {
@@ -169,7 +167,6 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
   };
 
   const handleBack = () => {
-    telegram.hapticFeedback('impact', 'light');
 
     if (currentStep === 'role_selection') {
       onBack();
@@ -182,10 +179,9 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
     if (!selectedRole) return;
 
     setCurrentStep('submitting');
-    telegram.hapticFeedback('impact', 'medium');
 
     setTimeout(() => {
-      telegram.hapticFeedback('notification', 'success');
+
       Toast.success('הבקשה נשלחה למנהל לאישור!');
       setTimeout(() => {
         onComplete(selectedRole);

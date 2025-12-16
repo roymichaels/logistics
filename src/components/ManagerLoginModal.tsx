@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { Toast } from './Toast';
-import { telegram } from '../lib/telegram';
+
 import { DataStore } from '../data/types';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { logger } from '../lib/logger';
 
 interface ManagerLoginModalProps {
@@ -26,7 +26,6 @@ export function ManagerLoginModal({
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { theme, haptic } = useTelegramUI();
 
   const handleDigitPress = useCallback((digit: string) => {
     if (pin.length < PIN_LENGTH) {
@@ -58,7 +57,7 @@ export function ManagerLoginModal({
 
     // Safe haptic feedback (doesn't crash in web)
     try {
-      telegram.hapticFeedback('notification', 'success');
+
     } catch (e) {
       logger.info('⚠️ Haptic feedback not available (web browser)');
     }

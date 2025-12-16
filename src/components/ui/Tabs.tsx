@@ -1,5 +1,5 @@
 import React from 'react';
-import { telegramXTokens } from '../../theme/telegramx/tokens';
+import { appTokens } from '../../theme/app/tokens';
 
 type Tab = { id: string; label: string };
 
@@ -12,7 +12,7 @@ export type TabsProps = {
 };
 
 export const Tabs: React.FC<TabsProps> = ({ tabs, active, onChange, tx = false, style }) => {
-  const t = telegramXTokens;
+  const t = appTokens;
 
   return (
     <div

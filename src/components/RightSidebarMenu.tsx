@@ -1,5 +1,5 @@
 import React from 'react';
-import { telegram } from '../lib/telegram';
+
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { i18n } from '../lib/i18n';
 import { useAuth } from '../context/AuthContext';
@@ -96,7 +96,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
   };
 
   const handleItemClick = (page: string) => {
-    telegram.hapticFeedback('selection');
+
     onNavigate(page);
     onClose();
   };

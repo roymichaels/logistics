@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { telegram } from '../lib/telegram';
+
 import { getAvailableEquity, createEquityStake, type CreateEquityInput } from '../services/equity';
 import { DataStore } from '../data/types';
 import { Toast } from './Toast';
@@ -100,22 +100,22 @@ export function AddEquityStakeholderModal({
 
   const handleSubmit = async () => {
     if (!selectedUser) {
-      telegram.showAlert('Please select a stakeholder');
+
       return;
     }
 
     if (formData.equity_percentage <= 0) {
-      telegram.showAlert('Equity percentage must be greater than 0');
+
       return;
     }
 
     if (formData.equity_percentage > availableEquity) {
-      telegram.showAlert(`Only ${availableEquity.toFixed(2)}% equity available`);
+
       return;
     }
 
     if (formData.profit_share_percentage < 0 || formData.profit_share_percentage > 100) {
-      telegram.showAlert('Profit share must be between 0 and 100%');
+
       return;
     }
 
@@ -127,7 +127,6 @@ export function AddEquityStakeholderModal({
         stakeholder_id: selectedUser.id,
       });
 
-      telegram.hapticFeedback('success');
       Toast.success('Equity stakeholder added successfully');
       onSuccess();
       onClose();
@@ -135,7 +134,7 @@ export function AddEquityStakeholderModal({
       logger.error('Failed to create equity stake:', error);
       const message = error instanceof Error ? error.message : 'Failed to add stakeholder';
       Toast.error(message);
-      telegram.showAlert(message);
+
     } finally {
       setLoading(false);
     }
@@ -272,7 +271,7 @@ export function AddEquityStakeholderModal({
                       onClick={() => {
                         setSelectedUser(user);
                         setSearchQuery('');
-                        telegram.hapticFeedback('selection');
+
                       }}
                       style={{
                         padding: '12px',

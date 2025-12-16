@@ -2,7 +2,6 @@
  * Platform Detection Service
  *
  * Detects the platform/context where the app is running:
- * - Telegram Mini App
  * - Standard Web Browser
  * - Mobile Web Browser
  * - Ethereum Wallet Browser
@@ -11,11 +10,10 @@
 
 import { logger } from './logger';
 
-export type Platform = 'telegram' | 'web' | 'mobile-web' | 'ethereum-wallet' | 'solana-wallet';
+export type Platform = 'web' | 'mobile-web' | 'ethereum-wallet' | 'solana-wallet';
 
 export interface PlatformInfo {
   platform: Platform;
-  isTelegram: boolean;
   isWeb: boolean;
   isMobile: boolean;
   hasEthereumWallet: boolean;
@@ -37,9 +35,6 @@ class PlatformDetectionService {
     const userAgent = navigator.userAgent || '';
     const isMobile = this.isMobileDevice(userAgent);
 
-    // Check for Telegram Mini App context
-    const isTelegram = this.isTelegramContext();
-
     // Check for Web3 wallet availability
     const hasEthereumWallet = this.hasEthereumWallet();
     const hasSolanaWallet = this.hasSolanaWallet();
@@ -47,9 +42,7 @@ class PlatformDetectionService {
     // Determine primary platform
     let platform: Platform = 'web';
 
-    if (isTelegram) {
-      platform = 'telegram';
-    } else if (hasSolanaWallet && isMobile) {
+    if (hasSolanaWallet && isMobile) {
       platform = 'solana-wallet';
     } else if (hasEthereumWallet && isMobile) {
       platform = 'ethereum-wallet';
@@ -59,8 +52,7 @@ class PlatformDetectionService {
 
     this._info = {
       platform,
-      isTelegram,
-      isWeb: !isTelegram,
+      isWeb: true,
       isMobile,
       hasEthereumWallet,
       hasSolanaWallet,
@@ -77,39 +69,6 @@ class PlatformDetectionService {
    */
   get info(): PlatformInfo {
     return this._info || this.detect();
-  }
-
-  /**
-   * Check if running in Telegram Mini App context
-   */
-  private isTelegramContext(): boolean {
-    try {
-      // Check for Telegram WebApp data
-      const searchParams = new URLSearchParams(window.location.hash.slice(1));
-      const tgWebAppData = searchParams.get('tgWebAppData');
-
-      if (tgWebAppData) {
-        return true;
-      }
-
-      // Check for Telegram WebApp in window object
-      if (typeof window !== 'undefined') {
-        const w = window as any;
-        if (w.Telegram?.WebApp?.initData) {
-          return true;
-        }
-      }
-
-      // Check for Telegram in user agent
-      if (navigator.userAgent.includes('Telegram')) {
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      logger.warn('Error detecting Telegram context', error);
-      return false;
-    }
   }
 
   /**
@@ -151,19 +110,9 @@ class PlatformDetectionService {
   /**
    * Get available authentication methods based on platform
    */
-  getAvailableAuthMethods(): Array<'telegram' | 'ethereum' | 'solana'> {
+  getAvailableAuthMethods(): Array<'ethereum' | 'solana'> {
     const info = this.info;
-    const methods: Array<'telegram' | 'ethereum' | 'solana'> = [];
-
-    // On web (not in Telegram), always show Telegram as an option
-    if (info.isWeb) {
-      methods.push('telegram');
-    }
-
-    // Also show telegram if in Telegram context
-    if (info.isTelegram && !methods.includes('telegram')) {
-      methods.push('telegram');
-    }
+    const methods: Array<'ethereum' | 'solana'> = [];
 
     if (info.hasEthereumWallet) {
       methods.push('ethereum');
@@ -173,8 +122,8 @@ class PlatformDetectionService {
       methods.push('solana');
     }
 
-    // If only telegram is available, also show web3 options (user may need to install wallet)
-    if (methods.length === 1 && methods[0] === 'telegram') {
+    // Always show both options so users can install wallets if needed
+    if (methods.length === 0) {
       methods.push('ethereum', 'solana');
     }
 
@@ -182,35 +131,17 @@ class PlatformDetectionService {
   }
 
   /**
-   * Check if should show Telegram login option
-   */
-  shouldShowTelegramLogin(): boolean {
-    return this.info.isTelegram;
-  }
-
-  /**
    * Check if should show Web3 login options
    */
   shouldShowWeb3Login(): boolean {
-    return this.info.isWeb && !this.info.isTelegram;
-  }
-
-  /**
-   * Check if should auto-authenticate via Telegram
-   */
-  shouldAutoAuthTelegram(): boolean {
-    return this.info.isTelegram;
+    return this.info.isWeb;
   }
 
   /**
    * Get recommended authentication method
    */
-  getRecommendedAuthMethod(): 'telegram' | 'ethereum' | 'solana' | null {
+  getRecommendedAuthMethod(): 'ethereum' | 'solana' | null {
     const info = this.info;
-
-    if (info.isTelegram) {
-      return 'telegram';
-    }
 
     if (info.hasEthereumWallet) {
       return 'ethereum';

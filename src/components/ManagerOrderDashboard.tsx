@@ -3,7 +3,7 @@ import { Order, DataStore, User, Zone } from '../data/types';
 import { OrderFilters, OrderMetrics, OrderViewMode } from '../types/orderManagement';
 import { ORDER_STATUS_COLORS, PRIORITY_COLORS, ORDER_CARD_STYLES } from '../styles/orderTheme';
 import { Toast } from './Toast';
-import { telegram } from '../lib/telegram';
+
 import { logger } from '../lib/logger';
 
 interface ManagerOrderDashboardProps {
@@ -143,7 +143,7 @@ export function ManagerOrderDashboard({
       newSelection.add(orderId);
     }
     setSelectedOrders(newSelection);
-    telegram.hapticFeedback('selection');
+
   };
 
   const selectAllFiltered = () => {
@@ -152,7 +152,7 @@ export function ManagerOrderDashboard({
     } else {
       setSelectedOrders(new Set(filteredOrders.map(o => o.id)));
     }
-    telegram.hapticFeedback('impact', 'light');
+
   };
 
   const handleExportCSV = () => {
@@ -251,7 +251,7 @@ export function ManagerOrderDashboard({
               <button
                 onClick={() => {
                   setShowFilters(!showFilters);
-                  telegram.hapticFeedback('selection');
+
                 }}
                 style={{
                   padding: '10px 16px',
@@ -271,7 +271,7 @@ export function ManagerOrderDashboard({
               <button
                 onClick={() => {
                   loadData();
-                  telegram.hapticFeedback('impact', 'light');
+
                 }}
                 style={{
                   padding: '10px 16px',
@@ -581,7 +581,7 @@ export function ManagerOrderDashboard({
             <button
               onClick={() => {
                 setViewMode(viewMode === 'list' ? 'grid' : 'list');
-                telegram.hapticFeedback('selection');
+
               }}
               style={{
                 padding: '8px 16px',

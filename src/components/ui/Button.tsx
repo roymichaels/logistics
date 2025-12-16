@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTheme } from '../../theme/tokens';
-import { telegramXTokens } from '../../theme/telegramx/tokens';
+import { appTokens } from '../../theme/app/tokens';
 
 export type ButtonProps = {
   children?: React.ReactNode;
@@ -18,7 +18,7 @@ export const Button: React.FC<ButtonProps> = ({
   ...rest
 }) => {
   const base = useTheme();
-  const t = tx ? telegramXTokens : base;
+  const t = tx ? appTokens : base;
 
   const sizeMap = {
     sm: { padding: `${t.spacing.xs} ${t.spacing.sm}`, fontSize: tx ? t.typography.size.sm : base.typography.size.sm },

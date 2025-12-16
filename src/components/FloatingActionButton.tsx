@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { telegram } from '../lib/telegram';
+
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { useAppServices } from '../context/AppServicesContext';
 import { logger } from '../lib/logger';
@@ -55,7 +55,7 @@ export function FloatingActionMenu({
         onClick: () => {
           onClose();
           onNavigate('products');
-          telegram.hapticFeedback('success');
+
         }
       });
       actions.push({
@@ -207,7 +207,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientCrimson,
         onClick: () => {
           onClose();
-          telegram.hapticFeedback('impact', 'medium');
+
           if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
               () => logger.info('Location updated'),
@@ -377,7 +377,7 @@ export function FloatingActionMenu({
             <button
               key={index}
               onClick={() => {
-                telegram.hapticFeedback('impact', 'medium');
+
                 action.onClick();
               }}
               style={{
@@ -415,7 +415,7 @@ export function FloatingActionMenu({
 
         <button
           onClick={() => {
-            telegram.hapticFeedback('selection');
+
             onClose();
           }}
           style={{

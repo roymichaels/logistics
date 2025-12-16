@@ -1,5 +1,5 @@
 import React from 'react';
-import { telegramXTokens } from '../../theme/telegramx/tokens';
+import { appTokens } from '../../theme/app/tokens';
 
 export type StepperProps = {
   total: number;
@@ -9,7 +9,7 @@ export type StepperProps = {
 };
 
 export const Stepper: React.FC<StepperProps> = ({ total, current, style }) => {
-  const t = telegramXTokens;
+  const t = appTokens;
 
   return (
     <div

@@ -14,12 +14,12 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { telegram } from '../lib/telegram';
+
 import { userManager } from '../lib/userManager';
 import type { UserRegistration, User } from '../data/types';
 import type { FrontendDataStore } from '../lib/frontendDataStore';
 import { registerUserManagementSubscriptions } from './subscriptionHelpers';
-import { TelegramModal } from '../components/TelegramModal';
+
 import { roleNames, roleIcons } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
@@ -71,7 +71,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
   // Security: Check if current user has permission
   const hasManagementPermission = ['manager', 'owner', 'infrastructure_owner'].includes(currentUser?.role);
 
-  const theme = telegram.themeParams;
+  const theme = 
 
   const loadUsers = useCallback(async () => {
     if (!hasManagementPermission) {
@@ -184,7 +184,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
   }, [hasManagementPermission, loadUsers]);
 
   useEffect(() => {
-    telegram.setBackButton(() => onNavigate('settings'));
+
     return () => telegram.hideBackButton();
   }, [onNavigate]);
 
@@ -307,7 +307,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
   const totalPages = Math.ceil(sortedUsers.length / ITEMS_PER_PAGE);
 
   const handleSort = (field: SortField) => {
-    telegram.hapticFeedback('selection');
+
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -334,7 +334,6 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       );
 
       if (success) {
-        telegram.hapticFeedback('notification', 'success');
 
         // Log the approval in audit log (non-blocking)
         if (dataStore?.supabase) {
@@ -413,7 +412,6 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       const result = await response.json();
       logger.info('✅ Role updated successfully:', result);
 
-      telegram.hapticFeedback('notification', 'success');
       Toast.success(`תפקיד עודכן בהצלחה ל${roleNames[selectedRole]}`);
 
       await loadUsers();
@@ -452,7 +450,6 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
           }
         }
 
-        telegram.hapticFeedback('notification', 'success');
         Toast.success('המשתמש נמחק בהצלחה');
         await loadUsers();
       } else {
@@ -644,7 +641,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
           {(searchQuery || filterRole !== 'all' || filterStatus !== 'all') && (
             <button
               onClick={() => {
-                telegram.hapticFeedback('selection');
+
                 setSearchQuery('');
                 setFilterRole('all');
                 setFilterStatus('all');
@@ -713,7 +710,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
           }}>
             <button
               onClick={() => {
-                telegram.hapticFeedback('selection');
+
                 setCurrentPage(Math.max(1, currentPage - 1));
               }}
               disabled={currentPage === 1}
@@ -739,7 +736,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
 
             <button
               onClick={() => {
-                telegram.hapticFeedback('selection');
+
                 setCurrentPage(Math.min(totalPages, currentPage + 1));
               }}
               disabled={currentPage === totalPages}
@@ -759,69 +756,11 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       )}
 
       {/* Role Change Modal */}
-      <TelegramModal
-        isOpen={showRoleModal}
-        onClose={() => setShowRoleModal(false)}
-        title="שינוי תפקיד משתמש"
-        primaryButton={{
-          text: 'שמור שינויים',
-          onClick: handleChangeRole
-        }}
-        secondaryButton={{
-          text: 'ביטול',
-          onClick: () => setShowRoleModal(false)
-        }}
-      >
-        {selectedUser && (
-          <RoleSelectionContent
-            user={selectedUser}
-            selectedRole={selectedRole}
-            onRoleChange={setSelectedRole}
-            theme={theme}
-          />
-        )}
-      </TelegramModal>
 
       {/* Approval Modal */}
-      <TelegramModal
-        isOpen={showApprovalModal}
-        onClose={() => setShowApprovalModal(false)}
-        title="אישור משתמש חדש"
-        primaryButton={{
-          text: 'אשר משתמש',
-          onClick: handleApproveUser
-        }}
-        secondaryButton={{
-          text: 'ביטול',
-          onClick: () => setShowApprovalModal(false)
-        }}
-      >
-        {selectedUser && (
-          <RoleSelectionContent
-            user={selectedUser}
-            selectedRole={selectedRole}
-            onRoleChange={setSelectedRole}
-            theme={theme}
-          />
-        )}
-      </TelegramModal>
 
       {/* Audit Log Modal */}
-      <TelegramModal
-        isOpen={showAuditModal}
-        onClose={() => setShowAuditModal(false)}
-        title="יומן פעולות משתמש"
-        primaryButton={{
-          text: 'סגור',
-          onClick: () => setShowAuditModal(false)
-        }}
-      >
-        <AuditLogContent
-          user={selectedUser}
-          logs={auditLogs}
-          loading={loadingAudit}
-        />
-      </TelegramModal>
+      
     </div>
   );
 }
@@ -1030,7 +969,7 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
           {isPending ? (
             <button
               onClick={() => {
-                telegram.hapticFeedback('selection');
+
                 onApprove(user);
               }}
               aria-label={`Approve ${user.first_name}`}
@@ -1050,7 +989,7 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
           ) : (
             <button
               onClick={() => {
-                telegram.hapticFeedback('selection');
+
                 onEditRole(user);
               }}
               aria-label={`Change role for ${user.first_name}`}
@@ -1071,7 +1010,7 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
 
           <button
             onClick={() => {
-              telegram.hapticFeedback('selection');
+
               onViewAudit(user);
             }}
             aria-label={`View audit log for ${user.first_name}`}
@@ -1092,7 +1031,7 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
           {!isFirstAdmin && (
             <button
               onClick={() => {
-                telegram.hapticFeedback('selection');
+
                 onDelete(user);
               }}
               aria-label={`Delete ${user.first_name}`}
@@ -1231,7 +1170,7 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
         {isPending ? (
           <button
             onClick={() => {
-              telegram.hapticFeedback('selection');
+
               onApprove();
             }}
             style={{
@@ -1246,7 +1185,7 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
         ) : (
           <button
             onClick={() => {
-              telegram.hapticFeedback('selection');
+
               onEditRole();
             }}
             style={{
@@ -1262,7 +1201,7 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
 
         <button
           onClick={() => {
-            telegram.hapticFeedback('selection');
+
             onViewAudit();
           }}
           style={{
@@ -1277,7 +1216,7 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
         {!isFirstAdmin && (
           <button
             onClick={() => {
-              telegram.hapticFeedback('selection');
+
               onDelete();
             }}
             style={{
@@ -1303,7 +1242,7 @@ function RoleSelectionContent({ user, selectedRole, onRoleChange, theme }: any) 
     <button
       key={role}
       onClick={() => {
-        telegram.hapticFeedback('selection');
+
         onRoleChange(role);
       }}
       aria-label={`Select role ${name}`}

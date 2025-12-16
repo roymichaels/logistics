@@ -4,7 +4,7 @@ import { DriverService, DriverStats, OrderAssignment } from '../lib/driverServic
 import { DriverAssignmentModal, AssignmentDetails } from '../components/DriverAssignmentModal';
 import { getStatusBadgeStyle } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
-import { telegram } from '../lib/telegram';
+
 import { useRoleTheme } from '../hooks/useRoleTheme';
 import { logger } from '../lib/logger';
 import { useI18n } from '../lib/i18n';
@@ -27,7 +27,7 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
   const driverService = new DriverService(dataStore);
   const supabase = (dataStore as any).supabase;
 
-  const theme = telegram.themeParams;
+  const theme = 
   const { colors, styles } = useRoleTheme();
   const { translations } = useI18n();
 
@@ -102,7 +102,7 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
           filter: `driver_id=eq.${user?.telegram_id}`
         },
         () => {
-          telegram.hapticFeedback('notification', 'success');
+
           loadDriverData();
         }
       )
@@ -188,7 +188,7 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
       const newStatus = !isOnline;
       await driverService.setDriverAvailability(user.telegram_id, newStatus);
       setIsOnline(newStatus);
-      telegram.hapticFeedback('selection');
+
       Toast.success(newStatus ? translations.driverDashboardExtended.wentOnline : translations.driverDashboardExtended.wentOffline);
     } catch (error) {
       logger.error('Failed to toggle online status:', error);
@@ -199,13 +199,13 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
   const handleRefresh = async () => {
     setRefreshing(true);
     await loadDriverData();
-    telegram.hapticFeedback('soft');
+
   };
 
   const handleUpdateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
     try {
       await dataStore.updateOrder?.(orderId, { status: newStatus });
-      telegram.hapticFeedback('notification', 'success');
+
       Toast.success(translations.success.updated);
       await loadDriverData();
     } catch (error) {
@@ -358,7 +358,7 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
                   key={view}
                   onClick={() => {
                     setEarningsView(view);
-                    telegram.hapticFeedback('selection');
+
                   }}
                   style={{
                     padding: '8px 16px',

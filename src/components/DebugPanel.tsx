@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
 import { logger } from '../lib/logger';
+import { appTokens } from '../theme/app/tokens';
 
 interface DebugLog {
   timestamp: string;
@@ -48,7 +48,13 @@ export function DebugPanel() {
   const [showData, setShowData] = useState<number | null>(null);
   const [isPinned, setIsPinned] = useState(true);
   const [isMinimized, setIsMinimized] = useState(false);
-  const { theme } = useTelegramUI();
+  const theme = {
+    text_color: appTokens.colors.text,
+    button_color: appTokens.colors.primary,
+    button_text_color: '#ffffff',
+    bg_color: appTokens.colors.background,
+    secondary_bg_color: appTokens.colors.surface,
+  };
 
   useEffect(() => {
     const listener = (newLogs: DebugLog[]) => setLogs(newLogs);

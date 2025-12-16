@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { DataStore, User } from '../data/types';
 import { DriverService, DriverProfile, DriverStats } from '../lib/driverService';
 import { Toast } from '../components/Toast';
-import { telegram } from '../lib/telegram';
+
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { DriverDetailPanel } from '../components/DriverDetailPanel';
 import { DriverMapView } from '../components/DriverMapView';
@@ -37,7 +37,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
 
   const driverService = new DriverService(dataStore);
   const supabase = dataStore?.supabase;
-  const theme = telegram.themeParams;
+  const theme = 
 
   const loadDrivers = useCallback(async () => {
     try {
@@ -122,7 +122,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
   const handleRefresh = async () => {
     setRefreshing(true);
     await loadDrivers();
-    telegram.hapticFeedback('soft');
+
   };
 
   const filteredDrivers = drivers.filter(driver => {
@@ -270,7 +270,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                   key={filter}
                   onClick={() => {
                     setStatusFilter(filter);
-                    telegram.hapticFeedback('selection');
+
                   }}
                   style={{
                     padding: '8px 16px',
@@ -300,7 +300,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                   key={mode}
                   onClick={() => {
                     setViewMode(mode);
-                    telegram.hapticFeedback('selection');
+
                   }}
                   style={{
                     flex: 1,
@@ -342,7 +342,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                   key={driver.profile.user_id}
                   onClick={() => {
                     setSelectedDriver(driver);
-                    telegram.hapticFeedback('selection');
+
                   }}
                   style={{
                     ...ROYAL_STYLES.card,

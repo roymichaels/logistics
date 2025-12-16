@@ -5,7 +5,7 @@ import { DmOrderParser } from './DmOrderParser';
 import { StorefrontOrderBuilder } from './StorefrontOrderBuilder';
 import { ORDER_FORM_STYLES } from '../styles/orderTheme';
 import { Toast } from './Toast';
-import { telegram } from '../lib/telegram';
+
 import { logger } from '../lib/logger';
 
 interface EnhancedOrderEntryProps {
@@ -257,13 +257,13 @@ export function EnhancedOrderEntry({
       const result = await dataStore.createOrder?.(orderInput);
 
       if (result?.id) {
-        telegram.hapticFeedback('notification', 'success');
+
         Toast.success('ההזמנה נוצרה בהצלחה!');
         onSuccess(result.id);
       }
     } catch (error) {
       logger.error('Failed to create order:', error);
-      telegram.hapticFeedback('notification', 'error');
+
       Toast.error('שגיאה ביצירת ההזמנה');
     } finally {
       setSubmitting(false);
@@ -278,7 +278,7 @@ export function EnhancedOrderEntry({
       notes: customerInfo.notes,
       deliveryDate: customerInfo.deliveryDate
     });
-    telegram.hapticFeedback('selection');
+
     Toast.success('פרטי לקוח הועתקו');
   };
 
@@ -378,7 +378,7 @@ export function EnhancedOrderEntry({
             <button
               onClick={() => {
                 setMode('storefront');
-                telegram.hapticFeedback('selection');
+
               }}
               style={{
                 padding: '16px',
@@ -407,7 +407,7 @@ export function EnhancedOrderEntry({
             <button
               onClick={() => {
                 setMode('dm');
-                telegram.hapticFeedback('selection');
+
               }}
               style={{
                 padding: '16px',
@@ -436,7 +436,7 @@ export function EnhancedOrderEntry({
             <button
               onClick={() => {
                 setMode('quick');
-                telegram.hapticFeedback('selection');
+
               }}
               style={{
                 padding: '16px',
@@ -613,7 +613,7 @@ export function EnhancedOrderEntry({
           {mode === 'dm' && (
             <DmOrderParser
               products={products}
-              theme={telegram.themeParams}
+              theme={}
               inventoryAvailability={inventoryAvailability}
               onChange={(items, context) => setDmState({
                 items,
@@ -627,7 +627,7 @@ export function EnhancedOrderEntry({
             <StorefrontOrderBuilder
               products={products}
               value={storefrontItems}
-              theme={telegram.themeParams}
+              theme={}
               inventoryAvailability={inventoryAvailability}
               onChange={setStorefrontItems}
             />
@@ -645,7 +645,7 @@ export function EnhancedOrderEntry({
                   onClick={() => {
                     setStorefrontItems(template.items);
                     setMode('storefront');
-                    telegram.hapticFeedback('selection');
+
                   }}
                   style={{
                     padding: '20px',

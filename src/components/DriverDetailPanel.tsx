@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DataStore } from '../data/types';
 import { DriverService, DriverProfile, DriverStats } from '../lib/driverService';
 import { Toast } from './Toast';
-import { telegram } from '../lib/telegram';
+
 import { useRoleTheme } from '../hooks/useRoleTheme';
 import { logger } from '../lib/logger';
 
@@ -63,7 +63,7 @@ export function DriverDetailPanel({ driver, onClose, onUpdate, dataStore, driver
     try {
       await driverService.createOrUpdateDriverProfile(driver.profile.user_id, editData);
       Toast.success('פרטי הנהג עודכנו בהצלחה');
-      telegram.hapticFeedback('success');
+
       setEditing(false);
       onUpdate();
     } catch (error) {
@@ -76,7 +76,7 @@ export function DriverDetailPanel({ driver, onClose, onUpdate, dataStore, driver
     try {
       await driverService.setDriverAvailability(driver.profile.user_id, !driver.profile.is_available);
       Toast.success(driver.profile.is_available ? 'הנהג סומן כלא זמין' : 'הנהג סומן כזמין');
-      telegram.hapticFeedback('success');
+
       onUpdate();
     } catch (error) {
       logger.error('Failed to toggle availability:', error);
@@ -126,7 +126,7 @@ export function DriverDetailPanel({ driver, onClose, onUpdate, dataStore, driver
             key={tab.key}
             onClick={() => {
               setActiveTab(tab.key);
-              telegram.hapticFeedback('selection');
+
             }}
             style={{
               padding: '10px 16px',

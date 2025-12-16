@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { telegram } from '../lib/telegram';
+
 import { DataStore, Notification } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
@@ -16,7 +16,7 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
 
   useEffect(() => {
-    telegram.setBackButton(() => onNavigate('chat'));
+
     return () => telegram.hideBackButton();
   }, [onNavigate]);
 

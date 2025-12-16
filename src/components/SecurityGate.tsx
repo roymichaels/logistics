@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { PINEntry } from './PINEntry';
 import { SecurityManager, AuthenticationState, initializeGlobalSecurityManager } from '../utils/security/securityManager';
 import { SecurityAuditLogger } from '../utils/security/auditLogger';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { hebrew } from '../lib/i18n';
 import { logger } from '../lib/logger';
 
@@ -32,7 +32,6 @@ export function SecurityGate({
   const [pinMode, setPinMode] = useState<'setup' | 'verify' | 'change'>('verify');
   const [showChangePinPrompt, setShowChangePinPrompt] = useState(false);
 
-  const { theme, haptic } = useTelegramUI();
   const auditLogger = new SecurityAuditLogger();
 
   useEffect(() => {

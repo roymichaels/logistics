@@ -1,5 +1,5 @@
 import React from 'react';
-import { telegramXTokens } from '../theme/telegramx/tokens';
+import { appTokens } from '../theme/app/tokens';
 import { AppContainer } from './layout/AppContainer';
 import { PageContainer } from './layout/PageContainer';
 import { migrationFlags } from '../migration/flags';
@@ -42,14 +42,14 @@ export function DriverShell({ header, sidebar, actions, children }: Props) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: telegramXTokens.colors.background, color: telegramXTokens.colors.text, transition: telegramXTokens.motion.base }}>
+    <div style={{ minHeight: '100vh', background: appTokens.colors.background, color: appTokens.colors.text, transition: appTokens.motion.base }}>
       <AppContainer>
         <PageContainer>
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: telegramXTokens.spacing.md,
+              gap: appTokens.spacing.md,
               width: '100%',
             }}
           >

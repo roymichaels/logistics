@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { DataStore, DriverInventoryRecord, Product } from '../data/types';
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
@@ -22,7 +22,7 @@ interface EditableInventoryItem {
 }
 
 export function MyInventory({ dataStore }: MyInventoryProps) {
-  const { theme, backButton, haptic } = useTelegramUI();
+
   const { translations, isRTL } = useI18n();
   const [items, setItems] = useState<EditableInventoryItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);

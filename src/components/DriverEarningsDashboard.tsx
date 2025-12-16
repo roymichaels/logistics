@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { DataStore } from '../data/types';
 import { Toast } from './Toast';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { logger } from '../lib/logger';
 
 interface EarningsData {
@@ -35,7 +35,7 @@ interface DriverEarningsDashboardProps {
 }
 
 export function DriverEarningsDashboard({ dataStore, driverProfileId }: DriverEarningsDashboardProps) {
-  const { theme, haptic } = useTelegramUI();
+
   const [earnings, setEarnings] = useState<EarningsData>({
     today: 0,
     week: 0,

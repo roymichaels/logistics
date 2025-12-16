@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { telegram } from '../lib/telegram';
+
 import { DataStore, Task, User } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { hebrew } from '../lib/i18n';
@@ -67,7 +67,7 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
       }
     } catch (error) {
       logger.error('Failed to load tasks:', error);
-      telegram.showAlert('שגיאה בטעינת משימות');
+
     } finally {
       setLoading(false);
     }
@@ -76,37 +76,35 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
   const handleCreateTask = async (taskData: Partial<Task>) => {
     try {
       if (!dataStore.createTask) {
-        telegram.showAlert('פעולה זו אינה נתמכת');
+
         return;
       }
 
       await dataStore.createTask(taskData as any);
-      telegram.hapticFeedback('notification', 'success');
-      telegram.showAlert('המשימה נוצרה בהצלחה');
+
       setShowCreateModal(false);
       loadData();
     } catch (error) {
       logger.error('Failed to create task:', error);
-      telegram.showAlert('שגיאה ביצירת המשימה');
+
     }
   };
 
   const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
     try {
       if (!dataStore.updateTask) {
-        telegram.showAlert('פעולה זו אינה נתמכת');
+
         return;
       }
 
       await dataStore.updateTask(taskId, updates);
-      telegram.hapticFeedback('notification', 'success');
-      telegram.showAlert('המשימה עודכנה בהצלחה');
+
       setShowEditModal(false);
       setSelectedTask(null);
       loadData();
     } catch (error) {
       logger.error('Failed to update task:', error);
-      telegram.showAlert('שגיאה בעדכון המשימה');
+
     }
   };
 
@@ -122,12 +120,10 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
         .delete()
         .eq('id', taskId);
 
-      telegram.hapticFeedback('notification', 'success');
-      telegram.showAlert('המשימה נמחקה');
       loadData();
     } catch (error) {
       logger.error('Failed to delete task:', error);
-      telegram.showAlert('שגיאה במחיקת המשימה');
+
     }
   };
 
@@ -475,7 +471,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
     e.preventDefault();
 
     if (!formData.title) {
-      telegram.showAlert('אנא הזן כותרת למשימה');
+
       return;
     }
 

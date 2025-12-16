@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { Task, User } from '../data/types';
 import { RouteOptimizer, Location, OptimizationResult, RouteOptimizationOptions } from '../lib/routeOptimization';
 import { logger } from '../lib/logger';
@@ -32,7 +32,6 @@ export function RoutePlanner({ tasks, assignedDriver, onRouteOptimized, onClose 
   });
   const [optimizationResult, setOptimizationResult] = useState<OptimizationResult | null>(null);
   const [isOptimizing, setIsOptimizing] = useState(false);
-  const { theme, haptic } = useTelegramUI();
 
   useEffect(() => {
     // Auto-select high priority tasks

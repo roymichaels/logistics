@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { DataStore, BusinessType } from '../data/types';
 import { useAppServices } from '../context/AppServicesContext';
 import {
@@ -59,7 +59,7 @@ export function BusinessManager({ dataStore, currentUserId, onClose }: BusinessM
     default_currency: 'ILS' as 'ILS' | 'USD' | 'EUR',
     order_number_prefix: 'ORD'
   });
-  const { theme, haptic } = useTelegramUI();
+
   const { currentBusinessId, setBusinessId } = useAppServices();
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { telegramXTokens } from '../theme/telegramx/tokens';
+import { appTokens } from '../theme/app/tokens';
 import { AppContainer } from './layout/AppContainer';
 import { PageContainer } from './layout/PageContainer';
 import { HeaderRoute } from '../migration/MigrationRouter';
@@ -63,7 +63,7 @@ export function StoreShell({ header, sidebar, actions, children, title, subtitle
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: telegramXTokens.colors.background, color: telegramXTokens.colors.text, transition: telegramXTokens.motion.base }}>
+    <div style={{ minHeight: '100vh', background: appTokens.colors.background, color: appTokens.colors.text, transition: appTokens.motion.base }}>
       <AppContainer>
         <PageContainer>
           {headerNode}

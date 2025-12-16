@@ -3,7 +3,7 @@ import { Product, DataStore, CreateOrderInput } from '../data/types';
 import { DraftOrderItem, ProductInventoryAvailability } from './orderTypes';
 import { ORDER_FORM_STYLES, ORDER_CARD_STYLES } from '../styles/orderTheme';
 import { Toast } from './Toast';
-import { telegram } from '../lib/telegram';
+
 import { logger } from '../lib/logger';
 
 interface CustomerOrderPlacementProps {
@@ -84,7 +84,6 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
   }, [cart]);
 
   const addToCart = (product: Product) => {
-    telegram.hapticFeedback('selection');
 
     const existing = cart.find(item => item.product.id === product.id);
 
@@ -132,7 +131,7 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
   };
 
   const removeFromCart = (productId: string) => {
-    telegram.hapticFeedback('impact', 'light');
+
     setCart(cart.filter(item => item.product.id !== productId));
     Toast.info('פריט הוסר מהסל');
   };
@@ -195,7 +194,7 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
       const result = await dataStore.createOrder?.(orderInput);
 
       if (result?.id) {
-        telegram.hapticFeedback('notification', 'success');
+
         Toast.success('ההזמנה נוצרה בהצלחה!');
 
         if (onSuccess) {
@@ -204,7 +203,7 @@ export function CustomerOrderPlacement({ dataStore, onSuccess, onCancel }: Custo
       }
     } catch (error) {
       logger.error('Failed to create order:', error);
-      telegram.hapticFeedback('notification', 'error');
+
       Toast.error('שגיאה ביצירת ההזמנה');
     } finally {
       setSubmitting(false);

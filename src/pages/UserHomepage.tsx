@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User } from '../data/types';
 import { FrontendDataStore } from '../lib/frontendDataStore';
 import { Toast } from '../components/Toast';
-import { telegram } from '../lib/telegram';
+
 import { loadConfig } from '../lib/supabaseClient';
 import { logger } from '../lib/logger';
 
@@ -105,7 +105,6 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
 
   const handleRequestAccess = async () => {
     try {
-      telegram.hapticFeedback('impact', 'medium');
 
       let userTelegramId = user?.telegram_id;
 

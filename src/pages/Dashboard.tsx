@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { useSkeleton } from '../hooks/useSkeleton';
 import { Toast } from '../components/Toast';
 import { OwnerDashboard } from '../components/OwnerDashboard';
@@ -52,7 +52,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   const [snapshot, setSnapshot] = useState<RoyalDashboardSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { mainButton, backButton, haptic } = useTelegramUI();
+
   const showSkeleton = useSkeleton(220);
   const hasTelegramSend = typeof window !== 'undefined' && !!window.Telegram?.WebApp?.sendData;
   const { translations } = useI18n();

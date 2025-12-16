@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { telegram } from '../lib/telegram';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { DataStore, GroupChat, User } from '../data/types';
 import { hebrew } from '../lib/i18n';
 import { logger } from '../lib/logger';
@@ -39,7 +38,6 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
   const [createMode, setCreateMode] = useState<'group' | 'channel'>('group');
   const [userFilter, setUserFilter] = useState<UserFilter>('all');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { theme, haptic, backButton } = useTelegramUI();
 
   const userId = currentUser?.telegram_id || '';
   const { conversations, refetch: refetchConversations } = useConversations(userId);
@@ -218,11 +216,11 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
         });
       } else {
         logger.error('[Chat] ❌ Failed to send message:', result.error);
-        telegram.showAlert('שליחת ההודעה נכשלה');
+
       }
     } catch (error) {
       logger.error('[Chat] ❌ Exception sending message:', error);
-      telegram.showAlert('שליחת ההודעה נכשלה');
+
     }
   };
 
@@ -233,7 +231,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
   const handleSendMessageToUser = async (userId: string) => {
     try {
       if (!dataStore.getOrCreateDirectMessageRoom) {
-        telegram.showAlert('תכונת הודעות ישירות לא זמינה');
+
         return;
       }
 
@@ -263,7 +261,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
       await loadMessages(roomId, true);
     } catch (error) {
       logger.error('Failed to create/open direct message:', error);
-      telegram.showAlert('לא ניתן לפתוח שיחה');
+
     }
   };
 

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, RestockRequest, User } from '../data/types';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { hebrew, formatDate, formatTime } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
-import { telegram } from '../lib/telegram';
+
 import { logger } from '../lib/logger';
 
 interface RestockRequestsProps {
@@ -13,7 +13,7 @@ interface RestockRequestsProps {
 }
 
 export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps) {
-  const { theme } = useTelegramUI();
+
   const [requests, setRequests] = useState<RestockRequest[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,10 +57,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
     }
 
     const confirmed = await new Promise<boolean>(resolve => {
-      telegram.showConfirm(
-        `לאשר בקשה לחידוש ${request.requested_quantity} יח' של ${request.product?.name || 'מוצר'}?`,
-        (result) => resolve(result)
-      );
+
     });
 
     if (!confirmed) return;
@@ -88,10 +85,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
     }
 
     const confirmed = await new Promise<boolean>(resolve => {
-      telegram.showConfirm(
-        `לדחות בקשה לחידוש ${request.requested_quantity} יח' של ${request.product?.name || 'מוצר'}?`,
-        (result) => resolve(result)
-      );
+
     });
 
     if (!confirmed) return;
@@ -119,10 +113,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
     }
 
     const confirmed = await new Promise<boolean>(resolve => {
-      telegram.showConfirm(
-        `לסמן כבקשה שמומשה: ${request.approved_quantity || request.requested_quantity} יח' של ${request.product?.name || 'מוצר'}?`,
-        (result) => resolve(result)
-      );
+
     });
 
     if (!confirmed) return;

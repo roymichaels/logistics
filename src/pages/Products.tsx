@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { telegram } from '../lib/telegram';
+
 import {
   useCatalog,
   useCategories,
@@ -72,7 +72,7 @@ export function Products({ onNavigate }: ProductsProps) {
     const result = await createProduct(productData as any);
 
     if (result.success) {
-      telegram.hapticFeedback('notification', 'success');
+
       Toast.success('המוצר נוצר בהצלחה');
       Diagnostics.logEvent({ type: 'log', message: 'Product created successfully', data: result.data });
       setShowCreateModal(false);
@@ -89,7 +89,7 @@ export function Products({ onNavigate }: ProductsProps) {
     const result = await updateProduct(productId, updates as any);
 
     if (result.success) {
-      telegram.hapticFeedback('notification', 'success');
+
       Toast.success('המוצר עודכן בהצלחה');
       Diagnostics.logEvent({ type: 'log', message: 'Product updated successfully', data: { productId } });
       setShowEditModal(false);
@@ -110,7 +110,7 @@ export function Products({ onNavigate }: ProductsProps) {
     const result = await deleteProduct(productId);
 
     if (result.success) {
-      telegram.hapticFeedback('notification', 'success');
+
       Toast.success('המוצר נמחק');
       Diagnostics.logEvent({ type: 'log', message: 'Product deleted successfully', data: { productId } });
       refetch();
@@ -204,7 +204,7 @@ export function Products({ onNavigate }: ProductsProps) {
             <button
               key={cat}
               onClick={() => {
-                telegram.hapticFeedback('selection');
+
                 setFilter(cat);
                 Diagnostics.logEvent({ type: 'log', message: 'Category filter changed', data: { category: cat } });
               }}
@@ -226,7 +226,7 @@ export function Products({ onNavigate }: ProductsProps) {
       {canManageProducts && (
         <button
           onClick={() => {
-            telegram.hapticFeedback('selection');
+
             setShowCreateModal(true);
           }}
           style={{
@@ -474,12 +474,12 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
     e.preventDefault();
 
     if (!formData.name) {
-      telegram.showAlert('אנא הזן שם למוצר');
+
       return;
     }
 
     if (formData.price <= 0) {
-      telegram.showAlert('אנא הזן מחיר תקין');
+
       return;
     }
 

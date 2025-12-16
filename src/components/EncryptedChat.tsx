@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useTelegramUI } from '../hooks/useTelegramUI';
+
 import { getEncryptedChatService, EncryptedChat, EncryptedMessage } from '../utils/security/encryptedChatService';
 import { logger } from '../lib/logger';
 
@@ -35,7 +35,7 @@ export function EncryptedChatComponent({ chatId, onBack }: EncryptedChatComponen
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { theme, haptic, backButton } = useTelegramUI();
+
   const chatService = getEncryptedChatService();
 
   useEffect(() => {

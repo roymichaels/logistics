@@ -10,12 +10,6 @@
   <meta http-equiv="Expires" content="0">
 
   <title>מערכת לוגיסטיקה v1761956109</title>
-
-  <!-- Official Telegram Web App SDK - MUST load first -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- Telegram CSS Styles -->
-  <link rel="stylesheet" href="/src/styles/telegram.css">
   <style>
     * {
       box-sizing: border-box;
@@ -39,27 +33,16 @@
       min-height: 100vh;
       background-color: #15202B;
     }
-    
-    /* Telegram theme variables */
-    :root {
-      --tg-theme-bg-color: #ffffff;
-      --tg-theme-text-color: #000000;
-      --tg-theme-hint-color: #999999;
-      --tg-theme-link-color: #007aff;
-      --tg-theme-button-color: #007aff;
-      --tg-theme-button-text-color: #ffffff;
-      --tg-theme-secondary-bg-color: #f1f1f1;
-    }
-    
+
     /* Loading spinner */
     .loading {
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      font-size: var(--tg-font-lg);
+      font-size: 18px;
     }
-    
+
     /* Animations */
     @keyframes spin {
       0% { transform: rotate(0deg); }
@@ -79,7 +62,7 @@
     /* Responsive design */
     @media (max-width: 480px) {
       body {
-        font-size: var(--tg-font-md);
+        font-size: 14px;
       }
     }
   </style>
