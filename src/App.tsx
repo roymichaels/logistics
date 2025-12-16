@@ -1,5 +1,4 @@
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
-import { telegram } from './lib/telegram';
 import { ErrorDisplay } from './components/ErrorDisplay';
 import { OrderCreationWizard } from './components/OrderCreationWizard';
 import { DualModeOrderEntry } from './components/DualModeOrderEntry';

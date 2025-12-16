@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Shield, ShoppingCart } from 'lucide-react';
 import type { Product } from '../data/types';
 import { AppShell, AppHeader } from '../layouts/AppShell';
 import { Section } from '../components/atoms/Section';
@@ -12,14 +13,22 @@ import { CustomerBottomNav } from '../components/molecules/CustomerBottomNav';
 import { EmptyState } from '../components/molecules/EmptyState';
 import { Card } from '../components/molecules/Card';
 import { CartDrawer } from './CartDrawer';
-import { colors, spacing } from '../styles/design-system';
+import { colors, spacing, gradients, shadows } from '../styles/design-system';
 
 interface CatalogPageProps {
   dataStore: any;
   onNavigate?: (dest: string) => void;
 }
 
-const CATEGORIES = ['All', 'New', 'Hot', 'Deals', 'Services', 'Digital', 'Physical'];
+const CATEGORIES = [
+  'All',
+  'Secured Smartphones',
+  'Hardware Keys',
+  'Privacy Devices',
+  'Network Security',
+  'Encryption Tools',
+  'Security Software',
+];
 
 export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
   const [products, setProducts] = useState<Product[]>([]);
@@ -76,9 +85,15 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
       variant="ghost"
       size="sm"
       onClick={() => setCartOpen(true)}
-      style={{ fontSize: '20px', padding: spacing.sm }}
+      style={{
+        padding: spacing.sm,
+        display: 'flex',
+        alignItems: 'center',
+        gap: spacing.xs,
+        color: colors.brand.primary,
+      }}
     >
-      🛒
+      <ShoppingCart size={20} />
     </Button>
   );
 
@@ -95,38 +110,74 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
     >
       <div style={contentStyle}>
         <Section
-          title="Welcome to the Store"
+          title="UndergroundLab Security Store"
           style={{
             textAlign: 'center',
-            padding: spacing['3xl'],
-            background: `linear-gradient(135deg, ${colors.background.secondary}, ${colors.background.tertiary})`,
+            padding: spacing['4xl'],
+            background: gradients.card,
+            borderBottom: `1px solid ${colors.border.primary}`,
+            position: 'relative',
+            overflow: 'hidden',
           }}
         >
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: gradients.glow,
+              opacity: 0.3,
+              pointerEvents: 'none',
+            }}
+          />
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginBottom: spacing.lg,
+            }}
+          >
+            <div
+              style={{
+                width: '72px',
+                height: '72px',
+                borderRadius: '16px',
+                background: gradients.primary,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: shadows.glowLarge,
+              }}
+            >
+              <Shield size={40} color={colors.white} strokeWidth={2} />
+            </div>
+          </div>
           <Text
             variant="h2"
             style={{
-              marginBottom: spacing.sm,
+              marginBottom: spacing.md,
               color: colors.text.primary,
+              fontSize: '32px',
+              fontWeight: 'bold',
             }}
           >
-            Smart Catalog
+            Enterprise Security Hardware
           </Text>
           <Text
             variant="body"
             color="secondary"
             style={{
-              marginBottom: spacing.xl,
+              marginBottom: spacing['2xl'],
+              maxWidth: '600px',
+              margin: '0 auto',
+              lineHeight: '1.6',
             }}
           >
-            Personalized for every SandBox
+            Secured devices and privacy tools for individuals and businesses.
+            Military-grade encryption, certified hardware, encrypted shipping.
           </Text>
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={() => onNavigate?.('sandbox')}
-          >
-            🔥 Join Customer Sandbox
-          </Button>
         </Section>
 
         <Section

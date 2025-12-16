@@ -1,71 +1,80 @@
 /**
- * Twitter/X Design System Tokens
- * Authentic Twitter dark theme colors and design values
- * Based on Twitter's current design system
+ * UndergroundLab Security Store Design System
+ * Professional dark cyber aesthetic for security hardware
+ * Enterprise-grade visual identity
  */
 
 export const colors = {
   background: {
-    primary: '#15202B',      // Twitter's main dark background
-    secondary: '#192734',    // Elevated surfaces
-    tertiary: '#1C2833',     // Hover states
-    elevated: '#22303C',     // Modals and overlays
+    primary: '#0A0E14',      // Deep space black
+    secondary: '#131821',    // Card background
+    tertiary: '#1A1F2E',     // Elevated surfaces
+    elevated: '#1F2937',     // Modals and overlays
+    accent: '#162032',       // Hover states
   },
 
   text: {
-    primary: '#E7E9EA',      // Primary text (off-white)
-    secondary: '#8899A6',    // Secondary text (blue-gray)
-    tertiary: '#536471',     // Muted text
-    inverse: '#0F1419',      // Text on light backgrounds
-    muted: '#6E767D',        // Disabled text
+    primary: '#F9FAFB',      // Pure white text
+    secondary: '#D1D5DB',    // Secondary text (light gray)
+    tertiary: '#9CA3AF',     // Muted text
+    inverse: '#0A0E14',      // Text on light backgrounds
+    muted: '#6B7280',        // Disabled text
   },
 
   brand: {
-    primary: '#1DA1F2',      // Twitter blue
-    primaryHover: '#1A91DA', // Twitter blue hover
-    primaryPressed: '#1781BF', // Twitter blue pressed
-    primaryFaded: 'rgba(29, 161, 242, 0.1)', // Faded Twitter blue
+    primary: '#00D9FF',      // Cyan (security/tech)
+    primaryHover: '#00C4EA', // Cyan hover
+    primaryPressed: '#00A8CC', // Cyan pressed
+    primaryFaded: 'rgba(0, 217, 255, 0.1)', // Faded cyan
+    secondary: '#0066FF',    // Electric blue
+    accent: '#7B61FF',       // Purple accent
   },
 
-  accent: {
-    blue: '#1DA1F2',     // Primary Twitter blue
-    pink: '#F91880',     // Twitter pink (likes)
-    green: '#00BA7C',    // Twitter green (retweets)
-    yellow: '#F4B731',   // Twitter yellow
+  security: {
+    high: '#00FF94',         // Green (highly secure)
+    highFaded: 'rgba(0, 255, 148, 0.1)',
+    medium: '#FFB800',       // Amber (moderate security)
+    mediumFaded: 'rgba(255, 184, 0, 0.1)',
+    low: '#FF3B30',          // Red (vulnerable)
+    lowFaded: 'rgba(255, 59, 48, 0.1)',
+    critical: '#FF0055',     // Critical alert
   },
 
   status: {
-    success: '#00BA7C',
-    successFaded: 'rgba(0, 186, 124, 0.1)',
-    warning: '#FFAD1F',
-    warningFaded: 'rgba(255, 173, 31, 0.1)',
-    error: '#F4212E',
-    errorFaded: 'rgba(244, 33, 46, 0.1)',
-    info: '#1DA1F2',
-    infoFaded: 'rgba(29, 161, 242, 0.1)',
+    success: '#00FF94',
+    successFaded: 'rgba(0, 255, 148, 0.1)',
+    warning: '#FFB800',
+    warningFaded: 'rgba(255, 184, 0, 0.1)',
+    error: '#FF3B30',
+    errorFaded: 'rgba(255, 59, 48, 0.1)',
+    info: '#00D9FF',
+    infoFaded: 'rgba(0, 217, 255, 0.1)',
   },
 
   border: {
-    primary: '#38444D',      // Default borders
-    secondary: '#2F3336',    // Subtle borders
-    hover: '#536471',        // Hover state borders
-    focus: '#1DA1F2',        // Focus state (Twitter blue)
+    primary: '#2D3748',      // Default borders
+    secondary: '#1F2937',    // Subtle borders
+    hover: '#374151',        // Hover state borders
+    focus: '#00D9FF',        // Focus state (cyan)
+    accent: '#00D9FF',       // Accent border
   },
 
   ui: {
-    card: '#192734',
-    cardHover: '#1C2833',
-    overlay: 'rgba(91, 112, 131, 0.4)',  // Twitter's modal overlay
-    highlight: 'rgba(29, 161, 242, 0.1)',
+    card: '#131821',
+    cardHover: '#1A1F2E',
+    overlay: 'rgba(10, 14, 20, 0.85)',
+    highlight: 'rgba(0, 217, 255, 0.15)',
+    glow: 'rgba(0, 217, 255, 0.3)',
   },
 
   interactive: {
-    hover: '#1C2833',
-    active: '#1DA1F2',
-    disabled: '#536471',
+    hover: '#1A1F2E',
+    active: '#00D9FF',
+    disabled: '#4B5563',
   },
 
   white: '#FFFFFF',
+  black: '#000000',
   transparent: 'transparent',
 } as const;
 
@@ -222,19 +231,22 @@ export const backdropBlur = {
   '2xl': 'blur(20px)',
 } as const;
 
-// Gradient definitions for convenience
+// Gradient definitions for security aesthetic
 export const gradients = {
-  primary: 'linear-gradient(135deg, #1DA1F2 0%, #1781BF 100%)',
-  card: 'linear-gradient(180deg, #192734 0%, #15202B 100%)',
-  overlay: 'linear-gradient(180deg, rgba(21, 32, 43, 0) 0%, rgba(21, 32, 43, 0.9) 100%)',
-  success: 'linear-gradient(135deg, #00BA7C 0%, #00A368 100%)',
-  warning: 'linear-gradient(135deg, #FFAD1F 0%, #FFA500 100%)',
-  error: 'linear-gradient(135deg, #F4212E 0%, #C9191E 100%)',
+  primary: 'linear-gradient(135deg, #00D9FF 0%, #0066FF 100%)',
+  secondary: 'linear-gradient(135deg, #0066FF 0%, #7B61FF 100%)',
+  card: 'linear-gradient(180deg, #131821 0%, #0A0E14 100%)',
+  overlay: 'linear-gradient(180deg, rgba(10, 14, 20, 0) 0%, rgba(10, 14, 20, 0.95) 100%)',
+  success: 'linear-gradient(135deg, #00FF94 0%, #00D47E 100%)',
+  warning: 'linear-gradient(135deg, #FFB800 0%, #FFA000 100%)',
+  error: 'linear-gradient(135deg, #FF3B30 0%, #DC2626 100%)',
+  glow: 'radial-gradient(circle at center, rgba(0, 217, 255, 0.2) 0%, transparent 70%)',
+  cyber: 'linear-gradient(135deg, #00D9FF 0%, #7B61FF 50%, #FF0055 100%)',
 } as const;
 
 // Navigation specific values (for glass morphism effects)
 export const navigation = {
-  background: 'rgba(21, 32, 43, 0.85)',
-  backdropFilter: 'blur(12px)',
-  border: 'rgba(56, 68, 77, 0.6)',
+  background: 'rgba(10, 14, 20, 0.85)',
+  backdropFilter: 'blur(16px)',
+  border: 'rgba(45, 55, 72, 0.6)',
 } as const;
