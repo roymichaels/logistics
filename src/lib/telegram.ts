@@ -16,6 +16,10 @@ export const telegram = {
     setText: () => {},
     onClick: () => {},
   },
+  themeParams: {},
+  hapticFeedback: (type: string) => {},
+  showAlert: (message: string) => {},
+  isAvailable: false,
   initDataUnsafe: {},
   version: '0.0.0',
 };

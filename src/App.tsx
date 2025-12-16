@@ -21,6 +21,7 @@ import { useAppServices } from './context/AppServicesContext';
 import { useAuth } from './context/AuthContext';
 import { offlineStore } from './utils/offlineStore';
 import { platformDetection } from './lib/platformDetection';
+import { telegram } from './lib/telegram';
 import {
   isCircuitBreakerActive,
   getAuthLoopDiagnostics,
