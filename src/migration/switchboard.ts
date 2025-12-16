@@ -152,6 +152,12 @@ export async function resolveSearchPage() {
   return (mod as any).default || (mod as any).SearchPageNew;
 }
 
+// Orders page
+export async function resolveOrdersPage() {
+  const mod = await import('../pages_migration/OrdersPage.new.tsx');
+  return (mod as any).default || (mod as any).OrdersPageNew;
+}
+
 // Modal and drawer resolvers
 export async function resolveProfileMenuModal() {
   const mod = await import('../migration/modals/ProfileMenuModal.migration');

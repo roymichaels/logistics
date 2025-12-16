@@ -76,8 +76,6 @@ function ProfilePageNewContent({ user, dataStore, onNavigate }: ProfilePageNewPr
 
   return (
     <>
-      <PageHeader title="Profile" subtitle="Manage your account and preferences" />
-
       <PageContent>
         {/* Profile Header Card */}
         <Card

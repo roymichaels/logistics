@@ -199,13 +199,18 @@ function CatalogPageNewContent({
 
   return (
     <>
-      <PageHeader
-        title="Catalog"
-        subtitle="Browse our collection of products"
-        actions={headerActions}
-      />
-
       <PageContent>
+        {/* Cart Button - Floating */}
+        <div
+          style={{
+            position: 'fixed',
+            top: 64,
+            right: spacing.md,
+            zIndex: 100,
+          }}
+        >
+          {headerActions}
+        </div>
         {/* Featured Section */}
         <Card
           style={{

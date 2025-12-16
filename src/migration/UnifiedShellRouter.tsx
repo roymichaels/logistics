@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AppShell, AppHeader } from '../layouts/AppShell';
 import { HeaderRoute, ModalRoute, DrawerRoute, PopoverRoute } from './MigrationRouter';
 import { useShell } from '../context/ShellContext';
@@ -22,6 +22,7 @@ function UnifiedShellRouterContent(props: any) {
   const { title, subtitle } = usePageTitle();
   const { userRole } = useAppServices();
   const location = useLocation();
+  const navigate = useNavigate();
   const { UserMenuPopover, BusinessContextPopover, StoreAvatarPopover } = usePopoverResolver();
   const userMenu = usePopoverController(UserMenuPopover);
   const businessMenu = usePopoverController(BusinessContextPopover);
@@ -47,30 +48,9 @@ function UnifiedShellRouterContent(props: any) {
 
   const navigationConfig = useMemo(() => {
     return getNavigationConfig(userRole, location.pathname, (path: string) => {
-      if (shell?.handleNavigate) {
-        const pageMap: Record<string, string> = {
-          '/business/dashboard': 'dashboard',
-          '/business/products': 'products',
-          '/business/orders': 'orders',
-          '/business/inventory': 'inventory',
-          '/business/drivers': 'drivers-management',
-          '/business/zones': 'zone-management',
-          '/business/reports': 'reports',
-          '/driver/dashboard': 'driver-status',
-          '/driver/routes': 'my-deliveries',
-          '/driver/my-inventory': 'my-inventory',
-          '/driver/my-zones': 'my-zones',
-          '/store/catalog': 'catalog',
-          '/store/profile': 'profile',
-          '/store/orders': 'orders',
-        };
-        const page = pageMap[path];
-        if (page) {
-          shell.handleNavigate(page as any);
-        }
-      }
+      navigate(path);
     });
-  }, [userRole, location.pathname, shell]);
+  }, [userRole, location.pathname, navigate]);
 
   const header = (
     <AppHeader
@@ -89,14 +69,91 @@ function UnifiedShellRouterContent(props: any) {
               nav?.back();
             }
           }}
-          onMenuClick={(anchor) =>
+          onMenuClick={(anchor) => {
+            const menuContent = (
+              <div style={{ minWidth: 200, padding: '8px 0' }}>
+                <button
+                  onClick={() => {
+                    userMenu.close();
+                    navigate('/store/profile');
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: 'none',
+                    background: 'transparent',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    color: 'var(--color-text)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--color-panel)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  👤 Profile
+                </button>
+                <button
+                  onClick={() => {
+                    userMenu.close();
+                    navigate('/store/orders');
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: 'none',
+                    background: 'transparent',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    color: 'var(--color-text)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--color-panel)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  📋 Orders
+                </button>
+                <div style={{ height: 1, background: 'var(--color-border)', margin: '8px 0' }} />
+                <button
+                  onClick={() => {
+                    userMenu.close();
+                    shell?.handleLogout?.();
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: 'none',
+                    background: 'transparent',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    color: 'var(--color-error)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--color-panel)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  🚪 Logout
+                </button>
+              </div>
+            );
             userMenu.open({
               open: true,
               anchorEl: anchor,
               onClose: () => userMenu.close(),
-              children: props?.menuContent || null
-            })
-          }
+              children: menuContent
+            });
+          }}
           onAvatarClick={() =>
             avatarMenu.open({ open: true, anchorEl: null, onClose: () => avatarMenu.close(), children: null })
           }
