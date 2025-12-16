@@ -4,6 +4,7 @@ import UnifiedShellRouter from './UnifiedShellRouter';
 import {
   resolveProfilePage,
   resolveCatalogPage,
+  resolveSearchPage,
   resolveKYCRoute,
   resolveBusinessDashboard,
   resolveDriverHome,
@@ -128,6 +129,23 @@ export function CatalogRoute(props: Record<string, unknown> & { dataStore?: any;
         products={products}
         onSelect={onNavigate ? (p: any) => onNavigate(`/store/product/${p?.id}`) : undefined}
       />
+    </UnifiedShellRouter>
+  );
+}
+
+export function SearchRoute(props: Record<string, unknown> & { dataStore?: any; onNavigate?: (path: string) => void }) {
+  const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
+  const { dataStore, onNavigate, ...rest } = props;
+  const pageTitle = usePageTitle();
+
+  React.useEffect(() => {
+    resolveSearchPage().then((mod) => setComponent(() => mod));
+  }, []);
+
+  if (!Component) return null;
+  return (
+    <UnifiedShellRouter dataStore={dataStore}>
+      <Component {...rest} pageTitle={pageTitle} dataStore={dataStore} onNavigate={onNavigate} />
     </UnifiedShellRouter>
   );
 }
@@ -293,6 +311,7 @@ export default function MigrationRouter(props: { dataStore?: any; onNavigate?: (
         {/* Store Routes */}
         <Route path="/store" element={<Navigate to="/store/catalog" replace />} />
         <Route path="/store/catalog" element={<CatalogRoute dataStore={dataStore} onNavigate={onNavigate} />} />
+        <Route path="/store/search" element={<SearchRoute dataStore={dataStore} onNavigate={onNavigate} />} />
         <Route path="/store/cart" element={<div style={{ padding: 20 }}>Cart (placeholder)</div>} />
         <Route path="/store/checkout" element={<div style={{ padding: 20 }}>Checkout (placeholder)</div>} />
         <Route path="/store/orders" element={<Orders dataStore={dataStore} onNavigate={onNavigate} />} />

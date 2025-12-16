@@ -146,6 +146,12 @@ export async function resolveProductDetailPage() {
   return (mod as any).default;
 }
 
+// Search page
+export async function resolveSearchPage() {
+  const mod = await import('../pages_migration/SearchPage.new.tsx');
+  return (mod as any).default || (mod as any).SearchPageNew;
+}
+
 // Modal and drawer resolvers
 export async function resolveProfileMenuModal() {
   const mod = await import('../migration/modals/ProfileMenuModal.migration');
