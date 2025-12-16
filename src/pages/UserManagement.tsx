@@ -71,8 +71,6 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
   // Security: Check if current user has permission
   const hasManagementPermission = ['manager', 'owner', 'infrastructure_owner'].includes(currentUser?.role);
 
-  const theme = 
-
   const loadUsers = useCallback(async () => {
     if (!hasManagementPermission) {
       setLoading(false);

@@ -430,7 +430,7 @@ function OwnershipCard({ ownership, onNavigate }: {
 }) {
   return (
     <div
-      onClick={() => }
+      onClick={() => onNavigate(`/business/${ownership.business_id}`)}
       style={{
         ...ROYAL_STYLES.card,
         cursor: 'pointer',

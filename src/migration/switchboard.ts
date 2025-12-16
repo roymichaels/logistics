@@ -100,15 +100,6 @@ export async function resolveDriverAssignmentModal() {
   return (mod as any).default || (mod as any).DriverAssignmentModal;
 }
 
-export async function resolveTelegramModal() {
-  if (migrationFlags.modal) {
-    const mod = await import('../migration/modals/TelegramModal.migration');
-    return (mod as any).default;
-  }
-  const mod = await import('../components/TelegramModal');
-  return (mod as any).default || (mod as any).TelegramModal;
-}
-
 export async function resolveProfitDistributionModal() {
   if (migrationFlags.modal) {
     const mod = await import('../migration/modals/ProfitDistributionModal.migration');

@@ -24,8 +24,6 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
   const [showFilters, setShowFilters] = useState(false);
 
   const app = useApp();
-  const theme = 
-
   const { drivers, loading, error, refetch } = useDrivers({
     status: statusFilter === 'all' ? undefined : statusFilter,
     available_only: statusFilter === 'available'

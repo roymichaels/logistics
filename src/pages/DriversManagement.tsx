@@ -37,8 +37,6 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
 
   const driverService = new DriverService(dataStore);
   const supabase = dataStore?.supabase;
-  const theme = 
-
   const loadDrivers = useCallback(async () => {
     try {
       if (!supabase) {

@@ -28,19 +28,12 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
     status: filter === 'all' ? undefined : filter,
   });
 
-  const theme = 
-
-  useEffect(() => {
-
-      } else if (showCreateForm) {
-        setShowCreateForm(false);
-      }
-    });
-
-    if (!selectedOrderId && !showCreateForm) {
-
-    }
-  }, [selectedOrderId, showCreateForm]);
+  const theme = {
+    bg_color: ROYAL_COLORS.card,
+    text_color: ROYAL_COLORS.text,
+    link_color: ROYAL_COLORS.accent,
+    hint_color: ROYAL_COLORS.muted,
+  };
 
   useEffect(() => {
     const unsubscribe = app.events?.on('OrderCreated', () => {

@@ -38,7 +38,6 @@ export function Orders({ dataStore, onNavigate }: OrdersProps) {
   const [showModeSelector, setShowModeSelector] = useState(false);
   const { t, translations } = useI18n();
 
-  const theme = 
   const dispatchOrchestrator = useMemo(() => new DispatchOrchestrator(dataStore), [dataStore]);
 
   useEffect(() => {

@@ -184,11 +184,16 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
               </Button>
               <Button
                 variant="ghost"
-                onClick={() => {
-
-                      window.location.reload();
+                onClick={async () => {
+                  try {
+                    if (dataStore?.supabase) {
+                      await dataStore.supabase.auth.signOut();
                     }
-                  });
+                    window.location.reload();
+                  } catch (error) {
+                    logger.error('Logout failed:', error);
+                    window.location.reload();
+                  }
                 }}
                 style={{ width: '100%' }}
               >
@@ -294,7 +299,7 @@ export function Profile({ dataStore, onNavigate }: ProfileProps) {
             <Button
               variant="ghost"
               style={{ color: '#ef4444', borderColor: '#ef4444' }}
-              onClick={() => }
+              onClick={() => { /* Coming soon */ }}
             >
               🗑️ מחיקת חשבון (בקרוב)
             </Button>

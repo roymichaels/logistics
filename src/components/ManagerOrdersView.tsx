@@ -64,7 +64,6 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
     priority: 'all',
   });
 
-  const theme = 
   const canAssignOrders = hasPermission(user, 'orders:assign_driver');
   const canUpdateOrders = hasPermission(user, 'orders:update');
 

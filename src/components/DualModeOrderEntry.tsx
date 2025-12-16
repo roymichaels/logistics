@@ -209,10 +209,360 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
     : products;
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ color: ROYAL_COLORS.text }}>Order Entry</h2>
-        <p style={{ color: ROYAL_COLORS.muted }}>Component needs to be rebuilt after telegram removal</p>
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0, 0, 0, 0.9)',
+      zIndex: 1000,
+      overflowY: 'auto',
+      padding: '20px'
+    }}>
+      <div style={{
+        maxWidth: '800px',
+        margin: '0 auto',
+        background: ROYAL_COLORS.card,
+        borderRadius: '16px',
+        padding: '24px',
+        boxShadow: ROYAL_COLORS.shadow,
+        border: `1px solid ${ROYAL_COLORS.cardBorder}`
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h2 style={{ color: ROYAL_COLORS.text, margin: 0 }}>📝 Create Order</h2>
+          <button
+            onClick={onCancel}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: ROYAL_COLORS.muted,
+              fontSize: '24px',
+              cursor: 'pointer',
+              padding: '0',
+              lineHeight: 1
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Mode Selector */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+          <button
+            onClick={() => setMode('text')}
+            style={{
+              flex: 1,
+              padding: '12px',
+              background: mode === 'text' ? ROYAL_COLORS.accent : 'transparent',
+              border: `2px solid ${mode === 'text' ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+              borderRadius: '12px',
+              color: mode === 'text' ? '#fff' : ROYAL_COLORS.text,
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            📝 Text Mode
+          </button>
+          <button
+            onClick={() => setMode('storefront')}
+            style={{
+              flex: 1,
+              padding: '12px',
+              background: mode === 'storefront' ? ROYAL_COLORS.accent : 'transparent',
+              border: `2px solid ${mode === 'storefront' ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+              borderRadius: '12px',
+              color: mode === 'storefront' ? '#fff' : ROYAL_COLORS.text,
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            🛒 Storefront Mode
+          </button>
+        </div>
+
+        {/* Text Input Mode */}
+        {mode === 'text' && (
+          <div style={{ marginBottom: '24px' }}>
+            <textarea
+              value={textInput}
+              onChange={(e) => setTextInput(e.target.value)}
+              placeholder="Paste order text here (e.g., 'Product Name x 2')"
+              style={{
+                width: '100%',
+                minHeight: '120px',
+                padding: '12px',
+                background: 'rgba(0,0,0,0.3)',
+                border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                borderRadius: '8px',
+                color: ROYAL_COLORS.text,
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                resize: 'vertical'
+              }}
+            />
+            <button
+              onClick={handleTextSubmit}
+              style={{
+                marginTop: '12px',
+                padding: '10px 20px',
+                background: ROYAL_COLORS.accent,
+                border: 'none',
+                borderRadius: '8px',
+                color: '#fff',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              Parse Text
+            </button>
+          </div>
+        )}
+
+        {/* Storefront Mode */}
+        {mode === 'storefront' && (
+          <div style={{ marginBottom: '24px' }}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search products..."
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: 'rgba(0,0,0,0.3)',
+                border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                borderRadius: '8px',
+                color: ROYAL_COLORS.text,
+                fontSize: '14px',
+                marginBottom: '12px'
+              }}
+            />
+            <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+              {filteredProducts.map(product => (
+                <div
+                  key={product.id}
+                  style={{
+                    padding: '12px',
+                    background: 'rgba(0,0,0,0.2)',
+                    borderRadius: '8px',
+                    marginBottom: '8px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <div>
+                    <div style={{ color: ROYAL_COLORS.text, fontWeight: '600' }}>{product.name}</div>
+                    <div style={{ color: ROYAL_COLORS.gold, fontSize: '14px' }}>${product.price}</div>
+                  </div>
+                  <button
+                    onClick={() => handleAddToCart(product)}
+                    style={{
+                      padding: '8px 16px',
+                      background: ROYAL_COLORS.accent,
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: '#fff',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Cart */}
+        {cart.length > 0 && (
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ color: ROYAL_COLORS.text, marginBottom: '12px' }}>Cart</h3>
+            {cart.map(item => (
+              <div
+                key={item.product.id}
+                style={{
+                  padding: '12px',
+                  background: 'rgba(0,0,0,0.2)',
+                  borderRadius: '8px',
+                  marginBottom: '8px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: ROYAL_COLORS.text }}>{item.product.name}</div>
+                  <div style={{ color: ROYAL_COLORS.gold, fontSize: '14px' }}>
+                    ${item.product.price} × {item.quantity} = ${(item.product.price * item.quantity).toFixed(2)}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <button
+                    onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
+                    style={{
+                      padding: '4px 12px',
+                      background: ROYAL_COLORS.cardBorder,
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: ROYAL_COLORS.text,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    -
+                  </button>
+                  <span style={{ color: ROYAL_COLORS.text, minWidth: '30px', textAlign: 'center' }}>
+                    {item.quantity}
+                  </span>
+                  <button
+                    onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
+                    style={{
+                      padding: '4px 12px',
+                      background: ROYAL_COLORS.cardBorder,
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: ROYAL_COLORS.text,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    +
+                  </button>
+                  <button
+                    onClick={() => handleRemoveFromCart(item.product.id)}
+                    style={{
+                      padding: '4px 12px',
+                      background: 'rgba(255, 59, 48, 0.2)',
+                      border: '1px solid #ff3b30',
+                      borderRadius: '4px',
+                      color: '#ff3b30',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+            <div style={{
+              marginTop: '12px',
+              padding: '12px',
+              background: 'rgba(246, 201, 69, 0.1)',
+              borderRadius: '8px',
+              textAlign: 'right'
+            }}>
+              <div style={{ color: ROYAL_COLORS.gold, fontSize: '18px', fontWeight: '700' }}>
+                Total: ${calculateTotal().toFixed(2)}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Customer Info */}
+        <div style={{ marginBottom: '24px' }}>
+          <h3 style={{ color: ROYAL_COLORS.text, marginBottom: '12px' }}>Customer Information</h3>
+          <input
+            type="text"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            placeholder="Customer Name"
+            style={{
+              width: '100%',
+              padding: '12px',
+              background: 'rgba(0,0,0,0.3)',
+              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              borderRadius: '8px',
+              color: ROYAL_COLORS.text,
+              fontSize: '14px',
+              marginBottom: '12px'
+            }}
+          />
+          <input
+            type="tel"
+            value={customerPhone}
+            onChange={(e) => setCustomerPhone(e.target.value)}
+            placeholder="Phone Number"
+            style={{
+              width: '100%',
+              padding: '12px',
+              background: 'rgba(0,0,0,0.3)',
+              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              borderRadius: '8px',
+              color: ROYAL_COLORS.text,
+              fontSize: '14px',
+              marginBottom: '12px'
+            }}
+          />
+          <textarea
+            value={customerAddress}
+            onChange={(e) => setCustomerAddress(e.target.value)}
+            placeholder="Delivery Address"
+            style={{
+              width: '100%',
+              minHeight: '80px',
+              padding: '12px',
+              background: 'rgba(0,0,0,0.3)',
+              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              borderRadius: '8px',
+              color: ROYAL_COLORS.text,
+              fontSize: '14px',
+              marginBottom: '12px',
+              resize: 'vertical'
+            }}
+          />
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Order Notes (optional)"
+            style={{
+              width: '100%',
+              minHeight: '60px',
+              padding: '12px',
+              background: 'rgba(0,0,0,0.3)',
+              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              borderRadius: '8px',
+              color: ROYAL_COLORS.text,
+              fontSize: '14px',
+              resize: 'vertical'
+            }}
+          />
+        </div>
+
+        {/* Action Buttons */}
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button
+            onClick={onCancel}
+            style={{
+              flex: 1,
+              padding: '14px',
+              background: 'transparent',
+              border: `2px solid ${ROYAL_COLORS.cardBorder}`,
+              borderRadius: '12px',
+              color: ROYAL_COLORS.muted,
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmitOrder}
+            disabled={loading || cart.length === 0}
+            style={{
+              flex: 1,
+              padding: '14px',
+              background: loading || cart.length === 0 ? ROYAL_COLORS.cardBorder : ROYAL_COLORS.accent,
+              border: 'none',
+              borderRadius: '12px',
+              color: '#fff',
+              fontWeight: '600',
+              cursor: loading || cart.length === 0 ? 'not-allowed' : 'pointer',
+              opacity: loading || cart.length === 0 ? 0.5 : 1
+            }}
+          >
+            {loading ? '⏳ Creating...' : '✅ Create Order'}
+          </button>
+        </div>
       </div>
     </div>
   );

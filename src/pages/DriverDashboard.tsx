@@ -27,7 +27,6 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
   const driverService = new DriverService(dataStore);
   const supabase = (dataStore as any).supabase;
 
-  const theme = 
   const { colors, styles } = useRoleTheme();
   const { translations } = useI18n();
 

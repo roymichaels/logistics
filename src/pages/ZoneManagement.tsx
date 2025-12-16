@@ -317,11 +317,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                         </div>
                       </div>
                       <button
-                        onClick={() => {
-
-                            }
-                          });
-                        }}
+                        onClick={() => handleUnassignDriver(zone.id, driver.telegram_id)}
                         style={{
                           padding: '8px 16px',
                           background: 'rgba(255, 107, 138, 0.2)',

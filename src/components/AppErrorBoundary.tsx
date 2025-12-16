@@ -43,8 +43,6 @@ export class AppErrorBoundary extends React.Component<AppErrorBoundaryProps, App
         return this.props.fallback;
       }
 
-      const theme = 
-
       return (
         <div style={{
           display: 'flex',

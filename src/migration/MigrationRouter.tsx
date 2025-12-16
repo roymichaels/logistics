@@ -1,6 +1,33 @@
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import UnifiedShellRouter from './UnifiedShellRouter';
+import {
+  resolveProfilePage,
+  resolveCatalogPage,
+  resolveKYCRoute,
+  resolveBusinessDashboard,
+  resolveDriverHome,
+  resolveHeader,
+  resolveModal,
+  resolveDrawer,
+  resolveCreateBusinessModal,
+  resolveDriverAssignmentModal,
+  resolveProfitDistributionModal,
+  resolveRoleSelectionModal,
+  resolveNotificationPreferencesModal,
+  resolveCartDrawer,
+  resolveAddProductDrawer,
+  resolveStoreShell,
+  resolveBusinessShell,
+  resolveDriverShell,
+  resolveUserMenuPopover,
+  resolveBusinessContextPopover,
+  resolveStoreAvatarPopover,
+  resolveProductDetailPage,
+  resolveProfileMenuModal,
+  resolveProductDrawer,
+  resolveMetricsPopover
+} from './switchboard';
 
 import { usePageTitle } from '../hooks/usePageTitle';
 import { useAppServices } from '../context/AppServicesContext';
@@ -192,7 +219,6 @@ export function useModalResolver() {
   return {
     CreateBusinessModal: resolveCreateBusinessModal,
     DriverAssignmentModal: resolveDriverAssignmentModal,
-    TelegramModal: resolveTelegramModal,
     ProfitDistributionModal: resolveProfitDistributionModal,
     RoleSelectionModal: resolveRoleSelectionModal,
     NotificationPreferencesModal: resolveNotificationPreferencesModal,
