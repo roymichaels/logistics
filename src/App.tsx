@@ -30,6 +30,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ShellProvider } from './shells/ShellProvider';
 import MigrationRouter from './migration/MigrationRouter';
 import UnifiedShellRouter from './migration/UnifiedShellRouter';
+import { useTheme } from './foundation/theme';
 
 // All page components are now lazy-loaded in MigrationRouter
 
@@ -212,7 +213,7 @@ export default function App() {
     document.body.style.fontSize = '15px'; // Twitter's base font size
     document.body.style.WebkitFontSmoothing = 'antialiased';
     document.body.style.MozOsxFontSmoothing = 'grayscale';
-  }, [theme]);
+  }, []);
 
   useEffect(() => {
     if (!dataStore) {
@@ -562,7 +563,7 @@ export default function App() {
   }
 
   if (error) {
-    return <ErrorDisplay error={error} theme={theme} />;
+    return <ErrorDisplay error={error} />;
   }
 
   // Show LoginPage when not authenticated (for web users)
@@ -684,7 +685,7 @@ export default function App() {
 
   // Show superadmin setup only for infrastructure_owner role
   if (showSuperadminSetup && user && userRole === 'infrastructure_owner') {
-    return <SuperadminSetup user={user} onSuccess={handleSuperadminSuccess} theme={theme} />;
+    return <SuperadminSetup user={user} onSuccess={handleSuperadminSuccess} />;
   }
 
   if (!dataStore) {

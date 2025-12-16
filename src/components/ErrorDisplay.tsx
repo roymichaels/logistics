@@ -2,17 +2,21 @@ import React, { useState } from 'react';
 
 interface ErrorDisplayProps {
   error: string;
-  theme: {
-    bg_color: string;
-    text_color: string;
-    hint_color: string;
-    link_color: string;
-    button_color: string;
-    button_text_color: string;
-  };
 }
 
-export function ErrorDisplay({ error, theme }: ErrorDisplayProps) {
+// Default theme values based on Twitter/Telegram X dark theme
+const DEFAULT_THEME = {
+  bg_color: '#15202B',
+  text_color: '#E7E9EA',
+  hint_color: '#8899A6',
+  link_color: '#1D9BF0',
+  button_color: '#1D9BF0',
+  button_text_color: '#FFFFFF',
+  secondary_bg_color: '#192734'
+};
+
+export function ErrorDisplay({ error }: ErrorDisplayProps) {
+  const theme = DEFAULT_THEME;
   const [showDetails, setShowDetails] = useState(false);
 
   const lines = error.split('\n');

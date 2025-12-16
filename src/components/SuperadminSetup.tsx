@@ -4,10 +4,21 @@ import { logger } from '../lib/logger';
 interface SuperadminSetupProps {
   user: any;
   onSuccess: () => void;
-  theme: any;
 }
 
-export function SuperadminSetup({ user, onSuccess, theme }: SuperadminSetupProps) {
+// Default theme values based on Twitter/Telegram X dark theme
+const DEFAULT_THEME = {
+  bg_color: '#15202B',
+  text_color: '#E7E9EA',
+  hint_color: '#8899A6',
+  link_color: '#1D9BF0',
+  button_color: '#1D9BF0',
+  button_text_color: '#FFFFFF',
+  secondary_bg_color: '#192734'
+};
+
+export function SuperadminSetup({ user, onSuccess }: SuperadminSetupProps) {
+  const theme = DEFAULT_THEME;
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
