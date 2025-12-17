@@ -1,15 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Shield, ShoppingCart } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import type { Product } from '../data/types';
-import { AppShell, AppHeader } from '../layouts/AppShell';
 import { Section } from '../components/atoms/Section';
 import { Grid } from '../components/atoms/Grid';
 import { Chip } from '../components/atoms/Chip';
-import { Button } from '../components/atoms/Button';
 import { Text } from '../components/atoms/Typography';
 import { SearchBar } from '../components/molecules/SearchBar';
 import { ProductCard, ProductCardSkeleton } from '../components/molecules/ProductCard';
-import { CustomerBottomNav } from '../components/molecules/CustomerBottomNav';
 import { EmptyState } from '../components/molecules/EmptyState';
 import { Card } from '../components/molecules/Card';
 import { CartDrawer } from './CartDrawer';
@@ -78,36 +75,12 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
     return result;
   }, [products, category, searchQuery]);
 
-  const currentPath = '/store/catalog';
-
-  const headerActions = (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => setCartOpen(true)}
-      style={{
-        padding: spacing.sm,
-        display: 'flex',
-        alignItems: 'center',
-        gap: spacing.xs,
-        color: colors.brand.primary,
-      }}
-    >
-      <ShoppingCart size={20} />
-    </Button>
-  );
-
   const contentStyle: React.CSSProperties = {
     paddingBottom: '80px',
   };
 
   return (
-    <AppShell
-      header={<AppHeader title="Store" right={headerActions} />}
-      bottomNav={
-        <CustomerBottomNav currentPath={currentPath} onNavigate={(path) => onNavigate?.(path)} />
-      }
-    >
+    <>
       <div style={contentStyle}>
         <Section
           title="UndergroundLab Security Store"
@@ -305,6 +278,6 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
       </div>
 
       <CartDrawer isOpen={isCartOpen} onClose={() => setCartOpen(false)} />
-    </AppShell>
+    </>
   );
 }
