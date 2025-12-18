@@ -1,6 +1,8 @@
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useParams } from 'react-router-dom';
-import UnifiedShellRouter from './UnifiedShellRouter';
+import { useAuth } from '../context/AuthContext';
+
+// Import page resolution functions
 import {
   resolveProfilePage,
   resolveCatalogPage,
@@ -9,33 +11,10 @@ import {
   resolveKYCRoute,
   resolveBusinessDashboard,
   resolveDriverHome,
-  resolveHeader,
-  resolveModal,
-  resolveDrawer,
-  resolveCreateBusinessModal,
-  resolveDriverAssignmentModal,
-  resolveProfitDistributionModal,
-  resolveRoleSelectionModal,
-  resolveNotificationPreferencesModal,
-  resolveCartDrawer,
-  resolveAddProductDrawer,
-  resolveStoreShell,
-  resolveBusinessShell,
-  resolveDriverShell,
-  resolveUserMenuPopover,
-  resolveBusinessContextPopover,
-  resolveStoreAvatarPopover,
   resolveProductDetailPage,
-  resolveProfileMenuModal,
-  resolveProductDrawer,
-  resolveMetricsPopover
 } from './switchboard';
 
-import { usePageTitle } from '../hooks/usePageTitle';
-import { useAppServices } from '../context/AppServicesContext';
-import { useAuth } from '../context/AuthContext';
-
-// Lazy-loaded pages from App.tsx
+// Lazy-loaded pages
 const Dashboard = lazy(() => import('../pages/Dashboard').then((module) => ({ default: module.Dashboard })));
 const Orders = lazy(() => import('../pages/Orders').then((module) => ({ default: module.Orders })));
 const Tasks = lazy(() => import('../pages/Tasks').then((module) => ({ default: module.Tasks })));
@@ -71,39 +50,31 @@ const KYCFlow = lazy(() => import('../pages/kyc/KYCFlow'));
 const CustomerExperienceDemo = lazy(() => import('../pages/modern/CustomerExperienceDemo').then((module) => ({ default: module.CustomerExperienceDemo })));
 const BusinessDemoPage = lazy(() => import('../pages/modern/BusinessDemoPage').then((module) => ({ default: module.BusinessDemoPage })));
 const DriverDemoPage = lazy(() => import('../pages/modern/DriverDemoPage').then((module) => ({ default: module.DriverDemoPage })));
+
 const PageLoadingSkeleton = () => <div style={{ padding: 20 }}>Loading...</div>;
 
-export function ProfileRoute(props: Record<string, unknown>) {
+// Dynamic page loaders for migration pages
+function ProfilePage(props: any) {
   const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
-  const pageTitle = usePageTitle();
-
   React.useEffect(() => {
     resolveProfilePage().then((mod) => setComponent(() => mod));
   }, []);
-
   if (!Component) return null;
-  return (
-    <UnifiedShellRouter>
-      <Component {...props} pageTitle={pageTitle} />
-    </UnifiedShellRouter>
-  );
+  return <Component {...props} />;
 }
 
-export function CatalogRoute(props: Record<string, unknown> & { dataStore?: any; onNavigate?: (path: string) => void }) {
+function CatalogPage(props: any) {
   const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
-  const { dataStore, onNavigate, ...rest } = props;
-  const pageTitle = usePageTitle();
+  const [products, setProducts] = React.useState<any[]>([]);
 
   React.useEffect(() => {
     resolveCatalogPage().then((mod) => setComponent(() => mod));
   }, []);
 
-  const [products, setProducts] = React.useState<any[]>([]);
-
   React.useEffect(() => {
     let cancelled = false;
-    if (dataStore?.listProducts) {
-      dataStore
+    if (props.dataStore?.listProducts) {
+      props.dataStore
         .listProducts()
         .then((list: any[]) => {
           if (!cancelled) setProducts(list || []);
@@ -115,212 +86,80 @@ export function CatalogRoute(props: Record<string, unknown> & { dataStore?: any;
     return () => {
       cancelled = true;
     };
-  }, [dataStore]);
+  }, [props.dataStore]);
 
   if (!Component) return null;
-
-  // Legacy component still receives rest + dataStore/onNavigate; new component also gets products/onSelect.
   return (
-    <UnifiedShellRouter dataStore={dataStore}>
-      <Component
-        {...rest}
-        pageTitle={pageTitle}
-        dataStore={dataStore}
-        onNavigate={onNavigate}
-        products={products}
-        onSelect={onNavigate ? (p: any) => onNavigate(`/store/product/${p?.id}`) : undefined}
-      />
-    </UnifiedShellRouter>
+    <Component
+      {...props}
+      products={products}
+      onSelect={props.onNavigate ? (p: any) => props.onNavigate(`/store/product/${p?.id}`) : undefined}
+    />
   );
 }
 
-export function SearchRoute(props: Record<string, unknown> & { dataStore?: any; onNavigate?: (path: string) => void }) {
+function SearchPage(props: any) {
   const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
-  const { dataStore, onNavigate, ...rest } = props;
-  const pageTitle = usePageTitle();
-
   React.useEffect(() => {
     resolveSearchPage().then((mod) => setComponent(() => mod));
   }, []);
-
   if (!Component) return null;
-  return (
-    <UnifiedShellRouter dataStore={dataStore}>
-      <Component {...rest} pageTitle={pageTitle} dataStore={dataStore} onNavigate={onNavigate} />
-    </UnifiedShellRouter>
-  );
+  return <Component {...props} />;
 }
 
-export function OrdersRoute(props: Record<string, unknown> & { dataStore?: any; onNavigate?: (path: string) => void }) {
+function OrdersPage(props: any) {
   const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
-  const { dataStore, onNavigate, ...rest } = props;
-  const pageTitle = usePageTitle();
-
   React.useEffect(() => {
     resolveOrdersPage().then((mod) => setComponent(() => mod));
   }, []);
-
   if (!Component) return null;
-  return (
-    <UnifiedShellRouter dataStore={dataStore}>
-      <Component {...rest} pageTitle={pageTitle} dataStore={dataStore} onNavigate={onNavigate} />
-    </UnifiedShellRouter>
-  );
+  return <Component {...props} />;
 }
 
-export function KYCRoute(props: Record<string, unknown>) {
+function KYCPage(props: any) {
   const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
-  const pageTitle = usePageTitle();
-
   React.useEffect(() => {
     resolveKYCRoute().then((mod) => setComponent(() => mod));
   }, []);
-
   if (!Component) return null;
-  return (
-    <UnifiedShellRouter>
-      <Component {...props} pageTitle={pageTitle} />
-    </UnifiedShellRouter>
-  );
+  return <Component {...props} />;
 }
 
-export function BusinessDashboardRoute(props: Record<string, unknown>) {
+function BusinessDashboardPage(props: any) {
   const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
-  const pageTitle = usePageTitle();
-
   React.useEffect(() => {
     resolveBusinessDashboard().then((mod) => setComponent(() => mod));
   }, []);
-
   if (!Component) return null;
-  return (
-    <UnifiedShellRouter>
-      <Component {...props} pageTitle={pageTitle} />
-    </UnifiedShellRouter>
-  );
+  return <Component {...props} />;
 }
 
-export function DriverHomeRoute(props: Record<string, unknown>) {
+function DriverHomePage(props: any) {
   const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
-  const pageTitle = usePageTitle();
-
   React.useEffect(() => {
     resolveDriverHome().then((mod) => setComponent(() => mod));
   }, []);
-
-  if (!Component) return null;
-  return (
-    <UnifiedShellRouter>
-      <Component {...props} pageTitle={pageTitle} />
-    </UnifiedShellRouter>
-  );
-}
-
-export function HeaderRoute(props: Record<string, unknown>) {
-  const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
-
-  React.useEffect(() => {
-    resolveHeader().then((mod) => setComponent(() => mod));
-  }, []);
-
-  if (!Component) return null;
-  return (
-    <Component {...props} />
-  );
-}
-
-export function ModalRoute(props: Record<string, unknown>) {
-  const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
-
-  React.useEffect(() => {
-    resolveModal().then((mod) => setComponent(() => mod));
-  }, []);
-
   if (!Component) return null;
   return <Component {...props} />;
 }
 
-export function DrawerRoute(props: Record<string, unknown>) {
+function ProductDetailPage(props: any) {
   const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
-
-  React.useEffect(() => {
-    resolveDrawer().then((mod) => setComponent(() => mod));
-  }, []);
-
-  if (!Component) return null;
-  return <Component {...props} />;
-}
-
-export function useModalResolver() {
-  return {
-    CreateBusinessModal: resolveCreateBusinessModal,
-    DriverAssignmentModal: resolveDriverAssignmentModal,
-    ProfitDistributionModal: resolveProfitDistributionModal,
-    RoleSelectionModal: resolveRoleSelectionModal,
-    NotificationPreferencesModal: resolveNotificationPreferencesModal,
-    CartDrawer: resolveCartDrawer,
-    AddProductDrawer: resolveAddProductDrawer
-  };
-}
-
-export function useShellResolver() {
-  return {
-    StoreShell: resolveStoreShell,
-    BusinessShell: resolveBusinessShell,
-    DriverShell: resolveDriverShell
-  };
-}
-
-export function useDrawerResolver() {
-  return {
-    CartDrawer: resolveCartDrawer,
-    AddProductDrawer: resolveAddProductDrawer
-  };
-}
-
-export function ProductDetailRoute(props: { productId?: string; dataStore?: any }) {
-  const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
-  const pageTitle = usePageTitle();
-
   React.useEffect(() => {
     resolveProductDetailPage().then((mod) => setComponent(() => mod));
   }, []);
-
-  if (!Component) return null;
-  return (
-    <UnifiedShellRouter dataStore={props?.dataStore}>
-      <Component {...props} pageTitle={pageTitle} />
-    </UnifiedShellRouter>
-  );
-}
-
-export function PopoverRoute(props: Record<string, unknown>) {
-  const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
-
-  React.useEffect(() => {
-    resolveUserMenuPopover().then((mod) => setComponent(() => mod));
-  }, []);
-
   if (!Component) return null;
   return <Component {...props} />;
 }
 
-export function usePopoverResolver() {
-  return {
-    UserMenuPopover: resolveUserMenuPopover,
-    BusinessContextPopover: resolveBusinessContextPopover,
-    StoreAvatarPopover: resolveStoreAvatarPopover
-  };
-}
-
-// Consolidated route renderer for unified shell - ALL application routes
+// Consolidated route renderer - ALL application routes without shell wrappers
 export default function MigrationRouter(props: { dataStore?: any; onNavigate?: (path: string) => void }) {
   const { dataStore, onNavigate } = props;
   const { user } = useAuth();
 
   const UnifiedProductDetail = () => {
     const params = useParams<{ id: string }>();
-    return <ProductDetailRoute productId={params.id} dataStore={dataStore} />;
+    return <ProductDetailPage productId={params.id} dataStore={dataStore} />;
   };
 
   return (
@@ -328,14 +167,14 @@ export default function MigrationRouter(props: { dataStore?: any; onNavigate?: (
       <Routes>
         {/* Store Routes */}
         <Route path="/store" element={<Navigate to="/store/catalog" replace />} />
-        <Route path="/store/catalog" element={<CatalogRoute dataStore={dataStore} onNavigate={onNavigate} />} />
-        <Route path="/store/search" element={<SearchRoute dataStore={dataStore} onNavigate={onNavigate} />} />
+        <Route path="/store/catalog" element={<CatalogPage dataStore={dataStore} onNavigate={onNavigate} />} />
+        <Route path="/store/search" element={<SearchPage dataStore={dataStore} onNavigate={onNavigate} />} />
         <Route path="/store/cart" element={<div style={{ padding: 20 }}>Cart (placeholder)</div>} />
         <Route path="/store/checkout" element={<div style={{ padding: 20 }}>Checkout (placeholder)</div>} />
-        <Route path="/store/orders" element={<OrdersRoute dataStore={dataStore} onNavigate={onNavigate} />} />
-        <Route path="/store/profile" element={<ProfileRoute dataStore={dataStore} onNavigate={onNavigate} />} />
+        <Route path="/store/orders" element={<OrdersPage dataStore={dataStore} onNavigate={onNavigate} />} />
+        <Route path="/store/profile" element={<ProfilePage dataStore={dataStore} onNavigate={onNavigate} />} />
         <Route path="/store/product/:id" element={<UnifiedProductDetail />} />
-        <Route path="/store/kyc/*" element={<KYCRoute />} />
+        <Route path="/store/kyc/*" element={<KYCPage />} />
         <Route path="kyc/*" element={<KYCFlow />} />
         <Route path="kyc" element={<Navigate to="kyc/start" replace />} />
 

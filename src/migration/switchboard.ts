@@ -76,22 +76,6 @@ export async function resolveAddProductDrawer() {
   return (mod as any).default;
 }
 
-// Shell resolvers - always return UnifiedShellRouter
-export async function resolveStoreShell() {
-  const mod = await import('../migration/UnifiedShellRouter');
-  return (mod as any).default || (mod as any).UnifiedShellRouter;
-}
-
-export async function resolveBusinessShell() {
-  const mod = await import('../migration/UnifiedShellRouter');
-  return (mod as any).default || (mod as any).UnifiedShellRouter;
-}
-
-export async function resolveDriverShell() {
-  const mod = await import('../migration/UnifiedShellRouter');
-  return (mod as any).default || (mod as any).UnifiedShellRouter;
-}
-
 // Popover resolvers
 export async function resolveUserMenuPopover() {
   const mod = await import('../components/migration/popovers/UserMenuPopover.migration');

@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import UnifiedShellRouter from '../migration/UnifiedShellRouter';
 import { Card } from '../components/primitives/Card';
 import { Section } from '../components/primitives/Section';
 import { Surface } from '../components/layout/Surface';
@@ -71,11 +70,7 @@ function DriverHomeNewContent() {
 }
 
 export function DriverHomeNew(props: Record<string, unknown>) {
-  return (
-    <UnifiedShellRouter>
-      <DriverHomeNewContent {...props} />
-    </UnifiedShellRouter>
-  );
+  return <DriverHomeNewContent {...props} />;
 }
 
 export default DriverHomeNew;

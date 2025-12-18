@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import UnifiedShellRouter from '../migration/UnifiedShellRouter';
 import { Card } from '../components/primitives/Card';
 import { Section } from '../components/primitives/Section';
 import { Surface } from '../components/layout/Surface';
@@ -170,11 +169,7 @@ function KYCFlowNewContent(props: { onNavigate?: (path: string) => void }) {
 }
 
 export function KYCFlowNew(props: Record<string, unknown>) {
-  return (
-    <UnifiedShellRouter>
-      <KYCFlowNewContent {...props} />
-    </UnifiedShellRouter>
-  );
+  return <KYCFlowNewContent {...props} />;
 }
 
 export default KYCFlowNew;

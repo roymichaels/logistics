@@ -29,7 +29,14 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ShellProvider } from './shells/ShellProvider';
 import MigrationRouter from './migration/MigrationRouter';
-import UnifiedShellRouter from './migration/UnifiedShellRouter';
+import { UnifiedAppShell } from './shells/AppShell';
+import { PageTitleProvider } from './context/PageTitleContext';
+import { NavControllerProvider } from './migration/controllers/navController';
+import { UIControllerProvider, UIControllerRenderer } from './migration/controllers/uiController';
+import { DrawerControllerProvider } from './migration/useDrawerController';
+import { DataSandboxProvider } from './migration/data/DataSandboxContext';
+import { NavLayer } from './migration/controllers/navController';
+import { DevMigrationPanel } from './migration/DevMigrationPanel';
 import { useTheme } from './foundation/theme';
 
 // All page components are now lazy-loaded in MigrationRouter
@@ -708,43 +715,56 @@ export default function App() {
   const appShell = (
     <>
       <Suspense fallback={<PageLoadingSkeleton />}>
-        <ShellProvider
-          value={{
-            currentPage,
-            handleNavigate,
-            showSidebar,
-            setShowSidebar,
-            showActionMenu,
-            setShowActionMenu,
-            showOrderWizard,
-            openOrderWizard: handleShowCreateOrder,
-            closeOrderWizard: () => setShowOrderWizard(false),
-            showBusinessManager,
-            openBusinessManager: handleShowBusinessManager,
-            closeBusinessManager: () => setShowBusinessManager(false),
-            showSearchBusiness,
-            openSearchBusiness: handleShowSearchBusiness,
-            closeSearchBusiness: () => setShowSearchBusiness(false),
-            showBecomeDriver,
-            openBecomeDriver: handleShowBecomeDriver,
-            closeBecomeDriver: () => setShowBecomeDriver(false),
-            showCreateBusiness,
-            openCreateBusiness: handleShowCreateBusiness,
-            closeCreateBusiness: () => setShowCreateBusiness(false),
-            handleLogout,
-            handleShowCreateTask,
-            handleShowScanBarcode,
-            handleShowContactCustomer,
-            handleShowCheckInventory,
-            handleShowCreateRoute,
-            handleShowCreateUser,
-            handleShowCreateProduct
-          }}
-        >
-          <UnifiedShellRouter dataStore={dataStore}>
-            <MigrationRouter dataStore={dataStore} onNavigate={handleNavigate} />
-          </UnifiedShellRouter>
-        </ShellProvider>
+        <PageTitleProvider>
+          <NavControllerProvider>
+            <UIControllerProvider>
+              <DrawerControllerProvider>
+                <DataSandboxProvider>
+                  <ShellProvider
+                    value={{
+                      currentPage,
+                      handleNavigate,
+                      showSidebar,
+                      setShowSidebar,
+                      showActionMenu,
+                      setShowActionMenu,
+                      showOrderWizard,
+                      openOrderWizard: handleShowCreateOrder,
+                      closeOrderWizard: () => setShowOrderWizard(false),
+                      showBusinessManager,
+                      openBusinessManager: handleShowBusinessManager,
+                      closeBusinessManager: () => setShowBusinessManager(false),
+                      showSearchBusiness,
+                      openSearchBusiness: handleShowSearchBusiness,
+                      closeSearchBusiness: () => setShowSearchBusiness(false),
+                      showBecomeDriver,
+                      openBecomeDriver: handleShowBecomeDriver,
+                      closeBecomeDriver: () => setShowBecomeDriver(false),
+                      showCreateBusiness,
+                      openCreateBusiness: handleShowCreateBusiness,
+                      closeCreateBusiness: () => setShowCreateBusiness(false),
+                      handleLogout,
+                      handleShowCreateTask,
+                      handleShowScanBarcode,
+                      handleShowContactCustomer,
+                      handleShowCheckInventory,
+                      handleShowCreateRoute,
+                      handleShowCreateUser,
+                      handleShowCreateProduct
+                    }}
+                  >
+                    <UnifiedAppShell>
+                      <MigrationRouter dataStore={dataStore} onNavigate={handleNavigate} />
+                    </UnifiedAppShell>
+                    <UIControllerRenderer />
+                    <NavLayer />
+                    {process.env.NODE_ENV === 'development' && <DevMigrationPanel />}
+                  </ShellProvider>
+                </DataSandboxProvider>
+              </DrawerControllerProvider>
+            </UIControllerProvider>
+          </NavControllerProvider>
+        </PageTitleProvider>
       </Suspense>
 
       {/* Legacy modals - TODO: migrate to unified modal controller in Phase 2 */}

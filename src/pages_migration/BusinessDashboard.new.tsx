@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import UnifiedShellRouter from '../migration/UnifiedShellRouter';
 import { Card } from '../components/primitives/Card';
 import { Section } from '../components/primitives/Section';
 import { Surface } from '../components/layout/Surface';
@@ -52,11 +51,7 @@ function BusinessDashboardNewContent() {
 }
 
 export function BusinessDashboardNew(props: Record<string, unknown>) {
-  return (
-    <UnifiedShellRouter>
-      <BusinessDashboardNewContent {...props} />
-    </UnifiedShellRouter>
-  );
+  return <BusinessDashboardNewContent {...props} />;
 }
 
 export default BusinessDashboardNew;

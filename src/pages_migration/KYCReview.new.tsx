@@ -4,7 +4,6 @@ import { Section } from '../components/primitives/Section';
 import { Card } from '../components/primitives/Card';
 import { useKycFlow } from '../migration/useKycFlow';
 import { usePageTitle } from '../hooks/usePageTitle';
-import UnifiedShellRouter from '../migration/UnifiedShellRouter';
 
 function KYCReviewContent({ onNavigate }: { onNavigate?: (path: string) => void }) {
   const { state, submit } = useKycFlow();
@@ -65,9 +64,5 @@ function KYCReviewContent({ onNavigate }: { onNavigate?: (path: string) => void 
 }
 
 export default function KYCReviewNew(props: any) {
-  return (
-    <UnifiedShellRouter>
-      <KYCReviewContent {...props} />
-    </UnifiedShellRouter>
-  );
+  return <KYCReviewContent {...props} />;
 }
