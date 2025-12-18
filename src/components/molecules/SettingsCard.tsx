@@ -12,7 +12,7 @@ export function SettingsCard({ title, description, children }: SettingsCardProps
   return (
     <Card>
       <div style={{ marginBottom: '12px' }}>
-        <Typography variant="heading" style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>
+        <Typography variant="h4" style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>
           {title}
         </Typography>
         {description && (
