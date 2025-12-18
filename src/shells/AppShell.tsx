@@ -94,23 +94,11 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
     }
   })();
 
-  // Resolve popovers and drawers
-  const [UserMenuPopover, setUserMenuPopover] = React.useState<React.ComponentType<any> | null>(null);
-  const [BusinessContextPopover, setBusinessContextPopover] = React.useState<React.ComponentType<any> | null>(null);
-  const [StoreAvatarPopover, setStoreAvatarPopover] = React.useState<React.ComponentType<any> | null>(null);
-  const [CartDrawer, setCartDrawer] = React.useState<React.ComponentType<any> | null>(null);
-
-  React.useEffect(() => {
-    resolveUserMenuPopover().then(setUserMenuPopover);
-    resolveBusinessContextPopover().then(setBusinessContextPopover);
-    resolveStoreAvatarPopover().then(StoreAvatarPopover);
-    resolveCartDrawer().then(setCartDrawer);
-  }, []);
-
-  const userMenu = usePopoverController(UserMenuPopover);
-  const businessMenu = usePopoverController(BusinessContextPopover);
-  const avatarMenu = usePopoverController(StoreAvatarPopover);
-  const cartDrawer = useDrawerController(CartDrawer);
+  // Use resolver functions directly - they handle lazy loading internally
+  const userMenu = usePopoverController(resolveUserMenuPopover);
+  const businessMenu = usePopoverController(resolveBusinessContextPopover);
+  const avatarMenu = usePopoverController(resolveStoreAvatarPopover);
+  const cartDrawer = useDrawerController(resolveCartDrawer);
 
   const resolvedTitle = title || 'UndergroundLab';
   const resolvedSubtitle = subtitle;
