@@ -176,11 +176,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
     try {
       haptic('medium');
       const payload = summaryText;
-      if (typeof window !== 'undefined' && window.Telegram?.WebApp?.sendData) {
-        window.Telegram.WebApp.sendData(payload);
-        Toast.success('הסיכום נשלח לטלגרם');
-        logger.info('[Dashboard] ✅ Summary sent to Telegram');
-      } else if (navigator.clipboard?.writeText) {
+      if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(payload);
         Toast.success('הסיכום הועתק ללוח');
         logger.info('[Dashboard] ✅ Summary copied to clipboard');

@@ -121,7 +121,6 @@ export function Inventory({ onNavigate }: InventoryProps) {
     if (result.success) {
       Toast.success('המלאי עודכן בהצלחה');
       logger.info('[Inventory] Inventory adjusted successfully');
-      haptic();
       setShowAdjustForm(false);
       setSelectedProduct(null);
       setAdjustmentData({ quantity: 0, reason: '' });
@@ -157,11 +156,11 @@ export function Inventory({ onNavigate }: InventoryProps) {
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
-        background: theme.bg_color,
+        background: themeConfig.bg_color,
       }}>
         <div style={{ textAlign: 'center' }}>
           <Spinner />
-          <p style={{ marginTop: '16px', color: theme.text_color }}>טוען מלאי...</p>
+          <p style={{ marginTop: '16px', color: themeConfig.text_color }}>טוען מלאי...</p>
         </div>
       </div>
     );
@@ -174,11 +173,11 @@ export function Inventory({ onNavigate }: InventoryProps) {
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
-        background: theme.bg_color,
+        background: themeConfig.bg_color,
       }}>
         <div style={{ textAlign: 'center', padding: '20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
-          <p style={{ color: theme.text_color, marginBottom: '20px' }}>
+          <p style={{ color: themeConfig.text_color, marginBottom: '20px' }}>
             {error.message || 'שגיאה בטעינת מלאי'}
           </p>
           <Button onClick={refetch}>נסה שוב</Button>
@@ -191,11 +190,11 @@ export function Inventory({ onNavigate }: InventoryProps) {
     return (
       <div style={{
         padding: '20px',
-        background: theme.bg_color,
+        background: themeConfig.bg_color,
         minHeight: '100vh',
       }}>
         <h2 style={{
-          color: theme.text_color,
+          color: themeConfig.text_color,
           marginBottom: '20px',
           fontSize: '20px',
           fontWeight: '600',
@@ -207,7 +206,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
           <label style={{
             display: 'block',
             marginBottom: '8px',
-            color: theme.text_color,
+            color: themeConfig.text_color,
             fontSize: '14px',
           }}>
             כמות (שינוי)
@@ -223,9 +222,9 @@ export function Inventory({ onNavigate }: InventoryProps) {
               width: '100%',
               padding: '12px',
               borderRadius: '8px',
-              border: `1px solid ${theme.hint_color}`,
-              background: theme.secondary_bg_color,
-              color: theme.text_color,
+              border: `1px solid ${themeConfig.hint_color}`,
+              background: themeConfig.secondary_bg_color,
+              color: themeConfig.text_color,
               fontSize: '16px',
             }}
           />
@@ -235,7 +234,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
           <label style={{
             display: 'block',
             marginBottom: '8px',
-            color: theme.text_color,
+            color: themeConfig.text_color,
             fontSize: '14px',
           }}>
             סיבה
@@ -252,9 +251,9 @@ export function Inventory({ onNavigate }: InventoryProps) {
               width: '100%',
               padding: '12px',
               borderRadius: '8px',
-              border: `1px solid ${theme.hint_color}`,
-              background: theme.secondary_bg_color,
-              color: theme.text_color,
+              border: `1px solid ${themeConfig.hint_color}`,
+              background: themeConfig.secondary_bg_color,
+              color: themeConfig.text_color,
               fontSize: '16px',
             }}
           />
@@ -273,7 +272,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
               setShowAdjustForm(false);
               setAdjustmentData({ quantity: 0, reason: '' });
             }}
-            style={{ flex: 1, background: theme.hint_color }}
+            style={{ flex: 1, background: themeConfig.hint_color }}
           >
             ביטול
           </Button>
@@ -285,20 +284,20 @@ export function Inventory({ onNavigate }: InventoryProps) {
   return (
     <div style={{
       padding: '20px',
-      background: theme.bg_color,
+      background: themeConfig.bg_color,
       minHeight: '100vh',
     }}>
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{
           fontSize: '28px',
           fontWeight: '700',
-          color: theme.text_color,
+          color: themeConfig.text_color,
           marginBottom: '8px',
         }}>
           📦 מלאי
         </h1>
         <p style={{
-          color: theme.hint_color,
+          color: themeConfig.hint_color,
           fontSize: '14px',
         }}>
           ניהול מלאי מוצרים
@@ -336,8 +335,8 @@ export function Inventory({ onNavigate }: InventoryProps) {
               padding: '8px 16px',
               borderRadius: '20px',
               border: 'none',
-              background: filter === f ? theme.button_color : theme.secondary_bg_color,
-              color: filter === f ? theme.button_text_color : theme.text_color,
+              background: filter === f ? themeConfig.button_color : themeConfig.secondary_bg_color,
+              color: filter === f ? themeConfig.button_text_color : themeConfig.text_color,
               fontSize: '14px',
               fontWeight: '500',
               cursor: 'pointer',
@@ -361,11 +360,11 @@ export function Inventory({ onNavigate }: InventoryProps) {
               setShowAdjustForm(true);
             }}
             style={{
-              background: theme.secondary_bg_color,
+              background: themeConfig.secondary_bg_color,
               borderRadius: '12px',
               padding: '16px',
               cursor: 'pointer',
-              border: `1px solid ${theme.hint_color}20`,
+              border: `1px solid ${themeConfig.hint_color}20`,
             }}
           >
             <div style={{
@@ -378,7 +377,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
                 <h3 style={{
                   fontSize: '16px',
                   fontWeight: '600',
-                  color: theme.text_color,
+                  color: themeConfig.text_color,
                   marginBottom: '4px',
                 }}>
                   {item.product_name}
@@ -411,7 +410,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
               <div>
                 <div style={{
                   fontSize: '12px',
-                  color: theme.hint_color,
+                  color: themeConfig.hint_color,
                   marginBottom: '4px',
                 }}>
                   במלאי
@@ -419,7 +418,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
                 <div style={{
                   fontSize: '20px',
                   fontWeight: '700',
-                  color: theme.text_color,
+                  color: themeConfig.text_color,
                 }}>
                   {item.totalOnHand}
                 </div>
@@ -427,7 +426,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
               <div>
                 <div style={{
                   fontSize: '12px',
-                  color: theme.hint_color,
+                  color: themeConfig.hint_color,
                   marginBottom: '4px',
                 }}>
                   שמור
@@ -435,7 +434,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
                 <div style={{
                   fontSize: '20px',
                   fontWeight: '700',
-                  color: theme.text_color,
+                  color: themeConfig.text_color,
                 }}>
                   {item.totalReserved}
                 </div>
@@ -451,7 +450,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
           padding: '40px 20px',
         }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
-          <p style={{ color: theme.hint_color }}>
+          <p style={{ color: themeConfig.hint_color }}>
             {filter === 'all' ? 'אין פריטי מלאי' : `אין פריטים ב${filter === 'low' ? 'מלאי נמוך' : 'מלאי אזל'}`}
           </p>
         </div>
