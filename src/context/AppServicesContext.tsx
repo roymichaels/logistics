@@ -270,7 +270,6 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         const appUser: User = {
           id: auth.user.id,
-          telegram_id: auth.user.telegram_id,
           username: auth.user.username || undefined,
           name: auth.user.name,
           photo_url: auth.user.photo_url || undefined,

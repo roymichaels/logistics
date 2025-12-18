@@ -3,7 +3,6 @@ import { AsyncResult } from '../types';
 export interface User {
   id: string;
   email?: string;
-  telegramId?: string;
   walletAddress?: string;
   role?: string;
   metadata?: Record<string, unknown>;
@@ -19,7 +18,6 @@ export interface Session {
 export interface AuthCredentials {
   email?: string;
   password?: string;
-  telegramInitData?: string;
   walletAddress?: string;
   signature?: string;
 }

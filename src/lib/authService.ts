@@ -7,7 +7,6 @@ import { createLocalSession } from './auth/walletAuth';
 
 export interface AuthUser {
   id: string;
-  telegram_id?: string;
   wallet_address_eth?: string;
   wallet_address_sol?: string;
   username: string | null;
@@ -149,15 +148,13 @@ class AuthService {
       sessionManager.saveSession(session);
 
       const supabase = getSupabase();
-      const telegramId = session.user.user_metadata?.telegram_id ||
-                         session.user.app_metadata?.telegram_id;
       const walletEth = session.user.user_metadata?.wallet_address_eth ||
                         session.user.app_metadata?.wallet_address_eth;
       const walletSol = session.user.user_metadata?.wallet_address_sol ||
                         session.user.app_metadata?.wallet_address_sol;
 
       // Check if at least one identifier exists
-      if (!telegramId && !walletEth && !walletSol) {
+      if (!walletEth && !walletSol) {
         logger.warn('Session exists but no valid identifier found');
         this.updateState({
           user: null,
@@ -172,11 +169,9 @@ class AuthService {
       // Query user by any available identifier
       let query = supabase
         .from('users')
-        .select('id, telegram_id, wallet_address_eth, wallet_address_sol, username, name, photo_url, role, auth_method');
+        .select('id, wallet_address_eth, wallet_address_sol, username, name, photo_url, role, auth_method');
 
-      if (telegramId) {
-        query = query.eq('telegram_id', telegramId);
-      } else if (walletEth) {
+      if (walletEth) {
         query = query.eq('wallet_address_eth', walletEth.toLowerCase());
       } else if (walletSol) {
         query = query.eq('wallet_address_sol', walletSol.toLowerCase());

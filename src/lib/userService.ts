@@ -24,7 +24,7 @@ class UserService {
 
     const { data, error } = await supabase
       .from('users')
-      .select('id, telegram_id, username, name, photo_url, role, global_role, created_at, updated_at')
+      .select('id, username, name, photo_url, role, global_role, created_at, updated_at')
       .eq('id', userId)
       .maybeSingle();
 
@@ -47,13 +47,14 @@ class UserService {
     return profile;
   }
 
-  async getUserProfileByTelegramId(telegramId: string, forceRefresh = false): Promise<UserProfile> {
+  async getUserProfileByWallet(walletAddress: string, forceRefresh = false): Promise<UserProfile> {
     const supabase = getSupabase();
 
+    const lowerWallet = walletAddress.toLowerCase();
     const { data, error } = await supabase
       .from('users')
-      .select('id, telegram_id, username, name, photo_url, role, global_role, created_at, updated_at')
-      .eq('telegram_id', telegramId)
+      .select('id, username, name, photo_url, role, global_role, created_at, updated_at')
+      .or(`wallet_address_eth.eq.${lowerWallet},wallet_address_sol.eq.${lowerWallet}`)
       .maybeSingle();
 
     if (error) {
@@ -93,7 +94,7 @@ class UserService {
         updated_at: new Date().toISOString(),
       })
       .eq('id', userId)
-      .select('id, telegram_id, username, name, photo_url, role, global_role, created_at, updated_at')
+      .select('id, username, name, photo_url, role, global_role, created_at, updated_at')
       .single();
 
     if (error) {
