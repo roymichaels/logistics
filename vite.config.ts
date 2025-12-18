@@ -78,6 +78,16 @@ export default defineConfig(({ mode }) => {
 
   return {
     build: {
+      modulePreload: {
+        polyfill: false,
+        resolveDependencies: (filename, deps, { hostId, hostType }) => {
+          // Only preload critical chunks to reduce unused preload warnings
+          const criticalChunks = ['react-vendor', 'vendor', 'auth'];
+          return deps.filter(dep => {
+            return criticalChunks.some(chunk => dep.includes(chunk));
+          });
+        }
+      },
       rollupOptions: {
         output: {
           manualChunks(id) {

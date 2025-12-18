@@ -28,7 +28,7 @@ export const SwissCard: React.FC<Props> = ({
       data-swiss-card
       data-mode={mode}
       data-density={density}
-      data-interactive={interactive}
+      data-interactive={interactive ? 'true' : 'false'}
       onClick={onClick}
       style={{
         borderRadius: 16,

@@ -45,10 +45,10 @@ export const SwissContainer: React.FC<Props> = ({
       data-swiss-container
       data-mode={mode}
       data-density={density}
-      data-collapsible={collapsible}
-      data-expanded={expanded}
-      data-interactive={interactive}
-      data-sheet={sheetMode}
+      data-collapsible={collapsible ? 'true' : 'false'}
+      data-expanded={expanded ? 'true' : 'false'}
+      data-interactive={interactive ? 'true' : 'false'}
+      data-sheet={sheetMode ? 'true' : 'false'}
       style={{
         width: '100%',
         minHeight: '100%',

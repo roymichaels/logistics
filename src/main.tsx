@@ -206,7 +206,12 @@ function LoadingScreen() {
         <GlobalErrorBoundary>
           <ThemeProvider defaultTheme={{ variant: 'telegramx', mode: 'dark' }}>
             <LanguageProvider>
-              <BrowserRouter>
+              <BrowserRouter
+                future={{
+                  v7_startTransition: true,
+                  v7_relativeSplatPath: true
+                }}
+              >
                 {useSXT ? (
                   <SxtAuthProvider>
                     <AuthProvider>
