@@ -85,17 +85,6 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
   }, []);
 
   useEffect(() => {
-    if (selectedChat || encryptedChatId) {
-      backButton.show(() => {
-        setSelectedChat(null);
-        setEncryptedChatId(null);
-      });
-    } else {
-      backButton.hide();
-    }
-  }, [selectedChat, encryptedChatId]);
-
-  useEffect(() => {
     scrollToBottom();
   }, [roomMessages]);
 

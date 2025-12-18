@@ -27,10 +27,6 @@ export function MyZones({ dataStore }: MyZonesProps) {
   const [savingZoneId, setSavingZoneId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    backButton.hide();
-  }, [backButton]);
-
   const loadData = useCallback(async () => {
     if (!dataStore.listZones || !dataStore.listDriverZones || !dataStore.getDriverStatus) {
       setError(translations.myZonesPage.systemNotSupported);

@@ -39,14 +39,6 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
     }
   };
 
-  useEffect(() => {
-    if (selectedChannel) {
-      backButton.show(() => setSelectedChannel(null));
-    } else {
-      backButton.hide();
-    }
-  }, [selectedChannel]);
-
   const loadChannels = async () => {
     try {
       const channelsList = await dataStore.listChannels?.() || [];

@@ -42,9 +42,6 @@ export function EncryptedChatComponent({ chatId, onBack }: EncryptedChatComponen
     loadChat();
     loadMessages();
 
-    // Set up back button
-    backButton.show(onBack);
-
     // Listen for new messages
     const handleNewMessage = (event: CustomEvent) => {
       if (event.detail.chatId === chatId) {
@@ -55,7 +52,6 @@ export function EncryptedChatComponent({ chatId, onBack }: EncryptedChatComponen
     window.addEventListener('encrypted-message', handleNewMessage as EventListener);
 
     return () => {
-      backButton.hide();
       window.removeEventListener('encrypted-message', handleNewMessage as EventListener);
     };
   }, [chatId]);

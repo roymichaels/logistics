@@ -35,10 +35,6 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
   const [error, setError] = useState<string | null>(null);
   const [selectedZone, setSelectedZone] = useState<string>('');
 
-  useEffect(() => {
-    backButton.hide();
-  }, [backButton]);
-
   const loadData = useCallback(async () => {
     if (!dataStore.getDriverStatus) {
       setError(translations.driverStatusPage.systemNotSupported);

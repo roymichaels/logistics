@@ -54,7 +54,6 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
   const [error, setError] = useState<string | null>(null);
 
   const showSkeleton = useSkeleton(220);
-  const hasTelegramSend = typeof window !== 'undefined' && !!window.Telegram?.WebApp?.sendData;
   const { translations } = useI18n();
 
   const loadDashboard = useCallback(async () => {
@@ -76,7 +75,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
         return;
       }
 
-      logger.info('[Dashboard] ✅ Profile loaded', { role: profile.role, userId: profile.telegram_id });
+      logger.info('[Dashboard] ✅ Profile loaded', { role: profile.role, userId: profile.id });
       setUser(profile);
 
       // Owner and Manager get custom dashboards
@@ -154,13 +153,12 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
 
   useEffect(() => {
     logger.info('[Dashboard] 📱 Mounting Dashboard page');
-    backButton.hide();
     void loadDashboard();
 
     return () => {
       logger.info('[Dashboard] 📱 Unmounting Dashboard page');
     };
-  }, [backButton, loadDashboard]);
+  }, [loadDashboard]);
 
   const summaryText = useMemo(() => {
     if (!snapshot) return '';

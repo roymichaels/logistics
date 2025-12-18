@@ -29,11 +29,7 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState('');
-  const hintColor = theme.hint_color || '#999999';
-
-  useEffect(() => {
-    backButton.hide();
-  }, [backButton]);
+  const hintColor = '#999999';
 
   const loadData = useCallback(async () => {
     try {

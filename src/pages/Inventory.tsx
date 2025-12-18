@@ -43,10 +43,6 @@ export function Inventory({ onNavigate }: InventoryProps) {
   const loading = productsLoading || inventoryLoading;
 
   useEffect(() => {
-    backButton.hide();
-  }, [backButton]);
-
-  useEffect(() => {
     logger.info('[Inventory] Component mounted, subscribing to events');
 
     const unsubInventory = app.events?.on('StockLow', () => {

@@ -12,13 +12,9 @@ interface MyStatsProps {
 export function MyStats({ dataStore }: MyStatsProps) {
 
   const [user, setUser] = useState<User | null>(null);
-  const accentColor = theme.button_color || '#007aff';
-  const subtleBackground = theme.secondary_bg_color || '#f4f4f4';
-  const hintColor = theme.hint_color || '#999999';
-
-  useEffect(() => {
-    backButton.hide();
-  }, [backButton]);
+  const accentColor = '#007aff';
+  const subtleBackground = '#f4f4f4';
+  const hintColor = '#999999';
 
   useEffect(() => {
     let mounted = true;

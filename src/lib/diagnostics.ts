@@ -480,21 +480,7 @@ export namespace InitDiagnostics {
     logger.info('  __SUPABASE_INITIALIZED__:', !!(window as any).__SUPABASE_INITIALIZED__);
     logger.info('  __SUPABASE_SESSION__:', !!(window as any).__SUPABASE_SESSION__);
     logger.info('  __JWT_CLAIMS__:', !!(window as any).__JWT_CLAIMS__);
-    logger.info('  Telegram:', !!(window as any).Telegram);
-    logger.info('  Telegram.WebApp:', !!(window as any).Telegram?.WebApp);
-
-    if ((window as any).Telegram?.WebApp) {
-      const tg = (window as any).Telegram.WebApp;
-      logger.info('\n📱 Telegram WebApp Details:');
-      logger.info('  version:', tg.version);
-      logger.info('  platform:', tg.platform);
-      logger.info('  colorScheme:', tg.colorScheme);
-      logger.info('  isExpanded:', tg.isExpanded);
-      logger.info('  viewportHeight:', tg.viewportHeight);
-      logger.info('  initData length:', tg.initData?.length || 0);
-      logger.info('  initData preview:', tg.initData?.substring(0, 100) || 'EMPTY');
-      logger.info('  user:', tg.initDataUnsafe?.user || 'NO USER');
-    }
+    logger.info('  Browser Environment:', 'Standard web browser');
 
     if ((window as any).__SUPABASE_SESSION__) {
       const session = (window as any).__SUPABASE_SESSION__;

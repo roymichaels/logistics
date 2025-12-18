@@ -25,7 +25,6 @@ export function AdminPanel({ dataStore, onNavigate }: AdminPanelProps) {
 
   useEffect(() => {
     loadData();
-    backButton.hide();
   }, []);
 
   const loadData = async () => {

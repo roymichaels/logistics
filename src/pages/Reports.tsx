@@ -33,10 +33,6 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
     loadData();
   }, [selectedReport, dateRange]);
 
-  useEffect(() => {
-    backButton.hide();
-  }, []);
-
   const loadData = async () => {
     try {
       setLoading(true);

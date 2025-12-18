@@ -34,10 +34,6 @@ export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
   const [logs, setLogs] = useState<InventoryLog[]>([]);
 
   useEffect(() => {
-    backButton.hide();
-  }, [backButton]);
-
-  useEffect(() => {
     let cancelled = false;
 
     const load = async () => {

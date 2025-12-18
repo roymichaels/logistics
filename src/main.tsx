@@ -141,7 +141,7 @@ function LoadingScreen() {
     try {
       const useSXTRaw = (import.meta as any)?.env?.VITE_USE_SXT;
       const useSXT = (() => {
-        if (useSXTRaw === undefined || useSXTRaw === null || useSXTRaw === '') return true; // default to SxT
+        if (useSXTRaw === undefined || useSXTRaw === null || useSXTRaw === '') return false; // default to Supabase
         return ['1', 'true', 'yes'].includes(String(useSXTRaw).toLowerCase());
       })();
 
@@ -199,7 +199,7 @@ function LoadingScreen() {
     // Render the actual app
     console.log('✅ Rendering App component...');
     const useSXTRaw = (import.meta as any)?.env?.VITE_USE_SXT;
-    const useSXT = useSXTRaw === undefined || useSXTRaw === null || useSXTRaw === '' || ['1', 'true', 'yes'].includes(String(useSXTRaw).toLowerCase());
+    const useSXT = useSXTRaw !== undefined && useSXTRaw !== null && useSXTRaw !== '' && ['1', 'true', 'yes'].includes(String(useSXTRaw).toLowerCase());
 
     root.render(
       <React.StrictMode>
@@ -267,114 +267,15 @@ function LoadingScreen() {
   }
 })();
 
-// Handle Telegram WebApp lifecycle
-function initTelegramWebApp() {
-  console.log('🎬 Checking Telegram WebApp...');
-  console.log('📊 Environment Check:', {
-    hasTelegram: !!window.Telegram,
-    hasWebApp: !!window.Telegram?.WebApp,
-    userAgent: navigator.userAgent,
-    location: window.location.href
-  });
-
-  if (!window.Telegram?.WebApp) {
-    console.log('⚠️ Telegram WebApp not available yet, will retry...');
-    return false;
-  }
-
-  const tg = window.Telegram.WebApp;
-
-  // CRITICAL DEBUG INFO
-  console.log('🔍 TELEGRAM WEBAPP DEBUG:', {
-    version: tg.version,
-    platform: tg.platform,
-    colorScheme: tg.colorScheme,
-    isExpanded: tg.isExpanded,
-    viewportHeight: tg.viewportHeight,
-    viewportStableHeight: tg.viewportStableHeight,
-    hasInitData: !!tg.initData,
-    initDataLength: tg.initData?.length || 0,
-    initData: tg.initData || 'EMPTY',
-    hasInitDataUnsafe: !!tg.initDataUnsafe,
-    initDataUnsafe: tg.initDataUnsafe,
-    hasUser: !!tg.initDataUnsafe?.user,
-    user: tg.initDataUnsafe?.user || 'NO USER',
-    themeParams: tg.themeParams
-  });
-
-  // Check if initData is empty (warning, not error - TelegramAuth will handle gracefully)
-  if (!tg.initData || tg.initData.length === 0) {
-    console.warn('⚠️ initData is EMPTY - This is expected when:');
-    console.warn('   1. Opening app in regular browser (not Telegram)');
-    console.warn('   2. Bot not configured in BotFather');
-    console.warn('   3. App URL doesn\'t match BotFather settings');
-    console.warn('   TelegramAuth component will handle this gracefully');
-
-    // Don't block the app - let TelegramAuth component handle fallback
-    // It will show the Telegram Login Widget or browser mode
-  }
-
-  // Check if user data exists (info only)
-  if (!tg.initDataUnsafe?.user) {
-    console.info('ℹ️ No user in initDataUnsafe - TelegramAuth will handle authentication');
-  }
-
-  // Initialize Telegram WebApp
-  tg.ready();
-  tg.expand();
-  console.log('✅ Telegram WebApp ready and expanded');
-
-  // Set theme colors
-  if (tg.themeParams) {
-    const root = document.documentElement;
-    Object.entries(tg.themeParams).forEach(([key, value]) => {
-      if (value) {
-        root.style.setProperty(`--tg-theme-${key.replace(/_/g, '-')}`, value);
-      }
-    });
-    console.log('✅ Theme colors applied');
-  }
-
-  // Handle viewport changes
-  const handleViewportChange = () => {
-    const vh = tg.viewportStableHeight * 0.01;
+// Initialize viewport for responsive design
+function initViewport() {
+  const setVh = () => {
+    const vh = window.innerHeight * 0.01;
     document.documentElement.style.setProperty('--vh', `${vh}px`);
   };
 
-  handleViewportChange();
-  window.addEventListener('resize', handleViewportChange, { passive: true });
-
-  // Handle theme changes
-  tg.onEvent('themeChanged', () => {
-    if (tg.themeParams) {
-      const root = document.documentElement;
-      Object.entries(tg.themeParams).forEach(([key, value]) => {
-        if (value) {
-          root.style.setProperty(`--tg-theme-${key.replace(/_/g, '-')}`, value);
-        }
-      });
-    }
-  });
-
-  return true;
+  setVh();
+  window.addEventListener('resize', setVh, { passive: true });
 }
 
-// Try to initialize immediately
-if (!initTelegramWebApp()) {
-  // If not available, wait for script to load
-  console.log('⏳ Waiting for Telegram SDK to load...');
-  let retries = 0;
-  const maxRetries = 10;
-  const retryInterval = setInterval(() => {
-    retries++;
-    console.log(`🔄 Retry ${retries}/${maxRetries}...`);
-
-    if (initTelegramWebApp()) {
-      clearInterval(retryInterval);
-      console.log('✅ Telegram SDK loaded successfully');
-    } else if (retries >= maxRetries) {
-      clearInterval(retryInterval);
-      console.warn('⚠️ Telegram SDK failed to load after max retries - app will run in browser mode');
-    }
-  }, 100);
-}
+initViewport();

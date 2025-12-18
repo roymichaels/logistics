@@ -173,11 +173,6 @@ export class NotificationService {
         }
       }
 
-      // Send Telegram notification if in Telegram WebApp
-      if (window.Telegram?.WebApp) {
-        this.sendTelegramNotification(payload);
-      }
-
       return true;
     } catch (error) {
       logger.error('Failed to send notification:', error);
@@ -299,25 +294,15 @@ export class NotificationService {
     }
   }
 
-  private sendTelegramNotification(payload: PushNotificationPayload) {
-    if (!window.Telegram?.WebApp) return;
-
+  private sendBrowserNotification(payload: PushNotificationPayload) {
     try {
-      // Use Telegram WebApp notification API
-      if (window.Telegram.WebApp.showPopup) {
-        window.Telegram.WebApp.showPopup({
-          title: payload.title,
-          message: payload.body,
-          buttons: [{ type: 'ok' }]
+      // Use standard browser notifications
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(payload.title, {
+          body: payload.body,
+          icon: payload.icon,
+          tag: payload.tag
         });
-      } else {
-        // Fallback to alert
-        window.Telegram.WebApp.showAlert(`${payload.title}\n${payload.body}`);
-      }
-
-      // Haptic feedback
-      if (window.Telegram.WebApp.HapticFeedback) {
-        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
       }
     } catch (error) {
       logger.error('Failed to send Telegram notification:', error);

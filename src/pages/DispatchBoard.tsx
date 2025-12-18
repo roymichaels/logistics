@@ -32,10 +32,6 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const orchestrator = useMemo(() => new DispatchOrchestrator(dataStore), [dataStore]);
 
-  useEffect(() => {
-    backButton.hide();
-  }, [backButton]);
-
   const loadData = useCallback(async () => {
     if (!dataStore.listDriverStatuses) {
       setError(translations.dispatchBoardPage.systemNotSupported);

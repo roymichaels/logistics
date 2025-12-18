@@ -21,12 +21,11 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
 
   const { translations, isRTL } = useI18n();
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
-  const hintColor = theme.hint_color || '#999999';
+  const hintColor = '#999999';
 
   useEffect(() => {
-    backButton.hide();
     dataStore.getProfile().catch(() => undefined);
-  }, [backButton, dataStore]);
+  }, [dataStore]);
 
   useEffect(() => {
     setDeliveries([
