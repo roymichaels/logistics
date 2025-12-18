@@ -28,17 +28,18 @@ export function RolesPanel() {
     if (roleId === currentRole && roleOverride) {
       localStorage.removeItem(ROLE_OVERRIDE_KEY);
       setRoleOverride(null);
+      window.dispatchEvent(new CustomEvent('dev-role-changed'));
     } else {
       localStorage.setItem(ROLE_OVERRIDE_KEY, roleId);
       setRoleOverride(roleId);
+      window.dispatchEvent(new CustomEvent('dev-role-changed'));
     }
-    window.location.reload();
   };
 
   const clearOverride = () => {
     localStorage.removeItem(ROLE_OVERRIDE_KEY);
     setRoleOverride(null);
-    window.location.reload();
+    window.dispatchEvent(new CustomEvent('dev-role-changed'));
   };
 
   return (

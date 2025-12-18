@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { connectEthereumWallet, connectSolanaWallet, connectTonWallet, clearLocalSession } from '../lib/auth/walletAuth';
 
-type SxtRole = 'client' | 'business' | 'driver' | 'admin';
+type SxtRole = 'client' | 'business_owner' | 'driver' | 'manager' | 'dispatcher' | 'warehouse' | 'sales' | 'customer_service' | 'infrastructure_owner' | 'admin' | 'user';
 
 interface SxtSession {
   walletType: 'ethereum' | 'solana' | 'ton';
@@ -25,6 +25,7 @@ interface SxtAuthContextValue {
 
 const SxtAuthContext = createContext<SxtAuthContextValue | undefined>(undefined);
 const STORAGE_KEY = 'sxt_session';
+const DEV_ROLE_OVERRIDE_KEY = 'dev-console:role-override';
 
 function loadStoredSession(): SxtSession | null {
   try {
@@ -44,6 +45,9 @@ export function SxtAuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<SxtSession | null>(null);
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [roleOverride, setRoleOverride] = useState<string | null>(() =>
+    localStorage.getItem(DEV_ROLE_OVERRIDE_KEY)
+  );
 
   useEffect(() => {
     const stored = loadStoredSession();
@@ -53,10 +57,26 @@ export function SxtAuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    const handleRoleChange = () => {
+      const override = localStorage.getItem(DEV_ROLE_OVERRIDE_KEY);
+      setRoleOverride(override);
+    };
+
+    window.addEventListener('dev-role-changed', handleRoleChange);
+    window.addEventListener('storage', handleRoleChange);
+
+    return () => {
+      window.removeEventListener('dev-role-changed', handleRoleChange);
+      window.removeEventListener('storage', handleRoleChange);
+    };
+  }, []);
+
   const loginWithEthereum = async () => {
     setError(null);
     const { address } = await connectEthereumWallet();
-    const s: SxtSession = { walletType: 'ethereum', walletAddress: address, role: 'client', businesses: [] };
+    const defaultRole = (roleOverride as SxtRole) || 'client';
+    const s: SxtSession = { walletType: 'ethereum', walletAddress: address, role: defaultRole, businesses: [] };
     setSession(s);
     persistSession(s);
   };
@@ -64,7 +84,8 @@ export function SxtAuthProvider({ children }: { children: React.ReactNode }) {
   const loginWithSolana = async (adapter: any) => {
     setError(null);
     const { address } = await connectSolanaWallet(adapter);
-    const s: SxtSession = { walletType: 'solana', walletAddress: address, role: 'client', businesses: [] };
+    const defaultRole = (roleOverride as SxtRole) || 'client';
+    const s: SxtSession = { walletType: 'solana', walletAddress: address, role: defaultRole, businesses: [] };
     setSession(s);
     persistSession(s);
   };
@@ -72,7 +93,8 @@ export function SxtAuthProvider({ children }: { children: React.ReactNode }) {
   const loginWithTon = async () => {
     setError(null);
     const { address } = await connectTonWallet();
-    const s: SxtSession = { walletType: 'ton', walletAddress: address, role: 'client', businesses: [] };
+    const defaultRole = (roleOverride as SxtRole) || 'client';
+    const s: SxtSession = { walletType: 'ton', walletAddress: address, role: defaultRole, businesses: [] };
     setSession(s);
     persistSession(s);
   };
@@ -82,18 +104,21 @@ export function SxtAuthProvider({ children }: { children: React.ReactNode }) {
     clearLocalSession();
   };
 
-  const value = useMemo<SxtAuthContextValue>(() => ({
-    user: session,
-    role: session?.role || 'client',
-    businesses: session?.businesses || [],
-    loginWithEthereum,
-    loginWithSolana,
-    loginWithTon,
-    logout,
-    isAuthenticated: !!session,
-    isLoading,
-    error,
-  }), [session, isLoading, error]);
+  const value = useMemo<SxtAuthContextValue>(() => {
+    const effectiveRole = (roleOverride as SxtRole) || session?.role || 'client';
+    return {
+      user: session ? { ...session, role: effectiveRole } : null,
+      role: effectiveRole,
+      businesses: session?.businesses || [],
+      loginWithEthereum,
+      loginWithSolana,
+      loginWithTon,
+      logout,
+      isAuthenticated: !!session,
+      isLoading,
+      error,
+    };
+  }, [session, isLoading, error, roleOverride]);
 
   return (
     <SxtAuthContext.Provider value={value}>

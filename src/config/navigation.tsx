@@ -219,6 +219,104 @@ export function getNavigationConfig(
         bottomNav: null,
       };
 
+    case 'sales':
+      return {
+        headerTitle: 'Sales Dashboard',
+        sidebar: (
+          <div>
+            <NavItem
+              icon="📊"
+              label="Dashboard"
+              active={isActive('/business/dashboard')}
+              onClick={() => onNavigate('/business/dashboard')}
+            />
+            <NavItem
+              icon="📋"
+              label="Orders"
+              active={isActive('/business/orders')}
+              onClick={() => onNavigate('/business/orders')}
+            />
+            <NavItem
+              icon="📦"
+              label="Products"
+              active={isActive('/business/products')}
+              onClick={() => onNavigate('/business/products')}
+            />
+            <NavItem
+              icon="📈"
+              label="My Stats"
+              active={isActive('/my-stats')}
+              onClick={() => onNavigate('/my-stats')}
+            />
+          </div>
+        ),
+        bottomNav: null,
+      };
+
+    case 'customer_service':
+      return {
+        headerTitle: 'Support Dashboard',
+        sidebar: (
+          <div>
+            <NavItem
+              icon="📋"
+              label="Orders"
+              active={isActive('/business/orders')}
+              onClick={() => onNavigate('/business/orders')}
+            />
+            <NavItem
+              icon="💬"
+              label="Chat"
+              active={isActive('/chat')}
+              onClick={() => onNavigate('/chat')}
+            />
+            <NavItem
+              icon="👥"
+              label="Customers"
+              active={isActive('/admin/users')}
+              onClick={() => onNavigate('/admin/users')}
+            />
+          </div>
+        ),
+        bottomNav: null,
+      };
+
+    case 'admin':
+    case 'superadmin':
+      return {
+        headerTitle: 'Admin Portal',
+        sidebar: (
+          <div>
+            <NavItem
+              icon="📊"
+              label="Analytics"
+              active={isActive('/admin/analytics')}
+              onClick={() => onNavigate('/admin/analytics')}
+            />
+            <NavItem
+              icon="🏢"
+              label="Businesses"
+              active={isActive('/admin/businesses')}
+              onClick={() => onNavigate('/admin/businesses')}
+            />
+            <NavItem
+              icon="👥"
+              label="Users"
+              active={isActive('/admin/users')}
+              onClick={() => onNavigate('/admin/users')}
+            />
+            <NavItem
+              icon="📋"
+              label="Orders"
+              active={isActive('/business/orders')}
+              onClick={() => onNavigate('/business/orders')}
+            />
+          </div>
+        ),
+        bottomNav: null,
+      };
+
+    case 'client':
     case 'user':
     case 'customer':
     default:

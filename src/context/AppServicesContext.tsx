@@ -13,6 +13,8 @@ import { useAuth } from './AuthContext';
 import { userService } from '../lib/userService';
 import { logger } from '../lib/logger';
 
+const DEV_ROLE_OVERRIDE_KEY = 'dev-console:role-override';
+
 export type AppUserRole =
   | 'user'
   | 'infrastructure_owner'
@@ -57,6 +59,9 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   const [error, setError] = useState<string | null>(null);
   const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
   const [roleRefreshPending, setRoleRefreshPending] = useState(false);
+  const [devRoleOverride, setDevRoleOverride] = useState<string | null>(() =>
+    localStorage.getItem(DEV_ROLE_OVERRIDE_KEY)
+  );
 
   // Always call useAuth to comply with React hooks rules
   // We'll just not use it if 'value' is provided
@@ -80,7 +85,8 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     async ({ forceRefresh = true }: { forceRefresh?: boolean } = {}) => {
       if (useSXT) {
         // In SxT mode, roles are handled client-side; just ensure state is set
-        const sxtRole = (auth?.user as any)?.role || 'client';
+        const override = localStorage.getItem(DEV_ROLE_OVERRIDE_KEY);
+        const sxtRole = override || (auth?.user as any)?.role || 'client';
         setUserRole(sxtRole as AppUserRole);
         return;
       }
@@ -137,10 +143,10 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         setTimeout(() => setRoleRefreshPending(false), 1000);
       }
     },
-    [user, currentBusinessId, roleRefreshPending]
+    [user, currentBusinessId, roleRefreshPending, useSXT, auth]
   );
 
-  // Listen for role-refresh events
+  // Listen for role-refresh and dev role change events
   useEffect(() => {
     if (value || !user?.id) {
       return;
@@ -165,10 +171,26 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       }
     };
 
+    const handleDevRoleChange = () => {
+      const override = localStorage.getItem(DEV_ROLE_OVERRIDE_KEY);
+      logger.info('🎭 Dev role override changed:', override);
+      setDevRoleOverride(override);
+
+      if (override) {
+        setUserRole(override as AppUserRole);
+      } else {
+        refreshUserRole({ forceRefresh: true });
+      }
+    };
+
     window.addEventListener('role-refresh', handleRoleRefresh);
+    window.addEventListener('dev-role-changed', handleDevRoleChange);
+    window.addEventListener('storage', handleDevRoleChange);
 
     return () => {
       window.removeEventListener('role-refresh', handleRoleRefresh);
+      window.removeEventListener('dev-role-changed', handleDevRoleChange);
+      window.removeEventListener('storage', handleDevRoleChange);
     };
   }, [value, user?.id, refreshUserRole]);
 
@@ -243,17 +265,20 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         setConfig(appConfig);
 
+        const devOverride = localStorage.getItem(DEV_ROLE_OVERRIDE_KEY);
+        const effectiveRole = devOverride || (auth.user as any).role;
+
         const appUser: User = {
           id: auth.user.id,
           telegram_id: auth.user.telegram_id,
           username: auth.user.username || undefined,
           name: auth.user.name,
           photo_url: auth.user.photo_url || undefined,
-          role: (auth.user as any).role as any,
+          role: effectiveRole as any,
         };
 
         setUser(appUser);
-        setUserRole((auth.user as any).role as AppUserRole);
+        setUserRole(effectiveRole as AppUserRole);
 
         if (cancelled) return;
 
@@ -279,8 +304,11 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
             const infrastructureId = auth.session?.user?.app_metadata?.infrastructure_id || null;
             const sessionBusinessId = auth.session?.user?.app_metadata?.business_id || null;
 
-            // Prefer global_role over role for business owners
-            let effectiveRole = (profile.global_role || profile.role) as AppUserRole;
+            // Check for dev role override first
+            const devOverride = localStorage.getItem(DEV_ROLE_OVERRIDE_KEY);
+
+            // Prefer dev override, then global_role, then role
+            let effectiveRole = (devOverride || profile.global_role || profile.role) as AppUserRole;
             if (!effectiveRole) {
               effectiveRole = 'user';
             }
