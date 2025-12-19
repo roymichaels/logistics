@@ -1,4 +1,4 @@
-import { appTokens } from '../theme/app/tokens';
+import { spacing } from '../design-system';
 
 export function createStandardPadding() {
   return {
@@ -8,7 +8,7 @@ export function createStandardPadding() {
 
 export function createCardPadding() {
   return {
-    padding: `${appTokens.spacing.sm} ${appTokens.spacing.md}`,
+    padding: `${spacing.sm} ${spacing.md}`,
   };
 }
 

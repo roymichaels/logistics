@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { logger } from '../lib/logger';
-import { appTokens } from '../theme/app/tokens';
+import { spacing } from '../design-system';
 
 interface DebugLog {
   timestamp: string;

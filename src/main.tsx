@@ -11,6 +11,7 @@ import { ThemeProvider } from './foundation/theme/ThemeProvider';
 import './lib/diagnostics';
 import './lib/errorHandler';
 import { initializeApplicationLayer } from './application/bootstrap';
+import './design-system/variables.css';
 import './styles/containment.css';
 import './styles/canonical-tokens.css';
 import './styles/layout-engine.css';
