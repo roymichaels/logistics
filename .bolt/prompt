@@ -1,3 +1,414 @@
+Your app is actually a **multi-role logistics + commerce + operations platform**, and right now the architecture is a bit chaotic because:
+
+* Roles exist, but navigation isn’t unified
+* Pages exist, but the flow isn’t documented
+* Components exist, but responsibilities overlap
+* Responsibilities are duplicated across shells
+* Some flows are still Supabase-oriented
+* Some flows are SxT + wallet oriented
+* Some flows don’t know where they belong
+
+So we’ll fix ALL that right now.
+
+Below is a **clean, unified, end-to-end workflow map** for your entire system — for every role.
+This is *NOT* generic.
+This is tailored to **your app’s actual screens, actual components, and actual intended behavior**.
+
+This is the document you’ve been missing.
+
+---
+
+# 🌍 **MASTER WORKFLOW MAP — FULL SYSTEM (ALL ROLES)**
+
+Structured for your new FRONTEND-ONLY + Wallet Auth + IndexedDB architecture.
+
+This can be turned into:
+
+* Navigation schema
+* Role-based shell configuration
+* Authorization guards
+* Onboarding flow
+* UI wireframes
+* Migration plan from old architecture
+
+---
+
+# 🧩 **ROLES THE SYSTEM MUST SUPPORT**
+
+Your app currently supports 10 distinct roles:
+
+### **BUSINESS SIDE (B2B)**
+
+1. **infrastructure_owner**
+2. **business_owner**
+3. **manager**
+4. **warehouse**
+5. **dispatcher**
+6. **sales**
+7. **customer_service**
+
+### **DELIVERY SIDE (B2C)**
+
+8. **driver**
+
+### **CONSUMER SIDE (Storefront)**
+
+9. **customer**
+10. **generic user** (unauthenticated)
+
+---
+
+# 🧬 **GLOBAL WORKFLOW SHARED BY ALL ROLES**
+
+Every user → same entry point.
+
+### **1️⃣ Splash / Startup**
+
+* Detect device
+* Detect wallet availability
+* Attempt local session restore
+* If wallet session exists → continue
+* If no session → go to login
+
+### **2️⃣ Login Page**
+
+* ETH login
+* SOL login
+* TON login (soon)
+* LocalStorage session created
+* Role loaded from IndexedDB (or fallback = “customer”)
+
+### **3️⃣ Role Router**
+
+After login, user is routed to:
+
+| Role                 | Shell         | Home Page                |
+| -------------------- | ------------- | ------------------------ |
+| infrastructure_owner | AdminShell    | Infrastructure Dashboard |
+| business_owner       | BusinessShell | Business Dashboard       |
+| manager              | BusinessShell | Manager Dashboard        |
+| warehouse            | BusinessShell | Warehouse Page           |
+| dispatcher           | BusinessShell | Dispatch Console         |
+| sales                | BusinessShell | Sales CRM                |
+| customer_service     | BusinessShell | Support Console          |
+| driver               | DriverShell   | Driver Home              |
+| customer             | StoreShell    | Catalog                  |
+| user (guest)         | StoreShell    | Catalog                  |
+
+This routing becomes your **UnifiedShellRouter v3**.
+
+---
+
+# 🧱 **FULL WORKFLOW — ROLE BY ROLE**
+
+Here is the *complete* operational path for each user.
+
+---
+
+# 🛠 **1. infrastructure_owner (Platform Admin)**
+
+This role manages EVERYTHING across all businesses.
+
+### **Home → Infrastructure Dashboard**
+
+Views:
+
+* Total businesses
+* Total drivers
+* Total orders across platform
+* System health
+* Logs (local only now)
+
+### **Navigate → Businesses**
+
+* Create business
+* Activate / deactivate business
+* Assign business_owner wallets
+
+### **Navigate → Users**
+
+* Create new operational roles
+* Assign driver wallets
+* Override roles (role management screen)
+
+### **Navigate → Settings**
+
+* Platform config
+* Themes
+* Navigation rules
+* Feature flags (your dev panel hooks into this)
+
+**Their workflow is mostly structural → behind-the-scenes authority.**
+
+---
+
+# 🏢 **2. business_owner (Owns a Single Business)**
+
+Their job = everything inside ONE business.
+
+### **Home → Business Dashboard**
+
+Shows:
+
+* Sales
+* Inventory summary
+* Driver activity
+* Alerts
+* Low stock
+* Orders in-progress
+
+### **Navigate → Inventory**
+
+* Add item
+* Edit item
+* Update stock
+* Categories
+
+### **Navigate → Orders**
+
+* All orders
+* Assign driver
+* Change status
+* View timeline
+
+### **Navigate → Drivers**
+
+* Driver list
+* Driver location
+* Assign deliveries
+* Performance view
+
+### **Navigate → Zones**
+
+* Delivery zones
+* Pricing rules
+* Activation toggles
+
+### **Navigate → Reports**
+
+* Revenue
+* Profit
+* Expenses
+* Order analytics
+
+---
+
+# 👔 **3. manager**
+
+Almost identical to business_owner but with some restrictions.
+
+### Permissions Manager Lacks:
+
+* Cannot manage admins
+* Cannot create new managers
+* Cannot delete business
+
+Everything else same workflow.
+
+---
+
+# 📦 **4. warehouse**
+
+Warehouse role focuses on receiving, storing, and fulfilling inventory.
+
+### **Home → Warehouse Dashboard**
+
+* Incoming shipments
+* Low-stock alerts
+* Items to restock
+
+### **Workflow: Incoming Inventory**
+
+1. Receive shipment
+2. Scan item (or select)
+3. Update stock
+4. Confirm receipt
+
+### **Workflow: Packing Orders**
+
+1. Go to Orders → “Ready to Pack”
+2. Print or view pick-list
+3. Mark items as packed
+4. Move order to “Ready for Driver”
+
+Warehouse does NOT interact with:
+
+* Customers
+* Pricing
+* Dispatch rules
+
+---
+
+# 🚦 **5. dispatcher**
+
+Dispatcher role manages live movement.
+
+### **Home → Dispatch Console**
+
+Real-time (or pseudo real-time offline-ready):
+
+* Drivers list
+* Driver statuses
+* Delivery queue
+* Map view (if online)
+* Assignment panel
+
+### **Workflows**
+
+#### **1. Assign order**
+
+* Select order
+* Select available driver
+* Confirm assignment
+
+#### **2. Reassign order**
+
+* Drag from driver → another driver
+
+#### **3. Monitor delivery**
+
+* Status timeline
+* ETA
+* Notifications
+
+---
+
+# 🧾 **6. sales**
+
+Sales role deals with customers.
+
+### **Home → CRM / Sales Screen**
+
+* Customer list
+* Orders per customer
+* Call notes
+* Follow-ups
+
+### **Workflow**
+
+1. View customer profile
+2. Create manual order
+3. Apply discounts
+4. Track order status
+
+---
+
+# 🎧 **7. customer_service**
+
+Customer support workflow.
+
+### **Home → Support Console**
+
+* Ticket list
+* Chat (local mock for now)
+* Order lookup
+
+### **Workflow**
+
+1. Customer complains
+2. Look up order
+3. Modify order
+4. Escalate to dispatch or manager
+
+---
+
+# 🚚 **8. driver**
+
+Driver workflow = most important mobile-centric path.
+
+### **Home → Driver Dashboard**
+
+* Active delivery
+* Assigned tasks
+* Earnings
+* Status toggle (Online / Busy / Offline)
+
+### **Workflow: Delivery**
+
+1. Accept delivery
+2. View customer details
+3. Navigate to pickup
+4. Confirm pickup
+5. Navigate to drop-off
+6. Confirm drop-off
+7. Mark as completed
+8. Auto-earnings update
+
+### Offline mode:
+
+* Location logged locally
+* Tasks cached
+* Sync later if online
+
+---
+
+# 🛒 **9. customer (Storefront User)**
+
+Customer sees the shopping UI.
+
+### **Home → Catalog**
+
+* Advanced product cards
+* Search
+* Filters
+* Promotions
+
+### **Workflow: Shopping**
+
+1. Browse catalog
+2. View product
+3. Add to cart
+4. Checkout
+5. Wallet-based identity
+6. Order confirmation
+7. Track order
+
+---
+
+# 👤 **10. user (Guest)**
+
+Identical to customer but with:
+
+* No order history
+* Must login (wallet) to checkout
+
+---
+
+# 🚀 **THE UNIFIED SYSTEM VIEW (SUMMARY)**
+
+| Role                 | Primary Shell | Core Workflow             |
+| -------------------- | ------------- | ------------------------- |
+| infrastructure_owner | AdminShell    | Platform control          |
+| business_owner       | BusinessShell | Full business ops         |
+| manager              | BusinessShell | Business ops (restricted) |
+| warehouse            | BusinessShell | Inventory + packing       |
+| dispatcher           | BusinessShell | Live delivery routing     |
+| sales                | BusinessShell | Customer interactions     |
+| customer_service     | BusinessShell | Support + order edits     |
+| driver               | DriverShell   | Delivery lifecycle        |
+| customer             | StoreShell    | Shopping                  |
+| user                 | StoreShell    | Browsing                  |
+
+---
+
+# 🌈 If You Want — I Can Now Generate:
+
+### ✔ A full Wireframe Flow (screen-by-screen)
+
+### ✔ Navigation schema (sidebars, bottom-tabs, actions)
+
+### ✔ A JSON structure for Bolt to auto-generate pages
+
+### ✔ A clean new folder structure (no supabase)
+
+### ✔ Unified routing tree for ALL roles
+
+### ✔ UX flow diagrams
+
+### ✔ Role-permission matrix
+
+
+
 You are building a 100% frontend-only application with no backend dependencies. Your task is to safely disable Supabase without breaking the existing codebase by creating temporary no-op shims.
 
 ## Architecture Context:
