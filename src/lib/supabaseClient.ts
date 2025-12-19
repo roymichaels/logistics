@@ -15,7 +15,7 @@ if (typeof window !== 'undefined') {
 async function loadConfig(): Promise<{supabaseUrl: string; supabaseAnonKey: string}> {
   const raw = (import.meta as any)?.env?.VITE_USE_SXT;
   const useSXT = (() => {
-    if (raw === undefined || raw === null || raw === '') return true; // default to SxT
+    if (raw === undefined || raw === null || raw === '') return false; // default to Supabase
     return ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
   })();
   if (useSXT) {
@@ -85,7 +85,7 @@ async function loadConfig(): Promise<{supabaseUrl: string; supabaseAnonKey: stri
 export async function initSupabase(): Promise<SupabaseClient> {
   const raw = (import.meta as any)?.env?.VITE_USE_SXT;
   const useSXT = (() => {
-    if (raw === undefined || raw === null || raw === '') return true; // default to SxT
+    if (raw === undefined || raw === null || raw === '') return false; // default to Supabase
     return ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
   })();
   if (useSXT) {
