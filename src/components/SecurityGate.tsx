@@ -186,7 +186,7 @@ export function SecurityGate({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: theme.bg_color,
+        backgroundColor: 'var(--color-background, #1a1a1a)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -200,14 +200,14 @@ export function SecurityGate({
           🔐
         </div>
         <div style={{
-          color: theme.text_color,
+          color: 'var(--color-text, #ffffff)',
           fontSize: '18px',
           fontWeight: '600'
         }}>
           מאתחל אבטחה...
         </div>
         <div style={{
-          color: theme.hint_color,
+          color: 'var(--color-text-secondary, #a0a0a0)',
           fontSize: '14px'
         }}>
           טוען מערכת הצפנה מתקדמת
@@ -224,7 +224,7 @@ export function SecurityGate({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: theme.bg_color,
+        backgroundColor: 'var(--color-background, #1a1a1a)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -248,7 +248,7 @@ export function SecurityGate({
           שגיאת אבטחה
         </div>
         <div style={{
-          color: theme.hint_color,
+          color: 'var(--color-text-secondary, #a0a0a0)',
           fontSize: '14px',
           textAlign: 'center',
           lineHeight: '1.4'
@@ -264,8 +264,8 @@ export function SecurityGate({
             onClick={() => window.location.reload()}
             style={{
               padding: '12px 20px',
-              backgroundColor: theme.button_color,
-              color: theme.button_text_color,
+              backgroundColor: 'var(--color-primary, #007AFF)',
+              color: 'white',
               border: 'none',
               borderRadius: '8px',
               fontSize: '16px',
