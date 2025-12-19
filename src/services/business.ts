@@ -1,6 +1,5 @@
-import { ensureSession, callEdgeFunction } from './serviceHelpers';
 import { logger } from '../lib/logger';
-import { switchContext, type SwitchContextOptions } from './auth';
+import { frontendOnlyDataStore } from '../lib/frontendOnlyDataStore';
 
 export interface BusinessRecord {
   id: string;
@@ -40,118 +39,87 @@ export interface CreateBusinessInput {
   ownerRoleKey?: string;
 }
 
-interface CreateBusinessResponse {
-  success: boolean;
-  business: BusinessRecord;
-  owner_role_assigned?: boolean;
-  jwt_synced?: boolean;
-}
-
 export async function listBusinesses(options: { activeOnly?: boolean } = {}): Promise<BusinessRecord[]> {
-  const { supabase } = await ensureSession();
+  logger.debug('[FRONTEND-ONLY] Listing businesses from local store');
 
-  let query = supabase
-    .from('businesses')
-    .select('*')
-    .order('name', { ascending: true });
+  const businesses = await frontendOnlyDataStore.query('businesses');
 
   if (options.activeOnly) {
-    query = query.eq('active', true);
+    return businesses.filter((b: BusinessRecord) => b.active);
   }
 
-  const { data, error } = await query;
-
-  if (error) {
-    throw new Error(`Failed to load businesses: ${error.message}`);
-  }
-
-  return (data as BusinessRecord[]) ?? [];
+  return businesses.sort((a: BusinessRecord, b: BusinessRecord) =>
+    a.name.localeCompare(b.name)
+  );
 }
 
 export async function getBusiness(id: string): Promise<BusinessRecord | null> {
-  const { supabase } = await ensureSession();
+  logger.debug(`[FRONTEND-ONLY] Getting business ${id} from local store`);
 
-  const { data, error } = await supabase
-    .from('businesses')
-    .select('*')
-    .eq('id', id)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(`Failed to load business: ${error.message}`);
-  }
-
-  return (data as BusinessRecord) ?? null;
+  const businesses = await frontendOnlyDataStore.query('businesses', { id });
+  return businesses[0] || null;
 }
 
 export async function fetchBusinessContexts(userId?: string): Promise<BusinessContextSummary[]> {
-  const { supabase, session } = await ensureSession();
+  logger.debug('[FRONTEND-ONLY] Fetching business contexts from local store');
 
-  let query = supabase
-    .from('business_memberships')
-    .select('business_id, business_name, display_role_key, is_primary, ownership_percentage')
-    .order('is_primary', { ascending: false })
-    .order('business_name', { ascending: true });
+  const memberships = await frontendOnlyDataStore.query('business_memberships',
+    userId ? { user_id: userId } : {}
+  );
 
-  const targetUserId = userId ?? session.user.id;
-  query = query.eq('user_id', targetUserId);
-
-  const { data, error } = await query;
-
-  if (error) {
-    throw new Error(`Failed to load business memberships: ${error.message}`);
-  }
-
-  return (data ?? []).map((row: any) => ({
-    business_id: row.business_id,
-    business_name: row.business_name,
-    role_key: row.display_role_key,
-    is_primary: Boolean(row.is_primary),
-    ownership_percentage: Number(row.ownership_percentage ?? 0),
-  }));
+  return memberships
+    .map((row: any) => ({
+      business_id: row.business_id,
+      business_name: row.business_name,
+      role_key: row.display_role_key,
+      is_primary: Boolean(row.is_primary),
+      ownership_percentage: Number(row.ownership_percentage ?? 0),
+    }))
+    .sort((a: BusinessContextSummary, b: BusinessContextSummary) => {
+      if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
+      return a.business_name.localeCompare(b.business_name);
+    });
 }
 
 export async function createBusiness(input: CreateBusinessInput): Promise<BusinessRecord> {
-  const { supabase, session } = await ensureSession();
+  logger.info('[FRONTEND-ONLY] Creating business in local store');
 
-  const payload = {
+  const newBusiness: BusinessRecord = {
+    id: `business_${Date.now()}`,
     name: input.name,
-    name_hebrew: input.nameHebrew,
-    business_type: input.businessType,
-    order_number_prefix: input.orderNumberPrefix,
-    default_currency: input.defaultCurrency,
-    primary_color: input.primaryColor,
-    secondary_color: input.secondaryColor,
-    infrastructure_id: input.infrastructureId,
-    owner_user_id: input.ownerUserId,
-    owner_role_key: input.ownerRoleKey,
+    name_hebrew: input.nameHebrew || input.name,
+    business_type: input.businessType || 'retail',
+    order_number_prefix: input.orderNumberPrefix || 'ORD',
+    order_number_sequence: 1,
+    default_currency: input.defaultCurrency || 'USD',
+    primary_color: input.primaryColor || '#3b82f6',
+    secondary_color: input.secondaryColor || '#10b981',
+    active: true,
+    infrastructure_id: input.infrastructureId || 'default',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   };
 
-  const response = await callEdgeFunction<CreateBusinessResponse>(supabase, 'create-business', payload);
+  const { data, error } = await frontendOnlyDataStore.insert('businesses', newBusiness);
 
-  if (!response.success || !response.business) {
+  if (error || !data) {
     throw new Error('Business creation failed');
   }
 
-  // Wait a bit for triggers to complete
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  // Refresh session to get updated JWT claims
-  try {
-    const { error: refreshError } = await supabase.auth.refreshSession();
-    if (refreshError) {
-      logger.warn('Session refresh warning (non-fatal)', refreshError);
-    }
-  } catch (refreshErr) {
-    logger.warn('Session refresh failed (non-fatal)', refreshErr as Error);
-  }
-
-  return response.business;
+  logger.info(`[FRONTEND-ONLY] Business created: ${data.id}`);
+  return data;
 }
 
 export async function switchBusinessContext(
   businessId: string | null,
-  options: Omit<SwitchContextOptions, 'businessId'> = {}
-) {
-  return switchContext({ ...options, businessId });
+  _options: any = {}
+): Promise<void> {
+  logger.info(`[FRONTEND-ONLY] Switching business context to: ${businessId}`);
+
+  // Store context in localStorage
+  if (businessId) {
+    localStorage.setItem('current-business-id', businessId);
+  } else {
+    localStorage.removeItem('current-business-id');
+  }
 }

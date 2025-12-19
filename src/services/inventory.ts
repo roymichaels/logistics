@@ -1,4 +1,4 @@
-import { ensureSession, callEdgeFunction } from './serviceHelpers';
+import { logger } from '../lib/logger';
 
 export type AllocationPriority = 'low' | 'normal' | 'high' | 'urgent';
 
@@ -46,35 +46,17 @@ export interface DeliverOrderResponse {
 }
 
 export async function requestAllocation(payload: AllocationRequest): Promise<AllocationResponse> {
-  const { supabase } = await ensureSession();
+  logger.warn('[FRONTEND-ONLY] requestAllocation called - edge functions not available');
 
-  const response = await callEdgeFunction<AllocationResponse>(supabase, 'allocate-stock', {
-    from_warehouse_id: payload.fromWarehouseId,
-    to_warehouse_id: payload.toWarehouseId,
-    to_business_id: payload.toBusinessId,
-    product_id: payload.productId,
-    requested_quantity: payload.requestedQuantity,
-    priority: payload.priority,
-    notes: payload.notes,
-  });
-
-  return response;
+  throw new Error('Edge functions not available in frontend-only mode: allocate-stock');
 }
 
 export async function approveAllocation(
   payload: AllocationApprovalRequest
 ): Promise<AllocationApprovalResponse> {
-  const { supabase } = await ensureSession();
+  logger.warn('[FRONTEND-ONLY] approveAllocation called - edge functions not available');
 
-  const response = await callEdgeFunction<AllocationApprovalResponse>(supabase, 'approve-allocation', {
-    allocation_id: payload.allocationId,
-    action: payload.action,
-    approved_quantity: payload.approvedQuantity,
-    rejection_reason: payload.rejectionReason,
-    auto_fulfill: payload.autoFulfill,
-  });
-
-  return response;
+  throw new Error('Edge functions not available in frontend-only mode: approve-allocation');
 }
 
 export async function rejectAllocation(
@@ -102,14 +84,7 @@ export async function fulfillAllocation(payload: {
 }
 
 export async function deliverOrder(payload: DeliverOrderRequest): Promise<DeliverOrderResponse> {
-  const { supabase } = await ensureSession();
+  logger.warn('[FRONTEND-ONLY] deliverOrder called - edge functions not available');
 
-  const response = await callEdgeFunction<DeliverOrderResponse>(supabase, 'deliver-order', {
-    order_id: payload.orderId,
-    proof_url: payload.proofUrl,
-    notes: payload.notes,
-    gps_location: payload.gpsLocation,
-  });
-
-  return response;
+  throw new Error('Edge functions not available in frontend-only mode: deliver-order');
 }

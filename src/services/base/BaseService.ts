@@ -5,21 +5,16 @@
  * Each service extends this to inherit shared capabilities.
  */
 
-import { SupabaseClient } from '../../lib/supabaseTypes';
-import { getSupabase } from '../../lib/supabaseClient';
+import { frontendOnlyDataStore } from '../../lib/frontendOnlyDataStore';
 import { logger } from '../../lib/logger';
 
 export abstract class BaseService {
-  protected userTelegramId: string;
-  protected supabase: SupabaseClient;
+  protected userId: string;
+  protected dataStore = frontendOnlyDataStore;
 
-  constructor(userTelegramId: string) {
-    this.userTelegramId = userTelegramId;
-    const supabase = getSupabase();
-    if (!supabase) {
-      throw new Error('Supabase client not available');
-    }
-    this.supabase = supabase;
+  constructor(userId: string) {
+    this.userId = userId;
+    logger.debug(`[FRONTEND-ONLY] BaseService initialized for user ${userId}`);
   }
 
   /**

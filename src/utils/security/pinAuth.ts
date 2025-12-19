@@ -1,10 +1,9 @@
 /**
  * PIN Authentication System
- * Handles secure PIN-based authentication with database backend
- * All PIN operations go through Supabase Edge Functions for security
+ * FRONTEND-ONLY MODE: PIN authentication disabled
+ * Wallet authentication is the primary method
  */
 
-import { getSupabase } from '../../lib/supabaseClient';
 import { logger } from '../../lib/logger';
 
 export interface PINSettings {
@@ -49,359 +48,63 @@ export class PINAuthService {
   }
 
   /**
-   * Set up PIN for the first time (stored securely in database)
+   * Set up PIN for the first time (not available in frontend-only mode)
    */
   async setupPIN(pin: string): Promise<PINSetupResult> {
-    if (!this.validatePINFormat(pin)) {
-      return {
-        success: false,
-        error: `PIN must be ${this.settings.pinLength} digits`
-      };
-    }
+    logger.warn('[FRONTEND-ONLY] PIN setup not available - use wallet authentication');
 
-    try {
-      const supabase = getSupabase();
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError || !session) {
-        return {
-          success: false,
-          error: 'Not authenticated'
-        };
-      }
-
-      const { data, error } = await supabase.functions.invoke('pin-verify', {
-        body: {
-          operation: 'setup',
-          pin: pin
-        }
-      });
-
-      if (error) {
-        logger.error('PIN setup error:', error);
-        return {
-          success: false,
-          error: error.message || 'Failed to setup PIN'
-        };
-      }
-
-      if (!data.success) {
-        return {
-          success: false,
-          error: data.error || 'Failed to setup PIN'
-        };
-      }
-
-      // Store setup status locally for quick checks
-      this.markPINAsSetup();
-
-      return {
-        success: true,
-        message: data.message || 'PIN setup successfully'
-      };
-    } catch (error) {
-      logger.error('PIN setup failed:', error);
-      return {
-        success: false,
-        error: 'Failed to setup PIN'
-      };
-    }
+    return {
+      success: false,
+      error: 'PIN authentication not available in frontend-only mode'
+    };
   }
 
   /**
-   * Verify PIN (against database with proper hashing)
+   * Verify PIN (not available in frontend-only mode)
    */
   async verifyPIN(pin: string): Promise<PINValidationResult> {
-    if (!this.validatePINFormat(pin)) {
-      return {
-        success: false,
-        error: 'Invalid PIN format'
-      };
-    }
+    logger.warn('[FRONTEND-ONLY] PIN verification not available - use wallet authentication');
 
-    try {
-      const supabase = getSupabase();
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError || !session) {
-        return {
-          success: false,
-          error: 'Not authenticated'
-        };
-      }
-
-      const { data, error } = await supabase.functions.invoke('pin-verify', {
-        body: {
-          operation: 'verify',
-          pin: pin,
-          business_id: this.businessId
-        }
-      });
-
-      if (error) {
-        logger.error('PIN verification error:', error);
-        return {
-          success: false,
-          error: error.message || 'Failed to verify PIN'
-        };
-      }
-
-      if (!data.success) {
-        const result: PINValidationResult = {
-          success: false,
-          error: data.error || 'Incorrect PIN'
-        };
-
-        if (data.remaining_attempts !== undefined) {
-          result.remainingAttempts = data.remaining_attempts;
-        }
-
-        if (data.locked_until) {
-          result.lockedUntil = new Date(data.locked_until);
-        }
-
-        return result;
-      }
-
-      // Store session token locally for subsequent requests
-      if (data.session_token) {
-        this.storePINSession(data.session_token, data.expires_at);
-      }
-
-      return {
-        success: true,
-        sessionToken: data.session_token,
-        expiresAt: data.expires_at
-      };
-    } catch (error) {
-      logger.error('PIN verification failed:', error);
-      return {
-        success: false,
-        error: 'PIN verification error'
-      };
-    }
+    return {
+      success: false,
+      error: 'PIN authentication not available in frontend-only mode'
+    };
   }
 
   /**
-   * Change PIN
+   * Change PIN (not available in frontend-only mode)
    */
-  async changePIN(currentPin: string, newPin: string): Promise<PINSetupResult> {
-    // Verify current PIN first
-    const verification = await this.verifyPIN(currentPin);
-    if (!verification.success) {
-      return {
-        success: false,
-        error: 'Current PIN is incorrect'
-      };
-    }
+  async changePIN(_currentPin: string, _newPin: string): Promise<PINSetupResult> {
+    logger.warn('[FRONTEND-ONLY] PIN change not available - use wallet authentication');
 
-    if (!this.validatePINFormat(newPin)) {
-      return {
-        success: false,
-        error: `PIN must be ${this.settings.pinLength} digits`
-      };
-    }
-
-    if (currentPin === newPin) {
-      return {
-        success: false,
-        error: 'New PIN must be different from current PIN'
-      };
-    }
-
-    try {
-      const supabase = getSupabase();
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError || !session) {
-        return {
-          success: false,
-          error: 'Not authenticated'
-        };
-      }
-
-      const { data, error } = await supabase.functions.invoke('pin-reset', {
-        body: {
-          operation: 'change',
-          current_pin: currentPin,
-          new_pin: newPin
-        }
-      });
-
-      if (error) {
-        logger.error('PIN change error:', error);
-        return {
-          success: false,
-          error: error.message || 'Failed to change PIN'
-        };
-      }
-
-      if (!data.success) {
-        return {
-          success: false,
-          error: data.error || 'Failed to change PIN'
-        };
-      }
-
-      return {
-        success: true,
-        message: data.message || 'PIN changed successfully'
-      };
-    } catch (error) {
-      logger.error('PIN change failed:', error);
-      return {
-        success: false,
-        error: 'Failed to change PIN'
-      };
-    }
+    return {
+      success: false,
+      error: 'PIN authentication not available in frontend-only mode'
+    };
   }
 
   /**
-   * Check if PIN is set up (check database)
+   * Check if PIN is set up (always false in frontend-only mode)
    */
   async isPINSetup(): Promise<boolean> {
-    const raw = (import.meta as any)?.env?.VITE_USE_SXT;
-    const useSXT = (() => {
-      if (raw === undefined || raw === null || raw === '') return true;
-      return ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
-    })();
-    if (useSXT) {
-      return false;
-    }
-
-    // First check local cache for quick response
-    const localCheck = this.isLocallyMarkedAsSetup();
-    if (localCheck) {
-      return true;
-    }
-
-    try {
-      const supabase = getSupabase();
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError || !session) {
-        return false;
-      }
-
-      const telegramId = session.user?.user_metadata?.telegram_id;
-      if (!telegramId) {
-        return false;
-      }
-
-      const { data, error } = await supabase
-        .from('user_pins')
-        .select('telegram_id')
-        .eq('telegram_id', telegramId.toString())
-        .maybeSingle();
-
-      const hasPin = !error && data !== null;
-
-      if (hasPin) {
-        this.markPINAsSetup();
-      }
-
-      return hasPin;
-    } catch (error) {
-      logger.error('Failed to check PIN setup status:', error);
-      return false;
-    }
+    logger.debug('[FRONTEND-ONLY] PIN authentication not available');
+    return false;
   }
 
   /**
-   * Check if account is currently locked
+   * Check if account is currently locked (always false in frontend-only mode)
    */
   async isAccountLocked(): Promise<boolean> {
-    const raw = (import.meta as any)?.env?.VITE_USE_SXT;
-    const useSXT = (() => {
-      if (raw === undefined || raw === null || raw === '') return true;
-      return ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
-    })();
-    if (useSXT) {
-      return false;
-    }
-
-    try {
-      const supabase = getSupabase();
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError || !session) {
-        return false;
-      }
-
-      const telegramId = session.user?.user_metadata?.telegram_id;
-      if (!telegramId) {
-        return false;
-      }
-
-      const { data, error } = await supabase
-        .from('user_pins')
-        .select('locked_until')
-        .eq('telegram_id', telegramId.toString())
-        .maybeSingle();
-
-      if (error || !data || !data.locked_until) {
-        return false;
-      }
-
-      return new Date(data.locked_until) > new Date();
-    } catch (error) {
-      logger.error('Failed to check lockout status:', error);
-      return false;
-    }
+    logger.debug('[FRONTEND-ONLY] Account locking not available');
+    return false;
   }
 
   /**
-   * Get lockout information
+   * Get lockout information (always unlocked in frontend-only mode)
    */
   async getLockoutInfo(): Promise<{ isLocked: boolean; lockedUntil?: Date; remainingTime?: number }> {
-    const raw = (import.meta as any)?.env?.VITE_USE_SXT;
-    const useSXT = (() => {
-      if (raw === undefined || raw === null || raw === '') return true;
-      return ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
-    })();
-    if (useSXT) {
-      return { isLocked: false };
-    }
-
-    try {
-      const supabase = getSupabase();
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError || !session) {
-        return { isLocked: false };
-      }
-
-      const telegramId = session.user?.user_metadata?.telegram_id;
-      if (!telegramId) {
-        return { isLocked: false };
-      }
-
-      const { data, error } = await supabase
-        .from('user_pins')
-        .select('locked_until')
-        .eq('telegram_id', telegramId.toString())
-        .maybeSingle();
-
-      if (error || !data || !data.locked_until) {
-        return { isLocked: false };
-      }
-
-      const lockedUntil = new Date(data.locked_until);
-      const now = new Date();
-
-      if (lockedUntil > now) {
-        return {
-          isLocked: true,
-          lockedUntil,
-          remainingTime: lockedUntil.getTime() - now.getTime()
-        };
-      }
-
-      return { isLocked: false };
-    } catch (error) {
-      logger.error('Failed to get lockout info:', error);
-      return { isLocked: false };
-    }
+    logger.debug('[FRONTEND-ONLY] Account locking not available');
+    return { isLocked: false };
   }
 
   /**

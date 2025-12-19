@@ -1,13 +1,16 @@
 /**
  * Unified Diagnostics System
  *
- * Consolidated diagnostic utilities for authentication, roles, initialization, and profiles.
- * Provides a single entry point for all debugging and troubleshooting needs.
+ * FRONTEND-ONLY MODE: Diagnostics adapted for wallet-based authentication
+ * No Supabase backend - all authentication via wallet signatures
+ * Provides debugging utilities for frontend-only architecture
  */
 
 import { logger } from './logger';
 import type { User } from '../data/types';
 import { ROLE_PERMISSIONS, hasPermission } from './rolePermissions';
+import { authService } from './authService';
+import { localSessionManager } from './localSessionManager';
 
 // ============================================================================
 // Types and Interfaces
@@ -86,13 +89,15 @@ export interface ProfileFetchAttempt {
 
 export namespace AuthDiagnostics {
   /**
-   * Get current Supabase session and decode JWT claims
+   * Get current wallet session debug info
    */
   export async function getDebugInfo(): Promise<AuthDebugInfo> {
-    const supabase = getSupabase();
-    const { data: { session }, error } = await supabase.auth.getSession();
+    logger.info('[FRONTEND-ONLY] Getting wallet session debug info');
 
-    if (error || !session) {
+    const session = localSessionManager.getSession();
+    const authState = authService.getState();
+
+    if (!session || !authState.isAuthenticated) {
       return {
         hasSession: false,
         sessionValid: false,
@@ -106,25 +111,19 @@ export namespace AuthDiagnostics {
       };
     }
 
-    const now = Math.floor(Date.now() / 1000);
-    const isExpired = session.expires_at ? session.expires_at < now : false;
-
     return {
       hasSession: true,
-      sessionValid: !isExpired,
-      userId: session.user.id,
-      email: session.user.email || null,
-      appMetadata: session.user.app_metadata || {},
-      userMetadata: session.user.user_metadata || {},
+      sessionValid: localSessionManager.isValid(),
+      userId: session.wallet,
+      email: null,
+      appMetadata: { role: session.role, walletType: session.walletType },
+      userMetadata: {},
       claims: {
-        telegram_id: session.user.app_metadata?.telegram_id || session.user.user_metadata?.telegram_id,
-        role: session.user.app_metadata?.role,
-        app_role: session.user.app_metadata?.app_role,
-        workspace_id: session.user.app_metadata?.workspace_id,
-        user_id: session.user.app_metadata?.user_id
+        role: session.role,
+        user_id: session.wallet,
       },
-      accessToken: session.access_token,
-      expiresAt: session.expires_at || null
+      accessToken: session.signature,
+      expiresAt: Math.floor(session.expiresAt / 1000)
     };
   }
 
@@ -193,24 +192,11 @@ export namespace AuthDiagnostics {
   }
 
   /**
-   * Test RLS access by calling debug function from database
+   * Test RLS access (not available in frontend-only mode)
    */
   export async function testRLSAccess(): Promise<any> {
-    try {
-      const supabase = getSupabase();
-      const { data, error } = await supabase.rpc('debug_auth_claims');
-
-      if (error) {
-        logger.error('❌ RLS debug function failed:', error);
-        return { error: error.message };
-      }
-
-      logger.info('🔍 RLS Debug Claims from Database:', data);
-      return data;
-    } catch (err) {
-      logger.error('❌ Failed to test RLS:', err);
-      return { error: err instanceof Error ? err.message : 'Unknown error' };
-    }
+    logger.warn('[FRONTEND-ONLY] RLS not available - no database backend');
+    return { error: 'RLS not available in frontend-only mode' };
   }
 
   /**
@@ -269,11 +255,11 @@ export namespace AuthDiagnostics {
       logger.error('❌ Error checking Telegram data', err);
     }
 
-    // Check 2: Supabase session
-    logger.info('\n🔐 Check 2: Supabase Session');
-    const supabase = getSupabase();
+    // Check 2: Wallet session
+    logger.info('\n🔐 Check 2: Wallet Session');
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const session = localSessionManager.getSession();
+      const error = null;
 
       if (error) {
         result.checks.session = {
@@ -285,107 +271,64 @@ export namespace AuthDiagnostics {
       } else if (!session) {
         result.checks.session = {
           status: 'fail',
-          details: { error: 'No active session' }
+          details: { error: 'No active wallet session' }
         };
-        logger.error('❌ No active session');
-        result.recommendations.push('Authentication may have failed - check browser console for errors');
+        logger.error('❌ No active wallet session');
+        result.recommendations.push('Authentication may have failed - connect wallet to authenticate');
       } else {
         result.checks.session = {
           status: 'pass',
           details: {
-            userId: session.user.id,
-            email: session.user.email,
-            provider: session.user.app_metadata?.provider,
-            expiresAt: session.expires_at
+            userId: session.wallet,
+            walletType: session.walletType,
+            role: session.role,
+            expiresAt: session.expiresAt
           }
         };
-        logger.info('✅ Session active', result.checks.session.details);
+        logger.info('✅ Wallet session active', result.checks.session.details);
 
-        // Check 3: JWT Claims
-        logger.info('\n🎫 Check 3: JWT Custom Claims');
-        try {
-          const payload = JSON.parse(atob(session.access_token.split('.')[1]));
+        // Check 3: Session Claims
+        logger.info('\n🎫 Check 3: Session Claims');
+        const claims = {
+          wallet: session.wallet,
+          walletType: session.walletType,
+          role: session.role
+        };
 
-          const claims = {
-            user_id: payload.user_id,
-            telegram_id: payload.telegram_id,
-            user_role: payload.user_role,
-            app_role: payload.app_role,
-            workspace_id: payload.workspace_id,
-            provider: payload.app_metadata?.provider
-          };
+        const requiredClaims = ['wallet', 'walletType', 'role'];
+        const missingClaims = requiredClaims.filter(c => !claims[c as keyof typeof claims]);
 
-          const requiredClaims = ['user_id', 'telegram_id', 'user_role'];
-          const missingClaims = requiredClaims.filter(c => !claims[c as keyof typeof claims]);
-
-          result.checks.jwtClaims = {
-            status: missingClaims.length === 0 ? 'pass' : 'fail',
-            details: {
-              claims,
-              missingClaims,
-              hasAllRequired: missingClaims.length === 0
-            }
-          };
-
-          if (missingClaims.length === 0) {
-            logger.info('✅ All required JWT claims present', claims);
-          } else {
-            logger.error('❌ Missing JWT claims:', missingClaims);
-            logger.info('Available claims:', claims);
-            result.recommendations.push('JWT missing custom claims - telegram-verify Edge Function may have failed');
-            result.recommendations.push('Check Supabase Edge Function logs for telegram-verify errors');
+        result.checks.jwtClaims = {
+          status: missingClaims.length === 0 ? 'pass' : 'fail',
+          details: {
+            claims,
+            missingClaims,
+            hasAllRequired: missingClaims.length === 0
           }
+        };
 
-          if (typeof window !== 'undefined') {
-            (window as any).__JWT_PAYLOAD__ = payload;
-            (window as any).__JWT_CLAIMS__ = claims;
-          }
-        } catch (err) {
-          result.checks.jwtClaims = {
-            status: 'fail',
-            details: { error: 'Could not decode JWT', message: String(err) }
-          };
-          logger.error('❌ Failed to decode JWT', err);
-          result.recommendations.push('JWT token may be malformed or corrupted');
+        if (missingClaims.length === 0) {
+          logger.info('✅ All required session claims present', claims);
+        } else {
+          logger.error('❌ Missing session claims:', missingClaims);
+          result.recommendations.push('Session missing required claims - wallet authentication may have failed');
         }
 
-        // Check 4: User record in database
-        logger.info('\n👤 Check 4: User Record');
-        try {
-          const { data: user, error: userError } = await supabase
-            .from('users')
-            .select('id, telegram_id, username, name, role')
-            .eq('id', session.user.id)
-            .maybeSingle();
-
-          if (userError) {
-            result.checks.userRecord = {
-              status: 'fail',
-              details: { error: userError.message }
-            };
-            logger.error('❌ Error fetching user record', userError);
-            result.recommendations.push('Check RLS policies on users table');
-          } else if (!user) {
-            result.checks.userRecord = {
-              status: 'fail',
-              details: { error: 'User record not found in database' }
-            };
-            logger.error('❌ User record not found');
-            result.recommendations.push('User record missing - authentication may have failed to create user');
-          } else {
-            result.checks.userRecord = {
-              status: 'pass',
-              details: user
-            };
-            logger.info('✅ User record found', user);
-          }
-        } catch (err) {
-          result.checks.userRecord = {
-            status: 'fail',
-            details: { error: String(err) }
-          };
-          logger.error('❌ Exception fetching user record', err);
+        if (typeof window !== 'undefined') {
+          (window as any).__SESSION_CLAIMS__ = claims;
         }
+
+        // Check 4: User record (skip in frontend-only mode)
+        logger.info('\n👤 Check 4: User Record (Frontend-Only Mode)');
+        result.checks.userRecord = {
+          status: 'pass',
+          details: {
+            wallet: session.wallet,
+            role: session.role,
+            note: 'Frontend-only mode - no database backend'
+          }
+        };
+        logger.info('✅ Frontend-only mode active - wallet auth working');
       }
     } catch (err) {
       logger.error('❌ Error during session check', err);

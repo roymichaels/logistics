@@ -1,11 +1,10 @@
 /**
  * Security Audit Logger
  * Tracks security events, failed attempts, and suspicious activity
+ * FRONTEND-ONLY MODE: Stores audit logs locally only
  */
 
-import { getSupabase, isSupabaseInitialized } from '../../lib/supabaseClient';
 import { getGlobalSecurityManager } from './securityManager';
-import type { SupabaseClient } from '../../lib/supabaseTypes';
 import { logger } from '../../lib/logger';
 
 export interface SecurityEvent {
@@ -42,25 +41,18 @@ export class SecurityAuditLogger {
     this.startQueueProcessor();
   }
 
-  private getSupabaseClient(): SupabaseClient | null {
-    try {
-      if (isSupabaseInitialized()) {
-        return getSupabase();
-      }
-      return null;
-    } catch (error) {
-      return null;
-    }
+  private getSupabaseClient(): any | null {
+    logger.debug('[FRONTEND-ONLY] Supabase not available in frontend-only mode');
+    return null;
   }
 
   /**
    * Log a security event
    */
   async logSecurityEvent(event: SecurityEvent): Promise<void> {
-    // TEMP: Disabled until security_audit_log table is created
-    return;
+    logger.debug('[FRONTEND-ONLY] Security event logged locally', event.eventType);
 
-    // Add to queue for batch processing
+    // Add to queue for local tracking only
     this.eventQueue.push({
       ...event,
       details: await this.encryptEventDetails(event.details)
@@ -69,9 +61,23 @@ export class SecurityAuditLogger {
     // Check for suspicious patterns
     await this.analyzeSuspiciousActivity(event);
 
-    // Process high-priority events immediately
-    if (event.riskLevel === 'critical' || event.riskLevel === 'high') {
-      await this.processEventQueue();
+    // Store in local storage for reference
+    try {
+      const stored = localStorage.getItem('security-audit-log') || '[]';
+      const logs = JSON.parse(stored);
+      logs.push({
+        ...event,
+        timestamp: new Date().toISOString()
+      });
+
+      // Keep only last 100 events
+      if (logs.length > 100) {
+        logs.splice(0, logs.length - 100);
+      }
+
+      localStorage.setItem('security-audit-log', JSON.stringify(logs));
+    } catch (error) {
+      logger.error('[FRONTEND-ONLY] Failed to store security event', error);
     }
   }
 
@@ -206,53 +212,29 @@ export class SecurityAuditLogger {
     limit: number = 50,
     eventTypes?: string[]
   ): Promise<any[]> {
-    const supabase = this.getSupabaseClient();
-    if (!supabase) {
-      logger.warn('Supabase not initialized, returning empty events');
-      return [];
-    }
+    logger.debug('[FRONTEND-ONLY] Getting security events from localStorage');
 
     try {
-      let query = supabase
-        .from('security_audit_log')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(limit);
+      const stored = localStorage.getItem('security-audit-log') || '[]';
+      let events = JSON.parse(stored);
 
+      // Filter by user
+      events = events.filter((e: any) => e.userId === userId);
+
+      // Filter by event types if specified
       if (eventTypes && eventTypes.length > 0) {
-        query = query.in('event_type', eventTypes);
+        events = events.filter((e: any) => eventTypes.includes(e.eventType));
       }
 
-      const { data, error } = await query;
+      // Sort by timestamp descending
+      events.sort((a: any, b: any) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
 
-      if (error) {
-        logger.error('Failed to fetch security events:', error);
-        return [];
-      }
-
-      // Decrypt event details
-      const decryptedEvents = [];
-      for (const event of data || []) {
-        try {
-          const decryptedDetails = await this.decryptEventDetails(event.event_details);
-          decryptedEvents.push({
-            ...event,
-            event_details: decryptedDetails
-          });
-        } catch (error) {
-          logger.error('Failed to decrypt event details:', error);
-          // Include event without details if decryption fails
-          decryptedEvents.push({
-            ...event,
-            event_details: { error: 'Failed to decrypt' }
-          });
-        }
-      }
-
-      return decryptedEvents;
+      // Apply limit
+      return events.slice(0, limit);
     } catch (error) {
-      logger.error('Failed to get user security events:', error);
+      logger.error('[FRONTEND-ONLY] Failed to get security events', error);
       return [];
     }
   }
@@ -433,39 +415,18 @@ export class SecurityAuditLogger {
   }
 
   private async processEventQueue(): Promise<void> {
-    const supabase = this.getSupabaseClient();
-    if (this.isProcessingQueue || this.eventQueue.length === 0 || !supabase) {
+    if (this.isProcessingQueue || this.eventQueue.length === 0) {
       return;
     }
 
     this.isProcessingQueue = true;
 
     try {
-      const eventsToProcess = [...this.eventQueue];
+      logger.debug(`[FRONTEND-ONLY] Processing ${this.eventQueue.length} queued security events`);
+      // Events already stored in logSecurityEvent, just clear the queue
       this.eventQueue = [];
-
-      const dbEvents = eventsToProcess.map(event => ({
-        user_id: event.userId,
-        event_type: event.eventType,
-        event_details: event.details,
-        ip_address: event.ipAddress,
-        user_agent: event.userAgent,
-        success: event.success,
-        risk_level: event.riskLevel,
-        created_at: new Date().toISOString()
-      }));
-
-      const { error } = await supabase
-        .from('security_audit_log')
-        .insert(dbEvents);
-
-      if (error) {
-        logger.error('Failed to insert security events:', error);
-        // Re-queue failed events
-        this.eventQueue.unshift(...eventsToProcess);
-      }
     } catch (error) {
-      logger.error('Failed to process event queue:', error);
+      logger.error('[FRONTEND-ONLY] Failed to process event queue:', error);
     } finally {
       this.isProcessingQueue = false;
     }

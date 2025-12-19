@@ -1,5 +1,5 @@
-import { ensureSession } from './serviceHelpers';
 import { logger } from '../lib/logger';
+import { frontendOnlyDataStore } from '../lib/frontendOnlyDataStore';
 
 export interface BusinessEquity {
   id: string;
@@ -121,84 +121,91 @@ export interface CreateTransactionInput {
 }
 
 export async function getBusinessEquityBreakdown(businessId: string): Promise<EquityStakeholder[]> {
-  const { supabase } = await ensureSession();
+  logger.debug(`[FRONTEND-ONLY] Getting equity breakdown for business ${businessId}`);
 
-  const { data, error } = await supabase
-    .rpc('get_business_equity_breakdown', { p_business_id: businessId });
+  const equities = await frontendOnlyDataStore.query('business_equity', {
+    business_id: businessId,
+    is_active: true
+  });
 
-  if (error) {
-    logger.error('Failed to get equity breakdown:', error);
-    throw new Error(`Failed to load equity breakdown: ${error.message}`);
-  }
-
-  return (data as EquityStakeholder[]) ?? [];
+  // Transform to stakeholder view
+  return equities.map((eq: any) => ({
+    stakeholder_id: eq.stakeholder_id,
+    stakeholder_name: `Stakeholder ${eq.stakeholder_id.slice(0, 8)}`,
+    stakeholder_email: '',
+    equity_percentage: eq.equity_percentage,
+    equity_type: eq.equity_type,
+    profit_share_percentage: eq.profit_share_percentage,
+    voting_rights: eq.voting_rights,
+    vested_percentage: eq.vested_percentage,
+    effective_percentage: eq.equity_percentage * (eq.vested_percentage / 100),
+    is_fully_vested: eq.vested_percentage >= 100,
+    vesting_end_date: eq.vesting_end_date,
+    grant_date: eq.grant_date,
+    is_active: eq.is_active
+  }));
 }
 
 export async function getAvailableEquity(businessId: string): Promise<number> {
-  const { supabase } = await ensureSession();
+  logger.debug(`[FRONTEND-ONLY] Calculating available equity for business ${businessId}`);
 
-  const { data, error } = await supabase
-    .rpc('calculate_available_equity', { p_business_id: businessId });
+  const equities = await frontendOnlyDataStore.query('business_equity', {
+    business_id: businessId,
+    is_active: true
+  });
 
-  if (error) {
-    logger.error('Failed to calculate available equity:', error);
-    throw new Error(`Failed to calculate available equity: ${error.message}`);
-  }
+  const totalAllocated = equities.reduce(
+    (sum: number, eq: any) => sum + eq.equity_percentage,
+    0
+  );
 
-  return data ?? 100;
+  return Math.max(0, 100 - totalAllocated);
 }
 
 export async function listBusinessEquity(businessId: string): Promise<BusinessEquity[]> {
-  const { supabase } = await ensureSession();
+  logger.debug(`[FRONTEND-ONLY] Listing equity records for business ${businessId}`);
 
-  const { data, error } = await supabase
-    .from('business_equity')
-    .select('*')
-    .eq('business_id', businessId)
-    .eq('is_active', true)
-    .order('equity_percentage', { ascending: false });
+  const equities = await frontendOnlyDataStore.query('business_equity', {
+    business_id: businessId,
+    is_active: true
+  });
 
-  if (error) {
-    logger.error('Failed to list business equity:', error);
-    throw new Error(`Failed to load equity records: ${error.message}`);
-  }
-
-  return (data as BusinessEquity[]) ?? [];
+  return equities.sort((a: BusinessEquity, b: BusinessEquity) =>
+    b.equity_percentage - a.equity_percentage
+  );
 }
 
 export async function createEquityStake(input: CreateEquityInput): Promise<BusinessEquity> {
-  const { supabase, session } = await ensureSession();
+  logger.info('[FRONTEND-ONLY] Creating equity stake in local store');
 
-  const equityData = {
+  const equityData: BusinessEquity = {
+    id: `equity_${Date.now()}`,
     business_id: input.business_id,
     stakeholder_id: input.stakeholder_id,
     equity_percentage: input.equity_percentage,
     equity_type: input.equity_type ?? 'common',
     profit_share_percentage: input.profit_share_percentage ?? input.equity_percentage,
     voting_rights: input.voting_rights ?? true,
-    vesting_start_date: input.vesting_start_date ?? null,
-    vesting_end_date: input.vesting_end_date ?? null,
+    vesting_start_date: input.vesting_start_date,
+    vesting_end_date: input.vesting_end_date,
     vested_percentage: input.vested_percentage ?? 100,
     cliff_months: input.cliff_months ?? 0,
-    vesting_schedule: input.vesting_schedule ?? null,
-    notes: input.notes ?? null,
+    vesting_schedule: input.vesting_schedule,
+    notes: input.notes,
     grant_date: input.grant_date ?? new Date().toISOString().split('T')[0],
     is_active: true,
-    created_by: session.user.id,
+    created_by: 'current-user',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   };
 
-  const { data, error } = await supabase
-    .from('business_equity')
-    .insert(equityData)
-    .select()
-    .single();
+  const { data, error } = await frontendOnlyDataStore.insert('business_equity', equityData);
 
-  if (error) {
-    logger.error('Failed to create equity stake:', error);
-    throw new Error(`Failed to create equity stake: ${error.message}`);
+  if (error || !data) {
+    throw new Error('Failed to create equity stake');
   }
 
-  // Record the transaction
+  // Record transaction
   try {
     await recordEquityTransaction({
       business_id: input.business_id,
@@ -209,108 +216,103 @@ export async function createEquityStake(input: CreateEquityInput): Promise<Busin
       transaction_type: 'grant',
       reason: input.notes ?? 'Initial equity grant',
     });
-  } catch (transactionError) {
-    logger.warn('Failed to record equity transaction:', transactionError);
+  } catch (err) {
+    logger.warn('Failed to record equity transaction:', err);
   }
 
-  return data as BusinessEquity;
+  return data;
 }
 
 export async function updateEquityStake(
   equityId: string,
   input: UpdateEquityInput
 ): Promise<BusinessEquity> {
-  const { supabase } = await ensureSession();
+  logger.info(`[FRONTEND-ONLY] Updating equity stake ${equityId}`);
 
-  const { data, error } = await supabase
-    .from('business_equity')
-    .update(input)
-    .eq('id', equityId)
-    .select()
-    .single();
+  const { data, error } = await frontendOnlyDataStore.update(
+    'business_equity',
+    equityId,
+    input
+  );
 
-  if (error) {
-    logger.error('Failed to update equity stake:', error);
-    throw new Error(`Failed to update equity stake: ${error.message}`);
+  if (error || !data) {
+    throw new Error('Failed to update equity stake');
   }
 
-  return data as BusinessEquity;
+  return data;
 }
 
 export async function deleteEquityStake(equityId: string): Promise<void> {
-  const { supabase } = await ensureSession();
+  logger.info(`[FRONTEND-ONLY] Deactivating equity stake ${equityId}`);
 
-  const { error } = await supabase
-    .from('business_equity')
-    .update({ is_active: false })
-    .eq('id', equityId);
-
-  if (error) {
-    logger.error('Failed to delete equity stake:', error);
-    throw new Error(`Failed to delete equity stake: ${error.message}`);
-  }
+  await frontendOnlyDataStore.update('business_equity', equityId, {
+    is_active: false
+  });
 }
 
 export async function recordEquityTransaction(
   input: CreateTransactionInput
 ): Promise<string> {
-  const { supabase, session } = await ensureSession();
+  logger.info('[FRONTEND-ONLY] Recording equity transaction');
 
-  const { data, error } = await supabase.rpc('record_equity_transaction', {
-    p_business_id: input.business_id,
-    p_equity_record_id: input.equity_record_id ?? null,
-    p_from_stakeholder_id: input.from_stakeholder_id ?? null,
-    p_to_stakeholder_id: input.to_stakeholder_id,
-    p_equity_percentage: input.equity_percentage,
-    p_equity_type: input.equity_type,
-    p_transaction_type: input.transaction_type,
-    p_reason: input.reason ?? null,
-    p_price_per_percentage: input.price_per_percentage ?? null,
-    p_approved_by: input.approved_by ?? session.user.id,
-  });
+  const transaction: EquityTransaction = {
+    id: `transaction_${Date.now()}`,
+    business_id: input.business_id,
+    equity_record_id: input.equity_record_id,
+    from_stakeholder_id: input.from_stakeholder_id,
+    to_stakeholder_id: input.to_stakeholder_id,
+    equity_percentage: input.equity_percentage,
+    equity_type: input.equity_type,
+    transaction_type: input.transaction_type,
+    transaction_date: new Date().toISOString(),
+    price_per_percentage: input.price_per_percentage,
+    reason: input.reason,
+    approved_by: input.approved_by ?? 'current-user',
+    created_at: new Date().toISOString(),
+    created_by: 'current-user',
+  };
 
-  if (error) {
-    logger.error('Failed to record transaction:', error);
-    throw new Error(`Failed to record transaction: ${error.message}`);
+  const { data, error } = await frontendOnlyDataStore.insert('equity_transactions', transaction);
+
+  if (error || !data) {
+    throw new Error('Failed to record transaction');
   }
 
-  return data as string;
+  return data.id;
 }
 
 export async function listEquityTransactions(
   businessId: string,
   options: { stakeholderId?: string; limit?: number } = {}
 ): Promise<EquityTransaction[]> {
-  const { supabase } = await ensureSession();
+  logger.debug(`[FRONTEND-ONLY] Listing equity transactions for business ${businessId}`);
 
-  let query = supabase
-    .from('equity_transactions')
-    .select('*')
-    .eq('business_id', businessId)
-    .order('transaction_date', { ascending: false });
+  let transactions = await frontendOnlyDataStore.query('equity_transactions', {
+    business_id: businessId
+  });
 
   if (options.stakeholderId) {
-    query = query.or(`to_stakeholder_id.eq.${options.stakeholderId},from_stakeholder_id.eq.${options.stakeholderId}`);
+    transactions = transactions.filter((t: EquityTransaction) =>
+      t.to_stakeholder_id === options.stakeholderId ||
+      t.from_stakeholder_id === options.stakeholderId
+    );
   }
+
+  transactions.sort((a: EquityTransaction, b: EquityTransaction) =>
+    new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime()
+  );
 
   if (options.limit) {
-    query = query.limit(options.limit);
+    transactions = transactions.slice(0, options.limit);
   }
 
-  const { data, error } = await query;
-
-  if (error) {
-    logger.error('Failed to list transactions:', error);
-    throw new Error(`Failed to load transactions: ${error.message}`);
-  }
-
-  return (data as EquityTransaction[]) ?? [];
+  return transactions;
 }
 
 export async function calculateProfitDistribution(
   businessId: string,
-  periodStart: string,
-  periodEnd: string,
+  _periodStart: string,
+  _periodEnd: string,
   totalProfit: number
 ): Promise<Array<{
   stakeholder_id: string;
@@ -319,21 +321,17 @@ export async function calculateProfitDistribution(
   profit_share_percentage: number;
   distribution_amount: number;
 }>> {
-  const { supabase } = await ensureSession();
+  logger.debug(`[FRONTEND-ONLY] Calculating profit distribution for business ${businessId}`);
 
-  const { data, error } = await supabase.rpc('calculate_profit_distribution', {
-    p_business_id: businessId,
-    p_period_start: periodStart,
-    p_period_end: periodEnd,
-    p_total_profit: totalProfit,
-  });
+  const equities = await listBusinessEquity(businessId);
 
-  if (error) {
-    logger.error('Failed to calculate profit distribution:', error);
-    throw new Error(`Failed to calculate distribution: ${error.message}`);
-  }
-
-  return data ?? [];
+  return equities.map(eq => ({
+    stakeholder_id: eq.stakeholder_id,
+    stakeholder_name: `Stakeholder ${eq.stakeholder_id.slice(0, 8)}`,
+    equity_percentage: eq.equity_percentage,
+    profit_share_percentage: eq.profit_share_percentage,
+    distribution_amount: totalProfit * (eq.profit_share_percentage / 100)
+  }));
 }
 
 export async function createProfitDistributions(
@@ -343,9 +341,8 @@ export async function createProfitDistributions(
   totalProfit: number,
   currency: string = 'ILS'
 ): Promise<ProfitDistribution[]> {
-  const { supabase, session } = await ensureSession();
+  logger.info('[FRONTEND-ONLY] Creating profit distributions');
 
-  // Calculate distributions
   const distributions = await calculateProfitDistribution(
     businessId,
     periodStart,
@@ -353,8 +350,8 @@ export async function createProfitDistributions(
     totalProfit
   );
 
-  // Create distribution records
-  const distributionRecords = distributions.map((dist) => ({
+  const distributionRecords: ProfitDistribution[] = distributions.map(dist => ({
+    id: `dist_${Date.now()}_${Math.random()}`,
     business_id: businessId,
     stakeholder_id: dist.stakeholder_id,
     distribution_period_start: periodStart,
@@ -362,52 +359,42 @@ export async function createProfitDistributions(
     total_profit: totalProfit,
     stakeholder_percentage: dist.profit_share_percentage,
     distribution_amount: dist.distribution_amount,
-    currency: currency,
+    currency,
     payment_status: 'pending' as const,
-    declared_by: session.user.id,
+    declared_at: new Date().toISOString(),
+    declared_by: 'current-user',
   }));
 
-  const { data, error } = await supabase
-    .from('profit_distributions')
-    .insert(distributionRecords)
-    .select();
+  await frontendOnlyDataStore.batchInsert('profit_distributions', distributionRecords);
 
-  if (error) {
-    logger.error('Failed to create profit distributions:', error);
-    throw new Error(`Failed to create distributions: ${error.message}`);
-  }
-
-  return (data as ProfitDistribution[]) ?? [];
+  return distributionRecords;
 }
 
 export async function listProfitDistributions(
   businessId: string,
   options: { stakeholderId?: string; status?: string } = {}
 ): Promise<ProfitDistribution[]> {
-  const { supabase } = await ensureSession();
+  logger.debug(`[FRONTEND-ONLY] Listing profit distributions for business ${businessId}`);
 
-  let query = supabase
-    .from('profit_distributions')
-    .select('*')
-    .eq('business_id', businessId)
-    .order('distribution_period_end', { ascending: false });
+  let distributions = await frontendOnlyDataStore.query('profit_distributions', {
+    business_id: businessId
+  });
 
   if (options.stakeholderId) {
-    query = query.eq('stakeholder_id', options.stakeholderId);
+    distributions = distributions.filter((d: ProfitDistribution) =>
+      d.stakeholder_id === options.stakeholderId
+    );
   }
 
   if (options.status) {
-    query = query.eq('payment_status', options.status);
+    distributions = distributions.filter((d: ProfitDistribution) =>
+      d.payment_status === options.status
+    );
   }
 
-  const { data, error } = await query;
-
-  if (error) {
-    logger.error('Failed to list distributions:', error);
-    throw new Error(`Failed to load distributions: ${error.message}`);
-  }
-
-  return (data as ProfitDistribution[]) ?? [];
+  return distributions.sort((a: ProfitDistribution, b: ProfitDistribution) =>
+    new Date(b.distribution_period_end).getTime() - new Date(a.distribution_period_end).getTime()
+  );
 }
 
 export async function updateDistributionPaymentStatus(
@@ -419,29 +406,27 @@ export async function updateDistributionPaymentStatus(
     payment_reference?: string;
   }
 ): Promise<ProfitDistribution> {
-  const { supabase, session } = await ensureSession();
+  logger.info(`[FRONTEND-ONLY] Updating distribution ${distributionId} to status ${status}`);
 
-  const updateData: Record<string, unknown> = {
+  const updateData: any = {
     payment_status: status,
     ...paymentDetails,
   };
 
   if (status === 'completed') {
     updateData.paid_at = new Date().toISOString();
-    updateData.paid_by = session.user.id;
+    updateData.paid_by = 'current-user';
   }
 
-  const { data, error } = await supabase
-    .from('profit_distributions')
-    .update(updateData)
-    .eq('id', distributionId)
-    .select()
-    .single();
+  const { data, error } = await frontendOnlyDataStore.update(
+    'profit_distributions',
+    distributionId,
+    updateData
+  );
 
-  if (error) {
-    logger.error('Failed to update distribution status:', error);
-    throw new Error(`Failed to update distribution: ${error.message}`);
+  if (error || !data) {
+    throw new Error('Failed to update distribution status');
   }
 
-  return data as ProfitDistribution;
+  return data;
 }
