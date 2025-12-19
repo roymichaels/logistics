@@ -1049,24 +1049,28 @@ export interface LandingTranslations {
     telegram: { title: string; description: string };
   };
 
-  userRoles: {
+  benefits: {
     title: string;
-    infrastructureOwner: string;
-    infrastructureOwnerDesc: string;
-    businessOwner: string;
-    businessOwnerDesc: string;
-    manager: string;
-    managerDesc: string;
-    dispatcher: string;
-    dispatcherDesc: string;
-    driver: string;
-    driverDesc: string;
-    warehouse: string;
-    warehouseDesc: string;
-    sales: string;
-    salesDesc: string;
-    support: string;
-    supportDesc: string;
+    subtitle: string;
+    quality: { title: string; description: string };
+    speed: { title: string; description: string };
+    variety: { title: string; description: string };
+    trust: { title: string; description: string };
+  };
+
+  howItWorks: {
+    title: string;
+    subtitle: string;
+    step1: { title: string; description: string };
+    step2: { title: string; description: string };
+    step3: { title: string; description: string };
+    step4: { title: string; description: string };
+  };
+
+  workWithUs: {
+    title: string;
+    description: string;
+    button: string;
   };
 
   businessTypes: {
@@ -2082,10 +2086,10 @@ const hebrewTranslations: Translations = {
 };
 
 const hebrewLanding: LandingTranslations = {
-  title: 'UndergroundLab - פלטפורמת ניהול עסקי מתקדמת',
-  subtitle: 'פלטפורמה רב-עסקית לניהול מלא של כל היבטי העסק',
-  description: 'לוגיסטיקה, תקשורת, מלאי, צוותים ועוד - הכל במקום אחד',
-  getStarted: 'התחל עכשיו',
+  title: 'UndergroundLab - שוק מקומי חכם',
+  subtitle: 'קנו מהעסקים המובילים באזור שלכם',
+  description: 'מוצרים איכותיים, משלוח מהיר ועד הבית - הכל במקום אחד',
+  getStarted: 'התחילו לקנות',
   signIn: 'כניסה למערכת',
 
   features: {
@@ -2197,24 +2201,52 @@ const hebrewLanding: LandingTranslations = {
     }
   },
 
-  userRoles: {
-    title: 'מי משתמש בפלטפורמה?',
-    infrastructureOwner: 'בעל תשתית',
-    infrastructureOwnerDesc: 'ניהול תשתית משותפת למספר עסקים',
-    businessOwner: 'בעל עסק',
-    businessOwnerDesc: 'ניהול מלא של העסק וכל הפעילות',
-    manager: 'מנהל',
-    managerDesc: 'פיקוח, תכנון ותיאום פעילות',
-    dispatcher: 'דיספצ\'ר',
-    dispatcherDesc: 'ניהול משלוחים ותיאום נהגים',
-    driver: 'נהג',
-    driverDesc: 'ביצוע משלוחים ועדכון סטטוס',
-    warehouse: 'מחסנאי',
-    warehouseDesc: 'ניהול מלאי וטיפול בסחורה',
-    sales: 'איש מכירות',
-    salesDesc: 'יצירת הזמנות וניהול לקוחות',
-    support: 'תמיכה',
-    supportDesc: 'שירות לקוחות ופתרון בעיות'
+  benefits: {
+    title: 'למה לקנות אצלנו?',
+    subtitle: 'חוויית קנייה מושלמת מהבית',
+    quality: {
+      title: 'איכות מובטחת',
+      description: 'מוצרים מובחרים מעסקים מובילים באזור'
+    },
+    speed: {
+      title: 'משלוח מהיר',
+      description: 'קבלו את ההזמנה שלכם באותו יום'
+    },
+    variety: {
+      title: 'מגוון עצום',
+      description: 'מאות מוצרים וחנויות במקום אחד'
+    },
+    trust: {
+      title: 'אמינות ושקיפות',
+      description: 'מעקב בזמן אמת וביטחון מלא'
+    }
+  },
+
+  howItWorks: {
+    title: 'איך זה עובד?',
+    subtitle: 'קניה פשוטה ומהירה ב-4 צעדים',
+    step1: {
+      title: 'עיינו בקטלוג',
+      description: 'גלו מגוון מוצרים מעסקים שונים'
+    },
+    step2: {
+      title: 'הוסיפו לסל',
+      description: 'בחרו את המוצרים האהובים עליכם'
+    },
+    step3: {
+      title: 'בצעו הזמנה',
+      description: 'אישרו את הזמנתכם בקלות'
+    },
+    step4: {
+      title: 'קבלו במהירות',
+      description: 'נמסר אליכם עד הבית באותו יום'
+    }
+  },
+
+  workWithUs: {
+    title: 'רוצים להרוויח אתנו?',
+    description: 'הצטרפו כעסק, נהג או חלק מהצוות שלנו',
+    button: 'עבדו אתנו'
   },
 
   businessTypes: {
@@ -2228,9 +2260,9 @@ const hebrewLanding: LandingTranslations = {
   },
 
   cta: {
-    title: 'מוכנים להתחיל?',
-    description: 'הצטרפו לפלטפורמה המתקדמת לניהול עסקים ולוגיסטיקה',
-    button: 'כניסה למערכת',
+    title: 'מוכנים להזמין?',
+    description: 'התחילו לקנות מהעסקים המובילים באזור שלכם',
+    button: 'התחילו לקנות',
     createBusiness: 'צור עסק חדש',
     joinTeam: 'הצטרף לצוות'
   },
@@ -3230,10 +3262,10 @@ const englishTranslations: Translations = {
 };
 
 const englishLanding: LandingTranslations = {
-  title: 'UndergroundLab - Advanced Business Management Platform',
-  subtitle: 'Multi-business platform for complete business management',
-  description: 'Logistics, communication, inventory, teams and more - all in one place',
-  getStarted: 'Get Started',
+  title: 'UndergroundLab - Smart Local Marketplace',
+  subtitle: 'Shop from top local businesses in your area',
+  description: 'Quality products, fast delivery to your door - all in one place',
+  getStarted: 'Start Shopping',
   signIn: 'Sign In',
 
   features: {
@@ -3345,24 +3377,52 @@ const englishLanding: LandingTranslations = {
     }
   },
 
-  userRoles: {
-    title: 'Who Uses The Platform?',
-    infrastructureOwner: 'Infrastructure Owner',
-    infrastructureOwnerDesc: 'Manage shared infrastructure for multiple businesses',
-    businessOwner: 'Business Owner',
-    businessOwnerDesc: 'Complete business management and all operations',
-    manager: 'Manager',
-    managerDesc: 'Supervision, planning and coordination',
-    dispatcher: 'Dispatcher',
-    dispatcherDesc: 'Delivery management and driver coordination',
-    driver: 'Driver',
-    driverDesc: 'Execute deliveries and update status',
-    warehouse: 'Warehouse Worker',
-    warehouseDesc: 'Inventory management and goods handling',
-    sales: 'Sales Representative',
-    salesDesc: 'Order creation and customer management',
-    support: 'Support',
-    supportDesc: 'Customer service and problem solving'
+  benefits: {
+    title: 'Why Shop With Us?',
+    subtitle: 'Perfect shopping experience from home',
+    quality: {
+      title: 'Guaranteed Quality',
+      description: 'Curated products from leading local businesses'
+    },
+    speed: {
+      title: 'Fast Delivery',
+      description: 'Get your order the same day'
+    },
+    variety: {
+      title: 'Huge Selection',
+      description: 'Hundreds of products and stores in one place'
+    },
+    trust: {
+      title: 'Trust & Transparency',
+      description: 'Real-time tracking and complete security'
+    }
+  },
+
+  howItWorks: {
+    title: 'How It Works?',
+    subtitle: 'Simple and fast shopping in 4 steps',
+    step1: {
+      title: 'Browse Catalog',
+      description: 'Discover products from various businesses'
+    },
+    step2: {
+      title: 'Add to Cart',
+      description: 'Choose your favorite products'
+    },
+    step3: {
+      title: 'Place Order',
+      description: 'Confirm your order easily'
+    },
+    step4: {
+      title: 'Receive Quickly',
+      description: 'Delivered to your door same day'
+    }
+  },
+
+  workWithUs: {
+    title: 'Want to earn with us?',
+    description: 'Join as a business, driver, or part of our team',
+    button: 'Work With Us'
   },
 
   businessTypes: {
@@ -3376,9 +3436,9 @@ const englishLanding: LandingTranslations = {
   },
 
   cta: {
-    title: 'Ready to Start?',
-    description: 'Join the advanced platform for business and logistics management',
-    button: 'Sign In',
+    title: 'Ready to Order?',
+    description: 'Start shopping from top businesses in your area',
+    button: 'Start Shopping',
     createBusiness: 'Create New Business',
     joinTeam: 'Join Team'
   },

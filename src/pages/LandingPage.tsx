@@ -568,7 +568,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         </div>
       </div>
 
-      {/* User Roles Section */}
+      {/* Benefits Section */}
       <div className="section-padding" style={{
         background: theme.backgroundDark,
         padding: '80px 20px',
@@ -581,68 +581,252 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             fontSize: '36px',
             fontWeight: '700',
             textAlign: 'center',
-            marginBottom: '60px',
+            marginBottom: '15px',
             color: theme.text,
           }}>
-            {hebrew.landing.userRoles.title}
+            {hebrew.landing.benefits.title}
           </h2>
+          <p className="section-subtitle" style={{
+            fontSize: '18px',
+            textAlign: 'center',
+            marginBottom: '50px',
+            color: theme.muted,
+          }}>
+            {hebrew.landing.benefits.subtitle}
+          </p>
 
           <div className="grid-2-col" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '24px',
+            gap: '30px',
           }}>
             {[
-              { icon: '🏛️', role: hebrew.landing.userRoles.infrastructureOwner, desc: hebrew.landing.userRoles.infrastructureOwnerDesc },
-              { icon: '👔', role: hebrew.landing.userRoles.businessOwner, desc: hebrew.landing.userRoles.businessOwnerDesc },
-              { icon: '📊', role: hebrew.landing.userRoles.manager, desc: hebrew.landing.userRoles.managerDesc },
-              { icon: '📞', role: hebrew.landing.userRoles.dispatcher, desc: hebrew.landing.userRoles.dispatcherDesc },
-              { icon: '🚗', role: hebrew.landing.userRoles.driver, desc: hebrew.landing.userRoles.driverDesc },
-              { icon: '📦', role: hebrew.landing.userRoles.warehouse, desc: hebrew.landing.userRoles.warehouseDesc },
-              { icon: '🛒', role: hebrew.landing.userRoles.sales, desc: hebrew.landing.userRoles.salesDesc },
-              { icon: '💁', role: hebrew.landing.userRoles.support, desc: hebrew.landing.userRoles.supportDesc },
-            ].map((user, index) => (
+              {
+                icon: '✓',
+                title: hebrew.landing.benefits.quality.title,
+                desc: hebrew.landing.benefits.quality.description,
+                gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+              },
+              {
+                icon: '⚡',
+                title: hebrew.landing.benefits.speed.title,
+                desc: hebrew.landing.benefits.speed.description,
+                gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+              },
+              {
+                icon: '🎯',
+                title: hebrew.landing.benefits.variety.title,
+                desc: hebrew.landing.benefits.variety.description,
+                gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+              },
+              {
+                icon: '🛡️',
+                title: hebrew.landing.benefits.trust.title,
+                desc: hebrew.landing.benefits.trust.description,
+                gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+              },
+            ].map((benefit, index) => (
               <div
                 key={index}
-                className="role-card"
+                className="capability-card"
+                style={{
+                  background: benefit.gradient,
+                  padding: '35px',
+                  borderRadius: '20px',
+                  textAlign: 'center',
+                  color: '#ffffff',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                }}
+              >
+                <div className="capability-icon" style={{ fontSize: '56px', marginBottom: '20px' }}>
+                  {benefit.icon}
+                </div>
+                <h3 className="capability-title" style={{
+                  fontSize: '22px',
+                  fontWeight: '600',
+                  marginBottom: '12px',
+                }}>
+                  {benefit.title}
+                </h3>
+                <p className="capability-desc" style={{
+                  fontSize: '15px',
+                  lineHeight: '1.6',
+                  opacity: 0.95,
+                }}>
+                  {benefit.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* How It Works Section */}
+      <div className="section-padding" style={{
+        padding: '80px 20px',
+        background: 'linear-gradient(to bottom, #ffffff, #f7f8fc)',
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+        }}>
+          <h2 className="section-title" style={{
+            fontSize: '36px',
+            fontWeight: '700',
+            textAlign: 'center',
+            marginBottom: '15px',
+            color: theme.text,
+          }}>
+            {hebrew.landing.howItWorks.title}
+          </h2>
+          <p className="section-subtitle" style={{
+            fontSize: '18px',
+            textAlign: 'center',
+            marginBottom: '50px',
+            color: theme.muted,
+          }}>
+            {hebrew.landing.howItWorks.subtitle}
+          </p>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '30px',
+          }}>
+            {[
+              {
+                num: '1',
+                icon: '🔍',
+                title: hebrew.landing.howItWorks.step1.title,
+                desc: hebrew.landing.howItWorks.step1.description
+              },
+              {
+                num: '2',
+                icon: '🛒',
+                title: hebrew.landing.howItWorks.step2.title,
+                desc: hebrew.landing.howItWorks.step2.description
+              },
+              {
+                num: '3',
+                icon: '✅',
+                title: hebrew.landing.howItWorks.step3.title,
+                desc: hebrew.landing.howItWorks.step3.description
+              },
+              {
+                num: '4',
+                icon: '📦',
+                title: hebrew.landing.howItWorks.step4.title,
+                desc: hebrew.landing.howItWorks.step4.description
+              },
+            ].map((step, index) => (
+              <div
+                key={index}
                 style={{
                   background: theme.card,
                   border: `2px solid ${theme.cardBorder}`,
-                  padding: '24px',
-                  borderRadius: '12px',
+                  padding: '30px',
+                  borderRadius: '16px',
                   textAlign: 'center',
+                  position: 'relative',
                   transition: 'all 0.3s ease',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = theme.primary;
-                  e.currentTarget.style.transform = 'translateY(-3px)';
+                  e.currentTarget.style.transform = 'translateY(-5px)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = theme.cardBorder;
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
-                <div className="role-icon" style={{ fontSize: '40px', marginBottom: '12px' }}>
-                  {user.icon}
-                </div>
-                <h3 className="role-title" style={{
+                <div style={{
+                  position: 'absolute',
+                  top: '-15px',
+                  right: '20px',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: '700',
                   fontSize: '18px',
+                }}>
+                  {step.num}
+                </div>
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>
+                  {step.icon}
+                </div>
+                <h3 style={{
+                  fontSize: '20px',
                   fontWeight: '600',
-                  marginBottom: '8px',
+                  marginBottom: '10px',
                   color: theme.text,
                 }}>
-                  {user.role}
+                  {step.title}
                 </h3>
-                <p className="role-desc" style={{
+                <p style={{
                   fontSize: '14px',
                   color: theme.muted,
-                  lineHeight: '1.5',
+                  lineHeight: '1.6',
                 }}>
-                  {user.desc}
+                  {step.desc}
                 </p>
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Work With Us Section (Small) */}
+      <div style={{
+        padding: '60px 20px',
+        background: theme.backgroundDark,
+        textAlign: 'center',
+      }}>
+        <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+          <h3 style={{
+            fontSize: '24px',
+            fontWeight: '600',
+            marginBottom: '12px',
+            color: theme.text,
+          }}>
+            {hebrew.landing.workWithUs.title}
+          </h3>
+          <p style={{
+            fontSize: '16px',
+            marginBottom: '24px',
+            color: theme.muted,
+          }}>
+            {hebrew.landing.workWithUs.description}
+          </p>
+          <button
+            onClick={onGetStarted}
+            style={{
+              padding: '12px 36px',
+              fontSize: '16px',
+              fontWeight: '600',
+              background: 'transparent',
+              color: theme.primary,
+              border: `2px solid ${theme.primary}`,
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              fontFamily: 'inherit',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = theme.primary;
+              e.currentTarget.style.color = '#ffffff';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = theme.primary;
+            }}
+          >
+            {hebrew.landing.workWithUs.button}
+          </button>
         </div>
       </div>
 
