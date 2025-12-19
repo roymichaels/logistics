@@ -280,7 +280,9 @@ function ProfilePageNewContent({ user, dataStore, onNavigate }: ProfilePageNewPr
               description="Update your email, password, and preferences"
               rightContent={<ChevronRight size={20} color={colors.text.secondary} />}
               onClick={() => {
-                // TODO: Navigate to settings page
+                if (onNavigate) {
+                  onNavigate('/settings/account');
+                }
               }}
             />
             <SettingsCard
@@ -289,7 +291,9 @@ function ProfilePageNewContent({ user, dataStore, onNavigate }: ProfilePageNewPr
               description="Manage your privacy settings and security options"
               rightContent={<ChevronRight size={20} color={colors.text.secondary} />}
               onClick={() => {
-                // TODO: Navigate to privacy page
+                if (onNavigate) {
+                  onNavigate('/settings/privacy');
+                }
               }}
             />
           </div>

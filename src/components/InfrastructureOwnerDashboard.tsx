@@ -273,6 +273,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
             subtitle={`${metrics?.activeBusinesses || 0} active`}
             icon="🏢"
             variant="primary"
+            onClick={() => onNavigate('businesses')}
           />
           <MetricCard
             label="Revenue Today"
@@ -280,6 +281,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
             subtitle="Across all businesses"
             icon="💰"
             variant="success"
+            onClick={() => onNavigate('reports')}
           />
           <MetricCard
             label="Total Orders"
@@ -287,6 +289,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
             subtitle="Platform-wide"
             icon="📦"
             variant="default"
+            onClick={() => onNavigate('orders')}
           />
           <MetricCard
             label="Active Drivers"
@@ -294,6 +297,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
             subtitle="Infrastructure + Businesses"
             icon="🚗"
             variant="default"
+            onClick={() => onNavigate('drivers')}
           />
           <MetricCard
             label="Pending Allocations"
@@ -301,6 +305,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
             subtitle="Requires approval"
             icon="⚠️"
             variant="warning"
+            onClick={() => onNavigate('user-management')}
           />
         </MetricGrid>
 
@@ -349,6 +354,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
               {businesses.slice(0, 6).map(business => (
                 <div
                   key={business.id}
+                  onClick={() => onNavigate(`business/${business.id}`)}
                   style={{
                     padding: spacing.lg,
                     border: `1px solid ${colors.border.primary}`,
@@ -356,6 +362,15 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
                     background: colors.background.secondary,
                     opacity: business.active ? 1 : 0.6,
                     transition: 'all 200ms ease',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
                   <div style={{

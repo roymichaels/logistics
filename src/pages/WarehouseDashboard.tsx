@@ -128,15 +128,33 @@ export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
           marginBottom: '28px'
         }}
       >
-        <SummaryCard label={'סה"כ מיקומים'} value={summary.totalLocations} theme={theme} />
+        <SummaryCard
+          label={'סה"כ מיקומים'}
+          value={summary.totalLocations}
+          theme={theme}
+          onClick={() => onNavigate('inventory')}
+        />
         <SummaryCard
           label="מיקומים עם מלאי נמוך"
           value={summary.lowStockLocations}
           theme={theme}
           accent="#ff9500"
+          onClick={() => onNavigate('inventory?filter=lowStock')}
         />
-        <SummaryCard label="התראות מלאי" value={summary.totalAlerts} theme={theme} accent="#ff3b30" />
-        <SummaryCard label="בקשות חידוש ממתינות" value={summary.pendingRestocks} theme={theme} accent="#007aff" />
+        <SummaryCard
+          label="התראות מלאי"
+          value={summary.totalAlerts}
+          theme={theme}
+          accent="#ff3b30"
+          onClick={() => onNavigate('my-inventory?alerts=true')}
+        />
+        <SummaryCard
+          label="בקשות חידוש ממתינות"
+          value={summary.pendingRestocks}
+          theme={theme}
+          accent="#007aff"
+          onClick={() => onNavigate('restock-requests')}
+        />
       </section>
 
       {loading && <div style={{ marginBottom: '16px', color: theme.hint_color }}>טוען נתוני מחסן...</div>}
@@ -152,11 +170,22 @@ export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
             {locations.map((location) => (
               <div
                 key={location.id}
+                onClick={() => onNavigate(`inventory?location=${location.id}`)}
                 style={{
                   padding: '16px',
                   borderRadius: '12px',
                   backgroundColor: theme.secondary_bg_color,
-                  border: `1px solid ${theme.hint_color}30`
+                  border: `1px solid ${theme.hint_color}30`,
+                  cursor: 'pointer',
+                  transition: 'all 200ms ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -278,21 +307,33 @@ function SummaryCard({
   label,
   value,
   theme,
-  accent
+  accent,
+  onClick
 }: {
   label: string;
   value: number;
   theme: any;
   accent?: string;
+  onClick?: () => void;
 }) {
+  const [isHovered, setIsHovered] = React.useState(false);
   const color = accent || theme.text_color;
+  const isClickable = !!onClick;
+
   return (
     <div
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={{
         padding: '16px',
         borderRadius: '12px',
         backgroundColor: theme.secondary_bg_color,
-        border: `1px solid ${theme.hint_color}30`
+        border: `1px solid ${theme.hint_color}30`,
+        cursor: isClickable ? 'pointer' : 'default',
+        transform: isHovered && isClickable ? 'translateY(-2px)' : 'none',
+        transition: 'all 200ms ease',
+        boxShadow: isHovered && isClickable ? '0 4px 12px rgba(0, 0, 0, 0.1)' : 'none'
       }}
     >
       <div style={{ fontSize: '13px', color: theme.hint_color, marginBottom: '4px' }}>{label}</div>

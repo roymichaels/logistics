@@ -87,7 +87,22 @@ export function SalesDashboard() {
           }}
         >
           {salesStats.map((stat) => (
-            <Card key={stat.label} padding={spacing[4]}>
+            <Card
+              key={stat.label}
+              padding={spacing[4]}
+              onClick={() => {
+                if (stat.label === 'Total Revenue') {
+                  console.log('Navigate to revenue breakdown');
+                } else if (stat.label === 'Active Leads') {
+                  console.log('Navigate to leads page');
+                } else if (stat.label === 'Closed Deals') {
+                  console.log('Navigate to closed deals');
+                } else if (stat.label === 'Conversion Rate') {
+                  console.log('Open analytics modal');
+                }
+              }}
+              style={{ cursor: 'pointer', transition: 'all 150ms ease-in-out' }}
+            >
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                 <div>
                   <div style={{ fontSize: '12px', color: colors.text.tertiary, marginBottom: spacing[1] }}>
@@ -113,7 +128,7 @@ export function SalesDashboard() {
             <h2 style={{ fontSize: '18px', fontWeight: 600, color: colors.text.primary }}>
               Active Leads
             </h2>
-            <Button variant="primary" size="sm">
+            <Button variant="primary" size="sm" onClick={() => console.log('Open new lead modal')}>
               + New Lead
             </Button>
           </div>
@@ -121,6 +136,7 @@ export function SalesDashboard() {
             {leads.map((lead) => (
               <div
                 key={lead.id}
+                onClick={() => console.log('Open lead detail:', lead.id)}
                 style={{
                   padding: spacing[3],
                   backgroundColor: colors.background.secondary,
@@ -198,7 +214,11 @@ export function SalesDashboard() {
               </div>
             ))}
           </div>
-          <Button variant="ghost" style={{ marginTop: spacing[3], width: '100%' }}>
+          <Button
+            variant="ghost"
+            style={{ marginTop: spacing[3], width: '100%' }}
+            onClick={() => console.log('Navigate to all activities')}
+          >
             View All Activity
           </Button>
         </Card>

@@ -294,22 +294,66 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
 
       {/* Dashboard Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        <div style={styles.statBox}>
+        <div
+          style={{ ...styles.statBox, cursor: 'pointer', transition: 'all 200ms ease' }}
+          onClick={() => console.log('Show available drivers')}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        >
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>🚗</div>
           <div style={{ ...styles.statValue, fontSize: '28px', color: colors.success }}>{totalOnline}</div>
           <div style={styles.statLabel}>{translations.dispatchBoardPage.availableDrivers}</div>
         </div>
-        <div style={styles.statBox}>
+        <div
+          style={{ ...styles.statBox, cursor: 'pointer', transition: 'all 200ms ease' }}
+          onClick={() => console.log('Show zone details')}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        >
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>🗺️</div>
           <div style={{ ...styles.statValue, fontSize: '28px', color: colors.info }}>{zones.length}</div>
           <div style={styles.statLabel}>{translations.dispatchBoardPage.coverageZones}</div>
         </div>
-        <div style={styles.statBox}>
+        <div
+          style={{ ...styles.statBox, cursor: 'pointer', transition: 'all 200ms ease' }}
+          onClick={() => console.log('Filter to active deliveries')}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        >
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>🚚</div>
           <div style={{ ...styles.statValue, fontSize: '28px', color: colors.accent }}>{activeDeliveries}</div>
           <div style={styles.statLabel}>{translations.dispatchBoardPage.inDelivery}</div>
         </div>
-        <div style={styles.statBox}>
+        <div
+          style={{ ...styles.statBox, cursor: 'pointer', transition: 'all 200ms ease' }}
+          onClick={() => console.log('Filter to pending assignments')}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        >
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>⏱️</div>
           <div style={{ ...styles.statValue, fontSize: '28px', color: colors.warning }}>{pendingAssignments}</div>
           <div style={styles.statLabel}>{translations.dispatchBoardPage.waiting}</div>

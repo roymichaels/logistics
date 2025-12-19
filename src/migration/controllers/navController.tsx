@@ -4,7 +4,8 @@ import {
   resolveNavProductPage,
   resolveNavProfileMenuPage,
   resolveNavMetricsPage,
-  resolveNavDeliveryPage
+  resolveNavDeliveryPage,
+  resolveKYCRoute
 } from '../switchboard';
 
 export type NavEntry = { id: string; params?: any };
@@ -139,6 +140,12 @@ export function NavLayer() {
         }
         case 'delivery': {
           const mod = await resolveNavDeliveryPage();
+          setComponent(() => mod as any);
+          break;
+        }
+        case 'kyc': {
+          const { resolveKYCRoute } = await import('../switchboard');
+          const mod = await resolveKYCRoute();
           setComponent(() => mod as any);
           break;
         }

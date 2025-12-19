@@ -96,7 +96,22 @@ export function SupportDashboard() {
         }}
       >
         {supportStats.map((stat) => (
-          <Card key={stat.label} padding={spacing[4]}>
+          <Card
+            key={stat.label}
+            padding={spacing[4]}
+            onClick={() => {
+              if (stat.label === 'Open Tickets') {
+                console.log('Filter to open tickets');
+              } else if (stat.label === 'Avg Response Time') {
+                console.log('Show response time analytics');
+              } else if (stat.label === 'Resolution Rate') {
+                console.log('Show resolution analytics');
+              } else if (stat.label === 'Customer Satisfaction') {
+                console.log('Show satisfaction reports');
+              }
+            }}
+            style={{ cursor: 'pointer', transition: 'all 150ms ease-in-out' }}
+          >
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ fontSize: '12px', color: colors.text.tertiary, marginBottom: spacing[1] }}>
@@ -139,6 +154,7 @@ export function SupportDashboard() {
               {filteredTickets.map((ticket) => (
                 <div
                   key={ticket.id}
+                  onClick={() => console.log('Open ticket:', ticket.id)}
                   style={{
                     padding: spacing[3],
                     backgroundColor: colors.background.secondary,
@@ -199,7 +215,14 @@ export function SupportDashboard() {
                     <span style={{ fontSize: '12px', color: colors.text.tertiary }}>
                       {ticket.createdAt}
                     </span>
-                    <Button variant="ghost" size="sm">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('View ticket details:', ticket.id);
+                      }}
+                    >
                       View Details
                     </Button>
                   </div>
@@ -218,6 +241,7 @@ export function SupportDashboard() {
               {quickActions.map((action) => (
                 <button
                   key={action.label}
+                  onClick={() => console.log('Quick action:', action.label)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
