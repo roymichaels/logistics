@@ -3,7 +3,6 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "dev": "npx vite",
     "build": "expo export --platform web",
