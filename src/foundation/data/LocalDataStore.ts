@@ -323,7 +323,7 @@ export class LocalDataStore {
 
   constructor() {
     this.loadFromStorage();
-    logger.info('[LocalDataStore] Initialized with', this.tables.size, 'tables');
+    logger.debug('[LocalDataStore] Initialized with', this.tables.size, 'tables');
   }
 
   from(tableName: string): QueryBuilder {
@@ -360,7 +360,7 @@ export class LocalDataStore {
         this.saveToStorage();
       }
 
-      logger.info('[LocalDataStore] Profile loaded', { userId, role: user.role });
+      logger.debug('[LocalDataStore] Profile loaded', { userId, role: user.role });
       return user;
     } catch (error) {
       logger.error('[LocalDataStore] Failed to get profile', error);
@@ -376,11 +376,11 @@ export class LocalDataStore {
     const handlers = this.subscriptions.get(table)!;
     handlers.add(callback);
 
-    logger.info('[LocalDataStore] Subscribed to table', { table, handlerCount: handlers.size });
+    logger.debug('[LocalDataStore] Subscribed to table', { table, handlerCount: handlers.size });
 
     return () => {
       handlers.delete(callback);
-      logger.info('[LocalDataStore] Unsubscribed from table', { table, handlerCount: handlers.size });
+      logger.debug('[LocalDataStore] Unsubscribed from table', { table, handlerCount: handlers.size });
     };
   }
 
@@ -477,7 +477,7 @@ export class LocalDataStore {
         Object.entries(data).forEach(([key, value]) => {
           this.tables.set(key, value as any[]);
         });
-        logger.info('[LocalDataStore] Loaded data from storage');
+        logger.debug('[LocalDataStore] Loaded data from storage');
       } else {
         this.seed();
       }
@@ -488,7 +488,7 @@ export class LocalDataStore {
   }
 
   private seed(): void {
-    logger.info('[LocalDataStore] Seeding initial data');
+    logger.debug('[LocalDataStore] Seeding initial data');
 
     this.tables.set('products', [
       {
@@ -533,6 +533,6 @@ export class LocalDataStore {
     this.tables.clear();
     localStorage.removeItem(this.STORAGE_KEY);
     this.seed();
-    logger.info('[LocalDataStore] Cleared all data and reseeded');
+    logger.debug('[LocalDataStore] Cleared all data and reseeded');
   }
 }

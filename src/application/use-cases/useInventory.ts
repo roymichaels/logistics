@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useApp } from '../services/useApp';
 import { InventoryQueries, InventoryCommands } from '../';
 import type { InventoryItem } from '../queries/inventory.queries';
@@ -16,13 +16,21 @@ export const useInventory = (filters?: {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ClassifiedError | null>(null);
 
-  const queries = new InventoryQueries(app.db);
+  // Memoize queries instance to prevent recreation
+  const queries = useMemo(() => new InventoryQueries(app.db), [app.db]);
+
+  // Stringify filters to create stable dependency
+  const filtersKey = useMemo(() =>
+    filters ? JSON.stringify(filters) : '',
+    [filters?.business_id, filters?.product_id, filters?.low_stock]
+  );
 
   const fetchInventory = useCallback(async () => {
     setLoading(true);
     setError(null);
 
-    const result = await queries.getInventory(filters);
+    const parsedFilters = filtersKey ? JSON.parse(filtersKey) : undefined;
+    const result = await queries.getInventory(parsedFilters);
 
     if (result.success) {
       setInventory(result.data);
@@ -31,7 +39,7 @@ export const useInventory = (filters?: {
     }
 
     setLoading(false);
-  }, [filters]);
+  }, [filtersKey, queries]);
 
   useEffect(() => {
     fetchInventory();
@@ -51,9 +59,11 @@ export const useInventoryItem = (inventoryId: string) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ClassifiedError | null>(null);
 
-  const queries = new InventoryQueries(app.db);
+  const queries = useMemo(() => new InventoryQueries(app.db), [app.db]);
 
   const fetchItem = useCallback(async () => {
+    if (!inventoryId) return;
+
     setLoading(true);
     setError(null);
 
@@ -66,7 +76,7 @@ export const useInventoryItem = (inventoryId: string) => {
     }
 
     setLoading(false);
-  }, [inventoryId]);
+  }, [inventoryId, queries]);
 
   useEffect(() => {
     fetchItem();
@@ -86,9 +96,11 @@ export const useLowStockItems = (businessId: string) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ClassifiedError | null>(null);
 
-  const queries = new InventoryQueries(app.db);
+  const queries = useMemo(() => new InventoryQueries(app.db), [app.db]);
 
   const fetchLowStockItems = useCallback(async () => {
+    if (!businessId) return;
+
     setLoading(true);
     setError(null);
 
@@ -101,7 +113,7 @@ export const useLowStockItems = (businessId: string) => {
     }
 
     setLoading(false);
-  }, [businessId]);
+  }, [businessId, queries]);
 
   useEffect(() => {
     fetchLowStockItems();
@@ -120,7 +132,7 @@ export const useRestock = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ClassifiedError | null>(null);
 
-  const commands = new InventoryCommands(app.db);
+  const commands = useMemo(() => new InventoryCommands(app.db), [app.db]);
 
   const restock = useCallback(async (input: RestockInput): AsyncResult<void, ClassifiedError> => {
     setLoading(true);
@@ -134,7 +146,7 @@ export const useRestock = () => {
 
     setLoading(false);
     return result;
-  }, []);
+  }, [commands]);
 
   return {
     restock,
@@ -148,7 +160,7 @@ export const useAdjustStock = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ClassifiedError | null>(null);
 
-  const commands = new InventoryCommands(app.db);
+  const commands = useMemo(() => new InventoryCommands(app.db), [app.db]);
 
   const adjustStock = useCallback(async (input: AdjustStockInput): AsyncResult<void, ClassifiedError> => {
     setLoading(true);
@@ -162,7 +174,7 @@ export const useAdjustStock = () => {
 
     setLoading(false);
     return result;
-  }, []);
+  }, [commands]);
 
   return {
     adjustStock,
@@ -176,7 +188,7 @@ export const useSetReorderLevel = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ClassifiedError | null>(null);
 
-  const commands = new InventoryCommands(app.db);
+  const commands = useMemo(() => new InventoryCommands(app.db), [app.db]);
 
   const setReorderLevel = useCallback(
     async (inventoryId: string, reorderLevel: number): AsyncResult<void, ClassifiedError> => {
@@ -192,7 +204,7 @@ export const useSetReorderLevel = () => {
       setLoading(false);
       return result;
     },
-    []
+    [commands]
   );
 
   return {

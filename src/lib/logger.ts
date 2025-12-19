@@ -36,15 +36,15 @@ class Logger {
   private externalLogger?: (entry: LogEntry) => void;
 
   constructor() {
-    // In production, set to INFO or higher
-    // In development, allow DEBUG
+    // In production, set to WARN or higher
+    // In development, allow INFO
     this.level = this.getLogLevelFromEnv();
-    this.enableConsole = import.meta.env.DEV || this.level <= LogLevel.INFO;
+    this.enableConsole = import.meta.env.DEV;
   }
 
   private getLogLevelFromEnv(): LogLevel {
     const envLevel = import.meta.env.VITE_LOG_LEVEL ||
-                     (import.meta.env.PROD ? 'INFO' : 'DEBUG');
+                     (import.meta.env.PROD ? 'WARN' : 'INFO');
 
     switch (envLevel.toUpperCase()) {
       case 'DEBUG':
@@ -105,29 +105,21 @@ class Logger {
 
     // Console logging (only in dev or when explicitly enabled)
     if (this.enableConsole) {
-      const prefix = `[${entry.timestamp}]`;
-      let contextStr = '';
-      if (context) {
-        try {
-          contextStr = JSON.stringify(context, null, 2);
-        } catch (error) {
-          // Handle circular references or other JSON errors
-          contextStr = '[Complex Object - Unable to stringify]';
-        }
-      }
+      const timestamp = new Date().toLocaleTimeString();
+      const prefix = `[${timestamp}]`;
 
       switch (level) {
         case LogLevel.DEBUG:
-          console.debug(prefix, message, contextStr);
+          console.debug(prefix, message, context || '');
           break;
         case LogLevel.INFO:
-          console.info(prefix, message, contextStr);
+          console.info(prefix, message, context || '');
           break;
         case LogLevel.WARN:
-          console.warn(prefix, message, contextStr);
+          console.warn(prefix, message, context || '');
           break;
         case LogLevel.ERROR:
-          console.error(prefix, message, contextStr);
+          console.error(prefix, message, context || '');
           break;
       }
     }

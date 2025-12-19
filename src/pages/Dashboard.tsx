@@ -59,42 +59,42 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
 
   const loadDashboard = useCallback(async () => {
     if (!dataStore) {
-      logger.warn('[Dashboard] ⚠️ No dataStore available');
+      logger.warn('[Dashboard] No dataStore available');
       return;
     }
 
-    logger.info('[Dashboard] 📊 Loading dashboard data');
+    logger.debug('[Dashboard] Loading dashboard data');
 
     try {
       setError(null);
       const profile = await dataStore.getProfile();
 
       if (!profile) {
-        logger.error('[Dashboard] ❌ No profile found');
+        logger.warn('[Dashboard] No profile found');
         setError(translations.errors.loadFailed);
         setLoading(false);
         return;
       }
 
-      logger.info('[Dashboard] ✅ Profile loaded', { role: profile.role, userId: profile.id });
+      logger.debug('[Dashboard] Profile loaded', { role: profile.role, userId: profile.id });
       setUser(profile);
 
       // Owner and Manager get custom dashboards
       if (profile.role === 'infrastructure_owner' || profile.role === 'business_owner' || profile.role === 'manager') {
-        logger.info('[Dashboard] 🎭 Loading role-specific dashboard', { role: profile.role });
+        logger.debug('[Dashboard] Loading role-specific dashboard', { role: profile.role });
         setLoading(false);
         return;
       }
 
-      logger.info('[Dashboard] 📈 Loading royal dashboard snapshot');
+      logger.debug('[Dashboard] Loading royal dashboard snapshot');
       const royalData = dataStore.getRoyalDashboardSnapshot
         ? await dataStore.getRoyalDashboardSnapshot()
         : createRoyalFallback();
       setSnapshot(royalData);
-      logger.info('[Dashboard] ✅ Dashboard snapshot loaded');
+      logger.debug('[Dashboard] Dashboard snapshot loaded');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : translations.errors.unknownError;
-      logger.error('[Dashboard] ❌ Failed to load royal dashboard', err);
+      logger.error('[Dashboard] Failed to load royal dashboard', err);
       setError(errorMessage);
       Toast.error(translations.errors.loadFailed);
       setSnapshot(createRoyalFallback());
@@ -105,7 +105,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
 
   const handleInventoryAlert = useCallback(
     (payload: unknown) => {
-      logger.info('[Dashboard] 🔔 Received inventory alert event');
+      logger.debug('[Dashboard] Received inventory alert event');
       const event = (payload ?? {}) as InventoryAlertPayload;
 
       setSnapshot(prev => {

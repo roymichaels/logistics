@@ -43,15 +43,15 @@ export function Inventory({ onNavigate }: InventoryProps) {
   const loading = productsLoading || inventoryLoading;
 
   useEffect(() => {
-    logger.info('[Inventory] Component mounted, subscribing to events');
+    logger.debug('[Inventory] Component mounted, subscribing to events');
 
     const unsubInventory = app.events?.on('StockLow', () => {
-      logger.info('[Inventory] StockLow event received, refetching');
+      logger.debug('[Inventory] StockLow event received, refetching');
       refetch();
     });
 
     const unsubProductUpdated = app.events?.on('ProductUpdated', () => {
-      logger.info('[Inventory] ProductUpdated event received, refetching');
+      logger.debug('[Inventory] ProductUpdated event received, refetching');
       refetch();
     });
 
@@ -59,7 +59,8 @@ export function Inventory({ onNavigate }: InventoryProps) {
       unsubInventory?.();
       unsubProductUpdated?.();
     };
-  }, [app.events, refetch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [app.events]);
 
   const aggregatedInventory = useMemo(() => {
     if (!products || !inventory) return [];
@@ -107,7 +108,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
   const handleAdjustInventory = async () => {
     if (!selectedProduct) return;
 
-    logger.info('[Inventory] Adjusting inventory', {
+    logger.debug('[Inventory] Adjusting inventory', {
       productId: selectedProduct.product_id,
       adjustment: adjustmentData,
     });
@@ -120,7 +121,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
 
     if (result.success) {
       Toast.success('המלאי עודכן בהצלחה');
-      logger.info('[Inventory] Inventory adjusted successfully');
+      logger.debug('[Inventory] Inventory adjusted successfully');
       setShowAdjustForm(false);
       setSelectedProduct(null);
       setAdjustmentData({ quantity: 0, reason: '' });
