@@ -1,5 +1,0 @@
--- The canonical schema has moved to `supabase/init_schema.sql`.
--- This pointer exists for legacy tooling that expects `supabase/schema.sql`.
--- To provision a database run:
---   1. psql -f supabase/init_schema.sql
---   2. psql -f supabase/seed_data.sql

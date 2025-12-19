@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
 
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { waitForSupabaseInit } from '../lib/supabaseClient';
-import { useSupabaseReady } from '../context/SupabaseReadyContext';
 import { logger } from '../lib/logger';
 
 interface CreateBusinessModalProps {
@@ -26,7 +24,6 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
   const [initError, setInitError] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
-  const { isSupabaseReady } = useSupabaseReady();
 
   useEffect(() => {
     let mounted = true;
@@ -34,12 +31,9 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
     async function initializeModal() {
       if (!mounted) return;
 
-      logger.info('🔄 CreateBusinessModal: Starting initialization...', {
+      logger.info('🔄 CreateBusinessModal: Starting initialization (frontend-only mode)', {
         hasUser: !!user,
-        userId: user?.id,
-        telegramId: user?.telegram_id,
-        isSupabaseReady,
-        hasSupabaseInStore: !!dataStore.supabase
+        userId: user?.id
       });
 
       if (!user) {
@@ -53,13 +47,6 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         setIsReady(true);
         setIsInitializing(false);
         logger.info('✅ CreateBusinessModal: User ID already available', { userId: user.id });
-        return;
-      }
-
-      if (!isSupabaseReady) {
-        logger.info('⏳ CreateBusinessModal: Global Supabase not ready yet');
-        setIsInitializing(true);
-        setIsReady(false);
         return;
       }
 

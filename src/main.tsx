@@ -4,13 +4,10 @@ import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AppServicesProvider } from './context/AppServicesContext';
-import { SupabaseReadyProvider } from './context/SupabaseReadyContext';
 import { SxtAuthProvider } from './context/SxtAuthProvider';
 import { LanguageProvider } from './context/LanguageContext';
 import { GlobalErrorBoundary } from './components/ErrorBoundary';
 import { ThemeProvider } from './foundation/theme/ThemeProvider';
-import { initSupabase } from './lib/supabaseClient';
-import { sessionManager } from './lib/sessionManager';
 import './lib/diagnostics';
 import './lib/errorHandler';
 import { initializeApplicationLayer } from './application/bootstrap';
@@ -137,60 +134,28 @@ function LoadingScreen() {
     // Show loading screen
     root.render(<LoadingScreen />);
 
-    // Initialize Supabase
+    // Initialize frontend-only mode (no Supabase)
     try {
-      const useSXT = runtimeEnvironment.isSxtModeEnabled();
+      console.log('✅ Frontend-only mode active - no backend required');
       console.log(`🔧 Data Adapter Mode: ${runtimeEnvironment.getDataAdapterMode()}`);
 
-      let supabase: any = null;
-      let restoredSession: any = null;
-
-      if (useSXT) {
-        console.log('SxT mode active — skipping Supabase initialization completely');
+      // Attempt to restore wallet session from localStorage
+      const walletSession = localStorage.getItem('wallet_session');
+      if (walletSession) {
+        console.log('✅ Wallet session restored from localStorage');
       } else {
-        console.log('🔄 Initializing Supabase...');
-        console.log('🔄 Fetching runtime configuration...');
-
-        const buildTimeUrl = import.meta.env.VITE_SUPABASE_URL;
-        const buildTimeKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-        if (buildTimeUrl && buildTimeKey) {
-          console.log('✅ Build-time config available:', {
-            url: buildTimeUrl.substring(0, 30) + '...',
-            keyLength: buildTimeKey.length
-          });
-        } else {
-          console.log('⚠️ Build-time config not available, will fetch runtime config');
-        }
-
-        console.log('⏱️ [TIMING] Starting Supabase initialization at', new Date().toISOString());
-        const startTime = performance.now();
-        supabase = await initSupabase();
-        const endTime = performance.now();
-        console.log(`✅ Supabase initialized successfully in ${(endTime - startTime).toFixed(2)}ms`);
-
-        console.log('🔄 Attempting session restoration...');
-        const sessionStartTime = performance.now();
-        restoredSession = await sessionManager.restoreSession(supabase);
-        const sessionEndTime = performance.now();
-
-        if (restoredSession) {
-          console.log(`✅ Session restored successfully in ${(sessionEndTime - sessionStartTime).toFixed(2)}ms`);
-          console.log('👤 User:', restoredSession.user.id);
-        } else {
-          console.log(`ℹ️ No existing session found (${(sessionEndTime - sessionStartTime).toFixed(2)}ms)`);
-        }
+        console.log('ℹ️ No wallet session found - user will need to connect wallet or authenticate');
       }
 
       // Mark as initialized globally
       if (typeof window !== 'undefined') {
         (window as any).__INIT_COMPLETE__ = true;
         (window as any).__INIT_TIMESTAMP__ = Date.now();
-        (window as any).__SESSION_RESTORED__ = !!restoredSession;
+        (window as any).__SESSION_RESTORED__ = !!walletSession;
       }
     } catch (error) {
-      console.error('❌ Failed to initialize Supabase:', error);
-      throw new Error('Failed to load configuration. Please check your environment variables or runtime config endpoint.');
+      console.error('❌ Failed to initialize app:', error);
+      throw new Error('Failed to initialize application. Please refresh the page.');
     }
 
     // Render the actual app
@@ -218,11 +183,9 @@ function LoadingScreen() {
                   </SxtAuthProvider>
                 ) : (
                   <AuthProvider>
-                    <SupabaseReadyProvider>
-                      <AppServicesProvider>
-                        <App />
-                      </AppServicesProvider>
-                    </SupabaseReadyProvider>
+                    <AppServicesProvider>
+                      <App />
+                    </AppServicesProvider>
                   </AuthProvider>
                 )}
               </BrowserRouter>
@@ -237,8 +200,6 @@ function LoadingScreen() {
     const rootElement = document.getElementById('root');
     if (rootElement) {
       const errorMessage = error instanceof Error ? error.message : 'שגיאה לא ידועה';
-      const diagnostics = sessionManager.getDiagnostics();
-      console.log('🔍 Session Diagnostics:', diagnostics);
 
       rootElement.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; text-align: center; direction: rtl; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
@@ -255,7 +216,7 @@ function LoadingScreen() {
           </button>
           <details style="margin-top: 24px; max-width: 400px; text-align: left;">
             <summary style="cursor: pointer; color: #666; font-size: 14px;">Show technical details</summary>
-            <pre style="font-size: 12px; color: #666; margin-top: 12px; overflow: auto;">${JSON.stringify(diagnostics, null, 2)}</pre>
+            <pre style="font-size: 12px; color: #666; margin-top: 12px; overflow: auto;">${errorMessage}</pre>
           </details>
         </div>
       `;

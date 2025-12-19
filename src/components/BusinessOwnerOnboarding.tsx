@@ -3,8 +3,6 @@ import { DataStore, BusinessType } from '../data/types';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 
 import { Toast } from './Toast';
-import { waitForSupabaseInit } from '../lib/supabaseClient';
-import { useSupabaseReady } from '../context/SupabaseReadyContext';
 import { logger } from '../lib/logger';
 
 interface BusinessOwnerOnboardingProps {
@@ -47,7 +45,6 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
   const [errors, setErrors] = useState<FormErrors>({});
   const [isInitialized, setIsInitialized] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
-  const { isSupabaseReady } = useSupabaseReady();
 
   // Form state - business type removed
   const [businessName, setBusinessName] = useState('');
@@ -88,13 +85,9 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
 
   useEffect(() => {
     initializeOnboarding();
-  }, [isSupabaseReady]);
+  }, []);
 
   const initializeOnboarding = async () => {
-    if (!isSupabaseReady) {
-      logger.info('⏳ BusinessOwnerOnboarding: Waiting for Supabase...');
-      return;
-    }
 
     try {
       setLoading(true);
