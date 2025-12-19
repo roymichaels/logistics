@@ -135,6 +135,10 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
       // Load runtime configuration
       const config = await loadConfig();
 
+      if (!config?.supabaseUrl || !config?.supabaseAnonKey) {
+        throw new Error('Edge functions not available in frontend-only mode');
+      }
+
       logger.info('📡 Calling edge function:', `${config.supabaseUrl}/functions/v1/promote-manager`);
 
       const response = await fetch(`${config.supabaseUrl}/functions/v1/promote-manager`, {

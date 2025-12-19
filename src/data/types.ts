@@ -1009,6 +1009,8 @@ export interface BootstrapConfig {
   defaults: {
     mode: 'real';
   };
+  supabaseUrl?: string;
+  supabaseAnonKey?: string;
 }
 
 export interface UserPreference {

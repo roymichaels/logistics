@@ -42,6 +42,7 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
   }
 
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+  const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
   // Check for stored session first (for page refreshes)
   if (!userData) {
@@ -91,6 +92,8 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
         defaults: {
           mode: 'real' as const,
         },
+        supabaseUrl: SUPABASE_URL,
+        supabaseAnonKey: SUPABASE_ANON_KEY,
       },
       user: userData,
     };
@@ -118,14 +121,16 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
         defaults: {
           mode: 'real' as const,
         },
+        supabaseUrl: SUPABASE_URL,
+        supabaseAnonKey: SUPABASE_ANON_KEY,
       },
       user: null,
     };
   }
 
   // If no Supabase URL at all, use mock config
-  debugLog.error('🚨 CRITICAL: Missing VITE_SUPABASE_URL environment variable!');
-  debugLog.error('🚨 Mock mode has limited functionality!');
+  debugLog.warn('⚠️ Frontend-only mode: Missing VITE_SUPABASE_URL environment variable');
+  debugLog.info('ℹ️ Using IndexedDB and localStorage for all data persistence');
   return {
     config: {
       app: 'miniapp',
@@ -145,6 +150,8 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
       defaults: {
         mode: 'real' as const,
       },
+      supabaseUrl: undefined,
+      supabaseAnonKey: undefined,
     },
     user: userData || null,
   };

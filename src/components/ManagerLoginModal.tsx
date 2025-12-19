@@ -66,6 +66,9 @@ export function ManagerLoginModal({
     try {
       // Call edge function to promote user (bypasses RLS)
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        throw new Error('Supabase not configured in frontend-only mode');
+      }
 
       logger.info('🔐 Calling promote-manager edge function...');
       logger.info('   URL:', `${supabaseUrl}/functions/v1/promote-manager`);

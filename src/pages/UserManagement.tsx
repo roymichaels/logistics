@@ -389,6 +389,9 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       }
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        throw new Error('Supabase not configured in frontend-only mode');
+      }
       const response = await fetch(`${supabaseUrl}/functions/v1/set-role`, {
         method: 'POST',
         headers: {

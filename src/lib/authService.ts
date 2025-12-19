@@ -438,6 +438,10 @@ class AuthService {
       const supabase = getSupabase();
       const config = await import('./supabaseClient').then(m => m.loadConfig());
 
+      if (!config?.supabaseUrl) {
+        throw new Error('Supabase not configured in frontend-only mode');
+      }
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -635,6 +639,10 @@ class AuthService {
       const supabase = getSupabase();
       const config = await import('./supabaseClient').then(m => m.loadConfig());
 
+      if (!config?.supabaseUrl || !config?.supabaseAnonKey) {
+        throw new Error('Supabase not configured in frontend-only mode');
+      }
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -723,6 +731,10 @@ class AuthService {
     try {
       const supabase = getSupabase();
       const config = await import('./supabaseClient').then(m => m.loadConfig());
+
+      if (!config?.supabaseUrl || !config?.supabaseAnonKey) {
+        throw new Error('Supabase not configured in frontend-only mode');
+      }
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);

@@ -15,6 +15,12 @@ export { ShellProvider, useShell, useShellSlots } from './ShellProvider';
 export { AppContainer } from './layout/AppContainer';
 export { PageContainer } from './layout/PageContainer';
 
+// Unified shell system (new architecture)
+export { BaseShell, useShellContext } from './BaseShell';
+export { ShellSelector } from './ShellSelector';
+export type { UserRole, ShellType, ShellConfig, NavigationItem, ShellContextValue } from './types';
+export { getNavigationForRole, getShellTypeForRole, ADMIN_SHELL_NAV, BUSINESS_SHELL_NAV, DRIVER_SHELL_NAV, STORE_SHELL_NAV } from './navigationSchema';
+
 /**
  * Shell System Overview
  *
