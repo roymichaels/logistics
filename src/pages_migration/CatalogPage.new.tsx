@@ -51,9 +51,16 @@ function CatalogPageNewContent({
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const { setTitle, setSubtitle } = usePageTitle();
-  const nav = useNavController();
   const sandbox = useDataSandbox();
   const { add: addToCart } = cart;
+
+  // Navigation is optional - only use if provider exists
+  let nav: ReturnType<typeof useNavController> | null = null;
+  try {
+    nav = useNavController();
+  } catch {
+    // Provider not available, navigation disabled
+  }
 
   useEffect(() => {
     setTitle('Store');
@@ -148,7 +155,9 @@ function CatalogPageNewContent({
   const handleProductClick = (product: Product) => {
     setSelected(product);
     if (onSelect) onSelect(product);
-    nav.push('product', { product });
+    if (nav) {
+      nav.push('product', { product });
+    }
   };
 
   const handleAddToCart = (product: Product, e?: React.MouseEvent) => {
