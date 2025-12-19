@@ -13,7 +13,30 @@ export interface FilterCondition {
   value: unknown;
 }
 
+export interface QueryBuilder {
+  select(columns?: string): this;
+  insert(data: any): this;
+  update(data: any): this;
+  delete(): this;
+  eq(column: string, value: any): this;
+  neq(column: string, value: any): this;
+  gt(column: string, value: any): this;
+  gte(column: string, value: any): this;
+  lt(column: string, value: any): this;
+  lte(column: string, value: any): this;
+  ilike(column: string, pattern: string): this;
+  like(column: string, pattern: string): this;
+  in(column: string, values: any[]): this;
+  order(column: string, options?: { ascending?: boolean }): this;
+  limit(count: number): this;
+  single(): Promise<any>;
+  maybeSingle(): Promise<any>;
+  then(resolve: (value: any) => void, reject?: (reason: any) => void): Promise<any>;
+}
+
 export interface IDataStore {
+  from(table: string): QueryBuilder;
+
   query<T>(
     table: string,
     filters?: FilterCondition[],

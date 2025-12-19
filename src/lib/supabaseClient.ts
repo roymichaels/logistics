@@ -1,10 +1,26 @@
-import { SupabaseDataStoreAdapter } from '../foundation/adapters/SupabaseDataStoreAdapter';
+const noOpQueryBuilder = {
+  select: () => noOpQueryBuilder,
+  insert: () => noOpQueryBuilder,
+  update: () => noOpQueryBuilder,
+  delete: () => noOpQueryBuilder,
+  eq: () => noOpQueryBuilder,
+  neq: () => noOpQueryBuilder,
+  gt: () => noOpQueryBuilder,
+  gte: () => noOpQueryBuilder,
+  lt: () => noOpQueryBuilder,
+  lte: () => noOpQueryBuilder,
+  ilike: () => noOpQueryBuilder,
+  like: () => noOpQueryBuilder,
+  in: () => noOpQueryBuilder,
+  order: () => noOpQueryBuilder,
+  limit: () => noOpQueryBuilder,
+  single: async () => ({ data: null, error: new Error('No backend - frontend-only mode') }),
+  maybeSingle: async () => ({ data: null, error: null }),
+  then: async (resolve: any) => resolve({ data: null, error: null }),
+};
 
 const mockSupabaseClient = {
-  from: (table: string) => {
-    const adapter = new SupabaseDataStoreAdapter();
-    return adapter.from(table);
-  },
+  from: (table: string) => noOpQueryBuilder,
   auth: {
     signUp: async () => ({ user: null, session: null, error: new Error('Frontend-only mode') }),
     signInWithPassword: async () => ({ user: null, session: null, error: new Error('Frontend-only mode') }),

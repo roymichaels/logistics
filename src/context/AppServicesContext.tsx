@@ -245,7 +245,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         const appConfig: BootstrapConfig = {
           app: 'miniapp',
-          adapters: { data: useSXT ? 'sxt' : 'supabase' },
+          adapters: { data: 'local' },
           features: {
             offline_mode: true,
             photo_upload: true,
@@ -283,12 +283,8 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         if (cancelled) return;
 
-      const store = useSXT
-        ? await createDataStore(appConfig, 'real', appUser, () => ({
-            walletType: auth?.walletType ?? null,
-            walletAddress: auth?.walletAddress ?? null
-          }))
-        : await createFrontendDataStore(appConfig, 'real', appUser);
+        const { LocalDataStore } = await import('@/foundation/data/LocalDataStore');
+        const store = new LocalDataStore() as any;
 
         if (cancelled) return;
 
