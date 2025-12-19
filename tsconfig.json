@@ -25,9 +25,7 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "src/**/*.tsx"
   ],
   "exclude": [
     "node_modules",
@@ -40,6 +38,5 @@
     {
       "path": "./tsconfig.node.json"
     }
-  ],
-  "extends": "expo/tsconfig.base"
+  ]
 }
