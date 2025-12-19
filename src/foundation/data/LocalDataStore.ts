@@ -198,6 +198,11 @@ class QueryBuilder {
     });
 
     this.store.saveToStorage();
+    this.store.notifySubscribers(this.tableName, {
+      eventType: 'INSERT',
+      new: inserted[0],
+      old: {},
+    });
 
     return {
       success: true,
@@ -212,11 +217,17 @@ class QueryBuilder {
     const updated = filtered.map((record) => {
       const index = table.findIndex((r) => r.id === record.id);
       if (index !== -1) {
+        const oldRecord = { ...table[index] };
         table[index] = {
           ...table[index],
           ...this.updateData,
           updated_at: new Date().toISOString(),
         };
+        this.store.notifySubscribers(this.tableName, {
+          eventType: 'UPDATE',
+          old: oldRecord,
+          new: table[index],
+        });
         return table[index];
       }
       return record;
@@ -237,7 +248,13 @@ class QueryBuilder {
     filtered.forEach((record) => {
       const index = table.findIndex((r) => r.id === record.id);
       if (index !== -1) {
+        const deletedRecord = { ...table[index] };
         table.splice(index, 1);
+        this.store.notifySubscribers(this.tableName, {
+          eventType: 'DELETE',
+          old: deletedRecord,
+          new: {},
+        });
       }
     });
 
@@ -302,6 +319,7 @@ class QueryBuilder {
 export class LocalDataStore {
   private tables: Map<string, any[]> = new Map();
   private readonly STORAGE_KEY = 'app-local-datastore';
+  private subscriptions: Map<string, Set<(payload: any) => void>> = new Map();
 
   constructor() {
     this.loadFromStorage();
@@ -313,6 +331,123 @@ export class LocalDataStore {
       this.tables.set(tableName, []);
     }
     return new QueryBuilder(this, tableName);
+  }
+
+  async getProfile(): Promise<any> {
+    try {
+      const session = localStorage.getItem('wallet-session');
+      if (!session) {
+        logger.warn('[LocalDataStore] No wallet session found');
+        return null;
+      }
+
+      const sessionData = JSON.parse(session);
+      const userId = sessionData.user?.id || sessionData.walletAddress;
+
+      const users = this.getTable('users');
+      let user = users.find((u: any) => u.id === userId || u.wallet_address === userId);
+
+      if (!user) {
+        user = {
+          id: userId,
+          wallet_address: userId,
+          role: sessionData.user?.role || 'customer',
+          name: sessionData.user?.name || 'User',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        users.push(user);
+        this.saveToStorage();
+      }
+
+      logger.info('[LocalDataStore] Profile loaded', { userId, role: user.role });
+      return user;
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to get profile', error);
+      return null;
+    }
+  }
+
+  subscribe(table: string, callback: (payload: any) => void): () => void {
+    if (!this.subscriptions.has(table)) {
+      this.subscriptions.set(table, new Set());
+    }
+
+    const handlers = this.subscriptions.get(table)!;
+    handlers.add(callback);
+
+    logger.info('[LocalDataStore] Subscribed to table', { table, handlerCount: handlers.size });
+
+    return () => {
+      handlers.delete(callback);
+      logger.info('[LocalDataStore] Unsubscribed from table', { table, handlerCount: handlers.size });
+    };
+  }
+
+  notifySubscribers(table: string, payload: any): void {
+    const handlers = this.subscriptions.get(table);
+    if (handlers) {
+      handlers.forEach((handler) => {
+        try {
+          handler(payload);
+        } catch (error) {
+          logger.error('[LocalDataStore] Subscription handler error', { table, error });
+        }
+      });
+    }
+  }
+
+  async getRoyalDashboardSnapshot(): Promise<any> {
+    const orders = this.getTable('orders');
+    const drivers = this.getTable('drivers');
+    const inventory = this.getTable('inventory');
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const ordersToday = orders.filter((o: any) => {
+      const orderDate = new Date(o.created_at);
+      return orderDate >= today;
+    });
+
+    return {
+      metrics: {
+        revenueToday: ordersToday.reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0),
+        ordersToday: ordersToday.length,
+        deliveredToday: ordersToday.filter((o: any) => o.status === 'delivered').length,
+        averageOrderValue: ordersToday.length > 0
+          ? ordersToday.reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0) / ordersToday.length
+          : 0,
+        pendingOrders: orders.filter((o: any) => o.status === 'pending').length,
+        activeDrivers: drivers.filter((d: any) => d.is_online).length,
+        coveragePercent: 85,
+        outstandingDeliveries: orders.filter((o: any) =>
+          o.status === 'assigned' || o.status === 'in_transit'
+        ).length,
+      },
+      revenueTrend: [],
+      ordersPerHour: [],
+      agents: drivers.slice(0, 5).map((d: any) => ({
+        id: d.id,
+        name: d.name || 'Driver',
+        status: d.status || 'available',
+        zone: d.current_zone_id,
+        ordersInProgress: 0,
+        lastUpdated: d.updated_at || new Date().toISOString(),
+      })),
+      zones: [],
+      lowStockAlerts: inventory.filter((i: any) => i.quantity < 10).slice(0, 5).map((i: any) => ({
+        product_id: i.product_id,
+        product_name: i.product?.name || 'Unknown',
+        location_id: i.location_id || 'warehouse',
+        location_name: 'Main Warehouse',
+        on_hand_quantity: i.quantity || 0,
+        low_stock_threshold: 10,
+        triggered_at: new Date().toISOString(),
+      })),
+      restockQueue: [],
+      generatedAt: new Date().toISOString(),
+    };
   }
 
   getTable(tableName: string): any[] {
