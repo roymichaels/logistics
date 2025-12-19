@@ -1,13 +1,12 @@
 /**
- * Infrastructure Owner Dashboard - Refactored
+ * Infrastructure Owner Dashboard - Frontend-Only
  * Global control panel using unified design system
+ * NO BACKEND - Uses LocalDataStore only
  */
 
-import React, { useEffect, useState, useRef } from 'react';
-import { getSupabase, isSupabaseInitialized } from '../lib/supabaseClient';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { CreateBusinessModal } from './CreateBusinessModal';
 import { DataStore, User } from '../data/types';
-import { fetchInfrastructureOverview, fetchBusinessMetrics } from '../services/metrics';
 import { logger } from '../lib/logger';
 import { DashboardHeader, MetricCard, MetricGrid, Section, LoadingState, EmptyState } from './dashboard';
 import { theme, colors, spacing, typography, borderRadius, components, getStatusBadgeStyle } from '../styles/theme';
@@ -54,185 +53,172 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [isSystemReady, setIsSystemReady] = useState(false);
   const loadingRef = useRef(false);
-  const subscriptionRef = useRef<any>(null);
 
-  useEffect(() => {
-    if (!isSupabaseInitialized()) {
-      const checkInterval = setInterval(() => {
-        if (isSupabaseInitialized()) {
-          clearInterval(checkInterval);
-          setIsSystemReady(true);
-          loadDashboardData();
-        }
-      }, 100);
-
-      const timeout = setTimeout(() => {
-        clearInterval(checkInterval);
-        setLoading(false);
-      }, 10000);
-
-      return () => {
-        clearInterval(checkInterval);
-        clearTimeout(timeout);
-      };
-    }
-
-    setIsSystemReady(true);
-    loadDashboardData();
-
-    return () => {
-      if (subscriptionRef.current) {
-        subscriptionRef.current.unsubscribe();
-      }
-    };
-  }, []);
-
-  async function loadDashboardData() {
-    if (loadingRef.current) {
-      return;
-    }
+  const loadDashboardData = useCallback(async () => {
+    if (loadingRef.current) return;
 
     try {
       loadingRef.current = true;
       setLoading(true);
 
-      if (!isSupabaseInitialized()) {
-        setLoading(false);
-        loadingRef.current = false;
-        return;
-      }
+      logger.debug('[InfraOwnerDashboard] Loading dashboard data');
 
-      const supabase = getSupabase();
-      const overview = await fetchInfrastructureOverview();
+      // Load businesses from LocalDataStore
+      const businessesData = await (dataStore.listBusinesses?.() || Promise.resolve([]));
+      const ordersData = await (dataStore.listOrders?.({}) || Promise.resolve([]));
+      const driversData = await (dataStore.listDrivers?.() || Promise.resolve([]));
+
+      // Calculate metrics
+      const activeBusinesses = businessesData.filter((b: any) => b.active);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const todayOrders = ordersData.filter((o: any) =>
+        new Date(o.created_at) >= today
+      );
+
+      const totalRevenue = todayOrders.reduce((sum: number, o: any) =>
+        sum + (o.total_amount || 0), 0
+      );
+
+      const activeDrivers = driversData.filter((d: any) =>
+        d.is_available || d.status === 'online'
+      );
+
+      const pendingOrders = ordersData.filter((o: any) =>
+        o.status === 'pending' || o.status === 'created'
+      );
+
+      // Determine system health
+      let systemHealth: 'healthy' | 'warning' | 'critical' = 'healthy';
+      if (pendingOrders.length > 20) systemHealth = 'warning';
+      if (pendingOrders.length > 50) systemHealth = 'critical';
 
       setMetrics({
-        totalBusinesses: overview.total_businesses,
-        activeBusinesses: overview.active_businesses,
-        totalRevenue: overview.revenue_today,
-        totalOrders: overview.total_orders_30_days,
-        activeDrivers: overview.active_drivers,
-        pendingAllocations: overview.pending_allocations,
-        systemHealth: overview.system_health,
+        totalBusinesses: businessesData.length,
+        activeBusinesses: activeBusinesses.length,
+        totalRevenue,
+        totalOrders: ordersData.length,
+        activeDrivers: activeDrivers.length,
+        pendingAllocations: pendingOrders.length,
+        systemHealth,
       });
 
-      const { data: businessRows, error: businessRowsError } = await supabase
-        .from('businesses')
-        .select('id, name, active')
-        .order('name', { ascending: true });
-
-      if (businessRowsError || !businessRows) {
-        setBusinesses([]);
-      } else {
-        const businessMetrics = await Promise.all(
-          businessRows.map(async (biz: any) => {
-            try {
-              const metrics = await fetchBusinessMetrics(biz.id);
-              return {
-                id: biz.id,
-                name: biz.name,
-                active: biz.active,
-                total_orders: metrics.orders_month,
-                revenue_today: metrics.revenue_today,
-                active_drivers: metrics.active_drivers,
-                pending_orders: metrics.orders_in_progress,
-              } as BusinessSummary;
-            } catch (err) {
-              logger.warn('Failed to load metrics for business', biz.id, err);
-              return {
-                id: biz.id,
-                name: biz.name,
-                active: biz.active,
-                total_orders: 0,
-                revenue_today: 0,
-                active_drivers: 0,
-                pending_orders: 0,
-              } as BusinessSummary;
-            }
-          })
+      // Build business summaries
+      const businessSummaries: BusinessSummary[] = businessesData.map((biz: any) => {
+        const businessOrders = ordersData.filter((o: any) => o.business_id === biz.id);
+        const todayBusinessOrders = businessOrders.filter((o: any) =>
+          new Date(o.created_at) >= today
+        );
+        const pendingBusinessOrders = businessOrders.filter((o: any) =>
+          o.status === 'pending' || o.status === 'created'
+        );
+        const businessDrivers = driversData.filter((d: any) =>
+          d.business_id === biz.id && (d.is_available || d.status === 'online')
         );
 
-        setBusinesses(businessMetrics);
-      }
+        return {
+          id: biz.id,
+          name: biz.name,
+          active: biz.active,
+          total_orders: businessOrders.length,
+          revenue_today: todayBusinessOrders.reduce((sum: number, o: any) =>
+            sum + (o.total_amount || 0), 0
+          ),
+          active_drivers: businessDrivers.length,
+          pending_orders: pendingBusinessOrders.length,
+        };
+      });
 
-      const { data: activityData, error: auditError } = await supabase
-        .from('system_audit_log')
-        .select('id, event_type, action, business_id, created_at, severity, actor_id')
-        .order('created_at', { ascending: false })
-        .limit(20);
+      setBusinesses(businessSummaries);
 
-      if (auditError) {
-        setRecentActivity([]);
-      } else {
-        const activities: RecentActivity[] = await Promise.all(
-          (activityData || []).map(async (activity: any) => {
-            const { data: actor } = await supabase
-              .from('users')
-              .select('name')
-              .eq('id', activity.actor_id)
-              .maybeSingle();
+      // Generate recent activity from orders (mock audit log)
+      const recentOrders = ordersData
+        .sort((a: any, b: any) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )
+        .slice(0, 10);
 
-            let businessName = 'מערכת';
-            if (activity.business_id) {
-              const { data: business } = await supabase
-                .from('businesses')
-                .select('name')
-                .eq('id', activity.business_id)
-                .maybeSingle();
-              businessName = business?.name || 'לא ידוע';
-            }
+      const activities: RecentActivity[] = recentOrders.map((order: any) => {
+        const business = businessesData.find((b: any) => b.id === order.business_id);
+        return {
+          id: order.id,
+          event_type: 'order_created',
+          actor_name: order.customer_name || 'Customer',
+          business_name: business?.name || 'Unknown Business',
+          description: `created order #${order.id.slice(0, 8)}`,
+          created_at: order.created_at,
+          severity: order.status === 'cancelled' ? 'warning' : 'info',
+        };
+      });
 
-            return {
-              id: activity.id,
-              event_type: activity.event_type,
-              actor_name: actor?.name || 'לא ידוע',
-              business_name: businessName,
-              description: activity.action || activity.event_type,
-              created_at: activity.created_at,
-              severity: activity.severity || 'info',
-            };
-          })
-        );
-
-        setRecentActivity(activities);
-      }
-
-      if (!subscriptionRef.current && isSupabaseInitialized()) {
-        try {
-          const subscription = supabase
-            .channel('infra-dashboard')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'businesses' }, () => loadDashboardData())
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => loadDashboardData())
-            .subscribe();
-          subscriptionRef.current = subscription;
-        } catch (error) {
-          logger.error('Failed to set up subscription', error);
-        }
-      }
+      setRecentActivity(activities);
+      logger.debug('[InfraOwnerDashboard] Dashboard data loaded successfully');
     } catch (error) {
-      logger.error('Failed to load dashboard data', error);
+      logger.error('[InfraOwnerDashboard] Failed to load dashboard data', error);
+      // Set empty states on error
+      setMetrics({
+        totalBusinesses: 0,
+        activeBusinesses: 0,
+        totalRevenue: 0,
+        totalOrders: 0,
+        activeDrivers: 0,
+        pendingAllocations: 0,
+        systemHealth: 'healthy',
+      });
+      setBusinesses([]);
+      setRecentActivity([]);
     } finally {
       setLoading(false);
       loadingRef.current = false;
     }
-  }
+  }, [dataStore]);
+
+  useEffect(() => {
+    loadDashboardData();
+
+    // Subscribe to data changes
+    const unsubscribers: Array<() => void> = [];
+
+    if (dataStore.subscribe) {
+      try {
+        const unsubBusinesses = dataStore.subscribe('businesses', () => {
+          logger.debug('[InfraOwnerDashboard] Businesses updated');
+          loadDashboardData();
+        });
+        unsubscribers.push(unsubBusinesses);
+
+        const unsubOrders = dataStore.subscribe('orders', () => {
+          logger.debug('[InfraOwnerDashboard] Orders updated');
+          loadDashboardData();
+        });
+        unsubscribers.push(unsubOrders);
+      } catch (error) {
+        logger.warn('[InfraOwnerDashboard] Subscriptions not available', error);
+      }
+    }
+
+    return () => {
+      unsubscribers.forEach(unsub => unsub());
+    };
+  }, [loadDashboardData, dataStore]);
+
+  const getSystemHealthColor = useMemo(() => {
+    if (metrics?.systemHealth === 'healthy') return colors.status.success;
+    if (metrics?.systemHealth === 'warning') return colors.status.warning;
+    return colors.status.error;
+  }, [metrics?.systemHealth]);
+
+  const getSystemHealthLabel = useMemo(() => {
+    if (metrics?.systemHealth === 'healthy') return 'תקין';
+    if (metrics?.systemHealth === 'warning') return 'אזהרה';
+    return 'קריטי';
+  }, [metrics?.systemHealth]);
 
   if (loading) {
     return <LoadingState variant="page" />;
   }
-
-  const getSystemHealthColor = () => {
-    if (metrics?.systemHealth === 'healthy') return colors.status.success;
-    if (metrics?.systemHealth === 'warning') return colors.status.warning;
-    return colors.status.error;
-  };
-
-  const getSystemHealthLabel = () => {
-    if (metrics?.systemHealth === 'healthy') return 'תקין';
-    if (metrics?.systemHealth === 'warning') return 'אזהרה';
-    return 'קריטי';
-  };
 
   return (
     <div style={theme.components.pageContainer}>
@@ -259,7 +245,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
                 width: '12px',
                 height: '12px',
                 borderRadius: '50%',
-                background: getSystemHealthColor(),
+                background: getSystemHealthColor,
                 animation: 'pulse 2s infinite',
               }} />
               <span style={{
@@ -267,7 +253,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
                 fontWeight: typography.fontWeight.semibold,
                 color: colors.white,
               }}>
-                {getSystemHealthLabel()}
+                {getSystemHealthLabel}
               </span>
               <style>{`
                 @keyframes pulse {
@@ -290,7 +276,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
           />
           <MetricCard
             label="Revenue Today"
-            value={`₪${metrics?.totalRevenue.toLocaleString()}`}
+            value={`₪${(metrics?.totalRevenue || 0).toLocaleString()}`}
             subtitle="Across all businesses"
             icon="💰"
             variant="success"
@@ -324,18 +310,11 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
           actions={
             <>
               <button
-                onClick={() => {
-                  if (!isSystemReady) return;
-                  setShowCreateModal(true);
-                }}
-                disabled={!isSystemReady}
+                onClick={() => setShowCreateModal(true)}
                 style={{
                   ...components.button.primary,
                   fontSize: typography.fontSize.sm,
-                  opacity: isSystemReady ? 1 : 0.6,
-                  cursor: isSystemReady ? 'pointer' : 'not-allowed',
                 }}
-                title={isSystemReady ? undefined : 'המערכת בתהליך אתחול...'}
               >
                 + צור עסק חדש
               </button>
@@ -493,10 +472,13 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
         <Section
           title="פעילות מערכת אחרונה"
           actions={
-            <button style={{
-              ...components.button.secondary,
-              fontSize: typography.fontSize.sm,
-            }}>
+            <button
+              onClick={() => onNavigate('logs')}
+              style={{
+                ...components.button.secondary,
+                fontSize: typography.fontSize.sm,
+              }}
+            >
               ראה יומן ביקורת
             </button>
           }
