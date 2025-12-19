@@ -1,44 +1,51 @@
 import React from 'react';
-import { spacing } from '../../design-system';
 
 export interface PageContentProps {
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
-  padding?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
+  padding?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   centered?: boolean;
   style?: React.CSSProperties;
+  className?: string;
 }
 
 export function PageContent({
   children,
   maxWidth = 'xl',
-  padding = 'lg',
-  centered = false,
+  padding = 'md',
+  centered = true,
   style,
+  className = '',
 }: PageContentProps) {
   const maxWidthMap: Record<string, string> = {
     sm: '640px',
     md: '768px',
     lg: '1024px',
-    xl: '1280px',
+    xl: 'var(--container-max-width)',
     full: '100%',
-  };
-
-  const paddingMap: Record<string, string> = {
-    none: '0',
-    sm: spacing[2],
-    md: spacing[4],
-    lg: spacing[6],
-    xl: spacing[8],
   };
 
   const containerStyles: React.CSSProperties = {
     width: '100%',
     maxWidth: maxWidthMap[maxWidth],
-    padding: paddingMap[padding],
     margin: centered ? '0 auto' : '0',
+    overflowX: 'hidden',
     ...style,
   };
 
-  return <div style={containerStyles}>{children}</div>;
+  if (padding === 'none') {
+    containerStyles.padding = '0';
+  } else {
+    containerStyles.paddingLeft = `var(--spacing-${padding})`;
+    containerStyles.paddingRight = `var(--spacing-${padding})`;
+  }
+
+  return (
+    <div
+      className={`page-body ${className}`.trim()}
+      style={containerStyles}
+    >
+      {children}
+    </div>
+  );
 }

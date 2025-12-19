@@ -15,6 +15,7 @@ interface BusinessShellProps {
 
 function BusinessShellContent({ children, businessName, role }: { children: React.ReactNode; businessName?: string; role: UserRole }) {
   const { navigationItems, onNavigate, currentPath } = useShellContext();
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
   const roleLabel = useMemo(() => {
     const labels: Record<UserRole, string> = {
@@ -33,21 +34,43 @@ function BusinessShellContent({ children, businessName, role }: { children: Reac
   }, [role]);
 
   return (
-    <div style={{ display: 'flex', height: '100vh', flexDirection: 'column' }}>
-      <header style={{
-        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-        color: 'white',
-        padding: '16px 24px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>
-              {businessName || 'Business Portal'}
-            </h1>
-            <p style={{ margin: '4px 0 0 0', fontSize: '12px', opacity: 0.9 }}>
-              Role: {roleLabel}
-            </p>
+    <div className="layout-shell prevent-overflow">
+      <header
+        className="layout-shell__header"
+        style={{
+          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+          color: 'white',
+          padding: 'var(--spacing-md)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        }}
+      >
+        <div className="layout-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+            <button
+              className="mobile-only"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              style={{
+                padding: '8px',
+                background: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '20px',
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
+              ☰
+            </button>
+            <div>
+              <h1 className="heading-3" style={{ margin: 0, color: 'white' }}>
+                {businessName || 'Business Portal'}
+              </h1>
+              <p className="mobile-only" style={{ margin: '4px 0 0 0', fontSize: '12px', opacity: 0.9 }}>
+                {roleLabel}
+              </p>
+            </div>
           </div>
           <button
             onClick={() => onNavigate('/logout')}
@@ -66,38 +89,67 @@ function BusinessShellContent({ children, businessName, role }: { children: Reac
         </div>
       </header>
 
-      <div style={{ display: 'flex', flex: 1 }}>
-        <nav style={{
-          width: '250px',
-          background: '#f8f9fa',
-          borderRight: '1px solid #e0e0e0',
-          padding: '16px',
-          overflowY: 'auto'
-        }}>
+      <div className="layout-shell__content layout-with-sidebar">
+        <nav
+          className={`layout-sidebar ${sidebarOpen ? 'mobile-sidebar-open' : ''}`}
+          style={{
+            background: '#f8f9fa',
+            borderRight: '1px solid #e0e0e0',
+            padding: 'var(--spacing-md)',
+            display: sidebarOpen ? 'flex' : undefined,
+            flexDirection: 'column',
+            gap: 'var(--spacing-xs)',
+            position: sidebarOpen ? 'fixed' : undefined,
+            top: sidebarOpen ? 0 : undefined,
+            left: sidebarOpen ? 0 : undefined,
+            bottom: sidebarOpen ? 0 : undefined,
+            zIndex: sidebarOpen ? 200 : undefined,
+            boxShadow: sidebarOpen ? '2px 0 8px rgba(0,0,0,0.1)' : undefined
+          }}
+        >
+          {sidebarOpen && (
+            <button
+              onClick={() => setSidebarOpen(false)}
+              style={{
+                padding: '8px',
+                background: 'transparent',
+                border: 'none',
+                fontSize: '24px',
+                cursor: 'pointer',
+                alignSelf: 'flex-end',
+                marginBottom: '8px'
+              }}
+            >
+              ×
+            </button>
+          )}
           {navigationItems
             .filter(item => !item.requiredRoles || item.requiredRoles.includes(role))
             .map(item => (
               <button
                 key={item.id}
-                onClick={() => onNavigate(item.path)}
+                onClick={() => {
+                  onNavigate(item.path);
+                  setSidebarOpen(false);
+                }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
                   width: '100%',
                   padding: '12px 16px',
-                  marginBottom: '8px',
                   background: currentPath.startsWith(item.path) ? '#10b981' : 'transparent',
                   color: currentPath.startsWith(item.path) ? 'white' : '#333',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
                   fontSize: '14px',
-                  textAlign: 'left'
+                  textAlign: 'left',
+                  transition: 'all 0.2s ease'
                 }}
               >
                 <span>{item.icon}</span>
-                <span>{item.label}</span>
+                <span className="wrap-text">{item.label}</span>
                 {item.badge && (
                   <span style={{
                     marginLeft: 'auto',
@@ -114,7 +166,23 @@ function BusinessShellContent({ children, businessName, role }: { children: Reac
             ))}
         </nav>
 
-        <main style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+        {sidebarOpen && (
+          <div
+            onClick={() => setSidebarOpen(false)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0,0,0,0.5)',
+              zIndex: 199
+            }}
+            className="mobile-only"
+          />
+        )}
+
+        <main className="layout-shell__main layout-sidebar-content">
           {children}
         </main>
       </div>

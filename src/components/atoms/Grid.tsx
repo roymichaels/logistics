@@ -1,51 +1,89 @@
 import React from 'react';
-import { spacing } from '../../design-system';
 
 export interface GridProps extends React.HTMLAttributes<HTMLDivElement> {
-  columns?: number | { sm?: number; md?: number; lg?: number };
-  gap?: 'sm' | 'md' | 'lg' | 'xl';
+  columns?: number | { mobile?: number; tablet?: number; desktop?: number };
+  gap?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   rows?: number;
   autoFit?: boolean;
   minItemWidth?: string;
+  variant?: 'default' | 'products';
 }
 
 export function Grid({
   columns = 1,
-  gap = 'md',
+  gap = 'lg',
   rows,
   autoFit = false,
   minItemWidth = '250px',
+  variant,
   children,
   style,
+  className = '',
   ...props
 }: GridProps) {
-  const gapMap: Record<string, string> = {
-    sm: spacing[2],
-    md: spacing[4],
-    lg: spacing[6],
-    xl: spacing[8],
-  };
+  const gridClasses = ['grid'];
 
-  const getGridTemplateColumns = () => {
-    if (autoFit) {
-      return `repeat(auto-fit, minmax(${minItemWidth}, 1fr))`;
-    }
-    if (typeof columns === 'number') {
-      return `repeat(${columns}, 1fr)`;
-    }
-    return undefined;
-  };
+  if (variant === 'products') {
+    gridClasses.push('grid--products');
+  }
+
+  if (typeof columns === 'number' && !variant) {
+    gridClasses.push(`grid--${columns}-col`);
+  }
 
   const gridStyles: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: getGridTemplateColumns(),
-    gridTemplateRows: rows ? `repeat(${rows}, 1fr)` : undefined,
-    gap: gapMap[gap],
+    gap: `var(--spacing-${gap})`,
     ...style,
   };
 
+  if (autoFit && !variant) {
+    gridStyles.gridTemplateColumns = `repeat(auto-fit, minmax(${minItemWidth}, 1fr))`;
+  }
+
+  if (rows) {
+    gridStyles.gridTemplateRows = `repeat(${rows}, 1fr)`;
+  }
+
+  if (typeof columns === 'object' && !variant) {
+    if (columns.mobile) {
+      gridStyles.gridTemplateColumns = `repeat(${columns.mobile}, 1fr)`;
+    }
+    if (columns.tablet || columns.desktop) {
+      const mediaStyles: string[] = [];
+
+      if (columns.tablet) {
+        mediaStyles.push(`
+          @media (min-width: 640px) {
+            grid-template-columns: repeat(${columns.tablet}, 1fr);
+          }
+        `);
+      }
+
+      if (columns.desktop) {
+        mediaStyles.push(`
+          @media (min-width: 1024px) {
+            grid-template-columns: repeat(${columns.desktop}, 1fr);
+          }
+        `);
+      }
+
+      if (mediaStyles.length > 0) {
+        const uniqueId = `grid-${Math.random().toString(36).substr(2, 9)}`;
+        gridClasses.push(uniqueId);
+
+        const styleEl = document.createElement('style');
+        styleEl.textContent = `.${uniqueId} { ${mediaStyles.join(' ')} }`;
+        document.head.appendChild(styleEl);
+      }
+    }
+  }
+
   return (
-    <div style={gridStyles} {...props}>
+    <div
+      className={`${gridClasses.join(' ')} ${className}`.trim()}
+      style={gridStyles}
+      {...props}
+    >
       {children}
     </div>
   );

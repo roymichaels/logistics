@@ -149,7 +149,7 @@ export function CatalogPage({
       defaultLayout="comfortable"
       allowLayoutChange
       allowViewModeChange
-      columns={{ mobile: 2, tablet: 3, desktop: 4 }}
+      columns={{ mobile: 1, tablet: 2, desktop: 3 }}
       loading={loading}
     />
   );

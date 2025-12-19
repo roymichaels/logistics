@@ -13,6 +13,7 @@ import './lib/errorHandler';
 import { initializeApplicationLayer } from './application/bootstrap';
 import './styles/containment.css';
 import './styles/canonical-tokens.css';
+import './styles/layout-engine.css';
 import './theme/responsive.css';
 import './shells/layout/layout.css';
 import { runtimeEnvironment } from './lib/runtimeEnvironment';

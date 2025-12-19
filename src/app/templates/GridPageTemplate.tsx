@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, Button, Grid, Chip, Spinner } from '@/components/atoms';
-import { SearchBar, EmptyState } from '@/components/molecules';
+import { SearchBar, EmptyState, PageContent } from '@/components/molecules';
 
 export type GridLayout = 'compact' | 'comfortable' | 'spacious';
 export type ViewMode = 'grid' | 'list';
@@ -60,7 +60,7 @@ export function GridPageTemplate<T>({
   allowViewModeChange = false,
   defaultViewMode = 'grid',
   onViewModeChange,
-  columns = { mobile: 2, tablet: 3, desktop: 4 },
+  columns = { mobile: 1, tablet: 2, desktop: 3 },
   totalItems,
   itemsPerPage,
   currentPage,
@@ -88,17 +88,20 @@ export function GridPageTemplate<T>({
   const activeFilters = filterChips.filter(chip => chip.active);
 
   return (
-    <Box className="grid-page-template">
-      {/* Header */}
-      <Box style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '24px'
-      }}>
-        <Typography variant="h1">{title}</Typography>
-        {actions && <Box>{actions}</Box>}
-      </Box>
+    <PageContent maxWidth="xl" padding="md" centered>
+      <Box className="grid-page-template prevent-overflow">
+        {/* Header */}
+        <Box style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '24px',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <Typography variant="h1">{title}</Typography>
+          {actions && <Box>{actions}</Box>}
+        </Box>
 
       {/* Toolbar */}
       <Box style={{
@@ -261,6 +264,7 @@ export function GridPageTemplate<T>({
           )}
         </>
       )}
-    </Box>
+      </Box>
+    </PageContent>
   );
 }

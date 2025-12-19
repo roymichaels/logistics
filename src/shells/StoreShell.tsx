@@ -19,30 +19,31 @@ function StoreShellContent({ children, isAuthenticated, cartItemCount }: { child
   const { t, isRTL } = useI18n();
 
   return (
-    <div style={{
-      display: 'flex',
-      height: '100vh',
-      flexDirection: 'column',
-      background: colors.background.primary,
-      direction: isRTL ? 'rtl' : 'ltr',
-    }}>
-      <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        background: navigation.background,
-        backdropFilter: navigation.backdropFilter,
-        WebkitBackdropFilter: navigation.backdropFilter,
-        borderBottom: `1px solid ${navigation.border}`,
-        padding: `${spacing.lg} ${spacing.xl}`,
-        boxShadow: shadows.md,
-      }}>
-        <div style={{
+    <div
+      className="layout-shell prevent-overflow"
+      style={{
+        background: colors.background.primary,
+        direction: isRTL ? 'rtl' : 'ltr',
+      }}
+    >
+      <header
+        className="layout-shell__header"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
+          background: navigation.background,
+          backdropFilter: navigation.backdropFilter,
+          WebkitBackdropFilter: navigation.backdropFilter,
+          borderBottom: `1px solid ${navigation.border}`,
+          padding: 'var(--spacing-md)',
+          boxShadow: shadows.md,
+        }}
+      >
+        <div className="layout-container" style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          maxWidth: '1280px',
-          margin: '0 auto',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
             <div style={{
@@ -58,7 +59,7 @@ function StoreShellContent({ children, isAuthenticated, cartItemCount }: { child
             }}>
               🛍️
             </div>
-            <div>
+            <div className="tablet-up">
               <h1 style={{
                 margin: 0,
                 fontSize: typography.fontSize['2xl'],
@@ -110,7 +111,7 @@ function StoreShellContent({ children, isAuthenticated, cartItemCount }: { child
                 }}
               >
                 <ShoppingCart size={18} />
-                {isRTL ? 'עגלה' : 'Cart'}
+                <span className="tablet-up">{isRTL ? 'עגלה' : 'Cart'}</span>
                 {cartItemCount > 0 && (
                   <span style={{
                     position: 'absolute',
@@ -136,6 +137,7 @@ function StoreShellContent({ children, isAuthenticated, cartItemCount }: { child
             {isAuthenticated && (
               <button
                 onClick={onLogout}
+                className="tablet-up"
                 style={{
                   padding: `${spacing.sm} ${spacing.lg}`,
                   background: colors.ui.card,
@@ -165,20 +167,21 @@ function StoreShellContent({ children, isAuthenticated, cartItemCount }: { child
         </div>
       </header>
 
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <nav style={{
-          width: '240px',
-          background: colors.background.secondary,
-          ...(isRTL
-            ? { borderLeft: `1px solid ${colors.border.secondary}` }
-            : { borderRight: `1px solid ${colors.border.secondary}` }
-          ),
-          padding: spacing.lg,
-          overflowY: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: spacing.xs,
-        }}>
+      <div className="layout-shell__content layout-with-sidebar">
+        <nav
+          className="layout-sidebar desktop-only"
+          style={{
+            background: colors.background.secondary,
+            ...(isRTL
+              ? { borderLeft: `1px solid ${colors.border.secondary}` }
+              : { borderRight: `1px solid ${colors.border.secondary}` }
+            ),
+            padding: 'var(--spacing-lg)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: spacing.xs,
+          }}
+        >
           {navigationItems
             .filter(item => !item.requiredRoles || item.requiredRoles.includes('customer') || item.requiredRoles.includes('user'))
             .map(item => {
@@ -236,18 +239,10 @@ function StoreShellContent({ children, isAuthenticated, cartItemCount }: { child
             })}
         </nav>
 
-        <main style={{
-          flex: 1,
-          overflowY: 'auto',
+        <main className="layout-shell__main layout-sidebar-content" style={{
           background: colors.background.primary,
-          padding: spacing.xl,
         }}>
-          <div style={{
-            maxWidth: '1280px',
-            margin: '0 auto',
-          }}>
-            {children}
-          </div>
+          {children}
         </main>
       </div>
     </div>
