@@ -1338,14 +1338,15 @@ export async function createFrontendDataStore(
   if ((cfg.adapters.data === 'supabase' || cfg.adapters.data === 'postgres') && import.meta.env.VITE_SUPABASE_URL) {
     const { createSupabaseDataStore } = await import('./supabaseDataStore');
 
-    // Ensure we have telegram_id before creating datastore
-    const telegramId = user?.telegram_id || user?.id?.toString();
-    if (!telegramId) {
-      logger.error('Cannot create datastore: missing telegram_id', new Error('Missing telegram_id'), { user });
-      throw new Error('Cannot create datastore without telegram_id');
+    // For wallet auth, we use the UUID. For telegram auth, we use telegram_id
+    // The parameter name is legacy but accepts both UUID and telegram_id
+    const userId = user?.id || user?.telegram_id;
+    if (!userId) {
+      logger.error('Cannot create datastore: missing user ID', new Error('Missing user ID'), { user });
+      throw new Error('Cannot create datastore without user ID');
     }
 
-    const store = await createSupabaseDataStore(telegramId, user?.auth_session, user);
+    const store = await createSupabaseDataStore(userId, user?.auth_session, user);
     return attachSubscriptionHelpers(store);
   }
 

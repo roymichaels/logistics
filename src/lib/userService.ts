@@ -13,6 +13,12 @@ class UserService {
   private readonly CACHE_TTL = 5 * 60 * 1000;
 
   async getUserProfile(userId: string, forceRefresh = false): Promise<UserProfile> {
+    // Safety check: if userId looks like a wallet address, use wallet lookup instead
+    if (userId && (userId.startsWith('0x') || userId.length > 40)) {
+      logger.warn('Wallet address passed to getUserProfile, using wallet lookup instead', { userId });
+      return this.getUserProfileByWallet(userId, forceRefresh);
+    }
+
     if (!forceRefresh) {
       const cached = this.profileCache.get(userId);
       if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {

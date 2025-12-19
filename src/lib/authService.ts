@@ -73,7 +73,7 @@ class AuthService {
 
   private isSxtMode() {
     const raw = (import.meta as any)?.env?.VITE_USE_SXT;
-    if (raw === undefined || raw === null || raw === '') return true;
+    if (raw === undefined || raw === null || raw === '') return false;
     return ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
   }
 
