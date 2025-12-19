@@ -3,6 +3,7 @@ import { BaseShell } from './BaseShell';
 import { useShellContext } from './BaseShell';
 import { colors, spacing, shadows, borderRadius, typography, navigation, transitions } from '../design-system';
 import { ShoppingCart } from 'lucide-react';
+import { useI18n } from '../lib/i18n';
 
 interface StoreShellProps {
   children: React.ReactNode;
@@ -15,6 +16,7 @@ interface StoreShellProps {
 
 function StoreShellContent({ children, isAuthenticated, cartItemCount }: { children: React.ReactNode; isAuthenticated?: boolean; cartItemCount?: number }) {
   const { navigationItems, onNavigate, currentPath, onLogout } = useShellContext();
+  const { t, isRTL } = useI18n();
 
   return (
     <div style={{
@@ -22,6 +24,7 @@ function StoreShellContent({ children, isAuthenticated, cartItemCount }: { child
       height: '100vh',
       flexDirection: 'column',
       background: colors.background.primary,
+      direction: isRTL ? 'rtl' : 'ltr',
     }}>
       <header style={{
         position: 'sticky',
@@ -63,14 +66,14 @@ function StoreShellContent({ children, isAuthenticated, cartItemCount }: { child
                 color: colors.text.primary,
                 letterSpacing: '-0.01em',
               }}>
-                UndergroundLab Store
+                {isRTL ? 'חנות' : 'Store'}
               </h1>
               <p style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
                 color: colors.text.tertiary,
               }}>
-                Security & Privacy Solutions
+                {isRTL ? 'עיין בקטלוג המוצרים' : 'Browse our catalog'}
               </p>
             </div>
           </div>
@@ -107,12 +110,12 @@ function StoreShellContent({ children, isAuthenticated, cartItemCount }: { child
                 }}
               >
                 <ShoppingCart size={18} />
-                Cart
+                {isRTL ? 'עגלה' : 'Cart'}
                 {cartItemCount > 0 && (
                   <span style={{
                     position: 'absolute',
                     top: -8,
-                    right: -8,
+                    ...(isRTL ? { left: -8 } : { right: -8 }),
                     background: colors.status.error,
                     color: colors.white,
                     borderRadius: borderRadius.full,
@@ -155,7 +158,7 @@ function StoreShellContent({ children, isAuthenticated, cartItemCount }: { child
                   e.currentTarget.style.borderColor = colors.border.primary;
                 }}
               >
-                Logout
+                {t('header', 'logout')}
               </button>
             )}
           </div>
@@ -166,7 +169,10 @@ function StoreShellContent({ children, isAuthenticated, cartItemCount }: { child
         <nav style={{
           width: '240px',
           background: colors.background.secondary,
-          borderRight: `1px solid ${colors.border.secondary}`,
+          ...(isRTL
+            ? { borderLeft: `1px solid ${colors.border.secondary}` }
+            : { borderRight: `1px solid ${colors.border.secondary}` }
+          ),
           padding: spacing.lg,
           overflowY: 'auto',
           display: 'flex',
@@ -214,7 +220,7 @@ function StoreShellContent({ children, isAuthenticated, cartItemCount }: { child
                   {isActive && (
                     <div style={{
                       position: 'absolute',
-                      left: 0,
+                      ...(isRTL ? { right: 0 } : { left: 0 }),
                       top: '50%',
                       transform: 'translateY(-50%)',
                       width: 3,
@@ -256,13 +262,15 @@ export function StoreShell({
   isAuthenticated,
   cartItemCount
 }: StoreShellProps) {
+  const { isRTL } = useI18n();
+
   return (
     <BaseShell
       role={isAuthenticated ? 'customer' : 'user'}
       currentPath={currentPath}
       onNavigate={onNavigate}
       onLogout={onLogout || (() => {})}
-      title="Store"
+      title={isRTL ? 'חנות' : 'Store'}
     >
       <StoreShellContent isAuthenticated={isAuthenticated} cartItemCount={cartItemCount}>
         {children}
