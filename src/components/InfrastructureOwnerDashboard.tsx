@@ -354,7 +354,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
               {businesses.slice(0, 6).map(business => (
                 <div
                   key={business.id}
-                  onClick={() => onNavigate(`business/${business.id}`)}
+                  onClick={() => onNavigate(`/business/${business.id}`)}
                   style={{
                     padding: spacing.lg,
                     border: `1px solid ${colors.border.primary}`,

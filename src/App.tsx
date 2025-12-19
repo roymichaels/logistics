@@ -40,6 +40,17 @@ import { NavLayer } from './migration/controllers/navController';
 import { DevMigrationPanel } from './migration/DevMigrationPanel';
 import { useTheme } from './foundation/theme';
 import { runtimeEnvironment } from './lib/runtimeEnvironment';
+import { haptic } from './utils/haptic';
+
+// Telegram WebApp API shim
+const telegram = {
+  hapticFeedback: (type: string) => haptic('light'),
+  showAlert: (message: string) => {
+    if (typeof window !== 'undefined') {
+      alert(message);
+    }
+  }
+};
 
 // All page components are now lazy-loaded in MigrationRouter
 
@@ -52,6 +63,7 @@ type Page =
   | 'products'
   | 'customers'
   | 'reports'
+  | 'stats'
   | 'users'
   | 'chat'
   | 'channels'
@@ -71,6 +83,8 @@ type Page =
   | 'manager-inventory'
   | 'zone-management'
   | 'drivers-management'
+  | 'drivers'
+  | 'user-management'
   | 'user-homepage'
   | 'social-feed'
   | 'social-profile'
@@ -129,8 +143,10 @@ export default function App() {
     profile: '/store/profile',
     products: '/business/products',
     customers: '/business/customers',
-    reports: '/business/analytics',
+    reports: '/business/reports',
+    stats: '/business/analytics',
     users: '/admin/users',
+    chat: '/business/chat',
     channels: '/business/channels',
     businesses: '/admin/businesses',
     'my-stats': '/business/analytics',
@@ -139,15 +155,17 @@ export default function App() {
     incoming: '/business/incoming',
     'restock-requests': '/business/restock',
     logs: '/admin/logs',
-    'my-deliveries': '/driver/routes',
+    'my-deliveries': '/driver/deliveries',
     'my-inventory': '/driver/inventory',
     'my-zones': '/driver/zones',
     'driver-status': '/driver/dashboard',
-    'dispatch-board': '/driver/routes',
+    'dispatch-board': '/business/dispatch',
     'warehouse-dashboard': '/business/warehouse',
     'manager-inventory': '/business/inventory/manager',
     'zone-management': '/business/zones',
     'drivers-management': '/business/drivers',
+    drivers: '/business/drivers',
+    'user-management': '/admin/users',
     'user-homepage': '/store/profile',
     'social-feed': '/store/social',
     'social-profile': '/store/social/profile',
@@ -156,8 +174,6 @@ export default function App() {
     sandbox: '/sandbox',
     'start-new': '/start-new',
     kyc: '/store/kyc',
-    // Chat aliases
-    chat: '/business/chat',
   };
 
   const pathToPage = useMemo(() => {
@@ -386,8 +402,23 @@ export default function App() {
     }
   }, [location.pathname, pathToPage]);
 
-  const handleNavigate = (page: Page) => {
-    const path = pageToPath[page] || '/';
+  const handleNavigate = (pageOrPath: Page | string) => {
+    // Check if it's an absolute path (starts with /)
+    let path: string;
+    let page: Page;
+
+    if (pageOrPath.startsWith('/')) {
+      // It's an absolute path
+      path = pageOrPath;
+      // Try to find the corresponding page type
+      const matched = [...pathToPage.entries()].find(([routePath]) => pageOrPath.startsWith(routePath));
+      page = matched ? matched[1] : ('catalog' as Page);
+    } else {
+      // It's a Page type
+      page = pageOrPath as Page;
+      path = pageToPath[page] || '/';
+    }
+
     navigate(path);
     setCurrentPage(page);
     setShowSidebar(false); // Close sidebar when navigating

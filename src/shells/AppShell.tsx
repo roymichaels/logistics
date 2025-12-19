@@ -14,6 +14,7 @@ import {
   resolveCartDrawer
 } from '../migration/switchboard';
 import { migrationFlags } from '../migration/flags';
+import { useI18n } from '../lib/i18n';
 
 interface UnifiedAppShellProps {
   children: React.ReactNode;
@@ -64,16 +65,20 @@ function HeaderContent(props: {
         <button
           onClick={(e) => props.onMenuClick?.(e.currentTarget)}
           style={{
-            padding: '8px 12px',
-            border: 'none',
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            border: '1px solid var(--color-border)',
             background: 'var(--color-panel)',
             color: 'var(--color-text)',
-            borderRadius: '8px',
+            display: 'grid',
+            placeItems: 'center',
             cursor: 'pointer',
-            fontSize: '14px',
+            fontSize: '18px',
           }}
+          aria-label={props.title}
         >
-          Menu
+          👤
         </button>
       </div>
     </div>
@@ -85,6 +90,7 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
   const { title, subtitle } = usePageTitle();
   const location = useLocation();
   const navigate = useNavigate();
+  const { t, translations } = useI18n();
 
   const nav = (() => {
     try {
@@ -146,7 +152,7 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
                     color: 'var(--color-text)',
                   }}
                 >
-                  Profile
+                  {translations.header?.myProfile || 'Profile'}
                 </button>
                 <button
                   onClick={() => {
@@ -164,7 +170,7 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
                     color: 'var(--color-text)',
                   }}
                 >
-                  Orders
+                  {translations.orders || 'Orders'}
                 </button>
                 <div style={{ height: 1, background: 'var(--color-border)', margin: '8px 0' }} />
                 <button
@@ -183,7 +189,7 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
                     color: 'var(--color-error)',
                   }}
                 >
-                  Logout
+                  {translations.header?.logout || 'Logout'}
                 </button>
               </div>
             );
