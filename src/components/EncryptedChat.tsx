@@ -7,6 +7,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import { getEncryptedChatService, EncryptedChat, EncryptedMessage } from '../utils/security/encryptedChatService';
 import { logger } from '../lib/logger';
+import { haptic } from '../utils/haptic';
 
 interface EncryptedChatComponentProps {
   chatId: string;

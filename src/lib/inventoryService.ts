@@ -107,7 +107,7 @@ export class InventoryService {
 
     return requests.map(request => ({
       request,
-      isMine: request.requested_by === profile.telegram_id,
+      isMine: request.requested_by === getUserIdentifier(profile),
       canApprove: Boolean(permissions?.can_approve_restock),
       canFulfill: Boolean(permissions?.can_fulfill_restock)
     }));

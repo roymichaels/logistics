@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 
 import { logger } from '../lib/logger';
+import { haptic } from '../utils/haptic';
 
 type RoleKey =
   | 'user'

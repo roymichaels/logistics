@@ -3,6 +3,7 @@ import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 
 import { DataStore, User } from '../data/types';
 import { logger } from '../lib/logger';
+import { haptic } from '../utils/haptic';
 
 interface AdminPanelProps {
   dataStore: DataStore & {

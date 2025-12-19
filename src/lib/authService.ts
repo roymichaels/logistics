@@ -148,6 +148,20 @@ class AuthService {
       sessionManager.saveSession(session);
 
       const supabase = getSupabase();
+
+      // Null safety: check if session.user exists
+      if (!session.user) {
+        logger.warn('Session exists but user object is missing');
+        this.updateState({
+          user: null,
+          session: null,
+          isAuthenticated: false,
+          isLoading: false,
+          error: 'Invalid session: missing user data',
+        });
+        return;
+      }
+
       const walletEth = session.user.user_metadata?.wallet_address_eth ||
                         session.user.app_metadata?.wallet_address_eth;
       const walletSol = session.user.user_metadata?.wallet_address_sol ||

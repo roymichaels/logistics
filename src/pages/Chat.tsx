@@ -12,6 +12,8 @@ import { GroupChannelCreateModal } from '../components/GroupChannelCreateModal';
 import { hasPermission } from '../lib/rolePermissions';
 import { useConversations, useMessages, useSendMessage, useMarkAsRead } from '../application/use-cases/useMessaging';
 import { eventBus } from '../foundation/events/EventBus';
+import { haptic } from '../utils/haptic';
+import { getUserIdentifier } from '../utils/userIdentifier';
 
 interface ChatProps {
   dataStore: DataStore;
@@ -39,7 +41,7 @@ export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
   const [userFilter, setUserFilter] = useState<UserFilter>('all');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const userId = currentUser?.telegram_id || '';
+  const userId = getUserIdentifier(currentUser) || currentUser?.id || '';
   const { conversations, refetch: refetchConversations } = useConversations(userId);
   const { messages: roomMessages, refetch: refetchMessages } = useMessages(selectedChatRoomId || '', 100);
   const { sendMessage: sendMessageCommand } = useSendMessage();

@@ -3,6 +3,7 @@ import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 
 import { DataStore } from '../data/types';
 import { useI18n } from '../lib/i18n';
+import { haptic } from '../utils/haptic';
 
 interface MyDeliveriesProps {
   dataStore: DataStore;

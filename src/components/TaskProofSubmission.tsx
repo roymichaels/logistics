@@ -3,6 +3,7 @@ import { ImageUpload } from './ImageUpload';
 
 import { Task } from '../data/types';
 import { logger } from '../lib/logger';
+import { haptic } from '../utils/haptic';
 
 interface TaskProofSubmissionProps {
   task: Task;

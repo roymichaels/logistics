@@ -189,6 +189,9 @@ export interface User {
   phone?: string;
   business_id?: string;
   last_active?: string;
+  wallet_address?: string;
+  wallet_type?: 'ethereum' | 'solana' | 'ton';
+  telegram_id?: string; // Legacy field, prefer wallet_address
 }
 
 export type UserRegistrationStatus = 'pending' | 'approved' | 'rejected';

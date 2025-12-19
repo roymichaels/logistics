@@ -11,6 +11,7 @@ import { Toast } from '../components/Toast';
 import { useI18n } from '../lib/i18n';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { logger } from '../lib/logger';
+import { haptic } from '../utils/haptic';
 
 interface DriverStatusProps {
   dataStore: DataStore;

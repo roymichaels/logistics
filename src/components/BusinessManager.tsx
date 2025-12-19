@@ -9,6 +9,7 @@ import {
 } from '../services/business';
 import { Toast } from './Toast';
 import { logger } from '../lib/logger';
+import { haptic } from '../utils/haptic';
 
 interface Business {
   id: string;

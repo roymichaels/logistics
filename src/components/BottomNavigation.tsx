@@ -4,6 +4,7 @@ import { useI18n } from '../lib/i18n';
 import { useAppServices } from '../context/AppServicesContext';
 import { colors, spacing, navigation } from '../styles/design-system';
 import { useAuth } from '../context/AuthContext';
+import { haptic } from '../utils/haptic';
 
 /**
  * 🧠 ROY MICHAELS MILITARIZED NAVIGATION

@@ -5,6 +5,7 @@ import { DataStore, DriverInventoryRecord, Product } from '../data/types';
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
 import { useI18n } from '../lib/i18n';
+import { haptic } from '../utils/haptic';
 
 interface MyInventoryProps {
   dataStore: DataStore;

@@ -20,6 +20,7 @@ import {
   RoyalDashboardChartPoint
 } from '../data/types';
 import { formatCurrency, useI18n } from '../lib/i18n';
+import { haptic } from '../utils/haptic';
 
 interface DashboardProps {
   dataStore: FrontendDataStore;

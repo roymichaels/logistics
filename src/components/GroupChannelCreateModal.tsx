@@ -4,6 +4,7 @@ import { ROYAL_COLORS } from '../styles/royalTheme';
 import type { User, DataStore } from '../data/types';
 
 import { logger } from '../lib/logger';
+import { haptic } from '../utils/haptic';
 
 interface GroupChannelCreateModalProps {
   isOpen: boolean;

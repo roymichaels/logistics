@@ -29,6 +29,7 @@ import {
 } from '../data/types';
 import { logger } from './logger';
 import type { SxTDataStore } from './sxt/sxtDataStore';
+import { getUserIdentifier } from '../utils/userIdentifier';
 
 export type DataStoreSubscriptionTopic =
   | 'orders'
@@ -675,7 +676,7 @@ class HebrewLogisticsDataStore implements DataStore {
   }
 
   async assignDriverToZone(input: { zone_id: string; driver_id?: string; active?: boolean }): Promise<void> {
-    const driverId = input.driver_id || this.user.telegram_id;
+    const driverId = input.driver_id || getUserIdentifier(this.user);
     const makeActive = input.active !== false;
     const existingIndex = this.driverZones.findIndex(
       assignment => assignment.driver_id === driverId && assignment.zone_id === input.zone_id
@@ -695,7 +696,7 @@ class HebrewLogisticsDataStore implements DataStore {
         zone_id: input.zone_id,
         active: true,
         assigned_at: new Date().toISOString(),
-        assigned_by: this.user.telegram_id,
+        assigned_by: getUserIdentifier(this.user),
         zone: this.zones.find(zone => zone.id === input.zone_id)
       });
     }
@@ -730,7 +731,7 @@ class HebrewLogisticsDataStore implements DataStore {
     is_online?: boolean;
     note?: string;
   }): Promise<void> {
-    const driverId = input.driver_id || this.user.telegram_id;
+    const driverId = input.driver_id || getUserIdentifier(this.user);
     const index = this.driverStatuses.findIndex(status => status.driver_id === driverId);
     const now = new Date().toISOString();
 
@@ -774,7 +775,7 @@ class HebrewLogisticsDataStore implements DataStore {
   }
 
   async setDriverOnline(input?: { driver_id?: string; zone_id?: string | null; status?: DriverAvailabilityStatus; note?: string }): Promise<void> {
-    const driverId = input?.driver_id || this.user.telegram_id;
+    const driverId = input?.driver_id || getUserIdentifier(this.user);
     const existing = await this.getDriverStatus(driverId);
     const zoneId = input && Object.prototype.hasOwnProperty.call(input, 'zone_id')
       ? input?.zone_id ?? undefined
@@ -791,7 +792,7 @@ class HebrewLogisticsDataStore implements DataStore {
   }
 
   async setDriverOffline(input?: { driver_id?: string; note?: string }): Promise<void> {
-    const driverId = input?.driver_id || this.user.telegram_id;
+    const driverId = input?.driver_id || getUserIdentifier(this.user);
     await this.updateDriverStatus({
       driver_id: driverId,
       status: 'off_shift',
@@ -802,7 +803,7 @@ class HebrewLogisticsDataStore implements DataStore {
   }
 
   async getDriverStatus(driver_id?: string): Promise<DriverStatusRecord | null> {
-    const driverId = driver_id || this.user.telegram_id;
+    const driverId = driver_id || getUserIdentifier(this.user);
     const status = this.driverStatuses.find(record => record.driver_id === driverId);
     return status ? { ...status } : null;
   }
@@ -864,7 +865,7 @@ class HebrewLogisticsDataStore implements DataStore {
   }
 
   async syncDriverInventory(input: DriverInventorySyncInput): Promise<DriverInventorySyncResult> {
-    const driverId = input.driver_id || this.user.telegram_id;
+    const driverId = input.driver_id || getUserIdentifier(this.user);
     const now = new Date().toISOString();
     const normalizedEntries = new Map<string, { quantity: number; location_id?: string | null }>();
 
@@ -979,7 +980,7 @@ class HebrewLogisticsDataStore implements DataStore {
     
     // Role-based filtering: salespeople can only see their own orders
     if (this.user.role === 'sales') {
-      filtered = filtered.filter(order => order.created_by === this.user.telegram_id);
+      filtered = filtered.filter(order => order.created_by === getUserIdentifier(this.user));
     }
     // Managers can see all orders (no additional filtering needed)
     
@@ -1016,7 +1017,7 @@ class HebrewLogisticsDataStore implements DataStore {
 
     const id = Date.now().toString();
     const now = new Date().toISOString();
-    const salespersonId = input.salesperson_id || this.user.telegram_id;
+    const salespersonId = input.salesperson_id || getUserIdentifier(this.user);
     const status = input.status || 'new';
     const totalAmount = typeof input.total_amount === 'number'
       ? input.total_amount
@@ -1032,7 +1033,7 @@ class HebrewLogisticsDataStore implements DataStore {
       total_amount: totalAmount,
       notes: input.notes,
       delivery_date: input.delivery_date,
-      created_by: this.user.telegram_id,
+      created_by: getUserIdentifier(this.user),
       salesperson_id: salespersonId,
       entry_mode: input.entry_mode,
       raw_order_text: input.raw_order_text,
@@ -1064,7 +1065,7 @@ class HebrewLogisticsDataStore implements DataStore {
     const order = this.orders[index];
     
     // Role-based update permissions
-    if (this.user.role === 'sales' && order.created_by !== this.user.telegram_id) {
+    if (this.user.role === 'sales' && order.created_by !== getUserIdentifier(this.user)) {
       throw new Error('אין לך הרשאה לערוך הזמנה זו');
     }
     
@@ -1077,7 +1078,7 @@ class HebrewLogisticsDataStore implements DataStore {
 
   // Tasks
   async listMyTasks(): Promise<Task[]> {
-    return this.tasks.filter(task => task.assigned_to === this.user.telegram_id);
+    return this.tasks.filter(task => task.assigned_to === getUserIdentifier(this.user));
   }
 
   async listAllTasks(): Promise<Task[]> {
@@ -1127,7 +1128,7 @@ class HebrewLogisticsDataStore implements DataStore {
     if (this.user.role === 'driver') {
       return {
         id: '1',
-        driver_id: this.user.telegram_id,
+        driver_id: getUserIdentifier(this.user),
         date,
         orders: ['1', '2'],
         status: 'planned',
@@ -1146,20 +1147,20 @@ class HebrewLogisticsDataStore implements DataStore {
   // Communications
   async listGroupChats(): Promise<GroupChat[]> {
     return this.groupChats.filter(chat => 
-      chat.members.includes(this.user.telegram_id)
+      chat.members.includes(getUserIdentifier(this.user))
     );
   }
 
   async listChannels(): Promise<Channel[]> {
     return this.channels.filter(channel => 
-      channel.subscribers.includes(this.user.telegram_id)
+      channel.subscribers.includes(getUserIdentifier(this.user))
     );
   }
 
   // Notifications
   async getNotifications(): Promise<Notification[]> {
     return this.notifications.filter(notification => 
-      notification.recipient_id === this.user.telegram_id
+      notification.recipient_id === getUserIdentifier(this.user)
     ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 

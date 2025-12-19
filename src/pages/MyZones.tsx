@@ -5,6 +5,7 @@ import { DataStore, DriverStatusRecord, DriverZoneAssignment, Zone } from '../da
 import { Toast } from '../components/Toast';
 import { useI18n } from '../lib/i18n';
 import { logger } from '../lib/logger';
+import { haptic } from '../utils/haptic';
 
 interface MyZonesProps {
   dataStore: DataStore;

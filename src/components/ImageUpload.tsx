@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { haptic } from '../utils/haptic';
 
 interface ImageUploadProps {
   onUpload: (file: File) => void;

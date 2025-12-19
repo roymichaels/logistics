@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { roleNames, roleIcons } from '../lib/i18n';
 import type { User } from '../data/types';
+import { haptic } from '../utils/haptic';
 
 interface UserProfileModalProps {
   isOpen: boolean;

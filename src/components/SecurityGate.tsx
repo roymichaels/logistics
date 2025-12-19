@@ -10,6 +10,7 @@ import { SecurityAuditLogger } from '../utils/security/auditLogger';
 
 import { hebrew } from '../lib/i18n';
 import { logger } from '../lib/logger';
+import { haptic } from '../utils/haptic';
 
 interface SecurityGateProps {
   userId: string;

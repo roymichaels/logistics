@@ -11,6 +11,7 @@ import { Toast } from '../components/Toast';
 import { DispatchOrchestrator, ZoneCoverageResult } from '../lib/dispatchOrchestrator';
 
 import { logger } from '../lib/logger';
+import { haptic } from '../utils/haptic';
 
 interface DispatchBoardProps {
   dataStore: DataStore;

@@ -4,6 +4,7 @@ import { ROYAL_COLORS } from '../styles/royalTheme';
 import { roleNames, roleIcons } from '../lib/i18n';
 import type { User } from '../data/types';
 import { UserProfileModal } from './UserProfileModal';
+import { haptic } from '../utils/haptic';
 
 interface UserListViewProps {
   users: User[];

@@ -4,6 +4,7 @@ import { Toast } from './Toast';
 import { DataStore } from '../data/types';
 
 import { logger } from '../lib/logger';
+import { haptic } from '../utils/haptic';
 
 interface ManagerLoginModalProps {
   isOpen: boolean;

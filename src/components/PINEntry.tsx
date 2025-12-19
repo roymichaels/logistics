@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 import { PINAuthService, PINValidator } from '../utils/security/pinAuth';
 import { logger } from '../lib/logger';
+import { haptic } from '../utils/haptic';
 
 interface PINEntryProps {
   mode: 'setup' | 'verify' | 'change';

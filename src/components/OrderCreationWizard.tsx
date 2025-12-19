@@ -4,6 +4,7 @@ import { HebrewOrderParser, parseHebrewOrder, ParsingResult, ParsedOrder } from 
 import { DataStore } from '../data/types';
 import { useAppServices } from '../context/AppServicesContext';
 import { logger } from '../lib/logger';
+import { haptic } from '../utils/haptic';
 
 interface OrderCreationWizardProps {
   dataStore: DataStore;

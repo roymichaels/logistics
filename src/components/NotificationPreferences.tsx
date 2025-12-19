@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import { NotificationPreferences, NotificationService, NotificationType } from '../lib/notificationService';
 import { logger } from '../lib/logger';
+import { haptic } from '../utils/haptic';
 
 interface NotificationPreferencesProps {
   notificationService: NotificationService;
