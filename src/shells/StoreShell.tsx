@@ -1,6 +1,8 @@
 import React from 'react';
 import { BaseShell } from './BaseShell';
 import { useShellContext } from './BaseShell';
+import { colors, spacing, shadows, borderRadius, typography, navigation, transitions } from '../design-system';
+import { ShoppingCart } from 'lucide-react';
 
 interface StoreShellProps {
   children: React.ReactNode;
@@ -15,63 +17,142 @@ function StoreShellContent({ children, isAuthenticated, cartItemCount }: { child
   const { navigationItems, onNavigate, currentPath, onLogout } = useShellContext();
 
   return (
-    <div style={{ display: 'flex', height: '100vh', flexDirection: 'column' }}>
+    <div style={{
+      display: 'flex',
+      height: '100vh',
+      flexDirection: 'column',
+      background: colors.background.primary,
+    }}>
       <header style={{
-        background: '#ffffff',
-        borderBottom: '1px solid #e5e7eb',
-        padding: '16px 24px'
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+        background: navigation.background,
+        backdropFilter: navigation.backdropFilter,
+        WebkitBackdropFilter: navigation.backdropFilter,
+        borderBottom: `1px solid ${navigation.border}`,
+        padding: `${spacing.lg} ${spacing.xl}`,
+        boxShadow: shadows.md,
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#1f2937' }}>
-            Store
-          </h1>
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            {cartItemCount !== undefined && cartItemCount > 0 && (
-              <div style={{ position: 'relative' }}>
-                <button
-                  onClick={() => onNavigate('/store/cart')}
-                  style={{
-                    padding: '8px 16px',
-                    background: '#3b82f6',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '14px'
-                  }}
-                >
-                  Cart
-                </button>
-                <span style={{
-                  position: 'absolute',
-                  top: '-8px',
-                  right: '-8px',
-                  background: '#ef4444',
-                  color: 'white',
-                  borderRadius: '50%',
-                  width: '24px',
-                  height: '24px',
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          maxWidth: '1280px',
+          margin: '0 auto',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
+            <div style={{
+              width: 40,
+              height: 40,
+              background: colors.brand.faded,
+              borderRadius: borderRadius.lg,
+              display: 'grid',
+              placeItems: 'center',
+              fontWeight: typography.fontWeight.bold,
+              fontSize: typography.fontSize.xl,
+              color: colors.brand.primary,
+            }}>
+              🛍️
+            </div>
+            <div>
+              <h1 style={{
+                margin: 0,
+                fontSize: typography.fontSize['2xl'],
+                fontWeight: typography.fontWeight.heavy,
+                color: colors.text.primary,
+                letterSpacing: '-0.01em',
+              }}>
+                UndergroundLab Store
+              </h1>
+              <p style={{
+                margin: 0,
+                fontSize: typography.fontSize.sm,
+                color: colors.text.tertiary,
+              }}>
+                Security & Privacy Solutions
+              </p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: spacing.md, alignItems: 'center' }}>
+            {cartItemCount !== undefined && (
+              <button
+                onClick={() => onNavigate('/store/cart')}
+                style={{
+                  position: 'relative',
+                  padding: `${spacing.sm} ${spacing.lg}`,
+                  background: colors.brand.faded,
+                  color: colors.brand.primary,
+                  border: `1px solid ${colors.brand.primary}`,
+                  borderRadius: borderRadius['2xl'],
+                  cursor: 'pointer',
+                  fontSize: typography.fontSize.sm,
+                  fontWeight: typography.fontWeight.semibold,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '12px',
-                  fontWeight: 'bold'
-                }}>
-                  {cartItemCount}
-                </span>
-              </div>
+                  gap: spacing.sm,
+                  transition: transitions.fast,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = colors.brand.primary;
+                  e.currentTarget.style.color = colors.white;
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = shadows.glow;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = colors.brand.faded;
+                  e.currentTarget.style.color = colors.brand.primary;
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <ShoppingCart size={18} />
+                Cart
+                {cartItemCount > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: -8,
+                    right: -8,
+                    background: colors.status.error,
+                    color: colors.white,
+                    borderRadius: borderRadius.full,
+                    width: 24,
+                    height: 24,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: typography.fontSize.xs,
+                    fontWeight: typography.fontWeight.bold,
+                    boxShadow: shadows.md,
+                  }}>
+                    {cartItemCount}
+                  </span>
+                )}
+              </button>
             )}
             {isAuthenticated && (
               <button
                 onClick={onLogout}
                 style={{
-                  padding: '8px 16px',
-                  background: '#6b7280',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
+                  padding: `${spacing.sm} ${spacing.lg}`,
+                  background: colors.ui.card,
+                  color: colors.text.secondary,
+                  border: `1px solid ${colors.border.primary}`,
+                  borderRadius: borderRadius['2xl'],
                   cursor: 'pointer',
-                  fontSize: '14px'
+                  fontSize: typography.fontSize.sm,
+                  fontWeight: typography.fontWeight.medium,
+                  transition: transitions.fast,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = colors.ui.cardHover;
+                  e.currentTarget.style.color = colors.text.primary;
+                  e.currentTarget.style.borderColor = colors.border.hover;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = colors.ui.card;
+                  e.currentTarget.style.color = colors.text.secondary;
+                  e.currentTarget.style.borderColor = colors.border.primary;
                 }}
               >
                 Logout
@@ -81,44 +162,86 @@ function StoreShellContent({ children, isAuthenticated, cartItemCount }: { child
         </div>
       </header>
 
-      <div style={{ display: 'flex', flex: 1 }}>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <nav style={{
-          width: '200px',
-          background: '#f9fafb',
-          borderRight: '1px solid #e5e7eb',
-          padding: '16px',
-          overflowY: 'auto'
+          width: '240px',
+          background: colors.background.secondary,
+          borderRight: `1px solid ${colors.border.secondary}`,
+          padding: spacing.lg,
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: spacing.xs,
         }}>
           {navigationItems
             .filter(item => !item.requiredRoles || item.requiredRoles.includes('customer') || item.requiredRoles.includes('user'))
-            .map(item => (
-              <button
-                key={item.id}
-                onClick={() => onNavigate(item.path)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  width: '100%',
-                  padding: '12px 16px',
-                  marginBottom: '8px',
-                  background: currentPath.startsWith(item.path) ? '#3b82f6' : 'transparent',
-                  color: currentPath.startsWith(item.path) ? 'white' : '#374151',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  textAlign: 'left'
-                }}
-              >
-                <span>{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
-            ))}
+            .map(item => {
+              const isActive = currentPath.startsWith(item.path);
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onNavigate(item.path)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: spacing.md,
+                    width: '100%',
+                    padding: `${spacing.md} ${spacing.lg}`,
+                    background: isActive ? colors.brand.faded : 'transparent',
+                    color: isActive ? colors.brand.primary : colors.text.secondary,
+                    border: 'none',
+                    borderRadius: borderRadius.lg,
+                    cursor: 'pointer',
+                    fontSize: typography.fontSize.sm,
+                    fontWeight: isActive ? typography.fontWeight.semibold : typography.fontWeight.normal,
+                    textAlign: 'left',
+                    transition: transitions.fast,
+                    position: 'relative',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = colors.ui.cardHover;
+                      e.currentTarget.style.color = colors.text.primary;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = colors.text.secondary;
+                    }
+                  }}
+                >
+                  {isActive && (
+                    <div style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: 3,
+                      height: '60%',
+                      background: colors.brand.primary,
+                      borderRadius: borderRadius.sm,
+                    }} />
+                  )}
+                  <span style={{ fontSize: typography.fontSize.lg }}>{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
         </nav>
 
-        <main style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
-          {children}
+        <main style={{
+          flex: 1,
+          overflowY: 'auto',
+          background: colors.background.primary,
+          padding: spacing.xl,
+        }}>
+          <div style={{
+            maxWidth: '1280px',
+            margin: '0 auto',
+          }}>
+            {children}
+          </div>
         </main>
       </div>
     </div>
