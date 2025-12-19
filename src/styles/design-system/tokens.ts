@@ -6,70 +6,70 @@
 
 export const colors = {
   background: {
-    primary: '#0A0E14',      // Deep space black
-    secondary: '#131821',    // Card background
-    tertiary: '#1A1F2E',     // Elevated surfaces
-    elevated: '#1F2937',     // Modals and overlays
-    accent: '#162032',       // Hover states
+    primary: '#141821',      // Soft dark background
+    secondary: '#1A1F2A',    // Card background
+    tertiary: '#202736',     // Elevated surfaces
+    elevated: '#202736',     // Modals and overlays
+    accent: '#252B3A',       // Hover states
   },
 
   text: {
-    primary: '#F9FAFB',      // Pure white text
-    secondary: '#D1D5DB',    // Secondary text (light gray)
+    primary: '#FFFFFF',      // Pure white text
+    secondary: '#D0D3DB',    // Secondary text
     tertiary: '#9CA3AF',     // Muted text
-    inverse: '#0A0E14',      // Text on light backgrounds
-    muted: '#6B7280',        // Disabled text
+    inverse: '#141821',      // Text on light backgrounds
+    muted: 'rgba(255, 255, 255, 0.55)', // Disabled text
   },
 
   brand: {
-    primary: '#00D9FF',      // Cyan (security/tech)
-    primaryHover: '#00C4EA', // Cyan hover
-    primaryPressed: '#00A8CC', // Cyan pressed
-    primaryFaded: 'rgba(0, 217, 255, 0.1)', // Faded cyan
-    secondary: '#0066FF',    // Electric blue
-    accent: '#7B61FF',       // Purple accent
+    primary: '#6A4BFF',      // Royal purple
+    primaryHover: '#7D5EFF', // Purple hover
+    primaryPressed: '#5A3FE8', // Purple pressed
+    primaryFaded: 'rgba(106, 75, 255, 0.1)', // Faded purple
+    secondary: '#A066FF',    // Light purple
+    accent: '#F0C674',       // Gold accent
   },
 
   security: {
-    high: '#00FF94',         // Green (highly secure)
-    highFaded: 'rgba(0, 255, 148, 0.1)',
-    medium: '#FFB800',       // Amber (moderate security)
-    mediumFaded: 'rgba(255, 184, 0, 0.1)',
-    low: '#FF3B30',          // Red (vulnerable)
-    lowFaded: 'rgba(255, 59, 48, 0.1)',
-    critical: '#FF0055',     // Critical alert
+    high: '#4ADE80',         // Soft green (highly secure)
+    highFaded: 'rgba(74, 222, 128, 0.1)',
+    medium: '#FBBF24',       // Warm yellow (moderate security)
+    mediumFaded: 'rgba(251, 191, 36, 0.1)',
+    low: '#F87171',          // Soft red (vulnerable)
+    lowFaded: 'rgba(248, 113, 113, 0.1)',
+    critical: '#EF4444',     // Critical alert
   },
 
   status: {
-    success: '#00FF94',
-    successFaded: 'rgba(0, 255, 148, 0.1)',
-    warning: '#FFB800',
-    warningFaded: 'rgba(255, 184, 0, 0.1)',
-    error: '#FF3B30',
-    errorFaded: 'rgba(255, 59, 48, 0.1)',
-    info: '#00D9FF',
-    infoFaded: 'rgba(0, 217, 255, 0.1)',
+    success: '#4ADE80',
+    successFaded: 'rgba(74, 222, 128, 0.1)',
+    warning: '#FBBF24',
+    warningFaded: 'rgba(251, 191, 36, 0.1)',
+    error: '#F87171',
+    errorFaded: 'rgba(248, 113, 113, 0.1)',
+    info: '#60A5FA',
+    infoFaded: 'rgba(96, 165, 250, 0.1)',
   },
 
   border: {
-    primary: '#2D3748',      // Default borders
-    secondary: '#1F2937',    // Subtle borders
-    hover: '#374151',        // Hover state borders
-    focus: '#00D9FF',        // Focus state (cyan)
-    accent: '#00D9FF',       // Accent border
+    primary: 'rgba(255, 255, 255, 0.08)',  // Subtle borders
+    secondary: 'rgba(255, 255, 255, 0.15)', // Default borders
+    hover: 'rgba(255, 255, 255, 0.25)',     // Hover state borders
+    focus: '#6A4BFF',        // Focus state (purple)
+    accent: '#F0C674',       // Accent border (gold)
   },
 
   ui: {
-    card: '#131821',
-    cardHover: '#1A1F2E',
-    overlay: 'rgba(10, 14, 20, 0.85)',
-    highlight: 'rgba(0, 217, 255, 0.15)',
-    glow: 'rgba(0, 217, 255, 0.3)',
+    card: '#1A1F2A',
+    cardHover: '#202736',
+    overlay: 'rgba(20, 24, 33, 0.85)',
+    highlight: 'rgba(106, 75, 255, 0.15)',
+    glow: 'rgba(106, 75, 255, 0.3)',
   },
 
   interactive: {
-    hover: '#1A1F2E',
-    active: '#00D9FF',
+    hover: '#202736',
+    active: '#6A4BFF',
     disabled: '#4B5563',
   },
 
@@ -103,34 +103,34 @@ export const microSpacing = {
 
 export const typography = {
   fontFamily: {
-    primary: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    primary: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     mono: '"SF Mono", Monaco, "Courier New", Courier, monospace',
   },
 
   fontSize: {
-    xs: '13px',   // Small labels, timestamps
+    xs: '12px',   // Small labels, timestamps
     sm: '14px',   // Secondary text, captions
-    base: '15px', // Body text (Twitter's base)
-    lg: '17px',   // Large body, emphasized text
-    xl: '20px',   // Headings, section titles
-    '2xl': '23px',// Large headings
-    '3xl': '28px',// Display text
-    '4xl': '32px',// Large display
-    '5xl': '40px',// Extra large display
+    base: '16px', // Body text
+    lg: '20px',   // Large body, emphasized text
+    xl: '24px',   // Headings, section titles
+    '2xl': '28px',// Large headings
+    '3xl': '32px',// Display text
+    '4xl': '40px',// Large display
+    '5xl': '48px',// Extra large display
   },
 
   fontWeight: {
     normal: '400',   // Regular text
-    medium: '500',   // Medium emphasis (rare in Twitter)
-    semibold: '600', // Semibold (rare in Twitter)
-    bold: '700',     // Bold text (Twitter's primary bold weight)
+    medium: '500',   // Medium emphasis
+    semibold: '600', // Semibold
+    bold: '700',     // Bold text
     heavy: '800',    // Heavy (display, emphasized)
   },
 
   lineHeight: {
-    tight: '1.3125',    // Headlines (Twitter exact)
-    normal: '1.375',    // Body text (Twitter exact)
-    relaxed: '1.5',     // Comfortable reading
+    tight: '1.2',       // Headlines
+    normal: '1.5',      // Body text
+    relaxed: '1.75',    // Comfortable reading
   },
 
   letterSpacing: {
@@ -142,28 +142,28 @@ export const typography = {
 
 export const borderRadius = {
   none: '0',
-  sm: '4px',     // Small elements
-  md: '8px',     // Subtle rounding
-  lg: '12px',    // Small cards/images
-  xl: '16px',    // Cards and containers (Twitter card standard)
-  '2xl': '20px', // Buttons and inputs (Twitter standard)
-  '3xl': '24px', // Large cards
-  '4xl': '28px', // Extra large rounding
+  sm: '6px',     // Small elements
+  md: '10px',    // Subtle rounding
+  lg: '16px',    // Small cards/images
+  xl: '24px',    // Cards and containers
+  '2xl': '28px', // Buttons and inputs
+  '3xl': '32px', // Large cards
+  '4xl': '40px', // Extra large rounding
   full: '9999px',// Circular elements (avatars, pills)
 } as const;
 
 export const shadows = {
   none: 'none',
-  sm: '0 1px 3px rgba(0, 0, 0, 0.12)',          // Subtle shadow (cards at rest)
-  md: '0 2px 8px rgba(0, 0, 0, 0.15)',          // Card hover shadow
-  lg: '0 4px 12px rgba(0, 0, 0, 0.15)',         // Elevated elements
-  xl: '0 8px 16px rgba(0, 0, 0, 0.25)',         // Modal shadow
-  '2xl': '0 12px 24px rgba(0, 0, 0, 0.3)',      // High elevation
-  glow: '0 0 16px rgba(29, 161, 242, 0.4)',     // Twitter blue glow
-  glowLarge: '0 0 24px rgba(29, 161, 242, 0.5)',// Large blue glow
+  sm: '0 2px 6px rgba(0, 0, 0, 0.25)',          // Subtle shadow (cards at rest)
+  md: '0 4px 12px rgba(0, 0, 0, 0.30)',         // Card hover shadow
+  lg: '0 8px 24px rgba(0, 0, 0, 0.35)',         // Elevated elements
+  xl: '0 12px 32px rgba(0, 0, 0, 0.40)',        // Modal shadow
+  '2xl': '0 16px 40px rgba(0, 0, 0, 0.45)',     // High elevation
+  glow: '0 0 12px rgba(106, 75, 255, 0.3)',     // Purple glow
+  glowLarge: '0 0 20px rgba(106, 75, 255, 0.4)',// Large purple glow
   inner: 'inset 0 1px 2px rgba(0, 0, 0, 0.08)', // Inner shadow
-  focus: '0 0 0 2px rgba(29, 161, 242, 0.2)',   // Focus ring
-  focusLarge: '0 0 0 4px rgba(29, 161, 242, 0.15)', // Large focus ring
+  focus: '0 0 0 2px rgba(106, 75, 255, 0.7)',   // Focus ring
+  focusLarge: '0 0 0 4px rgba(106, 75, 255, 0.5)', // Large focus ring
 } as const;
 
 export const transitions = {
@@ -231,22 +231,22 @@ export const backdropBlur = {
   '2xl': 'blur(20px)',
 } as const;
 
-// Gradient definitions for security aesthetic
+// Gradient definitions for modern aesthetic
 export const gradients = {
-  primary: 'linear-gradient(135deg, #00D9FF 0%, #0066FF 100%)',
-  secondary: 'linear-gradient(135deg, #0066FF 0%, #7B61FF 100%)',
-  card: 'linear-gradient(180deg, #131821 0%, #0A0E14 100%)',
-  overlay: 'linear-gradient(180deg, rgba(10, 14, 20, 0) 0%, rgba(10, 14, 20, 0.95) 100%)',
-  success: 'linear-gradient(135deg, #00FF94 0%, #00D47E 100%)',
-  warning: 'linear-gradient(135deg, #FFB800 0%, #FFA000 100%)',
-  error: 'linear-gradient(135deg, #FF3B30 0%, #DC2626 100%)',
-  glow: 'radial-gradient(circle at center, rgba(0, 217, 255, 0.2) 0%, transparent 70%)',
-  cyber: 'linear-gradient(135deg, #00D9FF 0%, #7B61FF 50%, #FF0055 100%)',
+  primary: 'linear-gradient(135deg, #6A4BFF 0%, #A066FF 100%)',
+  secondary: 'linear-gradient(135deg, #A066FF 0%, #F0C674 100%)',
+  card: 'linear-gradient(180deg, #1A1F2A 0%, #141821 100%)',
+  overlay: 'linear-gradient(180deg, rgba(20, 24, 33, 0) 0%, rgba(20, 24, 33, 0.95) 100%)',
+  success: 'linear-gradient(135deg, #4ADE80 0%, #22C55E 100%)',
+  warning: 'linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)',
+  error: 'linear-gradient(135deg, #F87171 0%, #EF4444 100%)',
+  glow: 'radial-gradient(circle at center, rgba(106, 75, 255, 0.2) 0%, transparent 70%)',
+  cyber: 'linear-gradient(135deg, #6A4BFF 0%, #A066FF 50%, #F0C674 100%)',
 } as const;
 
 // Navigation specific values (for glass morphism effects)
 export const navigation = {
-  background: 'rgba(10, 14, 20, 0.85)',
+  background: 'rgba(20, 24, 33, 0.85)',
   backdropFilter: 'blur(16px)',
-  border: 'rgba(45, 55, 72, 0.6)',
+  border: 'rgba(255, 255, 255, 0.08)',
 } as const;
