@@ -12,6 +12,7 @@ import { debugLog } from '../components/DebugPanel';
 import { useAuth } from './AuthContext';
 import { userService } from '../lib/userService';
 import { logger } from '../lib/logger';
+import { runtimeEnvironment } from '../lib/runtimeEnvironment';
 
 const DEV_ROLE_OVERRIDE_KEY = 'dev-console:role-override';
 
@@ -49,8 +50,9 @@ interface AppServicesProviderProps {
 }
 
 export function AppServicesProvider({ children, value }: AppServicesProviderProps) {
-  const rawSXT = (import.meta as any)?.env?.VITE_USE_SXT;
-  const useSXT = rawSXT === undefined || rawSXT === null || rawSXT === '' || ['1', 'true', 'yes'].includes(String(rawSXT).toLowerCase());
+  // Use centralized runtime environment to check SXT mode
+  // IMPORTANT: Defaults to FALSE (Supabase) unless explicitly enabled
+  const useSXT = runtimeEnvironment.isSxtModeEnabled();
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<AppUserRole>(null);
   const [dataStore, setDataStore] = useState<FrontendDataStore | null>(null);

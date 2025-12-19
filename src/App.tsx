@@ -38,6 +38,7 @@ import { DataSandboxProvider } from './migration/data/DataSandboxContext';
 import { NavLayer } from './migration/controllers/navController';
 import { DevMigrationPanel } from './migration/DevMigrationPanel';
 import { useTheme } from './foundation/theme';
+import { runtimeEnvironment } from './lib/runtimeEnvironment';
 
 // All page components are now lazy-loaded in MigrationRouter
 
@@ -79,11 +80,9 @@ type Page =
   | 'kyc';
 
 export default function App() {
-  const useSXTRaw = (import.meta as any)?.env?.VITE_USE_SXT;
-  const useSXT = (() => {
-    if (useSXTRaw === undefined || useSXTRaw === null || useSXTRaw === '') return true;
-    return ['1', 'true', 'yes'].includes(String(useSXTRaw).toLowerCase());
-  })();
+  // Use centralized runtime environment to check SXT mode
+  // IMPORTANT: Defaults to FALSE (Supabase) unless explicitly enabled via VITE_USE_SXT=1
+  const useSXT = runtimeEnvironment.isSxtModeEnabled();
   const {
     user,
     userRole,

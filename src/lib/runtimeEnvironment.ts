@@ -190,6 +190,36 @@ class RuntimeEnvironmentService {
   }
 
   /**
+   * Check if SXT (Space and Time) mode is enabled
+   *
+   * IMPORTANT: Defaults to FALSE (Supabase mode) unless explicitly enabled
+   *
+   * SXT mode is considered experimental and requires explicit opt-in by setting
+   * VITE_USE_SXT to '1', 'true', or 'yes'
+   *
+   * @returns true if SXT mode is explicitly enabled, false otherwise (default: Supabase)
+   */
+  isSxtModeEnabled(): boolean {
+    const useSXTRaw = (import.meta as any)?.env?.VITE_USE_SXT;
+
+    // Default to Supabase mode if not set or empty
+    if (useSXTRaw === undefined || useSXTRaw === null || useSXTRaw === '') {
+      return false;
+    }
+
+    // Only enable SXT if explicitly set to a truthy value
+    return ['1', 'true', 'yes'].includes(String(useSXTRaw).toLowerCase());
+  }
+
+  /**
+   * Get the current data adapter mode
+   * @returns 'supabase' or 'sxt'
+   */
+  getDataAdapterMode(): 'supabase' | 'sxt' {
+    return this.isSxtModeEnabled() ? 'sxt' : 'supabase';
+  }
+
+  /**
    * Display environment info to console
    */
   displayInfo(): void {
@@ -204,6 +234,8 @@ class RuntimeEnvironmentService {
     logger.info('Is Production:', env.isProduction);
     logger.info('Has Backend Services:', env.hasBackendServices);
     logger.info('Supports WebSockets:', env.supportsWebSockets);
+    logger.info('Data Adapter Mode:', this.getDataAdapterMode());
+    logger.info('SXT Mode Enabled:', this.isSxtModeEnabled());
     logger.info('Configuration:', config);
     console.groupEnd();
   }

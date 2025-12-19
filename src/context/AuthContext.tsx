@@ -18,6 +18,7 @@ import {
   connectSolanaWallet,
   connectTonWallet,
 } from '../lib/auth/walletAuth';
+import { runtimeEnvironment } from '../lib/runtimeEnvironment';
 
 interface AuthContextValue extends AuthState {
   signOut: () => Promise<void>;
@@ -42,8 +43,9 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const rawSXT = (import.meta as any)?.env?.VITE_USE_SXT;
-  const useSXT = rawSXT === undefined || rawSXT === null || rawSXT === '' || ['1', 'true', 'yes'].includes(String(rawSXT).toLowerCase());
+  // Use centralized runtime environment to check SXT mode
+  // IMPORTANT: Defaults to FALSE (Supabase) unless explicitly enabled
+  const useSXT = runtimeEnvironment.isSxtModeEnabled();
 
   if (useSXT) {
     return <SxtShimProvider>{children}</SxtShimProvider>;
@@ -217,8 +219,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 // Shim provider when running in SxT mode (bypass Supabase)
 function SxtShimProvider({ children }: { children: React.ReactNode }) {
   const { user: sxtUser, role, isAuthenticated: sxtIsAuthenticated, isLoading: sxtIsLoading } = useSxtAuth();
-  const rawSXT = (import.meta as any)?.env?.VITE_USE_SXT;
-  const useSXT = rawSXT === undefined || rawSXT === null || rawSXT === '' || ['1', 'true', 'yes'].includes(String(rawSXT).toLowerCase());
+  // Use centralized runtime environment to check SXT mode
+  const useSXT = runtimeEnvironment.isSxtModeEnabled();
 
   const [user, setUser] = useState<{ walletType: string; walletAddress: string } | null>(() => {
     if (sxtUser) {

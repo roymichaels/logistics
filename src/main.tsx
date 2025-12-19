@@ -139,11 +139,8 @@ function LoadingScreen() {
 
     // Initialize Supabase (skipped in SxT mode)
     try {
-      const useSXTRaw = (import.meta as any)?.env?.VITE_USE_SXT;
-      const useSXT = (() => {
-        if (useSXTRaw === undefined || useSXTRaw === null || useSXTRaw === '') return false; // default to Supabase
-        return ['1', 'true', 'yes'].includes(String(useSXTRaw).toLowerCase());
-      })();
+      const useSXT = runtimeEnvironment.isSxtModeEnabled();
+      console.log(`🔧 Data Adapter Mode: ${runtimeEnvironment.getDataAdapterMode()}`);
 
       let supabase: any = null;
       let restoredSession: any = null;
@@ -198,8 +195,7 @@ function LoadingScreen() {
 
     // Render the actual app
     console.log('✅ Rendering App component...');
-    const useSXTRaw = (import.meta as any)?.env?.VITE_USE_SXT;
-    const useSXT = useSXTRaw !== undefined && useSXTRaw !== null && useSXTRaw !== '' && ['1', 'true', 'yes'].includes(String(useSXTRaw).toLowerCase());
+    const useSXT = runtimeEnvironment.isSxtModeEnabled();
 
     root.render(
       <React.StrictMode>

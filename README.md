@@ -2,6 +2,25 @@
 
 A Telegram Mini App for managing logistics operations, orders, and deliveries. Built with React, TypeScript, and the Telegram WebApp SDK.
 
+## Architecture Overview
+
+This application supports **two data persistence modes**:
+
+### 🟢 Supabase Mode (Default & Production-Ready)
+- **Status**: ✅ Fully implemented and tested
+- **Authentication**: Email/Password, OAuth, Telegram
+- **Database**: PostgreSQL with Row Level Security (RLS)
+- **Default behavior**: Enabled when `VITE_USE_SXT` is not set or empty
+
+### 🟡 SXT Mode (Experimental)
+- **Status**: ⚠️ Under development - NOT production ready
+- **Authentication**: Web3 wallets (Ethereum, Solana, TON)
+- **Database**: Space and Time decentralized data warehouse
+- **Enable**: Set `VITE_USE_SXT=1` in `.env`
+- **Documentation**: See [SXT_MODE.md](./SXT_MODE.md) for details
+
+**⚠️ IMPORTANT**: Unless you're specifically developing SXT integration, use the default Supabase mode. Many features in SXT mode are incomplete or non-functional.
+
 ## Operational Guides
 
 The root-level status memos have been consolidated into maintained documentation under `docs/`. Start here when deploying or diagnosing production issues:
