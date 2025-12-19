@@ -87,14 +87,28 @@ class UserService {
     );
 
     if (!profile) {
+      let roleFromSession = 'customer';
+      try {
+        const session = localStorage.getItem('wallet-session');
+        if (session) {
+          const sessionData = JSON.parse(session);
+          roleFromSession = sessionData.role || 'customer';
+        }
+      } catch (error) {
+        logger.error('Failed to parse wallet session in getUserProfileByWallet', error);
+      }
+
+      const devRole = localStorage.getItem('dev-console:role-override');
+      const effectiveRole = devRole || roleFromSession;
+
       const mockProfile: UserProfile = {
         id: `user_${lowerWallet.substring(0, 12)}`,
         username: `wallet_${lowerWallet.substring(0, 8)}`,
         name: `Wallet User ${lowerWallet.substring(0, 8)}`,
         wallet_address_eth: walletAddress.startsWith('0x') ? walletAddress : undefined,
         wallet_address_sol: !walletAddress.startsWith('0x') ? walletAddress : undefined,
-        role: 'user',
-        global_role: 'user',
+        role: effectiveRole,
+        global_role: effectiveRole,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -108,6 +122,32 @@ class UserService {
       });
 
       return mockProfile;
+    }
+
+    let roleFromSession = profile.role;
+    try {
+      const session = localStorage.getItem('wallet-session');
+      if (session) {
+        const sessionData = JSON.parse(session);
+        roleFromSession = sessionData.role || profile.role;
+      }
+    } catch (error) {
+      logger.error('Failed to parse wallet session for existing profile', error);
+    }
+
+    const devRole = localStorage.getItem('dev-console:role-override');
+    const effectiveRole = devRole || roleFromSession;
+
+    if (profile.role !== effectiveRole || profile.global_role !== effectiveRole) {
+      profile.role = effectiveRole;
+      profile.global_role = effectiveRole;
+      profile.updated_at = new Date().toISOString();
+      users[profile.id] = profile;
+      this.saveLocalUsers(users);
+      logger.debug('[userService] Updated existing profile role', {
+        walletAddress,
+        newRole: effectiveRole
+      });
     }
 
     this.profileCache.set(profile.id, {
