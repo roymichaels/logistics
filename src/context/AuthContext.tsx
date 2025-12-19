@@ -63,7 +63,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
 
     authService.initialize().catch(error => {
-      logger.error('❌ Auth initialization error:', error);
+      logger.error('[AUTH] Initialization error:', error);
     });
 
     return () => {

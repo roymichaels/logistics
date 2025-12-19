@@ -4,6 +4,8 @@ import { logger } from './logger';
 import { sessionManager } from './sessionManager';
 import { sessionHealthMonitor } from './sessionHealthMonitor';
 import { createLocalSession } from './auth/walletAuth';
+import { localSessionManager } from './localSessionManager';
+import { roleAssignmentManager } from './roleAssignment';
 
 export interface AuthUser {
   id: string;
@@ -313,60 +315,42 @@ class AuthService {
     }
 
     try {
-      logger.info('Starting authentication initialization');
-      this.initializeAuthListener();
+      logger.info('[AUTH] Starting frontend-only auth initialization');
 
-      if (!isSupabaseInitialized()) {
-        throw new Error('Supabase client not initialized. Cannot proceed with authentication.');
-      }
+      const localSession = localSessionManager.getSession();
 
-      const supabase = getSupabase();
+      if (localSession && localSessionManager.isValid()) {
+        logger.info('[AUTH] Valid local session found, restoring');
 
-      // First, try to restore session using the enhanced session manager
-      logger.debug('Attempting session restoration');
-      const restoredSession = await sessionManager.restoreSession(supabase);
-
-      if (restoredSession) {
-        logger.info('Session restored from storage');
-        await this.handleSessionUpdate(restoredSession, false);
-        // Start health monitoring instead of legacy health check
-        sessionHealthMonitor.start(supabase);
-        return;
-      }
-
-      // If no restored session, check for active Supabase session
-      logger.debug('Checking for active Supabase session');
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError) {
-        logger.error('Session recovery error', sessionError);
+        const role = localSession.role;
         this.updateState({
+          isAuthenticated: true,
           isLoading: false,
-          isAuthenticated: false,
+          user: {
+            id: localSession.wallet,
+            username: localSession.wallet,
+            name: localSession.wallet,
+            photo_url: null,
+            role,
+            auth_method: localSession.walletType
+          } as any,
+          session: localSession,
           error: null,
         });
         return;
       }
 
-      if (sessionData.session) {
-        logger.info('Active Supabase session found');
-        await this.handleSessionUpdate(sessionData.session);
-        // Start health monitoring instead of legacy health check
-        sessionHealthMonitor.start(supabase);
-        return;
-      }
-
-      logger.info('No session found, user needs to authenticate');
+      logger.info('[AUTH] No session found, user needs to authenticate');
       this.updateState({
         isLoading: false,
         isAuthenticated: false,
         error: null,
       });
     } catch (error) {
-      logger.error('Authentication initialization failed', error);
+      logger.error('[AUTH] Initialization error', error);
       this.updateState({
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Authentication failed',
+        error: error instanceof Error ? error.message : 'Initialization failed',
       });
     }
   }
@@ -428,133 +412,34 @@ class AuthService {
   }
 
   public async authenticateWithTelegram(): Promise<void> {
-    this.updateState({ isLoading: true, error: null });
+    logger.warn('[AUTH] Telegram authentication not available in frontend-only mode');
 
-    try {
-      if (!telegram.isAvailable || !telegram.initData) {
-        throw new Error('Telegram environment not available or no initData');
-      }
+    this.updateState({
+      isLoading: false,
+      error: 'Telegram authentication is not available in this build',
+    });
 
-      const supabase = getSupabase();
-      const config = await import('./supabaseClient').then(m => m.loadConfig());
-
-      if (!config?.supabaseUrl) {
-        throw new Error('Supabase not configured in frontend-only mode');
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-      const response = await fetch(`${config.supabaseUrl}/functions/v1/telegram-verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'webapp',
-          initData: telegram.initData,
-        }),
-        signal: controller.signal,
-      }).finally(() => clearTimeout(timeoutId));
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          errorData = { error: errorText };
-        }
-
-        logger.error('Authentication failed', new Error(errorData.error || 'Unknown error'), {
-          status: response.status,
-          statusText: response.statusText,
-          timestamp: errorData.timestamp
-        });
-
-        let userFriendlyError = errorData.error || `Authentication failed: ${response.status}`;
-
-        if (response.status === 401) {
-          if (!errorData.error || errorData.error.includes('signature')) {
-            userFriendlyError = 'אימות Telegram נכשל. אנא ודא שהאפליקציה נפתחה מתוך Telegram.\n\nTelegram authentication failed. Please ensure the app is opened from within Telegram.';
-          }
-        } else if (response.status === 500) {
-          // More specific error message for 500 errors
-          const errorDetail = errorData.error || 'Internal server error';
-          if (errorDetail.includes('Invalid login credentials')) {
-            userFriendlyError = 'שגיאת אימות זמנית. מנסה שוב...\n\nTemporary authentication error. Retrying...';
-          } else if (errorDetail.includes('TELEGRAM_BOT_TOKEN')) {
-            userFriendlyError = 'תצורת הבוט לא תקינה. אנא צור קשר עם התמיכה.\n\nBot configuration error. Please contact support.';
-          } else {
-            userFriendlyError = `שגיאת שרת: ${errorDetail}\n\nServer error: ${errorDetail}`;
-          }
-        } else if (response.status === 400) {
-          if (!errorData.error || errorData.error.includes('Invalid')) {
-            userFriendlyError = 'נתוני אימות לא חוקיים.\n\nInvalid authentication data.';
-          }
-        }
-
-        throw new Error(userFriendlyError);
-      }
-
-      const result = await response.json();
-
-      if (!result.session?.access_token) {
-        throw new Error('No access token in response');
-      }
-
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: result.session.access_token,
-        refresh_token: result.session.refresh_token,
-      });
-
-      if (sessionError) {
-        throw new Error(`Failed to set session: ${sessionError.message}`);
-      }
-    } catch (error) {
-      logger.error('Telegram authentication error', error);
-
-      let errorMessage = 'Authentication failed';
-
-      if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          errorMessage = 'פסק זמן לאימות. אנא בדוק את חיבור האינטרנט ונסה שוב.\n\nAuthentication timeout. Please check your internet connection and try again.';
-        } else {
-          errorMessage = error.message;
-        }
-      }
-
-      this.updateState({
-        isLoading: false,
-        error: errorMessage,
-      });
-      throw error;
-    }
+    throw new Error('Telegram authentication not available in frontend-only mode');
   }
 
   public async signOut(): Promise<void> {
     try {
-      // Stop session health monitoring
+      logger.info('[AUTH] Sign out initiated');
+
       sessionHealthMonitor.stop();
 
-      // Stop legacy session health check
       if (this.sessionHealthCheckInterval) {
         clearInterval(this.sessionHealthCheckInterval);
         this.sessionHealthCheckInterval = null;
       }
 
-      if (!isSupabaseInitialized()) {
-        logger.warn('Supabase not initialized, clearing local state only');
-        this.handleSignOut();
-        this.clearStoredData();
-        return;
-      }
-
-      const supabase = getSupabase();
-      await supabase.auth.signOut();
-
+      localSessionManager.clearSession();
       this.clearStoredData();
       this.handleSignOut();
+
+      logger.info('[AUTH] Sign out complete');
     } catch (error) {
-      logger.error('Sign out error', error);
+      logger.error('[AUTH] Sign out error', error);
       throw error;
     }
   }
@@ -571,38 +456,24 @@ class AuthService {
 
   public async refreshSession(): Promise<void> {
     if (this.isRefreshingToken) {
-      logger.debug('Token refresh already in progress, skipping');
+      logger.debug('[AUTH] Token refresh already in progress, skipping');
       return;
     }
 
     this.isRefreshingToken = true;
 
     try {
-      logger.info('Refreshing session');
-      if (!isSupabaseInitialized()) {
-        throw new Error('Supabase not initialized. Cannot refresh session.');
+      logger.info('[AUTH] Refreshing local session');
+
+      const session = localSessionManager.getSession();
+      if (!session) {
+        throw new Error('No active session to refresh');
       }
 
-      const supabase = getSupabase();
-      const { data, error } = await supabase.auth.refreshSession();
-
-      if (error) {
-        logger.error('Session refresh failed', error);
-        // Try one more time to restore from backup using session manager
-        const restoredSession = await sessionManager.restoreSession(supabase);
-        if (!restoredSession) {
-          throw error;
-        }
-        await this.handleSessionUpdate(restoredSession);
-        return;
-      }
-
-      if (data.session) {
-        logger.info('Session refreshed successfully');
-        await this.handleSessionUpdate(data.session);
-      }
+      localSessionManager.refreshExpiryTime();
+      logger.info('[AUTH] Session expiry refreshed');
     } catch (error) {
-      logger.error('Session refresh error', error);
+      logger.error('[AUTH] Session refresh error', error);
       throw error;
     } finally {
       this.isRefreshingToken = false;
@@ -614,73 +485,48 @@ class AuthService {
     signature: string,
     message: string
   ): Promise<void> {
-    if (this.isSxtMode()) {
-      createLocalSession({ walletType: 'ethereum', walletAddress, issuedAt: Date.now() });
+    this.updateState({ isLoading: true, error: null });
+
+    try {
+      logger.info('[AUTH] Ethereum wallet authentication initiated');
+
+      const role = roleAssignmentManager.getRoleForWallet(walletAddress) || 'customer';
+      const session = localSessionManager.createSession(walletAddress, 'ethereum', signature, message, role);
+
+      logger.info(`[AUTH] Wallet session created for ${walletAddress} with role: ${role}`);
+
       this.updateState({
         isAuthenticated: true,
         isLoading: false,
         user: {
           id: walletAddress,
+          wallet_address_eth: walletAddress,
           username: walletAddress,
           name: walletAddress,
           photo_url: null,
-          role: 'user',
+          role,
           auth_method: 'ethereum'
         } as any,
-        session: { wallet: walletAddress },
+        session: {
+          wallet: walletAddress,
+          walletType: 'ethereum',
+          role
+        },
         error: null
       });
-      return;
-    }
 
-    this.updateState({ isLoading: true, error: null });
-
-    try {
-      const supabase = getSupabase();
-      const config = await import('./supabaseClient').then(m => m.loadConfig());
-
-      if (!config?.supabaseUrl || !config?.supabaseAnonKey) {
-        throw new Error('Supabase not configured in frontend-only mode');
+      if (this.sessionSyncChannel) {
+        this.sessionSyncChannel.postMessage({
+          type: 'SESSION_UPDATED',
+          session: {
+            wallet: walletAddress,
+            walletType: 'ethereum',
+            role
+          }
+        });
       }
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-      const response = await fetch(`${config.supabaseUrl}/functions/v1/web3-verify`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.supabaseAnonKey}`,
-          'apikey': config.supabaseAnonKey,
-        },
-        body: JSON.stringify({
-          chain: 'ethereum',
-          walletAddress,
-          signature,
-          message,
-        }),
-        signal: controller.signal,
-      }).finally(() => clearTimeout(timeoutId));
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Authentication failed' }));
-        throw new Error(errorData.error || `Authentication failed: ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      if (!result.session?.access_token) {
-        throw new Error('No access token in response');
-      }
-
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: result.session.access_token,
-        refresh_token: result.session.refresh_token,
-      });
-
-      if (sessionError) {
-        throw new Error(`Failed to set session: ${sessionError.message}`);
-      }
+      logger.info('[AUTH] Ethereum authentication successful');
     } catch (error) {
       logger.error('Ethereum authentication error', error);
 
@@ -707,73 +553,48 @@ class AuthService {
     signature: string,
     message: string
   ): Promise<void> {
-    if (this.isSxtMode()) {
-      createLocalSession({ walletType: 'solana', walletAddress, issuedAt: Date.now() });
+    this.updateState({ isLoading: true, error: null });
+
+    try {
+      logger.info('[AUTH] Solana wallet authentication initiated');
+
+      const role = roleAssignmentManager.getRoleForWallet(walletAddress) || 'customer';
+      const session = localSessionManager.createSession(walletAddress, 'solana', signature, message, role);
+
+      logger.info(`[AUTH] Wallet session created for ${walletAddress} with role: ${role}`);
+
       this.updateState({
         isAuthenticated: true,
         isLoading: false,
         user: {
           id: walletAddress,
+          wallet_address_sol: walletAddress,
           username: walletAddress,
           name: walletAddress,
           photo_url: null,
-          role: 'user',
+          role,
           auth_method: 'solana'
         } as any,
-        session: { wallet: walletAddress },
+        session: {
+          wallet: walletAddress,
+          walletType: 'solana',
+          role
+        },
         error: null
       });
-      return;
-    }
 
-    this.updateState({ isLoading: true, error: null });
-
-    try {
-      const supabase = getSupabase();
-      const config = await import('./supabaseClient').then(m => m.loadConfig());
-
-      if (!config?.supabaseUrl || !config?.supabaseAnonKey) {
-        throw new Error('Supabase not configured in frontend-only mode');
+      if (this.sessionSyncChannel) {
+        this.sessionSyncChannel.postMessage({
+          type: 'SESSION_UPDATED',
+          session: {
+            wallet: walletAddress,
+            walletType: 'solana',
+            role
+          }
+        });
       }
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-      const response = await fetch(`${config.supabaseUrl}/functions/v1/web3-verify`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.supabaseAnonKey}`,
-          'apikey': config.supabaseAnonKey,
-        },
-        body: JSON.stringify({
-          chain: 'solana',
-          walletAddress,
-          signature,
-          message,
-        }),
-        signal: controller.signal,
-      }).finally(() => clearTimeout(timeoutId));
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Authentication failed' }));
-        throw new Error(errorData.error || `Authentication failed: ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      if (!result.session?.access_token) {
-        throw new Error('No access token in response');
-      }
-
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: result.session.access_token,
-        refresh_token: result.session.refresh_token,
-      });
-
-      if (sessionError) {
-        throw new Error(`Failed to set session: ${sessionError.message}`);
-      }
+      logger.info('[AUTH] Solana authentication successful');
     } catch (error) {
       logger.error('Solana authentication error', error);
 
