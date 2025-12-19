@@ -126,7 +126,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
       throw lastError || new Error('Failed to create session after 3 attempts');
     }
 
-    // Create a service role client that can bypass RLS
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
@@ -169,7 +168,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
         global_role: 'user',
         auth_method: chain,
         auth_methods_linked: [{ type: chain, value: normalizedAddress, linked_at: new Date().toISOString() }],
-        active: true,
         metadata: {},
       };
 
@@ -183,7 +181,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
       if (insertErr) {
         console.error('❌ User insert failed:', insertErr.message);
 
-        // Check if this is an RLS policy violation
         if (insertErr.message && insertErr.message.includes('row-level security')) {
           throw new Error(
             'Database security policy prevented user creation. This usually indicates a missing RLS policy. ' +
