@@ -5,12 +5,15 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AppServicesProvider } from './context/AppServicesContext';
 import { SupabaseReadyProvider } from './context/SupabaseReadyContext';
+import { SupabaseShimProvider } from './context/SupabaseShimContext';
 import { SxtAuthProvider } from './context/SxtAuthProvider';
 import { LanguageProvider } from './context/LanguageContext';
 import { GlobalErrorBoundary } from './components/ErrorBoundary';
 import { ThemeProvider } from './foundation/theme/ThemeProvider';
 import { initSupabase } from './lib/supabaseClient';
+import { initSupabaseShim } from './lib/supabaseClientShim';
 import { sessionManager } from './lib/sessionManager';
+import { sessionManagerShim } from './lib/sessionManagerShim';
 import './lib/diagnostics';
 import './lib/errorHandler';
 import { initializeApplicationLayer } from './application/bootstrap';
@@ -137,15 +140,36 @@ function LoadingScreen() {
     // Show loading screen
     root.render(<LoadingScreen />);
 
-    // Initialize Supabase (skipped in SxT mode)
+    // Initialize Supabase (skipped in SxT mode or when using shim)
     try {
       const useSXT = runtimeEnvironment.isSxtModeEnabled();
+      const useShim = import.meta.env.VITE_USE_SUPABASE_SHIM === 'true';
       console.log(`🔧 Data Adapter Mode: ${runtimeEnvironment.getDataAdapterMode()}`);
+      console.log(`🔧 Using Supabase Shim: ${useShim}`);
 
       let supabase: any = null;
       let restoredSession: any = null;
 
-      if (useSXT) {
+      if (useShim) {
+        console.log('Supabase shim active — using no-op client with localStorage/IndexedDB');
+        console.log('⏱️ [TIMING] Starting Supabase shim initialization at', new Date().toISOString());
+        const startTime = performance.now();
+        supabase = await initSupabaseShim();
+        const endTime = performance.now();
+        console.log(`✅ Supabase shim initialized successfully in ${(endTime - startTime).toFixed(2)}ms`);
+
+        console.log('🔄 Attempting session restoration from localStorage...');
+        const sessionStartTime = performance.now();
+        restoredSession = await sessionManagerShim.restoreSession();
+        const sessionEndTime = performance.now();
+
+        if (restoredSession) {
+          console.log(`✅ Session restored successfully in ${(sessionEndTime - sessionStartTime).toFixed(2)}ms`);
+          console.log('👤 User:', restoredSession.user.id);
+        } else {
+          console.log(`ℹ️ No existing session found (${(sessionEndTime - sessionStartTime).toFixed(2)}ms)`);
+        }
+      } else if (useSXT) {
         console.log('SxT mode active — skipping Supabase initialization completely');
       } else {
         console.log('🔄 Initializing Supabase...');
@@ -196,6 +220,7 @@ function LoadingScreen() {
     // Render the actual app
     console.log('✅ Rendering App component...');
     const useSXT = runtimeEnvironment.isSxtModeEnabled();
+    const useShim = import.meta.env.VITE_USE_SUPABASE_SHIM === 'true';
 
     root.render(
       <React.StrictMode>
@@ -208,7 +233,15 @@ function LoadingScreen() {
                   v7_relativeSplatPath: true
                 }}
               >
-                {useSXT ? (
+                {useShim ? (
+                  <AuthProvider>
+                    <SupabaseShimProvider>
+                      <AppServicesProvider>
+                        <App />
+                      </AppServicesProvider>
+                    </SupabaseShimProvider>
+                  </AuthProvider>
+                ) : useSXT ? (
                   <SxtAuthProvider>
                     <AuthProvider>
                       <AppServicesProvider>
