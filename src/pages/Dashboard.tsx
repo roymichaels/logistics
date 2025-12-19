@@ -297,6 +297,7 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
       <BusinessOwnerDashboard
         businessId={businessId || ''}
         userId={user.id}
+        onNavigate={onNavigate}
       />
     );
   }

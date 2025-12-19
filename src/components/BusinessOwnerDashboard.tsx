@@ -8,6 +8,7 @@ import { getSupabase } from '../lib/supabaseClient';
 import { fetchBusinessMetrics } from '../services/metrics';
 import { BusinessBottomNav } from './BusinessBottomNav';
 import { useLanguage } from '../context/LanguageContext';
+import { useI18n } from '../lib/i18n';
 import { DashboardHeader, MetricCard, MetricGrid, Section, LoadingState, EmptyState } from './dashboard';
 import { theme, colors, spacing, typography, borderRadius, components, getStatusBadgeStyle } from '../styles/theme';
 import { logger } from '../lib/logger';
@@ -51,9 +52,10 @@ interface RecentOrder {
 interface BusinessOwnerDashboardProps {
   businessId: string;
   userId: string;
+  onNavigate: (page: string) => void;
 }
 
-export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDashboardProps) {
+export function BusinessOwnerDashboard({ businessId, userId, onNavigate }: BusinessOwnerDashboardProps) {
   const [metrics, setMetrics] = useState<FinancialMetrics | null>(null);
   const [ownership, setOwnership] = useState<OwnershipInfo[]>([]);
   const [team, setTeam] = useState<TeamMember[]>([]);
@@ -61,6 +63,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
   const [loading, setLoading] = useState(true);
   const [activePage, setActivePage] = useState('dashboard');
   const { formatCurrency, isRTL } = useLanguage();
+  const { translations } = useI18n();
 
   // Handle case where businessId is missing
   if (!businessId) {
@@ -68,11 +71,11 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
       <div style={theme.components.pageContainer}>
         <EmptyState
           icon="🏢"
-          title="ברוכים הבאים בעל העסק!"
-          description="כדי להתחיל, עליך לבחור עסק או ליצור עסק חדש. לחץ על הכפתור למטה כדי לעבור לעמוד הניהול של העסקים שלך."
+          title={translations.businessDashboard?.welcome || 'ברוכים הבאים בעל העסק!'}
+          description={translations.businessDashboard?.selectBusinessMessage || 'כדי להתחיל, עליך לבחור עסק או ליצור עסק חדש. לחץ על הכפתור למטה כדי לעבור לעמוד הניהול של העסקים שלך.'}
           action={{
-            label: 'עבור לעמוד עסקים',
-            onClick: () => { window.location.hash = '#businesses'; }
+            label: translations.actions?.goToBusinessesPage || 'עבור לעמוד עסקים',
+            onClick: () => onNavigate('businesses')
           }}
         />
       </div>
@@ -304,10 +307,10 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           {/* Dashboard Header */}
           <DashboardHeader
-            title="Business Dashboard"
-            subtitle="Financial overview and operational metrics"
+            title={translations.businessDashboard?.title || 'Business Dashboard'}
+            subtitle={translations.businessDashboard?.subtitle || 'Financial overview and operational metrics'}
             role="business_owner"
-            roleLabel="Business Owner"
+            roleLabel={translations.roles?.businessOwner || 'Business Owner'}
             icon="💼"
             actions={
               <>
@@ -315,13 +318,13 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
                   ...components.button.secondary,
                   fontSize: typography.fontSize.sm,
                 }}>
-                  Export Report
+                  {translations.businessDashboard?.exportReport || 'Export Report'}
                 </button>
                 <button style={{
                   ...components.button.primary,
                   fontSize: typography.fontSize.sm,
                 }}>
-                  Manage Team
+                  {translations.businessDashboard?.manageTeam || 'Manage Team'}
                 </button>
               </>
             }
@@ -330,36 +333,36 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
           {/* Financial Overview Metrics */}
           <MetricGrid columns={4}>
             <MetricCard
-              label="Profit (Month)"
+              label={translations.financialMetrics?.profitMonth || 'Profit (Month)'}
               value={`₪${metrics?.profit_month.toLocaleString()}`}
-              subtitle={`${metrics?.profit_margin.toFixed(1)}% margin`}
+              subtitle={`${metrics?.profit_margin.toFixed(1)}% ${translations.financialMetrics?.margin || 'margin'}`}
               icon="💎"
               variant="success"
               size="medium"
               onClick={() => setActivePage('reports')}
             />
             <MetricCard
-              label="Costs (Month)"
+              label={translations.financialMetrics?.costsMonth || 'Costs (Month)'}
               value={`₪${metrics?.costs_month.toLocaleString()}`}
-              subtitle="Operating expenses"
+              subtitle={translations.financialMetrics?.operatingExpenses || 'Operating expenses'}
               icon="📊"
               variant="default"
               size="medium"
               onClick={() => setActivePage('reports')}
             />
             <MetricCard
-              label="Revenue (Month)"
+              label={translations.financialMetrics?.revenueMonth || 'Revenue (Month)'}
               value={`₪${metrics?.revenue_month.toLocaleString()}`}
-              subtitle={`₪${metrics?.revenue_today.toLocaleString()} today`}
+              subtitle={`₪${metrics?.revenue_today.toLocaleString()} ${translations.financialMetrics?.today || 'today'}`}
               icon="💰"
               variant="primary"
               size="medium"
               onClick={() => setActivePage('reports')}
             />
             <MetricCard
-              label="Orders (Month)"
+              label={translations.financialMetrics?.ordersMonth || 'Orders (Month)'}
               value={`${metrics?.orders_month}`}
-              subtitle={`₪${metrics?.average_order_value.toFixed(0)} avg`}
+              subtitle={`₪${metrics?.average_order_value.toFixed(0)} ${translations.financialMetrics?.avg || 'avg'}`}
               icon="📦"
               variant="default"
               size="medium"
@@ -369,7 +372,10 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
 
           {/* Ownership Distribution */}
           {ownership.length > 0 && (
-            <Section title="Ownership Distribution" subtitle="Equity and profit sharing breakdown">
+            <Section
+              title={translations.businessDashboard?.ownershipDistribution || 'Ownership Distribution'}
+              subtitle={translations.businessDashboard?.equityAndProfitSharing || 'Equity and profit sharing breakdown'}
+            >
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
@@ -418,7 +424,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
                           fontSize: typography.fontSize.sm,
                           color: colors.text.secondary,
                         }}>
-                          {owner.ownership_percentage}% ownership
+                          {owner.ownership_percentage}% {translations.financialMetrics?.ownership || 'ownership'}
                         </div>
                       </div>
                     </div>
@@ -431,7 +437,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
                         borderRadius: borderRadius.md,
                       }}>
                         <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                          Profit Share:
+                          {translations.financialMetrics?.profitShare || 'Profit Share'}:
                         </span>
                         <span style={{ fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>
                           {owner.profit_share_percentage}%
@@ -446,7 +452,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
                         borderRadius: borderRadius.md,
                       }}>
                         <span style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
-                          Est. Monthly Share:
+                          {translations.financialMetrics?.estimatedMonthlyShare || 'Est. Monthly Share'}:
                         </span>
                         <span style={{ fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.bold, color: colors.status.success }}>
                           ₪{owner.estimated_monthly_share.toLocaleString()}
@@ -460,12 +466,15 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
           )}
 
           {/* Team Performance */}
-          <Section title="Team Performance" subtitle="Member contributions and activity">
+          <Section
+            title={translations.businessDashboard?.teamPerformance || 'Team Performance'}
+            subtitle={translations.businessDashboard?.memberContributions || 'Member contributions and activity'}
+          >
             {team.length === 0 ? (
               <EmptyState
                 icon="👥"
-                title="No team members"
-                description="Team members will appear here after they are invited to the system"
+                title={translations.businessDashboard?.noTeamMembers || 'No team members'}
+                description={translations.businessDashboard?.teamMembersWillAppear || 'Team members will appear here after they are invited to the system'}
               />
             ) : (
               <div style={{ overflowX: 'auto' }}>
@@ -483,7 +492,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
                         color: colors.text.secondary,
                         textTransform: 'uppercase',
                         letterSpacing: '0.5px',
-                      }}>Name</th>
+                      }}>{translations.financialMetrics?.name || 'Name'}</th>
                       <th style={{
                         textAlign: 'left',
                         padding: spacing.md,
@@ -492,7 +501,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
                         color: colors.text.secondary,
                         textTransform: 'uppercase',
                         letterSpacing: '0.5px',
-                      }}>Role</th>
+                      }}>{translations.financialMetrics?.role || 'Role'}</th>
                       <th style={{
                         textAlign: 'left',
                         padding: spacing.md,
@@ -501,7 +510,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
                         color: colors.text.secondary,
                         textTransform: 'uppercase',
                         letterSpacing: '0.5px',
-                      }}>Orders</th>
+                      }}>{translations.financialMetrics?.ordersCompleted || 'Orders'}</th>
                       <th style={{
                         textAlign: 'left',
                         padding: spacing.md,
@@ -510,7 +519,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
                         color: colors.text.secondary,
                         textTransform: 'uppercase',
                         letterSpacing: '0.5px',
-                      }}>Revenue Generated</th>
+                      }}>{translations.financialMetrics?.revenueGenerated || 'Revenue Generated'}</th>
                       <th style={{
                         textAlign: 'left',
                         padding: spacing.md,
@@ -519,7 +528,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
                         color: colors.text.secondary,
                         textTransform: 'uppercase',
                         letterSpacing: '0.5px',
-                      }}>Status</th>
+                      }}>{translations.financialMetrics?.status || 'Status'}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -575,12 +584,15 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
           </Section>
 
           {/* Recent Orders */}
-          <Section title="Recent Orders" subtitle="Latest transactions and deliveries">
+          <Section
+            title={translations.businessDashboard?.recentOrders || 'Recent Orders'}
+            subtitle={translations.businessDashboard?.latestTransactions || 'Latest transactions and deliveries'}
+          >
             {recentOrders.length === 0 ? (
               <EmptyState
                 icon="📦"
-                title="No orders yet"
-                description="Orders will appear here as they are created"
+                title={translations.businessDashboard?.noOrdersYet || 'No orders yet'}
+                description={translations.businessDashboard?.ordersWillAppear || 'Orders will appear here as they are created'}
               />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>

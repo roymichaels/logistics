@@ -1219,6 +1219,87 @@ const hebrewTranslations: Translations = {
   completed: 'הושלם',
   cancelled: 'בוטל',
 
+  // Dashboard metrics
+  dashboardMetrics: {
+    totalBusinesses: 'סה"כ עסקים',
+    activeBusinesses: 'עסקים פעילים',
+    revenueToday: 'הכנסות היום',
+    totalOrders: 'סה"כ הזמנות',
+    activeDrivers: 'נהגים פעילים',
+    pendingAllocations: 'הקצאות ממתינות',
+    platformWide: 'בכל הפלטפורמה',
+    acrossAllBusinesses: 'על פני כל העסקים',
+    requiresApproval: 'דורש אישור',
+    infrastructureBusiness: 'תשתית + עסקים',
+  },
+
+  // Action labels
+  actions: {
+    createNewBusiness: 'צור עסק חדש',
+    viewAll: 'ראה הכל',
+    viewAuditLog: 'ראה יומן ביקורת',
+    goToBusinessesPage: 'עבור לעמוד עסקים',
+  },
+
+  // Dashboard sections
+  dashboardSections: {
+    businessOverview: 'סקירת עסקים',
+    recentSystemActivity: 'פעילות מערכת אחרונה',
+    platformControl: 'מרכז בקרת תשתית',
+    globalPlatformManagement: 'פיקוח וניהול פלטפורמה גלובלית',
+    noBusinessesYet: 'אין עסקים עדיין',
+    createFirstBusiness: 'צור את העסק הראשון שלך כדי להתחיל',
+    noRecentActivity: 'אין פעילות אחרונה',
+    systemActivityWillAppear: 'פעילות המערכת תופיע כאן',
+  },
+
+  // System health status
+  systemHealth: {
+    healthy: 'תקין',
+    warning: 'אזהרה',
+    critical: 'קריטי',
+  },
+
+  // Business Dashboard
+  businessDashboard: {
+    title: 'לוח מחוונים עסקי',
+    subtitle: 'סקירה פיננסית ומדדים תפעוליים',
+    welcome: 'ברוכים הבאים בעל העסק!',
+    selectBusinessMessage: 'כדי להתחיל, עליך לבחור עסק או ליצור עסק חדש. לחץ על הכפתור למטה כדי לעבור לעמוד הניהול של העסקים שלך.',
+    exportReport: 'ייצא דוח',
+    manageTeam: 'נהל צוות',
+    ownershipDistribution: 'חלוקת בעלות',
+    equityAndProfitSharing: 'הון עצמי וחלוקת רווחים',
+    teamPerformance: 'ביצועי צוות',
+    memberContributions: 'תרומות חברי הצוות ופעילות',
+    recentOrders: 'הזמנות אחרונות',
+    latestTransactions: 'עסקאות ומשלוחים אחרונים',
+    noTeamMembers: 'אין חברי צוות',
+    teamMembersWillAppear: 'חברי הצוות יופיעו כאן לאחר שיוזמנו למערכת',
+    noOrdersYet: 'אין הזמנות עדיין',
+    ordersWillAppear: 'הזמנות יופיעו כאן כשהן ייווצרו',
+  },
+
+  // Financial Metrics
+  financialMetrics: {
+    profitMonth: 'רווח (חודשי)',
+    costsMonth: 'עלויות (חודשי)',
+    revenueMonth: 'הכנסות (חודשי)',
+    ordersMonth: 'הזמנות (חודשי)',
+    margin: 'מרווח',
+    operatingExpenses: 'הוצאות תפעוליות',
+    today: 'היום',
+    avg: 'ממוצע',
+    ownership: 'בעלות',
+    profitShare: 'חלק ברווח',
+    estimatedMonthlyShare: 'חלק חודשי משוער',
+    name: 'שם',
+    role: 'תפקיד',
+    ordersCompleted: 'הזמנות שהושלמו',
+    revenueGenerated: 'הכנסות שנוצרו',
+    status: 'סטטוס',
+  },
+
   // Common UI states
   loading: 'טוען...',
   error: 'שגיאה',
@@ -2394,6 +2475,87 @@ const englishTranslations: Translations = {
   pending: 'Pending',
   completed: 'Completed',
   cancelled: 'Cancelled',
+
+  // Dashboard metrics
+  dashboardMetrics: {
+    totalBusinesses: 'Total Businesses',
+    activeBusinesses: 'Active Businesses',
+    revenueToday: 'Revenue Today',
+    totalOrders: 'Total Orders',
+    activeDrivers: 'Active Drivers',
+    pendingAllocations: 'Pending Allocations',
+    platformWide: 'Platform-wide',
+    acrossAllBusinesses: 'Across all businesses',
+    requiresApproval: 'Requires approval',
+    infrastructureBusiness: 'Infrastructure + Businesses',
+  },
+
+  // Action labels
+  actions: {
+    createNewBusiness: 'Create New Business',
+    viewAll: 'View All',
+    viewAuditLog: 'View Audit Log',
+    goToBusinessesPage: 'Go to Businesses Page',
+  },
+
+  // Dashboard sections
+  dashboardSections: {
+    businessOverview: 'Business Overview',
+    recentSystemActivity: 'Recent System Activity',
+    platformControl: 'Infrastructure Control Center',
+    globalPlatformManagement: 'Global platform management and oversight',
+    noBusinessesYet: 'No businesses yet',
+    createFirstBusiness: 'Create your first business to get started',
+    noRecentActivity: 'No recent activity',
+    systemActivityWillAppear: 'System activity will appear here',
+  },
+
+  // System health status
+  systemHealth: {
+    healthy: 'Healthy',
+    warning: 'Warning',
+    critical: 'Critical',
+  },
+
+  // Business Dashboard
+  businessDashboard: {
+    title: 'Business Dashboard',
+    subtitle: 'Financial overview and operational metrics',
+    welcome: 'Welcome Business Owner!',
+    selectBusinessMessage: 'To get started, you need to select a business or create a new one. Click the button below to go to your business management page.',
+    exportReport: 'Export Report',
+    manageTeam: 'Manage Team',
+    ownershipDistribution: 'Ownership Distribution',
+    equityAndProfitSharing: 'Equity and profit sharing breakdown',
+    teamPerformance: 'Team Performance',
+    memberContributions: 'Member contributions and activity',
+    recentOrders: 'Recent Orders',
+    latestTransactions: 'Latest transactions and deliveries',
+    noTeamMembers: 'No team members',
+    teamMembersWillAppear: 'Team members will appear here after they are invited to the system',
+    noOrdersYet: 'No orders yet',
+    ordersWillAppear: 'Orders will appear here as they are created',
+  },
+
+  // Financial Metrics
+  financialMetrics: {
+    profitMonth: 'Profit (Month)',
+    costsMonth: 'Costs (Month)',
+    revenueMonth: 'Revenue (Month)',
+    ordersMonth: 'Orders (Month)',
+    margin: 'margin',
+    operatingExpenses: 'Operating expenses',
+    today: 'today',
+    avg: 'avg',
+    ownership: 'ownership',
+    profitShare: 'Profit Share',
+    estimatedMonthlyShare: 'Est. Monthly Share',
+    name: 'Name',
+    role: 'Role',
+    ordersCompleted: 'Orders',
+    revenueGenerated: 'Revenue Generated',
+    status: 'Status',
+  },
 
   // Common UI states
   loading: 'Loading...',

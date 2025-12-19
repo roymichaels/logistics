@@ -8,6 +8,7 @@ import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { CreateBusinessModal } from './CreateBusinessModal';
 import { DataStore, User } from '../data/types';
 import { logger } from '../lib/logger';
+import { useI18n } from '../lib/i18n';
 import { DashboardHeader, MetricCard, MetricGrid, Section, LoadingState, EmptyState } from './dashboard';
 import { theme, colors, spacing, typography, borderRadius, components, getStatusBadgeStyle } from '../styles/theme';
 
@@ -54,6 +55,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const loadingRef = useRef(false);
+  const { translations } = useI18n();
 
   const loadDashboardData = useCallback(async () => {
     if (loadingRef.current) return;
@@ -211,10 +213,10 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
   }, [metrics?.systemHealth]);
 
   const getSystemHealthLabel = useMemo(() => {
-    if (metrics?.systemHealth === 'healthy') return 'תקין';
-    if (metrics?.systemHealth === 'warning') return 'אזהרה';
-    return 'קריטי';
-  }, [metrics?.systemHealth]);
+    if (metrics?.systemHealth === 'healthy') return translations.systemHealth?.healthy || 'תקין';
+    if (metrics?.systemHealth === 'warning') return translations.systemHealth?.warning || 'אזהרה';
+    return translations.systemHealth?.critical || 'קריטי';
+  }, [metrics?.systemHealth, translations]);
 
   if (loading) {
     return <LoadingState variant="page" />;
@@ -225,10 +227,10 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         {/* Dashboard Header */}
         <DashboardHeader
-          title="מרכז בקרת תשתית"
-          subtitle="פיקוח וניהול פלטפורמה גלובלית"
+          title={translations.dashboardSections?.platformControl || 'מרכז בקרת תשתית'}
+          subtitle={translations.dashboardSections?.globalPlatformManagement || 'פיקוח וניהול פלטפורמה גלובלית'}
           role="infrastructure_owner"
-          roleLabel="Infrastructure Owner"
+          roleLabel={translations.roles?.infrastructureOwner || 'Infrastructure Owner'}
           icon="🏗️"
           variant="gradient"
           actions={
@@ -268,41 +270,41 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
         {/* Platform Metrics */}
         <MetricGrid columns={3}>
           <MetricCard
-            label="Total Businesses"
+            label={translations.dashboardMetrics?.totalBusinesses || 'Total Businesses'}
             value={metrics?.totalBusinesses || 0}
-            subtitle={`${metrics?.activeBusinesses || 0} active`}
+            subtitle={`${metrics?.activeBusinesses || 0} ${translations.dashboardMetrics?.activeBusinesses || 'active'}`}
             icon="🏢"
             variant="primary"
             onClick={() => onNavigate('businesses')}
           />
           <MetricCard
-            label="Revenue Today"
+            label={translations.dashboardMetrics?.revenueToday || 'Revenue Today'}
             value={`₪${(metrics?.totalRevenue || 0).toLocaleString()}`}
-            subtitle="Across all businesses"
+            subtitle={translations.dashboardMetrics?.acrossAllBusinesses || 'Across all businesses'}
             icon="💰"
             variant="success"
             onClick={() => onNavigate('reports')}
           />
           <MetricCard
-            label="Total Orders"
+            label={translations.dashboardMetrics?.totalOrders || 'Total Orders'}
             value={metrics?.totalOrders || 0}
-            subtitle="Platform-wide"
+            subtitle={translations.dashboardMetrics?.platformWide || 'Platform-wide'}
             icon="📦"
             variant="default"
             onClick={() => onNavigate('orders')}
           />
           <MetricCard
-            label="Active Drivers"
+            label={translations.dashboardMetrics?.activeDrivers || 'Active Drivers'}
             value={metrics?.activeDrivers || 0}
-            subtitle="Infrastructure + Businesses"
+            subtitle={translations.dashboardMetrics?.infrastructureBusiness || 'Infrastructure + Businesses'}
             icon="🚗"
             variant="default"
             onClick={() => onNavigate('drivers')}
           />
           <MetricCard
-            label="Pending Allocations"
+            label={translations.dashboardMetrics?.pendingAllocations || 'Pending Allocations'}
             value={metrics?.pendingAllocations || 0}
-            subtitle="Requires approval"
+            subtitle={translations.dashboardMetrics?.requiresApproval || 'Requires approval'}
             icon="⚠️"
             variant="warning"
             onClick={() => onNavigate('user-management')}
@@ -311,7 +313,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
 
         {/* Business Overview */}
         <Section
-          title="סקירת עסקים"
+          title={translations.dashboardSections?.businessOverview || 'סקירת עסקים'}
           actions={
             <>
               <button
@@ -321,7 +323,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
                   fontSize: typography.fontSize.sm,
                 }}
               >
-                + צור עסק חדש
+                + {translations.actions?.createNewBusiness || 'צור עסק חדש'}
               </button>
               <button
                 onClick={() => onNavigate('businesses')}
@@ -330,7 +332,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
                   fontSize: typography.fontSize.sm,
                 }}
               >
-                ראה הכל
+                {translations.actions?.viewAll || 'ראה הכל'}
               </button>
             </>
           }
@@ -338,10 +340,10 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
           {businesses.length === 0 ? (
             <EmptyState
               icon="🏢"
-              title="No businesses yet"
-              description="Create your first business to get started"
+              title={translations.dashboardSections?.noBusinessesYet || 'No businesses yet'}
+              description={translations.dashboardSections?.createFirstBusiness || 'Create your first business to get started'}
               action={{
-                label: '+ Create Business',
+                label: translations.actions?.createNewBusiness || '+ Create Business',
                 onClick: () => setShowCreateModal(true),
               }}
             />
@@ -485,7 +487,7 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
 
         {/* Recent System Activity */}
         <Section
-          title="פעילות מערכת אחרונה"
+          title={translations.dashboardSections?.recentSystemActivity || 'פעילות מערכת אחרונה'}
           actions={
             <button
               onClick={() => onNavigate('logs')}
@@ -494,15 +496,15 @@ export function InfrastructureOwnerDashboard({ dataStore, user, onNavigate }: In
                 fontSize: typography.fontSize.sm,
               }}
             >
-              ראה יומן ביקורת
+              {translations.actions?.viewAuditLog || 'ראה יומן ביקורת'}
             </button>
           }
         >
           {recentActivity.length === 0 ? (
             <EmptyState
               icon="📋"
-              title="No recent activity"
-              description="System activity will appear here"
+              title={translations.dashboardSections?.noRecentActivity || 'No recent activity'}
+              description={translations.dashboardSections?.systemActivityWillAppear || 'System activity will appear here'}
             />
           ) : (
             <div style={{
