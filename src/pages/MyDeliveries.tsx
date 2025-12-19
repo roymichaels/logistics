@@ -77,8 +77,8 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
+        backgroundColor: ROYAL_COLORS.bg,
+        color: ROYAL_COLORS.text,
         padding: '20px',
         direction: isRTL ? 'rtl' : 'ltr'
       }}
@@ -93,7 +93,7 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
           <div
             key={delivery.id}
             style={{
-              backgroundColor: theme.secondary_bg_color || '#ffffff',
+              backgroundColor: ROYAL_COLORS.cardBg || '#ffffff',
               borderRadius: '14px',
               padding: '16px',
               border: `1px solid ${hintColor}30`
@@ -117,7 +117,7 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                     backgroundColor:
                       delivery.status === status
                         ? `${statusColor[status]}20`
-                        : (theme.secondary_bg_color || '#f4f4f4'),
+                        : (ROYAL_COLORS.cardBg || '#f4f4f4'),
                     color: delivery.status === status ? statusColor[status] : hintColor,
                     cursor: 'pointer',
                     fontSize: '12px'

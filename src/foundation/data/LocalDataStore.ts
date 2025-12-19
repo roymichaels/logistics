@@ -338,11 +338,28 @@ export class LocalDataStore {
       const session = localStorage.getItem('wallet-session');
       if (!session) {
         logger.warn('[LocalDataStore] No wallet session found');
+
+        const devRole = localStorage.getItem('dev-console:role-override');
+        if (devRole) {
+          logger.debug('[LocalDataStore] Using dev role override:', devRole);
+          return {
+            id: 'dev-user',
+            role: devRole,
+            name: 'Dev User',
+            wallet_address: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+        }
+
         return null;
       }
 
       const sessionData = JSON.parse(session);
       const userId = sessionData.user?.id || sessionData.walletAddress;
+
+      const devRole = localStorage.getItem('dev-console:role-override');
+      const effectiveRole = devRole || sessionData.role || 'customer';
 
       const users = this.getTable('users');
       let user = users.find((u: any) => u.id === userId || u.wallet_address === userId);
@@ -351,13 +368,18 @@ export class LocalDataStore {
         user = {
           id: userId,
           wallet_address: userId,
-          role: sessionData.user?.role || 'customer',
+          role: effectiveRole,
           name: sessionData.user?.name || 'User',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
         users.push(user);
         this.saveToStorage();
+      } else {
+        if (devRole && user.role !== devRole) {
+          user.role = devRole;
+          this.saveToStorage();
+        }
       }
 
       logger.debug('[LocalDataStore] Profile loaded', { userId, role: user.role });

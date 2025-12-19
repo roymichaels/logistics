@@ -67,13 +67,20 @@ export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
 
     try {
       setError(null);
-      const profile = await dataStore.getProfile();
+      let profile = await dataStore.getProfile();
 
       if (!profile) {
-        logger.warn('[Dashboard] No profile found');
-        setError(translations.errors.loadFailed);
-        setLoading(false);
-        return;
+        logger.warn('[Dashboard] No profile found, retrying...');
+
+        await new Promise(resolve => setTimeout(resolve, 200));
+        profile = await dataStore.getProfile();
+
+        if (!profile) {
+          logger.warn('[Dashboard] No profile found after retry');
+          setError(translations.errors.loadFailed);
+          setLoading(false);
+          return;
+        }
       }
 
       logger.debug('[Dashboard] Profile loaded', { role: profile.role, userId: profile.id });

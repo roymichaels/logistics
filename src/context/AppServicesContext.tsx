@@ -4,6 +4,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from 'react';
 import { BootstrapConfig, User } from '../data/types';
@@ -64,6 +65,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   const [devRoleOverride, setDevRoleOverride] = useState<string | null>(() =>
     localStorage.getItem(DEV_ROLE_OVERRIDE_KEY)
   );
+  const roleChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Always call useAuth to comply with React hooks rules
   // We'll just not use it if 'value' is provided
@@ -174,15 +176,33 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     };
 
     const handleDevRoleChange = () => {
-      const override = localStorage.getItem(DEV_ROLE_OVERRIDE_KEY);
-      logger.info('🎭 Dev role override changed:', override);
-      setDevRoleOverride(override);
-
-      if (override) {
-        setUserRole(override as AppUserRole);
-      } else {
-        refreshUserRole({ forceRefresh: true });
+      if (roleChangeTimeoutRef.current) {
+        clearTimeout(roleChangeTimeoutRef.current);
       }
+
+      roleChangeTimeoutRef.current = setTimeout(() => {
+        const override = localStorage.getItem(DEV_ROLE_OVERRIDE_KEY);
+        logger.info('🎭 Dev role override changed:', override);
+        setDevRoleOverride(override);
+
+        if (override) {
+          const session = localStorage.getItem('wallet-session');
+          if (session) {
+            try {
+              const sessionData = JSON.parse(session);
+              sessionData.role = override;
+              localStorage.setItem('wallet-session', JSON.stringify(sessionData));
+              logger.debug('[AppServices] Updated wallet session with new role:', override);
+            } catch (error) {
+              logger.error('[AppServices] Failed to update wallet session:', error);
+            }
+          }
+
+          setUserRole(override as AppUserRole);
+        } else {
+          refreshUserRole({ forceRefresh: true });
+        }
+      }, 100);
     };
 
     window.addEventListener('role-refresh', handleRoleRefresh);
@@ -190,6 +210,9 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     window.addEventListener('storage', handleDevRoleChange);
 
     return () => {
+      if (roleChangeTimeoutRef.current) {
+        clearTimeout(roleChangeTimeoutRef.current);
+      }
       window.removeEventListener('role-refresh', handleRoleRefresh);
       window.removeEventListener('dev-role-changed', handleDevRoleChange);
       window.removeEventListener('storage', handleDevRoleChange);
