@@ -10,7 +10,7 @@
  * - Error recovery
  */
 
-import { SupabaseClient, Session } from '@supabase/supabase-js';
+import { SupabaseClient, Session } from './supabaseTypes';
 import { logger } from './logger';
 
 const SESSION_STORAGE_KEY = 'twa-undergroundlab-session-v2';

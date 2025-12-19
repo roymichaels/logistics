@@ -1,4 +1,4 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '../../lib/supabaseTypes';
 import { IDataStore, FilterCondition, QueryOptions } from '../abstractions/IDataStore';
 import { AsyncResult, Ok, Err } from '../types/Result';
 import { logger } from '../../lib/logger';

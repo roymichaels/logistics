@@ -2,7 +2,7 @@
 // Base Type Definitions
 // ============================================================================
 
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '../lib/supabaseTypes';
 
 // Database Row Types for Query Results
 export type DatabaseRow = Record<string, unknown>;

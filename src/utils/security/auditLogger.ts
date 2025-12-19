@@ -5,7 +5,7 @@
 
 import { getSupabase, isSupabaseInitialized } from '../../lib/supabaseClient';
 import { getGlobalSecurityManager } from './securityManager';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '../../lib/supabaseTypes';
 import { logger } from '../../lib/logger';
 
 export interface SecurityEvent {

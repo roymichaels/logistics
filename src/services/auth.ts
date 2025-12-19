@@ -1,4 +1,4 @@
-import type { Session } from '@supabase/supabase-js';
+import type { Session } from '../lib/supabaseTypes';
 import { invalidatePermissionsCache } from '../lib/dynamicPermissions';
 import { getSupabase, isSupabaseInitialized } from '../lib/supabaseClient';
 import { ensureSession, callEdgeFunction } from './serviceHelpers';

@@ -1,4 +1,4 @@
-import { SupabaseClient, Session as SupabaseSession } from '@supabase/supabase-js';
+import { SupabaseClient, Session as SupabaseSession } from '../../lib/supabaseTypes';
 import { IAuthProvider, User, Session, AuthCredentials } from '../abstractions/IAuthProvider';
 import { AsyncResult, Ok, Err } from '../types/Result';
 import { logger } from '../../lib/logger';

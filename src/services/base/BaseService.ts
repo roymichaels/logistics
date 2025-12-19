@@ -5,7 +5,7 @@
  * Each service extends this to inherit shared capabilities.
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '../../lib/supabaseTypes';
 import { getSupabase } from '../../lib/supabaseClient';
 import { logger } from '../../lib/logger';
 

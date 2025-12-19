@@ -5,7 +5,7 @@
  * session validation, and recovery from network failures.
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from './supabaseTypes';
 import { logger } from './logger';
 import { sessionManager } from './sessionManager';
 

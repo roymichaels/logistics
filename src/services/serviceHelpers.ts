@@ -1,4 +1,4 @@
-import type { Session, SupabaseClient } from '@supabase/supabase-js';
+import type { Session, SupabaseClient } from '../lib/supabaseTypes';
 import { getSupabase } from '../lib/supabaseClient';
 
 export class EdgeFunctionError extends Error {
