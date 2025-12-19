@@ -1,4 +1,8 @@
-const noOpQueryBuilder = {
+import { logger } from './logger';
+
+logger.info('[FRONTEND-ONLY] Supabase stub loaded - no backend connections');
+
+const noOpQueryBuilder: any = {
   select: () => noOpQueryBuilder,
   insert: () => noOpQueryBuilder,
   update: () => noOpQueryBuilder,
@@ -41,12 +45,12 @@ const mockSupabaseClient = {
       remove: async () => ({ data: null, error: null }),
     }),
   },
+  functions: {
+    invoke: async () => ({ data: null, error: new Error('Edge functions not available in frontend-only mode') }),
+  },
 };
 
-let isInitialized = false;
-
 export async function initSupabase(): Promise<any> {
-  isInitialized = true;
   return mockSupabaseClient;
 }
 

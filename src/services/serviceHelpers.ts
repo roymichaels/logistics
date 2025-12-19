@@ -1,5 +1,4 @@
-import type { Session, SupabaseClient } from '../lib/supabaseTypes';
-import { getSupabase } from '../lib/supabaseClient';
+import { logger } from '../lib/logger';
 
 export class EdgeFunctionError extends Error {
   status?: number;
@@ -14,45 +13,30 @@ export class EdgeFunctionError extends Error {
 }
 
 export interface SessionContext {
-  supabase: SupabaseClient;
-  session: Session;
+  session: any;
 }
 
 export async function ensureSession(): Promise<SessionContext> {
-  const supabase = getSupabase();
-  const { data, error } = await supabase.auth.getSession();
+  logger.warn('[FRONTEND-ONLY] ensureSession called - returning mock session');
 
-  if (error) {
-    throw new Error(`Failed to load session: ${error.message}`);
-  }
+  const mockSession = {
+    wallet: 'mock-wallet',
+    role: 'customer',
+    walletType: 'ethereum'
+  };
 
-  if (!data.session) {
-    throw new Error('User is not authenticated');
-  }
-
-  return { supabase, session: data.session };
+  return { session: mockSession };
 }
 
 export async function callEdgeFunction<T>(
-  supabase: SupabaseClient,
   functionName: string,
   body?: Record<string, unknown | null>
 ): Promise<T> {
-  const { data, error } = await supabase.functions.invoke<T>(functionName, {
-    body,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  logger.warn(`[FRONTEND-ONLY] Edge function ${functionName} called - returning mock data`);
 
-  if (error) {
-    const message = error.message || `Failed to execute ${functionName}`;
-    throw new EdgeFunctionError(message, (error as any).status, (error as any).details);
-  }
-
-  if (data === null || data === undefined) {
-    throw new EdgeFunctionError(`No response returned from ${functionName}`);
-  }
-
-  return data;
+  throw new EdgeFunctionError(
+    `Edge functions not available in frontend-only mode: ${functionName}`,
+    501,
+    { body }
+  );
 }

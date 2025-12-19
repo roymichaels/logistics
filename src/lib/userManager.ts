@@ -1,15 +1,39 @@
 import type { User, UserRegistration } from '../data/types';
-import {
-  approveUserRegistrationRecord,
-  ApproveUserRegistrationInput,
-  deleteUserRegistrationRecord,
-  fetchUserRegistrationRecord,
-  listUserRegistrationRecords,
-  updateUserRegistrationRoleRecord,
-  UpdateUserRegistrationRoleInput,
-  upsertUserRegistrationRecord,
-  UpsertUserRegistrationInput
-} from './supabaseDataStore';
+import { logger } from './logger';
+import { frontendOnlyDataStore } from './frontendOnlyDataStore';
+
+type ApproveUserRegistrationInput = any;
+type UpdateUserRegistrationRoleInput = any;
+type UpsertUserRegistrationInput = any;
+
+async function fetchUserRegistrationRecord(telegramId: string): Promise<UserRegistration | null> {
+  logger.warn('[FRONTEND-ONLY] fetchUserRegistrationRecord called');
+  return null;
+}
+
+async function approveUserRegistrationRecord(input: ApproveUserRegistrationInput): Promise<UserRegistration | null> {
+  logger.warn('[FRONTEND-ONLY] approveUserRegistrationRecord called');
+  return null;
+}
+
+async function deleteUserRegistrationRecord(telegramId: string): Promise<void> {
+  logger.warn('[FRONTEND-ONLY] deleteUserRegistrationRecord called');
+}
+
+async function listUserRegistrationRecords(): Promise<UserRegistration[]> {
+  logger.warn('[FRONTEND-ONLY] listUserRegistrationRecords called');
+  return [];
+}
+
+async function updateUserRegistrationRoleRecord(input: UpdateUserRegistrationRoleInput): Promise<UserRegistration | null> {
+  logger.warn('[FRONTEND-ONLY] updateUserRegistrationRoleRecord called');
+  return null;
+}
+
+async function upsertUserRegistrationRecord(input: UpsertUserRegistrationInput): Promise<UserRegistration | null> {
+  logger.warn('[FRONTEND-ONLY] upsertUserRegistrationRecord called');
+  return null;
+}
 
 const VALID_ROLES: User['role'][] = [
   'infrastructure_owner',

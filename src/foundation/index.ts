@@ -6,46 +6,56 @@ export * from './engine';
 export * from './diagnostics';
 export * from './theme';
 
-import { getSupabase } from '../lib/supabaseClient';
-import { SupabaseDataStoreAdapter } from './adapters/SupabaseDataStoreAdapter';
-import { SupabaseAuthAdapter } from './adapters/SupabaseAuthAdapter';
+import { logger } from '../lib/logger';
+import { frontendOnlyDataStore } from '../lib/frontendOnlyDataStore';
+import { authService } from '../lib/authService';
 import { eventBus } from './events/EventBus';
 import { featureFlagEngine } from './engine/FeatureFlagEngine';
 import { navigationService } from './engine/NavigationService';
 import { shellEngine } from './engine/ShellEngine';
 import { errorCollector } from './diagnostics/ErrorCollector';
 
-let dataStoreInstance: SupabaseDataStoreAdapter | null = null;
-let authProviderInstance: SupabaseAuthAdapter | null = null;
+let isInitialized = false;
 
 export function initializeFoundation() {
-  const client = getSupabase();
+  if (isInitialized) {
+    logger.debug('[FOUNDATION] Already initialized, returning existing instances');
+    return getFoundationServices();
+  }
 
-  dataStoreInstance = new SupabaseDataStoreAdapter(client);
-  authProviderInstance = new SupabaseAuthAdapter(client);
+  logger.info('[FOUNDATION] Initializing frontend-only foundation');
 
+  isInitialized = true;
+
+  return getFoundationServices();
+}
+
+function getFoundationServices() {
   return {
-    dataStore: dataStoreInstance,
-    authProvider: authProviderInstance,
+    dataStore: frontendOnlyDataStore,
+    authProvider: authService,
     eventBus,
     featureFlags: featureFlagEngine,
     navigation: navigationService,
     shell: shellEngine,
+    errorCollector,
   };
 }
 
-export function getDataStore(): SupabaseDataStoreAdapter {
-  if (!dataStoreInstance) {
-    throw new Error('Foundation not initialized. Call initializeFoundation() first.');
+export function getDataStore() {
+  if (!isInitialized) {
+    logger.warn('[FOUNDATION] Accessing dataStore before initialization');
+    initializeFoundation();
   }
-  return dataStoreInstance;
+  return frontendOnlyDataStore;
 }
 
-export function getAuthProvider(): SupabaseAuthAdapter {
-  if (!authProviderInstance) {
-    throw new Error('Foundation not initialized. Call initializeFoundation() first.');
+export function getAuthProvider() {
+  if (!isInitialized) {
+    logger.warn('[FOUNDATION] Accessing authProvider before initialization');
+    initializeFoundation();
   }
-  return authProviderInstance;
+  return authService;
 }
 
 export { eventBus, featureFlagEngine, navigationService, shellEngine, errorCollector };

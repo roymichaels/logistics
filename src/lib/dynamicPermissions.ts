@@ -6,7 +6,6 @@
  */
 
 import { logger } from './logger';
-import { supabase } from './supabaseClient';
 import type { PermissionProfile } from '../services/types';
 
 export type ResolvedPermissions = PermissionProfile;

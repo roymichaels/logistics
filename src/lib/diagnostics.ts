@@ -6,7 +6,6 @@
  */
 
 import { logger } from './logger';
-import { getSupabase } from './supabaseClient';
 import type { User } from '../data/types';
 import { ROLE_PERMISSIONS, hasPermission } from './rolePermissions';
 
