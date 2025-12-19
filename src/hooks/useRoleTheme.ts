@@ -13,6 +13,7 @@ import { logger } from '../lib/logger';
 interface UseRoleThemeReturn {
   colors: typeof colors;
   commonStyles: typeof commonStyles;
+  styles: typeof commonStyles; // Alias for backward compatibility
   roleName: string;
   isLoading: boolean;
 }
@@ -50,6 +51,7 @@ export function useRoleTheme(): UseRoleThemeReturn {
   return {
     colors,
     commonStyles,
+    styles: commonStyles, // Alias for backward compatibility
     roleName,
     isLoading: loading,
   };
@@ -61,6 +63,7 @@ export function useRoleTheme(): UseRoleThemeReturn {
 export function useSpecificRoleTheme(): {
   colors: typeof colors;
   commonStyles: typeof commonStyles;
+  styles: typeof commonStyles;
 } {
-  return { colors, commonStyles };
+  return { colors, commonStyles, styles: commonStyles };
 }

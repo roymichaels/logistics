@@ -379,6 +379,7 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
                 subtitle={`${metrics.activeMembers} מחוברים`}
                 icon="👥"
                 variant="primary"
+                onClick={() => setSelectedView('team')}
               />
               <MetricCard
                 label="הזמנות היום"
@@ -386,6 +387,7 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
                 subtitle={`${metrics.completedToday} הושלמו`}
                 icon="📦"
                 variant="default"
+                onClick={() => onNavigate('orders')}
               />
               <MetricCard
                 label="הכנסות היום"
@@ -393,6 +395,7 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
                 subtitle="רווח נקי"
                 icon="💰"
                 variant="success"
+                onClick={() => setSelectedView('reports')}
               />
               <MetricCard
                 label="ממתין לאישור"
@@ -400,6 +403,7 @@ export function ManagerDashboard({ dataStore, user, onNavigate }: ManagerDashboa
                 subtitle="פעולות דרושות"
                 icon="⏳"
                 variant="warning"
+                onClick={() => setSelectedView('approvals')}
               />
             </MetricGrid>
 

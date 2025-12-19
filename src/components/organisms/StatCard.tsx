@@ -17,7 +17,7 @@ export interface StatCardProps {
 
 export function StatCard({ title, value, icon, trend, subtitle, onClick }: StatCardProps) {
   return (
-    <Card hoverable={!!onClick} onClick={onClick}>
+    <Card hoverable={!!onClick} interactive={!!onClick} onClick={onClick}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{ flex: 1 }}>
           <Text variant="small" color="secondary" style={{ marginBottom: spacing.xs }}>

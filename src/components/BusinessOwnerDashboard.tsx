@@ -336,6 +336,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
               icon="💎"
               variant="success"
               size="medium"
+              onClick={() => setActivePage('reports')}
             />
             <MetricCard
               label="Costs (Month)"
@@ -344,6 +345,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
               icon="📊"
               variant="default"
               size="medium"
+              onClick={() => setActivePage('reports')}
             />
             <MetricCard
               label="Revenue (Month)"
@@ -352,6 +354,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
               icon="💰"
               variant="primary"
               size="medium"
+              onClick={() => setActivePage('reports')}
             />
             <MetricCard
               label="Orders (Month)"
@@ -360,6 +363,7 @@ export function BusinessOwnerDashboard({ businessId, userId }: BusinessOwnerDash
               icon="📦"
               variant="default"
               size="medium"
+              onClick={() => setActivePage('orders')}
             />
           </MetricGrid>
 
