@@ -101,6 +101,30 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     requiredRoles: ['business_owner', 'manager']
   },
   {
+    id: 'business-sales',
+    label: 'Sales CRM',
+    path: '/business/sales',
+    icon: '💼',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager', 'sales']
+  },
+  {
+    id: 'business-support',
+    label: 'Support',
+    path: '/business/support',
+    icon: '🎧',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager', 'customer_service']
+  },
+  {
+    id: 'business-warehouse',
+    label: 'Warehouse',
+    path: '/business/warehouse',
+    icon: '🏭',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager', 'warehouse']
+  },
+  {
     id: 'business-settings',
     label: 'Settings',
     path: '/business/settings',
@@ -112,10 +136,18 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
 
 export const DRIVER_SHELL_NAV: NavigationItem[] = [
   {
-    id: 'driver-home',
+    id: 'driver-deliveries',
     label: 'Deliveries',
     path: '/driver/deliveries',
     icon: '🚚',
+    visible: true,
+    requiredRoles: ['driver']
+  },
+  {
+    id: 'driver-dashboard',
+    label: 'Dashboard',
+    path: '/driver/dashboard',
+    icon: '📊',
     visible: true,
     requiredRoles: ['driver']
   },

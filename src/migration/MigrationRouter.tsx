@@ -50,6 +50,10 @@ const KYCFlow = lazy(() => import('../pages/kyc/KYCFlow'));
 const CustomerExperienceDemo = lazy(() => import('../pages/modern/CustomerExperienceDemo').then((module) => ({ default: module.CustomerExperienceDemo })));
 const BusinessDemoPage = lazy(() => import('../pages/modern/BusinessDemoPage').then((module) => ({ default: module.BusinessDemoPage })));
 const DriverDemoPage = lazy(() => import('../pages/modern/DriverDemoPage').then((module) => ({ default: module.DriverDemoPage })));
+const PlatformDashboard = lazy(() => import('../pages/admin/PlatformDashboard').then((module) => ({ default: module.PlatformDashboard })));
+const SalesDashboard = lazy(() => import('../pages/sales/SalesDashboard').then((module) => ({ default: module.SalesDashboard })));
+const SupportDashboard = lazy(() => import('../pages/customer-service/SupportDashboard').then((module) => ({ default: module.SupportDashboard })));
+const RoutePlanning = lazy(() => import('../pages/dispatcher/RoutePlanning').then((module) => ({ default: module.RoutePlanning })));
 
 const PageLoadingSkeleton = () => <div style={{ padding: 20 }}>Loading...</div>;
 
@@ -201,6 +205,9 @@ export default function MigrationRouter(props: { dataStore?: any; onNavigate?: (
         <Route path="/business/manager-inventory" element={<ManagerInventory dataStore={dataStore} onNavigate={onNavigate} />} />
         <Route path="/business/warehouse" element={<WarehouseDashboard dataStore={dataStore} onNavigate={onNavigate} />} />
         <Route path="/business/dispatch" element={<DispatchBoard dataStore={dataStore} onNavigate={onNavigate} />} />
+        <Route path="/business/dispatch/planning" element={<RoutePlanning />} />
+        <Route path="/business/sales" element={<SalesDashboard />} />
+        <Route path="/business/support" element={<SupportDashboard />} />
         <Route path="/sandbox" element={<SandboxPage dataStore={dataStore} onNavigate={onNavigate} />} />
         <Route path="/start-new" element={<StartNewPage dataStore={dataStore} onNavigate={onNavigate} />} />
         <Route path="/admin/logs" element={<Logs dataStore={dataStore} onNavigate={onNavigate} />} />
@@ -209,7 +216,8 @@ export default function MigrationRouter(props: { dataStore?: any; onNavigate?: (
         <Route path="/chat" element={<Chat dataStore={dataStore} onNavigate={onNavigate} currentUser={user} />} />
 
         {/* Driver Routes */}
-        <Route path="/driver" element={<Navigate to="/driver/dashboard" replace />} />
+        <Route path="/driver" element={<Navigate to="/driver/deliveries" replace />} />
+        <Route path="/driver/deliveries" element={<MyDeliveries dataStore={dataStore} onNavigate={onNavigate} />} />
         <Route path="/driver/dashboard" element={<DriverStatus dataStore={dataStore} onNavigate={onNavigate} />} />
         <Route path="/driver/tasks" element={<Tasks dataStore={dataStore} onNavigate={onNavigate} />} />
         <Route path="/driver/routes" element={<MyDeliveries dataStore={dataStore} onNavigate={onNavigate} />} />
@@ -217,11 +225,16 @@ export default function MigrationRouter(props: { dataStore?: any; onNavigate?: (
         <Route path="/driver/my-inventory" element={<MyInventory dataStore={dataStore} onNavigate={onNavigate} />} />
         <Route path="/driver/my-zones" element={<MyZones dataStore={dataStore} onNavigate={onNavigate} />} />
         <Route path="/driver/status" element={<DriverStatus dataStore={dataStore} onNavigate={onNavigate} />} />
+        <Route path="/driver/earnings" element={<div style={{ padding: 20 }}>Earnings Dashboard (Coming Soon)</div>} />
+        <Route path="/driver/profile" element={<ProfilePage dataStore={dataStore} onNavigate={onNavigate} />} />
 
         {/* Admin Routes */}
+        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/admin/dashboard" element={<PlatformDashboard />} />
         <Route path="/admin/analytics" element={<Reports dataStore={dataStore} onNavigate={onNavigate} />} />
         <Route path="/admin/businesses" element={<Businesses dataStore={dataStore} onNavigate={onNavigate} />} />
         <Route path="/admin/users" element={<UserManagement onNavigate={onNavigate} currentUser={user} dataStore={dataStore} />} />
+        <Route path="/admin/settings" element={<div style={{ padding: 20 }}>Settings (Coming Soon)</div>} />
 
         {/* Social/User Routes */}
         <Route path="/user-homepage" element={<UserHomepage dataStore={dataStore} onNavigate={onNavigate} />} />

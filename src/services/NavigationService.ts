@@ -1,4 +1,4 @@
-import { rolePermissions, Permission } from '../lib/rolePermissions';
+import { ROLE_PERMISSIONS, Permission } from '../lib/rolePermissions';
 
 export interface NavigationRoute {
   path: string;
@@ -20,11 +20,9 @@ export class NavigationService {
 
   private getRolePermissions(role: string | null): Permission[] {
     if (!role) return [];
-    const perms = rolePermissions[role];
-    if (!perms) return [];
-    return Object.entries(perms)
-      .filter(([_, hasPermission]) => hasPermission)
-      .map(([permission]) => permission as Permission);
+    const rolePerms = ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS];
+    if (!rolePerms) return [];
+    return rolePerms.permissions;
   }
 
   hasPermission(permission: Permission): boolean {
