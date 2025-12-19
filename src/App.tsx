@@ -11,6 +11,7 @@ import { OnboardingHub } from './components/OnboardingHub';
 import { BusinessOwnerOnboarding } from './components/BusinessOwnerOnboarding';
 import { SearchBusinessModal } from './components/SearchBusinessModal';
 import { BecomeDriverModal } from './components/BecomeDriverModal';
+import { WorkWithUsModal } from './components/WorkWithUsModal';
 import { ToastContainer } from './components/EnhancedToast';
 import { PageLoadingSkeleton } from './components/LoadingSkeleton';
 import { debugLog } from './components/DebugPanel';
@@ -108,10 +109,11 @@ export default function App() {
     return !hasVisited;
   });
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [onboardingPathway, setOnboardingPathway] = useState<'business_owner' | 'team_member' | null>(null);
+  const [onboardingPathway, setOnboardingPathway] = useState<'business_owner' | 'team_member' | 'select' | null>(null);
   const [showSearchBusiness, setShowSearchBusiness] = useState(false);
   const [showBecomeDriver, setShowBecomeDriver] = useState(false);
   const [showCreateBusiness, setShowCreateBusiness] = useState(false);
+  const [showWorkWithUs, setShowWorkWithUs] = useState(false);
 
   // Derived state for login status
   const isLoggedIn = user !== null;
@@ -194,7 +196,18 @@ export default function App() {
       handleRoleRefresh();
     };
 
+    // Listen for work-with-us events from profile page
+    const handleWorkWithUsBusiness = () => {
+      handleStartBusinessOnboarding();
+    };
+
+    const handleWorkWithUsDriver = () => {
+      handleStartDriverOnboarding();
+    };
+
     window.addEventListener('role-refresh', handleCustomRefresh, { passive: true });
+    window.addEventListener('open-work-with-us-business', handleWorkWithUsBusiness, { passive: true });
+    window.addEventListener('open-work-with-us-driver', handleWorkWithUsDriver, { passive: true });
 
     // Check URL for refresh parameter (legacy support)
     const params = new URLSearchParams(window.location.search);
@@ -206,6 +219,8 @@ export default function App() {
 
     return () => {
       window.removeEventListener('role-refresh', handleCustomRefresh);
+      window.removeEventListener('open-work-with-us-business', handleWorkWithUsBusiness);
+      window.removeEventListener('open-work-with-us-driver', handleWorkWithUsDriver);
     };
   }, [dataStore, refreshUserRole]);
 
@@ -319,7 +334,7 @@ export default function App() {
       sales: 'dashboard',
       dispatcher: 'dispatch-board',
       customer_service: 'dashboard',
-      user: 'user-homepage'
+      user: 'catalog'
     };
 
     const defaultPage: Page | null = roleDefaultPageMap[userRole] ?? null;
@@ -445,6 +460,25 @@ export default function App() {
     telegram.hapticFeedback('selection');
   };
 
+  const handleShowWorkWithUs = () => {
+    setShowWorkWithUs(true);
+    telegram.hapticFeedback('selection');
+  };
+
+  const handleStartBusinessOnboarding = () => {
+    setShowWorkWithUs(false);
+    setOnboardingPathway('business_owner');
+    setShowOnboarding(true);
+    telegram.hapticFeedback('selection');
+  };
+
+  const handleStartDriverOnboarding = () => {
+    setShowWorkWithUs(false);
+    setOnboardingPathway('team_member');
+    setShowOnboarding(true);
+    telegram.hapticFeedback('selection');
+  };
+
   // Business owners with no active business -> sandbox selector
   useEffect(() => {
     if (useSXT && isAuthenticated && userRole === 'business' && !currentBusinessId) {
@@ -491,39 +525,65 @@ export default function App() {
     );
   }
 
-  // Show onboarding flow for authenticated users with 'user' role
-  if (!useSXT && isLoggedIn && userRole === 'user' && !loading && !error) {
-    // Check if user wants to see onboarding
-    const hasCompletedOnboarding = localStorage.getItem(`onboarding_completed_${user?.id}`);
+  // Show onboarding flow ONLY when explicitly triggered by user
+  // (Removed automatic onboarding for 'user' role - users now see catalog first)
+  if (showOnboarding && onboardingPathway) {
+    // Onboarding Hub - pathway selection
+    if (onboardingPathway === 'select') {
+      return (
+        <OnboardingHub
+          onSelectPathway={(pathway) => {
+            if (pathway) {
+              setOnboardingPathway(pathway);
+              setShowOnboarding(true);
+            }
+          }}
+          onSkip={() => {
+            if (user?.id) {
+              localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
+            }
+            setShowOnboarding(false);
+            setOnboardingPathway(null);
+          }}
+        />
+      );
+    }
 
-    if (!hasCompletedOnboarding || showOnboarding) {
-      // Onboarding Hub - pathway selection
-      if (!onboardingPathway) {
-        return (
-          <OnboardingHub
-            onSelectPathway={(pathway) => {
-              if (pathway) {
-                setOnboardingPathway(pathway);
-                setShowOnboarding(true);
-              }
-            }}
-            onSkip={() => {
-              if (user?.id) {
-                localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
-              }
-              setShowOnboarding(false);
+    // Business Owner Onboarding
+    if (onboardingPathway === 'business_owner' && dataStore) {
+      return (
+        <BusinessOwnerOnboarding
+          dataStore={dataStore}
+          onComplete={() => {
+            if (user?.id) {
+              localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
+            }
+            setShowOnboarding(false);
+            setOnboardingPathway(null);
+            refreshUserRole({ forceRefresh: true });
+          }}
+          onBack={() => {
+            setOnboardingPathway(null);
+          }}
+        />
+      );
+    }
+
+    // Team Member Onboarding (Driver Application)
+    if (onboardingPathway === 'team_member') {
+      return (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: '#15202B',
+          zIndex: 9999
+        }}>
+          <BecomeDriverModal
+            onClose={() => {
               setOnboardingPathway(null);
+              setShowOnboarding(false);
             }}
-          />
-        );
-      }
-
-      // Business Owner Onboarding
-      if (onboardingPathway === 'business_owner' && dataStore) {
-        return (
-          <BusinessOwnerOnboarding
-            dataStore={dataStore}
-            onComplete={() => {
+            onSuccess={() => {
               if (user?.id) {
                 localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
               }
@@ -531,40 +591,9 @@ export default function App() {
               setOnboardingPathway(null);
               refreshUserRole({ forceRefresh: true });
             }}
-            onBack={() => {
-              setOnboardingPathway(null);
-            }}
           />
-        );
-      }
-
-      // Team Member Onboarding (Driver Application)
-      if (onboardingPathway === 'team_member') {
-        // For now, team_member pathway goes to driver application
-        // Can be expanded to handle other team roles later
-        return (
-          <div style={{
-            position: 'fixed',
-            inset: 0,
-            background: '#15202B',
-            zIndex: 9999
-          }}>
-            <BecomeDriverModal
-              onClose={() => {
-                setOnboardingPathway(null);
-              }}
-              onSuccess={() => {
-                if (user?.id) {
-                  localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
-                }
-                setShowOnboarding(false);
-                setOnboardingPathway(null);
-                refreshUserRole({ forceRefresh: true });
-              }}
-            />
-          </div>
-        );
-      }
+        </div>
+      );
     }
   }
 
@@ -742,6 +771,11 @@ export default function App() {
                       showCreateBusiness,
                       openCreateBusiness: handleShowCreateBusiness,
                       closeCreateBusiness: () => setShowCreateBusiness(false),
+                      showWorkWithUs,
+                      openWorkWithUs: handleShowWorkWithUs,
+                      closeWorkWithUs: () => setShowWorkWithUs(false),
+                      startBusinessOnboarding: handleStartBusinessOnboarding,
+                      startDriverOnboarding: handleStartDriverOnboarding,
                       handleLogout,
                       handleShowCreateTask,
                       handleShowScanBarcode,
@@ -840,6 +874,14 @@ export default function App() {
             />
           </div>
         </div>
+      )}
+
+      {showWorkWithUs && (
+        <WorkWithUsModal
+          onClose={() => setShowWorkWithUs(false)}
+          onSelectBusinessOwner={handleStartBusinessOnboarding}
+          onSelectDriver={handleStartDriverOnboarding}
+        />
       )}
 
       <ToastContainer />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { User as UserIcon, Mail, Shield, Settings as SettingsIcon, Package, LogOut, ChevronRight } from 'lucide-react';
+import { User as UserIcon, Mail, Shield, Settings as SettingsIcon, Package, LogOut, ChevronRight, Briefcase, Truck, Sparkles } from 'lucide-react';
 import type { User } from '../data/types';
 import { usePageTitle } from '../hooks/usePageTitle';
 import { useNavController } from '../migration/controllers/navController';
@@ -139,6 +139,59 @@ function ProfilePageNewContent({ user, dataStore, onNavigate }: ProfilePageNewPr
             nav.push('kyc', {});
           }}
         />
+
+        {/* Work With Us Section */}
+        <div style={{ marginTop: spacing.xl }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md }}>
+            <Sparkles size={20} color={colors.brand.primary} />
+            <Text variant="h3" weight="bold" style={{ margin: 0 }}>
+              Work With Us
+            </Text>
+          </div>
+          <Card
+            style={{
+              background: `linear-gradient(135deg, ${colors.brand.primaryFaded}, ${colors.brand.secondaryFaded})`,
+              padding: spacing.lg,
+              marginBottom: spacing.md,
+              border: `1px solid ${colors.brand.primary}40`,
+            }}
+          >
+            <Text variant="body" weight="semibold" style={{ marginBottom: spacing.xs, color: colors.text.primary }}>
+              Join Our Team
+            </Text>
+            <Text variant="small" color="secondary" style={{ marginBottom: spacing.lg }}>
+              Earn money by becoming a business owner or delivery driver
+            </Text>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: spacing.md }}>
+              <SettingsCard
+                icon={<Briefcase size={20} color={colors.brand.primary} />}
+                title="Start Your Business"
+                description="Create and manage your own business"
+                style={{
+                  background: colors.background.secondary,
+                  border: `1px solid ${colors.brand.primary}40`,
+                }}
+                onClick={() => {
+                  // This will be wired up through shell context
+                  window.dispatchEvent(new CustomEvent('open-work-with-us-business'));
+                }}
+              />
+              <SettingsCard
+                icon={<Truck size={20} color={colors.brand.secondary} />}
+                title="Become a Driver"
+                description="Start earning as a delivery driver"
+                style={{
+                  background: colors.background.secondary,
+                  border: `1px solid ${colors.brand.secondary}40`,
+                }}
+                onClick={() => {
+                  // This will be wired up through shell context
+                  window.dispatchEvent(new CustomEvent('open-work-with-us-driver'));
+                }}
+              />
+            </div>
+          </Card>
+        </div>
 
         {/* Recent Orders Section */}
         <div style={{ marginTop: spacing.xl }}>
