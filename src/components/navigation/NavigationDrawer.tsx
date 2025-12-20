@@ -1,6 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { NavigationSidebar, NavigationSection } from './NavigationSidebar';
-import { NavigationContent } from './NavigationContent';
+import React, { useEffect } from 'react';
 
 interface NavigationDrawerProps {
   isOpen: boolean;
@@ -9,8 +7,6 @@ interface NavigationDrawerProps {
 }
 
 export function NavigationDrawer({ isOpen, onClose, children }: NavigationDrawerProps) {
-  const [activeSection, setActiveSection] = useState('main');
-
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -23,12 +19,6 @@ export function NavigationDrawer({ isOpen, onClose, children }: NavigationDrawer
   }, [isOpen]);
 
   if (!isOpen) return null;
-
-  // Define navigation sections
-  const sections: NavigationSection[] = [
-    { id: 'main', label: 'Main', icon: '🏠' },
-    { id: 'settings', label: 'Settings', icon: '⚙️' },
-  ];
 
   return (
     <>
@@ -51,7 +41,7 @@ export function NavigationDrawer({ isOpen, onClose, children }: NavigationDrawer
           top: '5%',
           bottom: '5%',
           right: '16px',
-          width: '340px',
+          width: '280px',
           maxWidth: 'calc(100vw - 32px)',
           backgroundColor: 'rgba(18, 18, 20, 0.95)',
           backdropFilter: 'blur(20px)',
@@ -59,19 +49,72 @@ export function NavigationDrawer({ isOpen, onClose, children }: NavigationDrawer
           boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 255, 255, 0.1)',
           zIndex: 10001,
           display: 'flex',
+          flexDirection: 'column',
           overflow: 'hidden',
           transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
           transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <NavigationSidebar
-          sections={sections}
-          activeSection={activeSection}
-          onSectionChange={setActiveSection}
-          onClose={onClose}
-        />
-        <NavigationContent activeSection={activeSection}>{children}</NavigationContent>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '20px',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+          }}
+        >
+          <h2
+            style={{
+              margin: 0,
+              fontSize: '16px',
+              fontWeight: '600',
+              color: 'rgba(255, 255, 255, 0.9)',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            Navigation
+          </h2>
+          <button
+            onClick={onClose}
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontSize: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+              e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            padding: '16px',
+          }}
+        >
+          {children}
+        </div>
       </div>
     </>
   );
