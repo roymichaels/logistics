@@ -59,24 +59,15 @@ function StoreShellContent({ children, isAuthenticated, cartItemCount }: { child
             }}>
               🛍️
             </div>
-            <div className="tablet-up">
-              <h1 style={{
-                margin: 0,
-                fontSize: typography.fontSize['2xl'],
-                fontWeight: typography.fontWeight.heavy,
-                color: colors.text.primary,
-                letterSpacing: '-0.01em',
-              }}>
-                {isRTL ? 'חנות' : 'Store'}
-              </h1>
-              <p style={{
-                margin: 0,
-                fontSize: typography.fontSize.sm,
-                color: colors.text.tertiary,
-              }}>
-                {isRTL ? 'עיין בקטלוג המוצרים' : 'Browse our catalog'}
-              </p>
-            </div>
+            <h1 style={{
+              margin: 0,
+              fontSize: typography.fontSize['2xl'],
+              fontWeight: typography.fontWeight.heavy,
+              color: colors.text.primary,
+              letterSpacing: '-0.01em',
+            }}>
+              {isRTL ? 'חנות' : 'Store'}
+            </h1>
           </div>
           <div style={{ display: 'flex', gap: spacing.md, alignItems: 'center' }}>
             {cartItemCount !== undefined && (

@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ShoppingCart } from 'lucide-react';
 import type { Product } from '../data/types';
 import { usePageTitle } from '../hooks/usePageTitle';
 import { useNavController } from '../migration/controllers/navController';
@@ -7,18 +6,13 @@ import { useDataSandbox } from '../migration/data/useDataSandbox';
 import { useAddToCart } from '../migration/AddToCartController.migration';
 import CartDrawerNew from '../components/cart/CartDrawer.new';
 import ProductDetailsSheetNew from '../components/catalog/ProductDetailsSheet.new';
-import { PageHeader } from '../components/molecules/PageHeader';
-import { PageContent } from '../components/molecules/PageContent';
-import { SectionHeader } from '../components/molecules/SectionHeader';
 import { SearchBar } from '../components/molecules/SearchBar';
 import { ProductCard } from '../components/molecules/ProductCard';
 import { EmptyState } from '../components/molecules/EmptyState';
 import { LoadingState } from '../components/molecules/LoadingState';
 import { Grid } from '../components/atoms/Grid';
 import { Chip } from '../components/atoms/Chip';
-import { Button } from '../components/atoms/Button';
-import { Card } from '../components/molecules/Card';
-import { colors, spacing, gradients, borderRadius, shadows, typography, transitions, backdropBlur, zIndex } from '../styles/design-system';
+import { colors, spacing, gradients, borderRadius, shadows, typography } from '../styles/design-system';
 
 type CatalogPageNewProps = {
   products?: Product[];
@@ -32,7 +26,6 @@ type CatalogPageNewContentProps = CatalogPageNewProps & {
   cart: ReturnType<typeof useAddToCart>;
 };
 
-const CATEGORIES = ['All', 'Electronics', 'Security', 'Privacy', 'Hardware', 'Software'];
 const SORT_OPTIONS = ['All', 'New', 'Popular', 'Price: Low to High', 'Price: High to Low'];
 
 function CatalogPageNewContent({
@@ -54,17 +47,16 @@ function CatalogPageNewContent({
   const sandbox = useDataSandbox();
   const { add: addToCart } = cart;
 
-  // Navigation is optional - only use if provider exists
   let nav: ReturnType<typeof useNavController> | null = null;
   try {
     nav = useNavController();
   } catch {
-    // Provider not available, navigation disabled
+    // Provider not available
   }
 
   useEffect(() => {
     setTitle('Store');
-    setSubtitle('Browse our catalog');
+    setSubtitle('');
   }, [setTitle, setSubtitle]);
 
   useEffect(() => {
@@ -107,7 +99,6 @@ function CatalogPageNewContent({
     };
   }, [incomingProducts, dataStore, sandbox.active]);
 
-  // Derive categories from products
   const derivedCategories = useMemo(() => {
     if (sandbox.active && sandbox.sandbox.categories) {
       return ['All', ...((sandbox.sandbox.categories as any[]) || []).map((c: any) => c.name || c.id)];
@@ -116,11 +107,9 @@ function CatalogPageNewContent({
     return ['All', ...uniqueCategories];
   }, [products, sandbox]);
 
-  // Filter and sort products
   const filteredProducts = useMemo(() => {
     let result = [...products];
 
-    // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -131,14 +120,12 @@ function CatalogPageNewContent({
       );
     }
 
-    // Filter by category
     if (activeCategory !== 'All') {
       result = result.filter(
         (p) => p.category === activeCategory || ((p as any).tags || []).includes(activeCategory)
       );
     }
 
-    // Sort
     if (sortBy === 'New') {
       result.sort((a, b) => (new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()));
     } else if (sortBy === 'Popular') {
@@ -166,94 +153,66 @@ function CatalogPageNewContent({
     setCartOpen(true);
   };
 
-  const cartItemCount = cart.cartItems.length;
-
-  // Header actions
-  const headerActions = (
-    <Button
-      variant="ghost"
-      size="md"
-      onClick={() => setCartOpen(true)}
-      style={{
-        position: 'relative',
-        display: 'flex',
-        alignItems: 'center',
-        gap: spacing.sm,
-      }}
-    >
-      <ShoppingCart size={20} />
-      {cartItemCount > 0 && (
-        <span
-          style={{
-            position: 'absolute',
-            top: -4,
-            right: -4,
-            width: 18,
-            height: 18,
-            borderRadius: '50%',
-            background: colors.status.error,
-            color: colors.white,
-            fontSize: '11px',
-            fontWeight: 700,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          {cartItemCount}
-        </span>
-      )}
-    </Button>
-  );
-
   return (
     <>
-      <PageContent style={{
-        padding: spacing.lg,
-        paddingTop: spacing.xl,
-        paddingBottom: spacing['4xl'],
-        maxWidth: '1400px',
-        margin: '0 auto',
-      }}>
-        {/* Cart Button - Floating */}
-        <div
-          style={{
-            position: 'fixed',
-            top: spacing['3xl'],
-            right: spacing.lg,
-            zIndex: zIndex.sticky,
-            background: colors.ui.overlay,
-            backdropFilter: backdropBlur.lg,
-            borderRadius: borderRadius.full,
-            boxShadow: shadows.xl,
-            padding: spacing.xs,
-            border: `1px solid ${colors.border.secondary}`,
-          }}
-        >
-          {headerActions}
-        </div>
-        {/* Featured Section */}
-        <Card
-          variant="elevated"
-          style={{
-            background: gradients.primary,
-            color: colors.white,
-            padding: spacing['2xl'],
-            marginBottom: spacing['2xl'],
-            borderRadius: borderRadius['2xl'],
-            boxShadow: shadows.glowLarge,
-            border: 'none',
-          }}
-        >
-          <h3 style={{
+      <style>
+        {`
+          .catalog-page {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: ${spacing.lg};
+            padding-bottom: 100px;
+          }
+
+          @media (min-width: 768px) {
+            .catalog-page {
+              padding: ${spacing.xl} ${spacing['2xl']};
+            }
+          }
+
+          @media (min-width: 1024px) {
+            .catalog-page {
+              padding: ${spacing['2xl']} ${spacing['3xl']};
+              padding-bottom: ${spacing['3xl']};
+            }
+          }
+
+          .filters-chips-row {
+            display: flex;
+            gap: ${spacing.sm};
+            overflow-x: auto;
+            padding-bottom: ${spacing.xs};
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            -webkit-overflow-scrolling: touch;
+          }
+
+          .filters-chips-row::-webkit-scrollbar {
+            display: none;
+          }
+        `}
+      </style>
+
+      <div className="catalog-page">
+        {/* Featured Banner */}
+        <div style={{
+          background: gradients.primary,
+          color: colors.white,
+          padding: `${spacing['2xl']} ${spacing.xl}`,
+          marginBottom: spacing['2xl'],
+          borderRadius: borderRadius['2xl'],
+          boxShadow: shadows.glowLarge,
+          textAlign: 'center',
+        }}>
+          <h2 style={{
             margin: 0,
             marginBottom: spacing.sm,
-            fontSize: typography.fontSize.xl,
+            fontSize: typography.fontSize['2xl'],
             fontWeight: typography.fontWeight.bold,
             lineHeight: typography.lineHeight.tight,
           }}>
             Featured Products
-          </h3>
+          </h2>
           <p style={{
             margin: 0,
             opacity: 0.95,
@@ -262,13 +221,10 @@ function CatalogPageNewContent({
           }}>
             Check out our latest and most popular items
           </p>
-        </Card>
+        </div>
 
         {/* Search Bar */}
-        <div style={{
-          marginBottom: spacing.xl,
-          filter: `drop-shadow(0 2px 4px rgba(0,0,0,0.1))`,
-        }}>
+        <div style={{ marginBottom: spacing.xl }}>
           <SearchBar
             onSearch={setSearchQuery}
             onClear={() => setSearchQuery('')}
@@ -276,69 +232,90 @@ function CatalogPageNewContent({
           />
         </div>
 
-        {/* Sort Filters */}
-        <SectionHeader
-          title="Sort By"
-          divider={false}
-          style={{ marginBottom: spacing.md, paddingTop: spacing.sm }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            gap: spacing.sm,
-            overflowX: 'auto',
-            paddingBottom: spacing.sm,
-            marginBottom: spacing.xl,
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            WebkitOverflowScrolling: 'touch',
-          }}
-        >
-          {SORT_OPTIONS.map((option) => (
-            <Chip
-              key={option}
-              label={option}
-              active={sortBy === option}
-              onClick={() => setSortBy(option)}
-            />
-          ))}
+        {/* Filters */}
+        <div style={{
+          background: colors.background.secondary,
+          borderRadius: borderRadius.xl,
+          padding: spacing.lg,
+          marginBottom: spacing.xl,
+          border: `1px solid ${colors.border.primary}`,
+        }}>
+          {/* Sort By */}
+          <div style={{ marginBottom: spacing.lg }}>
+            <h3 style={{
+              margin: 0,
+              marginBottom: spacing.md,
+              fontSize: typography.fontSize.sm,
+              fontWeight: typography.fontWeight.semibold,
+              color: colors.text.primary,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              Sort By
+            </h3>
+            <div className="filters-chips-row">
+              {SORT_OPTIONS.map((option) => (
+                <Chip
+                  key={option}
+                  label={option}
+                  active={sortBy === option}
+                  onClick={() => setSortBy(option)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Categories */}
+          <div>
+            <h3 style={{
+              margin: 0,
+              marginBottom: spacing.md,
+              fontSize: typography.fontSize.sm,
+              fontWeight: typography.fontWeight.semibold,
+              color: colors.text.primary,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              Categories
+            </h3>
+            <div className="filters-chips-row">
+              {derivedCategories.map((category) => (
+                <Chip
+                  key={category}
+                  label={category}
+                  active={activeCategory === category}
+                  onClick={() => setActiveCategory(category)}
+                />
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Category Filters */}
-        <SectionHeader
-          title="Categories"
-          divider={false}
-          style={{ marginBottom: spacing.md, paddingTop: spacing.lg }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            gap: spacing.sm,
-            overflowX: 'auto',
-            paddingBottom: spacing.sm,
-            marginBottom: spacing['2xl'],
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            WebkitOverflowScrolling: 'touch',
-          }}
-        >
-          {derivedCategories.map((category) => (
-            <Chip
-              key={category}
-              label={category}
-              active={activeCategory === category}
-              onClick={() => setActiveCategory(category)}
-            />
-          ))}
+        {/* Products Header */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: spacing.lg,
+        }}>
+          <h3 style={{
+            margin: 0,
+            fontSize: typography.fontSize.xl,
+            fontWeight: typography.fontWeight.bold,
+            color: colors.text.primary,
+          }}>
+            Products
+          </h3>
+          <span style={{
+            fontSize: typography.fontSize.sm,
+            color: colors.text.secondary,
+            fontWeight: typography.fontWeight.medium,
+          }}>
+            {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}
+          </span>
         </div>
 
         {/* Products Grid */}
-        <SectionHeader
-          title="Products"
-          subtitle={`${filteredProducts.length} ${filteredProducts.length === 1 ? 'item' : 'items'}`}
-          style={{ marginBottom: spacing.lg }}
-        />
-
         {loading ? (
           <LoadingState message="Loading products..." />
         ) : filteredProducts.length === 0 ? (
@@ -364,9 +341,8 @@ function CatalogPageNewContent({
           />
         ) : (
           <Grid
-            columns={{ mobile: 2, tablet: 3, desktop: 4, wide: 5 }}
+            columns={{ mobile: 2, tablet: 3, desktop: 4, wide: 6 }}
             gap={spacing.lg}
-            style={{ paddingBottom: spacing['4xl'] }}
           >
             {filteredProducts.map((product) => (
               <ProductCard
@@ -379,9 +355,8 @@ function CatalogPageNewContent({
             ))}
           </Grid>
         )}
-      </PageContent>
+      </div>
 
-      {/* Product Detail Sheet */}
       <ProductDetailsSheetNew
         open={!!selected}
         product={selected}
@@ -394,7 +369,6 @@ function CatalogPageNewContent({
         onOpenCart={() => setCartOpen(true)}
       />
 
-      {/* Cart Drawer */}
       <CartDrawerNew
         open={cartOpen}
         items={cart.cartItems as any}
