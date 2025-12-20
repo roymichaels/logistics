@@ -256,7 +256,7 @@ export function StoreShell({
       currentPath={currentPath}
       onNavigate={onNavigate}
       onLogout={onLogout || (() => {})}
-      title={isRTL ? 'חנות' : 'Store'}
+      title=""
     >
       <StoreShellContent isAuthenticated={isAuthenticated} cartItemCount={cartItemCount}>
         {children}

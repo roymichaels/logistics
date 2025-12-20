@@ -32,6 +32,11 @@ function HeaderContent(props: {
   onAvatarClick?: () => void;
   onBusinessContextClick?: (anchor: HTMLElement) => void;
 }) {
+  // Don't render header content if title is empty (custom shell is handling it)
+  if (!props.title || props.title.trim() === '') {
+    return null;
+  }
+
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -106,7 +111,8 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
   const avatarMenu = usePopoverController(resolveStoreAvatarPopover);
   const cartDrawer = useDrawerController(resolveCartDrawer);
 
-  const resolvedTitle = title || 'UndergroundLab';
+  // Allow empty title (don't default to 'UndergroundLab' if explicitly empty)
+  const resolvedTitle = title === undefined ? 'UndergroundLab' : title;
   const resolvedSubtitle = subtitle;
 
   // Get navigation configuration based on role
