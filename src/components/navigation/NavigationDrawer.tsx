@@ -41,7 +41,7 @@ export function NavigationDrawer({ isOpen, onClose, children }: NavigationDrawer
           top: '5%',
           bottom: '5%',
           right: '16px',
-          width: '280px',
+          width: '340px',
           maxWidth: 'calc(100vw - 32px)',
           backgroundColor: 'rgba(18, 18, 20, 0.95)',
           backdropFilter: 'blur(20px)',
@@ -49,7 +49,6 @@ export function NavigationDrawer({ isOpen, onClose, children }: NavigationDrawer
           boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 255, 255, 0.1)',
           zIndex: 10001,
           display: 'flex',
-          flexDirection: 'column',
           overflow: 'hidden',
           transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
           transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -58,24 +57,16 @@ export function NavigationDrawer({ isOpen, onClose, children }: NavigationDrawer
       >
         <div
           style={{
+            width: '72px',
+            backgroundColor: 'rgba(10, 10, 12, 0.6)',
+            borderRight: '1px solid rgba(255, 255, 255, 0.06)',
             display: 'flex',
-            justifyContent: 'space-between',
+            flexDirection: 'column',
+            padding: '16px 0',
+            gap: '8px',
             alignItems: 'center',
-            padding: '20px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
           }}
         >
-          <h2
-            style={{
-              margin: 0,
-              fontSize: '16px',
-              fontWeight: '600',
-              color: 'rgba(255, 255, 255, 0.9)',
-              letterSpacing: '-0.01em',
-            }}
-          >
-            Navigation
-          </h2>
           <button
             onClick={onClose}
             style={{
@@ -91,6 +82,7 @@ export function NavigationDrawer({ isOpen, onClose, children }: NavigationDrawer
               justifyContent: 'center',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
+              marginBottom: '8px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
@@ -111,6 +103,9 @@ export function NavigationDrawer({ isOpen, onClose, children }: NavigationDrawer
             overflowY: 'auto',
             overflowX: 'hidden',
             padding: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
           }}
         >
           {children}
