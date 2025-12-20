@@ -81,7 +81,7 @@ export function SalesDashboard() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
             gap: spacing[3],
             marginBottom: spacing[4],
           }}
@@ -122,7 +122,7 @@ export function SalesDashboard() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: spacing[4] }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: spacing[4] }}>
         <Card padding={spacing[4]}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing[3] }}>
             <h2 style={{ fontSize: '18px', fontWeight: 600, color: colors.text.primary }}>

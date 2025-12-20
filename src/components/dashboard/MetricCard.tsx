@@ -213,12 +213,25 @@ export interface MetricGridProps {
 }
 
 export function MetricGrid({ children, columns = 4 }: MetricGridProps) {
+  const getGridTemplate = () => {
+    switch (columns) {
+      case 2:
+        return 'repeat(auto-fit, minmax(300px, 1fr))';
+      case 3:
+        return 'repeat(auto-fit, minmax(240px, 1fr))';
+      case 4:
+      default:
+        return 'repeat(auto-fit, minmax(200px, 1fr))';
+    }
+  };
+
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: `repeat(auto-fit, minmax(${columns === 2 ? '300px' : columns === 3 ? '240px' : '200px'}, 1fr))`,
+      gridTemplateColumns: getGridTemplate(),
       gap: spacing.lg,
       marginBottom: spacing['2xl'],
+      width: '100%',
     }}>
       {children}
     </div>
