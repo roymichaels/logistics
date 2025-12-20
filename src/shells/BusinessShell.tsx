@@ -38,40 +38,33 @@ function BusinessShellContent({ children, businessName, role }: { children: Reac
       <header
         className="layout-shell__header"
         style={{
-          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+          background: 'linear-gradient(135deg, #6A4BFF 0%, #5A3FE8 100%)',
           color: 'white',
           padding: 'var(--spacing-md)',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100
         }}
       >
         <div className="layout-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-            <button
-              className="mobile-only"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              style={{
-                padding: '8px',
-                background: 'rgba(255,255,255,0.2)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '20px',
-                display: 'flex',
-                alignItems: 'center'
-              }}
-            >
-              ☰
-            </button>
-            <div>
-              <h1 className="heading-3" style={{ margin: 0, color: 'white' }}>
-                {businessName || 'Business Portal'}
-              </h1>
-              <p className="mobile-only" style={{ margin: '4px 0 0 0', fontSize: '12px', opacity: 0.9 }}>
-                {roleLabel}
-              </p>
-            </div>
-          </div>
+          <button
+            className="mobile-only"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            style={{
+              padding: '8px',
+              background: 'rgba(255,255,255,0.2)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '20px',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            ☰
+          </button>
           <button
             onClick={() => onNavigate('/logout')}
             style={{
@@ -79,10 +72,14 @@ function BusinessShellContent({ children, businessName, role }: { children: Reac
               background: 'rgba(255,255,255,0.2)',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: '6px',
               cursor: 'pointer',
-              fontSize: '14px'
+              fontSize: '14px',
+              fontWeight: 500,
+              transition: 'background 0.2s ease'
             }}
+            onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.3)')}
+            onMouseOut={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.2)')}
           >
             Logout
           </button>
@@ -93,18 +90,19 @@ function BusinessShellContent({ children, businessName, role }: { children: Reac
         <nav
           className={`layout-sidebar ${sidebarOpen ? 'mobile-sidebar-open' : ''}`}
           style={{
-            background: '#f8f9fa',
-            borderRight: '1px solid #e0e0e0',
-            padding: 'var(--spacing-md)',
+            background: '#1A1F2A',
+            borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+            padding: 'var(--spacing-lg) var(--spacing-md)',
             display: sidebarOpen ? 'flex' : undefined,
             flexDirection: 'column',
             gap: 'var(--spacing-xs)',
             position: sidebarOpen ? 'fixed' : undefined,
             top: sidebarOpen ? 0 : undefined,
-            left: sidebarOpen ? 0 : undefined,
+            right: sidebarOpen ? 0 : undefined,
             bottom: sidebarOpen ? 0 : undefined,
+            width: sidebarOpen ? '280px' : undefined,
             zIndex: sidebarOpen ? 200 : undefined,
-            boxShadow: sidebarOpen ? '2px 0 8px rgba(0,0,0,0.1)' : undefined
+            boxShadow: sidebarOpen ? '-2px 0 12px rgba(0,0,0,0.3)' : undefined
           }}
         >
           {sidebarOpen && (
@@ -114,10 +112,11 @@ function BusinessShellContent({ children, businessName, role }: { children: Reac
                 padding: '8px',
                 background: 'transparent',
                 border: 'none',
-                fontSize: '24px',
+                fontSize: '28px',
                 cursor: 'pointer',
                 alignSelf: 'flex-end',
-                marginBottom: '8px'
+                marginBottom: '16px',
+                color: '#FFFFFF'
               }}
             >
               ×
@@ -137,27 +136,44 @@ function BusinessShellContent({ children, businessName, role }: { children: Reac
                   alignItems: 'center',
                   gap: '12px',
                   width: '100%',
-                  padding: '12px 16px',
-                  background: currentPath.startsWith(item.path) ? '#10b981' : 'transparent',
-                  color: currentPath.startsWith(item.path) ? 'white' : '#333',
+                  padding: '14px 16px',
+                  background: currentPath.startsWith(item.path)
+                    ? 'linear-gradient(135deg, #6A4BFF 0%, #5A3FE8 100%)'
+                    : 'transparent',
+                  color: currentPath.startsWith(item.path) ? '#FFFFFF' : '#D0D3DB',
                   border: 'none',
-                  borderRadius: '4px',
+                  borderRadius: '8px',
                   cursor: 'pointer',
-                  fontSize: '14px',
+                  fontSize: '15px',
+                  fontWeight: currentPath.startsWith(item.path) ? 600 : 400,
                   textAlign: 'left',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  minHeight: '44px'
+                }}
+                onMouseOver={(e) => {
+                  if (!currentPath.startsWith(item.path)) {
+                    e.currentTarget.style.background = 'rgba(106, 75, 255, 0.1)';
+                    e.currentTarget.style.color = '#FFFFFF';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!currentPath.startsWith(item.path)) {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = '#D0D3DB';
+                  }
                 }}
               >
-                <span>{item.icon}</span>
+                <span style={{ fontSize: '18px' }}>{item.icon}</span>
                 <span className="wrap-text">{item.label}</span>
                 {item.badge && (
                   <span style={{
                     marginLeft: 'auto',
-                    background: '#ef4444',
+                    background: '#F87171',
                     color: 'white',
                     borderRadius: '12px',
-                    padding: '2px 8px',
-                    fontSize: '12px'
+                    padding: '3px 8px',
+                    fontSize: '11px',
+                    fontWeight: 600
                   }}>
                     {item.badge}
                   </span>
