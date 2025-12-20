@@ -1,9 +1,10 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAppServices } from '../context/AppServicesContext';
+import { useAuth } from '../context/AuthContext';
 import { PageLoadingSkeleton } from '../components/LoadingSkeleton';
+import { LoginPage } from '../pages/LoginPage';
 
-const LoginPage = React.lazy(() => import('../pages/LoginPage').then(m => ({ default: m.LoginPage || m.default })));
 const LandingPage = React.lazy(() => import('../pages/LandingPage').then(m => ({ default: m.LandingPage || m.default })));
 const Dashboard = React.lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard || m.default })));
 const Orders = React.lazy(() => import('../pages/Orders').then(m => ({ default: m.Orders || m.default })));
@@ -12,11 +13,24 @@ const Chat = React.lazy(() => import('../pages/Chat').then(m => ({ default: m.Ch
 
 export function SimpleRouter() {
   const { isAuthenticated } = useAppServices();
+  const { authenticateWithEthereum, authenticateWithSolana, authenticateWithTon, authenticate: authenticateWithTelegram } = useAuth();
 
   if (!isAuthenticated) {
     return (
       <Routes>
-        <Route path="/auth/login" element={<Suspense fallback={<PageLoadingSkeleton />}><LoginPage /></Suspense>} />
+        <Route
+          path="/auth/login"
+          element={
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <LoginPage
+                onEthereumLogin={authenticateWithEthereum}
+                onSolanaLogin={authenticateWithSolana}
+                onTelegramLogin={authenticateWithTelegram}
+                onTonLogin={authenticateWithTon}
+              />
+            </Suspense>
+          }
+        />
         <Route path="/" element={<Suspense fallback={<PageLoadingSkeleton />}><LandingPage /></Suspense>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

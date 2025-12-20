@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { EthereumLogin } from '../components/EthereumLogin';
 import { SolanaLogin } from '../components/SolanaLogin';
+import { TonLogin } from '../components/TonLogin';
 import { platformDetection } from '../lib/platformDetection';
 import { hebrew } from '../lib/i18n';
 import { colors } from '../styles/design-system';
@@ -10,22 +11,24 @@ interface LoginPageProps {
   onEthereumLogin: (address: string, signature: string, message: string) => Promise<void>;
   onSolanaLogin: (address: string, signature: string, message: string) => Promise<void>;
   onTelegramLogin: () => Promise<void>;
+  onTonLogin?: (address: string, signature: string, message: string) => Promise<void>;
   isLoading?: boolean;
 }
 
-type AuthMethod = 'ethereum' | 'solana' | 'telegram' | null;
+type AuthMethod = 'ethereum' | 'solana' | 'telegram' | 'ton' | null;
 
 export function LoginPage({
   onEthereumLogin,
   onSolanaLogin,
   onTelegramLogin,
+  onTonLogin,
   isLoading = false,
 }: LoginPageProps) {
 
   const [selectedMethod, setSelectedMethod] = useState<AuthMethod>(null);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const [availableMethods, setAvailableMethods] = useState<Array<'ethereum' | 'solana' | 'telegram'>>([]);
+  const [availableMethods, setAvailableMethods] = useState<Array<'ethereum' | 'solana' | 'telegram' | 'ton'>>([]);
 
   const theme = colors;
 
@@ -74,6 +77,23 @@ export function LoginPage({
       await onTelegramLogin();
     } catch (err: any) {
       setError(err.message || hebrew.login.errors.telegramFailed);
+      setIsAuthenticating(false);
+    }
+  };
+
+  const handleTonSuccess = async (address: string, signature: string, message: string) => {
+    if (!onTonLogin) {
+      setError('TON authentication not configured');
+      return;
+    }
+
+    setError(null);
+    setIsAuthenticating(true);
+
+    try {
+      await onTonLogin(address, signature, message);
+    } catch (err: any) {
+      setError(err.message || 'TON authentication failed');
       setIsAuthenticating(false);
     }
   };
@@ -241,6 +261,30 @@ export function LoginPage({
                   <span>{hebrew.login.signInWith} {hebrew.login.telegram}</span>
                 </button>
               )}
+
+              {availableMethods.includes('ton') && (
+                <button
+                  onClick={() => setSelectedMethod('ton')}
+                  style={{
+                    padding: '16px',
+                    background: theme.secondary,
+                    border: `2px solid ${theme.info}`,
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '12px',
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    color: theme.text,
+                    width: '100%'
+                  }}
+                >
+                  <span style={{ fontSize: '24px' }}>💎</span>
+                  <span>{hebrew.login.signInWith} TON</span>
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -348,6 +392,32 @@ export function LoginPage({
             >
               {isAuthenticating ? hebrew.login.authenticating : `${hebrew.login.continueWith} ${hebrew.login.telegram}`}
             </button>
+          </div>
+        )}
+
+        {selectedMethod === 'ton' && (
+          <div>
+            {availableMethods.length > 1 && (
+              <button
+                onClick={() => setSelectedMethod(null)}
+                style={{
+                  marginBottom: '16px',
+                  padding: '8px 16px',
+                  backgroundColor: 'transparent',
+                  border: `1px solid ${theme.border}`,
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  color: theme.muted
+                }}
+              >
+                ← {hebrew.login.backToOptions}
+              </button>
+            )}
+            <TonLogin
+              onSuccess={handleTonSuccess}
+              onError={handleError}
+            />
           </div>
         )}
 

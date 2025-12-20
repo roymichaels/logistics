@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { BrowserRouter } from 'react-router-dom';
+import { TonConnectUIProvider } from '@tonconnect/ui-react';
 import { AuthProvider } from './context/AuthContext';
 import { AppServicesProvider } from './context/AppServicesContext';
 import { SxtAuthProvider } from './context/SxtAuthProvider';
@@ -168,30 +169,32 @@ function LoadingScreen() {
       <React.StrictMode>
         <GlobalErrorBoundary>
           <ThemeProvider defaultTheme={{ variant: 'telegramx', mode: 'dark' }}>
-            <LanguageProvider>
-              <BrowserRouter
-                future={{
-                  v7_startTransition: true,
-                  v7_relativeSplatPath: true
-                }}
-              >
-                {useSXT ? (
-                  <SxtAuthProvider>
+            <TonConnectUIProvider manifestUrl="https://raw.githubusercontent.com/ton-community/tutorials/main/03-client/test/public/tonconnect-manifest.json">
+              <LanguageProvider>
+                <BrowserRouter
+                  future={{
+                    v7_startTransition: true,
+                    v7_relativeSplatPath: true
+                  }}
+                >
+                  {useSXT ? (
+                    <SxtAuthProvider>
+                      <AuthProvider>
+                        <AppServicesProvider>
+                          <App />
+                        </AppServicesProvider>
+                      </AuthProvider>
+                    </SxtAuthProvider>
+                  ) : (
                     <AuthProvider>
                       <AppServicesProvider>
                         <App />
                       </AppServicesProvider>
                     </AuthProvider>
-                  </SxtAuthProvider>
-                ) : (
-                  <AuthProvider>
-                    <AppServicesProvider>
-                      <App />
-                    </AppServicesProvider>
-                  </AuthProvider>
-                )}
-              </BrowserRouter>
-            </LanguageProvider>
+                  )}
+                </BrowserRouter>
+              </LanguageProvider>
+            </TonConnectUIProvider>
           </ThemeProvider>
         </GlobalErrorBoundary>
       </React.StrictMode>

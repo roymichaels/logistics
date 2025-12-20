@@ -26,6 +26,7 @@ interface AuthContextValue extends AuthState {
   authenticate: () => Promise<void>;
   authenticateWithEthereum: (address: string, signature: string, message: string) => Promise<void>;
   authenticateWithSolana: (address: string, signature: string, message: string) => Promise<void>;
+  authenticateWithTon: (address: string, signature: string, message: string) => Promise<void>;
   walletType: string | null;
   walletAddress: string | null;
   walletSession: any | null;
@@ -151,6 +152,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await authService.authenticateWithSolana(address, signature, message);
   };
 
+  const authenticateWithTon = async (address: string, signature: string, message: string) => {
+    // Check if circuit breaker is active
+    if (isCircuitBreakerActive()) {
+      const diagnostics = getAuthLoopDiagnostics();
+      const cooldownMinutes = Math.ceil(diagnostics.cooldownRemaining / 60000);
+      throw new Error(`Too many authentication attempts. Please wait ${cooldownMinutes} minutes and try again.`);
+    }
+
+    // Check for auth loop
+    if (isInAuthLoop()) {
+      activateCircuitBreaker();
+      throw new Error('Authentication loop detected. Please wait 5 minutes and try again.');
+    }
+
+    // Record login attempt
+    recordAuthAttempt('login', address);
+
+    await authService.authenticateWithTon(address, signature, message);
+  };
+
   const walletAuthEnabled = (import.meta as any)?.env?.VITE_ENABLE_WALLET_AUTH;
 
   const loginWithEthereum = async () => {
@@ -203,6 +224,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     authenticate,
     authenticateWithEthereum,
     authenticateWithSolana,
+    authenticateWithTon,
     walletType,
     walletAddress,
     walletSession,
@@ -338,6 +360,7 @@ function SxtShimProvider({ children }: { children: React.ReactNode }) {
     authenticate: async () => {},
     authenticateWithEthereum: async () => { await loginWithEthereum(); },
     authenticateWithSolana: async () => { await loginWithSolana(null); },
+    authenticateWithTon: async () => { await loginWithTon(); },
     walletType: user?.walletType || null,
     walletAddress: user?.walletAddress || null,
     walletSession: user || null,

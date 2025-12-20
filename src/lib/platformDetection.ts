@@ -6,11 +6,12 @@
  * - Mobile Web Browser
  * - Ethereum Wallet Browser
  * - Solana Wallet Browser
+ * - TON Wallet Browser
  */
 
 import { logger } from './logger';
 
-export type Platform = 'web' | 'mobile-web' | 'ethereum-wallet' | 'solana-wallet';
+export type Platform = 'web' | 'mobile-web' | 'ethereum-wallet' | 'solana-wallet' | 'ton-wallet';
 
 export interface PlatformInfo {
   platform: Platform;
@@ -18,6 +19,7 @@ export interface PlatformInfo {
   isMobile: boolean;
   hasEthereumWallet: boolean;
   hasSolanaWallet: boolean;
+  hasTonWallet: boolean;
   userAgent: string;
 }
 
@@ -38,11 +40,14 @@ class PlatformDetectionService {
     // Check for Web3 wallet availability
     const hasEthereumWallet = this.hasEthereumWallet();
     const hasSolanaWallet = this.hasSolanaWallet();
+    const hasTonWallet = this.hasTonWallet();
 
     // Determine primary platform
     let platform: Platform = 'web';
 
-    if (hasSolanaWallet && isMobile) {
+    if (hasTonWallet && isMobile) {
+      platform = 'ton-wallet';
+    } else if (hasSolanaWallet && isMobile) {
       platform = 'solana-wallet';
     } else if (hasEthereumWallet && isMobile) {
       platform = 'ethereum-wallet';
@@ -56,6 +61,7 @@ class PlatformDetectionService {
       isMobile,
       hasEthereumWallet,
       hasSolanaWallet,
+      hasTonWallet,
       userAgent,
     };
 
@@ -108,11 +114,25 @@ class PlatformDetectionService {
   }
 
   /**
+   * Check if TON wallet is available
+   */
+  private hasTonWallet(): boolean {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    const w = window as any;
+
+    // Check for Tonkeeper, OpenMask, or other TON wallets
+    return !!(w.ton || w.tonkeeper || w.tonProtocol);
+  }
+
+  /**
    * Get available authentication methods based on platform
    */
-  getAvailableAuthMethods(): Array<'ethereum' | 'solana'> {
+  getAvailableAuthMethods(): Array<'ethereum' | 'solana' | 'ton'> {
     const info = this.info;
-    const methods: Array<'ethereum' | 'solana'> = [];
+    const methods: Array<'ethereum' | 'solana' | 'ton'> = [];
 
     if (info.hasEthereumWallet) {
       methods.push('ethereum');
@@ -122,9 +142,13 @@ class PlatformDetectionService {
       methods.push('solana');
     }
 
-    // Always show both options so users can install wallets if needed
+    if (info.hasTonWallet) {
+      methods.push('ton');
+    }
+
+    // Always show all options so users can install wallets if needed
     if (methods.length === 0) {
-      methods.push('ethereum', 'solana');
+      methods.push('ethereum', 'solana', 'ton');
     }
 
     return methods;
@@ -140,7 +164,7 @@ class PlatformDetectionService {
   /**
    * Get recommended authentication method
    */
-  getRecommendedAuthMethod(): 'ethereum' | 'solana' | null {
+  getRecommendedAuthMethod(): 'ethereum' | 'solana' | 'ton' | null {
     const info = this.info;
 
     if (info.hasEthereumWallet) {
@@ -149,6 +173,10 @@ class PlatformDetectionService {
 
     if (info.hasSolanaWallet) {
       return 'solana';
+    }
+
+    if (info.hasTonWallet) {
+      return 'ton';
     }
 
     return null;

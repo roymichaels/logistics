@@ -363,6 +363,74 @@ class AuthService {
     }
   }
 
+  public async authenticateWithTon(
+    walletAddress: string,
+    signature: string,
+    message: string
+  ): Promise<void> {
+    this.updateState({ isLoading: true, error: null });
+
+    try {
+      logger.info('[AUTH] TON wallet authentication initiated');
+
+      const role = roleAssignmentManager.getRoleForWallet(walletAddress) || 'customer';
+      const session = localSessionManager.createSession(walletAddress, 'ton', signature, message, role);
+
+      logger.info(`[AUTH] Wallet session created for ${walletAddress} with role: ${role}`);
+
+      this.updateState({
+        isAuthenticated: true,
+        isLoading: false,
+        user: {
+          id: walletAddress,
+          wallet_address_ton: walletAddress,
+          username: walletAddress,
+          name: walletAddress,
+          photo_url: null,
+          role,
+          auth_method: 'ton'
+        } as any,
+        session: {
+          wallet: walletAddress,
+          walletType: 'ton',
+          role
+        },
+        error: null
+      });
+
+      if (this.sessionSyncChannel) {
+        this.sessionSyncChannel.postMessage({
+          type: 'SESSION_UPDATED',
+          session: {
+            wallet: walletAddress,
+            walletType: 'ton',
+            role
+          }
+        });
+      }
+
+      logger.info('[AUTH] TON authentication successful');
+    } catch (error) {
+      logger.error('TON authentication error', error);
+
+      let errorMessage = 'TON authentication failed';
+
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorMessage = 'Authentication timeout. Please check your internet connection and try again.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      this.updateState({
+        isLoading: false,
+        error: errorMessage,
+      });
+      throw error;
+    }
+  }
+
   public cleanup(): void {
     if (this.sessionSyncChannel) {
       this.sessionSyncChannel.close();
