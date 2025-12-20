@@ -12,7 +12,7 @@ import { EmptyState } from '../components/molecules/EmptyState';
 import { LoadingState } from '../components/molecules/LoadingState';
 import { Grid } from '../components/atoms/Grid';
 import { Chip } from '../components/atoms/Chip';
-import { colors, spacing, gradients, borderRadius, shadows, typography } from '../styles/design-system';
+import { colors, spacing, borderRadius, shadows, typography } from '../styles/design-system';
 
 type CatalogPageNewProps = {
   products?: Product[];
@@ -55,7 +55,7 @@ function CatalogPageNewContent({
   }
 
   useEffect(() => {
-    setTitle('Store');
+    setTitle('');
     setSubtitle('');
   }, [setTitle, setSubtitle]);
 
@@ -177,52 +177,31 @@ function CatalogPageNewContent({
             }
           }
 
-          .filters-chips-row {
+          .filters-row {
             display: flex;
             gap: ${spacing.sm};
-            overflow-x: auto;
-            padding-bottom: ${spacing.xs};
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            -webkit-overflow-scrolling: touch;
+            flex-wrap: wrap;
+            margin-bottom: ${spacing.md};
           }
 
-          .filters-chips-row::-webkit-scrollbar {
-            display: none;
+          @media (max-width: 767px) {
+            .filters-row {
+              overflow-x: auto;
+              flex-wrap: nowrap;
+              scrollbar-width: none;
+              -ms-overflow-style: none;
+              -webkit-overflow-scrolling: touch;
+              padding-bottom: ${spacing.xs};
+            }
+
+            .filters-row::-webkit-scrollbar {
+              display: none;
+            }
           }
         `}
       </style>
 
       <div className="catalog-page">
-        {/* Featured Banner */}
-        <div style={{
-          background: gradients.primary,
-          color: colors.white,
-          padding: `${spacing['2xl']} ${spacing.xl}`,
-          marginBottom: spacing['2xl'],
-          borderRadius: borderRadius['2xl'],
-          boxShadow: shadows.glowLarge,
-          textAlign: 'center',
-        }}>
-          <h2 style={{
-            margin: 0,
-            marginBottom: spacing.sm,
-            fontSize: typography.fontSize['2xl'],
-            fontWeight: typography.fontWeight.bold,
-            lineHeight: typography.lineHeight.tight,
-          }}>
-            Featured Products
-          </h2>
-          <p style={{
-            margin: 0,
-            opacity: 0.95,
-            fontSize: typography.fontSize.base,
-            lineHeight: typography.lineHeight.normal,
-          }}>
-            Check out our latest and most popular items
-          </p>
-        </div>
-
         {/* Search Bar */}
         <div style={{ marginBottom: spacing.xl }}>
           <SearchBar
@@ -245,15 +224,15 @@ function CatalogPageNewContent({
             <h3 style={{
               margin: 0,
               marginBottom: spacing.md,
-              fontSize: typography.fontSize.sm,
-              fontWeight: typography.fontWeight.semibold,
-              color: colors.text.primary,
+              fontSize: typography.fontSize.xs,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.text.secondary,
               textTransform: 'uppercase',
-              letterSpacing: '0.5px',
+              letterSpacing: '1px',
             }}>
               Sort By
             </h3>
-            <div className="filters-chips-row">
+            <div className="filters-row">
               {SORT_OPTIONS.map((option) => (
                 <Chip
                   key={option}
@@ -270,15 +249,15 @@ function CatalogPageNewContent({
             <h3 style={{
               margin: 0,
               marginBottom: spacing.md,
-              fontSize: typography.fontSize.sm,
-              fontWeight: typography.fontWeight.semibold,
-              color: colors.text.primary,
+              fontSize: typography.fontSize.xs,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.text.secondary,
               textTransform: 'uppercase',
-              letterSpacing: '0.5px',
+              letterSpacing: '1px',
             }}>
               Categories
             </h3>
-            <div className="filters-chips-row">
+            <div className="filters-row">
               {derivedCategories.map((category) => (
                 <Chip
                   key={category}
@@ -297,19 +276,24 @@ function CatalogPageNewContent({
           alignItems: 'center',
           justifyContent: 'space-between',
           marginBottom: spacing.lg,
+          paddingBottom: spacing.md,
+          borderBottom: `2px solid ${colors.border.primary}`,
         }}>
-          <h3 style={{
+          <h2 style={{
             margin: 0,
-            fontSize: typography.fontSize.xl,
+            fontSize: typography.fontSize['2xl'],
             fontWeight: typography.fontWeight.bold,
             color: colors.text.primary,
           }}>
             Products
-          </h3>
+          </h2>
           <span style={{
             fontSize: typography.fontSize.sm,
             color: colors.text.secondary,
-            fontWeight: typography.fontWeight.medium,
+            fontWeight: typography.fontWeight.semibold,
+            padding: `${spacing.xs} ${spacing.md}`,
+            background: colors.background.tertiary,
+            borderRadius: borderRadius.full,
           }}>
             {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}
           </span>
