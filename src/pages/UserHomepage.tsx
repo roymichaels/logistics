@@ -191,7 +191,13 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
         }}
       />
 
-      <div style={{ position: 'relative', zIndex: 1 }}>
+      <div style={{
+        position: 'relative',
+        zIndex: 1,
+        maxWidth: '900px',
+        marginLeft: 'auto',
+        marginRight: 'auto'
+      }}>
         <div style={{
           textAlign: 'center',
           marginBottom: '40px'

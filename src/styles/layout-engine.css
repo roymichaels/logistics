@@ -401,6 +401,51 @@ svg {
 }
 
 /* ============================================
+   9B. CONTENT WIDTH CONSTRAINTS (NEW)
+   ============================================ */
+
+/* Standard page content - max 1100px */
+.content-max-standard {
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+/* Wide content - max 1300px (for dashboards) */
+.content-max-wide {
+  max-width: 1300px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+/* Ultra wide - max 1500px (for data-heavy pages) */
+.content-max-ultra {
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+/* Profile/Form content - narrow max 900px */
+.content-max-narrow {
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  padding-left: var(--spacing-lg);
+  padding-right: var(--spacing-lg);
+}
+
+@media (min-width: 1280px) {
+  .content-max-narrow {
+    padding-left: var(--spacing-xl-wide);
+    padding-right: var(--spacing-xl-wide);
+  }
+}
+
+/* ============================================
    10. BOTTOM NAVIGATION (StoreShell, DriverShell)
    ============================================ */
 
@@ -586,5 +631,115 @@ svg {
 @media (min-width: 1024px) {
   .desktop-only {
     display: block;
+  }
+}
+
+/* ============================================
+   16. RESPONSIVE PAGE LAYOUT UTILITIES
+   ============================================ */
+
+/* Two-column layout: sidebar + content */
+.layout-two-column {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-xl);
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .layout-two-column {
+    grid-template-columns: 300px 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout-two-column {
+    grid-template-columns: 350px 1fr;
+  }
+}
+
+@media (min-width: 1280px) {
+  .layout-two-column {
+    grid-template-columns: 380px 1fr;
+    gap: var(--spacing-2xl-wide);
+  }
+}
+
+/* Three-column layout */
+.layout-three-column {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-lg);
+}
+
+@media (min-width: 1024px) {
+  .layout-three-column {
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: var(--spacing-xl);
+  }
+}
+
+@media (min-width: 1280px) {
+  .layout-three-column {
+    gap: var(--spacing-xl-wide);
+  }
+}
+
+/* Stacked sections with proper spacing */
+.layout-stacked {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+@media (min-width: 1280px) {
+  .layout-stacked {
+    gap: var(--spacing-2xl-wide);
+  }
+}
+
+/* Side-by-side sections */
+.layout-side-by-side {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-lg);
+}
+
+@media (min-width: 1024px) {
+  .layout-side-by-side {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+  }
+}
+
+@media (min-width: 1280px) {
+  .layout-side-by-side {
+    gap: var(--spacing-xl-wide);
+  }
+}
+
+/* ============================================
+   17. PAGE PADDING UTILITY
+   ============================================ */
+
+.page-padding {
+  padding: var(--spacing-lg);
+}
+
+@media (min-width: 640px) {
+  .page-padding {
+    padding: var(--spacing-xl);
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-padding {
+    padding: var(--spacing-2xl);
+  }
+}
+
+@media (min-width: 1280px) {
+  .page-padding {
+    padding: var(--spacing-3xl-wide);
   }
 }
