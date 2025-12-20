@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface GridProps extends React.HTMLAttributes<HTMLDivElement> {
-  columns?: number | { mobile?: number; tablet?: number; desktop?: number };
+  columns?: number;
   gap?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   rows?: number;
   autoFit?: boolean;
@@ -42,40 +42,6 @@ export function Grid({
 
   if (rows) {
     gridStyles.gridTemplateRows = `repeat(${rows}, 1fr)`;
-  }
-
-  if (typeof columns === 'object' && !variant) {
-    if (columns.mobile) {
-      gridStyles.gridTemplateColumns = `repeat(${columns.mobile}, 1fr)`;
-    }
-    if (columns.tablet || columns.desktop) {
-      const mediaStyles: string[] = [];
-
-      if (columns.tablet) {
-        mediaStyles.push(`
-          @media (min-width: 640px) {
-            grid-template-columns: repeat(${columns.tablet}, 1fr);
-          }
-        `);
-      }
-
-      if (columns.desktop) {
-        mediaStyles.push(`
-          @media (min-width: 1024px) {
-            grid-template-columns: repeat(${columns.desktop}, 1fr);
-          }
-        `);
-      }
-
-      if (mediaStyles.length > 0) {
-        const uniqueId = `grid-${Math.random().toString(36).substr(2, 9)}`;
-        gridClasses.push(uniqueId);
-
-        const styleEl = document.createElement('style');
-        styleEl.textContent = `.${uniqueId} { ${mediaStyles.join(' ')} }`;
-        document.head.appendChild(styleEl);
-      }
-    }
   }
 
   return (

@@ -29,15 +29,10 @@ import {
 } from './lib/authLoopDetection';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ShellProvider } from './shells/ShellProvider';
-import MigrationRouter from './migration/MigrationRouter';
+import { SimpleRouter } from './routing/SimpleRouter';
 import { UnifiedAppShell } from './shells/AppShell';
 import { PageTitleProvider } from './context/PageTitleContext';
-import { NavControllerProvider } from './migration/controllers/navController';
-import { UIControllerProvider, UIControllerRenderer } from './migration/controllers/uiController';
-import { DrawerControllerProvider } from './migration/useDrawerController';
-import { DataSandboxProvider } from './migration/data/DataSandboxContext';
-import { NavLayer } from './migration/controllers/navController';
-import { DevMigrationPanel } from './migration/DevMigrationPanel';
+import { NavControllerProvider, UIControllerProvider, UIControllerRenderer, DrawerControllerProvider, DataSandboxProvider } from './stubs/migrationStubs';
 import { useTheme } from './foundation/theme';
 import { runtimeEnvironment } from './lib/runtimeEnvironment';
 import { haptic } from './utils/haptic';
@@ -818,11 +813,9 @@ export default function App() {
                     }}
                   >
                     <UnifiedAppShell>
-                      <MigrationRouter dataStore={dataStore} onNavigate={handleNavigate} />
+                      <SimpleRouter />
                     </UnifiedAppShell>
                     <UIControllerRenderer />
-                    <NavLayer />
-                    {process.env.NODE_ENV === 'development' && <DevMigrationPanel />}
                   </ShellProvider>
                 </DataSandboxProvider>
               </DrawerControllerProvider>

@@ -177,20 +177,20 @@ body {
 
 /* Product Grid - Mobile First */
 .grid--products {
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fill, minmax(clamp(100px, 40vw, 140px), 1fr));
+  gap: clamp(8px, 2vw, 24px);
 }
 
 @media (min-width: 640px) {
   .grid--products {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: var(--spacing-lg);
   }
 }
 
 @media (min-width: 1024px) {
   .grid--products {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: var(--spacing-xl);
   }
 }
@@ -807,33 +807,6 @@ svg {
 /* ============================================
    19. IMPROVED GRID SPACING
    ============================================ */
-
-/* Increase product grid gaps for better visibility */
-.grid--products {
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: var(--spacing-lg);
-}
-
-@media (min-width: 640px) {
-  .grid--products {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: var(--spacing-xl);
-  }
-}
-
-@media (min-width: 1024px) {
-  .grid--products {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: var(--spacing-xl);
-  }
-}
-
-@media (min-width: 1280px) {
-  .grid--products {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: var(--spacing-2xl-wide);
-  }
-}
 
 /* Card spacing improvements */
 .grid--cards {
