@@ -3,7 +3,7 @@ import { Card } from './Card';
 import { Button } from '../atoms/Button';
 import { Text } from '../atoms/Typography';
 import { Badge } from '../atoms/Badge';
-import { colors, spacing, borderRadius, typography } from '../../styles/design-system';
+import { colors, spacing, borderRadius, typography, shadows, transitions } from '../../styles/design-system';
 import type { Product } from '../../data/types';
 
 export interface ProductCardProps {
@@ -19,6 +19,7 @@ export function ProductCard({
   onAddToCart,
   variant = 'default',
 }: ProductCardProps) {
+  const [isHovered, setIsHovered] = React.useState(false);
   const isFeatured = variant === 'featured';
   const isCompact = variant === 'compact';
 
@@ -39,25 +40,30 @@ export function ProductCard({
     width: '100%',
     height: isFeatured ? '200px' : isCompact ? '120px' : '160px',
     borderRadius: borderRadius.lg,
-    background: `linear-gradient(135deg, ${colors.background.tertiary}, ${colors.brand.primaryFaded})`,
+    background: colors.background.tertiary,
+    border: `1px solid ${colors.border.primary}`,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
     overflow: 'hidden',
+    transition: `all ${transitions.normal}`,
+    boxShadow: isHovered ? shadows.md : shadows.sm,
   };
 
   const priceTagStyle: React.CSSProperties = {
     position: 'absolute',
-    top: spacing.sm,
-    right: spacing.sm,
+    top: spacing.md,
+    right: spacing.md,
     background: colors.brand.primary,
     color: colors.white,
     padding: `${spacing.sm} ${spacing.md}`,
-    borderRadius: borderRadius.xl,
+    borderRadius: borderRadius.full,
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.bold,
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+    boxShadow: shadows.md,
+    backdropFilter: 'blur(8px)',
+    border: `1px solid rgba(255, 255, 255, 0.1)`,
   };
 
   const contentStyle: React.CSSProperties = {
@@ -77,14 +83,19 @@ export function ProductCard({
 
   return (
     <Card
-      variant="default"
+      variant="elevated"
       hoverable
       interactive={!!onClick}
       onClick={handleClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={{
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
+        transition: `all ${transitions.normal}`,
+        transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
+        boxShadow: isHovered ? shadows.lg : shadows.sm,
       }}
     >
       <div style={imageContainerStyle}>
@@ -161,7 +172,11 @@ export function ProductCard({
           fullWidth
           onClick={handleAddToCart}
           disabled={product.stock_quantity === 0}
-          style={{ marginTop: spacing.md }}
+          style={{
+            marginTop: spacing.md,
+            transition: `all ${transitions.fast}`,
+            transform: isHovered && product.stock_quantity !== 0 ? 'scale(1.02)' : 'scale(1)',
+          }}
         >
           {product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
         </Button>

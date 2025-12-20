@@ -18,7 +18,7 @@ import { Grid } from '../components/atoms/Grid';
 import { Chip } from '../components/atoms/Chip';
 import { Button } from '../components/atoms/Button';
 import { Card } from '../components/molecules/Card';
-import { colors, spacing } from '../styles/design-system';
+import { colors, spacing, gradients, borderRadius, shadows, typography, transitions, backdropBlur, zIndex } from '../styles/design-system';
 
 type CatalogPageNewProps = {
   products?: Product[];
@@ -208,37 +208,67 @@ function CatalogPageNewContent({
 
   return (
     <>
-      <PageContent>
+      <PageContent style={{
+        padding: spacing.lg,
+        paddingTop: spacing.xl,
+        paddingBottom: spacing['4xl'],
+        maxWidth: '1400px',
+        margin: '0 auto',
+      }}>
         {/* Cart Button - Floating */}
         <div
           style={{
             position: 'fixed',
-            top: 64,
-            right: spacing.md,
-            zIndex: 100,
+            top: spacing['3xl'],
+            right: spacing.lg,
+            zIndex: zIndex.sticky,
+            background: colors.ui.overlay,
+            backdropFilter: backdropBlur.lg,
+            borderRadius: borderRadius.full,
+            boxShadow: shadows.xl,
+            padding: spacing.xs,
+            border: `1px solid ${colors.border.secondary}`,
           }}
         >
           {headerActions}
         </div>
         {/* Featured Section */}
         <Card
+          variant="elevated"
           style={{
-            background: `linear-gradient(135deg, ${colors.brand.primaryFaded}, ${colors.brand.primary})`,
+            background: gradients.primary,
             color: colors.white,
-            padding: spacing.xl,
-            marginBottom: spacing.xl,
+            padding: spacing['2xl'],
+            marginBottom: spacing['2xl'],
+            borderRadius: borderRadius['2xl'],
+            boxShadow: shadows.glowLarge,
+            border: 'none',
           }}
         >
-          <h3 style={{ margin: 0, marginBottom: spacing.sm, fontSize: '20px', fontWeight: 700 }}>
+          <h3 style={{
+            margin: 0,
+            marginBottom: spacing.sm,
+            fontSize: typography.fontSize.xl,
+            fontWeight: typography.fontWeight.bold,
+            lineHeight: typography.lineHeight.tight,
+          }}>
             Featured Products
           </h3>
-          <p style={{ margin: 0, opacity: 0.9, fontSize: '14px' }}>
+          <p style={{
+            margin: 0,
+            opacity: 0.95,
+            fontSize: typography.fontSize.base,
+            lineHeight: typography.lineHeight.normal,
+          }}>
             Check out our latest and most popular items
           </p>
         </Card>
 
         {/* Search Bar */}
-        <div style={{ marginBottom: spacing.lg }}>
+        <div style={{
+          marginBottom: spacing.xl,
+          filter: `drop-shadow(0 2px 4px rgba(0,0,0,0.1))`,
+        }}>
           <SearchBar
             onSearch={setSearchQuery}
             onClear={() => setSearchQuery('')}
@@ -247,14 +277,21 @@ function CatalogPageNewContent({
         </div>
 
         {/* Sort Filters */}
-        <SectionHeader title="Sort By" />
+        <SectionHeader
+          title="Sort By"
+          divider={false}
+          style={{ marginBottom: spacing.md, paddingTop: spacing.sm }}
+        />
         <div
           style={{
             display: 'flex',
             gap: spacing.sm,
             overflowX: 'auto',
             paddingBottom: spacing.sm,
-            marginBottom: spacing.lg,
+            marginBottom: spacing.xl,
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            WebkitOverflowScrolling: 'touch',
           }}
         >
           {SORT_OPTIONS.map((option) => (
@@ -268,14 +305,21 @@ function CatalogPageNewContent({
         </div>
 
         {/* Category Filters */}
-        <SectionHeader title="Categories" />
+        <SectionHeader
+          title="Categories"
+          divider={false}
+          style={{ marginBottom: spacing.md, paddingTop: spacing.lg }}
+        />
         <div
           style={{
             display: 'flex',
             gap: spacing.sm,
             overflowX: 'auto',
             paddingBottom: spacing.sm,
-            marginBottom: spacing.xl,
+            marginBottom: spacing['2xl'],
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            WebkitOverflowScrolling: 'touch',
           }}
         >
           {derivedCategories.map((category) => (
@@ -292,6 +336,7 @@ function CatalogPageNewContent({
         <SectionHeader
           title="Products"
           subtitle={`${filteredProducts.length} ${filteredProducts.length === 1 ? 'item' : 'items'}`}
+          style={{ marginBottom: spacing.lg }}
         />
 
         {loading ? (
@@ -318,7 +363,11 @@ function CatalogPageNewContent({
             }
           />
         ) : (
-          <Grid columns={{ mobile: 2, tablet: 3, desktop: 4 }} gap={spacing.md}>
+          <Grid
+            columns={{ mobile: 2, tablet: 3, desktop: 4, wide: 5 }}
+            gap={spacing.lg}
+            style={{ paddingBottom: spacing['4xl'] }}
+          >
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
