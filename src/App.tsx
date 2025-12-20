@@ -112,11 +112,7 @@ export default function App() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [initialPageRole, setInitialPageRole] = useState<string | null>(null);
   const [showSuperadminSetup, setShowSuperadminSetup] = useState(false);
-  const [showLandingPage, setShowLandingPage] = useState(() => {
-    // Check if user has visited before
-    const hasVisited = localStorage.getItem('hasVisitedBefore');
-    return !hasVisited;
-  });
+  const [showLandingPage, setShowLandingPage] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingPathway, setOnboardingPathway] = useState<'business_owner' | 'team_member' | 'select' | null>(null);
   const [showSearchBusiness, setShowSearchBusiness] = useState(false);
@@ -539,17 +535,7 @@ export default function App() {
     );
   }
 
-  // Show landing page first for new web visitors
-  if (showLandingPage && !loading && !error) {
-    return (
-      <LandingPage
-        onGetStarted={() => {
-          localStorage.setItem('hasVisitedBefore', 'true');
-          setShowLandingPage(false);
-        }}
-      />
-    );
-  }
+  // Landing page is now handled by SimpleRouter
 
   // Show onboarding flow ONLY when explicitly triggered by user
   // (Removed automatic onboarding for 'user' role - users now see catalog first)
@@ -627,8 +613,7 @@ export default function App() {
     return <ErrorDisplay error={error} />;
   }
 
-  // Show LoginPage when not authenticated (for web users)
-  // Telegram users will auto-authenticate via the telegram service
+  // Check for circuit breaker or Telegram platform issues
   if (!isLoggedIn || !isAuthenticated) {
     // Check if circuit breaker is active
     if (isCircuitBreakerActive()) {
@@ -733,15 +718,7 @@ export default function App() {
       );
     }
 
-    // Show login page for web users
-    return (
-      <LoginPage
-        onEthereumLogin={authenticateWithEthereum}
-        onSolanaLogin={authenticateWithSolana}
-        onTelegramLogin={authenticateWithTelegram}
-        isLoading={loading}
-      />
-    );
+    // For web users, let the router handle landing page and login flow
   }
 
   // Show superadmin setup only for infrastructure_owner role
