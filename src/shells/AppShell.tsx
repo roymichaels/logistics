@@ -12,7 +12,7 @@ interface UnifiedAppShellProps {
 
 
 export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
-  const { userRole, logout } = useAppServices();
+  const { userRole, isAuthenticated } = useAppServices();
   const { title, subtitle } = usePageTitle();
   const location = useLocation();
   const navigate = useNavigate();
@@ -32,8 +32,6 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
       icon: item.icon || '📌',
       path: item.path,
     }));
-
-  console.log("UnifiedAppShell mounted");
 
   const headerContent = (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 'var(--spacing-sm)' }}>
@@ -127,19 +125,21 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
         backgroundColor: 'rgba(18, 18, 20, 0.95)',
       }}
     >
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: 'clamp(12px, 3vw, 20px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-          backgroundColor: 'rgba(10, 10, 12, 0.3)',
-          minHeight: 'var(--header-height-mobile)',
-        }}
-      >
-        {headerContent}
-      </header>
+      {isAuthenticated && (
+        <header
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: 'clamp(12px, 3vw, 20px)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+            backgroundColor: 'rgba(10, 10, 12, 0.3)',
+            minHeight: 'var(--header-height-mobile)',
+          }}
+        >
+          {headerContent}
+        </header>
+      )}
 
       <div
         style={{
@@ -151,14 +151,16 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
         {children}
       </div>
 
-      <UnifiedMenuPanel
-        isOpen={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        items={menuItems}
-        currentPath={location.pathname}
-        onNavigate={navigate}
-        title="Menu"
-      />
+      {isAuthenticated && (
+        <UnifiedMenuPanel
+          isOpen={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          items={menuItems}
+          currentPath={location.pathname}
+          onNavigate={navigate}
+          title="Menu"
+        />
+      )}
     </div>
   );
 }
