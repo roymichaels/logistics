@@ -1,7 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { AppShell as LayoutShell, AppHeader } from '../layouts/AppShell';
-import { getNavigationConfig } from '../config/navigation';
 import { usePageTitle } from '../context/PageTitleContext';
 import { useAppServices } from '../context/AppServicesContext';
 import { useNavController } from '../migration/controllers/navController';
@@ -15,104 +13,13 @@ import {
 } from '../migration/switchboard';
 import { migrationFlags } from '../migration/flags';
 import { useI18n } from '../lib/i18n';
-import { NavigationDrawer } from '../components/navigation/NavigationDrawer';
+import { UnifiedMenuPanel, MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
+import { getNavigationForRole } from './navigationSchema';
 
 interface UnifiedAppShellProps {
   children: React.ReactNode;
 }
 
-function HeaderContent(props: {
-  title: string;
-  subtitle?: string;
-  onNavigate?: (path: string) => void;
-  onLogout?: () => void;
-  dataStore?: any;
-  showBackButton?: boolean;
-  onBack?: () => void;
-  onMenuClick?: (anchor: HTMLElement) => void;
-  onAvatarClick?: () => void;
-  onBusinessContextClick?: (anchor: HTMLElement) => void;
-  onHamburgerClick?: () => void;
-  hasSidebar?: boolean;
-}) {
-  // Don't render header content if title is empty (custom shell is handling it)
-  if (!props.title || props.title.trim() === '') {
-    return null;
-  }
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {props.showBackButton && (
-          <button
-            onClick={props.onBack}
-            style={{
-              padding: '8px',
-              border: 'none',
-              background: 'transparent',
-              color: 'var(--color-text)',
-              cursor: 'pointer',
-              fontSize: '20px',
-            }}
-          >
-            ←
-          </button>
-        )}
-        <div>
-          <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text)' }}>
-            {props.title}
-          </div>
-          {props.subtitle && (
-            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-              {props.subtitle}
-            </div>
-          )}
-        </div>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {props.hasSidebar && (
-          <button
-            onClick={props.onHamburgerClick}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: '8px',
-              border: '1px solid var(--color-border)',
-              background: 'var(--color-panel)',
-              color: 'var(--color-text)',
-              display: 'grid',
-              placeItems: 'center',
-              cursor: 'pointer',
-              fontSize: '20px',
-              fontWeight: 400,
-            }}
-            aria-label="Menu"
-          >
-            ☰
-          </button>
-        )}
-        <button
-          onClick={(e) => props.onMenuClick?.(e.currentTarget)}
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            border: '1px solid var(--color-border)',
-            background: 'var(--color-panel)',
-            color: 'var(--color-text)',
-            display: 'grid',
-            placeItems: 'center',
-            cursor: 'pointer',
-            fontSize: '18px',
-          }}
-          aria-label="User menu"
-        >
-          👤
-        </button>
-      </div>
-    </div>
-  );
-}
 
 export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
   const { userRole, dataStore, logout } = useAppServices();
@@ -120,7 +27,7 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { t, translations } = useI18n();
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const nav = (() => {
     try {
@@ -130,44 +37,71 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
     }
   })();
 
-  // Use resolver functions directly - they handle lazy loading internally
   const userMenu = usePopoverController(resolveUserMenuPopover);
   const businessMenu = usePopoverController(resolveBusinessContextPopover);
   const avatarMenu = usePopoverController(resolveStoreAvatarPopover);
   const cartDrawer = useDrawerController(resolveCartDrawer);
 
-  // Allow empty title (don't default to 'UndergroundLab' if explicitly empty)
   const resolvedTitle = title === undefined ? 'UndergroundLab' : title;
   const resolvedSubtitle = subtitle;
 
-  // Get navigation configuration based on role
-  const navigationConfig = useMemo(() => {
-    return getNavigationConfig(userRole, location.pathname, (path: string) => {
-      navigate(path);
-      setSidebarOpen(false); // Close sidebar on navigation
-    });
-  }, [userRole, location.pathname, navigate]);
+  const navigationItems = useMemo(() => getNavigationForRole(userRole), [userRole]);
 
-  // Create header with all controls
-  const header = (
-    <AppHeader
-      title={navigationConfig.headerTitle || resolvedTitle}
-      right={
-        <HeaderContent
-          title={navigationConfig.headerTitle || resolvedTitle}
-          subtitle={resolvedSubtitle}
-          onNavigate={navigate}
-          onLogout={logout}
-          dataStore={dataStore}
-          showBackButton={migrationFlags.navigation && !!nav?.canGoBack}
-          onBack={() => {
-            if (migrationFlags.navigation) {
-              nav?.back();
-            }
+  const menuItems: MenuItemConfig[] = navigationItems
+    .filter(item => item.visible)
+    .map(item => ({
+      id: item.id,
+      label: item.label,
+      icon: item.icon || '📌',
+      path: item.path,
+    }));
+
+  const headerContent = (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div>
+          <div style={{ fontSize: '18px', fontWeight: 700, color: 'rgba(255, 255, 255, 0.95)' }}>
+            {resolvedTitle}
+          </div>
+          {resolvedSubtitle && (
+            <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)', marginTop: '4px' }}>
+              {resolvedSubtitle}
+            </div>
+          )}
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <button
+          onClick={() => setMenuOpen(true)}
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '10px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+            flexShrink: 0,
           }}
-          hasSidebar={!!navigationConfig.sidebar}
-          onHamburgerClick={() => setSidebarOpen(!sidebarOpen)}
-          onMenuClick={(anchor) => {
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.95)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
+          }}
+          aria-label="Menu"
+        >
+          ☰
+        </button>
+        <button
+          onClick={(e) => {
             const menuContent = (
               <div style={{ minWidth: 200, padding: '8px 0' }}>
                 <button
@@ -229,48 +163,86 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
             );
             userMenu.open({
               open: true,
-              anchorEl: anchor,
+              anchorEl: e.currentTarget,
               onClose: () => userMenu.close(),
               children: menuContent
             });
           }}
-          onAvatarClick={() =>
-            avatarMenu.open({ open: true, anchorEl: null, onClose: () => avatarMenu.close(), children: null })
-          }
-          onBusinessContextClick={(anchor) =>
-            businessMenu.open({
-              open: true,
-              anchorEl: anchor,
-              onClose: () => businessMenu.close(),
-              children: null
-            })
-          }
-        />
-      }
-    />
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'rgba(255, 255, 255, 0.05)',
+            color: 'rgba(255, 255, 255, 0.7)',
+            display: 'grid',
+            placeItems: 'center',
+            cursor: 'pointer',
+            fontSize: '18px',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.95)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
+          }}
+          aria-label="User menu"
+        >
+          👤
+        </button>
+      </div>
+    </div>
   );
 
-  // Wrap sidebar in NavigationDrawer if it exists
-  const sidebarContent = navigationConfig.sidebar ? (
-    <NavigationDrawer isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}>
-      {navigationConfig.sidebar}
-    </NavigationDrawer>
-  ) : null;
-
   return (
-    <>
-      <LayoutShell
-        header={header}
-        sidebar={null}
-        bottomNav={navigationConfig.bottomNav}
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        height: '100vh',
+        backgroundColor: 'rgba(18, 18, 20, 0.95)',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '16px 20px',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+          backgroundColor: 'rgba(10, 10, 12, 0.3)',
+        }}
+      >
+        {headerContent}
+      </div>
+
+      <div
+        style={{
+          flex: 1,
+          overflow: 'auto',
+          width: '100%',
+        }}
       >
         {children}
-      </LayoutShell>
-      {sidebarContent}
+      </div>
+
+      <UnifiedMenuPanel
+        isOpen={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        items={menuItems}
+        currentPath={location.pathname}
+        onNavigate={navigate}
+        title="Menu"
+      />
+
       <userMenu.Render />
       <businessMenu.Render />
       <avatarMenu.Render />
       <cartDrawer.Render />
-    </>
+    </div>
   );
 }
