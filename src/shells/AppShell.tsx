@@ -31,6 +31,8 @@ function HeaderContent(props: {
   onMenuClick?: (anchor: HTMLElement) => void;
   onAvatarClick?: () => void;
   onBusinessContextClick?: (anchor: HTMLElement) => void;
+  onHamburgerClick?: () => void;
+  hasSidebar?: boolean;
 }) {
   // Don't render header content if title is empty (custom shell is handling it)
   if (!props.title || props.title.trim() === '') {
@@ -67,6 +69,27 @@ function HeaderContent(props: {
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {props.hasSidebar && (
+          <button
+            onClick={props.onHamburgerClick}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: '8px',
+              border: '1px solid var(--color-border)',
+              background: 'var(--color-panel)',
+              color: 'var(--color-text)',
+              display: 'grid',
+              placeItems: 'center',
+              cursor: 'pointer',
+              fontSize: '20px',
+              fontWeight: 400,
+            }}
+            aria-label="Menu"
+          >
+            ☰
+          </button>
+        )}
         <button
           onClick={(e) => props.onMenuClick?.(e.currentTarget)}
           style={{
@@ -81,7 +104,7 @@ function HeaderContent(props: {
             cursor: 'pointer',
             fontSize: '18px',
           }}
-          aria-label={props.title}
+          aria-label="User menu"
         >
           👤
         </button>
@@ -96,6 +119,7 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { t, translations } = useI18n();
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
   const nav = (() => {
     try {
@@ -119,6 +143,7 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
   const navigationConfig = useMemo(() => {
     return getNavigationConfig(userRole, location.pathname, (path: string) => {
       navigate(path);
+      setSidebarOpen(false); // Close sidebar on navigation
     });
   }, [userRole, location.pathname, navigate]);
 
@@ -139,6 +164,8 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
               nav?.back();
             }
           }}
+          hasSidebar={!!navigationConfig.sidebar}
+          onHamburgerClick={() => setSidebarOpen(!sidebarOpen)}
           onMenuClick={(anchor) => {
             const menuContent = (
               <div style={{ minWidth: 200, padding: '8px 0' }}>
@@ -222,15 +249,86 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
     />
   );
 
+  // Wrap sidebar in overlay if it exists
+  const sidebarContent = navigationConfig.sidebar ? (
+    <>
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 999,
+          }}
+        />
+      )}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          right: sidebarOpen ? 0 : '-280px',
+          bottom: 0,
+          width: '280px',
+          background: 'var(--color-panel)',
+          boxShadow: sidebarOpen ? '-4px 0 12px rgba(0, 0, 0, 0.15)' : 'none',
+          transition: 'right 0.3s ease-in-out',
+          zIndex: 1000,
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '16px',
+            borderBottom: '1px solid var(--color-border)',
+          }}
+        >
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--color-text)' }}>
+            Menu
+          </h3>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            style={{
+              width: 32,
+              height: 32,
+              border: 'none',
+              background: 'transparent',
+              color: 'var(--color-text)',
+              cursor: 'pointer',
+              fontSize: '24px',
+              display: 'grid',
+              placeItems: 'center',
+            }}
+            aria-label="Close menu"
+          >
+            ×
+          </button>
+        </div>
+        <div style={{ flex: 1, padding: '16px' }}>
+          {navigationConfig.sidebar}
+        </div>
+      </div>
+    </>
+  ) : null;
+
   return (
     <>
       <LayoutShell
         header={header}
-        sidebar={navigationConfig.sidebar}
+        sidebar={null}
         bottomNav={navigationConfig.bottomNav}
       >
         {children}
       </LayoutShell>
+      {sidebarContent}
       <userMenu.Render />
       <businessMenu.Render />
       <avatarMenu.Render />
