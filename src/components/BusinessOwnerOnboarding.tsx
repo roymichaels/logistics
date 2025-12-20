@@ -88,17 +88,11 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
   }, []);
 
   const initializeOnboarding = async () => {
-
     try {
       setLoading(true);
       setInitError(null);
 
-      const supabaseClient = dataStore.supabase;
-      if (!supabaseClient) {
-        await waitForSupabaseInit(15000, 200);
-      }
-
-      // Business types loading removed - using automatic defaults
+      // Frontend-only mode - no Supabase initialization needed
       setIsInitialized(true);
     } catch (error) {
       logger.error('❌ BusinessOwnerOnboarding: Initialization failed:', error);

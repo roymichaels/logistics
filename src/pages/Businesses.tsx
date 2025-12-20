@@ -9,8 +9,8 @@ import { ProfitDistributionModal } from '../components/ProfitDistributionModal';
 import { BusinessSettingsModal } from '../components/BusinessSettingsModal';
 import { getBusinessEquityBreakdown, getAvailableEquity, type EquityStakeholder } from '../services/equity';
 import { RoleDiagnostics } from '../lib/diagnostics';
-import { isSupabaseInitialized, waitForSupabaseInit } from '../lib/supabaseClient';
 import { logger } from '../lib/logger';
+import { localBusinessDataService, type Business as LocalBusiness, type BusinessOwnership as LocalOwnership } from '../services/localBusinessDataService';
 
 interface BusinessesProps {
   dataStore: DataStore;
@@ -58,34 +58,24 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
 
     loadDataCalledRef.current = true;
 
-    // Set initialization timeout (10 seconds)
+    // Set initialization timeout (3 seconds for local only)
     initTimeoutRef.current = setTimeout(() => {
       if (loading) {
-        logger.error('⏱️ Businesses page initialization timeout after 10 seconds');
-        setInitError('Initialization timeout. Please refresh the page.');
+        logger.error('⏱️ Businesses page initialization timeout');
+        setInitError('تهيئة المعلومات استغرقت وقتا طويلا.');
         setLoading(false);
       }
-    }, 10000);
+    }, 3000);
 
-    // Wait for Supabase to be ready, then load data
     const initialize = async () => {
       try {
         setInitStage('checking');
-        logger.info('🔄 Businesses: Waiting for Supabase initialization...');
+        logger.info('📱 Businesses: Loading from local storage (frontend-only)...');
 
-        // Wait for Supabase with timeout
-        await waitForSupabaseInit(8000, 100);
-
-        // Verify dataStore has supabase client
-        if (!dataStore?.supabase) {
-          throw new Error('DataStore supabase client not available');
-        }
-
-        logger.info('✅ Businesses: Supabase ready, loading data...');
         await loadData();
       } catch (error) {
-        logger.error('❌ Businesses: Initialization failed', error);
-        setInitError(error instanceof Error ? error.message : 'Failed to initialize');
+        logger.error('❌ Businesses: Failed to load', error);
+        setInitError(error instanceof Error ? error.message : 'فشل تحميل البيانات');
         setLoading(false);
       }
     };
@@ -102,11 +92,6 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
   }, []);
 
   const loadData = useCallback(async () => {
-    if (!dataStore?.supabase) {
-      logger.warn('⚠️ loadData called but dataStore.supabase not ready');
-      return;
-    }
-
     setLoading(true);
     setInitError(null);
 
@@ -116,10 +101,9 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
 
       const profile = await dataStore.getProfile();
 
-      // Validate profile has required fields
       if (!profile || !profile.id) {
         logger.error('Invalid profile data:', profile);
-        throw new Error('Failed to load user profile');
+        throw new Error('فشل تحميل ملف المستخدم');
       }
 
       setUser(profile);
@@ -129,86 +113,27 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
 
       // Load all businesses (for infrastructure owners)
       if (profile.role === 'infrastructure_owner' || profile.global_role === 'infrastructure_owner') {
-        const { data: businessData, error: businessError } = await dataStore.supabase
-          .from('businesses')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (!businessError && businessData) {
-          setBusinesses(businessData);
-        }
+        const allBusinesses = localBusinessDataService.getBusinesses();
+        setBusinesses(allBusinesses);
+        logger.info('✅ Loaded all businesses:', allBusinesses);
       }
 
-      // Load user's ownerships - try equity table first, then fall back to legacy ownership table
-      let ownershipsFound = false;
+      // Load user's ownerships from local storage
+      const ownerships = localBusinessDataService.getMyBusinesses(profile.id);
 
-      // Try business_equity table (new system)
-      const { data: equityData, error: equityError } = await dataStore.supabase
-        .from('business_equity')
-        .select(`
-          id,
-          business_id,
-          stakeholder_id,
-          equity_percentage,
-          equity_type,
-          profit_share_percentage,
-          voting_rights,
-          is_active,
-          business:businesses(*)
-        `)
-        .eq('stakeholder_id', profile.id)
-        .eq('is_active', true)
-        .order('equity_percentage', { ascending: false });
-
-      if (!equityError && equityData && equityData.length > 0) {
-        // Transform equity data to match BusinessOwnership interface
-        const transformedOwnerships = equityData.map((equity: any) => ({
-          id: equity.id,
-          business_id: equity.business_id,
-          owner_user_id: equity.stakeholder_id,
-          ownership_percentage: equity.equity_percentage,
-          equity_type: equity.equity_type,
-          profit_share_percentage: equity.profit_share_percentage,
-          voting_rights: equity.voting_rights,
-          active: equity.is_active,
-          business: equity.business
-        }));
-        setMyOwnerships(transformedOwnerships);
-        ownershipsFound = true;
-        logger.info('✅ Loaded ownerships from business_equity:', transformedOwnerships);
-      }
-
-      // Fall back to legacy business_ownership table if no equity records found
-      if (!ownershipsFound) {
-        const { data: ownershipsData, error: ownershipsError } = await dataStore.supabase
-          .from('business_ownership')
-          .select(`
-            *,
-            business:businesses(*),
-            owner:users(*)
-          `)
-          .eq('owner_user_id', profile.id)
-          .eq('active', true)
-          .order('ownership_percentage', { ascending: false });
-
-        if (!ownershipsError && ownershipsData && ownershipsData.length > 0) {
-          setMyOwnerships(ownershipsData);
-          ownershipsFound = true;
-          logger.info('✅ Loaded ownerships from business_ownership (legacy):', ownershipsData);
-        }
-      }
-
-      if (!ownershipsFound) {
-        logger.info('ℹ️ No ownerships found for user');
+      if (ownerships.length > 0) {
+        setMyOwnerships(ownerships);
+        logger.info('✅ Loaded user ownerships:', ownerships);
+      } else {
+        logger.info('ℹ️ No business ownerships found for user');
       }
 
       setInitStage('ready');
       logger.info('✅ Businesses: All data loaded successfully');
     } catch (error) {
       logger.error('Failed to load businesses:', error);
-      setInitError(error instanceof Error ? error.message : 'Failed to load data');
+      setInitError(error instanceof Error ? error.message : 'فشل تحميل البيانات');
     } finally {
-      // Clear timeout since we finished (success or error)
       if (initTimeoutRef.current) {
         clearTimeout(initTimeoutRef.current);
       }
