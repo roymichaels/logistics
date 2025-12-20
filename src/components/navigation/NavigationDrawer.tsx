@@ -103,9 +103,6 @@ export function NavigationDrawer({ isOpen, onClose, children }: NavigationDrawer
             overflowY: 'auto',
             overflowX: 'hidden',
             padding: '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px',
           }}
         >
           {children}
