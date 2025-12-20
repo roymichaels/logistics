@@ -743,3 +743,312 @@ svg {
     padding: var(--spacing-3xl-wide);
   }
 }
+
+/* ============================================
+   18. SPACING UTILITY CLASSES
+   ============================================ */
+
+/* Margin Utilities */
+.m-0 { margin: 0; }
+.m-xs { margin: var(--spacing-xs); }
+.m-sm { margin: var(--spacing-sm); }
+.m-md { margin: var(--spacing-md); }
+.m-lg { margin: var(--spacing-lg); }
+.m-xl { margin: var(--spacing-xl); }
+.m-2xl { margin: var(--spacing-2xl); }
+
+.mx-auto { margin-left: auto; margin-right: auto; }
+.my-xs { margin-top: var(--spacing-xs); margin-bottom: var(--spacing-xs); }
+.my-sm { margin-top: var(--spacing-sm); margin-bottom: var(--spacing-sm); }
+.my-md { margin-top: var(--spacing-md); margin-bottom: var(--spacing-md); }
+.my-lg { margin-top: var(--spacing-lg); margin-bottom: var(--spacing-lg); }
+.my-xl { margin-top: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+
+.mt-xs { margin-top: var(--spacing-xs); }
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+.mt-xl { margin-top: var(--spacing-xl); }
+
+.mb-xs { margin-bottom: var(--spacing-xs); }
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+.mb-xl { margin-bottom: var(--spacing-xl); }
+
+/* Padding Utilities */
+.p-0 { padding: 0; }
+.p-xs { padding: var(--spacing-xs); }
+.p-sm { padding: var(--spacing-sm); }
+.p-md { padding: var(--spacing-md); }
+.p-lg { padding: var(--spacing-lg); }
+.p-xl { padding: var(--spacing-xl); }
+.p-2xl { padding: var(--spacing-2xl); }
+
+.px-xs { padding-left: var(--spacing-xs); padding-right: var(--spacing-xs); }
+.px-sm { padding-left: var(--spacing-sm); padding-right: var(--spacing-sm); }
+.px-md { padding-left: var(--spacing-md); padding-right: var(--spacing-md); }
+.px-lg { padding-left: var(--spacing-lg); padding-right: var(--spacing-lg); }
+
+.py-xs { padding-top: var(--spacing-xs); padding-bottom: var(--spacing-xs); }
+.py-sm { padding-top: var(--spacing-sm); padding-bottom: var(--spacing-sm); }
+.py-md { padding-top: var(--spacing-md); padding-bottom: var(--spacing-md); }
+.py-lg { padding-top: var(--spacing-lg); padding-bottom: var(--spacing-lg); }
+.py-xl { padding-top: var(--spacing-xl); padding-bottom: var(--spacing-xl); }
+
+/* Gap Utilities */
+.gap-xs { gap: var(--spacing-xs); }
+.gap-sm { gap: var(--spacing-sm); }
+.gap-md { gap: var(--spacing-md); }
+.gap-lg { gap: var(--spacing-lg); }
+.gap-xl { gap: var(--spacing-xl); }
+.gap-2xl { gap: var(--spacing-2xl); }
+
+/* ============================================
+   19. IMPROVED GRID SPACING
+   ============================================ */
+
+/* Increase product grid gaps for better visibility */
+.grid--products {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+@media (min-width: 640px) {
+  .grid--products {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--spacing-xl);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid--products {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--spacing-xl);
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid--products {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--spacing-2xl-wide);
+  }
+}
+
+/* Card spacing improvements */
+.grid--cards {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+@media (min-width: 640px) {
+  .grid--cards {
+    gap: var(--spacing-xl);
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid--cards {
+    gap: var(--spacing-xl-wide);
+  }
+}
+
+/* ============================================
+   20. SECTION SPACING UTILITIES
+   ============================================ */
+
+/* Space between major page sections */
+.section-spacing-sm {
+  margin-bottom: var(--spacing-md);
+}
+
+.section-spacing-md {
+  margin-bottom: var(--spacing-lg);
+}
+
+.section-spacing-lg {
+  margin-bottom: var(--spacing-xl);
+}
+
+.section-spacing-xl {
+  margin-bottom: var(--spacing-2xl);
+}
+
+@media (min-width: 1280px) {
+  .section-spacing-lg {
+    margin-bottom: var(--spacing-xl-wide);
+  }
+  .section-spacing-xl {
+    margin-bottom: var(--spacing-2xl-wide);
+  }
+}
+
+/* ============================================
+   21. COMPONENT SPACING UTILITIES
+   ============================================ */
+
+/* Button groups - consistent spacing between buttons */
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.button-group--horizontal {
+  flex-direction: row;
+  gap: var(--spacing-md);
+}
+
+@media (min-width: 640px) {
+  .button-group--horizontal {
+    gap: var(--spacing-lg);
+  }
+}
+
+/* Form groups - vertical spacing between form elements */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-group__label {
+  margin-bottom: var(--spacing-xs);
+}
+
+.form-group__input {
+  margin-bottom: 0;
+}
+
+.form-group__hint {
+  margin-top: var(--spacing-xs);
+  font-size: 0.875rem;
+  opacity: 0.7;
+}
+
+/* List item spacing */
+.list-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.list-group__item {
+  padding: var(--spacing-md);
+}
+
+@media (min-width: 640px) {
+  .list-group {
+    gap: var(--spacing-lg);
+  }
+  .list-group__item {
+    padding: var(--spacing-lg);
+  }
+}
+
+/* Card grid with proper margins */
+.card-grid {
+  display: grid;
+  gap: var(--spacing-md);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .card-grid {
+    gap: var(--spacing-lg);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .card-grid {
+    gap: var(--spacing-xl);
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .card-grid {
+    gap: var(--spacing-xl-wide);
+  }
+}
+
+/* ============================================
+   22. FLEX/GRID SPACING PRESETS
+   ============================================ */
+
+/* Flex layouts with consistent gaps */
+.flex-gap-xs { display: flex; gap: var(--spacing-xs); }
+.flex-gap-sm { display: flex; gap: var(--spacing-sm); }
+.flex-gap-md { display: flex; gap: var(--spacing-md); }
+.flex-gap-lg { display: flex; gap: var(--spacing-lg); }
+.flex-gap-xl { display: flex; gap: var(--spacing-xl); }
+
+.flex-gap-md-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.flex-gap-lg-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.flex-gap-xl-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+/* ============================================
+   23. BADGE & LABEL SPACING
+   ============================================ */
+
+.badge-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.badge-container--lg {
+  gap: var(--spacing-md);
+}
+
+/* ============================================
+   24. SEARCH & FILTER SPACING
+   ============================================ */
+
+.search-container {
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+@media (min-width: 640px) {
+  .search-container {
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+  }
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+}
+
+@media (min-width: 640px) {
+  .filter-group {
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+  }
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}

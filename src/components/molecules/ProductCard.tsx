@@ -53,11 +53,11 @@ export function ProductCard({
 
   const priceTagStyle: React.CSSProperties = {
     position: 'absolute',
-    top: spacing.md,
-    right: spacing.md,
+    top: spacing.lg,
+    right: spacing.lg,
     background: colors.brand.primary,
     color: colors.white,
-    padding: `${spacing.sm} ${spacing.md}`,
+    padding: `${spacing.md} ${spacing.lg}`,
     borderRadius: borderRadius.full,
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.bold,
@@ -69,7 +69,7 @@ export function ProductCard({
   const contentStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
-    gap: spacing.sm,
+    gap: spacing.md,
     flex: 1,
   };
 
@@ -77,8 +77,8 @@ export function ProductCard({
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: spacing.md,
-    gap: spacing.sm,
+    marginTop: spacing.lg,
+    gap: spacing.md,
   };
 
   return (
@@ -173,7 +173,7 @@ export function ProductCard({
           onClick={handleAddToCart}
           disabled={product.stock_quantity === 0}
           style={{
-            marginTop: spacing.md,
+            marginTop: spacing.lg,
             transition: `all ${transitions.fast}`,
             transform: isHovered && product.stock_quantity !== 0 ? 'scale(1.02)' : 'scale(1)',
           }}
@@ -193,16 +193,16 @@ export function ProductCardSkeleton({ count = 1 }: ProductCardSkeletonProps) {
   const { Skeleton } = require('../atoms/Skeleton');
 
   const skeletonCards = Array.from({ length: count }, (_, i) => (
-    <Card key={i} style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
+    <Card key={i} style={{ display: 'flex', flexDirection: 'column', gap: spacing.lg }}>
       <Skeleton height="160px" variant="rectangular" />
       <Skeleton height="24px" width="80%" />
       <Skeleton height="16px" width="100%" />
       <Skeleton height="16px" width="60%" />
-      <div style={{ display: 'flex', gap: spacing.sm, marginTop: spacing.sm }}>
+      <div style={{ display: 'flex', gap: spacing.md, marginTop: spacing.md }}>
         <Skeleton height="24px" width="60px" variant="rectangular" />
         <Skeleton height="24px" width="60px" variant="rectangular" />
       </div>
-      <Skeleton height="40px" width="100%" variant="rectangular" />
+      <Skeleton height="40px" width="100%" variant="rectangular" style={{ marginTop: spacing.lg }} />
     </Card>
   ));
 

@@ -44,24 +44,24 @@ export function Button({
 
   const sizeStyles: Record<string, React.CSSProperties> = {
     sm: {
-      padding: `${spacing[2]} ${spacing[4]}`,
+      padding: `${spacing[2]} ${spacing[5]}`,
       fontSize: typography.fontSize.sm,
       borderRadius: borderRadius['2xl'],
       minHeight: '36px',
       fontWeight: typography.fontWeight.bold,
     },
     md: {
-      padding: `${spacing[3]} ${spacing[6]}`,
+      padding: `${spacing[3]} ${spacing[7]}`,
       fontSize: typography.fontSize.base,
       borderRadius: borderRadius['2xl'],
-      minHeight: '40px',
+      minHeight: '44px',
       fontWeight: typography.fontWeight.bold,
     },
     lg: {
       padding: `${spacing[4]} ${spacing[8]}`,
       fontSize: typography.fontSize.lg,
       borderRadius: borderRadius['2xl'],
-      minHeight: '44px',
+      minHeight: '48px',
       fontWeight: typography.fontWeight.bold,
     },
   };

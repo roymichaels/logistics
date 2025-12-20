@@ -14,7 +14,7 @@ export function Card({ children, className, onClick }: CardProps) {
       style={{
         background: 'var(--color-panel)',
         borderRadius: 'var(--radius-lg)',
-        padding: '16px',
+        padding: '24px',
         border: '1px solid var(--color-border)',
         boxShadow: 'var(--shadow-sm)'
       }}
