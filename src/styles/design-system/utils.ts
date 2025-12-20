@@ -107,3 +107,79 @@ export const commonStyles = {
     lineHeight: typography.lineHeight.relaxed,
   },
 } as const;
+
+/**
+ * Responsive utilities
+ */
+export const responsive = {
+  // Media query helpers
+  mobile: '@media (max-width: 767px)',
+  tablet: '@media (min-width: 768px) and (max-width: 1023px)',
+  desktop: '@media (min-width: 1024px)',
+  wide: '@media (min-width: 1280px)',
+
+  // Touch target minimum size (44x44px for accessibility)
+  touchTarget: {
+    minWidth: '44px',
+    minHeight: '44px',
+  },
+
+  // Mobile-first spacing (30% smaller on mobile)
+  getMobilePadding: (desktopPadding: keyof typeof spacing): string => {
+    const paddingValue = parseInt(spacing[desktopPadding]);
+    return `${Math.max(4, Math.round(paddingValue * 0.7))}px`;
+  },
+
+  // Responsive font size helper
+  getFontSize: (mobile: string, desktop: string) => ({
+    fontSize: mobile,
+    '@media (min-width: 768px)': {
+      fontSize: desktop,
+    },
+  }),
+
+  // Hide on mobile
+  hideOnMobile: {
+    '@media (max-width: 767px)': {
+      display: 'none',
+    },
+  },
+
+  // Hide on desktop
+  hideOnDesktop: {
+    '@media (min-width: 768px)': {
+      display: 'none',
+    },
+  },
+
+  // Responsive columns
+  columns: {
+    one: {
+      gridTemplateColumns: '1fr',
+    },
+    two: {
+      gridTemplateColumns: '1fr',
+      '@media (min-width: 768px)': {
+        gridTemplateColumns: 'repeat(2, 1fr)',
+      },
+    },
+    three: {
+      gridTemplateColumns: '1fr',
+      '@media (min-width: 768px)': {
+        gridTemplateColumns: 'repeat(2, 1fr)',
+      },
+      '@media (min-width: 1024px)': {
+        gridTemplateColumns: 'repeat(3, 1fr)',
+      },
+    },
+    four: {
+      gridTemplateColumns: '1fr',
+      '@media (min-width: 768px)': {
+        gridTemplateColumns: 'repeat(2, 1fr)',
+      },
+      '@media (min-width: 1024px)': {
+        gridTemplateColumns: 'repeat(4, 1fr)',
+      },
+    },
+  },
+};

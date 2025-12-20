@@ -10,6 +10,8 @@ export * from './Icon';
 export * from './Input';
 export * from './List';
 export * from './Radio';
+export * from './ResponsiveContainer';
+export * from './ResponsiveGrid';
 export * from './Section';
 export * from './Skeleton';
 export * from './Spinner';

@@ -5,6 +5,7 @@ import { usePageTitle } from '../hooks/usePageTitle';
 import { useNavController } from '../migration/controllers/navController';
 import { useDataSandbox } from '../migration/data/useDataSandbox';
 import { useAuth } from '../context/AuthContext';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { PageHeader } from '../components/molecules/PageHeader';
 import { PageContent } from '../components/molecules/PageContent';
 import { SectionHeader } from '../components/molecules/SectionHeader';
@@ -14,7 +15,8 @@ import { Button } from '../components/atoms/Button';
 import { Text } from '../components/atoms/Typography';
 import { Badge } from '../components/atoms/Badge';
 import { Divider } from '../components/atoms/Divider';
-import { colors, spacing } from '../styles/design-system';
+import { ResponsiveGrid } from '../components/atoms/ResponsiveGrid';
+import { colors, spacing, responsive } from '../styles/design-system';
 
 type ProfilePageNewProps = {
   user?: User;
@@ -27,6 +29,7 @@ function ProfilePageNewContent({ user, dataStore, onNavigate }: ProfilePageNewPr
   const nav = useNavController();
   const sandbox = useDataSandbox();
   const { logout } = useAuth();
+  const { isMobile } = useBreakpoint();
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
 
@@ -76,45 +79,74 @@ function ProfilePageNewContent({ user, dataStore, onNavigate }: ProfilePageNewPr
 
   return (
     <>
-      <PageContent>
+      <PageContent mobilePadding="md">
         {/* Profile Header Card */}
         <Card
           style={{
             background: `linear-gradient(135deg, ${colors.brand.primaryFaded}, ${colors.brand.primary})`,
             color: colors.white,
-            padding: spacing.xl,
+            padding: isMobile ? spacing.lg : spacing.xl,
             marginBottom: spacing.xl,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: spacing.lg }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? spacing.md : spacing.lg }}>
             <div
               style={{
-                width: 80,
-                height: 80,
+                width: isMobile ? 64 : 80,
+                height: isMobile ? 64 : 80,
                 borderRadius: '50%',
                 background: colors.white,
                 color: colors.brand.primary,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '32px',
+                fontSize: isMobile ? '24px' : '32px',
                 fontWeight: 700,
                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                flexShrink: 0,
               }}
             >
               {profileUser?.name?.[0]?.toUpperCase() || profileUser?.username?.[0]?.toUpperCase() || 'U'}
             </div>
-            <div style={{ flex: 1 }}>
-              <h2 style={{ margin: 0, marginBottom: spacing.xs, fontSize: '24px', fontWeight: 700 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h2 style={{
+                margin: 0,
+                marginBottom: spacing.xs,
+                fontSize: isMobile ? '20px' : '24px',
+                fontWeight: 700,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
                 {profileUser?.name || 'User'}
               </h2>
-              <p style={{ margin: 0, opacity: 0.9, fontSize: '14px' }}>
+              <p style={{
+                margin: 0,
+                opacity: 0.9,
+                fontSize: isMobile ? '13px' : '14px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
                 @{profileUser?.username || 'username'}
               </p>
               {profileUser?.email && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm, opacity: 0.9 }}>
-                  <Mail size={14} />
-                  <span style={{ fontSize: '13px' }}>{profileUser.email}</span>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: spacing.xs,
+                  marginTop: spacing.sm,
+                  opacity: 0.9,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}>
+                  <Mail size={isMobile ? 12 : 14} />
+                  <span style={{
+                    fontSize: isMobile ? '12px' : '13px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}>{profileUser.email}</span>
                 </div>
               )}
             </div>
@@ -162,7 +194,7 @@ function ProfilePageNewContent({ user, dataStore, onNavigate }: ProfilePageNewPr
             <Text variant="small" color="secondary" style={{ marginBottom: spacing.lg }}>
               Earn money by becoming a business owner or delivery driver
             </Text>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: spacing.md }}>
+            <ResponsiveGrid columns={{ mobile: 1, tablet: 2, desktop: 2, wide: 2 }} gap="md">
               <SettingsCard
                 icon={<Briefcase size={20} color={colors.brand.primary} />}
                 title="Start Your Business"
@@ -170,9 +202,9 @@ function ProfilePageNewContent({ user, dataStore, onNavigate }: ProfilePageNewPr
                 style={{
                   background: colors.background.secondary,
                   border: `1px solid ${colors.brand.primary}40`,
+                  ...responsive.touchTarget,
                 }}
                 onClick={() => {
-                  // This will be wired up through shell context
                   window.dispatchEvent(new CustomEvent('open-work-with-us-business'));
                 }}
               />
@@ -183,13 +215,13 @@ function ProfilePageNewContent({ user, dataStore, onNavigate }: ProfilePageNewPr
                 style={{
                   background: colors.background.secondary,
                   border: `1px solid ${colors.brand.secondary}40`,
+                  ...responsive.touchTarget,
                 }}
                 onClick={() => {
-                  // This will be wired up through shell context
                   window.dispatchEvent(new CustomEvent('open-work-with-us-driver'));
                 }}
               />
-            </div>
+            </ResponsiveGrid>
           </Card>
         </div>
 

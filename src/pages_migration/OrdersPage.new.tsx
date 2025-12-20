@@ -3,6 +3,7 @@ import { Package, Clock, CheckCircle, XCircle, ChevronRight } from 'lucide-react
 import { usePageTitle } from '../hooks/usePageTitle';
 import { useNavController } from '../migration/controllers/navController';
 import { useDataSandbox } from '../migration/data/useDataSandbox';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { PageContent } from '../components/molecules/PageContent';
 import { SectionHeader } from '../components/molecules/SectionHeader';
 import { Card } from '../components/molecules/Card';
@@ -12,7 +13,7 @@ import { Text } from '../components/atoms/Typography';
 import { Badge } from '../components/atoms/Badge';
 import { Chip } from '../components/atoms/Chip';
 import { Divider } from '../components/atoms/Divider';
-import { colors, spacing } from '../styles/design-system';
+import { colors, spacing, responsive } from '../styles/design-system';
 
 type Order = {
   id: string;
@@ -76,6 +77,7 @@ export function OrdersPageNew({ dataStore, onNavigate }: OrdersPageProps) {
   const { setTitle } = usePageTitle();
   const nav = useNavController();
   const sandbox = useDataSandbox();
+  const { isMobile } = useBreakpoint();
 
   useEffect(() => {
     setTitle('My Orders');
@@ -138,7 +140,7 @@ export function OrdersPageNew({ dataStore, onNavigate }: OrdersPageProps) {
 
   if (loading) {
     return (
-      <PageContent>
+      <PageContent mobilePadding="md">
         <LoadingState message="Loading your orders..." />
       </PageContent>
     );
@@ -146,7 +148,7 @@ export function OrdersPageNew({ dataStore, onNavigate }: OrdersPageProps) {
 
   if (orders.length === 0) {
     return (
-      <PageContent>
+      <PageContent mobilePadding="md">
         <EmptyState
           title="No orders yet"
           description="Start shopping to see your orders here"
@@ -161,7 +163,7 @@ export function OrdersPageNew({ dataStore, onNavigate }: OrdersPageProps) {
   }
 
   return (
-    <PageContent>
+    <PageContent mobilePadding="md">
       {/* Filter Chips */}
       <div style={{ marginBottom: spacing.lg }}>
         <SectionHeader title="Filter by Status" />
@@ -171,6 +173,9 @@ export function OrdersPageNew({ dataStore, onNavigate }: OrdersPageProps) {
             gap: spacing.sm,
             overflowX: 'auto',
             paddingBottom: spacing.sm,
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
           }}
         >
           {STATUS_FILTERS.map((filter) => (
@@ -179,6 +184,10 @@ export function OrdersPageNew({ dataStore, onNavigate }: OrdersPageProps) {
               label={filter}
               active={activeFilter === filter}
               onClick={() => setActiveFilter(filter)}
+              style={{
+                flexShrink: 0,
+                ...(isMobile ? responsive.touchTarget : {}),
+              }}
             />
           ))}
         </div>
@@ -213,7 +222,8 @@ export function OrdersPageNew({ dataStore, onNavigate }: OrdersPageProps) {
                 onClick={() => handleOrderClick(order)}
                 style={{
                   cursor: 'pointer',
-                  padding: spacing.lg,
+                  padding: isMobile ? spacing.md : spacing.lg,
+                  ...responsive.touchTarget,
                 }}
               >
                 {/* Header */}
@@ -225,22 +235,27 @@ export function OrdersPageNew({ dataStore, onNavigate }: OrdersPageProps) {
                     marginBottom: spacing.md,
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm, flex: 1, minWidth: 0 }}>
                     <div
                       style={{
-                        width: 40,
-                        height: 40,
+                        width: isMobile ? 36 : 40,
+                        height: isMobile ? 36 : 40,
                         borderRadius: '50%',
                         background: `${statusConfig.color}20`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        flexShrink: 0,
                       }}
                     >
-                      <StatusIcon size={20} color={statusConfig.color} />
+                      <StatusIcon size={isMobile ? 18 : 20} color={statusConfig.color} />
                     </div>
-                    <div>
-                      <Text variant="h4" weight="semibold">
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <Text variant={isMobile ? 'body' : 'h4'} weight="semibold" style={{
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}>
                         Order #{order.order_number || order.id.slice(0, 8)}
                       </Text>
                       <Text variant="small" color="secondary">
@@ -248,7 +263,7 @@ export function OrdersPageNew({ dataStore, onNavigate }: OrdersPageProps) {
                       </Text>
                     </div>
                   </div>
-                  <ChevronRight size={20} color={colors.text.secondary} />
+                  <ChevronRight size={isMobile ? 18 : 20} color={colors.text.secondary} style={{ flexShrink: 0 }} />
                 </div>
 
                 <Divider style={{ marginBottom: spacing.md }} />
@@ -259,14 +274,15 @@ export function OrdersPageNew({ dataStore, onNavigate }: OrdersPageProps) {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    gap: spacing.md,
                   }}
                 >
-                  <div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <Text variant="small" color="secondary">
                       {itemCount} {itemCount === 1 ? 'item' : 'items'}
                     </Text>
                     {order.total !== undefined && (
-                      <Text variant="body" weight="semibold" style={{ marginTop: spacing.xs }}>
+                      <Text variant={isMobile ? 'body' : 'body'} weight="semibold" style={{ marginTop: spacing.xs }}>
                         ₪{order.total.toFixed(2)}
                       </Text>
                     )}
@@ -282,6 +298,7 @@ export function OrdersPageNew({ dataStore, onNavigate }: OrdersPageProps) {
                         ? 'warning'
                         : 'default'
                     }
+                    size={isMobile ? 'sm' : 'md'}
                   />
                 </div>
               </Card>
