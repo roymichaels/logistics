@@ -1,5 +1,4 @@
 export * from './Accordion';
-export * from './BusinessSidebar';
 export * from './Card';
 export * from './CustomerBottomNav';
 export * from './DatePicker';
