@@ -15,6 +15,7 @@ import {
 } from '../migration/switchboard';
 import { migrationFlags } from '../migration/flags';
 import { useI18n } from '../lib/i18n';
+import { NavigationDrawer } from '../components/navigation/NavigationDrawer';
 
 interface UnifiedAppShellProps {
   children: React.ReactNode;
@@ -249,89 +250,11 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
     />
   );
 
-  // Wrap sidebar in overlay if it exists
+  // Wrap sidebar in NavigationDrawer if it exists
   const sidebarContent = navigationConfig.sidebar ? (
-    <>
-      {sidebarOpen && (
-        <div
-          onClick={() => setSidebarOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.4)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 10000,
-            transition: 'opacity 0.2s ease-in-out',
-            opacity: sidebarOpen ? 1 : 0,
-          }}
-        />
-      )}
-      <div
-        style={{
-          position: 'fixed',
-          top: '5%',
-          bottom: '5%',
-          right: sidebarOpen ? '16px' : 'calc(-320px - 16px)',
-          width: '320px',
-          maxWidth: 'calc(100vw - 32px)',
-          backgroundColor: 'rgba(18, 18, 20, 0.95)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: '18px',
-          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 255, 255, 0.1)',
-          zIndex: 10001,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          transform: sidebarOpen ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), right 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '20px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-          }}
-        >
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'rgba(255, 255, 255, 0.9)' }}>
-            Menu
-          </h3>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: '8px',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              color: 'rgba(255, 255, 255, 0.6)',
-              cursor: 'pointer',
-              fontSize: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-              e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-              e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
-            }}
-            aria-label="Close menu"
-          >
-            ✕
-          </button>
-        </div>
-        <div style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
-          {navigationConfig.sidebar}
-        </div>
-      </div>
-    </>
+    <NavigationDrawer isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}>
+      {navigationConfig.sidebar}
+    </NavigationDrawer>
   ) : null;
 
   return (
