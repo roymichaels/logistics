@@ -726,7 +726,8 @@ export default function App() {
     return <SuperadminSetup user={user} onSuccess={handleSuperadminSuccess} />;
   }
 
-  if (!dataStore) {
+  // Only check for dataStore if user is authenticated
+  if (isLoggedIn && isAuthenticated && !dataStore) {
     return (
       <div style={{
         display: 'flex',
@@ -888,6 +889,11 @@ export default function App() {
       <ToastContainer />
     </>
   );
+
+  // For unauthenticated users, bypass SecurityGate
+  if (!isLoggedIn || !isAuthenticated) {
+    return appShell;
+  }
 
   if (useSXT) {
     return appShell;

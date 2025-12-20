@@ -37,6 +37,7 @@ export interface AppServicesContextValue {
   config: BootstrapConfig | null;
   loading: boolean;
   error: string | null;
+  isAuthenticated: boolean;
   refreshUserRole: (options?: { forceRefresh?: boolean }) => Promise<void>;
   logout: () => void;
   currentBusinessId: string | null;
@@ -461,6 +462,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       config,
       loading,
       error,
+      isAuthenticated: auth?.isAuthenticated ?? false,
       refreshUserRole,
       logout,
       currentBusinessId,
@@ -474,6 +476,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     config,
     loading,
     error,
+    auth?.isAuthenticated,
     refreshUserRole,
     logout,
     currentBusinessId,
