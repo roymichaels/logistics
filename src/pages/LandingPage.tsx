@@ -1,14 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { hebrew } from '../lib/i18n';
 import { colors } from '../styles/design-system';
 
 interface LandingPageProps {
-  onGetStarted: () => void;
+  onGetStarted?: () => void;
 }
 
 export function LandingPage({ onGetStarted }: LandingPageProps) {
   const [isVisible, setIsVisible] = useState(false);
   const theme = colors;
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    if (onGetStarted) {
+      onGetStarted();
+    } else {
+      navigate('/auth/login');
+    }
+  };
 
   useEffect(() => {
     setIsVisible(true);
@@ -255,7 +265,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
 
           <button
             className={`cta-button fade-in-up delay-3 ${isVisible ? '' : ''}`}
-            onClick={onGetStarted}
+            onClick={handleGetStarted}
             style={{
               padding: '18px 48px',
               fontSize: '20px',
@@ -803,7 +813,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             {hebrew.landing.workWithUs.description}
           </p>
           <button
-            onClick={onGetStarted}
+            onClick={handleGetStarted}
             style={{
               padding: '12px 36px',
               fontSize: '16px',
@@ -855,7 +865,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           </p>
           <button
             className="cta-button"
-            onClick={onGetStarted}
+            onClick={handleGetStarted}
             style={{
               padding: '18px 48px',
               fontSize: '20px',
