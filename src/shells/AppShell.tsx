@@ -56,6 +56,8 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
       path: item.path,
     }));
 
+  console.log("UnifiedAppShell mounted");
+
   const headerContent = (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -72,7 +74,10 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <button
-          onClick={() => setMenuOpen(true)}
+          onClick={() => {
+            console.log("Menu button clicked");
+            setMenuOpen(true);
+          }}
           style={{
             width: '40px',
             height: '40px',
@@ -230,6 +235,7 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
         {children}
       </div>
 
+      {console.log("Rendering UnifiedMenuPanel with menuOpen =", menuOpen, "and items =", menuItems)}
       <UnifiedMenuPanel
         isOpen={menuOpen}
         onClose={() => setMenuOpen(false)}
