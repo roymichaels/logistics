@@ -99,9 +99,13 @@ export interface NavItemProps {
 }
 
 export function NavItem({ icon, label, active = false, onClick, collapsed = false }: NavItemProps) {
+  const [isHovered, setIsHovered] = React.useState(false);
+
   return (
     <button
       onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -109,15 +113,33 @@ export function NavItem({ icon, label, active = false, onClick, collapsed = fals
         width: '100%',
         padding: `${spacing[3]} ${spacing[4]}`,
         border: 'none',
-        background: active ? colors.brand.faded : 'transparent',
-        color: active ? colors.brand.primary : colors.text.secondary,
+        borderRadius: '10px',
+        background: active
+          ? 'rgba(59, 130, 246, 0.15)'
+          : isHovered && !active
+            ? 'rgba(255, 255, 255, 0.05)'
+            : 'transparent',
+        color: active ? '#60a5fa' : isHovered ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.5)',
         cursor: 'pointer',
         textAlign: 'left',
         fontSize: '15px',
-        fontWeight: active ? 600 : 400,
-        transition: 'all 150ms ease-in-out',
+        fontWeight: active ? 600 : 500,
+        transition: 'all 0.15s ease',
+        position: 'relative',
       }}
     >
+      {active && (
+        <div
+          style={{
+            position: 'absolute',
+            left: '-16px',
+            width: '3px',
+            height: '50%',
+            backgroundColor: '#60a5fa',
+            borderRadius: '0 2px 2px 0',
+          }}
+        />
+      )}
       <span style={{ fontSize: '20px', display: 'flex', alignItems: 'center' }}>{icon}</span>
       {!collapsed && <span>{label}</span>}
     </button>

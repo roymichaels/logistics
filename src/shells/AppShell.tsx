@@ -257,29 +257,33 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
           onClick={() => setSidebarOpen(false)}
           style={{
             position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 999,
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 10000,
+            transition: 'opacity 0.2s ease-in-out',
+            opacity: sidebarOpen ? 1 : 0,
           }}
         />
       )}
       <div
         style={{
           position: 'fixed',
-          top: 0,
-          right: sidebarOpen ? 0 : '-280px',
-          bottom: 0,
-          width: '280px',
-          background: 'var(--color-panel)',
-          boxShadow: sidebarOpen ? '-4px 0 12px rgba(0, 0, 0, 0.15)' : 'none',
-          transition: 'right 0.3s ease-in-out',
-          zIndex: 1000,
-          overflowY: 'auto',
+          top: '5%',
+          bottom: '5%',
+          right: sidebarOpen ? '16px' : 'calc(-320px - 16px)',
+          width: '320px',
+          maxWidth: 'calc(100vw - 32px)',
+          backgroundColor: 'rgba(18, 18, 20, 0.95)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '18px',
+          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 255, 255, 0.1)',
+          zIndex: 10001,
           display: 'flex',
           flexDirection: 'column',
+          overflow: 'hidden',
+          transform: sidebarOpen ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), right 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
         <div
@@ -287,11 +291,11 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '16px',
-            borderBottom: '1px solid var(--color-border)',
+            padding: '20px',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--color-text)' }}>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'rgba(255, 255, 255, 0.9)' }}>
             Menu
           </h3>
           <button
@@ -299,20 +303,31 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
             style={{
               width: 32,
               height: 32,
-              border: 'none',
-              background: 'transparent',
-              color: 'var(--color-text)',
+              borderRadius: '8px',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              color: 'rgba(255, 255, 255, 0.6)',
               cursor: 'pointer',
-              fontSize: '24px',
-              display: 'grid',
-              placeItems: 'center',
+              fontSize: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+              e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
             }}
             aria-label="Close menu"
           >
-            ×
+            ✕
           </button>
         </div>
-        <div style={{ flex: 1, padding: '16px' }}>
+        <div style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
           {navigationConfig.sidebar}
         </div>
       </div>

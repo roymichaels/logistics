@@ -21,7 +21,7 @@ export function getNavigationConfig(
       return {
         headerTitle: 'Business Portal',
         sidebar: (
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <NavItem
               icon="📊"
               label="Dashboard"
@@ -73,7 +73,7 @@ export function getNavigationConfig(
       return {
         headerTitle: 'Manager Portal',
         sidebar: (
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <NavItem
               icon="📊"
               label="Dashboard"
@@ -114,7 +114,7 @@ export function getNavigationConfig(
       return {
         headerTitle: 'Warehouse Dashboard',
         sidebar: (
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <NavItem
               icon="📊"
               label="Dashboard"
@@ -189,7 +189,7 @@ export function getNavigationConfig(
       return {
         headerTitle: 'Dispatch Center',
         sidebar: (
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <NavItem
               icon="🗺️"
               label="Dispatch Board"
@@ -223,7 +223,7 @@ export function getNavigationConfig(
       return {
         headerTitle: 'Sales Dashboard',
         sidebar: (
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <NavItem
               icon="📊"
               label="Dashboard"
@@ -257,7 +257,7 @@ export function getNavigationConfig(
       return {
         headerTitle: 'Support Dashboard',
         sidebar: (
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <NavItem
               icon="📋"
               label="Orders"
@@ -286,7 +286,7 @@ export function getNavigationConfig(
       return {
         headerTitle: 'Admin Portal',
         sidebar: (
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <NavItem
               icon="📊"
               label="Analytics"
