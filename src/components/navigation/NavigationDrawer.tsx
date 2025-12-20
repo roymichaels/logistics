@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { NavigationSidebar } from './NavigationSidebar';
+import React, { useEffect, useState } from 'react';
+import { NavigationSidebar, NavigationSection } from './NavigationSidebar';
 import { NavigationContent } from './NavigationContent';
 
 interface NavigationDrawerProps {
@@ -9,6 +9,8 @@ interface NavigationDrawerProps {
 }
 
 export function NavigationDrawer({ isOpen, onClose, children }: NavigationDrawerProps) {
+  const [activeSection, setActiveSection] = useState('main');
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -21,6 +23,12 @@ export function NavigationDrawer({ isOpen, onClose, children }: NavigationDrawer
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  // Define navigation sections
+  const sections: NavigationSection[] = [
+    { id: 'main', label: 'Main', icon: '🏠' },
+    { id: 'settings', label: 'Settings', icon: '⚙️' },
+  ];
 
   return (
     <>
@@ -57,8 +65,13 @@ export function NavigationDrawer({ isOpen, onClose, children }: NavigationDrawer
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <NavigationSidebar onClose={onClose} />
-        <NavigationContent>{children}</NavigationContent>
+        <NavigationSidebar
+          sections={sections}
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+          onClose={onClose}
+        />
+        <NavigationContent activeSection={activeSection}>{children}</NavigationContent>
       </div>
     </>
   );

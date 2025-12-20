@@ -1,10 +1,13 @@
 import React from 'react';
 
 interface NavigationContentProps {
+  activeSection: string;
   children: React.ReactNode;
 }
 
-export function NavigationContent({ children }: NavigationContentProps) {
+export function NavigationContent({ activeSection, children }: NavigationContentProps) {
+  const sectionTitle = activeSection === 'main' ? 'Navigation' : 'Settings';
+
   return (
     <div
       style={{
@@ -33,7 +36,7 @@ export function NavigationContent({ children }: NavigationContentProps) {
             letterSpacing: '-0.01em',
           }}
         >
-          Menu
+          {sectionTitle}
         </h2>
       </div>
 
@@ -45,7 +48,16 @@ export function NavigationContent({ children }: NavigationContentProps) {
           padding: '16px',
         }}
       >
-        {children}
+        {activeSection === 'main' ? children : (
+          <div style={{
+            padding: '20px',
+            textAlign: 'center',
+            color: 'rgba(255, 255, 255, 0.6)',
+            fontSize: '14px'
+          }}>
+            Settings coming soon...
+          </div>
+        )}
       </div>
     </div>
   );
