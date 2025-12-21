@@ -12,7 +12,10 @@ const Dashboard = React.lazy(() => import('../pages/Dashboard').then(m => ({ def
 const Orders = React.lazy(() => import('../pages/Orders').then(m => ({ default: m.Orders || m.default })));
 const Products = React.lazy(() => import('../pages/Products').then(m => ({ default: m.Products || m.default })));
 const Chat = React.lazy(() => import('../pages/Chat').then(m => ({ default: m.Chat || m.default })));
-const CatalogPage = React.lazy(() => import('../pages/modern/CatalogPage').then(m => ({ default: m.CatalogPage })));
+const CatalogPage = React.lazy(() => import('../store/CatalogPage').then(m => ({ default: m.CatalogPage })));
+const CheckoutPage = React.lazy(() => import('../store/CheckoutPage').then(m => ({ default: m.CheckoutPage })));
+const MyOrdersPage = React.lazy(() => import('../store/MyOrdersPage').then(m => ({ default: m.MyOrdersPage })));
+const OrderDetailPage = React.lazy(() => import('../store/OrderDetailPage').then(m => ({ default: m.OrderDetailPage })));
 const UserProfile = React.lazy(() => import('../pages/UserProfile').then(m => ({ default: m.UserProfilePage })));
 
 // Role-aware redirect component
@@ -84,6 +87,9 @@ export function SimpleRouter() {
       {isCustomerRole && (
         <>
           <Route path="/store/catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><CatalogPage dataStore={dataStore} /></Suspense>} />
+          <Route path="/store/checkout" element={<Suspense fallback={<PageLoadingSkeleton />}><CheckoutPage dataStore={dataStore} /></Suspense>} />
+          <Route path="/store/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><MyOrdersPage dataStore={dataStore} /></Suspense>} />
+          <Route path="/store/orders/:orderId" element={<Suspense fallback={<PageLoadingSkeleton />}><OrderDetailPage dataStore={dataStore} /></Suspense>} />
           <Route path="/store/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
         </>
       )}

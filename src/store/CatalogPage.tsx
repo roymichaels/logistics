@@ -9,7 +9,8 @@ import { SearchBar } from '../components/molecules/SearchBar';
 import { ProductCard, ProductCardSkeleton } from '../components/molecules/ProductCard';
 import { EmptyState } from '../components/molecules/EmptyState';
 import { Card } from '../components/molecules/Card';
-import { CartDrawer } from './CartDrawer';
+import { CartDrawer } from '../components/modern/CartDrawer';
+import { useCart } from '../hooks/useCart';
 import { colors, spacing, gradients, shadows } from '../styles/design-system';
 
 interface CatalogPageProps {
@@ -34,6 +35,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
   const [category, setCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isCartOpen, setCartOpen] = useState(false);
+  const { addItem } = useCart();
 
   useEffect(() => {
     let mounted = true;
@@ -266,7 +268,10 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
                 <ProductCard
                   key={product.id}
                   product={product}
-                  onAddToCart={() => setCartOpen(true)}
+                  onAddToCart={(p) => {
+                    addItem(p);
+                    setCartOpen(true);
+                  }}
                   onClick={(p) => {
                     console.log('Product clicked:', p.name);
                   }}
@@ -277,7 +282,11 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
         )}
       </div>
 
-      <CartDrawer isOpen={isCartOpen} onClose={() => setCartOpen(false)} />
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setCartOpen(false)}
+        onCheckout={() => onNavigate?.('/store/checkout')}
+      />
     </>
   );
 }
