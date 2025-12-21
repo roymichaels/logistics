@@ -9,13 +9,22 @@ import { ROYAL_STYLES, ROYAL_COLORS } from '../styles/royalTheme';
 import { logger } from '../lib/logger';
 import { useI18n } from '../lib/i18n';
 import type { FrontendDataStore } from '../lib/frontendDataStore';
+import { useAppServices } from '../context/AppServicesContext';
+import { useNavigate } from 'react-router-dom';
 
 interface OrdersProps {
-  dataStore: FrontendDataStore;
-  onNavigate: (page: string) => void;
+  dataStore?: FrontendDataStore;
+  onNavigate?: (page: string) => void;
 }
 
-export function Orders({ dataStore, onNavigate }: OrdersProps) {
+export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }: OrdersProps = {}) {
+  // Get dataStore and navigation from context if not provided as props
+  const { dataStore: contextDataStore } = useAppServices();
+  const navigate = useNavigate();
+
+  // Use prop if provided, otherwise use context
+  const dataStore = propDataStore || contextDataStore;
+  const onNavigate = propOnNavigate || ((path: string) => navigate(path));
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);

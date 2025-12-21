@@ -21,10 +21,12 @@ import {
 } from '../data/types';
 import { formatCurrency, useI18n } from '../lib/i18n';
 import { haptic } from '../utils/haptic';
+import { useAppServices } from '../context/AppServicesContext';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardProps {
-  dataStore: FrontendDataStore;
-  onNavigate: (page: string) => void;
+  dataStore?: FrontendDataStore;
+  onNavigate?: (page: string) => void;
 }
 
 const numberFormatter = new Intl.NumberFormat('he-IL');
@@ -48,7 +50,15 @@ const DASHBOARD_COLORS = {
   shadow: shadows.xl
 };
 
-export function Dashboard({ dataStore, onNavigate }: DashboardProps) {
+export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate }: DashboardProps = {}) {
+  // Get dataStore and navigation from context if not provided as props
+  const { dataStore: contextDataStore } = useAppServices();
+  const navigate = useNavigate();
+
+  // Use prop if provided, otherwise use context
+  const dataStore = propDataStore || contextDataStore;
+  const onNavigate = propOnNavigate || ((path: string) => navigate(path));
+
   const [user, setUser] = useState<User | null>(null);
   const [snapshot, setSnapshot] = useState<RoyalDashboardSnapshot | null>(null);
   const [loading, setLoading] = useState(true);

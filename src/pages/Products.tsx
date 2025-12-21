@@ -17,13 +17,16 @@ import { colors, spacing, commonStyles } from '../styles/design-system';
 import { ROYAL_STYLES, ROYAL_COLORS } from '../styles/royalTheme';
 import { Input } from '../components/atoms/Input';
 import { logger } from '../lib/logger';
+import { useNavigate } from 'react-router-dom';
 
 interface ProductsProps {
   dataStore?: any;
-  onNavigate: (page: string) => void;
+  onNavigate?: (page: string) => void;
 }
 
-export function Products({ onNavigate }: ProductsProps) {
+export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
+  const navigate = useNavigate();
+  const onNavigate = propOnNavigate || ((path: string) => navigate(path));
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);

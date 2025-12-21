@@ -14,17 +14,27 @@ import { useConversations, useMessages, useSendMessage, useMarkAsRead } from '..
 import { eventBus } from '../foundation/events/EventBus';
 import { haptic } from '../utils/haptic';
 import { getUserIdentifier } from '../utils/userIdentifier';
+import { useAppServices } from '../context/AppServicesContext';
+import { useNavigate } from 'react-router-dom';
 
 interface ChatProps {
-  dataStore: DataStore;
-  onNavigate: (page: string) => void;
+  dataStore?: DataStore;
+  onNavigate?: (page: string) => void;
   currentUser?: User;
 }
 
 type ChatTab = 'conversations' | 'groups' | 'users';
 type UserFilter = 'all' | 'online' | 'offline';
 
-export function Chat({ dataStore, onNavigate, currentUser }: ChatProps) {
+export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, currentUser: propCurrentUser }: ChatProps = {}) {
+  // Get dataStore and navigation from context if not provided as props
+  const { dataStore: contextDataStore, user: contextUser } = useAppServices();
+  const navigate = useNavigate();
+
+  // Use prop if provided, otherwise use context
+  const dataStore = propDataStore || contextDataStore;
+  const onNavigate = propOnNavigate || ((path: string) => navigate(path));
+  const currentUser = propCurrentUser || contextUser;
   const [activeTab, setActiveTab] = useState<ChatTab>('conversations');
   const [groupChats, setGroupChats] = useState<GroupChat[]>([]);
   const [users, setUsers] = useState<User[]>([]);
