@@ -1,5 +1,6 @@
 import { PlatformEvent, EventHandler, EventSubscription } from '../types/Events';
 import { logger } from '../../lib/logger';
+import { DiagnosticsStore } from '../diagnostics/DiagnosticsStore';
 
 class EventBus {
   private subscribers: Map<string, Set<EventHandler>> = new Map();
@@ -17,12 +18,10 @@ class EventBus {
 
     // Diagnostic logging
     try {
-      const { Diagnostics } = require('../diagnostics/DiagnosticsStore');
-      Diagnostics.log({
-        type: 'event',
+      DiagnosticsStore.logEvent({
+        type: 'log',
         message: `Event emitted: ${event.type}`,
-        payload: { eventType: event.eventType, source: event.source },
-        timestamp: Date.now()
+        data: { eventType: event.eventType, source: event.source },
       });
     } catch (e) {
       // Silently ignore if diagnostics not available

@@ -3,7 +3,7 @@ import { colors, spacing, borderRadius, typography } from '../../design-system';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: 'success' | 'warning' | 'error' | 'info' | 'neutral';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'large';
 }
 
 export function Badge({
@@ -13,6 +13,7 @@ export function Badge({
   style,
   ...props
 }: BadgeProps) {
+  const normalizedSize = size === 'large' ? 'lg' : size;
   const sizeStyles: Record<string, React.CSSProperties> = {
     sm: {
       padding: `${spacing[1]} ${spacing[2]}`,
@@ -66,7 +67,7 @@ export function Badge({
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
     whiteSpace: 'nowrap',
-    ...sizeStyles[size],
+    ...sizeStyles[normalizedSize],
     ...variantStyles[variant],
     ...style,
   };

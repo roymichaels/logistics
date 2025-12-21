@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { queryCache } from '../cache/QueryCache';
 import { DiagnosticsStore } from '@/foundation/diagnostics/DiagnosticsStore';
 import { logger } from '@/lib/logger';
+import { eventBus } from '@/foundation/events/EventBus';
 import type { AsyncResult } from '@/foundation/types/Result';
 import type { ClassifiedError } from '@/foundation/error/ErrorTypes';
 
@@ -78,9 +79,10 @@ export function useMutation<TInput = any, TOutput = any>(
       if (!emitEvent) return;
 
       try {
-        const { DomainEvents } = require('@/domain/events/DomainEvents');
-        DomainEvents.emit({
+        eventBus.emit({
           type: emitEvent,
+          eventType: 'domain',
+          source: 'useMutation',
           payload: eventData,
           timestamp: Date.now(),
         });

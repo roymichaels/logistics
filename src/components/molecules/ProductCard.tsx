@@ -3,6 +3,7 @@ import { Card } from './Card';
 import { Button } from '../atoms/Button';
 import { Text } from '../atoms/Typography';
 import { Badge } from '../atoms/Badge';
+import { Skeleton } from '../atoms/Skeleton';
 import { colors, spacing, borderRadius, typography, shadows, transitions } from '../../styles/design-system';
 import type { Product } from '../../data/types';
 
@@ -190,8 +191,6 @@ export interface ProductCardSkeletonProps {
 }
 
 export function ProductCardSkeleton({ count = 1 }: ProductCardSkeletonProps) {
-  const { Skeleton } = require('../atoms/Skeleton');
-
   const skeletonCards = Array.from({ length: count }, (_, i) => (
     <Card key={i} style={{ display: 'flex', flexDirection: 'column', gap: spacing.lg }}>
       <Skeleton height="160px" variant="rectangular" />

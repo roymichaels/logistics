@@ -2,16 +2,24 @@ import React from 'react';
 import { colors } from '../../styles/design-system';
 
 export interface SpinnerProps {
-  size?: number;
+  size?: number | 'small' | 'medium' | 'large';
   color?: string;
   thickness?: number;
 }
 
 export function Spinner({ size = 24, color = colors.brand.primary, thickness = 3 }: SpinnerProps) {
+  const sizeMap: Record<string, number> = {
+    small: 16,
+    medium: 24,
+    large: 48,
+  };
+
+  const numericSize = typeof size === 'string' ? sizeMap[size] || 24 : size;
+
   return (
     <svg
-      width={size}
-      height={size}
+      width={numericSize}
+      height={numericSize}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
