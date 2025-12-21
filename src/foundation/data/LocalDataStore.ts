@@ -335,7 +335,7 @@ export class LocalDataStore {
 
   async getProfile(): Promise<any> {
     try {
-      const session = localStorage.getItem('wallet-session');
+      const session = localStorage.getItem('local-wallet-session');
       if (!session) {
         logger.warn('[LocalDataStore] No wallet session found');
 
@@ -356,7 +356,7 @@ export class LocalDataStore {
       }
 
       const sessionData = JSON.parse(session);
-      const userId = sessionData.user?.id || sessionData.walletAddress;
+      const userId = sessionData.wallet || sessionData.walletAddress || sessionData.user?.id;
 
       const devRole = localStorage.getItem('dev-console:role-override');
       const effectiveRole = devRole || sessionData.role || 'customer';
@@ -369,7 +369,8 @@ export class LocalDataStore {
           id: userId,
           wallet_address: userId,
           role: effectiveRole,
-          name: sessionData.user?.name || 'User',
+          name: userId,
+          auth_method: sessionData.walletType,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
