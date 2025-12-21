@@ -12,8 +12,8 @@ const Dashboard = React.lazy(() => import('../pages/Dashboard').then(m => ({ def
 const Orders = React.lazy(() => import('../pages/Orders').then(m => ({ default: m.Orders || m.default })));
 const Products = React.lazy(() => import('../pages/Products').then(m => ({ default: m.Products || m.default })));
 const Chat = React.lazy(() => import('../pages/Chat').then(m => ({ default: m.Chat || m.default })));
-const CatalogPage = React.lazy(() => import('../pages/modern/CatalogPage').then(m => ({ default: m.default })));
-const UserProfile = React.lazy(() => import('../pages/UserProfile').then(m => ({ default: m.default })));
+const CatalogPage = React.lazy(() => import('../pages/modern/CatalogPage').then(m => ({ default: m.CatalogPage })));
+const UserProfile = React.lazy(() => import('../pages/UserProfile').then(m => ({ default: m.UserProfilePage })));
 
 // Role-aware redirect component
 function RoleBasedRedirect() {
@@ -27,7 +27,7 @@ function RoleBasedRedirect() {
 }
 
 export function SimpleRouter() {
-  const { isAuthenticated, userRole } = useAppServices();
+  const { isAuthenticated, userRole, dataStore } = useAppServices();
   const { authenticateWithEthereum, authenticateWithSolana, authenticateWithTon, authenticate: authenticateWithTelegram } = useAuth();
 
   if (!isAuthenticated) {
@@ -83,7 +83,7 @@ export function SimpleRouter() {
       {/* Customer/Store routes */}
       {isCustomerRole && (
         <>
-          <Route path="/store/catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><CatalogPage /></Suspense>} />
+          <Route path="/store/catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><CatalogPage dataStore={dataStore} /></Suspense>} />
           <Route path="/store/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
         </>
       )}
