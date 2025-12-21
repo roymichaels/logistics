@@ -314,8 +314,9 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         setDataStore(store);
 
-        // In SxT mode skip Supabase profile fetches
-        if (!useSXT) {
+        // Skip Supabase profile fetches for wallet auth and SxT mode
+        const isWalletAuth = ['ethereum', 'solana', 'ton'].includes((auth.user as any)?.auth_method);
+        if (!useSXT && !isWalletAuth) {
           try {
             const profile = await userService.getUserProfile(auth.user.id, true);
 
