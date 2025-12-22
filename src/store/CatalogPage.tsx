@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Shield } from 'lucide-react';
 import type { Product } from '../data/types';
 import { Section } from '../components/atoms/Section';
 import { Grid } from '../components/atoms/Grid';
@@ -11,7 +10,7 @@ import { EmptyState } from '../components/molecules/EmptyState';
 import { Card } from '../components/molecules/Card';
 import { CartDrawer } from '../components/modern/CartDrawer';
 import { useCart } from '../hooks/useCart';
-import { colors, spacing, gradients, shadows } from '../styles/design-system';
+import { colors, spacing } from '../styles/design-system';
 
 interface CatalogPageProps {
   dataStore: any;
@@ -84,77 +83,6 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
   return (
     <>
       <div style={contentStyle}>
-        <Section
-          title="UndergroundLab Security Store"
-          style={{
-            textAlign: 'center',
-            padding: spacing['4xl'],
-            background: gradients.card,
-            borderBottom: `1px solid ${colors.border.primary}`,
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: gradients.glow,
-              opacity: 0.3,
-              pointerEvents: 'none',
-            }}
-          />
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              marginBottom: spacing.lg,
-            }}
-          >
-            <div
-              style={{
-                width: '72px',
-                height: '72px',
-                borderRadius: '16px',
-                background: gradients.primary,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: shadows.glowLarge,
-              }}
-            >
-              <Shield size={40} color={colors.white} strokeWidth={2} />
-            </div>
-          </div>
-          <Text
-            variant="h2"
-            style={{
-              marginBottom: spacing.md,
-              color: colors.text.primary,
-              fontSize: '32px',
-              fontWeight: 'bold',
-            }}
-          >
-            Enterprise Security Hardware
-          </Text>
-          <Text
-            variant="body"
-            color="secondary"
-            style={{
-              marginBottom: spacing['2xl'],
-              maxWidth: '600px',
-              margin: '0 auto',
-              lineHeight: '1.6',
-            }}
-          >
-            Secured devices and privacy tools for individuals and businesses.
-            Military-grade encryption, certified hardware, encrypted shipping.
-          </Text>
-        </Section>
-
         <Section
           title="Search & Filter"
           style={{

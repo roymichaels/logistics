@@ -104,7 +104,7 @@ export function SimpleRouter() {
       {/* Customer/Store routes - wrapped in UnifiedAppShell for navigation */}
       {isCustomerRole && (
         <>
-          <Route path="/store/catalog" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><CatalogPage dataStore={dataStore} /></Suspense></UnifiedAppShell>} />
+          <Route path="/store/catalog" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><CatalogPage dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense></UnifiedAppShell>} />
           <Route path="/store/checkout" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><CheckoutPage dataStore={dataStore} /></Suspense></UnifiedAppShell>} />
           <Route path="/store/orders" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><MyOrdersPage dataStore={dataStore} /></Suspense></UnifiedAppShell>} />
           <Route path="/store/orders/:orderId" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><OrderDetailPage dataStore={dataStore} /></Suspense></UnifiedAppShell>} />
