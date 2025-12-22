@@ -205,7 +205,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
               padding: `0 ${spacing.lg} ${spacing.lg}`,
             }}
           >
-            <Grid minWidth="240px" gap={spacing.lg}>
+            <Grid autoFit minItemWidth="240px" gap="lg">
               <ProductCardSkeleton count={8} />
             </Grid>
           </Section>
@@ -263,7 +263,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
               padding: `0 ${spacing.lg} ${spacing.lg}`,
             }}
           >
-            <Grid minWidth="240px" gap={spacing.lg}>
+            <Grid autoFit minItemWidth="240px" gap="lg">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}

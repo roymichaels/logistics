@@ -7,6 +7,7 @@ import { LoginPage } from '../pages/LoginPage';
 import { RoleSelectionPage } from '../pages/RoleSelectionPage';
 import { getEntryPointForRole } from './UnifiedRouter';
 import { UserRole } from '../shells/types';
+import { UnifiedAppShell } from '../shells/AppShell';
 
 const LandingPage = React.lazy(() => import('../pages/LandingPage').then(m => ({ default: m.LandingPage || m.default })));
 const Dashboard = React.lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard || m.default })));
@@ -76,35 +77,38 @@ export function SimpleRouter() {
       {/* Role Selection - accessible to all authenticated users */}
       <Route path="/role-selection" element={<RoleSelectionPage />} />
 
-      {/* Business routes */}
+      {/* Business routes - wrapped in UnifiedAppShell for navigation */}
       {isBusinessRole && (
         <>
-          <Route path="/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><Dashboard /></Suspense>} />
-          <Route path="/business/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><Dashboard /></Suspense>} />
-          <Route path="/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
-          <Route path="/business/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
-          <Route path="/products" element={<Suspense fallback={<PageLoadingSkeleton />}><Products /></Suspense>} />
-          <Route path="/business/products" element={<Suspense fallback={<PageLoadingSkeleton />}><Products /></Suspense>} />
-          <Route path="/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
-          <Route path="/business/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
+          <Route path="/dashboard" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><Dashboard /></Suspense></UnifiedAppShell>} />
+          <Route path="/business/dashboard" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><Dashboard /></Suspense></UnifiedAppShell>} />
+          <Route path="/orders" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense></UnifiedAppShell>} />
+          <Route path="/business/orders" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense></UnifiedAppShell>} />
+          <Route path="/products" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><Products /></Suspense></UnifiedAppShell>} />
+          <Route path="/business/products" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><Products /></Suspense></UnifiedAppShell>} />
+          <Route path="/chat" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense></UnifiedAppShell>} />
+          <Route path="/business/chat" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense></UnifiedAppShell>} />
+          <Route path="/business/profile" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense></UnifiedAppShell>} />
+          <Route path="/store/profile" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense></UnifiedAppShell>} />
         </>
       )}
 
-      {/* Driver routes */}
+      {/* Driver routes - wrapped in UnifiedAppShell for navigation */}
       {isDriverRole && (
         <>
-          <Route path="/driver/deliveries" element={<Suspense fallback={<PageLoadingSkeleton />}><div>Driver Deliveries</div></Suspense>} />
+          <Route path="/driver/deliveries" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><div>Driver Deliveries</div></Suspense></UnifiedAppShell>} />
+          <Route path="/store/profile" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense></UnifiedAppShell>} />
         </>
       )}
 
-      {/* Customer/Store routes */}
+      {/* Customer/Store routes - wrapped in UnifiedAppShell for navigation */}
       {isCustomerRole && (
         <>
-          <Route path="/store/catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><CatalogPage dataStore={dataStore} /></Suspense>} />
-          <Route path="/store/checkout" element={<Suspense fallback={<PageLoadingSkeleton />}><CheckoutPage dataStore={dataStore} /></Suspense>} />
-          <Route path="/store/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><MyOrdersPage dataStore={dataStore} /></Suspense>} />
-          <Route path="/store/orders/:orderId" element={<Suspense fallback={<PageLoadingSkeleton />}><OrderDetailPage dataStore={dataStore} /></Suspense>} />
-          <Route path="/store/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
+          <Route path="/store/catalog" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><CatalogPage dataStore={dataStore} /></Suspense></UnifiedAppShell>} />
+          <Route path="/store/checkout" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><CheckoutPage dataStore={dataStore} /></Suspense></UnifiedAppShell>} />
+          <Route path="/store/orders" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><MyOrdersPage dataStore={dataStore} /></Suspense></UnifiedAppShell>} />
+          <Route path="/store/orders/:orderId" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><OrderDetailPage dataStore={dataStore} /></Suspense></UnifiedAppShell>} />
+          <Route path="/store/profile" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense></UnifiedAppShell>} />
         </>
       )}
 

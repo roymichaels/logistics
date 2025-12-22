@@ -3,7 +3,7 @@ import { colors, spacing, borderRadius, typography, transitions, shadows } from 
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'ghost' | 'link';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'small' | 'medium' | 'large';
   fullWidth?: boolean;
   loading?: boolean;
   leftIcon?: React.ReactNode;
@@ -23,6 +23,7 @@ export function Button({
   className,
   ...props
 }: ButtonProps) {
+  const normalizedSize = size === 'small' ? 'sm' : size === 'medium' ? 'md' : size === 'large' ? 'lg' : size;
   const baseStyles: React.CSSProperties = {
     display: 'inline-flex',
     alignItems: 'center',
@@ -160,7 +161,7 @@ export function Button({
 
   const combinedStyles: React.CSSProperties = {
     ...baseStyles,
-    ...sizeStyles[size],
+    ...sizeStyles[normalizedSize],
     ...variantStyles[variant],
     ...(isHovered ? getHoverStyles() : {}),
     ...(isPressed ? getPressedStyles() : {}),
@@ -183,7 +184,7 @@ export function Button({
       onTouchStart={() => setIsPressed(true)}
       onTouchEnd={() => setIsPressed(false)}
     >
-      {loading && <Spinner size={size === 'sm' ? 14 : size === 'lg' ? 20 : 16} />}
+      {loading && <Spinner size={normalizedSize === 'sm' ? 14 : normalizedSize === 'lg' ? 20 : 16} />}
       {!loading && leftIcon && <span style={{ display: 'flex', alignItems: 'center' }}>{leftIcon}</span>}
       {children && <span>{children}</span>}
       {!loading && rightIcon && <span style={{ display: 'flex', alignItems: 'center' }}>{rightIcon}</span>}

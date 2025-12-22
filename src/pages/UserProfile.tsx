@@ -34,15 +34,41 @@ export function UserProfilePage({ userId }: UserProfileProps) {
 
   const loadProfile = async () => {
     try {
-      const profileData = await dataStore.getUserProfile?.(targetUserId);
-      setProfile(profileData);
+      if (!targetUserId) {
+        logger.warn('[UserProfile] No target user ID');
+        return;
+      }
 
-      const { data: userData } = await dataStore.supabase
-        .from('users')
-        .select('*')
-        .eq('id', targetUserId)
-        .single();
-      setUser(userData);
+      const profileData = await dataStore.getUserProfile?.(targetUserId);
+      if (profileData) {
+        setProfile(profileData);
+      } else {
+        setProfile({
+          id: targetUserId,
+          bio: '',
+          website: '',
+          location: '',
+          banner_url: '',
+          followers_count: 0,
+          following_count: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      }
+
+      const userData = await dataStore.getUser?.(targetUserId);
+      if (userData) {
+        setUser(userData);
+      } else {
+        setUser({
+          id: targetUserId,
+          wallet_address: targetUserId,
+          name: targetUserId.slice(0, 8),
+          username: targetUserId.slice(0, 12),
+          role: 'customer',
+          created_at: new Date().toISOString(),
+        });
+      }
     } catch (error) {
       logger.error('Failed to load profile:', error);
     }
