@@ -4,6 +4,7 @@ import { useAppServices } from '../context/AppServicesContext';
 import { useAuth } from '../context/AuthContext';
 import { PageLoadingSkeleton } from '../components/LoadingSkeleton';
 import { LoginPage } from '../pages/LoginPage';
+import { RoleSelectionPage } from '../pages/RoleSelectionPage';
 import { getEntryPointForRole } from './UnifiedRouter';
 import { UserRole } from '../shells/types';
 
@@ -21,6 +22,7 @@ const UserProfile = React.lazy(() => import('../pages/UserProfile').then(m => ({
 // Role-aware redirect component
 function RoleBasedRedirect() {
   const { userRole } = useAppServices();
+  const location = useLocation();
 
   // Get the correct entry point for the user's role
   const entryPoint = getEntryPointForRole(userRole as UserRole);
@@ -32,6 +34,15 @@ function RoleBasedRedirect() {
 export function SimpleRouter() {
   const { isAuthenticated, userRole, dataStore } = useAppServices();
   const { authenticateWithEthereum, authenticateWithSolana, authenticateWithTon, authenticate: authenticateWithTelegram } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Redirect first-time customers to role selection
+  useEffect(() => {
+    if (isAuthenticated && userRole === 'customer' && location.pathname !== '/role-selection' && location.pathname !== '/store/catalog' && !location.pathname.startsWith('/store/')) {
+      navigate('/role-selection', { replace: true });
+    }
+  }, [isAuthenticated, userRole, location.pathname, navigate]);
 
   if (!isAuthenticated) {
     return (
@@ -62,6 +73,9 @@ export function SimpleRouter() {
 
   return (
     <Routes>
+      {/* Role Selection - accessible to all authenticated users */}
+      <Route path="/role-selection" element={<RoleSelectionPage />} />
+
       {/* Business routes */}
       {isBusinessRole && (
         <>
