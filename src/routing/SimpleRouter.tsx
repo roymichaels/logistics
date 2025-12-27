@@ -14,6 +14,7 @@ const Dashboard = React.lazy(() => import('../pages/Dashboard').then(m => ({ def
 const Orders = React.lazy(() => import('../pages/Orders').then(m => ({ default: m.Orders || m.default })));
 const Products = React.lazy(() => import('../pages/Products').then(m => ({ default: m.Products || m.default })));
 const Chat = React.lazy(() => import('../pages/Chat').then(m => ({ default: m.Chat || m.default })));
+const Businesses = React.lazy(() => import('../pages/Businesses').then(m => ({ default: m.Businesses })));
 const CatalogPage = React.lazy(() => import('../store/CatalogPage').then(m => ({ default: m.CatalogPage })));
 const CheckoutPage = React.lazy(() => import('../store/CheckoutPage').then(m => ({ default: m.CheckoutPage })));
 const MyOrdersPage = React.lazy(() => import('../store/MyOrdersPage').then(m => ({ default: m.MyOrdersPage })));
@@ -82,6 +83,7 @@ export function SimpleRouter() {
         <>
           <Route path="/dashboard" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><Dashboard /></Suspense></UnifiedAppShell>} />
           <Route path="/business/dashboard" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><Dashboard /></Suspense></UnifiedAppShell>} />
+          <Route path="/business/businesses" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><Businesses dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense></UnifiedAppShell>} />
           <Route path="/orders" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense></UnifiedAppShell>} />
           <Route path="/business/orders" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense></UnifiedAppShell>} />
           <Route path="/products" element={<UnifiedAppShell><Suspense fallback={<PageLoadingSkeleton />}><Products /></Suspense></UnifiedAppShell>} />

@@ -139,7 +139,7 @@ export default function App() {
     users: '/admin/users',
     chat: '/business/chat',
     channels: '/business/channels',
-    businesses: '/admin/businesses',
+    businesses: '/business/businesses',
     'my-stats': '/business/analytics',
     'my-role': '/business/roles',
     inventory: '/business/inventory',

@@ -33,6 +33,7 @@ export const UNIFIED_ROUTES: RouteConfig[] = [
     isEntryPoint: true,
     children: [
       { path: '/business/dashboard', name: 'Dashboard', roles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service'], isEntryPoint: true },
+      { path: '/business/businesses', name: 'My Businesses', roles: ['business_owner', 'manager'] },
       { path: '/business/inventory', name: 'Inventory', roles: ['business_owner', 'manager', 'warehouse'] },
       { path: '/business/orders', name: 'Orders', roles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service'] },
       { path: '/business/dispatch', name: 'Dispatch', roles: ['business_owner', 'manager', 'dispatcher'] },

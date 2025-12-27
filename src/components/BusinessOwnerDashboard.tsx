@@ -75,7 +75,7 @@ export function BusinessOwnerDashboard({ businessId, userId, onNavigate }: Busin
           description={translations.businessDashboard?.selectBusinessMessage || 'כדי להתחיל, עליך לבחור עסק או ליצור עסק חדש. לחץ על הכפתור למטה כדי לעבור לעמוד הניהול של העסקים שלך.'}
           action={{
             label: translations.actions?.goToBusinessesPage || 'עבור לעמוד עסקים',
-            onClick: () => onNavigate('businesses')
+            onClick: () => onNavigate('/business/businesses')
           }}
         />
       </div>

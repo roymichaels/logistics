@@ -45,6 +45,14 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     requiredRoles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service']
   },
   {
+    id: 'business-businesses',
+    label: 'My Businesses',
+    path: '/business/businesses',
+    icon: '🏢',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager']
+  },
+  {
     id: 'business-inventory',
     label: 'Inventory',
     path: '/business/inventory',
