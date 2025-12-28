@@ -3,12 +3,22 @@ export interface Business {
   name: string;
   name_hebrew?: string;
   description?: string;
+  infrastructure_id?: string;
   active: boolean;
   created_at: string;
   primary_color?: string;
   secondary_color?: string;
   order_prefix?: string;
   business_type?: string;
+}
+
+export interface Infrastructure {
+  id: string;
+  name: string;
+  owner_id: string;
+  description?: string;
+  active: boolean;
+  created_at: string;
 }
 
 export interface BusinessOwnership {
@@ -39,10 +49,54 @@ const STORAGE_KEYS = {
   BUSINESSES: 'frontend_businesses_cache',
   OWNERSHIPS: 'frontend_business_ownerships',
   EQUITY: 'frontend_business_equity',
-  SETTINGS: 'frontend_business_settings'
+  SETTINGS: 'frontend_business_settings',
+  INFRASTRUCTURE: 'frontend_infrastructure_cache'
 };
 
 export const localBusinessDataService = {
+  // Infrastructure functions
+  getInfrastructures(): Infrastructure[] {
+    try {
+      const cached = localStorage.getItem(STORAGE_KEYS.INFRASTRUCTURE);
+      return cached ? JSON.parse(cached) : [];
+    } catch (error) {
+      console.error('Failed to load infrastructures:', error);
+      return [];
+    }
+  },
+
+  getInfrastructureById(id: string): Infrastructure | null {
+    const infrastructures = this.getInfrastructures();
+    return infrastructures.find(i => i.id === id) || null;
+  },
+
+  getOrCreateInfrastructure(userId: string): Infrastructure {
+    const infrastructures = this.getInfrastructures();
+    let userInfrastructure = infrastructures.find(i => i.owner_id === userId);
+
+    if (!userInfrastructure) {
+      userInfrastructure = {
+        id: `infra_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name: `Infrastructure ${Date.now()}`,
+        owner_id: userId,
+        description: 'Auto-created infrastructure',
+        active: true,
+        created_at: new Date().toISOString()
+      };
+
+      infrastructures.push(userInfrastructure);
+      localStorage.setItem(STORAGE_KEYS.INFRASTRUCTURE, JSON.stringify(infrastructures));
+    }
+
+    return userInfrastructure;
+  },
+
+  getBusinessesByInfrastructure(infrastructureId: string): Business[] {
+    const businesses = this.getBusinesses();
+    return businesses.filter(b => b.infrastructure_id === infrastructureId);
+  },
+
+  // Business functions
   getBusinesses(): Business[] {
     try {
       const cached = localStorage.getItem(STORAGE_KEYS.BUSINESSES);
@@ -81,11 +135,15 @@ export const localBusinessDataService = {
   },
 
   createBusiness(data: Partial<Business>, userId: string): Business {
+    // Auto-create or get existing infrastructure for the user
+    const infrastructure = this.getOrCreateInfrastructure(userId);
+
     const business: Business = {
       id: `biz_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       name: data.name || 'Unnamed Business',
       name_hebrew: data.name_hebrew || '',
       description: data.description || '',
+      infrastructure_id: infrastructure.id,
       active: true,
       created_at: new Date().toISOString(),
       primary_color: data.primary_color || '#667eea',

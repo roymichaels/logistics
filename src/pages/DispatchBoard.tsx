@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 
 import { useRoleTheme } from '../hooks/useRoleTheme';
+import { useLanguage } from '../context/LanguageContext';
 import {
   DataStore,
   DriverStatusRecord,
@@ -23,6 +24,7 @@ type OrderStatus = 'pending' | 'assigned' | 'in_progress' | 'completed';
 export function DispatchBoard({ dataStore }: DispatchBoardProps) {
 
   const { colors, styles } = useRoleTheme();
+  const { t: translations, isRTL } = useLanguage();
   const [zones, setZones] = useState<ZoneCoverageSnapshot[]>([]);
   const [unassignedDrivers, setUnassignedDrivers] = useState<DriverStatusRecord[]>([]);
   const [outstandingOrders, setOutstandingOrders] = useState<Order[]>([]);

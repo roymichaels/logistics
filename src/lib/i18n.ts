@@ -1002,6 +1002,38 @@ export interface Translations {
     lastPeriod: string;
   };
 
+  // Dispatch Board
+  dispatchBoardPage: {
+    title: string;
+    subtitle: string;
+    systemNotSupported: string;
+    errorLoadingCoverage: string;
+    realTime: string;
+    list: string;
+    kanban: string;
+    refresh: string;
+    availableDrivers: string;
+    coverageZones: string;
+    inDelivery: string;
+    waiting: string;
+    waitingForAssignment: string;
+    assigned: string;
+    inProgress: string;
+    completed: string;
+    noWaitingOrders: string;
+    noAssignedOrders: string;
+    noDeliveriesInProgress: string;
+    noCompletedOrders: string;
+    assignDriverToOrder: string;
+    driver: string;
+    available: string;
+    noAvailableDrivers: string;
+    driverAssignedSuccessfully: string;
+    errorAssigningDriver: string;
+    assignDriver: string;
+    loadingDispatchBoard: string;
+  };
+
   [key: string]: string | any;
 }
 
@@ -2160,6 +2192,37 @@ const hebrewTranslations: Translations = {
     change: 'שינוי',
     vs: 'לעומת',
     lastPeriod: 'תקופה קודמת',
+  },
+
+  dispatchBoardPage: {
+    title: 'לוח שיגור',
+    subtitle: 'ניהול משלוחים בזמן אמת',
+    systemNotSupported: 'המערכת אינה נתמכת',
+    errorLoadingCoverage: 'שגיאה בטעינת כיסוי השירות',
+    realTime: 'זמן אמת',
+    list: 'רשימה',
+    kanban: 'קאנבאן',
+    refresh: 'רענן',
+    availableDrivers: 'נהגים זמינים',
+    coverageZones: 'אזורי כיסוי',
+    inDelivery: 'במשלוח',
+    waiting: 'ממתין',
+    waitingForAssignment: 'ממתין להקצאה',
+    assigned: 'הוקצה',
+    inProgress: 'בביצוע',
+    completed: 'הושלם',
+    noWaitingOrders: 'אין הזמנות ממתינות',
+    noAssignedOrders: 'אין הזמנות מוקצות',
+    noDeliveriesInProgress: 'אין משלוחים בביצוע',
+    noCompletedOrders: 'אין הזמנות שהושלמו',
+    assignDriverToOrder: 'הקצה נהג להזמנה',
+    driver: 'נהג',
+    available: 'זמין',
+    noAvailableDrivers: 'אין נהגים זמינים',
+    driverAssignedSuccessfully: 'הנהג הוקצה בהצלחה',
+    errorAssigningDriver: 'שגיאה בהקצאת נהג',
+    assignDriver: 'הקצה נהג',
+    loadingDispatchBoard: 'טוען לוח שיגור...',
   },
 
   // Landing page translations - will be added below
@@ -3417,6 +3480,37 @@ const englishTranslations: Translations = {
     change: 'Change',
     vs: 'vs',
     lastPeriod: 'Last Period',
+  },
+
+  dispatchBoardPage: {
+    title: 'Dispatch Board',
+    subtitle: 'Real-time delivery management',
+    systemNotSupported: 'System not supported',
+    errorLoadingCoverage: 'Error loading service coverage',
+    realTime: 'Real Time',
+    list: 'List',
+    kanban: 'Kanban',
+    refresh: 'Refresh',
+    availableDrivers: 'Available Drivers',
+    coverageZones: 'Coverage Zones',
+    inDelivery: 'In Delivery',
+    waiting: 'Waiting',
+    waitingForAssignment: 'Waiting for Assignment',
+    assigned: 'Assigned',
+    inProgress: 'In Progress',
+    completed: 'Completed',
+    noWaitingOrders: 'No waiting orders',
+    noAssignedOrders: 'No assigned orders',
+    noDeliveriesInProgress: 'No deliveries in progress',
+    noCompletedOrders: 'No completed orders',
+    assignDriverToOrder: 'Assign Driver to Order',
+    driver: 'Driver',
+    available: 'Available',
+    noAvailableDrivers: 'No available drivers',
+    driverAssignedSuccessfully: 'Driver assigned successfully',
+    errorAssigningDriver: 'Error assigning driver',
+    assignDriver: 'Assign Driver',
+    loadingDispatchBoard: 'Loading dispatch board...',
   },
 
   // Landing page translations - will be added below

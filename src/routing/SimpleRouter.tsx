@@ -12,6 +12,7 @@ const LandingPage = React.lazy(() => import('../pages/LandingPage').then(m => ({
 const Dashboard = React.lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard || m.default })));
 const Orders = React.lazy(() => import('../pages/Orders').then(m => ({ default: m.Orders || m.default })));
 const Products = React.lazy(() => import('../pages/Products').then(m => ({ default: m.Products || m.default })));
+const BusinessCatalog = React.lazy(() => import('../pages/BusinessCatalog').then(m => ({ default: m.BusinessCatalog || m.default })));
 const Chat = React.lazy(() => import('../pages/Chat').then(m => ({ default: m.Chat || m.default })));
 const Businesses = React.lazy(() => import('../pages/Businesses').then(m => ({ default: m.Businesses })));
 const Inventory = React.lazy(() => import('../pages/Inventory').then(m => ({ default: m.Inventory })));
@@ -101,6 +102,7 @@ export function SimpleRouter() {
           <Route path="/business/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
           <Route path="/products" element={<Suspense fallback={<PageLoadingSkeleton />}><Products /></Suspense>} />
           <Route path="/business/products" element={<Suspense fallback={<PageLoadingSkeleton />}><Products /></Suspense>} />
+          <Route path="/business/catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessCatalog /></Suspense>} />
           <Route path="/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
           <Route path="/business/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
           <Route path="/inventory" element={<Suspense fallback={<PageLoadingSkeleton />}><Inventory onNavigate={(path) => navigate(path)} /></Suspense>} />

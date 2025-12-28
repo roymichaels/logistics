@@ -1041,11 +1041,23 @@ export interface BusinessType {
   updated_at: string;
 }
 
+export interface Infrastructure {
+  id: string;
+  name: string;
+  owner_id: string;
+  description?: string | null;
+  settings?: any | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Business {
   id: string;
   name: string;
   name_hebrew: string;
   business_type: string;
+  infrastructure_id?: string | null;
   logo_url?: string | null;
   primary_color: string;
   secondary_color: string;
