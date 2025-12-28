@@ -32,6 +32,7 @@ import { ShellProvider } from './shells/ShellProvider';
 import { SimpleRouter } from './routing/SimpleRouter';
 import { UnifiedAppShell } from './shells/AppShell';
 import { PageTitleProvider } from './context/PageTitleContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { NavControllerProvider, UIControllerProvider, UIControllerRenderer, DrawerControllerProvider, DataSandboxProvider } from './stubs/migrationStubs';
 import { useTheme } from './foundation/theme';
 import { runtimeEnvironment } from './lib/runtimeEnvironment';
@@ -737,59 +738,61 @@ export default function App() {
   const appShell = (
     <>
       <Suspense fallback={<PageLoadingSkeleton />}>
-        <PageTitleProvider>
-          <NavControllerProvider>
-            <UIControllerProvider>
-              <DrawerControllerProvider>
-                <DataSandboxProvider>
-                  <ShellProvider
-                    value={{
-                      currentPage,
-                      handleNavigate,
-                      showSidebar,
-                      setShowSidebar,
-                      showActionMenu,
-                      setShowActionMenu,
-                      showOrderWizard,
-                      openOrderWizard: handleShowCreateOrder,
-                      closeOrderWizard: () => setShowOrderWizard(false),
-                      showBusinessManager,
-                      openBusinessManager: handleShowBusinessManager,
-                      closeBusinessManager: () => setShowBusinessManager(false),
-                      showSearchBusiness,
-                      openSearchBusiness: handleShowSearchBusiness,
-                      closeSearchBusiness: () => setShowSearchBusiness(false),
-                      showBecomeDriver,
-                      openBecomeDriver: handleShowBecomeDriver,
-                      closeBecomeDriver: () => setShowBecomeDriver(false),
-                      showCreateBusiness,
-                      openCreateBusiness: handleShowCreateBusiness,
-                      closeCreateBusiness: () => setShowCreateBusiness(false),
-                      showWorkWithUs,
-                      openWorkWithUs: handleShowWorkWithUs,
-                      closeWorkWithUs: () => setShowWorkWithUs(false),
-                      startBusinessOnboarding: handleStartBusinessOnboarding,
-                      startDriverOnboarding: handleStartDriverOnboarding,
-                      handleLogout,
-                      handleShowCreateTask,
-                      handleShowScanBarcode,
-                      handleShowContactCustomer,
-                      handleShowCheckInventory,
-                      handleShowCreateRoute,
-                      handleShowCreateUser,
-                      handleShowCreateProduct
-                    }}
-                  >
-                    <UnifiedAppShell>
-                      <SimpleRouter />
-                    </UnifiedAppShell>
-                    <UIControllerRenderer />
-                  </ShellProvider>
-                </DataSandboxProvider>
-              </DrawerControllerProvider>
-            </UIControllerProvider>
-          </NavControllerProvider>
-        </PageTitleProvider>
+        <LanguageProvider>
+          <PageTitleProvider>
+            <NavControllerProvider>
+              <UIControllerProvider>
+                <DrawerControllerProvider>
+                  <DataSandboxProvider>
+                    <ShellProvider
+                      value={{
+                        currentPage,
+                        handleNavigate,
+                        showSidebar,
+                        setShowSidebar,
+                        showActionMenu,
+                        setShowActionMenu,
+                        showOrderWizard,
+                        openOrderWizard: handleShowCreateOrder,
+                        closeOrderWizard: () => setShowOrderWizard(false),
+                        showBusinessManager,
+                        openBusinessManager: handleShowBusinessManager,
+                        closeBusinessManager: () => setShowBusinessManager(false),
+                        showSearchBusiness,
+                        openSearchBusiness: handleShowSearchBusiness,
+                        closeSearchBusiness: () => setShowSearchBusiness(false),
+                        showBecomeDriver,
+                        openBecomeDriver: handleShowBecomeDriver,
+                        closeBecomeDriver: () => setShowBecomeDriver(false),
+                        showCreateBusiness,
+                        openCreateBusiness: handleShowCreateBusiness,
+                        closeCreateBusiness: () => setShowCreateBusiness(false),
+                        showWorkWithUs,
+                        openWorkWithUs: handleShowWorkWithUs,
+                        closeWorkWithUs: () => setShowWorkWithUs(false),
+                        startBusinessOnboarding: handleStartBusinessOnboarding,
+                        startDriverOnboarding: handleStartDriverOnboarding,
+                        handleLogout,
+                        handleShowCreateTask,
+                        handleShowScanBarcode,
+                        handleShowContactCustomer,
+                        handleShowCheckInventory,
+                        handleShowCreateRoute,
+                        handleShowCreateUser,
+                        handleShowCreateProduct
+                      }}
+                    >
+                      <UnifiedAppShell>
+                        <SimpleRouter />
+                      </UnifiedAppShell>
+                      <UIControllerRenderer />
+                    </ShellProvider>
+                  </DataSandboxProvider>
+                </DrawerControllerProvider>
+              </UIControllerProvider>
+            </NavControllerProvider>
+          </PageTitleProvider>
+        </LanguageProvider>
       </Suspense>
 
       {/* Legacy modals - TODO: migrate to unified modal controller in Phase 2 */}
