@@ -11,17 +11,42 @@ export interface RouteConfig {
 }
 
 export const UNIFIED_ROUTES: RouteConfig[] = [
-  // Admin routes
+  // Platform Admin routes (superadmin & admin)
   {
     path: '/admin',
-    name: 'Admin',
+    name: 'Platform Admin',
+    roles: ['superadmin', 'admin'],
+    isEntryPoint: true,
+    children: [
+      { path: '/admin/platform-dashboard', name: 'Platform Dashboard', roles: ['superadmin', 'admin'], isEntryPoint: true },
+      { path: '/admin/infrastructures', name: 'Infrastructures', roles: ['superadmin', 'admin'] },
+      { path: '/admin/businesses', name: 'All Businesses', roles: ['superadmin', 'admin'] },
+      { path: '/admin/users', name: 'All Users', roles: ['superadmin', 'admin'] },
+      { path: '/admin/analytics', name: 'Platform Analytics', roles: ['superadmin', 'admin'] },
+      { path: '/admin/orders', name: 'All Orders', roles: ['superadmin', 'admin'] },
+      { path: '/admin/drivers', name: 'All Drivers', roles: ['superadmin', 'admin'] },
+      { path: '/admin/system-settings', name: 'System Settings', roles: ['superadmin', 'admin'] },
+      { path: '/admin/logs', name: 'Audit Logs', roles: ['superadmin', 'admin'] },
+      { path: '/admin/feature-flags', name: 'Feature Flags', roles: ['superadmin', 'admin'] },
+      { path: '/admin/superadmins', name: 'Superadmins', roles: ['superadmin'] }
+    ]
+  },
+
+  // Infrastructure routes
+  {
+    path: '/infrastructure',
+    name: 'Infrastructure',
     roles: ['infrastructure_owner'],
     isEntryPoint: true,
     children: [
-      { path: '/admin/dashboard', name: 'Dashboard', roles: ['infrastructure_owner'], isEntryPoint: true },
-      { path: '/admin/businesses', name: 'Businesses', roles: ['infrastructure_owner'] },
-      { path: '/admin/users', name: 'Users', roles: ['infrastructure_owner'] },
-      { path: '/admin/settings', name: 'Settings', roles: ['infrastructure_owner'] }
+      { path: '/infrastructure/dashboard', name: 'Infrastructure Dashboard', roles: ['infrastructure_owner'], isEntryPoint: true },
+      { path: '/infrastructure/businesses', name: 'My Businesses', roles: ['infrastructure_owner'] },
+      { path: '/infrastructure/reports', name: 'Consolidated Reports', roles: ['infrastructure_owner'] },
+      { path: '/infrastructure/analytics', name: 'Analytics', roles: ['infrastructure_owner'] },
+      { path: '/infrastructure/orders', name: 'All Orders', roles: ['infrastructure_owner'] },
+      { path: '/infrastructure/drivers', name: 'All Drivers', roles: ['infrastructure_owner'] },
+      { path: '/infrastructure/team', name: 'Team', roles: ['infrastructure_owner'] },
+      { path: '/infrastructure/settings', name: 'Settings', roles: ['infrastructure_owner'] }
     ]
   },
 
@@ -76,10 +101,10 @@ export const UNIFIED_ROUTES: RouteConfig[] = [
   {
     path: '/auth',
     name: 'Authentication',
-    roles: ['infrastructure_owner', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'user'],
+    roles: ['superadmin', 'admin', 'infrastructure_owner', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'user'],
     children: [
-      { path: '/auth/login', name: 'Login', roles: ['infrastructure_owner', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'user'] },
-      { path: '/auth/kyc', name: 'KYC', roles: ['infrastructure_owner', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'user'] }
+      { path: '/auth/login', name: 'Login', roles: ['superadmin', 'admin', 'infrastructure_owner', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'user'] },
+      { path: '/auth/kyc', name: 'KYC', roles: ['superadmin', 'admin', 'infrastructure_owner', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'user'] }
     ]
   }
 ];
@@ -111,7 +136,9 @@ export function getEntryPointForRole(role: UserRole | null): string {
   if (!role) return '/store/catalog';
 
   const entryPoints: Record<UserRole, string> = {
-    infrastructure_owner: '/admin/dashboard',
+    superadmin: '/admin/platform-dashboard',
+    admin: '/admin/platform-dashboard',
+    infrastructure_owner: '/infrastructure/dashboard',
     business_owner: '/business/dashboard',
     manager: '/business/dashboard',
     warehouse: '/business/inventory',
@@ -126,8 +153,9 @@ export function getEntryPointForRole(role: UserRole | null): string {
   return entryPoints[role] || '/store/catalog';
 }
 
-export function getShellTypeForPath(path: string): 'admin' | 'business' | 'driver' | 'store' | 'auth' {
+export function getShellTypeForPath(path: string): 'admin' | 'infrastructure' | 'business' | 'driver' | 'store' | 'auth' {
   if (path.startsWith('/admin')) return 'admin';
+  if (path.startsWith('/infrastructure')) return 'infrastructure';
   if (path.startsWith('/business')) return 'business';
   if (path.startsWith('/driver')) return 'driver';
   if (path.startsWith('/store')) return 'store';

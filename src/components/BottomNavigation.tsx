@@ -14,6 +14,8 @@ import { haptic } from '../utils/haptic';
  */
 
 type RoleKey =
+  | 'superadmin'              // Superadmin - absolute platform control
+  | 'admin'                   // Admin - platform administrator
   | 'user'                    // Unassigned actor - view only, zero power
   | 'infrastructure_owner'    // Infrastructure owner - full platform access
   | 'business_owner'          // Business owner - full business access
@@ -22,7 +24,8 @@ type RoleKey =
   | 'sales'                   // Sales agent - fast order creation, own stats
   | 'warehouse'               // Warehouse operator - inventory only, no sales
   | 'driver'                  // Driver - deliveries, personal inventory, zones only
-  | 'customer_service';       // Customer service - support, order tracking
+  | 'customer_service'        // Customer service - support, order tracking
+  | 'customer';               // Customer - storefront shopper
 
 interface TabDefinition {
   id: string;
@@ -82,6 +85,32 @@ export function BottomNavigation({
    * Visual RTL: תפריט | משימות | התראות | פעולות | צ'אט
    */
   const roleNavigation: Record<RoleKey, RoleNavigationConfig> = {
+    // 👑 SUPERADMIN: Absolute platform control
+    superadmin: {
+      tabs: [
+        { id: 'chat', label: translations.chat, icon: '💬' },
+        { id: 'notifications', label: translations.notifications, icon: '🔔' },
+        { id: 'tasks', label: translations.tasks, icon: '✅' }
+      ],
+      action: {
+        label: 'Platform Actions',
+        icon: '⚡'
+      }
+    },
+
+    // 🔐 ADMIN: Platform administrator
+    admin: {
+      tabs: [
+        { id: 'chat', label: translations.chat, icon: '💬' },
+        { id: 'notifications', label: translations.notifications, icon: '🔔' },
+        { id: 'tasks', label: translations.tasks, icon: '✅' }
+      ],
+      action: {
+        label: 'Admin Actions',
+        icon: '⚡'
+      }
+    },
+
     // ⛔ USER: Unassigned - View Only
     user: {
       tabs: [
@@ -196,6 +225,19 @@ export function BottomNavigation({
       action: {
         label: translations.phrases.actions,
         icon: '⚡'
+      }
+    },
+
+    // 🛍️ CUSTOMER: Storefront shopper
+    customer: {
+      tabs: [
+        { id: 'catalog', label: 'Shop', icon: '🏪' },
+        { id: 'cart', label: 'Cart', icon: '🛒' },
+        { id: 'orders', label: 'Orders', icon: '📦' }
+      ],
+      action: {
+        label: 'Browse',
+        icon: '🔍'
       }
     }
   };

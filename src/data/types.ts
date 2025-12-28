@@ -181,7 +181,7 @@ export interface RealtimePayload<T = Record<string, unknown>> {
 
 export interface User {
   id: string;
-  role: 'user' | 'infrastructure_owner' | 'business_owner' | 'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service';
+  role: 'superadmin' | 'admin' | 'infrastructure_owner' | 'business_owner' | 'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service' | 'customer' | 'user';
   name?: string;
   username?: string;
   photo_url?: string;
