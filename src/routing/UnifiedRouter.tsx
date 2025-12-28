@@ -28,6 +28,7 @@ export const UNIFIED_ROUTES: RouteConfig[] = [
       { path: '/admin/system-settings', name: 'System Settings', roles: ['superadmin', 'admin'] },
       { path: '/admin/logs', name: 'Audit Logs', roles: ['superadmin', 'admin'] },
       { path: '/admin/feature-flags', name: 'Feature Flags', roles: ['superadmin', 'admin'] },
+      { path: '/admin/platform-catalog', name: 'Platform Catalog', roles: ['superadmin', 'admin'] },
       { path: '/admin/superadmins', name: 'Superadmins', roles: ['superadmin'] }
     ]
   },
@@ -46,6 +47,7 @@ export const UNIFIED_ROUTES: RouteConfig[] = [
       { path: '/infrastructure/orders', name: 'All Orders', roles: ['infrastructure_owner'] },
       { path: '/infrastructure/drivers', name: 'All Drivers', roles: ['infrastructure_owner'] },
       { path: '/infrastructure/team', name: 'Team', roles: ['infrastructure_owner'] },
+      { path: '/infrastructure/business-catalogs', name: 'Business Catalogs', roles: ['infrastructure_owner'] },
       { path: '/infrastructure/settings', name: 'Settings', roles: ['infrastructure_owner'] }
     ]
   },
@@ -59,6 +61,7 @@ export const UNIFIED_ROUTES: RouteConfig[] = [
     children: [
       { path: '/business/dashboard', name: 'Dashboard', roles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service'], isEntryPoint: true },
       { path: '/business/businesses', name: 'My Businesses', roles: ['business_owner', 'manager'] },
+      { path: '/business/catalog', name: 'Product Catalog', roles: ['business_owner', 'manager'] },
       { path: '/business/inventory', name: 'Inventory', roles: ['business_owner', 'manager', 'warehouse'] },
       { path: '/business/orders', name: 'Orders', roles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service'] },
       { path: '/business/dispatch', name: 'Dispatch', roles: ['business_owner', 'manager', 'dispatcher'] },

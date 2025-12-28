@@ -552,6 +552,8 @@ export class LocalDataStore {
     this.tables.set('driver_zones', []);
     this.tables.set('tasks', []);
     this.tables.set('restock_requests', []);
+    this.tables.set('platform_products', []);
+    this.tables.set('business_products', []);
 
     this.saveToStorage();
   }

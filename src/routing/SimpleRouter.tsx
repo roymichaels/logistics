@@ -36,6 +36,8 @@ const CheckoutPage = React.lazy(() => import('../store/CheckoutPage').then(m => 
 const MyOrdersPage = React.lazy(() => import('../store/MyOrdersPage').then(m => ({ default: m.MyOrdersPage })));
 const OrderDetailPage = React.lazy(() => import('../store/OrderDetailPage').then(m => ({ default: m.OrderDetailPage })));
 const UserProfile = React.lazy(() => import('../pages/UserProfile').then(m => ({ default: m.UserProfilePage })));
+const PlatformCatalog = React.lazy(() => import('../pages/admin/PlatformCatalog').then(m => ({ default: m.PlatformCatalog })));
+const BusinessCatalogManagement = React.lazy(() => import('../pages/business/BusinessCatalogManagement').then(m => ({ default: m.BusinessCatalogManagement })));
 
 // Role-aware redirect component
 function RoleBasedRedirect() {
@@ -88,11 +90,27 @@ export function SimpleRouter() {
   const isBusinessRole = ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'infrastructure_owner'].includes(userRole || '');
   const isDriverRole = userRole === 'driver';
   const isCustomerRole = ['customer', 'user'].includes(userRole || '');
+  const isAdmin = ['admin', 'superadmin'].includes(userRole || '');
+  const isInfraOwner = userRole === 'infrastructure_owner';
 
   return (
     <Routes>
       {/* Role Selection - accessible to all authenticated users */}
       <Route path="/role-selection" element={<RoleSelectionPage />} />
+
+      {/* Admin/Superadmin routes */}
+      {isAdmin && (
+        <>
+          <Route path="/admin/platform-catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><PlatformCatalog /></Suspense>} />
+        </>
+      )}
+
+      {/* Infrastructure Owner routes */}
+      {isInfraOwner && (
+        <>
+          <Route path="/infrastructure/business-catalogs" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessCatalogManagement /></Suspense>} />
+        </>
+      )}
 
       {/* Business routes */}
       {isBusinessRole && (
@@ -104,7 +122,7 @@ export function SimpleRouter() {
           <Route path="/business/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
           <Route path="/products" element={<Suspense fallback={<PageLoadingSkeleton />}><Products /></Suspense>} />
           <Route path="/business/products" element={<Suspense fallback={<PageLoadingSkeleton />}><Products /></Suspense>} />
-          <Route path="/business/catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessCatalog /></Suspense>} />
+          <Route path="/business/catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessCatalogManagement /></Suspense>} />
           <Route path="/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
           <Route path="/business/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
           <Route path="/inventory" element={<Suspense fallback={<PageLoadingSkeleton />}><Inventory onNavigate={(path) => navigate(path)} /></Suspense>} />
