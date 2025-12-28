@@ -97,7 +97,7 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
       <PageContainer>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>{translations.phrases.loadingOrders}</p>
+          <p style={{ color: ROYAL_COLORS.muted }}>{t('ordersPage.loadingOrders')}</p>
         </div>
       </PageContainer>
     );
@@ -108,12 +108,12 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
       <PageContainer>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
-          <p style={{ color: ROYAL_COLORS.text, marginBottom: '20px' }}>{error.message || 'Failed to load orders'}</p>
+          <p style={{ color: ROYAL_COLORS.text, marginBottom: '20px' }}>{error.message || t('ordersPage.errorLoadingOrders')}</p>
           <button
             onClick={refetch}
             style={ROYAL_STYLES.buttonPrimary}
           >
-            Try Again
+            {t('ordersPage.tryAgain')}
           </button>
         </div>
       </PageContainer>
@@ -181,7 +181,7 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
               color: ROYAL_COLORS.text,
               textAlign: 'center'
             }}>
-              Create Order
+              {t('ordersPage.title')}
             </h2>
 
             <button
@@ -203,7 +203,7 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
                 marginBottom: '12px'
               }}
             >
-              📋 Create New Order
+              📋 {t('createOrderForm.title')}
             </button>
 
             <button
@@ -221,7 +221,7 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
                 fontSize: '14px'
               }}
             >
-              Cancel
+              {t('createOrderForm.cancel')}
             </button>
           </div>
         </div>
@@ -229,21 +229,21 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
 
       <PageHeader
         icon="📦"
-        title="Orders"
-        subtitle="Manage orders in real-time"
+        title={t('ordersPage.title')}
+        subtitle={t('ordersPage.subtitle')}
         actionButton={
           <button
             onClick={handleCreateOrder}
             style={ROYAL_STYLES.buttonPrimary}
           >
-            + Create Order
+            {t('ordersPage.createOrder')}
           </button>
         }
       />
 
       <input
         type="text"
-        placeholder="Search by customer, phone or address..."
+        placeholder={t('ordersPage.searchPlaceholder')}
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         style={{
@@ -254,42 +254,52 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
       />
 
       <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '24px', paddingBottom: '8px' }}>
-        {['all', 'new', 'assigned', 'enroute', 'delivered'].map((status) => (
-          <button
-            key={status}
-            onClick={() => {
+        {['all', 'new', 'assigned', 'enroute', 'delivered'].map((status) => {
+          const statusLabels: Record<string, string> = {
+            all: t('ordersPage.all'),
+            new: t('ordersPage.new'),
+            assigned: t('ordersPage.assigned'),
+            enroute: t('ordersPage.enroute'),
+            delivered: t('ordersPage.delivered')
+          };
 
-              setFilter(status);
-              Diagnostics.logEvent({ type: 'log', message: 'Filter changed', data: { status } });
-            }}
-            style={{
-              padding: '10px 20px',
-              border: `2px solid ${filter === status ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
-              borderRadius: '20px',
-              background: filter === status ? ROYAL_COLORS.accent + '20' : 'transparent',
-              color: filter === status ? ROYAL_COLORS.accent : ROYAL_COLORS.text,
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              transition: 'all 0.3s ease'
-            }}
-          >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </button>
-        ))}
+          return (
+            <button
+              key={status}
+              onClick={() => {
+
+                setFilter(status);
+                Diagnostics.logEvent({ type: 'log', message: 'Filter changed', data: { status } });
+              }}
+              style={{
+                padding: '10px 20px',
+                border: `2px solid ${filter === status ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+                borderRadius: '20px',
+                background: filter === status ? ROYAL_COLORS.accent + '20' : 'transparent',
+                color: filter === status ? ROYAL_COLORS.accent : ROYAL_COLORS.text,
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              {statusLabels[status]}
+            </button>
+          );
+        })}
       </div>
 
       {filteredOrders.length === 0 ? (
         <ContentCard>
           <div style={{ textAlign: 'center', padding: '40px 20px' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
-            <p style={{ color: ROYAL_COLORS.muted, marginBottom: '20px' }}>No orders found</p>
+            <p style={{ color: ROYAL_COLORS.muted, marginBottom: '20px' }}>{t('ordersPage.noOrdersFound')}</p>
             <button
               onClick={handleCreateOrder}
               style={ROYAL_STYLES.buttonPrimary}
             >
-              Create First Order
+              {t('ordersPage.createFirstOrder')}
             </button>
           </div>
         </ContentCard>
@@ -399,6 +409,8 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
     return () => unsubscribe?.();
   }, [orderId, refetch]);
 
+  const { t: tDetail } = useI18n();
+
   const handleStatusUpdate = async (newStatus: any) => {
     Diagnostics.logEvent({ type: 'log', message: 'Updating order status', data: { orderId, newStatus } });
 
@@ -406,21 +418,23 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
 
     if (result.success) {
 
-      Toast.success('Order status updated');
+      Toast.success(tDetail('orderDetail.orderStatusUpdated'));
       Diagnostics.logEvent({ type: 'log', message: 'Order status updated successfully', data: { orderId, newStatus } });
       onUpdate();
       refetch();
     } else {
-      Toast.error(result.error.message || 'Failed to update order');
+      Toast.error(result.error.message || tDetail('orderDetail.failedToUpdateOrder'));
       Diagnostics.logEvent({ type: 'error', message: 'Failed to update order status', data: { orderId, error: result.error } });
     }
   };
+
+  const { t } = useI18n();
 
   if (loading) {
     return (
       <div style={{ padding: '20px', textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-        <div style={{ color: ROYAL_COLORS.muted }}>Loading order details...</div>
+        <div style={{ color: ROYAL_COLORS.muted }}>{t('orderDetail.loadingOrderDetails')}</div>
       </div>
     );
   }
@@ -430,7 +444,7 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
       <div style={{ padding: '20px', textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
         <div style={{ color: ROYAL_COLORS.text, marginBottom: '16px' }}>
-          {error?.message || 'Order not found'}
+          {error?.message || t('orderDetail.orderNotFound')}
         </div>
         <button
           onClick={onBack}
@@ -443,7 +457,7 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
             cursor: 'pointer'
           }}
         >
-          Go Back
+          {t('orderDetail.goBack')}
         </button>
       </div>
     );
@@ -465,7 +479,7 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
           gap: '8px'
         }}
       >
-        ← Back
+        {t('orderDetail.back')}
       </button>
 
       <div style={{ ...ROYAL_STYLES.card, marginBottom: '16px' }}>
@@ -483,7 +497,7 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
       {order.status !== 'delivered' && order.status !== 'cancelled' && (
         <div style={{ ...ROYAL_STYLES.card }}>
           <h3 style={{ margin: '0 0 12px 0', fontSize: '18px', fontWeight: '600' }}>
-            Actions
+            {t('orderDetail.actions')}
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {order.status === 'new' && (
@@ -500,7 +514,7 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
                   opacity: updating ? 0.5 : 1
                 }}
               >
-                {updating ? '⏳ Assigning...' : '🚚 Assign to Driver'}
+                {updating ? t('orderDetail.assigning') : t('orderDetail.assignToDriver')}
               </button>
             )}
             {order.status === 'assigned' && (
@@ -517,7 +531,7 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
                   opacity: updating ? 0.5 : 1
                 }}
               >
-                {updating ? '⏳ Updating...' : '🚚 Mark as In Transit'}
+                {updating ? t('orderDetail.updating') : t('orderDetail.markAsInTransit')}
               </button>
             )}
             {order.status === 'in_transit' && (
@@ -534,7 +548,7 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
                   opacity: updating ? 0.5 : 1
                 }}
               >
-                {updating ? '⏳ Updating...' : '✅ Mark as Delivered'}
+                {updating ? t('orderDetail.updating') : t('orderDetail.markAsDelivered')}
               </button>
             )}
           </div>
@@ -551,6 +565,7 @@ function CreateOrderForm({ dataStore, onCancel, onSuccess, theme }: {
   theme: any;
 }) {
   const { createOrder, loading, error } = useCreateOrder();
+  const { t } = useI18n();
   const [formData, setFormData] = useState({
     customerName: '',
     customerPhone: '',
@@ -562,7 +577,7 @@ function CreateOrderForm({ dataStore, onCancel, onSuccess, theme }: {
     e.preventDefault();
 
     if (!formData.customerName || !formData.customerPhone || !formData.customerAddress) {
-      Toast.error('Please fill all required fields');
+      Toast.error(t('createOrderForm.fillAllRequiredFields'));
       return;
     }
 
@@ -578,11 +593,11 @@ function CreateOrderForm({ dataStore, onCancel, onSuccess, theme }: {
 
     if (result.success) {
 
-      Toast.success('Order created successfully');
+      Toast.success(t('createOrderForm.orderCreatedSuccessfully'));
       Diagnostics.logEvent({ type: 'log', message: 'Order created successfully', data: result.data });
       onSuccess();
     } else {
-      Toast.error(result.error.message || 'Failed to create order');
+      Toast.error(result.error.message || t('createOrderForm.failedToCreateOrder'));
       Diagnostics.logEvent({ type: 'error', message: 'Failed to create order', data: { error: result.error } });
     }
   };
@@ -591,7 +606,7 @@ function CreateOrderForm({ dataStore, onCancel, onSuccess, theme }: {
     <div style={{ padding: '16px', minHeight: '100vh', backgroundColor: theme.bg_color }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '600', color: theme.text_color }}>
-          Create New Order
+          {t('createOrderForm.title')}
         </h1>
         <button
           onClick={onCancel}
@@ -603,14 +618,14 @@ function CreateOrderForm({ dataStore, onCancel, onSuccess, theme }: {
             cursor: 'pointer'
           }}
         >
-          Cancel
+          {t('createOrderForm.cancel')}
         </button>
       </div>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
           <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, color: theme.text_color }}>
-            Customer Name *
+            {t('createOrderForm.customerName')}
           </label>
           <input
             type="text"
@@ -632,7 +647,7 @@ function CreateOrderForm({ dataStore, onCancel, onSuccess, theme }: {
 
         <div>
           <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, color: theme.text_color }}>
-            Phone *
+            {t('createOrderForm.phone')}
           </label>
           <input
             type="tel"
@@ -654,7 +669,7 @@ function CreateOrderForm({ dataStore, onCancel, onSuccess, theme }: {
 
         <div>
           <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, color: theme.text_color }}>
-            Address *
+            {t('createOrderForm.address')}
           </label>
           <textarea
             value={formData.customerAddress}
@@ -677,7 +692,7 @@ function CreateOrderForm({ dataStore, onCancel, onSuccess, theme }: {
 
         <div>
           <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, color: theme.text_color }}>
-            Notes
+            {t('createOrderForm.notes')}
           </label>
           <textarea
             value={formData.notes}
@@ -725,7 +740,7 @@ function CreateOrderForm({ dataStore, onCancel, onSuccess, theme }: {
             opacity: loading ? 0.5 : 1
           }}
         >
-          {loading ? '⏳ Creating...' : '✅ Create Order'}
+          {loading ? t('createOrderForm.creating') : t('createOrderForm.createOrderButton')}
         </button>
       </form>
     </div>

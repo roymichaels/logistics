@@ -802,6 +802,57 @@ export interface Translations {
     noZones: string;
   };
 
+  // Orders
+  ordersPage: {
+    title: string;
+    subtitle: string;
+    createOrder: string;
+    searchPlaceholder: string;
+    noOrdersFound: string;
+    createFirstOrder: string;
+    loadingOrders: string;
+    errorLoadingOrders: string;
+    tryAgain: string;
+    all: string;
+    new: string;
+    assigned: string;
+    enroute: string;
+    delivered: string;
+    cancelled: string;
+    failed: string;
+    inTransit: string;
+  };
+
+  orderDetail: {
+    loadingOrderDetails: string;
+    orderNotFound: string;
+    goBack: string;
+    back: string;
+    actions: string;
+    assignToDriver: string;
+    assigning: string;
+    markAsInTransit: string;
+    markAsDelivered: string;
+    updating: string;
+    orderStatusUpdated: string;
+    failedToUpdateOrder: string;
+  };
+
+  createOrderForm: {
+    title: string;
+    cancel: string;
+    customerName: string;
+    phone: string;
+    address: string;
+    notes: string;
+    required: string;
+    fillAllRequiredFields: string;
+    orderCreatedSuccessfully: string;
+    failedToCreateOrder: string;
+    creating: string;
+    createOrderButton: string;
+  };
+
   // Analytics
   analyticsPage: {
     title: string;
@@ -2169,6 +2220,57 @@ const hebrewTranslations: Translations = {
     zoneCapacity: 'קיבולת אזור',
     viewMap: 'צפה במפה',
     noZones: 'אין אזורים',
+  },
+
+  // Orders
+  ordersPage: {
+    title: 'הזמנות',
+    subtitle: 'ניהול הזמנות בזמן אמת',
+    createOrder: '+ צור הזמנה',
+    searchPlaceholder: 'חפש לפי לקוח, טלפון או כתובת...',
+    noOrdersFound: 'לא נמצאו הזמנות',
+    createFirstOrder: 'צור הזמנה ראשונה',
+    loadingOrders: 'טוען הזמנות...',
+    errorLoadingOrders: 'שגיאה בטעינת הזמנות',
+    tryAgain: 'נסה שוב',
+    all: 'הכל',
+    new: 'חדש',
+    assigned: 'משובץ',
+    enroute: 'בדרך',
+    delivered: 'נמסר',
+    cancelled: 'בוטל',
+    failed: 'נכשל',
+    inTransit: 'במעבר',
+  },
+
+  orderDetail: {
+    loadingOrderDetails: 'טוען פרטי הזמנה...',
+    orderNotFound: 'הזמנה לא נמצאה',
+    goBack: 'חזור',
+    back: '→ חזור',
+    actions: 'פעולות',
+    assignToDriver: '🚚 הקצה לנהג',
+    assigning: '⏳ משבץ...',
+    markAsInTransit: '🚚 סמן כבמעבר',
+    markAsDelivered: '✅ סמן כנמסר',
+    updating: '⏳ מעדכן...',
+    orderStatusUpdated: 'סטטוס ההזמנה עודכן',
+    failedToUpdateOrder: 'שגיאה בעדכון ההזמנה',
+  },
+
+  createOrderForm: {
+    title: 'צור הזמנה חדשה',
+    cancel: 'בטל',
+    customerName: 'שם לקוח *',
+    phone: 'טלפון *',
+    address: 'כתובת *',
+    notes: 'הערות',
+    required: '*',
+    fillAllRequiredFields: 'אנא מלא את כל השדות הנדרשים',
+    orderCreatedSuccessfully: 'ההזמנה נוצרה בהצלחה',
+    failedToCreateOrder: 'שגיאה ביצירת ההזמנה',
+    creating: '⏳ יוצר...',
+    createOrderButton: '✅ צור הזמנה',
   },
 
   // Analytics
@@ -3650,6 +3752,57 @@ const englishTranslations: Translations = {
     zoneCapacity: 'Zone Capacity',
     viewMap: 'View Map',
     noZones: 'No Zones',
+  },
+
+  // Orders
+  ordersPage: {
+    title: 'Orders',
+    subtitle: 'Manage orders in real-time',
+    createOrder: '+ Create Order',
+    searchPlaceholder: 'Search by customer, phone or address...',
+    noOrdersFound: 'No orders found',
+    createFirstOrder: 'Create First Order',
+    loadingOrders: 'Loading orders...',
+    errorLoadingOrders: 'Failed to load orders',
+    tryAgain: 'Try Again',
+    all: 'All',
+    new: 'New',
+    assigned: 'Assigned',
+    enroute: 'Enroute',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled',
+    failed: 'Failed',
+    inTransit: 'In Transit',
+  },
+
+  orderDetail: {
+    loadingOrderDetails: 'Loading order details...',
+    orderNotFound: 'Order not found',
+    goBack: 'Go Back',
+    back: '← Back',
+    actions: 'Actions',
+    assignToDriver: '🚚 Assign to Driver',
+    assigning: '⏳ Assigning...',
+    markAsInTransit: '🚚 Mark as In Transit',
+    markAsDelivered: '✅ Mark as Delivered',
+    updating: '⏳ Updating...',
+    orderStatusUpdated: 'Order status updated',
+    failedToUpdateOrder: 'Failed to update order',
+  },
+
+  createOrderForm: {
+    title: 'Create New Order',
+    cancel: 'Cancel',
+    customerName: 'Customer Name *',
+    phone: 'Phone *',
+    address: 'Address *',
+    notes: 'Notes',
+    required: '*',
+    fillAllRequiredFields: 'Please fill all required fields',
+    orderCreatedSuccessfully: 'Order created successfully',
+    failedToCreateOrder: 'Failed to create order',
+    creating: '⏳ Creating...',
+    createOrderButton: '✅ Create Order',
   },
 
   // Analytics
