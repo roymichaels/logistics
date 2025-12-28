@@ -3,100 +3,100 @@ import { NavigationItem, UserRole } from './types';
 export const ADMIN_SHELL_NAV: NavigationItem[] = [
   {
     id: 'platform-dashboard',
-    label: 'Platform Dashboard',
+    label: 'לוח בקרה פלטפורמה',
     path: '/admin/platform-dashboard',
     icon: '🌐',
-    description: 'Platform-wide metrics and overview',
+    description: 'מדדים וסקירה כללית של הפלטפורמה',
     visible: true,
     requiredRoles: ['superadmin', 'admin']
   },
   {
     id: 'infrastructures',
-    label: 'Infrastructures',
+    label: 'תשתיות',
     path: '/admin/infrastructures',
     icon: '🏗️',
-    description: 'Manage all infrastructures',
+    description: 'ניהול כל התשתיות',
     visible: true,
     requiredRoles: ['superadmin', 'admin']
   },
   {
     id: 'all-businesses',
-    label: 'All Businesses',
+    label: 'כל העסקים',
     path: '/admin/businesses',
     icon: '🏢',
-    description: 'View and manage all businesses',
+    description: 'צפייה וניהול של כל העסקים',
     visible: true,
     requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
   },
   {
     id: 'all-users',
-    label: 'All Users',
+    label: 'כל המשתמשים',
     path: '/admin/users',
     icon: '👥',
-    description: 'User management across platform',
+    description: 'ניהול משתמשים בכל הפלטפורמה',
     visible: true,
     requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
   },
   {
     id: 'platform-analytics',
-    label: 'Platform Analytics',
+    label: 'אנליטיקה פלטפורמה',
     path: '/admin/analytics',
     icon: '📊',
-    description: 'Platform-wide analytics and reports',
+    description: 'אנליטיקה ודוחות של כל הפלטפורמה',
     visible: true,
     requiredRoles: ['superadmin', 'admin']
   },
   {
     id: 'platform-orders',
-    label: 'All Orders',
+    label: 'כל ההזמנות',
     path: '/admin/orders',
     icon: '📋',
-    description: 'View all orders across platform',
+    description: 'צפייה בכל ההזמנות בפלטפורמה',
     visible: true,
     requiredRoles: ['superadmin', 'admin']
   },
   {
     id: 'platform-drivers',
-    label: 'All Drivers',
+    label: 'כל הנהגים',
     path: '/admin/drivers',
     icon: '🚗',
-    description: 'View all drivers across platform',
+    description: 'צפייה בכל הנהגים בפלטפורמה',
     visible: true,
     requiredRoles: ['superadmin', 'admin']
   },
   {
     id: 'system-settings',
-    label: 'System Settings',
+    label: 'הגדרות מערכת',
     path: '/admin/system-settings',
     icon: '⚙️',
-    description: 'System-wide configuration',
+    description: 'תצורה כללית של המערכת',
     visible: true,
     requiredRoles: ['superadmin', 'admin']
   },
   {
     id: 'audit-logs',
-    label: 'Audit Logs',
+    label: 'יומני ביקורת',
     path: '/admin/logs',
     icon: '📜',
-    description: 'System audit and error logs',
+    description: 'יומני ביקורת ושגיאות מערכת',
     visible: true,
     requiredRoles: ['superadmin', 'admin']
   },
   {
     id: 'feature-flags',
-    label: 'Feature Flags',
+    label: 'דגלי תכונות',
     path: '/admin/feature-flags',
     icon: '🚩',
-    description: 'Manage feature flags',
+    description: 'ניהול דגלי תכונות',
     visible: true,
     requiredRoles: ['superadmin', 'admin']
   },
   {
     id: 'superadmin-management',
-    label: 'Superadmins',
+    label: 'מנהלי על',
     path: '/admin/superadmins',
     icon: '👑',
-    description: 'Manage superadmin accounts',
+    description: 'ניהול חשבונות מנהלי על',
     visible: true,
     requiredRoles: ['superadmin']
   }
@@ -105,73 +105,73 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
 export const INFRASTRUCTURE_SHELL_NAV: NavigationItem[] = [
   {
     id: 'infrastructure-dashboard',
-    label: 'Infrastructure Dashboard',
+    label: 'לוח בקרה תשתית',
     path: '/infrastructure/dashboard',
     icon: '🏗️',
-    description: 'Aggregated view across all businesses',
+    description: 'תצוגה מצטברת של כל העסקים',
     visible: true,
     requiredRoles: ['infrastructure_owner']
   },
   {
     id: 'my-businesses',
-    label: 'My Businesses',
+    label: 'העסקים שלי',
     path: '/infrastructure/businesses',
     icon: '🏢',
-    description: 'List and manage businesses in infrastructure',
+    description: 'רשימה וניהול של עסקים בתשתית',
     visible: true,
     requiredRoles: ['infrastructure_owner']
   },
   {
     id: 'consolidated-reports',
-    label: 'Consolidated Reports',
+    label: 'דוחות מאוחדים',
     path: '/infrastructure/reports',
     icon: '📊',
-    description: 'Financial reports across all businesses',
+    description: 'דוחות פיננסיים של כל העסקים',
     visible: true,
     requiredRoles: ['infrastructure_owner']
   },
   {
     id: 'cross-business-analytics',
-    label: 'Analytics',
+    label: 'אנליטיקה',
     path: '/infrastructure/analytics',
     icon: '📈',
-    description: 'Performance analytics across infrastructure',
+    description: 'ניתוח ביצועים בכל התשתית',
     visible: true,
     requiredRoles: ['infrastructure_owner']
   },
   {
     id: 'infrastructure-orders',
-    label: 'All Orders',
+    label: 'כל ההזמנות',
     path: '/infrastructure/orders',
     icon: '📋',
-    description: 'Orders across all businesses',
+    description: 'הזמנות מכל העסקים',
     visible: true,
     requiredRoles: ['infrastructure_owner']
   },
   {
     id: 'infrastructure-drivers',
-    label: 'All Drivers',
+    label: 'כל הנהגים',
     path: '/infrastructure/drivers',
     icon: '🚗',
-    description: 'Drivers across all businesses',
+    description: 'נהגים מכל העסקים',
     visible: true,
     requiredRoles: ['infrastructure_owner']
   },
   {
     id: 'infrastructure-team',
-    label: 'Team',
+    label: 'צוות',
     path: '/infrastructure/team',
     icon: '👥',
-    description: 'Manage team across businesses',
+    description: 'ניהול צוות בכל העסקים',
     visible: true,
     requiredRoles: ['infrastructure_owner']
   },
   {
     id: 'infrastructure-settings',
-    label: 'Settings',
+    label: 'הגדרות',
     path: '/infrastructure/settings',
     icon: '⚙️',
-    description: 'Infrastructure settings',
+    description: 'הגדרות תשתית',
     visible: true,
     requiredRoles: ['infrastructure_owner']
   }
@@ -180,7 +180,7 @@ export const INFRASTRUCTURE_SHELL_NAV: NavigationItem[] = [
 export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   {
     id: 'business-dashboard',
-    label: 'Dashboard',
+    label: 'לוח בקרה',
     path: '/business/dashboard',
     icon: '📊',
     visible: true,
@@ -188,7 +188,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'business-businesses',
-    label: 'My Businesses',
+    label: 'העסקים שלי',
     path: '/business/businesses',
     icon: '🏢',
     visible: true,
@@ -196,7 +196,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'business-inventory',
-    label: 'Inventory',
+    label: 'מלאי',
     path: '/business/inventory',
     icon: '📦',
     visible: true,
@@ -204,7 +204,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'business-orders',
-    label: 'Orders',
+    label: 'הזמנות',
     path: '/business/orders',
     icon: '📋',
     visible: true,
@@ -212,7 +212,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'business-dispatch',
-    label: 'Dispatch',
+    label: 'שיבוץ',
     path: '/business/dispatch',
     icon: '🚚',
     visible: true,
@@ -220,7 +220,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'business-drivers',
-    label: 'Drivers',
+    label: 'נהגים',
     path: '/business/drivers',
     icon: '🚗',
     visible: true,
@@ -228,7 +228,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'business-zones',
-    label: 'Zones',
+    label: 'אזורים',
     path: '/business/zones',
     icon: '📍',
     visible: true,
@@ -236,7 +236,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'business-team',
-    label: 'Team',
+    label: 'צוות',
     path: '/business/team',
     icon: '👔',
     visible: true,
@@ -244,7 +244,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'business-reports',
-    label: 'Reports',
+    label: 'דוחות',
     path: '/business/reports',
     icon: '📈',
     visible: true,
@@ -252,7 +252,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'business-sales',
-    label: 'Sales CRM',
+    label: 'מכירות',
     path: '/business/sales',
     icon: '💼',
     visible: true,
@@ -260,7 +260,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'business-support',
-    label: 'Support',
+    label: 'תמיכה',
     path: '/business/support',
     icon: '🎧',
     visible: true,
@@ -268,7 +268,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'business-warehouse',
-    label: 'Warehouse',
+    label: 'מחסן',
     path: '/business/warehouse',
     icon: '🏭',
     visible: true,
@@ -276,7 +276,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'business-settings',
-    label: 'Settings',
+    label: 'הגדרות',
     path: '/business/settings',
     icon: '⚙️',
     visible: true,
@@ -287,7 +287,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
 export const DRIVER_SHELL_NAV: NavigationItem[] = [
   {
     id: 'driver-deliveries',
-    label: 'Deliveries',
+    label: 'משלוחים',
     path: '/driver/deliveries',
     icon: '🚚',
     visible: true,
@@ -295,7 +295,7 @@ export const DRIVER_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'driver-dashboard',
-    label: 'Dashboard',
+    label: 'לוח בקרה',
     path: '/driver/dashboard',
     icon: '📊',
     visible: true,
@@ -303,7 +303,7 @@ export const DRIVER_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'driver-earnings',
-    label: 'Earnings',
+    label: 'רווחים',
     path: '/driver/earnings',
     icon: '💰',
     visible: true,
@@ -311,7 +311,7 @@ export const DRIVER_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'driver-profile',
-    label: 'Profile',
+    label: 'פרופיל',
     path: '/driver/profile',
     icon: '👤',
     visible: true,
@@ -322,7 +322,7 @@ export const DRIVER_SHELL_NAV: NavigationItem[] = [
 export const STORE_SHELL_NAV: NavigationItem[] = [
   {
     id: 'store-catalog',
-    label: 'Shop',
+    label: 'חנות',
     path: '/store/catalog',
     icon: '🛒',
     visible: true,
@@ -330,7 +330,7 @@ export const STORE_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'store-cart',
-    label: 'Cart',
+    label: 'עגלה',
     path: '/store/cart',
     icon: '🛍️',
     visible: true,
@@ -338,7 +338,7 @@ export const STORE_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'store-orders',
-    label: 'Orders',
+    label: 'הזמנות',
     path: '/store/orders',
     icon: '📋',
     visible: true,
@@ -346,7 +346,7 @@ export const STORE_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'store-profile',
-    label: 'Profile',
+    label: 'פרופיל',
     path: '/store/profile',
     icon: '👤',
     visible: true,

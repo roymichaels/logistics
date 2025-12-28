@@ -45,7 +45,7 @@ export function StoreShell({
         menuItems={menuItems}
         currentPath={currentPath}
         onNavigate={onNavigate}
-        title="Store Menu"
+        title="תפריט"
       >
         {children}
       </UnifiedAppFrame>
