@@ -84,6 +84,12 @@ export async function fetchBusinessContexts(userId?: string): Promise<BusinessCo
 export async function createBusiness(input: CreateBusinessInput): Promise<BusinessRecord> {
   logger.info('[FRONTEND-ONLY] Creating business in local store');
 
+  // Get current user ID
+  const userId = input.ownerUserId || localStorage.getItem('user_id');
+  if (!userId) {
+    throw new Error('User ID not found - cannot create business');
+  }
+
   const newBusiness: BusinessRecord = {
     id: `business_${Date.now()}`,
     name: input.name,
@@ -107,6 +113,27 @@ export async function createBusiness(input: CreateBusinessInput): Promise<Busine
   }
 
   logger.info(`[FRONTEND-ONLY] Business created: ${data.id}`);
+
+  // Create user_business_roles record to link user as business_owner
+  const userBusinessRole = {
+    id: `ubr_${Date.now()}`,
+    user_id: userId,
+    business_id: data.id,
+    role_code: 'business_owner',
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  const { error: roleError } = await frontendOnlyDataStore.insert('user_business_roles', userBusinessRole);
+
+  if (roleError) {
+    logger.error('[FRONTEND-ONLY] Failed to create user_business_roles record:', roleError);
+    throw new Error('Failed to link user to business');
+  }
+
+  logger.info(`[FRONTEND-ONLY] User linked to business as business_owner: ${data.id}`);
+
   return data;
 }
 

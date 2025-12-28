@@ -33,34 +33,6 @@ export function StoreShell({
       path: item.path,
     }));
 
-  const headerContent = (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-      <h1
-        style={{
-          margin: 0,
-          fontSize: '18px',
-          fontWeight: '600',
-          color: 'rgba(255, 255, 255, 0.95)',
-        }}
-      >
-        Shop
-      </h1>
-      {cartItemCount !== undefined && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '12px',
-            color: 'rgba(255, 255, 255, 0.6)',
-          }}
-        >
-          🛒 {cartItemCount}
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <BaseShell
       role={role}
@@ -74,7 +46,6 @@ export function StoreShell({
         currentPath={currentPath}
         onNavigate={onNavigate}
         title="Store Menu"
-        headerContent={headerContent}
       >
         {children}
       </UnifiedAppFrame>

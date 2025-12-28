@@ -32,34 +32,6 @@ export function DriverShell({
       path: item.path,
     }));
 
-  const headerContent = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-      <div>
-        <h1
-          style={{
-            margin: 0,
-            fontSize: '18px',
-            fontWeight: '600',
-            color: 'rgba(255, 255, 255, 0.95)',
-          }}
-        >
-          {driverName || 'Driver Dashboard'}
-        </h1>
-        {driverEarnings !== undefined && (
-          <p
-            style={{
-              margin: '4px 0 0 0',
-              fontSize: '12px',
-              color: 'rgba(255, 255, 255, 0.6)',
-            }}
-          >
-            Earnings: ${driverEarnings.toFixed(2)}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-
   return (
     <BaseShell
       role="driver"
@@ -73,7 +45,6 @@ export function DriverShell({
         currentPath={currentPath}
         onNavigate={onNavigate}
         title="Driver Menu"
-        headerContent={headerContent}
       >
         {children}
       </UnifiedAppFrame>

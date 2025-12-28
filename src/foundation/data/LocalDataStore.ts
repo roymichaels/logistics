@@ -552,6 +552,38 @@ export class LocalDataStore {
     this.saveToStorage();
   }
 
+  async createBusiness(input: {
+    name: string;
+    name_hebrew: string;
+    business_type: string;
+    order_number_prefix: string;
+    default_currency: 'ILS' | 'USD' | 'EUR';
+    primary_color: string;
+    secondary_color: string;
+  }): Promise<any> {
+    try {
+      // Import the business service
+      const { createBusiness: createBusinessService } = await import('../../services/business');
+
+      // Call the service which now creates both business and user_business_roles records
+      const result = await createBusinessService({
+        name: input.name,
+        nameHebrew: input.name_hebrew,
+        businessType: input.business_type,
+        orderNumberPrefix: input.order_number_prefix,
+        defaultCurrency: input.default_currency,
+        primaryColor: input.primary_color,
+        secondaryColor: input.secondary_color,
+      });
+
+      logger.info('[LocalDataStore] Business created successfully:', result.id);
+      return result;
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to create business:', error);
+      throw error;
+    }
+  }
+
   clearAll(): void {
     this.tables.clear();
     localStorage.removeItem(this.STORAGE_KEY);

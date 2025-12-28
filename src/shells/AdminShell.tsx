@@ -30,23 +30,6 @@ export function AdminShell({
       path: item.path,
     }));
 
-  const headerContent = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-      <div>
-        <h1
-          style={{
-            margin: 0,
-            fontSize: '18px',
-            fontWeight: '600',
-            color: 'rgba(255, 255, 255, 0.95)',
-          }}
-        >
-          Infrastructure Admin
-        </h1>
-      </div>
-    </div>
-  );
-
   return (
     <BaseShell
       role="infrastructure_owner"
@@ -60,7 +43,6 @@ export function AdminShell({
         currentPath={currentPath}
         onNavigate={onNavigate}
         title="Admin Menu"
-        headerContent={headerContent}
       >
         {children}
       </UnifiedAppFrame>
