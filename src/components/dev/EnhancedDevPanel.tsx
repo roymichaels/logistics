@@ -144,13 +144,13 @@ export function EnhancedDevPanel() {
     : logs.filter(log => log.level === logFilter);
 
   const tabs: { id: TabType; label: string; icon: string }[] = [
-    { id: 'system', label: 'System', icon: '🖥️' },
-    { id: 'architecture', label: 'Architecture', icon: '🏗️' },
-    { id: 'navigation', label: 'Navigation', icon: '🧭' },
-    { id: 'rbac', label: 'RBAC', icon: '🔐' },
-    { id: 'translations', label: 'i18n', icon: '🌍' },
-    { id: 'performance', label: 'Performance', icon: '⚡' },
-    { id: 'logs', label: 'Logs', icon: '📝' }
+    { id: 'system', label: translations.devConsole.tabs.system, icon: '🖥️' },
+    { id: 'architecture', label: translations.devConsole.tabs.architecture, icon: '🏗️' },
+    { id: 'navigation', label: translations.devConsole.tabs.navigation, icon: '🧭' },
+    { id: 'rbac', label: translations.devConsole.tabs.rbac, icon: '🔐' },
+    { id: 'translations', label: translations.devConsole.tabs.translations, icon: '🌍' },
+    { id: 'performance', label: translations.devConsole.tabs.performance, icon: '⚡' },
+    { id: 'logs', label: translations.devConsole.tabs.logs, icon: '📝' }
   ];
 
   if (!isOpen) {
@@ -176,7 +176,7 @@ export function EnhancedDevPanel() {
           gap: '8px'
         }}
       >
-        🛠️ Dev Console
+        🛠️ {translations.devConsole.open}
       </button>
     );
   }
@@ -209,7 +209,7 @@ export function EnhancedDevPanel() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span style={{ fontSize: '20px' }}>🛠️</span>
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>Developer Console</h3>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>{translations.devConsole.title}</h3>
           <span style={{
             fontSize: '11px',
             padding: '4px 8px',
@@ -325,15 +325,17 @@ export function EnhancedDevPanel() {
 
 // System Info Tab
 function SystemInfoTab({ userRole, walletAddress, businessId, shellConfig, language }: any) {
+  const { translations } = useI18n();
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <InfoSection title="Authentication">
-        <InfoRow label="Current Role" value={userRole} color="#10b981" />
-        <InfoRow label="Wallet Address" value={walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : 'Not connected'} />
-        <InfoRow label="Business ID" value={businessId || 'None'} />
+      <InfoSection title={translations.devConsole.system.authStatus}>
+        <InfoRow label={translations.devConsole.system.currentRole} value={userRole} color="#10b981" />
+        <InfoRow label={translations.devConsole.system.walletAddress} value={walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : translations.devConsole.system.none} />
+        <InfoRow label={translations.devConsole.system.businessContext} value={businessId || translations.devConsole.system.none} />
       </InfoSection>
 
-      <InfoSection title="Shell Configuration">
+      <InfoSection title={translations.devConsole.system.currentShell}>
         <InfoRow label="Shell Type" value={shellConfig.type} color="#6366f1" />
         <InfoRow label="Bottom Nav" value={shellConfig.features.showBottomNav ? '✅ Visible' : '❌ Hidden'} />
         <InfoRow label="Header" value={shellConfig.features.showHeader ? '✅ Visible' : '❌ Hidden'} />
@@ -342,7 +344,7 @@ function SystemInfoTab({ userRole, walletAddress, businessId, shellConfig, langu
       </InfoSection>
 
       <InfoSection title="Internationalization">
-        <InfoRow label="Current Language" value={language === 'he' ? '🇮🇱 Hebrew (עברית)' : '🇺🇸 English'} />
+        <InfoRow label={translations.devConsole.translations.currentLanguage} value={language === 'he' ? '🇮🇱 Hebrew (עברית)' : '🇺🇸 English'} />
         <InfoRow label="Direction" value={language === 'he' ? 'RTL (→)' : 'LTR (←)'} />
       </InfoSection>
 

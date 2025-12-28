@@ -1041,6 +1041,68 @@ export interface Translations {
     loadingDispatchBoard: string;
   };
 
+  // Developer Console
+  devConsole: {
+    title: string;
+    tabs: {
+      system: string;
+      architecture: string;
+      navigation: string;
+      rbac: string;
+      translations: string;
+      performance: string;
+      logs: string;
+    };
+    system: {
+      currentRole: string;
+      currentShell: string;
+      businessContext: string;
+      authStatus: string;
+      walletAddress: string;
+      language: string;
+      authenticated: string;
+      notAuthenticated: string;
+      none: string;
+    };
+    architecture: {
+      title: string;
+      roleShellMap: string;
+      permissionsMatrix: string;
+    };
+    navigation: {
+      currentRoute: string;
+      availableRoutes: string;
+      guards: string;
+    };
+    rbac: {
+      testRole: string;
+      selectRole: string;
+      permissions: string;
+      testPermission: string;
+    };
+    translations: {
+      coverage: string;
+      missingKeys: string;
+      currentLanguage: string;
+    };
+    performance: {
+      shellUpdates: string;
+      renderCount: string;
+    };
+    logs: {
+      clearLogs: string;
+      filterLogs: string;
+      all: string;
+      info: string;
+      warn: string;
+      error: string;
+      success: string;
+      noLogs: string;
+    };
+    open: string;
+    close: string;
+  };
+
   [key: string]: string | any;
 }
 
@@ -2237,6 +2299,68 @@ const hebrewTranslations: Translations = {
     errorAssigningDriver: 'שגיאה בהקצאת נהג',
     assignDriver: 'הקצה נהג',
     loadingDispatchBoard: 'טוען לוח שיגור...',
+  },
+
+  // Developer Console
+  devConsole: {
+    title: 'קונסולת מפתחים',
+    tabs: {
+      system: 'מערכת',
+      architecture: 'ארכיטקטורה',
+      navigation: 'ניווט',
+      rbac: 'הרשאות',
+      translations: 'תרגומים',
+      performance: 'ביצועים',
+      logs: 'לוגים',
+    },
+    system: {
+      currentRole: 'תפקיד נוכחי',
+      currentShell: 'מעטפת נוכחית',
+      businessContext: 'הקשר עסקי',
+      authStatus: 'סטטוס אימות',
+      walletAddress: 'כתובת ארנק',
+      language: 'שפה',
+      authenticated: 'מאומת',
+      notAuthenticated: 'לא מאומת',
+      none: 'אין',
+    },
+    architecture: {
+      title: 'מפת ארכיטקטורה',
+      roleShellMap: 'מיפוי תפקידים למעטפות',
+      permissionsMatrix: 'מטריצת הרשאות',
+    },
+    navigation: {
+      currentRoute: 'נתיב נוכחי',
+      availableRoutes: 'נתיבים זמינים',
+      guards: 'שומרי גישה',
+    },
+    rbac: {
+      testRole: 'בדיקת תפקיד',
+      selectRole: 'בחר תפקיד',
+      permissions: 'הרשאות',
+      testPermission: 'בדיקת הרשאה',
+    },
+    translations: {
+      coverage: 'כיסוי תרגומים',
+      missingKeys: 'מפתחות חסרים',
+      currentLanguage: 'שפה נוכחית',
+    },
+    performance: {
+      shellUpdates: 'עדכוני מעטפת',
+      renderCount: 'ספירת רנדרים',
+    },
+    logs: {
+      clearLogs: 'נקה לוגים',
+      filterLogs: 'סנן לוגים',
+      all: 'הכל',
+      info: 'מידע',
+      warn: 'אזהרה',
+      error: 'שגיאה',
+      success: 'הצלחה',
+      noLogs: 'אין לוגים',
+    },
+    open: 'פתח קונסולה',
+    close: 'סגור קונסולה',
   },
 
   // Landing page translations - will be added below
@@ -3532,6 +3656,68 @@ const englishTranslations: Translations = {
     errorAssigningDriver: 'Error assigning driver',
     assignDriver: 'Assign Driver',
     loadingDispatchBoard: 'Loading dispatch board...',
+  },
+
+  // Developer Console
+  devConsole: {
+    title: 'Developer Console',
+    tabs: {
+      system: 'System',
+      architecture: 'Architecture',
+      navigation: 'Navigation',
+      rbac: 'RBAC',
+      translations: 'Translations',
+      performance: 'Performance',
+      logs: 'Logs',
+    },
+    system: {
+      currentRole: 'Current Role',
+      currentShell: 'Current Shell',
+      businessContext: 'Business Context',
+      authStatus: 'Auth Status',
+      walletAddress: 'Wallet Address',
+      language: 'Language',
+      authenticated: 'Authenticated',
+      notAuthenticated: 'Not Authenticated',
+      none: 'None',
+    },
+    architecture: {
+      title: 'Architecture Map',
+      roleShellMap: 'Role-Shell Mapping',
+      permissionsMatrix: 'Permissions Matrix',
+    },
+    navigation: {
+      currentRoute: 'Current Route',
+      availableRoutes: 'Available Routes',
+      guards: 'Guards',
+    },
+    rbac: {
+      testRole: 'Test Role',
+      selectRole: 'Select Role',
+      permissions: 'Permissions',
+      testPermission: 'Test Permission',
+    },
+    translations: {
+      coverage: 'Translation Coverage',
+      missingKeys: 'Missing Keys',
+      currentLanguage: 'Current Language',
+    },
+    performance: {
+      shellUpdates: 'Shell Updates',
+      renderCount: 'Render Count',
+    },
+    logs: {
+      clearLogs: 'Clear Logs',
+      filterLogs: 'Filter Logs',
+      all: 'All',
+      info: 'Info',
+      warn: 'Warning',
+      error: 'Error',
+      success: 'Success',
+      noLogs: 'No Logs',
+    },
+    open: 'Open Console',
+    close: 'Close Console',
   },
 
   // Landing page translations - will be added below
