@@ -21,7 +21,7 @@ import {
 } from '../data/types';
 import { formatCurrency, useI18n } from '../lib/i18n';
 import { haptic } from '../utils/haptic';
-import { useAppServices } from '../context/AppServicesContext';
+import { AppServicesContext } from '../context/AppServicesContext';
 import { useNavigate } from 'react-router-dom';
 
 interface DashboardProps {
@@ -51,9 +51,12 @@ const DASHBOARD_COLORS = {
 };
 
 export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate }: DashboardProps = {}) {
-  // Get dataStore, navigation, and currentBusinessId from context if not provided as props
-  const { dataStore: contextDataStore, currentBusinessId } = useAppServices();
   const navigate = useNavigate();
+
+  // Get dataStore, navigation, and currentBusinessId from context if not provided as props
+  // Make this optional to handle cases where Dashboard is used outside the context
+  const contextDataStore = React.useContext(AppServicesContext)?.dataStore || null;
+  const currentBusinessId = React.useContext(AppServicesContext)?.currentBusinessId || null;
 
   // Use prop if provided, otherwise use context
   const dataStore = propDataStore || contextDataStore;

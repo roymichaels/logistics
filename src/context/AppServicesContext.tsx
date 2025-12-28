@@ -588,3 +588,11 @@ export function useAppServices() {
   }
   return context;
 }
+
+/**
+ * Safe alternative to useAppServices that returns null instead of throwing
+ * Use this in components that need to be resilient to context unavailability
+ */
+export function useSafeAppServices() {
+  return useContext(AppServicesContext) || null;
+}
