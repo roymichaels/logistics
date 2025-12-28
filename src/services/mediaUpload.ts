@@ -1,26 +1,35 @@
-import type { SupabaseClient } from '../lib/supabaseTypes';
 import type { MediaType } from '../data/types';
+import { logger } from '../lib/logger';
 
 export class MediaUploadService {
-  private readonly BUCKET_NAME = 'social-media';
   private readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
   private readonly ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
   private readonly ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
+  private localStore = new Map<string, string>();
 
-  constructor(private supabase: SupabaseClient) {
-    this.ensureBucketExists();
+  constructor() {
+    logger.info('[FRONTEND-ONLY] MediaUploadService initialized - using local blob storage');
+    this.loadFromLocalStorage();
   }
 
-  private async ensureBucketExists() {
-    const { data: buckets } = await this.supabase.storage.listBuckets();
-    const bucketExists = buckets?.some(b => b.name === this.BUCKET_NAME);
+  private loadFromLocalStorage() {
+    try {
+      const stored = localStorage.getItem('media-blob-store');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        this.localStore = new Map(Object.entries(parsed));
+      }
+    } catch (error) {
+      logger.error('[MediaUpload] Failed to load from localStorage', error);
+    }
+  }
 
-    if (!bucketExists) {
-      await this.supabase.storage.createBucket(this.BUCKET_NAME, {
-        public: true,
-        fileSizeLimit: this.MAX_FILE_SIZE,
-        allowedMimeTypes: [...this.ALLOWED_IMAGE_TYPES, ...this.ALLOWED_VIDEO_TYPES]
-      });
+  private saveToLocalStorage() {
+    try {
+      const obj = Object.fromEntries(this.localStore);
+      localStorage.setItem('media-blob-store', JSON.stringify(obj));
+    } catch (error) {
+      logger.error('[MediaUpload] Failed to save to localStorage', error);
     }
   }
 
@@ -56,37 +65,31 @@ export class MediaUploadService {
   }
 
   private async uploadFile(file: File, mediaType: MediaType): Promise<{ url: string; type: MediaType }> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
+    const userId = this.getCurrentUserId();
     const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-    const { data, error } = await this.supabase.storage
-      .from(this.BUCKET_NAME)
-      .upload(fileName, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+    const blobUrl = URL.createObjectURL(file);
 
-    if (error) throw error;
+    this.localStore.set(fileName, blobUrl);
+    this.saveToLocalStorage();
 
-    const { data: { publicUrl } } = this.supabase.storage
-      .from(this.BUCKET_NAME)
-      .getPublicUrl(data.path);
+    logger.debug(`[MediaUpload] File uploaded locally: ${fileName}`);
 
-    return { url: publicUrl, type: mediaType };
+    return { url: blobUrl, type: mediaType };
   }
 
   async deleteMedia(url: string): Promise<void> {
-    const path = this.extractPathFromUrl(url);
-    if (!path) return;
+    const entries = Array.from(this.localStore.entries());
+    const found = entries.find(([_, storedUrl]) => storedUrl === url);
 
-    const { error } = await this.supabase.storage
-      .from(this.BUCKET_NAME)
-      .remove([path]);
-
-    if (error) throw error;
+    if (found) {
+      const [key] = found;
+      this.localStore.delete(key);
+      URL.revokeObjectURL(url);
+      this.saveToLocalStorage();
+      logger.debug(`[MediaUpload] File deleted: ${key}`);
+    }
   }
 
   private validateImageFile(file: File): void {
@@ -115,14 +118,17 @@ export class MediaUploadService {
     return this.ALLOWED_VIDEO_TYPES.includes(file.type);
   }
 
-  private extractPathFromUrl(url: string): string | null {
-    try {
-      const urlObj = new URL(url);
-      const pathMatch = urlObj.pathname.match(/\/storage\/v1\/object\/public\/[^/]+\/(.+)$/);
-      return pathMatch ? pathMatch[1] : null;
-    } catch {
-      return null;
+  private getCurrentUserId(): string {
+    const storedUser = localStorage.getItem('wallet_session');
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        return parsed.address || 'anonymous';
+      } catch {
+        return 'anonymous';
+      }
     }
+    return 'anonymous';
   }
 
   private async generateVideoThumbnail(videoFile: File): Promise<File | null> {

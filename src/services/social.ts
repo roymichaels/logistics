@@ -1,4 +1,3 @@
-import type { SupabaseClient } from '../lib/supabaseTypes';
 import type {
   UserProfile,
   Post,
@@ -9,66 +8,65 @@ import type {
   CreateCommentInput,
   UpdateProfileInput,
   FeedFilters,
-  PostMedia,
   Hashtag
 } from '../data/types';
+import { frontendOnlyDataStore } from '../lib/frontendOnlyDataStore';
+import { logger } from '../lib/logger';
 
 export class SocialMediaService {
-  constructor(private supabase: SupabaseClient) {}
+  constructor() {
+    logger.info('[FRONTEND-ONLY] SocialMediaService initialized - using local storage');
+  }
+
+  private getCurrentUserId(): string {
+    const storedUser = localStorage.getItem('wallet_session');
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        return parsed.address || parsed.id || 'anonymous';
+      } catch {
+        return 'anonymous';
+      }
+    }
+    return 'anonymous';
+  }
 
   async getUserProfile(user_id?: string): Promise<UserProfile | null> {
-    const targetUserId = user_id || (await this.supabase.auth.getUser()).data.user?.id;
-    if (!targetUserId) return null;
-
-    const { data, error } = await this.supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('user_id', targetUserId)
-      .single();
-
-    if (error) throw error;
-    return data;
+    const targetUserId = user_id || this.getCurrentUserId();
+    const profiles = await frontendOnlyDataStore.query('user_profiles', { user_id: targetUserId });
+    return profiles[0] || null;
   }
 
   async updateUserProfile(updates: UpdateProfileInput): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const userId = this.getCurrentUserId();
+    const profiles = await frontendOnlyDataStore.query('user_profiles', { user_id: userId });
 
-    const { error } = await this.supabase
-      .from('user_profiles')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', user.id);
-
-    if (error) throw error;
+    if (profiles.length > 0) {
+      await frontendOnlyDataStore.update('user_profiles', profiles[0].id, updates);
+    } else {
+      await frontendOnlyDataStore.insert('user_profiles', { user_id: userId, ...updates });
+    }
   }
 
   async createPost(input: CreatePostInput): Promise<{ id: string }> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
+    const userId = this.getCurrentUserId();
     const { content, visibility = 'public', reply_to_post_id, business_id, media } = input;
 
     const postData: any = {
-      user_id: user.id,
+      user_id: userId,
       content,
       visibility,
       is_reply: !!reply_to_post_id,
-      is_repost: false
+      is_reposted: false,
+      like_count: 0,
+      repost_count: 0,
+      comment_count: 0
     };
 
     if (reply_to_post_id) postData.reply_to_post_id = reply_to_post_id;
     if (business_id) postData.business_id = business_id;
 
-    const { data: post, error: postError } = await this.supabase
-      .from('posts')
-      .insert(postData)
-      .select('id')
-      .single();
-
-    if (postError) throw postError;
+    const { data: post } = await frontendOnlyDataStore.insert('posts', postData);
 
     if (media && media.length > 0) {
       const mediaData = media.map((m, index) => ({
@@ -79,11 +77,7 @@ export class SocialMediaService {
         display_order: index
       }));
 
-      const { error: mediaError } = await this.supabase
-        .from('post_media')
-        .insert(mediaData);
-
-      if (mediaError) throw mediaError;
+      await frontendOnlyDataStore.batchInsert('post_media', mediaData);
     }
 
     const hashtags = this.extractHashtags(content);
@@ -93,110 +87,78 @@ export class SocialMediaService {
 
     const mentions = this.extractMentions(content);
     if (mentions.length > 0) {
-      await this.processMentions(post.id, mentions, user.id);
+      await this.processMentions(post.id, mentions, userId);
     }
 
     return { id: post.id };
   }
 
   async deletePost(post_id: string): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const userId = this.getCurrentUserId();
+    const posts = await frontendOnlyDataStore.query('posts', { id: post_id, user_id: userId });
 
-    const { error } = await this.supabase
-      .from('posts')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', post_id)
-      .eq('user_id', user.id);
-
-    if (error) throw error;
+    if (posts.length > 0) {
+      await frontendOnlyDataStore.update('posts', post_id, { deleted_at: new Date().toISOString() });
+    }
   }
 
   async getPost(post_id: string): Promise<Post | null> {
-    const { data, error } = await this.supabase
-      .from('posts')
-      .select(`
-        *,
-        user:users!posts_user_id_fkey(id, name, username, photo_url),
-        media:post_media(*),
-        hashtags:post_hashtags(hashtag:hashtags(*))
-      `)
-      .eq('id', post_id)
-      .is('deleted_at', null)
-      .single();
+    const posts = await frontendOnlyDataStore.query('posts', { id: post_id });
+    if (posts.length === 0 || posts[0].deleted_at) return null;
 
-    if (error) throw error;
-    return this.enrichPost(data);
+    const media = await frontendOnlyDataStore.query('post_media', { post_id });
+    const user = await this.getUserById(posts[0].user_id);
+    const hashtags = await this.getPostHashtags(post_id);
+
+    const post = {
+      ...posts[0],
+      user,
+      media,
+      hashtags
+    };
+
+    return this.enrichPost(post);
   }
 
   async getFeed(filters: FeedFilters = {}): Promise<Post[]> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const userId = this.getCurrentUserId();
+    let posts = await frontendOnlyDataStore.query('posts');
 
-    let query = this.supabase
-      .from('posts')
-      .select(`
-        *,
-        user:users!posts_user_id_fkey(id, name, username, photo_url),
-        media:post_media(*),
-        hashtags:post_hashtags(hashtag:hashtags(*))
-      `)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false });
+    posts = posts.filter(post => !post.deleted_at);
 
     if (filters.user_id) {
-      query = query.eq('user_id', filters.user_id);
+      posts = posts.filter(post => post.user_id === filters.user_id);
     }
 
     if (filters.following_only) {
-      const { data: following } = await this.supabase
-        .from('user_follows')
-        .select('following_id')
-        .eq('follower_id', user.id);
-
-      if (following && following.length > 0) {
-        const followingIds = following.map(f => f.following_id);
-        query = query.in('user_id', followingIds);
-      } else {
-        return [];
-      }
+      const following = await frontendOnlyDataStore.query('user_follows', { follower_id: userId });
+      const followingIds = following.map(f => f.following_id);
+      posts = posts.filter(post => followingIds.includes(post.user_id));
     }
 
     if (filters.business_id) {
-      query = query.eq('business_id', filters.business_id);
+      posts = posts.filter(post => post.business_id === filters.business_id);
     }
 
     if (filters.hashtag) {
-      const { data: hashtagData } = await this.supabase
-        .from('hashtags')
-        .select('id')
-        .eq('tag', filters.hashtag.toLowerCase())
-        .single();
-
-      if (hashtagData) {
-        const { data: postIds } = await this.supabase
-          .from('post_hashtags')
-          .select('post_id')
-          .eq('hashtag_id', hashtagData.id);
-
-        if (postIds && postIds.length > 0) {
-          query = query.in('id', postIds.map(p => p.post_id));
-        } else {
-          return [];
-        }
+      const hashtagRecords = await frontendOnlyDataStore.query('hashtags', { tag: filters.hashtag.toLowerCase() });
+      if (hashtagRecords.length > 0) {
+        const postHashtags = await frontendOnlyDataStore.query('post_hashtags', { hashtag_id: hashtagRecords[0].id });
+        const postIds = postHashtags.map(ph => ph.post_id);
+        posts = posts.filter(post => postIds.includes(post.id));
       } else {
         return [];
       }
     }
 
+    posts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
     const limit = filters.limit || 50;
     const offset = filters.offset || 0;
-    query = query.range(offset, offset + limit - 1);
+    posts = posts.slice(offset, offset + limit);
 
-    const { data, error } = await query;
-    if (error) throw error;
-
-    return Promise.all(data.map(post => this.enrichPost(post)));
+    const enrichedPosts = await Promise.all(posts.map(post => this.enrichPostData(post)));
+    return enrichedPosts;
   }
 
   async getUserPosts(user_id: string, limit = 50): Promise<Post[]> {
@@ -204,390 +166,247 @@ export class SocialMediaService {
   }
 
   async likePost(post_id: string): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { error } = await this.supabase
-      .from('post_likes')
-      .insert({ post_id, user_id: user.id });
-
-    if (error && error.code !== '23505') throw error;
+    const userId = this.getCurrentUserId();
+    await frontendOnlyDataStore.insert('post_likes', { post_id, user_id: userId });
   }
 
   async unlikePost(post_id: string): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { error } = await this.supabase
-      .from('post_likes')
-      .delete()
-      .eq('post_id', post_id)
-      .eq('user_id', user.id);
-
-    if (error) throw error;
+    const userId = this.getCurrentUserId();
+    const likes = await frontendOnlyDataStore.query('post_likes', { post_id, user_id: userId });
+    if (likes.length > 0) {
+      await frontendOnlyDataStore.delete('post_likes', likes[0].id);
+    }
   }
 
   async repostPost(post_id: string, comment?: string): Promise<{ id: string }> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { data, error } = await this.supabase
-      .from('post_reposts')
-      .insert({ post_id, user_id: user.id, comment })
-      .select('id')
-      .single();
-
-    if (error) throw error;
+    const userId = this.getCurrentUserId();
+    const { data } = await frontendOnlyDataStore.insert('post_reposts', { post_id, user_id: userId, comment });
     return { id: data.id };
   }
 
   async unrepostPost(post_id: string): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { error } = await this.supabase
-      .from('post_reposts')
-      .delete()
-      .eq('post_id', post_id)
-      .eq('user_id', user.id);
-
-    if (error) throw error;
+    const userId = this.getCurrentUserId();
+    const reposts = await frontendOnlyDataStore.query('post_reposts', { post_id, user_id: userId });
+    if (reposts.length > 0) {
+      await frontendOnlyDataStore.delete('post_reposts', reposts[0].id);
+    }
   }
 
   async createComment(input: CreateCommentInput): Promise<{ id: string }> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { data, error } = await this.supabase
-      .from('post_comments')
-      .insert({
-        post_id: input.post_id,
-        user_id: user.id,
-        content: input.content,
-        parent_comment_id: input.parent_comment_id
-      })
-      .select('id')
-      .single();
-
-    if (error) throw error;
+    const userId = this.getCurrentUserId();
+    const { data } = await frontendOnlyDataStore.insert('post_comments', {
+      post_id: input.post_id,
+      user_id: userId,
+      content: input.content,
+      parent_comment_id: input.parent_comment_id
+    });
     return { id: data.id };
   }
 
   async deleteComment(comment_id: string): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { error } = await this.supabase
-      .from('post_comments')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', comment_id)
-      .eq('user_id', user.id);
-
-    if (error) throw error;
+    const userId = this.getCurrentUserId();
+    const comments = await frontendOnlyDataStore.query('post_comments', { id: comment_id, user_id: userId });
+    if (comments.length > 0) {
+      await frontendOnlyDataStore.update('post_comments', comment_id, { deleted_at: new Date().toISOString() });
+    }
   }
 
   async getPostComments(post_id: string, limit = 50): Promise<PostComment[]> {
-    const { data, error } = await this.supabase
-      .from('post_comments')
-      .select(`
-        *,
-        user:users!post_comments_user_id_fkey(id, name, username, photo_url)
-      `)
-      .eq('post_id', post_id)
-      .is('deleted_at', null)
-      .is('parent_comment_id', null)
-      .order('created_at', { ascending: true })
-      .limit(limit);
+    const comments = await frontendOnlyDataStore.query('post_comments', { post_id });
+    const topLevel = comments.filter(c => !c.deleted_at && !c.parent_comment_id);
 
-    if (error) throw error;
+    const enriched = await Promise.all(topLevel.map(async (comment) => {
+      const user = await this.getUserById(comment.user_id);
+      const replies = await this.getCommentReplies(comment.id);
+      return { ...comment, user, replies };
+    }));
 
-    return Promise.all(data.map(async (comment) => {
-      const { data: replies } = await this.supabase
-        .from('post_comments')
-        .select(`
-          *,
-          user:users!post_comments_user_id_fkey(id, name, username, photo_url)
-        `)
-        .eq('parent_comment_id', comment.id)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: true });
+    return enriched.slice(0, limit);
+  }
 
-      return { ...comment, replies: replies || [] };
+  private async getCommentReplies(parent_id: string): Promise<any[]> {
+    const replies = await frontendOnlyDataStore.query('post_comments', { parent_comment_id: parent_id });
+    return Promise.all(replies.filter(r => !r.deleted_at).map(async (reply) => {
+      const user = await this.getUserById(reply.user_id);
+      return { ...reply, user };
     }));
   }
 
   async followUser(user_id: string): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { error } = await this.supabase
-      .from('user_follows')
-      .insert({ follower_id: user.id, following_id: user_id });
-
-    if (error && error.code !== '23505') throw error;
+    const userId = this.getCurrentUserId();
+    await frontendOnlyDataStore.insert('user_follows', { follower_id: userId, following_id: user_id });
   }
 
   async unfollowUser(user_id: string): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { error } = await this.supabase
-      .from('user_follows')
-      .delete()
-      .eq('follower_id', user.id)
-      .eq('following_id', user_id);
-
-    if (error) throw error;
+    const userId = this.getCurrentUserId();
+    const follows = await frontendOnlyDataStore.query('user_follows', { follower_id: userId, following_id: user_id });
+    if (follows.length > 0) {
+      await frontendOnlyDataStore.delete('user_follows', follows[0].id);
+    }
   }
 
   async getFollowers(user_id?: string, limit = 50): Promise<User[]> {
-    const { data: { user: currentUser } } = await this.supabase.auth.getUser();
-    const targetUserId = user_id || currentUser?.id;
-    if (!targetUserId) return [];
-
-    const { data, error } = await this.supabase
-      .from('user_follows')
-      .select('follower:users!user_follows_follower_id_fkey(id, name, username, photo_url, role)')
-      .eq('following_id', targetUserId)
-      .limit(limit);
-
-    if (error) throw error;
-    return data.map(d => d.follower);
+    const targetUserId = user_id || this.getCurrentUserId();
+    const follows = await frontendOnlyDataStore.query('user_follows', { following_id: targetUserId });
+    const users = await Promise.all(follows.slice(0, limit).map(f => this.getUserById(f.follower_id)));
+    return users.filter(u => u !== null) as User[];
   }
 
   async getFollowing(user_id?: string, limit = 50): Promise<User[]> {
-    const { data: { user: currentUser } } = await this.supabase.auth.getUser();
-    const targetUserId = user_id || currentUser?.id;
-    if (!targetUserId) return [];
-
-    const { data, error } = await this.supabase
-      .from('user_follows')
-      .select('following:users!user_follows_following_id_fkey(id, name, username, photo_url, role)')
-      .eq('follower_id', targetUserId)
-      .limit(limit);
-
-    if (error) throw error;
-    return data.map(d => d.following);
+    const targetUserId = user_id || this.getCurrentUserId();
+    const follows = await frontendOnlyDataStore.query('user_follows', { follower_id: targetUserId });
+    const users = await Promise.all(follows.slice(0, limit).map(f => this.getUserById(f.following_id)));
+    return users.filter(u => u !== null) as User[];
   }
 
   async isFollowing(user_id: string): Promise<boolean> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) return false;
-
-    const { data, error } = await this.supabase
-      .from('user_follows')
-      .select('id')
-      .eq('follower_id', user.id)
-      .eq('following_id', user_id)
-      .single();
-
-    return !!data && !error;
+    const userId = this.getCurrentUserId();
+    const follows = await frontendOnlyDataStore.query('user_follows', { follower_id: userId, following_id: user_id });
+    return follows.length > 0;
   }
 
   async searchUsers(query: string, limit = 20): Promise<User[]> {
-    const { data, error } = await this.supabase
-      .from('users')
-      .select('id, name, username, photo_url, role')
-      .or(`name.ilike.%${query}%,username.ilike.%${query}%`)
-      .limit(limit);
-
-    if (error) throw error;
-    return data;
+    const users = await frontendOnlyDataStore.query('users');
+    const filtered = users.filter(u =>
+      (u.name && u.name.toLowerCase().includes(query.toLowerCase())) ||
+      (u.username && u.username.toLowerCase().includes(query.toLowerCase()))
+    );
+    return filtered.slice(0, limit);
   }
 
   async getTrendingTopics(limit = 10): Promise<TrendingTopic[]> {
-    const { data, error } = await this.supabase
-      .from('trending_topics')
-      .select(`
-        *,
-        hashtag:hashtags(*)
-      `)
-      .eq('trend_date', new Date().toISOString().split('T')[0])
-      .order('engagement_score', { ascending: false })
-      .limit(limit);
+    const topics = await frontendOnlyDataStore.query('trending_topics');
+    const today = new Date().toISOString().split('T')[0];
+    const todayTopics = topics.filter(t => t.trend_date === today);
 
-    if (error) throw error;
-    return data || [];
+    todayTopics.sort((a, b) => (b.engagement_score || 0) - (a.engagement_score || 0));
+    return todayTopics.slice(0, limit);
   }
 
   async searchPosts(query: string, filters: FeedFilters = {}): Promise<Post[]> {
-    const { data, error } = await this.supabase
-      .from('posts')
-      .select(`
-        *,
-        user:users!posts_user_id_fkey(id, name, username, photo_url),
-        media:post_media(*),
-        hashtags:post_hashtags(hashtag:hashtags(*))
-      `)
-      .ilike('content', `%${query}%`)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false })
-      .limit(filters.limit || 50);
+    const posts = await frontendOnlyDataStore.query('posts');
+    const filtered = posts.filter(post =>
+      !post.deleted_at &&
+      post.content &&
+      post.content.toLowerCase().includes(query.toLowerCase())
+    );
 
-    if (error) throw error;
-    return Promise.all(data.map(post => this.enrichPost(post)));
+    filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const enriched = await Promise.all(filtered.slice(0, filters.limit || 50).map(post => this.enrichPostData(post)));
+    return enriched;
   }
 
   async bookmarkPost(post_id: string): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { error } = await this.supabase
-      .from('post_bookmarks')
-      .insert({ post_id, user_id: user.id });
-
-    if (error && error.code !== '23505') throw error;
+    const userId = this.getCurrentUserId();
+    await frontendOnlyDataStore.insert('post_bookmarks', { post_id, user_id: userId });
   }
 
   async unbookmarkPost(post_id: string): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { error } = await this.supabase
-      .from('post_bookmarks')
-      .delete()
-      .eq('post_id', post_id)
-      .eq('user_id', user.id);
-
-    if (error) throw error;
+    const userId = this.getCurrentUserId();
+    const bookmarks = await frontendOnlyDataStore.query('post_bookmarks', { post_id, user_id: userId });
+    if (bookmarks.length > 0) {
+      await frontendOnlyDataStore.delete('post_bookmarks', bookmarks[0].id);
+    }
   }
 
   async getBookmarkedPosts(limit = 50): Promise<Post[]> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) return [];
+    const userId = this.getCurrentUserId();
+    const bookmarks = await frontendOnlyDataStore.query('post_bookmarks', { user_id: userId });
 
-    const { data: bookmarks, error: bookmarksError } = await this.supabase
-      .from('post_bookmarks')
-      .select('post_id')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(limit);
+    bookmarks.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-    if (bookmarksError) throw bookmarksError;
+    const posts = await Promise.all(
+      bookmarks.slice(0, limit).map(async (b) => {
+        const postData = await frontendOnlyDataStore.query('posts', { id: b.post_id });
+        return postData[0] && !postData[0].deleted_at ? this.enrichPostData(postData[0]) : null;
+      })
+    );
 
-    if (!bookmarks || bookmarks.length === 0) return [];
-
-    const postIds = bookmarks.map(b => b.post_id);
-    const { data, error } = await this.supabase
-      .from('posts')
-      .select(`
-        *,
-        user:users!posts_user_id_fkey(id, name, username, photo_url),
-        media:post_media(*),
-        hashtags:post_hashtags(hashtag:hashtags(*))
-      `)
-      .in('id', postIds)
-      .is('deleted_at', null);
-
-    if (error) throw error;
-    return Promise.all(data.map(post => this.enrichPost(post)));
+    return posts.filter(p => p !== null) as Post[];
   }
 
   async blockUser(user_id: string): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { error } = await this.supabase
-      .from('user_blocks')
-      .insert({ blocker_id: user.id, blocked_id: user_id });
-
-    if (error && error.code !== '23505') throw error;
+    const userId = this.getCurrentUserId();
+    await frontendOnlyDataStore.insert('user_blocks', { blocker_id: userId, blocked_id: user_id });
   }
 
   async unblockUser(user_id: string): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { error } = await this.supabase
-      .from('user_blocks')
-      .delete()
-      .eq('blocker_id', user.id)
-      .eq('blocked_id', user_id);
-
-    if (error) throw error;
+    const userId = this.getCurrentUserId();
+    const blocks = await frontendOnlyDataStore.query('user_blocks', { blocker_id: userId, blocked_id: user_id });
+    if (blocks.length > 0) {
+      await frontendOnlyDataStore.delete('user_blocks', blocks[0].id);
+    }
   }
 
   async muteUser(user_id: string): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { error } = await this.supabase
-      .from('user_mutes')
-      .insert({ muter_id: user.id, muted_id: user_id });
-
-    if (error && error.code !== '23505') throw error;
+    const userId = this.getCurrentUserId();
+    await frontendOnlyDataStore.insert('user_mutes', { muter_id: userId, muted_id: user_id });
   }
 
   async unmuteUser(user_id: string): Promise<void> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { error } = await this.supabase
-      .from('user_mutes')
-      .delete()
-      .eq('muter_id', user.id)
-      .eq('muted_id', user_id);
-
-    if (error) throw error;
+    const userId = this.getCurrentUserId();
+    const mutes = await frontendOnlyDataStore.query('user_mutes', { muter_id: userId, muted_id: user_id });
+    if (mutes.length > 0) {
+      await frontendOnlyDataStore.delete('user_mutes', mutes[0].id);
+    }
   }
 
   async getBlockedUsers(): Promise<User[]> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) return [];
-
-    const { data, error } = await this.supabase
-      .from('user_blocks')
-      .select('blocked:users!user_blocks_blocked_id_fkey(id, name, username, photo_url, role)')
-      .eq('blocker_id', user.id);
-
-    if (error) throw error;
-    return data.map(d => d.blocked);
+    const userId = this.getCurrentUserId();
+    const blocks = await frontendOnlyDataStore.query('user_blocks', { blocker_id: userId });
+    const users = await Promise.all(blocks.map(b => this.getUserById(b.blocked_id)));
+    return users.filter(u => u !== null) as User[];
   }
 
   async getMutedUsers(): Promise<User[]> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) return [];
-
-    const { data, error } = await this.supabase
-      .from('user_mutes')
-      .select('muted:users!user_mutes_muted_id_fkey(id, name, username, photo_url, role)')
-      .eq('muter_id', user.id);
-
-    if (error) throw error;
-    return data.map(d => d.muted);
+    const userId = this.getCurrentUserId();
+    const mutes = await frontendOnlyDataStore.query('user_mutes', { muter_id: userId });
+    const users = await Promise.all(mutes.map(m => this.getUserById(m.muted_id)));
+    return users.filter(u => u !== null) as User[];
   }
 
   private async enrichPost(post: any): Promise<Post> {
-    const { data: { user } } = await this.supabase.auth.getUser();
+    const userId = this.getCurrentUserId();
 
-    if (user) {
-      const { data: likeData } = await this.supabase
-        .from('post_likes')
-        .select('id')
-        .eq('post_id', post.id)
-        .eq('user_id', user.id)
-        .single();
+    const likes = await frontendOnlyDataStore.query('post_likes', { post_id: post.id, user_id: userId });
+    const reposts = await frontendOnlyDataStore.query('post_reposts', { post_id: post.id, user_id: userId });
+    const bookmarks = await frontendOnlyDataStore.query('post_bookmarks', { post_id: post.id, user_id: userId });
 
-      const { data: repostData } = await this.supabase
-        .from('post_reposts')
-        .select('id')
-        .eq('post_id', post.id)
-        .eq('user_id', user.id)
-        .single();
-
-      const { data: bookmarkData } = await this.supabase
-        .from('post_bookmarks')
-        .select('id')
-        .eq('post_id', post.id)
-        .eq('user_id', user.id)
-        .single();
-
-      post.is_liked = !!likeData;
-      post.is_reposted = !!repostData;
-      post.is_bookmarked = !!bookmarkData;
-    }
+    post.is_liked = likes.length > 0;
+    post.is_reposted = reposts.length > 0;
+    post.is_bookmarked = bookmarks.length > 0;
 
     return post;
+  }
+
+  private async enrichPostData(post: any): Promise<Post> {
+    const user = await this.getUserById(post.user_id);
+    const media = await frontendOnlyDataStore.query('post_media', { post_id: post.id });
+    const hashtags = await this.getPostHashtags(post.id);
+
+    return this.enrichPost({
+      ...post,
+      user,
+      media,
+      hashtags
+    });
+  }
+
+  private async getUserById(user_id: string): Promise<User | null> {
+    const users = await frontendOnlyDataStore.query('users', { id: user_id });
+    return users[0] || null;
+  }
+
+  private async getPostHashtags(post_id: string): Promise<any[]> {
+    const postHashtags = await frontendOnlyDataStore.query('post_hashtags', { post_id });
+    const hashtags = await Promise.all(
+      postHashtags.map(async (ph) => {
+        const hashtagData = await frontendOnlyDataStore.query('hashtags', { id: ph.hashtag_id });
+        return hashtagData[0];
+      })
+    );
+    return hashtags.filter(h => h !== undefined);
   }
 
   private extractHashtags(content: string): string[] {
@@ -604,46 +423,30 @@ export class SocialMediaService {
 
   private async processHashtags(post_id: string, hashtags: string[]): Promise<void> {
     for (const tag of hashtags) {
-      const { data: existingHashtag } = await this.supabase
-        .from('hashtags')
-        .select('id')
-        .eq('tag', tag)
-        .single();
+      const existing = await frontendOnlyDataStore.query('hashtags', { tag });
 
       let hashtagId: string;
-      if (existingHashtag) {
-        hashtagId = existingHashtag.id;
+      if (existing.length > 0) {
+        hashtagId = existing[0].id;
       } else {
-        const { data: newHashtag } = await this.supabase
-          .from('hashtags')
-          .insert({ tag })
-          .select('id')
-          .single();
-        hashtagId = newHashtag!.id;
+        const { data } = await frontendOnlyDataStore.insert('hashtags', { tag });
+        hashtagId = data.id;
       }
 
-      await this.supabase
-        .from('post_hashtags')
-        .insert({ post_id, hashtag_id: hashtagId });
+      await frontendOnlyDataStore.insert('post_hashtags', { post_id, hashtag_id: hashtagId });
     }
   }
 
   private async processMentions(post_id: string, mentions: string[], mentioning_user_id: string): Promise<void> {
     for (const username of mentions) {
-      const { data: mentionedUser } = await this.supabase
-        .from('users')
-        .select('id')
-        .eq('username', username)
-        .single();
+      const users = await frontendOnlyDataStore.query('users', { username });
 
-      if (mentionedUser) {
-        await this.supabase
-          .from('user_mentions')
-          .insert({
-            post_id,
-            mentioned_user_id: mentionedUser.id,
-            mentioning_user_id
-          });
+      if (users.length > 0) {
+        await frontendOnlyDataStore.insert('user_mentions', {
+          post_id,
+          mentioned_user_id: users[0].id,
+          mentioning_user_id
+        });
       }
     }
   }
