@@ -77,30 +77,30 @@ export function DevConsoleContent({ activeTab }: DevConsoleContentProps) {
 
 function getTitleForTab(tab: DevTab): string {
   const titles: Record<DevTab, string> = {
-    flags: 'Feature Flags',
-    routes: 'Route Inspector',
-    roles: 'Role Manager',
-    shells: 'Shell Override',
-    wireframes: 'Wireframes',
-    pages: 'Page Inspector',
-    mocks: 'Mock Data',
-    diagnostics: 'Diagnostics',
-    themes: 'Theme Manager',
+    flags: 'דגלי תכונות',
+    routes: 'מפקח נתיבים',
+    roles: 'מנהל תפקידים',
+    shells: 'עקיפת מעטפת',
+    wireframes: 'שלדות',
+    pages: 'מפקח דפים',
+    mocks: 'נתוני בדיקה',
+    diagnostics: 'אבחון',
+    themes: 'מנהל ערכות נושא',
   };
   return titles[tab];
 }
 
 function getDescriptionForTab(tab: DevTab): string {
   const descriptions: Record<DevTab, string> = {
-    flags: 'Toggle feature flags for development',
-    routes: 'Inspect and navigate available routes',
-    roles: 'View and test role permissions',
-    shells: 'Override shell configuration',
-    wireframes: 'View component wireframes',
-    pages: 'Inspect page structure',
-    mocks: 'Manage mock data',
-    diagnostics: 'View system diagnostics and events',
-    themes: 'Switch between available themes',
+    flags: 'החלף דגלי תכונות לפיתוח',
+    routes: 'בדוק ונווט בנתיבים זמינים',
+    roles: 'צפה ובדוק הרשאות תפקידים',
+    shells: 'עקוף תצורת מעטפת',
+    wireframes: 'צפה בשלדות רכיבים',
+    pages: 'בדוק מבנה דפים',
+    mocks: 'נהל נתוני בדיקה',
+    diagnostics: 'צפה באבחון מערכת ואירועים',
+    themes: 'החלף בין ערכות נושא זמינות',
   };
   return descriptions[tab];
 }

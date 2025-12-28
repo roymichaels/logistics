@@ -14,15 +14,15 @@ interface TabConfig {
 }
 
 const tabs: TabConfig[] = [
-  { id: 'flags', label: 'Flags', icon: '🚩' },
-  { id: 'routes', label: 'Routes', icon: '🗺️' },
-  { id: 'roles', label: 'Roles', icon: '👤' },
-  { id: 'shells', label: 'Shells', icon: '🐚' },
-  { id: 'wireframes', label: 'Wire', icon: '📐' },
-  { id: 'pages', label: 'Pages', icon: '📄' },
-  { id: 'mocks', label: 'Mocks', icon: '🎭' },
-  { id: 'diagnostics', label: 'Diag', icon: '🧪' },
-  { id: 'themes', label: 'Theme', icon: '🎨' },
+  { id: 'flags', label: 'דגלים', icon: '🚩' },
+  { id: 'routes', label: 'נתיבים', icon: '🗺️' },
+  { id: 'roles', label: 'תפקידים', icon: '👤' },
+  { id: 'shells', label: 'מעטפות', icon: '🐚' },
+  { id: 'wireframes', label: 'שלד', icon: '📐' },
+  { id: 'pages', label: 'דפים', icon: '📄' },
+  { id: 'mocks', label: 'בדיקה', icon: '🎭' },
+  { id: 'diagnostics', label: 'אבחון', icon: '🧪' },
+  { id: 'themes', label: 'נושא', icon: '🎨' },
 ];
 
 export function DevConsoleSidebar({ activeTab, onTabChange, onClose }: DevConsoleSidebarProps) {
