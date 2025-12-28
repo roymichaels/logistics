@@ -192,15 +192,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/businesses',
     icon: '🏢',
     visible: true,
-    requiredRoles: ['business_owner', 'manager']
-  },
-  {
-    id: 'business-inventory',
-    label: 'מלאי',
-    path: '/business/inventory',
-    icon: '📦',
-    visible: true,
-    requiredRoles: ['business_owner', 'manager', 'warehouse']
+    requiredRoles: ['business_owner'] // Manager should NOT manage businesses
   },
   {
     id: 'business-orders',
@@ -209,6 +201,14 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     icon: '📋',
     visible: true,
     requiredRoles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service']
+  },
+  {
+    id: 'business-inventory',
+    label: 'מלאי',
+    path: '/business/inventory',
+    icon: '📦',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager', 'warehouse']
   },
   {
     id: 'business-dispatch',
@@ -224,15 +224,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/drivers',
     icon: '🚗',
     visible: true,
-    requiredRoles: ['business_owner', 'manager']
-  },
-  {
-    id: 'business-zones',
-    label: 'אזורים',
-    path: '/business/zones',
-    icon: '📍',
-    visible: true,
-    requiredRoles: ['business_owner', 'manager']
+    requiredRoles: ['business_owner', 'manager', 'dispatcher']
   },
   {
     id: 'business-team',
@@ -251,12 +243,20 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     requiredRoles: ['business_owner', 'manager']
   },
   {
+    id: 'business-tasks',
+    label: 'משימות',
+    path: '/business/tasks',
+    icon: '✅',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager', 'warehouse', 'dispatcher']
+  },
+  {
     id: 'business-sales',
     label: 'מכירות',
     path: '/business/sales',
     icon: '💼',
     visible: true,
-    requiredRoles: ['business_owner', 'manager', 'sales']
+    requiredRoles: ['business_owner', 'sales']
   },
   {
     id: 'business-support',
@@ -264,7 +264,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/support',
     icon: '🎧',
     visible: true,
-    requiredRoles: ['business_owner', 'manager', 'customer_service']
+    requiredRoles: ['business_owner', 'customer_service']
   },
   {
     id: 'business-warehouse',
@@ -272,7 +272,15 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/warehouse',
     icon: '🏭',
     visible: true,
-    requiredRoles: ['business_owner', 'manager', 'warehouse']
+    requiredRoles: ['business_owner', 'warehouse']
+  },
+  {
+    id: 'business-zones',
+    label: 'אזורים',
+    path: '/business/zones',
+    icon: '📍',
+    visible: true,
+    requiredRoles: ['business_owner'] // Manager should NOT configure zones
   },
   {
     id: 'business-settings',
@@ -280,7 +288,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/settings',
     icon: '⚙️',
     visible: true,
-    requiredRoles: ['business_owner']
+    requiredRoles: ['business_owner'] // Only business owner can change settings
   }
 ];
 
@@ -357,26 +365,41 @@ export const STORE_SHELL_NAV: NavigationItem[] = [
 export function getNavigationForRole(role: UserRole | null): NavigationItem[] {
   if (!role) return STORE_SHELL_NAV;
 
+  let navItems: NavigationItem[] = [];
+
   switch (role) {
     case 'superadmin':
     case 'admin':
-      return ADMIN_SHELL_NAV;
+      navItems = ADMIN_SHELL_NAV;
+      break;
     case 'infrastructure_owner':
-      return INFRASTRUCTURE_SHELL_NAV;
+      navItems = INFRASTRUCTURE_SHELL_NAV;
+      break;
     case 'business_owner':
     case 'manager':
     case 'warehouse':
     case 'dispatcher':
     case 'sales':
     case 'customer_service':
-      return BUSINESS_SHELL_NAV;
+      navItems = BUSINESS_SHELL_NAV;
+      break;
     case 'driver':
-      return DRIVER_SHELL_NAV;
+      navItems = DRIVER_SHELL_NAV;
+      break;
     case 'customer':
     case 'user':
     default:
-      return STORE_SHELL_NAV;
+      navItems = STORE_SHELL_NAV;
+      break;
   }
+
+  // Filter navigation items based on role requirements
+  return navItems.filter(item => {
+    if (!item.requiredRoles || item.requiredRoles.length === 0) {
+      return true;
+    }
+    return item.requiredRoles.includes(role as any);
+  });
 }
 
 export function getShellTypeForRole(role: UserRole | null): 'admin' | 'infrastructure' | 'business' | 'driver' | 'store' {
