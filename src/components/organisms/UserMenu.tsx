@@ -87,8 +87,8 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
   const dropdownStyles: React.CSSProperties = {
     position: 'absolute',
     top: 'calc(100% + 8px)',
-    right: 0,
-    left: 'auto',
+    left: 0,
+    right: 'auto',
     minWidth: '240px',
     maxWidth: 'calc(100vw - 16px)',
     background: 'rgba(30, 30, 35, 0.98)',

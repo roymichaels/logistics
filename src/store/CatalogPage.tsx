@@ -83,16 +83,17 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
 
   const containerStyle: React.CSSProperties = {
     minHeight: '100vh',
-    background: colors.background.primary,
+    background: 'rgba(18, 18, 20, 0.95)',
     paddingBottom: '100px',
   };
 
   const heroStyle: React.CSSProperties = {
-    background: `linear-gradient(135deg, ${colors.brand.primary} 0%, ${colors.brand.primaryDark} 100%)`,
-    padding: `${spacing['3xl']} ${spacing.xl}`,
-    marginBottom: spacing.xl,
-    borderRadius: `0 0 ${borderRadius['2xl']} ${borderRadius['2xl']}`,
-    boxShadow: shadows.xl,
+    background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.08) 100%)',
+    padding: `${spacing.xl} ${spacing.lg}`,
+    marginBottom: spacing.lg,
+    borderRadius: `0 0 ${borderRadius.xl} ${borderRadius.xl}`,
+    border: '1px solid rgba(59, 130, 246, 0.1)',
+    backdropFilter: 'blur(12px)',
   };
 
   return (
@@ -103,102 +104,137 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
             <Text
               variant="h1"
               style={{
-                color: colors.white,
-                marginBottom: spacing.md,
-                fontSize: 'clamp(28px, 5vw, 42px)',
-                fontWeight: 800,
+                color: 'rgba(255, 255, 255, 0.95)',
+                marginBottom: spacing.sm,
+                fontSize: 'clamp(24px, 5vw, 32px)',
+                fontWeight: 700,
+                letterSpacing: '-0.02em',
               }}
             >
-              Store Catalog
+              Security Store
             </Text>
             <Text
               variant="body"
               style={{
-                color: 'rgba(255, 255, 255, 0.9)',
-                marginBottom: spacing.xl,
-                fontSize: typography.fontSize.lg,
+                color: 'rgba(255, 255, 255, 0.7)',
+                marginBottom: spacing.lg,
+                fontSize: typography.fontSize.md,
               }}
             >
-              Browse our premium collection of security products
+              Enterprise-grade security hardware
             </Text>
 
-            <MetricGrid columns={3}>
-              <MetricCard
-                label="Total Products"
-                value={products.length}
-                icon="📦"
-                variant="default"
-                size="small"
-              />
-              <MetricCard
-                label="In Your Cart"
-                value={totalCartItems}
-                icon="🛒"
-                variant="success"
-                size="small"
-              />
-              <MetricCard
-                label="Cart Value"
-                value={`₪${totalCartValue.toFixed(2)}`}
-                icon="💰"
-                variant="warning"
-                size="small"
-              />
-            </MetricGrid>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+              gap: spacing.md,
+              marginTop: spacing.lg
+            }}>
+              <div style={{
+                background: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.2)',
+                borderRadius: borderRadius.lg,
+                padding: spacing.md,
+                textAlign: 'center',
+              }}>
+                <div style={{ fontSize: '24px', marginBottom: spacing.xs }}>📦</div>
+                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: typography.fontSize.xs, marginBottom: spacing.xs }}>Products</div>
+                <div style={{ color: 'rgba(255, 255, 255, 0.95)', fontSize: typography.fontSize.xl, fontWeight: 700 }}>{products.length}</div>
+              </div>
+              <div style={{
+                background: 'rgba(34, 197, 94, 0.1)',
+                border: '1px solid rgba(34, 197, 94, 0.2)',
+                borderRadius: borderRadius.lg,
+                padding: spacing.md,
+                textAlign: 'center',
+              }}>
+                <div style={{ fontSize: '24px', marginBottom: spacing.xs }}>🛒</div>
+                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: typography.fontSize.xs, marginBottom: spacing.xs }}>Cart Items</div>
+                <div style={{ color: 'rgba(255, 255, 255, 0.95)', fontSize: typography.fontSize.xl, fontWeight: 700 }}>{totalCartItems}</div>
+              </div>
+              <div style={{
+                background: 'rgba(251, 191, 36, 0.1)',
+                border: '1px solid rgba(251, 191, 36, 0.2)',
+                borderRadius: borderRadius.lg,
+                padding: spacing.md,
+                textAlign: 'center',
+              }}>
+                <div style={{ fontSize: '24px', marginBottom: spacing.xs }}>💰</div>
+                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: typography.fontSize.xs, marginBottom: spacing.xs }}>Total Value</div>
+                <div style={{ color: 'rgba(255, 255, 255, 0.95)', fontSize: typography.fontSize.xl, fontWeight: 700 }}>₪{totalCartValue.toFixed(2)}</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: `0 ${spacing.xl}` }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: `0 ${spacing.lg}` }}>
           <Card
             variant="elevated"
             style={{
-              marginBottom: spacing.xl,
-              padding: spacing.xl,
-              background: colors.ui.card,
-              border: `1px solid ${colors.border.primary}`,
-              boxShadow: shadows.lg,
+              marginBottom: spacing.lg,
+              padding: spacing.lg,
+              background: 'rgba(30, 30, 35, 0.6)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: borderRadius.xl,
+              backdropFilter: 'blur(12px)',
             }}
           >
             <SearchBar
-              placeholder="Search products..."
+              placeholder="Search security products..."
               onSearch={setSearchQuery}
               onClear={() => setSearchQuery('')}
-              style={{ marginBottom: spacing.lg }}
+              style={{ marginBottom: spacing.md }}
             />
-
-            <Text
-              variant="small"
-              weight="semibold"
-              style={{
-                color: colors.text.secondary,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                marginBottom: spacing.md,
-              }}
-            >
-              Categories
-            </Text>
 
             <div
               style={{
                 display: 'flex',
-                gap: spacing.sm,
+                gap: spacing.xs,
                 overflowX: 'auto',
-                padding: spacing.xs,
+                padding: `${spacing.xs} 0`,
                 WebkitOverflowScrolling: 'touch',
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'rgba(255, 255, 255, 0.1) transparent',
               }}
             >
               {CATEGORIES.map((cat) => (
-                <Chip
+                <button
                   key={cat}
-                  selected={cat === category}
-                  clickable
                   onClick={() => setCategory(cat)}
+                  style={{
+                    padding: `${spacing.sm} ${spacing.md}`,
+                    borderRadius: borderRadius.full,
+                    border: cat === category
+                      ? '1px solid rgba(59, 130, 246, 0.6)'
+                      : '1px solid rgba(255, 255, 255, 0.1)',
+                    background: cat === category
+                      ? 'rgba(59, 130, 246, 0.15)'
+                      : 'rgba(255, 255, 255, 0.03)',
+                    color: cat === category
+                      ? '#60a5fa'
+                      : 'rgba(255, 255, 255, 0.7)',
+                    fontSize: typography.fontSize.sm,
+                    fontWeight: cat === category ? 600 : 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (cat !== category) {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.95)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (cat !== category) {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
+                    }
+                  }}
                 >
                   {cat}
-                </Chip>
+                </button>
               ))}
             </div>
           </Card>
@@ -251,21 +287,30 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  marginBottom: spacing.lg,
+                  marginBottom: spacing.md,
+                  padding: `0 ${spacing.xs}`,
                 }}
               >
                 <Text
-                  variant="h3"
+                  variant="body"
                   style={{
-                    color: colors.text.primary,
-                    fontWeight: 700,
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    fontWeight: 600,
+                    fontSize: typography.fontSize.md,
                   }}
                 >
-                  Products ({filteredProducts.length})
+                  {filteredProducts.length} {filteredProducts.length === 1 ? 'Product' : 'Products'}
                 </Text>
               </div>
 
-              <Grid autoFit minItemWidth="280px" gap="lg">
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gap: spacing.lg,
+                  marginBottom: spacing.xl,
+                }}
+              >
                 {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id}
@@ -279,7 +324,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
                     }}
                   />
                 ))}
-              </Grid>
+              </div>
             </>
           )}
         </div>
