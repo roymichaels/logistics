@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { colors, spacing } from '../../design-system';
-import { Card } from '../../components/molecules/Card';
-import { Button } from '../../components/atoms/Button';
-import { Input } from '../../components/atoms/Input';
-import { Select } from '../../components/molecules/Select';
+import { ROYAL_COLORS, ROYAL_STYLES, getStatusBadgeStyle } from '../../styles/royalTheme';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { PageHeader } from '../../components/layout/PageHeader';
+import { ContentCard } from '../../components/layout/ContentCard';
 
 interface TeamMember {
   id: string;
@@ -44,137 +43,163 @@ export function TeamManagement() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return colors.status.success;
-      case 'pending': return colors.status.warning;
-      case 'inactive': return colors.status.error;
-      default: return colors.text.tertiary;
+      case 'active': return ROYAL_COLORS.success;
+      case 'pending': return ROYAL_COLORS.warning;
+      case 'inactive': return ROYAL_COLORS.error;
+      default: return ROYAL_COLORS.muted;
     }
   };
 
-  return (
-    <div style={{ padding: spacing[4] }}>
-      <div style={{ marginBottom: spacing[4] }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing[3] }}>
-          <div>
-            <h1 style={{ fontSize: '28px', fontWeight: 700, color: colors.text.primary, marginBottom: spacing[1] }}>
-              Team Management
-            </h1>
-            <p style={{ fontSize: '14px', color: colors.text.secondary }}>
-              Manage your team members and their roles
-            </p>
-          </div>
-          <Button variant="primary">
-            + Invite Member
-          </Button>
-        </div>
+  const handleInviteMember = () => {
+    console.log('Open invite member modal');
+  };
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: spacing[3], marginBottom: spacing[4] }}>
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name or email..."
-          />
-          <div style={{ minWidth: '200px' }}>
-            <Select
-              value={roleFilter}
-              onChange={setRoleFilter}
-              options={roleOptions}
-            />
-          </div>
-        </div>
+  return (
+    <PageContainer>
+      <PageHeader
+        icon="👥"
+        title="Team Management"
+        subtitle="Manage your team members and their roles"
+        actionButton={
+          <button
+            onClick={handleInviteMember}
+            style={{
+              ...ROYAL_STYLES.buttonPrimary,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            + Invite Member
+          </button>
+        }
+      />
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '20px', marginBottom: '24px' }}>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by name or email..."
+          style={ROYAL_STYLES.input}
+        />
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          style={{ ...ROYAL_STYLES.input, minWidth: '200px' }}
+        >
+          {roleOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
       </div>
 
-      <Card>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: `1px solid ${colors.border.primary}` }}>
-                <th style={{ padding: spacing[3], textAlign: 'left', fontSize: '12px', fontWeight: 600, color: colors.text.tertiary, textTransform: 'uppercase' }}>
-                  Name
-                </th>
-                <th style={{ padding: spacing[3], textAlign: 'left', fontSize: '12px', fontWeight: 600, color: colors.text.tertiary, textTransform: 'uppercase' }}>
-                  Email
-                </th>
-                <th style={{ padding: spacing[3], textAlign: 'left', fontSize: '12px', fontWeight: 600, color: colors.text.tertiary, textTransform: 'uppercase' }}>
-                  Role
-                </th>
-                <th style={{ padding: spacing[3], textAlign: 'left', fontSize: '12px', fontWeight: 600, color: colors.text.tertiary, textTransform: 'uppercase' }}>
-                  Status
-                </th>
-                <th style={{ padding: spacing[3], textAlign: 'left', fontSize: '12px', fontWeight: 600, color: colors.text.tertiary, textTransform: 'uppercase' }}>
-                  Joined Date
-                </th>
-                <th style={{ padding: spacing[3], textAlign: 'right', fontSize: '12px', fontWeight: 600, color: colors.text.tertiary, textTransform: 'uppercase' }}>
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredMembers.map((member) => (
-                <tr key={member.id} style={{ borderBottom: `1px solid ${colors.border.primary}` }}>
-                  <td style={{ padding: spacing[3], fontSize: '14px', color: colors.text.primary, fontWeight: 500 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+          gap: '20px'
+        }}
+      >
+        {filteredMembers.map((member) => (
+          <ContentCard key={member.id} hoverable>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: ROYAL_COLORS.gradientPurple,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  fontWeight: '700',
+                  color: ROYAL_COLORS.white,
+                  flexShrink: 0,
+                  boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)'
+                }}
+              >
+                {member.name.charAt(0)}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ marginBottom: '12px' }}>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
                     {member.name}
-                  </td>
-                  <td style={{ padding: spacing[3], fontSize: '14px', color: colors.text.secondary }}>
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '14px', color: ROYAL_COLORS.muted }}>
                     {member.email}
-                  </td>
-                  <td style={{ padding: spacing[3] }}>
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                  <span
+                    style={{
+                      ...ROYAL_STYLES.badge,
+                      ...ROYAL_STYLES.badgeInfo,
+                      textTransform: 'capitalize'
+                    }}
+                  >
+                    {member.role.replace('_', ' ')}
+                  </span>
+                  <span style={getStatusBadgeStyle(member.status)}>
                     <span
                       style={{
-                        padding: `${spacing[1]} ${spacing[2]}`,
-                        backgroundColor: colors.brand.faded,
-                        color: colors.brand.primary,
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        textTransform: 'capitalize',
+                        display: 'inline-block',
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        backgroundColor: getStatusColor(member.status),
+                        marginRight: '6px'
                       }}
-                    >
-                      {member.role.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td style={{ padding: spacing[3] }}>
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: spacing[1],
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        color: getStatusColor(member.status),
-                        textTransform: 'capitalize',
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: '6px',
-                          height: '6px',
-                          borderRadius: '50%',
-                          backgroundColor: getStatusColor(member.status),
-                        }}
-                      />
-                      {member.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: spacing[3], fontSize: '14px', color: colors.text.secondary }}>
-                    {new Date(member.joinedDate).toLocaleDateString()}
-                  </td>
-                  <td style={{ padding: spacing[3], textAlign: 'right' }}>
-                    <div style={{ display: 'flex', gap: spacing[2], justifyContent: 'flex-end' }}>
-                      <Button variant="ghost" size="sm">
-                        Edit
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        Remove
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    />
+                    {member.status}
+                  </span>
+                </div>
+
+                <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '16px' }}>
+                  Joined {new Date(member.joinedDate).toLocaleDateString()}
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => console.log('Edit member:', member.id)}
+                    style={{
+                      ...ROYAL_STYLES.buttonSecondary,
+                      flex: 1,
+                      padding: '8px 16px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => console.log('Remove member:', member.id)}
+                    style={{
+                      ...ROYAL_STYLES.buttonDanger,
+                      padding: '8px 16px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          </ContentCard>
+        ))}
+      </div>
+
+      {filteredMembers.length === 0 && (
+        <div style={ROYAL_STYLES.emptyState}>
+          <div style={ROYAL_STYLES.emptyStateIcon}>👥</div>
+          <p style={ROYAL_STYLES.emptyStateText}>
+            No team members found matching your search.
+          </p>
         </div>
-      </Card>
-    </div>
+      )}
+    </PageContainer>
   );
 }

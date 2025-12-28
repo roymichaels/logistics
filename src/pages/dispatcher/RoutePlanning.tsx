@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { colors, spacing } from '../../design-system';
-import { Card } from '../../components/molecules/Card';
-import { Button } from '../../components/atoms/Button';
-import { Select } from '../../components/molecules/Select';
+import { ROYAL_COLORS, ROYAL_STYLES, getStatusBadgeStyle } from '../../styles/royalTheme';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { PageHeader } from '../../components/layout/PageHeader';
+import { ContentCard } from '../../components/layout/ContentCard';
 
 interface DeliveryStop {
   id: string;
@@ -46,184 +46,228 @@ export function RoutePlanning() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return colors.status.error;
-      case 'medium': return colors.status.warning;
-      case 'low': return colors.status.info;
-      default: return colors.text.tertiary;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return colors.status.success;
-      case 'in_progress': return colors.status.info;
-      case 'assigned': return colors.status.warning;
-      case 'pending': return colors.text.tertiary;
-      default: return colors.text.tertiary;
+      case 'high': return ROYAL_COLORS.error;
+      case 'medium': return ROYAL_COLORS.warning;
+      case 'low': return ROYAL_COLORS.info;
+      default: return ROYAL_COLORS.muted;
     }
   };
 
   return (
-    <div style={{ padding: spacing[4] }}>
-      <div style={{ marginBottom: spacing[4] }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 700, color: colors.text.primary, marginBottom: spacing[1] }}>
-          Route Planning
-        </h1>
-        <p style={{ fontSize: '14px', color: colors.text.secondary }}>
-          Plan and optimize delivery routes for drivers
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        icon="🗺️"
+        title="Route Planning"
+        subtitle="Plan and optimize delivery routes for drivers"
+      />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: spacing[3], marginBottom: spacing[4] }}>
-        <Select
-          value={selectedDriver}
-          onChange={setSelectedDriver}
-          options={drivers}
-          label="Assign to Driver"
-        />
-        <Select
-          value={selectedZone}
-          onChange={setSelectedZone}
-          options={zones}
-          label="Filter by Zone"
-        />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+        <div>
+          <label style={{ display: 'block', fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '8px', fontWeight: 500 }}>
+            Assign to Driver
+          </label>
+          <select
+            value={selectedDriver}
+            onChange={(e) => setSelectedDriver(e.target.value)}
+            style={ROYAL_STYLES.input}
+          >
+            {drivers.map((driver) => (
+              <option key={driver.value} value={driver.value}>
+                {driver.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '8px', fontWeight: 500 }}>
+            Filter by Zone
+          </label>
+          <select
+            value={selectedZone}
+            onChange={(e) => setSelectedZone(e.target.value)}
+            style={ROYAL_STYLES.input}
+          >
+            {zones.map((zone) => (
+              <option key={zone.value} value={zone.value}>
+                {zone.label}
+              </option>
+            ))}
+          </select>
+        </div>
         <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-          <Button variant="primary" style={{ width: '100%' }}>
+          <button
+            onClick={() => console.log('Optimize route')}
+            style={{
+              ...ROYAL_STYLES.buttonPrimary,
+              width: '100%'
+            }}
+          >
             Optimize Route
-          </Button>
+          </button>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: spacing[4] }}>
-        <Card padding={spacing[4]}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing[3] }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 600, color: colors.text.primary }}>
-              Pending Deliveries
-            </h2>
-            <span style={{ fontSize: '14px', fontWeight: 600, color: colors.text.tertiary }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '24px' }}>
+        <ContentCard>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={ROYAL_STYLES.cardTitle}>Pending Deliveries</h2>
+            <span
+              style={{
+                padding: '6px 12px',
+                background: ROYAL_COLORS.warning + '20',
+                color: ROYAL_COLORS.warning,
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: 700,
+              }}
+            >
               {pendingStops.length} stops
             </span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[2] }}>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {pendingStops.map((stop) => (
-              <div
+              <ContentCard
                 key={stop.id}
-                style={{
-                  padding: spacing[3],
-                  backgroundColor: colors.background.secondary,
-                  borderRadius: '6px',
-                  border: `1px solid ${colors.border.primary}`,
-                }}
+                hoverable
+                onClick={() => console.log('Select stop:', stop.id)}
+                style={{ padding: '16px', marginBottom: 0 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing[2] }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   <div>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: colors.text.primary, marginBottom: spacing[1] }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
                       {stop.orderNumber}
                     </div>
-                    <div style={{ fontSize: '12px', color: colors.text.secondary }}>
+                    <div style={{ fontSize: '16px', fontWeight: 600, color: ROYAL_COLORS.text, marginBottom: '4px' }}>
                       {stop.customerName}
+                    </div>
+                    <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                      📍 {stop.address}
                     </div>
                   </div>
                   <span
                     style={{
-                      padding: `${spacing[1]} ${spacing[2]}`,
+                      ...ROYAL_STYLES.badge,
                       backgroundColor: getPriorityColor(stop.priority) + '20',
                       color: getPriorityColor(stop.priority),
-                      borderRadius: '4px',
-                      fontSize: '11px',
-                      fontWeight: 600,
+                      border: `1px solid ${getPriorityColor(stop.priority)}40`,
                       textTransform: 'uppercase',
                     }}
                   >
                     {stop.priority}
                   </span>
                 </div>
-                <div style={{ fontSize: '14px', color: colors.text.primary, marginBottom: spacing[2] }}>
-                  📍 {stop.address}
-                </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', color: colors.text.tertiary }}>
-                    Est. {stop.estimatedTime}
+                  <span style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                    ETA: {stop.estimatedTime}
                   </span>
-                  <Button variant="secondary" size="sm">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('Assign stop:', stop.id);
+                    }}
+                    style={{
+                      ...ROYAL_STYLES.buttonSuccess,
+                      padding: '6px 12px',
+                      fontSize: '12px'
+                    }}
+                  >
                     Assign
-                  </Button>
+                  </button>
                 </div>
-              </div>
+              </ContentCard>
             ))}
           </div>
-        </Card>
 
-        <Card padding={spacing[4]}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing[3] }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 600, color: colors.text.primary }}>
-              Current Route
-            </h2>
-            <span style={{ fontSize: '14px', fontWeight: 600, color: colors.text.tertiary }}>
+          {pendingStops.length === 0 && (
+            <div style={ROYAL_STYLES.emptyState}>
+              <div style={ROYAL_STYLES.emptyStateIcon}>📦</div>
+              <p style={ROYAL_STYLES.emptyStateText}>
+                No pending deliveries at the moment.
+              </p>
+            </div>
+          )}
+        </ContentCard>
+
+        <ContentCard>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={ROYAL_STYLES.cardTitle}>Assigned Routes</h2>
+            <span
+              style={{
+                padding: '6px 12px',
+                background: ROYAL_COLORS.info + '20',
+                color: ROYAL_COLORS.info,
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: 700,
+              }}
+            >
               {assignedStops.length} stops
             </span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[2] }}>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {assignedStops.map((stop, index) => (
-              <div
+              <ContentCard
                 key={stop.id}
-                style={{
-                  padding: spacing[3],
-                  backgroundColor: colors.background.secondary,
-                  borderRadius: '6px',
-                  border: `2px solid ${getStatusColor(stop.status)}`,
-                }}
+                hoverable
+                onClick={() => console.log('View stop details:', stop.id)}
+                style={{ padding: '16px', marginBottom: 0 }}
               >
-                <div style={{ display: 'flex', gap: spacing[2], marginBottom: spacing[2] }}>
+                <div style={{ display: 'flex', gap: '12px' }}>
                   <div
                     style={{
-                      width: '24px',
-                      height: '24px',
+                      width: '32px',
+                      height: '32px',
                       borderRadius: '50%',
-                      backgroundColor: colors.brand.primary,
-                      color: colors.background.primary,
+                      background: ROYAL_COLORS.gradientPurple,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '12px',
+                      fontSize: '14px',
                       fontWeight: 700,
+                      color: ROYAL_COLORS.white,
                       flexShrink: 0,
                     }}
                   >
                     {index + 1}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: colors.text.primary, marginBottom: spacing[1] }}>
-                      {stop.orderNumber}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                      <div>
+                        <div style={{ fontSize: '12px', fontWeight: 600, color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                          {stop.orderNumber}
+                        </div>
+                        <div style={{ fontSize: '16px', fontWeight: 600, color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                          {stop.customerName}
+                        </div>
+                        <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                          📍 {stop.address}
+                        </div>
+                      </div>
+                      <span style={getStatusBadgeStyle(stop.status)}>
+                        {stop.status.replace('_', ' ')}
+                      </span>
                     </div>
-                    <div style={{ fontSize: '12px', color: colors.text.secondary, marginBottom: spacing[1] }}>
-                      {stop.customerName}
-                    </div>
-                    <div style={{ fontSize: '14px', color: colors.text.primary }}>
-                      📍 {stop.address}
+                    <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                      ETA: {stop.estimatedTime}
                     </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      color: getStatusColor(stop.status),
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {stop.status.replace('_', ' ')}
-                  </span>
-                  <span style={{ fontSize: '12px', color: colors.text.tertiary }}>
-                    Est. {stop.estimatedTime}
-                  </span>
-                </div>
-              </div>
+              </ContentCard>
             ))}
           </div>
-        </Card>
+
+          {assignedStops.length === 0 && (
+            <div style={ROYAL_STYLES.emptyState}>
+              <div style={ROYAL_STYLES.emptyStateIcon}>🚚</div>
+              <p style={ROYAL_STYLES.emptyStateText}>
+                No assigned routes yet. Start assigning deliveries.
+              </p>
+            </div>
+          )}
+        </ContentCard>
       </div>
-    </div>
+    </PageContainer>
   );
 }

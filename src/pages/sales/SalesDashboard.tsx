@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { colors, spacing } from '../../design-system';
-import { Card } from '../../components/molecules/Card';
-import { Button } from '../../components/atoms/Button';
-import { Select } from '../../components/molecules/Select';
+import { ROYAL_COLORS, ROYAL_STYLES, getStatusBadgeStyle } from '../../styles/royalTheme';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { PageHeader } from '../../components/layout/PageHeader';
+import { ContentCard } from '../../components/layout/ContentCard';
 
 interface Lead {
   id: string;
@@ -17,10 +17,10 @@ export function SalesDashboard() {
   const [timeFilter, setTimeFilter] = useState('this_month');
 
   const salesStats = [
-    { label: 'Total Revenue', value: '$125,430', change: '+18%', icon: '💰' },
-    { label: 'Active Leads', value: '34', change: '+5', icon: '📈' },
-    { label: 'Closed Deals', value: '12', change: '+3', icon: '✅' },
-    { label: 'Conversion Rate', value: '35%', change: '+8%', icon: '🎯' },
+    { label: 'Total Revenue', value: '$125,430', change: '+18%', icon: '💰', isPositive: true },
+    { label: 'Active Leads', value: '34', change: '+5', icon: '📈', isPositive: true },
+    { label: 'Closed Deals', value: '12', change: '+3', icon: '✅', isPositive: true },
+    { label: 'Conversion Rate', value: '35%', change: '+8%', icon: '🎯', isPositive: true },
   ];
 
   const timeOptions = [
@@ -39,15 +39,15 @@ export function SalesDashboard() {
 
   const getStatusColor = (status: string) => {
     const colors_map: Record<string, string> = {
-      new: colors.status.info,
+      new: ROYAL_COLORS.info,
       contacted: '#9333ea',
       qualified: '#3b82f6',
       proposal: '#f59e0b',
       negotiation: '#8b5cf6',
-      won: colors.status.success,
-      lost: colors.status.error,
+      won: ROYAL_COLORS.success,
+      lost: ROYAL_COLORS.error,
     };
-    return colors_map[status] || colors.text.tertiary;
+    return colors_map[status] || ROYAL_COLORS.muted;
   };
 
   const recentActivities = [
@@ -58,117 +58,88 @@ export function SalesDashboard() {
   ];
 
   return (
-    <div style={{ padding: spacing[4] }}>
-      <div style={{ marginBottom: spacing[4] }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing[3] }}>
-          <div>
-            <h1 style={{ fontSize: '28px', fontWeight: 700, color: colors.text.primary, marginBottom: spacing[1] }}>
-              Sales Dashboard
-            </h1>
-            <p style={{ fontSize: '14px', color: colors.text.secondary }}>
-              Track your sales performance and manage leads
-            </p>
-          </div>
-          <div style={{ minWidth: '200px' }}>
-            <Select
-              value={timeFilter}
-              onChange={setTimeFilter}
-              options={timeOptions}
-            />
-          </div>
-        </div>
+    <PageContainer>
+      <PageHeader
+        icon="📊"
+        title="Sales Dashboard"
+        subtitle="Track your sales performance and manage leads"
+        actionButton={
+          <select
+            value={timeFilter}
+            onChange={(e) => setTimeFilter(e.target.value)}
+            style={{ ...ROYAL_STYLES.input, minWidth: '200px', margin: 0 }}
+          >
+            {timeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        }
+      />
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: spacing[3],
-            marginBottom: spacing[4],
-          }}
-        >
-          {salesStats.map((stat) => (
-            <Card
-              key={stat.label}
-              padding={spacing[4]}
-              onClick={() => {
-                if (stat.label === 'Total Revenue') {
-                  console.log('Navigate to revenue breakdown');
-                } else if (stat.label === 'Active Leads') {
-                  console.log('Navigate to leads page');
-                } else if (stat.label === 'Closed Deals') {
-                  console.log('Navigate to closed deals');
-                } else if (stat.label === 'Conversion Rate') {
-                  console.log('Open analytics modal');
-                }
-              }}
-              style={{ cursor: 'pointer', transition: 'all 150ms ease-in-out' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ fontSize: '12px', color: colors.text.tertiary, marginBottom: spacing[1] }}>
-                    {stat.label}
-                  </div>
-                  <div style={{ fontSize: '24px', fontWeight: 700, color: colors.text.primary, marginBottom: spacing[1] }}>
-                    {stat.value}
-                  </div>
-                  <div style={{ fontSize: '12px', color: colors.status.success, fontWeight: 600 }}>
-                    {stat.change}
-                  </div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: '20px',
+          marginBottom: '32px',
+        }}
+      >
+        {salesStats.map((stat) => (
+          <ContentCard key={stat.label} hoverable onClick={() => console.log('View details:', stat.label)}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+              <div>
+                <div style={ROYAL_STYLES.statLabel}>{stat.label}</div>
+                <div style={ROYAL_STYLES.statValue}>{stat.value}</div>
+                <div style={{ fontSize: '14px', color: stat.isPositive ? ROYAL_COLORS.success : ROYAL_COLORS.error, fontWeight: 600 }}>
+                  {stat.change}
                 </div>
-                <div style={{ fontSize: '32px' }}>{stat.icon}</div>
               </div>
-            </Card>
-          ))}
-        </div>
+              <div style={{ fontSize: '36px' }}>{stat.icon}</div>
+            </div>
+          </ContentCard>
+        ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: spacing[4] }}>
-        <Card padding={spacing[4]}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing[3] }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 600, color: colors.text.primary }}>
-              Active Leads
-            </h2>
-            <Button variant="primary" size="sm" onClick={() => console.log('Open new lead modal')}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+        <ContentCard>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h2 style={ROYAL_STYLES.cardTitle}>Active Leads</h2>
+            <button
+              onClick={() => console.log('Add new lead')}
+              style={{
+                ...ROYAL_STYLES.buttonPrimary,
+                padding: '8px 16px',
+                fontSize: '14px'
+              }}
+            >
               + New Lead
-            </Button>
+            </button>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[2] }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {leads.map((lead) => (
-              <div
+              <ContentCard
                 key={lead.id}
-                onClick={() => console.log('Open lead detail:', lead.id)}
-                style={{
-                  padding: spacing[3],
-                  backgroundColor: colors.background.secondary,
-                  borderRadius: '6px',
-                  border: `1px solid ${colors.border.primary}`,
-                  cursor: 'pointer',
-                  transition: 'all 150ms ease-in-out',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = colors.brand.primary;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = colors.border.primary;
-                }}
+                hoverable
+                onClick={() => console.log('View lead:', lead.id)}
+                style={{ padding: '16px', marginBottom: 0 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing[2] }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   <div>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: colors.text.primary, marginBottom: spacing[1] }}>
+                    <div style={{ fontSize: '16px', fontWeight: 600, color: ROYAL_COLORS.text, marginBottom: '4px' }}>
                       {lead.name}
                     </div>
-                    <div style={{ fontSize: '12px', color: colors.text.secondary }}>
+                    <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
                       {lead.company}
                     </div>
                   </div>
                   <span
                     style={{
-                      padding: `${spacing[1]} ${spacing[2]}`,
+                      ...ROYAL_STYLES.badge,
                       backgroundColor: getStatusColor(lead.status) + '20',
                       color: getStatusColor(lead.status),
-                      borderRadius: '4px',
-                      fontSize: '11px',
-                      fontWeight: 600,
+                      border: `1px solid ${getStatusColor(lead.status)}40`,
                       textTransform: 'capitalize',
                     }}
                   >
@@ -176,53 +147,55 @@ export function SalesDashboard() {
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '14px', fontWeight: 600, color: colors.brand.primary }}>
+                  <span style={{ fontSize: '16px', fontWeight: 700, color: ROYAL_COLORS.primary }}>
                     {lead.value}
                   </span>
-                  <span style={{ fontSize: '12px', color: colors.text.tertiary }}>
+                  <span style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
                     Last contact: {lead.lastContact}
                   </span>
                 </div>
-              </div>
+              </ContentCard>
             ))}
           </div>
-        </Card>
+        </ContentCard>
 
-        <Card padding={spacing[4]}>
-          <h2 style={{ fontSize: '18px', fontWeight: 600, color: colors.text.primary, marginBottom: spacing[3] }}>
-            Recent Activity
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
+        <ContentCard>
+          <h2 style={ROYAL_STYLES.cardTitle}>Recent Activity</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {recentActivities.map((activity, index) => (
-              <div key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: spacing[2] }}>
+              <div key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                 <div
                   style={{
                     width: '8px',
                     height: '8px',
                     borderRadius: '50%',
-                    backgroundColor: colors.brand.primary,
+                    backgroundColor: ROYAL_COLORS.primary,
                     marginTop: '6px',
                     flexShrink: 0,
+                    boxShadow: `0 0 10px ${ROYAL_COLORS.primary}`,
                   }}
                 />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', color: colors.text.primary, marginBottom: spacing[1] }}>
+                  <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
                     {activity.message}
                   </div>
-                  <div style={{ fontSize: '12px', color: colors.text.tertiary }}>{activity.time}</div>
+                  <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>{activity.time}</div>
                 </div>
               </div>
             ))}
           </div>
-          <Button
-            variant="ghost"
-            style={{ marginTop: spacing[3], width: '100%' }}
-            onClick={() => console.log('Navigate to all activities')}
+          <button
+            onClick={() => console.log('View all activities')}
+            style={{
+              ...ROYAL_STYLES.buttonSecondary,
+              marginTop: '24px',
+              width: '100%'
+            }}
           >
             View All Activity
-          </Button>
-        </Card>
+          </button>
+        </ContentCard>
       </div>
-    </div>
+    </PageContainer>
   );
 }

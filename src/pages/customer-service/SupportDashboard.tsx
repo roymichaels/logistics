@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { colors, spacing } from '../../design-system';
-import { Card } from '../../components/molecules/Card';
-import { Button } from '../../components/atoms/Button';
-import { Input } from '../../components/atoms/Input';
-import { Select } from '../../components/molecules/Select';
+import { ROYAL_COLORS, ROYAL_STYLES, getStatusBadgeStyle } from '../../styles/royalTheme';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { PageHeader } from '../../components/layout/PageHeader';
+import { ContentCard } from '../../components/layout/ContentCard';
 
 interface Ticket {
   id: string;
@@ -20,10 +19,10 @@ export function SupportDashboard() {
   const [statusFilter, setStatusFilter] = useState('open');
 
   const supportStats = [
-    { label: 'Open Tickets', value: '23', change: '+5', icon: '🎫' },
-    { label: 'Avg Response Time', value: '2.5h', change: '-0.3h', icon: '⏱️' },
-    { label: 'Resolution Rate', value: '94%', change: '+2%', icon: '✅' },
-    { label: 'Customer Satisfaction', value: '4.8/5', change: '+0.2', icon: '⭐' },
+    { label: 'Open Tickets', value: '23', change: '+5', icon: '🎫', isPositive: false },
+    { label: 'Avg Response Time', value: '2.5h', change: '-0.3h', icon: '⏱️', isPositive: true },
+    { label: 'Resolution Rate', value: '94%', change: '+2%', icon: '✅', isPositive: true },
+    { label: 'Customer Satisfaction', value: '4.8/5', change: '+0.2', icon: '⭐', isPositive: true },
   ];
 
   const statusOptions = [
@@ -52,20 +51,10 @@ export function SupportDashboard() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return colors.status.error;
-      case 'medium': return colors.status.warning;
-      case 'low': return colors.status.info;
-      default: return colors.text.tertiary;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open': return colors.status.error;
-      case 'pending': return colors.status.warning;
-      case 'resolved': return colors.status.success;
-      case 'closed': return colors.text.tertiary;
-      default: return colors.text.tertiary;
+      case 'high': return ROYAL_COLORS.error;
+      case 'medium': return ROYAL_COLORS.warning;
+      case 'low': return ROYAL_COLORS.info;
+      default: return ROYAL_COLORS.muted;
     }
   };
 
@@ -77,167 +66,136 @@ export function SupportDashboard() {
   ];
 
   return (
-    <div style={{ padding: spacing[4] }}>
-      <div style={{ marginBottom: spacing[4] }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 700, color: colors.text.primary, marginBottom: spacing[1] }}>
-          Support Dashboard
-        </h1>
-        <p style={{ fontSize: '14px', color: colors.text.secondary }}>
-          Manage customer support tickets and inquiries
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        icon="🎧"
+        title="Support Dashboard"
+        subtitle="Manage customer support tickets and inquiries"
+      />
 
       <div
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: spacing[3],
-          marginBottom: spacing[4],
+          gap: '20px',
+          marginBottom: '32px',
         }}
       >
         {supportStats.map((stat) => (
-          <Card
-            key={stat.label}
-            padding={spacing[4]}
-            onClick={() => {
-              if (stat.label === 'Open Tickets') {
-                console.log('Filter to open tickets');
-              } else if (stat.label === 'Avg Response Time') {
-                console.log('Show response time analytics');
-              } else if (stat.label === 'Resolution Rate') {
-                console.log('Show resolution analytics');
-              } else if (stat.label === 'Customer Satisfaction') {
-                console.log('Show satisfaction reports');
-              }
-            }}
-            style={{ cursor: 'pointer', transition: 'all 150ms ease-in-out' }}
-          >
+          <ContentCard key={stat.label} hoverable onClick={() => console.log('View stats:', stat.label)}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
               <div>
-                <div style={{ fontSize: '12px', color: colors.text.tertiary, marginBottom: spacing[1] }}>
-                  {stat.label}
-                </div>
-                <div style={{ fontSize: '24px', fontWeight: 700, color: colors.text.primary, marginBottom: spacing[1] }}>
-                  {stat.value}
-                </div>
-                <div style={{ fontSize: '12px', color: colors.status.success, fontWeight: 600 }}>
+                <div style={ROYAL_STYLES.statLabel}>{stat.label}</div>
+                <div style={ROYAL_STYLES.statValue}>{stat.value}</div>
+                <div style={{ fontSize: '14px', color: stat.isPositive ? ROYAL_COLORS.success : ROYAL_COLORS.warning, fontWeight: 600 }}>
                   {stat.change}
                 </div>
               </div>
-              <div style={{ fontSize: '32px' }}>{stat.icon}</div>
+              <div style={{ fontSize: '36px' }}>{stat.icon}</div>
             </div>
-          </Card>
+          </ContentCard>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: spacing[4] }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '24px' }}>
         <div>
-          <Card padding={spacing[4]}>
-            <div style={{ marginBottom: spacing[3] }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: spacing[3] }}>
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search tickets..."
-                />
-                <div style={{ minWidth: '150px' }}>
-                  <Select
-                    value={statusFilter}
-                    onChange={setStatusFilter}
-                    options={statusOptions}
-                  />
-                </div>
-              </div>
+          <ContentCard>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '16px', marginBottom: '24px' }}>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search tickets..."
+                style={ROYAL_STYLES.input}
+              />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                style={{ ...ROYAL_STYLES.input, minWidth: '150px', margin: 0 }}
+              >
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[2] }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {filteredTickets.map((ticket) => (
-                <div
+                <ContentCard
                   key={ticket.id}
-                  onClick={() => console.log('Open ticket:', ticket.id)}
-                  style={{
-                    padding: spacing[3],
-                    backgroundColor: colors.background.secondary,
-                    borderRadius: '6px',
-                    border: `1px solid ${colors.border.primary}`,
-                    cursor: 'pointer',
-                    transition: 'all 150ms ease-in-out',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = colors.brand.primary;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = colors.border.primary;
-                  }}
+                  hoverable
+                  onClick={() => console.log('View ticket:', ticket.id)}
+                  style={{ padding: '16px', marginBottom: 0 }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing[2] }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2], marginBottom: spacing[1] }}>
-                        <span style={{ fontSize: '12px', fontWeight: 600, color: colors.text.tertiary }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: ROYAL_COLORS.muted }}>
                           {ticket.id}
                         </span>
                         <span
                           style={{
-                            padding: `${spacing[1]} ${spacing[2]}`,
+                            ...ROYAL_STYLES.badge,
                             backgroundColor: getPriorityColor(ticket.priority) + '20',
                             color: getPriorityColor(ticket.priority),
-                            borderRadius: '4px',
+                            border: `1px solid ${getPriorityColor(ticket.priority)}40`,
                             fontSize: '10px',
-                            fontWeight: 700,
                             textTransform: 'uppercase',
                           }}
                         >
                           {ticket.priority}
                         </span>
+                        <span style={getStatusBadgeStyle(ticket.status)}>
+                          {ticket.status}
+                        </span>
                       </div>
-                      <div style={{ fontSize: '14px', fontWeight: 600, color: colors.text.primary, marginBottom: spacing[1] }}>
+                      <div style={{ fontSize: '16px', fontWeight: 600, color: ROYAL_COLORS.text, marginBottom: '4px' }}>
                         {ticket.subject}
                       </div>
-                      <div style={{ fontSize: '12px', color: colors.text.secondary }}>
+                      <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
                         {ticket.customer} • {ticket.category}
                       </div>
                     </div>
-                    <span
-                      style={{
-                        padding: `${spacing[1]} ${spacing[2]}`,
-                        backgroundColor: getStatusColor(ticket.status) + '20',
-                        color: getStatusColor(ticket.status),
-                        borderRadius: '4px',
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        textTransform: 'capitalize',
-                      }}
-                    >
-                      {ticket.status}
-                    </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '12px', color: colors.text.tertiary }}>
+                    <span style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
                       {ticket.createdAt}
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        console.log('View ticket details:', ticket.id);
+                        console.log('Reply to ticket:', ticket.id);
+                      }}
+                      style={{
+                        ...ROYAL_STYLES.buttonPrimary,
+                        padding: '6px 12px',
+                        fontSize: '12px'
                       }}
                     >
-                      View Details
-                    </Button>
+                      Reply
+                    </button>
                   </div>
-                </div>
+                </ContentCard>
               ))}
             </div>
-          </Card>
+
+            {filteredTickets.length === 0 && (
+              <div style={ROYAL_STYLES.emptyState}>
+                <div style={ROYAL_STYLES.emptyStateIcon}>🎫</div>
+                <p style={ROYAL_STYLES.emptyStateText}>
+                  No tickets found matching your search.
+                </p>
+              </div>
+            )}
+          </ContentCard>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[3] }}>
-          <Card padding={spacing[4]}>
-            <h3 style={{ fontSize: '16px', fontWeight: 600, color: colors.text.primary, marginBottom: spacing[3] }}>
-              Quick Actions
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[2] }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <ContentCard>
+            <h3 style={{ ...ROYAL_STYLES.cardTitle, fontSize: '16px' }}>Quick Actions</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {quickActions.map((action) => (
                 <button
                   key={action.label}
@@ -246,32 +204,35 @@ export function SupportDashboard() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: spacing[3],
-                    backgroundColor: colors.background.secondary,
-                    border: `1px solid ${colors.border.primary}`,
-                    borderRadius: '6px',
+                    padding: '12px',
+                    background: ROYAL_COLORS.secondary,
+                    border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                    borderRadius: '12px',
                     cursor: 'pointer',
-                    transition: 'all 150ms ease-in-out',
+                    transition: 'all 0.3s ease',
+                    color: ROYAL_COLORS.text,
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = colors.background.tertiary;
+                    e.currentTarget.style.background = ROYAL_COLORS.secondaryHover;
+                    e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorderHover;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = colors.background.secondary;
+                    e.currentTarget.style.background = ROYAL_COLORS.secondary;
+                    e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorder;
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{ fontSize: '20px' }}>{action.icon}</span>
-                    <span style={{ fontSize: '14px', fontWeight: 500, color: colors.text.primary }}>
+                    <span style={{ fontSize: '14px', fontWeight: 500 }}>
                       {action.label}
                     </span>
                   </div>
                   {action.count !== null && (
                     <span
                       style={{
-                        padding: `${spacing[1]} ${spacing[2]}`,
-                        backgroundColor: colors.brand.primary,
-                        color: colors.background.primary,
+                        padding: '4px 8px',
+                        background: ROYAL_COLORS.primary,
+                        color: ROYAL_COLORS.white,
                         borderRadius: '12px',
                         fontSize: '12px',
                         fontWeight: 700,
@@ -283,9 +244,9 @@ export function SupportDashboard() {
                 </button>
               ))}
             </div>
-          </Card>
+          </ContentCard>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }
