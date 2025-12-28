@@ -10,16 +10,16 @@ export function RolesPanel() {
   );
 
   const roles = [
-    { id: 'user', label: 'User', description: 'Basic user permissions' },
-    { id: 'business_owner', label: 'Business Owner', description: 'Manage businesses' },
-    { id: 'manager', label: 'Manager', description: 'Manage operations' },
-    { id: 'driver', label: 'Driver', description: 'Delivery driver' },
-    { id: 'dispatcher', label: 'Dispatcher', description: 'Dispatch orders' },
-    { id: 'warehouse', label: 'Warehouse', description: 'Inventory management' },
-    { id: 'accountant', label: 'Accountant', description: 'Financial management' },
-    { id: 'infrastructure_owner', label: 'Infrastructure Owner', description: 'Infrastructure management' },
-    { id: 'admin', label: 'Admin', description: 'System administration' },
-    { id: 'superadmin', label: 'Super Admin', description: 'Full system access' },
+    { id: 'user', label: 'משתמש', description: 'הרשאות משתמש בסיסי' },
+    { id: 'business_owner', label: 'בעל עסק', description: 'ניהול עסקים' },
+    { id: 'manager', label: 'מנהל', description: 'ניהול פעילות' },
+    { id: 'driver', label: 'נהג', description: 'נהג משלוחים' },
+    { id: 'dispatcher', label: 'משבץ', description: 'שיבוץ הזמנות' },
+    { id: 'warehouse', label: 'מחסנאי', description: 'ניהול מלאי' },
+    { id: 'accountant', label: 'רואה חשבון', description: 'ניהול פיננסי' },
+    { id: 'infrastructure_owner', label: 'בעל תשתית', description: 'ניהול תשתית' },
+    { id: 'admin', label: 'מנהל מערכת', description: 'ניהול מערכת' },
+    { id: 'superadmin', label: 'מנהל על', description: 'גישה מלאה למערכת' },
   ];
 
   const currentRole = roleOverride || auth?.user?.role || 'user';
@@ -53,7 +53,7 @@ export function RolesPanel() {
         }}
       >
         <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)', marginBottom: '4px' }}>
-          Current Role
+          תפקיד נוכחי
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div
@@ -77,7 +77,7 @@ export function RolesPanel() {
                 fontWeight: '500',
               }}
             >
-              OVERRIDE
+              דורס
             </span>
           )}
         </div>
@@ -104,7 +104,7 @@ export function RolesPanel() {
             e.currentTarget.style.backgroundColor = 'rgba(251, 191, 36, 0.1)';
           }}
         >
-          Clear Override
+          נקה דריסה
         </button>
       )}
 
@@ -118,7 +118,7 @@ export function RolesPanel() {
           letterSpacing: '0.05em',
         }}
       >
-        Available Roles
+        תפקידים זמינים
       </div>
 
       {roles.map((role) => {

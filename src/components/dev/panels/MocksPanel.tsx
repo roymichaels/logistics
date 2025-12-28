@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { mockDataGenerator } from '../../../lib/mockDataGenerator';
 
 const mockDataSets = [
-  { id: 'products', label: 'Products', count: 50 },
-  { id: 'orders', label: 'Orders', count: 120 },
-  { id: 'users', label: 'Users', count: 25 },
-  { id: 'drivers', label: 'Drivers', count: 15 },
-  { id: 'businesses', label: 'Businesses', count: 10 },
-  { id: 'inventory', label: 'Inventory', count: 200 },
-  { id: 'messages', label: 'Messages', count: 500 },
+  { id: 'products', label: 'מוצרים', count: 50 },
+  { id: 'orders', label: 'הזמנות', count: 120 },
+  { id: 'users', label: 'משתמשים', count: 25 },
+  { id: 'drivers', label: 'נהגים', count: 15 },
+  { id: 'businesses', label: 'עסקים', count: 10 },
+  { id: 'inventory', label: 'מלאי', count: 200 },
+  { id: 'messages', label: 'הודעות', count: 500 },
 ];
 
 export function MocksPanel() {
@@ -62,7 +62,7 @@ export function MocksPanel() {
           letterSpacing: '0.05em',
         }}
       >
-        Mock Data Sets
+        סטי נתוני דמה
       </div>
 
       {mocks.map((mock) => (
@@ -130,7 +130,7 @@ export function MocksPanel() {
               color: 'rgba(255, 255, 255, 0.5)',
             }}
           >
-            {mock.count} items
+            {mock.count} פריטים
           </div>
         </div>
       ))}
@@ -157,7 +157,7 @@ export function MocksPanel() {
             e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.1)';
           }}
         >
-          Generate All
+          צור הכל
         </button>
         <button
           onClick={clearAll}
@@ -180,7 +180,7 @@ export function MocksPanel() {
             e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
           }}
         >
-          Clear All
+          נקה הכל
         </button>
       </div>
     </div>

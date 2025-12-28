@@ -15,7 +15,7 @@ export const DiagnosticsPanel = () => {
   return (
     <div style={{ padding: 16, fontSize: 13, color: "#fff" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <h2 style={{ margin: 0 }}>Diagnostics</h2>
+        <h2 style={{ margin: 0 }}>אבחון</h2>
         <button
           onClick={() => {
             Diagnostics.clear();
@@ -30,13 +30,13 @@ export const DiagnosticsPanel = () => {
             cursor: "pointer"
           }}
         >
-          Clear
+          נקה
         </button>
       </div>
       <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
         {entries.length === 0 ? (
           <div style={{ opacity: 0.5, padding: 16, textAlign: "center" }}>
-            No diagnostic entries yet
+            אין עדיין רשומות אבחון
           </div>
         ) : (
           entries.map((e, i) => (

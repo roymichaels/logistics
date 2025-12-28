@@ -5,6 +5,19 @@ const STORAGE_KEY = 'migration-flags';
 
 type FlagKey = keyof typeof migrationFlags;
 
+const flagLabels: Record<FlagKey, string> = {
+  useUnifiedRouter: 'נתב מאוחד',
+  useUnifiedShell: 'מעטפת מאוחדת',
+  useNewNavigation: 'ניווט חדש',
+  useDevConsole: 'קונסולת פיתוח',
+  useOptimizedRendering: 'רינדור ממוטב',
+  useFrontendOnlyMode: 'מצב frontend בלבד',
+  useWalletAuth: 'אימות ארנק',
+  enableDebugMode: 'מצב ניפוי שגיאות',
+  enableMockData: 'נתוני דמה',
+  showWireframes: 'הצג שלדות',
+};
+
 function loadFlags(): typeof migrationFlags {
   if (typeof window === 'undefined') return { ...migrationFlags };
   try {
@@ -92,17 +105,27 @@ export function FlagsPanel() {
               }}
             />
           </div>
-          <span
-            style={{
-              flex: 1,
-              fontSize: '13px',
-              fontWeight: '500',
-              color: 'rgba(255, 255, 255, 0.9)',
-              fontFamily: 'monospace',
-            }}
-          >
-            {key}
-          </span>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <span
+              style={{
+                fontSize: '13px',
+                fontWeight: '600',
+                color: 'rgba(255, 255, 255, 0.9)',
+              }}
+            >
+              {flagLabels[key]}
+            </span>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: '400',
+                color: 'rgba(255, 255, 255, 0.4)',
+                fontFamily: 'monospace',
+              }}
+            >
+              {key}
+            </span>
+          </div>
         </label>
       ))}
 
@@ -129,7 +152,7 @@ export function FlagsPanel() {
           e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
         }}
       >
-        Reset All Flags
+        אפס את כל הדגלים
       </button>
     </div>
   );
