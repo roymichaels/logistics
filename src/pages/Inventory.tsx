@@ -4,6 +4,7 @@ import { useInventory, useLowStockItems, useAdjustStock } from '../application/u
 import { useCatalog } from '../application/use-cases';
 import { useApp } from '../application/services/useApp';
 import { useTheme } from '../foundation/theme';
+import { useAppServices } from '../context/AppServicesContext';
 import { logger } from '../lib/logger';
 import { Toast } from '../components/Toast';
 import { formatCurrency } from '../lib/i18n';
@@ -29,15 +30,20 @@ export function Inventory({ onNavigate }: InventoryProps) {
 
   const { theme: themeConfig } = useTheme();
   const app = useApp();
+  const { currentBusinessId } = useAppServices();
 
   const [filter, setFilter] = useState<'all' | 'low' | 'out'>('all');
   const [selectedProduct, setSelectedProduct] = useState<AggregatedInventory | null>(null);
   const [showAdjustForm, setShowAdjustForm] = useState(false);
   const [adjustmentData, setAdjustmentData] = useState({ quantity: 0, reason: '' });
 
-  const { products, loading: productsLoading } = useCatalog();
-  const { inventory, loading: inventoryLoading, error, refetch } = useInventory({});
-  const { items: lowStockItems } = useLowStockItems(app.auth.user?.active_business_id || '');
+  const { products, loading: productsLoading, refetch: refetchProducts } = useCatalog({
+    business_id: currentBusinessId || undefined
+  });
+  const { inventory, loading: inventoryLoading, error, refetch } = useInventory({
+    business_id: currentBusinessId || undefined
+  });
+  const { items: lowStockItems } = useLowStockItems(currentBusinessId || '');
   const { adjustStock, loading: adjusting } = useAdjustStock();
 
   const loading = productsLoading || inventoryLoading;
@@ -61,6 +67,13 @@ export function Inventory({ onNavigate }: InventoryProps) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [app.events]);
+
+  // Refetch inventory when business context changes
+  useEffect(() => {
+    logger.info('🏢 Inventory: Business context changed, refetching...', { currentBusinessId });
+    refetch();
+    refetchProducts();
+  }, [currentBusinessId, refetch, refetchProducts]);
 
   const aggregatedInventory = useMemo(() => {
     if (!products || !inventory) return [];

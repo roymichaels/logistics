@@ -4,6 +4,7 @@ import { DataStore, User } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { logger } from '../lib/logger';
 import { localBusinessDataService } from '../services/localBusinessDataService';
+import { useAppServices } from '../context/AppServicesContext';
 
 interface CreateBusinessModalProps {
   dataStore: DataStore;
@@ -13,6 +14,7 @@ interface CreateBusinessModalProps {
 }
 
 export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: CreateBusinessModalProps) {
+  const { setBusinessId, refreshUserRole } = useAppServices();
   const [formData, setFormData] = useState({
     name: '',
     name_hebrew: '',
@@ -93,6 +95,14 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       );
 
       logger.info('✅ Business created successfully:', newBusiness);
+
+      // Set the new business as the active context
+      setBusinessId(newBusiness.id);
+
+      // Trigger role refresh to update user's business_owner status
+      setTimeout(() => {
+        refreshUserRole({ forceRefresh: true });
+      }, 100);
 
       onSuccess();
       onClose();

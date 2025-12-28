@@ -73,7 +73,21 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   const auth = useAuth();
 
   const setBusinessId = useCallback((businessId: string | null) => {
-    setCurrentBusinessId(prev => (prev === businessId ? prev : businessId));
+    setCurrentBusinessId(prev => {
+      if (prev === businessId) return prev;
+
+      logger.info('🏢 Business context changed', { from: prev, to: businessId });
+
+      // Emit business context change event
+      setTimeout(() => {
+        const event = new CustomEvent('business-context-changed', {
+          detail: { previousBusinessId: prev, currentBusinessId: businessId }
+        });
+        window.dispatchEvent(event);
+      }, 0);
+
+      return businessId;
+    });
   }, []);
 
   const logout = useCallback(async () => {

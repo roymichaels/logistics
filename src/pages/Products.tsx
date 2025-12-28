@@ -9,6 +9,7 @@ import {
 } from '../application/use-cases';
 import { useApp } from '../application/services/useApp';
 import { useAuth } from '../context/AuthContext';
+import { useAppServices } from '../context/AppServicesContext';
 import { Diagnostics } from '../foundation/diagnostics/DiagnosticsStore';
 import { Toast } from '../components/Toast';
 import type { Product } from '../application/queries/catalog.queries';
@@ -35,13 +36,15 @@ export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
 
   const app = useApp();
   const { user } = useAuth();
+  const { currentBusinessId } = useAppServices();
 
   const { products, loading, error, refetch } = useCatalog({
+    business_id: currentBusinessId || undefined,
     category: filter === 'all' ? undefined : filter,
     search: searchQuery || undefined,
   });
 
-  const { categories } = useCategories();
+  const { categories } = useCategories(currentBusinessId || undefined);
   const { createProduct, loading: creating } = useCreateProduct();
   const { updateProduct, loading: updating } = useUpdateProduct();
   const { deleteProduct, loading: deleting } = useDeleteProduct();
@@ -68,6 +71,12 @@ export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
       unsubscribeDeleted?.();
     };
   }, [app.events, refetch]);
+
+  // Refetch products when business context changes
+  useEffect(() => {
+    logger.info('🏢 Products: Business context changed, refetching...', { currentBusinessId });
+    refetch();
+  }, [currentBusinessId, refetch]);
 
   const handleCreateProduct = async (productData: Partial<Product>) => {
     Diagnostics.logEvent({ type: 'log', message: 'Creating product', data: productData });

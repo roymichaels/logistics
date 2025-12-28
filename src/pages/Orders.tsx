@@ -19,7 +19,7 @@ interface OrdersProps {
 
 export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }: OrdersProps = {}) {
   // Get dataStore and navigation from context if not provided as props
-  const { dataStore: contextDataStore } = useAppServices();
+  const { dataStore: contextDataStore, currentBusinessId } = useAppServices();
   const navigate = useNavigate();
 
   // Use prop if provided, otherwise use context
@@ -34,6 +34,7 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
   const app = useApp();
 
   const { orders, loading, error, refetch } = useOrders({
+    business_id: currentBusinessId || undefined,
     status: filter === 'all' ? undefined : filter,
   });
 
@@ -66,6 +67,12 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
       unsubscribeAssigned?.();
     };
   }, [app.events, refetch]);
+
+  // Refetch orders when business context changes
+  useEffect(() => {
+    logger.info('🏢 Orders: Business context changed, refetching...', { currentBusinessId });
+    refetch();
+  }, [currentBusinessId, refetch]);
 
   const handleCreateOrder = () => {
 

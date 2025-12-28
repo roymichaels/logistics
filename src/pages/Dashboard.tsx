@@ -178,6 +178,14 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
     };
   }, [loadDashboard]);
 
+  // Reload dashboard when business context changes
+  useEffect(() => {
+    if (!currentBusinessId) return;
+
+    logger.info('🏢 Dashboard: Business context changed, reloading...', { currentBusinessId });
+    void loadDashboard();
+  }, [currentBusinessId, loadDashboard]);
+
   const summaryText = useMemo(() => {
     if (!snapshot) return '';
     return buildSummary(snapshot, user);
