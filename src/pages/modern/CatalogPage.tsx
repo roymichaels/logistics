@@ -14,12 +14,12 @@ interface CatalogPageProps {
 }
 
 const CATEGORIES = [
-  { label: 'All', value: 'all' },
-  { label: 'New Arrivals', value: 'new' },
-  { label: 'Hot Deals', value: 'hot' },
-  { label: 'Services', value: 'services' },
-  { label: 'Digital', value: 'digital' },
-  { label: 'Physical', value: 'physical' },
+  { label: 'הכל', value: 'all' },
+  { label: 'חדשים', value: 'new' },
+  { label: 'מבצעים', value: 'hot' },
+  { label: 'שירותים', value: 'services' },
+  { label: 'דיגיטלי', value: 'digital' },
+  { label: 'פיזי', value: 'physical' },
 ];
 
 export function CatalogPage({
@@ -108,12 +108,12 @@ export function CatalogPage({
   const emptyState = (
     <EmptyState
       variant="search"
-      title="No products found"
-      description="Try adjusting your search or filter criteria."
+      title="לא נמצאו מוצרים"
+      description="נסה לשנות את קריטריוני החיפוש או הסינון."
       action={
         searchQuery || selectedCategory !== 'all'
           ? {
-              label: 'Clear Filters',
+              label: 'נקה מסננים',
               onClick: () => {
                 setSearchQuery('');
                 setSelectedCategory('all');
@@ -125,25 +125,25 @@ export function CatalogPage({
   );
 
   const headerActions = (
-    <Box style={{ display: 'flex', gap: '12px' }}>
+    <Box style={{ display: 'flex', gap: '12px', direction: 'rtl' }}>
       <Button variant="secondary" size="small" onClick={() => onNavigate?.('/sandbox')}>
-        🔥 Sandbox
+        🔥 ארגז חול
       </Button>
       <Button variant="primary" size="small" onClick={onCartOpen}>
-        🛒 Cart
+        🛒 עגלה
       </Button>
     </Box>
   );
 
   return (
     <GridPageTemplate
-      title="Store Catalog"
+      title="קטלוג חנות"
       actions={headerActions}
       items={filteredProducts}
       renderCard={renderProductCard}
       emptyState={emptyState}
       searchable
-      searchPlaceholder="Search products..."
+      searchPlaceholder="חיפוש מוצרים..."
       onSearch={handleSearch}
       filterChips={filterChips}
       defaultLayout="comfortable"

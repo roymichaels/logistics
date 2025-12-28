@@ -19,13 +19,13 @@ interface CatalogPageProps {
 }
 
 const CATEGORIES = [
-  'All',
-  'Secured Smartphones',
-  'Hardware Keys',
-  'Privacy Devices',
-  'Network Security',
-  'Encryption Tools',
-  'Security Software',
+  'הכל',
+  'סמארטפונים מאובטחים',
+  'מפתחות חומרה',
+  'מכשירי פרטיות',
+  'אבטחת רשתות',
+  'כלי הצפנה',
+  'תוכנות אבטחה',
 ];
 
 export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
@@ -59,7 +59,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
   const filteredProducts = useMemo(() => {
     let result = products;
 
-    if (category !== 'All') {
+    if (category !== 'הכל') {
       result = result.filter((p) =>
         (p.category || '').trim() === category.trim()
       );
@@ -85,6 +85,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
     minHeight: '100vh',
     background: 'rgba(18, 18, 20, 0.95)',
     paddingBottom: '100px',
+    direction: 'rtl',
   };
 
   const heroStyle: React.CSSProperties = {
@@ -111,7 +112,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
                 letterSpacing: '-0.02em',
               }}
             >
-              Security Store
+              חנות אבטחה
             </Text>
             <Text
               variant="body"
@@ -121,7 +122,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
                 fontSize: typography.fontSize.md,
               }}
             >
-              Enterprise-grade security hardware
+              ציוד אבטחה ברמה ארגונית
             </Text>
 
             <div style={{
@@ -138,7 +139,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
                 textAlign: 'center',
               }}>
                 <div style={{ fontSize: '24px', marginBottom: spacing.xs }}>📦</div>
-                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: typography.fontSize.xs, marginBottom: spacing.xs }}>Products</div>
+                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: typography.fontSize.xs, marginBottom: spacing.xs }}>מוצרים</div>
                 <div style={{ color: 'rgba(255, 255, 255, 0.95)', fontSize: typography.fontSize.xl, fontWeight: 700 }}>{products.length}</div>
               </div>
               <div style={{
@@ -149,7 +150,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
                 textAlign: 'center',
               }}>
                 <div style={{ fontSize: '24px', marginBottom: spacing.xs }}>🛒</div>
-                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: typography.fontSize.xs, marginBottom: spacing.xs }}>Cart Items</div>
+                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: typography.fontSize.xs, marginBottom: spacing.xs }}>פריטים בעגלה</div>
                 <div style={{ color: 'rgba(255, 255, 255, 0.95)', fontSize: typography.fontSize.xl, fontWeight: 700 }}>{totalCartItems}</div>
               </div>
               <div style={{
@@ -160,7 +161,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
                 textAlign: 'center',
               }}>
                 <div style={{ fontSize: '24px', marginBottom: spacing.xs }}>💰</div>
-                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: typography.fontSize.xs, marginBottom: spacing.xs }}>Total Value</div>
+                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: typography.fontSize.xs, marginBottom: spacing.xs }}>סכום כולל</div>
                 <div style={{ color: 'rgba(255, 255, 255, 0.95)', fontSize: typography.fontSize.xl, fontWeight: 700 }}>₪{totalCartValue.toFixed(2)}</div>
               </div>
             </div>
@@ -180,7 +181,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
             }}
           >
             <SearchBar
-              placeholder="Search security products..."
+              placeholder="חיפוש מוצרי אבטחה..."
               onSearch={setSearchQuery}
               onClear={() => setSearchQuery('')}
               style={{ marginBottom: spacing.md }}
@@ -249,10 +250,10 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
             <Card variant="outlined">
               <EmptyState
                 variant="error"
-                title="Failed to load products"
+                title="טעינת מוצרים נכשלה"
                 description={error}
                 action={{
-                  label: 'Try Again',
+                  label: 'נסה שוב',
                   onClick: () => window.location.reload(),
                 }}
               />
@@ -263,15 +264,15 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
             <Card variant="outlined">
               <EmptyState
                 variant="search"
-                title="No products found"
-                description="Try adjusting your search or filter criteria."
+                title="לא נמצאו מוצרים"
+                description="נסה לשנות את קריטריוני החיפוש או הסינון."
                 action={
-                  searchQuery || category !== 'All'
+                  searchQuery || category !== 'הכל'
                     ? {
-                        label: 'Clear Filters',
+                        label: 'נקה מסננים',
                         onClick: () => {
                           setSearchQuery('');
-                          setCategory('All');
+                          setCategory('הכל');
                         },
                       }
                     : undefined
@@ -299,7 +300,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
                     fontSize: typography.fontSize.md,
                   }}
                 >
-                  {filteredProducts.length} {filteredProducts.length === 1 ? 'Product' : 'Products'}
+                  {filteredProducts.length} {filteredProducts.length === 1 ? 'מוצר' : 'מוצרים'}
                 </Text>
               </div>
 
