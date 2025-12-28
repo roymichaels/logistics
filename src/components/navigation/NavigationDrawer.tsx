@@ -52,6 +52,7 @@ export function NavigationDrawer({ isOpen, onClose, children }: NavigationDrawer
           overflow: 'hidden',
           transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
           transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          direction: 'rtl',
         }}
         onClick={(e) => e.stopPropagation()}
       >

@@ -33,6 +33,7 @@ export function DynamicNavigationMenu({
           flexDirection: 'column',
           gap: spacing[1],
           padding: spacing[2],
+          direction: 'rtl',
         }}
       >
         {availableRoutes.map((route) => (
@@ -54,7 +55,7 @@ export function DynamicNavigationMenu({
               fontWeight: isActive(route.path) ? 600 : 500,
               cursor: 'pointer',
               transition: 'all 150ms ease-in-out',
-              textAlign: 'left',
+              textAlign: 'right',
             }}
             onMouseEnter={(e) => {
               if (!isActive(route.path)) {
@@ -85,6 +86,7 @@ export function DynamicNavigationMenu({
           padding: spacing[2],
           backgroundColor: colors.background.primary,
           borderTop: `1px solid ${colors.border.primary}`,
+          direction: 'rtl',
         }}
       >
         {availableRoutes.slice(0, 5).map((route) => (
@@ -137,6 +139,7 @@ export function DynamicNavigationMenu({
           padding: spacing[2],
           borderBottom: `1px solid ${colors.border.primary}`,
           overflowX: 'auto',
+          direction: 'rtl',
         }}
       >
         {availableRoutes.map((route) => (

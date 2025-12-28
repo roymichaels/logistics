@@ -22,7 +22,7 @@ export function UnifiedMenuPanel({
   items,
   currentPath,
   onNavigate,
-  title = 'Menu',
+  title = 'תפריט',
 }: UnifiedMenuPanelProps) {
   useEffect(() => {
     if (isOpen) {
@@ -79,6 +79,7 @@ export function UnifiedMenuPanel({
           overflow: 'hidden',
           transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
           transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          direction: 'rtl',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -164,7 +165,7 @@ export function UnifiedMenuPanel({
                 fontWeight: isActive(item.path) ? '600' : '500',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
-                textAlign: 'left',
+                textAlign: 'right',
                 position: 'relative',
               }}
               onMouseEnter={(e) => {
@@ -185,11 +186,11 @@ export function UnifiedMenuPanel({
                 <div
                   style={{
                     position: 'absolute',
-                    left: '0',
+                    right: '0',
                     width: '3px',
                     height: '60%',
                     backgroundColor: '#60a5fa',
-                    borderRadius: '0 2px 2px 0',
+                    borderRadius: '2px 0 0 2px',
                   }}
                 />
               )}

@@ -13,11 +13,11 @@ interface NavItemData {
 }
 
 const navItems: NavItemData[] = [
-  { icon: '🏠', label: 'Home', path: '/driver/dashboard' },
-  { icon: '📋', label: 'Deliveries', path: '/driver/routes' },
-  { icon: '📦', label: 'Inventory', path: '/driver/my-inventory' },
-  { icon: '📍', label: 'Zones', path: '/driver/my-zones' },
-  { icon: '👤', label: 'Profile', path: '/store/profile' },
+  { icon: '🏠', label: 'בית', path: '/driver/dashboard' },
+  { icon: '📋', label: 'משלוחים', path: '/driver/routes' },
+  { icon: '📦', label: 'מלאי', path: '/driver/my-inventory' },
+  { icon: '📍', label: 'אזורים', path: '/driver/my-zones' },
+  { icon: '👤', label: 'פרופיל', path: '/store/profile' },
 ];
 
 export function DriverBottomNav({ currentPath, onNavigate }: DriverBottomNavProps) {
@@ -36,6 +36,7 @@ export function DriverBottomNav({ currentPath, onNavigate }: DriverBottomNavProp
         alignItems: 'center',
         padding: `0 ${spacing[2]}`,
         zIndex: 1000,
+        direction: 'rtl',
       }}
     >
       {navItems.map((item) => {

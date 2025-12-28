@@ -13,13 +13,13 @@ interface NavItemData {
 }
 
 const navItems: NavItemData[] = [
-  { icon: '📊', label: 'Dashboard', path: '/business/dashboard' },
-  { icon: '📦', label: 'Products', path: '/business/products' },
-  { icon: '📋', label: 'Orders', path: '/business/orders' },
-  { icon: '🏪', label: 'Inventory', path: '/business/inventory' },
-  { icon: '🚗', label: 'Drivers', path: '/business/drivers' },
-  { icon: '📍', label: 'Zones', path: '/business/zones' },
-  { icon: '📊', label: 'Reports', path: '/business/reports' },
+  { icon: '📊', label: 'לוח בקרה', path: '/business/dashboard' },
+  { icon: '📦', label: 'מוצרים', path: '/business/products' },
+  { icon: '📋', label: 'הזמנות', path: '/business/orders' },
+  { icon: '🏪', label: 'מלאי', path: '/business/inventory' },
+  { icon: '🚗', label: 'נהגים', path: '/business/drivers' },
+  { icon: '📍', label: 'אזורים', path: '/business/zones' },
+  { icon: '📊', label: 'דוחות', path: '/business/reports' },
 ];
 
 export function BusinessSidebar({ currentPath, onNavigate }: BusinessSidebarProps) {
@@ -29,9 +29,10 @@ export function BusinessSidebar({ currentPath, onNavigate }: BusinessSidebarProp
         width: '240px',
         height: '100%',
         background: colors.ui.card,
-        borderRight: `1px solid ${colors.border.primary}`,
+        borderLeft: `1px solid ${colors.border.primary}`,
         padding: spacing[4],
         overflowY: 'auto',
+        direction: 'rtl',
       }}
     >
       <nav style={{ display: 'flex', flexDirection: 'column', gap: spacing[2] }}>
@@ -54,7 +55,7 @@ export function BusinessSidebar({ currentPath, onNavigate }: BusinessSidebarProp
                 fontSize: typography.fontSize.base,
                 fontWeight: isActive ? typography.fontWeight.semibold : typography.fontWeight.normal,
                 transition: transitions.normal,
-                textAlign: 'left',
+                textAlign: 'right',
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {

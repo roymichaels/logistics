@@ -13,10 +13,10 @@ interface NavItemData {
 }
 
 const navItems: NavItemData[] = [
-  { icon: '🏪', label: 'Shop', path: '/store/catalog' },
-  { icon: '🔍', label: 'Search', path: '/store/search' },
-  { icon: '📋', label: 'Orders', path: '/store/orders' },
-  { icon: '👤', label: 'Account', path: '/store/profile' },
+  { icon: '🏪', label: 'חנות', path: '/store/catalog' },
+  { icon: '🔍', label: 'חיפוש', path: '/store/search' },
+  { icon: '📋', label: 'הזמנות', path: '/store/orders' },
+  { icon: '👤', label: 'חשבון', path: '/store/profile' },
 ];
 
 export function CustomerBottomNav({ currentPath, onNavigate }: CustomerBottomNavProps) {
@@ -35,6 +35,7 @@ export function CustomerBottomNav({ currentPath, onNavigate }: CustomerBottomNav
         alignItems: 'center',
         padding: `0 ${spacing[2]}`,
         zIndex: 1000,
+        direction: 'rtl',
       }}
     >
       {navItems.map((item) => {
