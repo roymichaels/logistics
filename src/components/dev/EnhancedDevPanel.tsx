@@ -97,13 +97,17 @@ export function EnhancedDevPanel() {
   const [activeTab, setActiveTab] = useState<TabType>('system');
   const [logs, setLogs] = useState<DebugLog[]>([...debugLogs]);
   const [logFilter, setLogFilter] = useState<'all' | 'info' | 'warn' | 'error' | 'success'>('all');
+  const [shellConfig, setShellConfig] = useState(() => shellEngine.getCurrentShell());
+  const [shellUpdateCount, setShellUpdateCount] = useState(0);
 
   const authCtx = useAuth();
   const appServices = useAppServices();
   const { translations, language } = useI18n();
-  const shellConfig = shellEngine.getCurrentShell();
 
-  const userRole = (authCtx?.user as any)?.role || 'user';
+  const devRoleOverride = typeof window !== 'undefined'
+    ? localStorage.getItem('dev-console:role-override')
+    : null;
+  const userRole = devRoleOverride || (authCtx?.user as any)?.role || 'user';
   const walletAddress = (authCtx?.user as any)?.wallet_address;
   const businessId = appServices?.currentBusinessId;
 
@@ -112,6 +116,26 @@ export function EnhancedDevPanel() {
     logListeners.push(listener);
     return () => {
       logListeners = logListeners.filter(l => l !== listener);
+    };
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = shellEngine.subscribe((config) => {
+      setShellConfig(config);
+      setShellUpdateCount(prev => prev + 1);
+      debugLog.info('Shell config updated', config);
+    });
+
+    const handleRoleChange = () => {
+      debugLog.success('Role changed detected');
+      setShellConfig(shellEngine.getCurrentShell());
+    };
+
+    window.addEventListener('dev-role-changed', handleRoleChange);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('dev-role-changed', handleRoleChange);
     };
   }, []);
 

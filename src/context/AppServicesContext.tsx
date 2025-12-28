@@ -14,8 +14,32 @@ import { useAuth } from './AuthContext';
 import { userService } from '../lib/userService';
 import { logger } from '../lib/logger';
 import { runtimeEnvironment } from '../lib/runtimeEnvironment';
+import { shellEngine, ShellType } from '../foundation/engine/ShellEngine';
 
 const DEV_ROLE_OVERRIDE_KEY = 'dev-console:role-override';
+
+function getRoleShellType(role: string): ShellType {
+  switch (role) {
+    case 'superadmin':
+    case 'admin':
+    case 'infrastructure_owner':
+      return 'unified';
+    case 'business_owner':
+    case 'manager':
+    case 'dispatcher':
+    case 'sales':
+    case 'warehouse':
+    case 'customer_service':
+    case 'accountant':
+      return 'business';
+    case 'driver':
+      return 'driver';
+    case 'customer':
+    case 'user':
+    default:
+      return 'store';
+  }
+}
 
 export type AppUserRole =
   | 'user'
@@ -240,6 +264,10 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
           }
 
           setUserRole(override as AppUserRole);
+
+          const shellType = getRoleShellType(override);
+          logger.info(`🔄 Switching shell to "${shellType}" for role "${override}"`);
+          shellEngine.switchShell(shellType);
         } else {
           refreshUserRole({ forceRefresh: true });
         }

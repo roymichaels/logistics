@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UnifiedMenuPanel, MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { useAuth } from '../context/AuthContext';
+import { shellEngine, ShellConfig } from '../foundation/engine/ShellEngine';
+import { logger } from '../lib/logger';
 
 interface UnifiedAppFrameProps {
   children: React.ReactNode;
@@ -20,11 +22,42 @@ export function UnifiedAppFrame({
   onNavigate,
   title = 'Menu',
   headerContent,
-  showBottomNav = true,
+  showBottomNav: showBottomNavProp,
 }: UnifiedAppFrameProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [shellConfig, setShellConfig] = useState<ShellConfig>(() => shellEngine.getCurrentShell());
+  const [roleKey, setRoleKey] = useState(0);
   const authCtx = useAuth();
-  const userRole = (authCtx?.user as any)?.role || 'user';
+
+  const devRoleOverride = typeof window !== 'undefined'
+    ? localStorage.getItem('dev-console:role-override')
+    : null;
+  const userRole = devRoleOverride || (authCtx?.user as any)?.role || 'user';
+
+  useEffect(() => {
+    const unsubscribe = shellEngine.subscribe((config) => {
+      logger.info('[UnifiedAppFrame] Shell config changed:', config);
+      setShellConfig(config);
+    });
+
+    const handleRoleChange = () => {
+      logger.info('[UnifiedAppFrame] Role changed, forcing re-render');
+      setRoleKey(prev => prev + 1);
+      const currentConfig = shellEngine.getCurrentShell();
+      setShellConfig(currentConfig);
+    };
+
+    window.addEventListener('dev-role-changed', handleRoleChange);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('dev-role-changed', handleRoleChange);
+    };
+  }, []);
+
+  const showBottomNav = showBottomNavProp !== undefined
+    ? showBottomNavProp
+    : shellConfig.features.showBottomNav ?? true;
 
   return (
     <div
@@ -94,6 +127,7 @@ export function UnifiedAppFrame({
 
       {showBottomNav && (
         <BottomNavigation
+          key={`bottom-nav-${roleKey}`}
           currentPage={currentPath}
           onNavigate={onNavigate}
           userRole={userRole}

@@ -105,7 +105,7 @@ export class ShellEngine {
         return {
           type: 'business',
           features: {
-            showBottomNav: false,
+            showBottomNav: true,
             showHeader: true,
             showSidebar: true,
             compactMode: false,
