@@ -12,7 +12,7 @@ import {
 
 interface WarehouseDashboardProps {
   dataStore: DataStore;
-  onNavigate: (page: string) => void;
+  onNavigate?: (page: string) => void;
 }
 
 interface LocationSummary {
@@ -25,7 +25,7 @@ interface LocationSummary {
   lowStockSkus: number;
 }
 
-export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
+export function WarehouseDashboard({ dataStore, onNavigate = () => {} }: WarehouseDashboardProps) {
 
   const [loading, setLoading] = useState(true);
   const [locations, setLocations] = useState<LocationSummary[]>([]);
@@ -108,15 +108,15 @@ export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
   return (
     <div
       style={{
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
+        backgroundColor: ROYAL_COLORS.background,
+        color: ROYAL_COLORS.text,
         minHeight: '100vh',
         padding: '20px',
         direction: 'rtl'
       }}
     >
       <h1 style={{ fontSize: '24px', margin: '0 0 16px' }}>מרכז מחסן</h1>
-      <p style={{ margin: '0 0 24px', color: theme.hint_color }}>
+      <p style={{ margin: '0 0 24px', color: ROYAL_COLORS.muted }}>
         מעקב מלאי לפי מיקומים, בקשות חידוש פתוחות ותיעוד תנועות אחרונות.
       </p>
 
@@ -131,38 +131,34 @@ export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
         <SummaryCard
           label={'סה"כ מיקומים'}
           value={summary.totalLocations}
-          theme={theme}
           onClick={() => onNavigate('inventory')}
         />
         <SummaryCard
           label="מיקומים עם מלאי נמוך"
           value={summary.lowStockLocations}
-          theme={theme}
           accent="#ff9500"
           onClick={() => onNavigate('inventory?filter=lowStock')}
         />
         <SummaryCard
           label="התראות מלאי"
           value={summary.totalAlerts}
-          theme={theme}
           accent="#ff3b30"
           onClick={() => onNavigate('my-inventory?alerts=true')}
         />
         <SummaryCard
           label="בקשות חידוש ממתינות"
           value={summary.pendingRestocks}
-          theme={theme}
           accent="#007aff"
           onClick={() => onNavigate('restock-requests')}
         />
       </section>
 
-      {loading && <div style={{ marginBottom: '16px', color: theme.hint_color }}>טוען נתוני מחסן...</div>}
+      {loading && <div style={{ marginBottom: '16px', color: ROYAL_COLORS.muted }}>טוען נתוני מחסן...</div>}
 
       <section style={{ marginBottom: '32px' }}>
         <h2 style={{ fontSize: '18px', margin: '0 0 12px' }}>סטטוס לפי מיקום</h2>
         {locations.length === 0 ? (
-          <div style={{ padding: '16px', borderRadius: '12px', backgroundColor: theme.secondary_bg_color }}>
+          <div style={{ padding: '16px', borderRadius: '12px', backgroundColor: ROYAL_COLORS.card }}>
             אין נתוני מלאי זמינים.
           </div>
         ) : (
@@ -174,8 +170,8 @@ export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
                 style={{
                   padding: '16px',
                   borderRadius: '12px',
-                  backgroundColor: theme.secondary_bg_color,
-                  border: `1px solid ${theme.hint_color}30`,
+                  backgroundColor: ROYAL_COLORS.card,
+                  border: `1px solid ${ROYAL_COLORS.muted}30`,
                   cursor: 'pointer',
                   transition: 'all 200ms ease'
                 }}
@@ -190,7 +186,7 @@ export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <strong>{location.name}</strong>
-                  <span style={{ fontSize: '12px', color: theme.hint_color }}>
+                  <span style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
                     {location.lowStockSkus} מוצרים עם מלאי נמוך
                   </span>
                 </div>
@@ -216,7 +212,7 @@ export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
       <section style={{ marginBottom: '32px' }}>
         <h2 style={{ fontSize: '18px', margin: '0 0 12px' }}>בקשות חידוש פתוחות</h2>
         {restockRequests.length === 0 ? (
-          <div style={{ color: theme.hint_color }}>אין בקשות חידוש ממתינות.</div>
+          <div style={{ color: ROYAL_COLORS.muted }}>אין בקשות חידוש ממתינות.</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {restockRequests.map((request) => (
@@ -225,24 +221,24 @@ export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
                 style={{
                   padding: '12px',
                   borderRadius: '10px',
-                  backgroundColor: theme.secondary_bg_color,
-                  border: `1px solid ${theme.hint_color}30`
+                  backgroundColor: ROYAL_COLORS.card,
+                  border: `1px solid ${ROYAL_COLORS.muted}30`
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                   <strong>{request.product?.name || request.product_id}</strong>
-                  <span style={{ fontSize: '12px', color: theme.hint_color }}>
+                  <span style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
                     {new Date(request.created_at).toLocaleString('he-IL')}
                   </span>
                 </div>
                 <div style={{ fontSize: '13px' }}>
                   כמות מבוקשת: <strong>{request.requested_quantity}</strong>
                 </div>
-                <div style={{ fontSize: '12px', color: theme.hint_color }}>
+                <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
                   {request.from_location?.name || 'מקור לא משויך'} → {request.to_location?.name || 'יעד לא משויך'}
                 </div>
                 {request.notes && (
-                  <div style={{ fontSize: '12px', color: theme.hint_color, marginTop: '4px' }}>{request.notes}</div>
+                  <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginTop: '4px' }}>{request.notes}</div>
                 )}
               </div>
             ))}
@@ -253,7 +249,7 @@ export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
       <section>
         <h2 style={{ fontSize: '18px', margin: '0 0 12px' }}>תנועות מלאי אחרונות</h2>
         {logs.length === 0 ? (
-          <div style={{ color: theme.hint_color }}>אין תנועות מתועדות.</div>
+          <div style={{ color: ROYAL_COLORS.muted }}>אין תנועות מתועדות.</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {logs.map((log) => (
@@ -262,13 +258,13 @@ export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
                 style={{
                   padding: '12px',
                   borderRadius: '10px',
-                  backgroundColor: theme.secondary_bg_color,
-                  border: `1px solid ${theme.hint_color}30`
+                  backgroundColor: ROYAL_COLORS.card,
+                  border: `1px solid ${ROYAL_COLORS.muted}30`
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                   <strong>{log.product?.name || log.product_id}</strong>
-                  <span style={{ fontSize: '12px', color: theme.hint_color }}>
+                  <span style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
                     {new Date(log.created_at).toLocaleString('he-IL')}
                   </span>
                 </div>
@@ -276,7 +272,7 @@ export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
                   שינוי: <strong>{log.quantity_change}</strong> ({log.change_type})
                 </div>
                 {(log.from_location || log.to_location) && (
-                  <div style={{ fontSize: '12px', color: theme.hint_color }}>
+                  <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
                     {log.from_location?.name || '—'} → {log.to_location?.name || '—'}
                   </div>
                 )}
@@ -286,7 +282,7 @@ export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
                       marginTop: '6px',
                       fontSize: '11px',
                       direction: 'ltr',
-                      backgroundColor: theme.bg_color,
+                      backgroundColor: ROYAL_COLORS.background,
                       padding: '6px',
                       borderRadius: '6px'
                     }}
@@ -306,18 +302,16 @@ export function WarehouseDashboard({ dataStore }: WarehouseDashboardProps) {
 function SummaryCard({
   label,
   value,
-  theme,
   accent,
   onClick
 }: {
   label: string;
   value: number;
-  theme: any;
   accent?: string;
   onClick?: () => void;
 }) {
   const [isHovered, setIsHovered] = React.useState(false);
-  const color = accent || theme.text_color;
+  const color = accent || ROYAL_COLORS.text;
   const isClickable = !!onClick;
 
   return (
@@ -328,15 +322,15 @@ function SummaryCard({
       style={{
         padding: '16px',
         borderRadius: '12px',
-        backgroundColor: theme.secondary_bg_color,
-        border: `1px solid ${theme.hint_color}30`,
+        backgroundColor: ROYAL_COLORS.card,
+        border: `1px solid ${ROYAL_COLORS.cardBorder}`,
         cursor: isClickable ? 'pointer' : 'default',
         transform: isHovered && isClickable ? 'translateY(-2px)' : 'none',
         transition: 'all 200ms ease',
         boxShadow: isHovered && isClickable ? '0 4px 12px rgba(0, 0, 0, 0.1)' : 'none'
       }}
     >
-      <div style={{ fontSize: '13px', color: theme.hint_color, marginBottom: '4px' }}>{label}</div>
+      <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>{label}</div>
       <div style={{ fontSize: '24px', fontWeight: 600, color }}>{value}</div>
     </div>
   );

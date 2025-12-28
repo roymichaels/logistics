@@ -20,6 +20,8 @@ const DispatchBoard = React.lazy(() => import('../pages/DispatchBoard').then(m =
 const DriversManagement = React.lazy(() => import('../pages/DriversManagement').then(m => ({ default: m.DriversManagement })));
 const Reports = React.lazy(() => import('../pages/Reports').then(m => ({ default: m.Reports })));
 const UserManagement = React.lazy(() => import('../pages/UserManagement').then(m => ({ default: m.UserManagement || m.default })));
+const TeamManagement = React.lazy(() => import('../pages/business/TeamManagement').then(m => ({ default: m.TeamManagement })));
+const SalesDashboard = React.lazy(() => import('../pages/sales/SalesDashboard').then(m => ({ default: m.SalesDashboard })));
 const ZoneManagement = React.lazy(() => import('../pages/ZoneManagement').then(m => ({ default: m.ZoneManagement })));
 const WarehouseDashboard = React.lazy(() => import('../pages/WarehouseDashboard').then(m => ({ default: m.WarehouseDashboard })));
 const Incoming = React.lazy(() => import('../pages/Incoming').then(m => ({ default: m.Incoming || m.default })));
@@ -110,9 +112,11 @@ export function SimpleRouter() {
           <Route path="/business/dispatch" element={<Suspense fallback={<PageLoadingSkeleton />}><DispatchBoard dataStore={dataStore} /></Suspense>} />
           <Route path="/business/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><DriversManagement dataStore={dataStore} /></Suspense>} />
           <Route path="/business/reports" element={<Suspense fallback={<PageLoadingSkeleton />}><Reports dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
-          <Route path="/business/team" element={<Suspense fallback={<PageLoadingSkeleton />}><UserManagement dataStore={dataStore} onNavigate={(path) => navigate(path)} currentUser={null} /></Suspense>} />
+          <Route path="/business/sales" element={<Suspense fallback={<PageLoadingSkeleton />}><SalesDashboard /></Suspense>} />
+          <Route path="/business/support" element={<Suspense fallback={<PageLoadingSkeleton />}><div style={{ padding: '20px' }}>Support Dashboard - Coming Soon</div></Suspense>} />
+          <Route path="/business/team" element={<Suspense fallback={<PageLoadingSkeleton />}><TeamManagement /></Suspense>} />
           <Route path="/business/zones" element={<Suspense fallback={<PageLoadingSkeleton />}><ZoneManagement dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
-          <Route path="/business/warehouse" element={<Suspense fallback={<PageLoadingSkeleton />}><WarehouseDashboard dataStore={dataStore} /></Suspense>} />
+          <Route path="/business/warehouse" element={<Suspense fallback={<PageLoadingSkeleton />}><WarehouseDashboard dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/incoming" element={<Suspense fallback={<PageLoadingSkeleton />}><Incoming dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/restock" element={<Suspense fallback={<PageLoadingSkeleton />}><RestockRequests dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
