@@ -93,7 +93,7 @@ export function BottomNavigation({
         { id: 'tasks', label: translations.tasks, icon: '✅' }
       ],
       action: {
-        label: 'Platform Actions',
+        label: translations.platformActions,
         icon: '⚡'
       }
     },
@@ -106,7 +106,7 @@ export function BottomNavigation({
         { id: 'tasks', label: translations.tasks, icon: '✅' }
       ],
       action: {
-        label: 'Admin Actions',
+        label: translations.adminActions,
         icon: '⚡'
       }
     },
@@ -231,12 +231,12 @@ export function BottomNavigation({
     // 🛍️ CUSTOMER: Storefront shopper
     customer: {
       tabs: [
-        { id: 'catalog', label: 'Shop', icon: '🏪' },
-        { id: 'cart', label: 'Cart', icon: '🛒' },
-        { id: 'orders', label: 'Orders', icon: '📦' }
+        { id: 'catalog', label: translations.shop, icon: '🏪' },
+        { id: 'cart', label: translations.cart, icon: '🛒' },
+        { id: 'orders', label: translations.orders, icon: '📦' }
       ],
       action: {
-        label: 'Browse',
+        label: translations.browse,
         icon: '🔍'
       }
     }

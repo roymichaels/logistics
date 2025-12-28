@@ -44,6 +44,13 @@ export interface Translations {
   zones: string;
   users: string;
 
+  // Bottom Navigation Actions
+  platformActions: string;
+  adminActions: string;
+  browse: string;
+  shop: string;
+  cart: string;
+
   // Roles
   owner: string;
   businessOwner: string;
@@ -1170,6 +1177,13 @@ const hebrewTranslations: Translations = {
   chat: 'צ\'אט',
   zones: 'אזורים',
   users: 'משתמשים',
+
+  // Bottom Navigation Actions
+  platformActions: 'פעולות פלטפורמה',
+  adminActions: 'פעולות מנהל',
+  browse: 'עיון',
+  shop: 'קניות',
+  cart: 'עגלה',
 
   // Roles
   owner: 'בעלים',
@@ -2458,6 +2472,13 @@ const englishTranslations: Translations = {
   chat: 'Chat',
   zones: 'Zones',
   users: 'Users',
+
+  // Bottom Navigation Actions
+  platformActions: 'Platform Actions',
+  adminActions: 'Admin Actions',
+  browse: 'Browse',
+  shop: 'Shop',
+  cart: 'Cart',
 
   // Roles
   owner: 'Owner',
