@@ -14,7 +14,23 @@
 import type { User } from '../data/types';
 
 export type Permission =
+  // Platform (Admin only)
+  | 'platform:view_all'
+  | 'platform:manage_infrastructures'
+  | 'platform:manage_system_config'
+  | 'platform:view_system_logs'
+  | 'platform:manage_feature_flags'
+  | 'platform:manage_superadmins'
+  // Infrastructure Management
+  | 'infrastructure:create'
+  | 'infrastructure:delete'
+  | 'infrastructure:assign_ownership'
+  | 'infrastructure:view_all'
+  | 'infrastructure:view_own'
+  | 'infrastructure:update_own'
+  | 'infrastructure:manage_settings'
   // Orders
+  | 'orders:view_all_platform'
   | 'orders:view_all_infrastructure'
   | 'orders:view_all_business'
   | 'orders:view_own'
@@ -32,6 +48,7 @@ export type Permission =
   | 'products:delete'
   | 'products:set_pricing'
   // Inventory
+  | 'inventory:view_all_platform'
   | 'inventory:view_all_infrastructure'
   | 'inventory:view_all_business'
   | 'inventory:view_business'
@@ -44,6 +61,7 @@ export type Permission =
   | 'inventory:approve_restock'
   | 'inventory:fulfill_restock'
   // Users
+  | 'users:view_all_platform'
   | 'users:view_all_infrastructure'
   | 'users:view_all_business'
   | 'users:view_business'
@@ -55,7 +73,9 @@ export type Permission =
   | 'users:approve'
   | 'users:set_ownership'
   | 'users:assign_to_business'
+  | 'users:assign_to_infrastructure'
   // Financial
+  | 'financial:view_all_platform'
   | 'financial:view_all_infrastructure'
   | 'financial:view_own_business'
   | 'financial:view_own_earnings'
@@ -67,6 +87,7 @@ export type Permission =
   | 'financial:export_reports'
   // Business Management
   | 'business:view_all'
+  | 'business:view_all_in_infrastructure'
   | 'business:view_own'
   | 'business:create'
   | 'business:update'
@@ -84,6 +105,7 @@ export type Permission =
   | 'zones:update'
   | 'zones:assign_drivers'
   // Analytics
+  | 'analytics:view_all_platform'
   | 'analytics:view_all_infrastructure'
   | 'analytics:view_all_business'
   | 'analytics:view_business'
@@ -102,11 +124,12 @@ export type Permission =
 export interface RolePermissions {
   role: User['role'];
   label: string;
-  level: 'infrastructure' | 'business';
+  level: 'platform' | 'infrastructure' | 'business';
   description: string;
   permissions: Permission[];
   canSeeFinancials: boolean;
   canSeeCrossBusinessData: boolean;
+  canSeeCrossInfrastructureData?: boolean;
 }
 
 /**
@@ -114,8 +137,243 @@ export interface RolePermissions {
  */
 export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
   // ========================================
+  // PLATFORM LEVEL ROLES
+  // These roles operate at the absolute highest level with access to everything
+  // Includes: superadmin, admin
+  // ========================================
+
+  superadmin: {
+    role: 'superadmin',
+    label: 'Super Administrator',
+    level: 'platform',
+    description: 'Absolute platform control with all permissions including superadmin management',
+    canSeeFinancials: true,
+    canSeeCrossBusinessData: true,
+    canSeeCrossInfrastructureData: true,
+    permissions: [
+      // Platform - Absolute control
+      'platform:view_all',
+      'platform:manage_infrastructures',
+      'platform:manage_system_config',
+      'platform:view_system_logs',
+      'platform:manage_feature_flags',
+      'platform:manage_superadmins',
+
+      // Infrastructure - Full control
+      'infrastructure:create',
+      'infrastructure:delete',
+      'infrastructure:assign_ownership',
+      'infrastructure:view_all',
+      'infrastructure:update_own',
+      'infrastructure:manage_settings',
+
+      // Orders - Platform-wide access
+      'orders:view_all_platform',
+      'orders:view_all_infrastructure',
+      'orders:view_all_business',
+      'orders:create',
+      'orders:update',
+      'orders:delete',
+      'orders:assign_driver',
+      'orders:change_status',
+
+      // Products - Full CRUD
+      'products:view',
+      'products:create',
+      'products:update',
+      'products:delete',
+      'products:set_pricing',
+
+      // Inventory - Platform-wide access
+      'inventory:view_all_platform',
+      'inventory:view_all_infrastructure',
+      'inventory:view_all_business',
+      'inventory:create',
+      'inventory:update',
+      'inventory:delete',
+      'inventory:transfer',
+      'inventory:request_restock',
+      'inventory:approve_restock',
+      'inventory:fulfill_restock',
+
+      // Users - Complete control
+      'users:view_all_platform',
+      'users:view_all_infrastructure',
+      'users:view_all_business',
+      'users:create',
+      'users:update',
+      'users:delete',
+      'users:change_role',
+      'users:approve',
+      'users:set_ownership',
+      'users:assign_to_business',
+      'users:assign_to_infrastructure',
+
+      // Financial - Complete visibility
+      'financial:view_all_platform',
+      'financial:view_all_infrastructure',
+      'financial:view_business_revenue',
+      'financial:view_business_costs',
+      'financial:view_business_profit',
+      'financial:view_ownership_distribution',
+      'financial:manage_distributions',
+      'financial:export_reports',
+
+      // Business - Full management
+      'business:view_all',
+      'business:create',
+      'business:update',
+      'business:delete',
+      'business:manage_settings',
+      'business:manage_ownership',
+      'business:switch_context',
+
+      // System - Full control
+      'system:view_audit_logs',
+      'system:manage_config',
+      'system:manage_infrastructure',
+
+      // Zones - Full management
+      'zones:view',
+      'zones:create',
+      'zones:update',
+      'zones:assign_drivers',
+
+      // Analytics - Platform-wide access
+      'analytics:view_all_platform',
+      'analytics:view_all_infrastructure',
+      'analytics:view_all_business',
+      'analytics:export',
+
+      // Messaging & Groups - Full access
+      'messaging:send',
+      'messaging:view',
+      'groups:create',
+      'groups:view',
+      'groups:manage_own',
+      'channels:create',
+      'channels:view',
+      'channels:manage_own',
+    ],
+  },
+
+  admin: {
+    role: 'admin',
+    label: 'Platform Administrator',
+    level: 'platform',
+    description: 'Full platform access across all infrastructures and businesses (cannot manage superadmins)',
+    canSeeFinancials: true,
+    canSeeCrossBusinessData: true,
+    canSeeCrossInfrastructureData: true,
+    permissions: [
+      // Platform - Full access except superadmin management
+      'platform:view_all',
+      'platform:manage_infrastructures',
+      'platform:manage_system_config',
+      'platform:view_system_logs',
+      'platform:manage_feature_flags',
+
+      // Infrastructure - Full control
+      'infrastructure:create',
+      'infrastructure:delete',
+      'infrastructure:assign_ownership',
+      'infrastructure:view_all',
+      'infrastructure:update_own',
+      'infrastructure:manage_settings',
+
+      // Orders - Platform-wide access
+      'orders:view_all_platform',
+      'orders:view_all_infrastructure',
+      'orders:view_all_business',
+      'orders:create',
+      'orders:update',
+      'orders:delete',
+      'orders:assign_driver',
+      'orders:change_status',
+
+      // Products - Full CRUD
+      'products:view',
+      'products:create',
+      'products:update',
+      'products:delete',
+      'products:set_pricing',
+
+      // Inventory - Platform-wide access
+      'inventory:view_all_platform',
+      'inventory:view_all_infrastructure',
+      'inventory:view_all_business',
+      'inventory:create',
+      'inventory:update',
+      'inventory:delete',
+      'inventory:transfer',
+      'inventory:request_restock',
+      'inventory:approve_restock',
+      'inventory:fulfill_restock',
+
+      // Users - Complete control except superadmin management
+      'users:view_all_platform',
+      'users:view_all_infrastructure',
+      'users:view_all_business',
+      'users:create',
+      'users:update',
+      'users:delete',
+      'users:change_role',
+      'users:approve',
+      'users:set_ownership',
+      'users:assign_to_business',
+      'users:assign_to_infrastructure',
+
+      // Financial - Complete visibility
+      'financial:view_all_platform',
+      'financial:view_all_infrastructure',
+      'financial:view_business_revenue',
+      'financial:view_business_costs',
+      'financial:view_business_profit',
+      'financial:view_ownership_distribution',
+      'financial:manage_distributions',
+      'financial:export_reports',
+
+      // Business - Full management
+      'business:view_all',
+      'business:create',
+      'business:update',
+      'business:delete',
+      'business:manage_settings',
+      'business:manage_ownership',
+      'business:switch_context',
+
+      // System - Full control
+      'system:view_audit_logs',
+      'system:manage_config',
+      'system:manage_infrastructure',
+
+      // Zones - Full management
+      'zones:view',
+      'zones:create',
+      'zones:update',
+      'zones:assign_drivers',
+
+      // Analytics - Platform-wide access
+      'analytics:view_all_platform',
+      'analytics:view_all_infrastructure',
+      'analytics:view_all_business',
+      'analytics:export',
+
+      // Messaging & Groups - Full access
+      'messaging:send',
+      'messaging:view',
+      'groups:create',
+      'groups:view',
+      'groups:manage_own',
+      'channels:create',
+      'channels:view',
+      'channels:manage_own',
+    ],
+  },
+
+  // ========================================
   // INFRASTRUCTURE LEVEL ROLES
-  // These roles operate at the platform level and can work across businesses
+  // These roles operate at the infrastructure level and can work across businesses within their infrastructure
   // Includes: infrastructure_owner, manager, dispatcher, driver, warehouse, customer_service, user
   // ========================================
 
@@ -123,11 +381,22 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
     role: 'infrastructure_owner',
     label: 'Infrastructure Owner',
     level: 'infrastructure',
-    description: 'Platform administrator with full system access including all businesses and financial data',
+    description: 'Owner of multiple businesses grouped as infrastructure with full access within their infrastructure',
     canSeeFinancials: true,
     canSeeCrossBusinessData: true,
+    canSeeCrossInfrastructureData: false,
     permissions: [
-      // Orders - Full cross-business access
+      // Infrastructure - Own infrastructure only
+      'infrastructure:view_own',
+      'infrastructure:update_own',
+      'infrastructure:manage_settings',
+
+      // Business - Can create within infrastructure
+      'business:view_all_in_infrastructure',
+      'business:create',
+      'business:switch_context',
+
+      // Orders - Full cross-business access within infrastructure
       'orders:view_all_infrastructure',
       'orders:create',
       'orders:update',
@@ -707,10 +976,13 @@ export function canChangeUserRole(
 /**
  * Get data access scope for a role
  */
-export function getDataAccessScope(role: User['role']): 'all' | 'business' | 'own' | 'assigned' {
+export function getDataAccessScope(role: User['role']): 'platform' | 'infrastructure' | 'business' | 'own' | 'assigned' {
   switch (role) {
+    case 'superadmin':
+    case 'admin':
+      return 'platform'; // All infrastructures and businesses
     case 'infrastructure_owner':
-      return 'all'; // All businesses
+      return 'infrastructure'; // All businesses within infrastructure
     case 'business_owner':
     case 'manager':
     case 'dispatcher':
@@ -730,6 +1002,25 @@ export function getDataAccessScope(role: User['role']): 'all' | 'business' | 'ow
  * Permission descriptions for UI display
  */
 export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
+  // Platform
+  'platform:view_all': 'View all platform data across all infrastructures',
+  'platform:manage_infrastructures': 'Create, update, and delete infrastructures',
+  'platform:manage_system_config': 'Manage system-wide configuration',
+  'platform:view_system_logs': 'View system audit and error logs',
+  'platform:manage_feature_flags': 'Manage feature flags and experiments',
+  'platform:manage_superadmins': 'Manage superadmin accounts',
+
+  // Infrastructure
+  'infrastructure:create': 'Create new infrastructures',
+  'infrastructure:delete': 'Delete infrastructures',
+  'infrastructure:assign_ownership': 'Assign infrastructure ownership',
+  'infrastructure:view_all': 'View all infrastructures',
+  'infrastructure:view_own': 'View own infrastructure',
+  'infrastructure:update_own': 'Update own infrastructure',
+  'infrastructure:manage_settings': 'Manage infrastructure settings',
+
+  // Orders
+  'orders:view_all_platform': 'View all orders across all infrastructures and businesses',
   'orders:view_all_infrastructure': 'View all orders across all businesses (infrastructure)',
   'orders:view_all_business': 'View all orders in your business',
   'orders:view_own': 'View only orders you created',
@@ -747,6 +1038,7 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'products:delete': 'Delete products',
   'products:set_pricing': 'Set product pricing',
 
+  'inventory:view_all_platform': 'View all inventory across all infrastructures and businesses',
   'inventory:view_all_infrastructure': 'View all inventory across all businesses',
   'inventory:view_all_business': 'View all inventory in your business',
   'inventory:view_business': 'View business inventory (limited)',
@@ -759,6 +1051,7 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'inventory:approve_restock': 'Approve restock requests',
   'inventory:fulfill_restock': 'Fulfill restock requests',
 
+  'users:view_all_platform': 'View all users across all infrastructures and businesses',
   'users:view_all_infrastructure': 'View all users across all businesses',
   'users:view_all_business': 'View all users in your business',
   'users:view_business': 'View business users (limited)',
@@ -770,7 +1063,9 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'users:approve': 'Approve user registrations',
   'users:set_ownership': 'Set business ownership percentages',
   'users:assign_to_business': 'Assign users to businesses',
+  'users:assign_to_infrastructure': 'Assign users to infrastructures',
 
+  'financial:view_all_platform': 'View all financial data across all infrastructures and businesses',
   'financial:view_all_infrastructure': 'View all financial data across businesses',
   'financial:view_own_business': 'View your business financial data',
   'financial:view_own_earnings': 'View your own earnings',
@@ -782,6 +1077,7 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'financial:export_reports': 'Export financial reports',
 
   'business:view_all': 'View all businesses',
+  'business:view_all_in_infrastructure': 'View all businesses in your infrastructure',
   'business:view_own': 'View your business',
   'business:create': 'Create new businesses',
   'business:update': 'Update business information',
@@ -799,6 +1095,7 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'zones:update': 'Update zone information',
   'zones:assign_drivers': 'Assign drivers to zones',
 
+  'analytics:view_all_platform': 'View all analytics across all infrastructures and businesses',
   'analytics:view_all_infrastructure': 'View all analytics across businesses',
   'analytics:view_all_business': 'View all business analytics',
   'analytics:view_business': 'View business analytics (limited)',
