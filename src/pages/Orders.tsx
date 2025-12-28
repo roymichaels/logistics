@@ -4,8 +4,10 @@ import { useOrders, useOrder, useCreateOrder, useAssignOrder, useUpdateOrderStat
 import { useApp } from '../application/services/useApp';
 import { Diagnostics } from '../foundation/diagnostics/DiagnosticsStore';
 import { Toast } from '../components/Toast';
-import { colors, commonStyles } from '../styles/design-system';
 import { ROYAL_STYLES, ROYAL_COLORS } from '../styles/royalTheme';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
+import { ContentCard } from '../components/layout/ContentCard';
 import { logger } from '../lib/logger';
 import { useI18n } from '../lib/i18n';
 import type { FrontendDataStore } from '../lib/frontendDataStore';
@@ -92,39 +94,29 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
 
   if (loading && orders.length === 0) {
     return (
-      <div style={commonStyles.pageContainer}>
-        <div style={commonStyles.emptyState}>
-          <div style={commonStyles.emptyStateIcon}>⏳</div>
-          <p style={commonStyles.emptyStateText}>{translations.phrases.loadingOrders}</p>
+      <PageContainer>
+        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+          <p style={{ color: ROYAL_COLORS.muted }}>{translations.phrases.loadingOrders}</p>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   if (error) {
     return (
-      <div style={commonStyles.pageContainer}>
-        <div style={commonStyles.emptyState}>
-          <div style={commonStyles.emptyStateIcon}>❌</div>
-          <p style={commonStyles.emptyStateText}>{error.message || 'Failed to load orders'}</p>
+      <PageContainer>
+        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
+          <p style={{ color: ROYAL_COLORS.text, marginBottom: '20px' }}>{error.message || 'Failed to load orders'}</p>
           <button
             onClick={refetch}
-            style={{
-              marginTop: '16px',
-              padding: '12px 24px',
-              background: ROYAL_COLORS.gradientPurple,
-              border: 'none',
-              borderRadius: '12px',
-              color: ROYAL_COLORS.textBright,
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
+            style={ROYAL_STYLES.buttonPrimary}
           >
             Try Again
           </button>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -155,7 +147,7 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
   }
 
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
+    <PageContainer>
       {showModeSelector && (
         <div
           style={{
@@ -235,10 +227,19 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
         </div>
       )}
 
-      <div style={ROYAL_STYLES.pageHeader}>
-        <h1 style={ROYAL_STYLES.pageTitle}>📦 Orders</h1>
-        <p style={ROYAL_STYLES.pageSubtitle}>Manage orders in real-time</p>
-      </div>
+      <PageHeader
+        icon="📦"
+        title="Orders"
+        subtitle="Manage orders in real-time"
+        actionButton={
+          <button
+            onClick={handleCreateOrder}
+            style={ROYAL_STYLES.buttonPrimary}
+          >
+            + Create Order
+          </button>
+        }
+      />
 
       <input
         type="text"
@@ -280,34 +281,25 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
       </div>
 
       {filteredOrders.length === 0 ? (
-        <div style={ROYAL_STYLES.emptyState}>
-          <div style={ROYAL_STYLES.emptyStateIcon}>📦</div>
-          <p style={ROYAL_STYLES.emptyStateText}>No orders found</p>
-          <button
-            onClick={handleCreateOrder}
-            style={{
-              marginTop: '16px',
-              padding: '12px 24px',
-              background: ROYAL_COLORS.gradientPurple,
-              border: 'none',
-              borderRadius: '12px',
-              color: ROYAL_COLORS.textBright,
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
-            Create First Order
-          </button>
-        </div>
+        <ContentCard>
+          <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
+            <p style={{ color: ROYAL_COLORS.muted, marginBottom: '20px' }}>No orders found</p>
+            <button
+              onClick={handleCreateOrder}
+              style={ROYAL_STYLES.buttonPrimary}
+            >
+              Create First Order
+            </button>
+          </div>
+        </ContentCard>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '80px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {filteredOrders.map((order) => (
             <OrderCard
               key={order.id}
               order={order}
               onClick={() => {
-
                 setSelectedOrderId(order.id);
                 Diagnostics.logEvent({ type: 'nav', message: 'Navigate to order detail', data: { orderId: order.id } });
               }}
@@ -315,7 +307,7 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
           ))}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }
 
@@ -335,14 +327,7 @@ function OrderCard({ order, onClick }: {
   };
 
   return (
-    <div
-      onClick={onClick}
-      style={{
-        ...ROYAL_STYLES.card,
-        cursor: 'pointer',
-        transition: 'all 0.3s ease'
-      }}
-    >
+    <ContentCard hoverable onClick={onClick}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
         <div style={{ flex: 1 }}>
           <h3 style={{
@@ -388,7 +373,7 @@ function OrderCard({ order, onClick }: {
           ${order.total_amount.toLocaleString()}
         </div>
       )}
-    </div>
+    </ContentCard>
   );
 }
 

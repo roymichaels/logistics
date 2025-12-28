@@ -1,24 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, Zone, CreateZoneInput, UpdateZoneInput } from '../data/types';
 import { Toast } from './Toast';
-
+import { telegram } from '../utils/telegram';
+import { PageContainer } from './layout/PageContainer';
+import { PageHeader } from './layout/PageHeader';
+import { ContentCard } from './layout/ContentCard';
+import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { logger } from '../lib/logger';
 
 interface ZoneManagerProps {
   dataStore: DataStore;
 }
-
-const ROYAL_COLORS = {
-  background: 'radial-gradient(125% 125% at 50% 0%, rgba(95, 46, 170, 0.55) 0%, rgba(12, 2, 25, 0.95) 45%, #03000a 100%)',
-  card: 'rgba(24, 10, 45, 0.75)',
-  cardBorder: 'rgba(140, 91, 238, 0.45)',
-  muted: '#bfa9ff',
-  text: '#f4f1ff',
-  accent: '#1D9BF0',
-  gold: '#f6c945',
-  teal: '#4dd0e1',
-  shadow: '0 20px 40px rgba(20, 4, 54, 0.45)'
-};
 
 const COLORS = [
   '#1D9BF0', '#4dd0e1', '#f6c945', '#ff6b8a', '#4caf50',
@@ -186,109 +178,35 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
 
   if (loading) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: ROYAL_COLORS.background,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: ROYAL_COLORS.text
-        }}
-      >
-        טוען...
-      </div>
+      <PageContainer>
+        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+          <p style={{ color: ROYAL_COLORS.muted }}>טוען...</p>
+        </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: ROYAL_COLORS.background,
-        padding: '20px',
-        color: ROYAL_COLORS.text,
-        position: 'relative',
-        overflow: 'hidden'
-      }}
-    >
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background:
-            'radial-gradient(80% 80% at 80% 10%, rgba(246, 201, 69, 0.08) 0%, rgba(20, 6, 58, 0) 60%)',
-          pointerEvents: 'none'
-        }}
+    <PageContainer>
+      <PageHeader
+        icon="🗺️"
+        title="ניהול אזורים"
+        subtitle="ניהול מלא של אזורי הפעילות במערכת"
+        actionButton={
+          <button
+            onClick={() => {
+              resetForm();
+              setShowCreateModal(true);
+            }}
+            style={ROYAL_STYLES.buttonPrimary}
+          >
+            + אזור חדש
+          </button>
+        }
       />
 
-      <div style={{ position: 'relative', zIndex: 1, maxWidth: '1200px', margin: '0 auto' }}>
-        <header
-          style={{
-            padding: '24px',
-            background: 'linear-gradient(120deg, rgba(82, 36, 142, 0.55), rgba(20, 9, 49, 0.8))',
-            borderRadius: '22px',
-            border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-            boxShadow: ROYAL_COLORS.shadow,
-            marginBottom: '24px'
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div
-                style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '16px',
-                  background: 'linear-gradient(130deg, rgba(77, 208, 225, 0.7), rgba(29, 155, 240, 0.7))',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '28px'
-                }}
-              >
-                🗺️
-              </div>
-              <div>
-                <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>ניהול אזורים</h1>
-                <p style={{ margin: '4px 0 0', color: ROYAL_COLORS.muted, fontSize: '14px' }}>
-                  ניהול מלא של אזורי הפעילות במערכת
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                resetForm();
-                setShowCreateModal(true);
-
-              }}
-              style={{
-                padding: '12px 24px',
-                background: `linear-gradient(120deg, ${ROYAL_COLORS.teal}, ${ROYAL_COLORS.accent})`,
-                border: 'none',
-                borderRadius: '12px',
-                color: ROYAL_COLORS.text,
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                boxShadow: '0 8px 16px rgba(77, 208, 225, 0.3)'
-              }}
-            >
-              + אזור חדש
-            </button>
-          </div>
-        </header>
-
-        <div
-          style={{
-            padding: '20px',
-            background: ROYAL_COLORS.card,
-            border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-            borderRadius: '22px',
-            boxShadow: ROYAL_COLORS.shadow,
-            marginBottom: '24px'
-          }}
-        >
+      <ContentCard style={{ marginBottom: '24px' }}>
           <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
             <input
               type="text"
@@ -342,37 +260,22 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
               ))}
             </select>
           </div>
-        </div>
+      </ContentCard>
 
         <div style={{ display: 'grid', gap: '20px' }}>
           {filteredZones.length === 0 ? (
-            <div
-              style={{
-                padding: '48px',
-                textAlign: 'center',
-                background: ROYAL_COLORS.card,
-                border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-                borderRadius: '22px'
-              }}
-            >
+            <ContentCard>
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>🗺️</div>
-              <h3 style={{ margin: '0 0 8px', fontSize: '20px' }}>אין אזורים</h3>
-              <p style={{ margin: 0, color: ROYAL_COLORS.muted }}>
-                צור אזור חדש כדי להתחיל
-              </p>
-            </div>
+              <div style={{ padding: '48px', textAlign: 'center' }}>
+                <h3 style={{ margin: '0 0 8px', fontSize: '20px' }}>אין אזורים</h3>
+                <p style={{ margin: 0, color: ROYAL_COLORS.muted }}>
+                  צור אזור חדש כדי להתחיל
+                </p>
+              </div>
+            </ContentCard>
           ) : (
             filteredZones.map((zone) => (
-              <div
-                key={zone.id}
-                style={{
-                  padding: '24px',
-                  background: ROYAL_COLORS.card,
-                  border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-                  borderRadius: '22px',
-                  boxShadow: ROYAL_COLORS.shadow
-                }}
-              >
+              <ContentCard key={zone.id}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
@@ -477,12 +380,10 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
                     </button>
                   </div>
                 </div>
-              </div>
+              </ContentCard>
             ))
           )}
         </div>
-      </div>
-
-    </div>
+    </PageContainer>
   );
 }

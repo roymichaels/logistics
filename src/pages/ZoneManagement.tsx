@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, Zone, User } from '../data/types';
 import { Toast } from '../components/Toast';
-
 import { ZoneManager } from '../components/ZoneManager';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
+import { ContentCard } from '../components/layout/ContentCard';
+import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { logger } from '../lib/logger';
 import { useI18n } from '../lib/i18n';
 
@@ -12,18 +15,6 @@ interface ZoneManagementProps {
 }
 
 type ViewMode = 'manager' | 'assignments';
-
-const ROYAL_COLORS = {
-  background: 'radial-gradient(125% 125% at 50% 0%, rgba(95, 46, 170, 0.55) 0%, rgba(12, 2, 25, 0.95) 45%, #03000a 100%)',
-  card: 'rgba(24, 10, 45, 0.75)',
-  cardBorder: 'rgba(140, 91, 238, 0.45)',
-  muted: '#bfa9ff',
-  text: '#f4f1ff',
-  accent: '#1D9BF0',
-  gold: '#f6c945',
-  teal: '#4dd0e1',
-  shadow: '0 20px 40px rgba(20, 4, 54, 0.45)'
-};
 
 interface ZoneWithDrivers extends Zone {
   assigned_drivers: Array<{ telegram_id: string; name: string }>;
@@ -131,18 +122,12 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
 
   if (loading) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: ROYAL_COLORS.background,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: ROYAL_COLORS.text
-        }}
-      >
-        {translations.zoneManagementPage.loading}
-      </div>
+      <PageContainer>
+        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+          <p style={{ color: ROYAL_COLORS.muted }}>{translations.zoneManagementPage.loading}</p>
+        </div>
+      </PageContainer>
     );
   }
 
@@ -151,30 +136,14 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
     : [];
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: ROYAL_COLORS.background,
-        padding: '20px',
-        color: ROYAL_COLORS.text,
-        position: 'relative',
-        overflow: 'hidden'
-      }}
-    >
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background:
-            'radial-gradient(80% 80% at 80% 10%, rgba(246, 201, 69, 0.08) 0%, rgba(20, 6, 58, 0) 60%)',
-          pointerEvents: 'none'
-        }}
+    <PageContainer>
+      <PageHeader
+        icon="🗺️"
+        title={translations.zoneManagementPage.zoneManagement}
+        subtitle="ניהול אזורי משלוחים והקצאת נהגים"
       />
 
-      <div style={{ position: 'relative', zIndex: 1, maxWidth: '1200px', margin: '0 auto' }}>
-        {/* unified header handles title and icon */}
-
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
           <button
             onClick={() => {
               setViewMode('manager');
@@ -183,14 +152,14 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
             style={{
               flex: 1,
               padding: '12px',
-              background: viewMode === 'manager' ? `linear-gradient(120deg, ${ROYAL_COLORS.teal}, ${ROYAL_COLORS.accent})` : 'rgba(20, 8, 46, 0.6)',
-              border: viewMode === 'manager' ? 'none' : '1px solid rgba(29, 155, 240, 0.3)',
+              background: viewMode === 'manager' ? ROYAL_COLORS.gradientPurple : ROYAL_COLORS.secondary,
+              border: viewMode === 'manager' ? 'none' : `1px solid ${ROYAL_COLORS.cardBorder}`,
               borderRadius: '12px',
               color: ROYAL_COLORS.text,
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer',
-              boxShadow: viewMode === 'manager' ? '0 4px 12px rgba(77, 208, 225, 0.3)' : 'none'
+              boxShadow: viewMode === 'manager' ? ROYAL_COLORS.shadowStrong : 'none'
             }}
           >
             {translations.zoneManagementPage.zoneManagement}
@@ -203,14 +172,14 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
             style={{
               flex: 1,
               padding: '12px',
-              background: viewMode === 'assignments' ? `linear-gradient(120deg, ${ROYAL_COLORS.teal}, ${ROYAL_COLORS.accent})` : 'rgba(20, 8, 46, 0.6)',
-              border: viewMode === 'assignments' ? 'none' : '1px solid rgba(29, 155, 240, 0.3)',
+              background: viewMode === 'assignments' ? ROYAL_COLORS.gradientPurple : ROYAL_COLORS.secondary,
+              border: viewMode === 'assignments' ? 'none' : `1px solid ${ROYAL_COLORS.cardBorder}`,
               borderRadius: '12px',
               color: ROYAL_COLORS.text,
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer',
-              boxShadow: viewMode === 'assignments' ? '0 4px 12px rgba(77, 208, 225, 0.3)' : 'none'
+              boxShadow: viewMode === 'assignments' ? ROYAL_COLORS.shadowStrong : 'none'
             }}
           >
             {translations.zoneManagementPage.assignDrivers}
@@ -219,16 +188,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
 
         <div style={{ display: 'grid', gap: '20px' }}>
           {zones.map((zone) => (
-            <section
-              key={zone.id}
-              style={{
-                padding: '24px',
-                background: ROYAL_COLORS.card,
-                border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-                borderRadius: '22px',
-                boxShadow: ROYAL_COLORS.shadow
-              }}
-            >
+            <ContentCard key={zone.id}>
               <div
                 style={{
                   display: 'flex',
@@ -249,17 +209,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                     setShowAssignModal(true);
 
                   }}
-                  style={{
-                    padding: '12px 20px',
-                    background: `linear-gradient(120deg, ${ROYAL_COLORS.teal}, ${ROYAL_COLORS.accent})`,
-                    border: 'none',
-                    borderRadius: '12px',
-                    color: ROYAL_COLORS.text,
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    boxShadow: '0 8px 16px rgba(77, 208, 225, 0.3)'
-                  }}
+                  style={ROYAL_STYLES.buttonPrimary}
                 >
                   {translations.zoneManagementPage.assignDriver}
                 </button>
@@ -271,9 +221,9 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                     padding: '24px',
                     textAlign: 'center',
                     color: ROYAL_COLORS.muted,
-                    background: 'rgba(20, 8, 46, 0.4)',
+                    background: ROYAL_COLORS.secondary,
                     borderRadius: '16px',
-                    border: '1px dashed rgba(29, 155, 240, 0.3)'
+                    border: `1px dashed ${ROYAL_COLORS.cardBorder}`
                   }}
                 >
                   {translations.zoneManagementPage.noDriversAssigned}
@@ -335,11 +285,9 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                   ))}
                 </div>
               )}
-            </section>
+            </ContentCard>
           ))}
         </div>
-      </div>
-
-    </div>
+    </PageContainer>
   );
 }

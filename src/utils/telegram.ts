@@ -81,6 +81,36 @@ export function showAlert(message: string, callback?: () => void): void {
 }
 
 /**
+ * Show a confirmation dialog
+ * Returns a promise that resolves to true if confirmed, false otherwise
+ */
+export function showConfirm(message: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    try {
+      const tg = getTelegramWebApp();
+      if (tg?.showAlert) {
+        // Telegram doesn't have native confirm, use alert with callback
+        // For better UX, we'll fall back to browser confirm
+        if (typeof window !== 'undefined') {
+          const result = window.confirm(message);
+          resolve(result);
+        } else {
+          resolve(false);
+        }
+      } else if (typeof window !== 'undefined') {
+        const result = window.confirm(message);
+        resolve(result);
+      } else {
+        resolve(false);
+      }
+    } catch (error) {
+      console.warn('Failed to show confirm:', error);
+      resolve(false);
+    }
+  });
+}
+
+/**
  * Provide haptic feedback
  */
 export function hapticFeedback(type: 'light' | 'medium' | 'heavy' | 'soft' = 'light'): void {
@@ -163,6 +193,7 @@ export function getTelegramUser(): any | null {
 export const telegram = {
   hapticFeedback,
   showAlert,
+  showConfirm,
   showBackButton,
   hideBackButton,
   notificationHaptic,

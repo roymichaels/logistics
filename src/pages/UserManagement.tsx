@@ -26,7 +26,7 @@ import { Toast } from '../components/Toast';
 import { AuthDiagnostics } from '../lib/diagnostics';
 import { sessionTracker } from '../lib/sessionTracker';
 import { logger } from '../lib/logger';
-import { hideBackButton } from '../utils/telegram';
+import { hideBackButton, telegram } from '../utils/telegram';
 
 interface UserManagementProps {
   onNavigate: (page: string) => void;

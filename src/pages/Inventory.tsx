@@ -3,13 +3,15 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useInventory, useLowStockItems, useAdjustStock } from '../application/use-cases';
 import { useCatalog } from '../application/use-cases';
 import { useApp } from '../application/services/useApp';
-import { useTheme } from '../foundation/theme';
 import { useAppServices } from '../context/AppServicesContext';
 import { logger } from '../lib/logger';
 import { Toast } from '../components/Toast';
-import { formatCurrency } from '../lib/i18n';
 import { Spinner } from '../components/atoms/Spinner';
 import { Button } from '../components/atoms/Button';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
+import { ContentCard } from '../components/layout/ContentCard';
+import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import type { Product } from '../application/queries/catalog.queries';
 import type { InventoryItem } from '../application/queries/inventory.queries';
 
@@ -27,8 +29,6 @@ interface AggregatedInventory {
 }
 
 export function Inventory({ onNavigate }: InventoryProps) {
-
-  const { theme: themeConfig } = useTheme();
   const app = useApp();
   const { currentBusinessId } = useAppServices();
 
@@ -65,10 +65,8 @@ export function Inventory({ onNavigate }: InventoryProps) {
       unsubInventory?.();
       unsubProductUpdated?.();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [app.events]);
 
-  // Refetch inventory when business context changes
   useEffect(() => {
     logger.info('🏢 Inventory: Business context changed, refetching...', { currentBusinessId });
     refetch();
@@ -147,10 +145,10 @@ export function Inventory({ onNavigate }: InventoryProps) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'in_stock': return '#10b981';
-      case 'low': return '#f59e0b';
-      case 'out': return '#ef4444';
-      default: return '#6b7280';
+      case 'in_stock': return ROYAL_COLORS.success;
+      case 'low': return ROYAL_COLORS.warning;
+      case 'out': return ROYAL_COLORS.error;
+      default: return ROYAL_COLORS.muted;
     }
   };
 
@@ -165,174 +163,153 @@ export function Inventory({ onNavigate }: InventoryProps) {
 
   if (loading && aggregatedInventory.length === 0) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        background: themeConfig.bg_color,
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <Spinner />
-          <p style={{ marginTop: '16px', color: themeConfig.text_color }}>טוען מלאי...</p>
+      <PageContainer>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '60vh'
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <Spinner />
+            <p style={{ marginTop: '16px', color: ROYAL_COLORS.muted }}>טוען מלאי...</p>
+          </div>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   if (error) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        background: themeConfig.bg_color,
-      }}>
-        <div style={{ textAlign: 'center', padding: '20px' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
-          <p style={{ color: themeConfig.text_color, marginBottom: '20px' }}>
-            {error.message || 'שגיאה בטעינת מלאי'}
-          </p>
-          <Button onClick={refetch}>נסה שוב</Button>
+      <PageContainer>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '60vh'
+        }}>
+          <div style={{ textAlign: 'center', padding: '20px' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
+            <p style={{ color: ROYAL_COLORS.text, marginBottom: '20px' }}>
+              {error.message || 'שגיאה בטעינת מלאי'}
+            </p>
+            <Button onClick={refetch}>נסה שוב</Button>
+          </div>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   if (showAdjustForm && selectedProduct) {
     return (
-      <div style={{
-        padding: '20px',
-        background: themeConfig.bg_color,
-        minHeight: '100vh',
-      }}>
-        <h2 style={{
-          color: themeConfig.text_color,
-          marginBottom: '20px',
-          fontSize: '20px',
-          fontWeight: '600',
-        }}>
-          עדכן מלאי - {selectedProduct.product_name}
-        </h2>
-
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{
-            display: 'block',
-            marginBottom: '8px',
-            color: themeConfig.text_color,
-            fontSize: '14px',
+      <PageContainer>
+        <ContentCard>
+          <h2 style={{
+            color: ROYAL_COLORS.text,
+            marginBottom: '20px',
+            fontSize: '20px',
+            fontWeight: '600',
           }}>
-            כמות (שינוי)
-          </label>
-          <input
-            type="number"
-            value={adjustmentData.quantity}
-            onChange={(e) => setAdjustmentData(prev => ({
-              ...prev,
-              quantity: parseInt(e.target.value) || 0
-            }))}
-            style={{
-              width: '100%',
-              padding: '12px',
-              borderRadius: '8px',
-              border: `1px solid ${themeConfig.hint_color}`,
-              background: themeConfig.secondary_bg_color,
-              color: themeConfig.text_color,
-              fontSize: '16px',
-            }}
-          />
-        </div>
+            עדכן מלאי - {selectedProduct.product_name}
+          </h2>
 
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{
-            display: 'block',
-            marginBottom: '8px',
-            color: themeConfig.text_color,
-            fontSize: '14px',
-          }}>
-            סיבה
-          </label>
-          <input
-            type="text"
-            value={adjustmentData.reason}
-            onChange={(e) => setAdjustmentData(prev => ({
-              ...prev,
-              reason: e.target.value
-            }))}
-            placeholder="למה המלאי משתנה?"
-            style={{
-              width: '100%',
-              padding: '12px',
-              borderRadius: '8px',
-              border: `1px solid ${themeConfig.hint_color}`,
-              background: themeConfig.secondary_bg_color,
-              color: themeConfig.text_color,
-              fontSize: '16px',
-            }}
-          />
-        </div>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              color: ROYAL_COLORS.text,
+              fontSize: '14px',
+            }}>
+              כמות (שינוי)
+            </label>
+            <input
+              type="number"
+              value={adjustmentData.quantity}
+              onChange={(e) => setAdjustmentData(prev => ({
+                ...prev,
+                quantity: parseInt(e.target.value) || 0
+              }))}
+              style={{
+                ...ROYAL_STYLES.input,
+              }}
+            />
+          </div>
 
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <Button
-            onClick={handleAdjustInventory}
-            disabled={adjusting || !adjustmentData.reason}
-            style={{ flex: 1 }}
-          >
-            {adjusting ? 'מעדכן...' : 'עדכן'}
-          </Button>
-          <Button
-            onClick={() => {
-              setShowAdjustForm(false);
-              setAdjustmentData({ quantity: 0, reason: '' });
-            }}
-            style={{ flex: 1, background: themeConfig.hint_color }}
-          >
-            ביטול
-          </Button>
-        </div>
-      </div>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              color: ROYAL_COLORS.text,
+              fontSize: '14px',
+            }}>
+              סיבה
+            </label>
+            <input
+              type="text"
+              value={adjustmentData.reason}
+              onChange={(e) => setAdjustmentData(prev => ({
+                ...prev,
+                reason: e.target.value
+              }))}
+              placeholder="למה המלאי משתנה?"
+              style={{
+                ...ROYAL_STYLES.input,
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              onClick={handleAdjustInventory}
+              disabled={adjusting || !adjustmentData.reason}
+              style={{
+                ...ROYAL_STYLES.buttonPrimary,
+                flex: 1,
+                opacity: (adjusting || !adjustmentData.reason) ? 0.5 : 1,
+                cursor: (adjusting || !adjustmentData.reason) ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {adjusting ? 'מעדכן...' : 'עדכן'}
+            </button>
+            <button
+              onClick={() => {
+                setShowAdjustForm(false);
+                setAdjustmentData({ quantity: 0, reason: '' });
+              }}
+              style={{
+                ...ROYAL_STYLES.buttonSecondary,
+                flex: 1
+              }}
+            >
+              ביטול
+            </button>
+          </div>
+        </ContentCard>
+      </PageContainer>
     );
   }
 
   return (
-    <div style={{
-      padding: '20px',
-      background: themeConfig.bg_color,
-      minHeight: '100vh',
-    }}>
-      <div style={{ marginBottom: '24px' }}>
-        <h1 style={{
-          fontSize: '28px',
-          fontWeight: '700',
-          color: themeConfig.text_color,
-          marginBottom: '8px',
-        }}>
-          📦 מלאי
-        </h1>
-        <p style={{
-          color: themeConfig.hint_color,
-          fontSize: '14px',
-        }}>
-          ניהול מלאי מוצרים
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        icon="📦"
+        title="מלאי"
+        subtitle="ניהול מלאי מוצרים"
+      />
 
       {lowStockItems && lowStockItems.length > 0 && (
-        <div style={{
-          background: '#fef3c7',
-          border: '1px solid #f59e0b',
-          borderRadius: '12px',
-          padding: '16px',
+        <ContentCard style={{
+          background: 'rgba(255, 212, 0, 0.15)',
+          border: `1px solid ${ROYAL_COLORS.warning}`,
           marginBottom: '20px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '20px' }}>⚠️</span>
-            <span style={{ color: '#78350f', fontWeight: '600' }}>
+            <span style={{ color: ROYAL_COLORS.warning, fontWeight: '600' }}>
               {lowStockItems.length} פריטים במלאי נמוך
             </span>
           </div>
-        </div>
+        </ContentCard>
       )}
 
       <div style={{
@@ -341,23 +318,28 @@ export function Inventory({ onNavigate }: InventoryProps) {
         marginBottom: '20px',
         overflowX: 'auto',
       }}>
-        {['all', 'low', 'out'].map((f) => (
+        {[
+          { value: 'all', label: 'הכל' },
+          { value: 'low', label: 'מלאי נמוך' },
+          { value: 'out', label: 'אזל מהמלאי' }
+        ].map((f) => (
           <button
-            key={f}
-            onClick={() => setFilter(f as any)}
+            key={f.value}
+            onClick={() => setFilter(f.value as any)}
             style={{
               padding: '8px 16px',
-              borderRadius: '20px',
-              border: 'none',
-              background: filter === f ? themeConfig.button_color : themeConfig.secondary_bg_color,
-              color: filter === f ? themeConfig.button_text_color : themeConfig.text_color,
+              borderRadius: '12px',
+              border: filter === f.value ? 'none' : `1px solid ${ROYAL_COLORS.cardBorder}`,
+              background: filter === f.value ? ROYAL_COLORS.gradientPurple : ROYAL_COLORS.secondary,
+              color: ROYAL_COLORS.text,
               fontSize: '14px',
-              fontWeight: '500',
+              fontWeight: '600',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
+              transition: 'all 0.3s ease',
             }}
           >
-            {f === 'all' ? 'הכל' : f === 'low' ? 'מלאי נמוך' : 'אזל מהמלאי'}
+            {f.label}
           </button>
         ))}
       </div>
@@ -367,18 +349,12 @@ export function Inventory({ onNavigate }: InventoryProps) {
         gap: '12px',
       }}>
         {aggregatedInventory.map((item) => (
-          <div
+          <ContentCard
             key={item.product_id}
+            hoverable
             onClick={() => {
               setSelectedProduct(item);
               setShowAdjustForm(true);
-            }}
-            style={{
-              background: themeConfig.secondary_bg_color,
-              borderRadius: '12px',
-              padding: '16px',
-              cursor: 'pointer',
-              border: `1px solid ${themeConfig.hint_color}20`,
             }}
           >
             <div style={{
@@ -391,7 +367,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
                 <h3 style={{
                   fontSize: '16px',
                   fontWeight: '600',
-                  color: themeConfig.text_color,
+                  color: ROYAL_COLORS.text,
                   marginBottom: '4px',
                 }}>
                   {item.product_name}
@@ -404,6 +380,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
                 padding: '4px 12px',
                 borderRadius: '16px',
                 background: `${getStatusColor(item.status)}20`,
+                border: `1px solid ${getStatusColor(item.status)}`,
               }}>
                 <span>{getStatusIcon(item.status)}</span>
                 <span style={{
@@ -424,7 +401,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
               <div>
                 <div style={{
                   fontSize: '12px',
-                  color: themeConfig.hint_color,
+                  color: ROYAL_COLORS.muted,
                   marginBottom: '4px',
                 }}>
                   במלאי
@@ -432,7 +409,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
                 <div style={{
                   fontSize: '20px',
                   fontWeight: '700',
-                  color: themeConfig.text_color,
+                  color: ROYAL_COLORS.text,
                 }}>
                   {item.totalOnHand}
                 </div>
@@ -440,7 +417,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
               <div>
                 <div style={{
                   fontSize: '12px',
-                  color: themeConfig.hint_color,
+                  color: ROYAL_COLORS.muted,
                   marginBottom: '4px',
                 }}>
                   שמור
@@ -448,27 +425,29 @@ export function Inventory({ onNavigate }: InventoryProps) {
                 <div style={{
                   fontSize: '20px',
                   fontWeight: '700',
-                  color: themeConfig.text_color,
+                  color: ROYAL_COLORS.text,
                 }}>
                   {item.totalReserved}
                 </div>
               </div>
             </div>
-          </div>
+          </ContentCard>
         ))}
       </div>
 
       {aggregatedInventory.length === 0 && (
-        <div style={{
-          textAlign: 'center',
-          padding: '40px 20px',
-        }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
-          <p style={{ color: themeConfig.hint_color }}>
-            {filter === 'all' ? 'אין פריטי מלאי' : `אין פריטים ב${filter === 'low' ? 'מלאי נמוך' : 'מלאי אזל'}`}
-          </p>
-        </div>
+        <ContentCard>
+          <div style={{
+            textAlign: 'center',
+            padding: '40px 20px',
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
+            <p style={{ color: ROYAL_COLORS.muted }}>
+              {filter === 'all' ? 'אין פריטי מלאי' : `אין פריטים ב${filter === 'low' ? 'מלאי נמוך' : 'מלאי אזל'}`}
+            </p>
+          </div>
+        </ContentCard>
       )}
-    </div>
+    </PageContainer>
   );
 }
