@@ -8,7 +8,12 @@ import { Diagnostics } from '../foundation/diagnostics/DiagnosticsStore';
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
 import { useNavigate } from 'react-router-dom';
-import { ROYAL_STYLES, ROYAL_COLORS } from '../styles/royalTheme';
+import { colors, spacing, typography, borderRadius, shadows, transitions } from '../styles/design-system';
+import { MetricCard, MetricGrid } from '../components/dashboard/MetricCard';
+import { Card } from '../components/molecules/Card';
+import { Button } from '../components/atoms/Button';
+import { Input } from '../components/atoms/Input';
+import { Badge } from '../components/atoms/Badge';
 import type { Product } from '../application/queries/catalog.queries';
 
 interface BusinessCatalogProps {
@@ -124,304 +129,329 @@ export function BusinessCatalog({ onNavigate: propOnNavigate }: BusinessCatalogP
 
   if (loading && products.length === 0) {
     return (
-      <div style={{ ...ROYAL_STYLES.pageContainer, textAlign: 'center' }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
-        <div style={{ color: ROYAL_COLORS.muted }}>Loading catalog...</div>
+      <div style={{
+        padding: spacing['3xl'],
+        textAlign: 'center',
+        minHeight: '400px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ fontSize: '48px', marginBottom: spacing.lg }}>📦</div>
+        <div style={{ color: colors.text.secondary, fontSize: typography.fontSize.lg }}>Loading catalog...</div>
       </div>
     );
   }
 
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
+    <div style={{
+      padding: spacing['3xl'],
+      maxWidth: '1400px',
+      margin: '0 auto'
+    }}>
       {/* Header */}
-      <div style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      <div style={{ marginBottom: spacing['3xl'] }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: spacing['2xl'],
+          flexWrap: 'wrap',
+          gap: spacing.lg
+        }}>
           <div>
-            <h1 style={{ ...ROYAL_STYLES.pageTitle, margin: 0 }}>
+            <h1 style={{
+              fontSize: typography.fontSize['3xl'],
+              fontWeight: typography.fontWeight.bold,
+              color: colors.text.primary,
+              margin: 0,
+              marginBottom: spacing.sm
+            }}>
               {translations.catalog || 'Business Catalog'}
             </h1>
-            <p style={{ ...ROYAL_STYLES.pageSubtitle, margin: '4px 0 0 0' }}>
+            <p style={{
+              fontSize: typography.fontSize.base,
+              color: colors.text.secondary,
+              margin: 0
+            }}>
               Manage product visibility in your storefront
             </p>
           </div>
-          <button
+          <Button
             onClick={() => onNavigate('/products')}
-            style={{
-              padding: '12px 20px',
-              background: ROYAL_COLORS.gradientPurple,
-              border: 'none',
-              borderRadius: '12px',
-              color: ROYAL_COLORS.textBright,
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              boxShadow: ROYAL_COLORS.glowPurple
-            }}
+            variant="primary"
+            size="md"
+            leftIcon={<span>+</span>}
           >
-            + Add Products
-          </button>
+            Add Products
+          </Button>
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '20px' }}>
-          <div style={ROYAL_STYLES.statBox}>
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>📦</div>
-            <div style={{ ...ROYAL_STYLES.statValue, fontSize: '28px' }}>{stats.total}</div>
-            <div style={ROYAL_STYLES.statLabel}>Total Products</div>
-          </div>
-          <div style={ROYAL_STYLES.statBox}>
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>✅</div>
-            <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.success, fontSize: '28px' }}>{stats.published}</div>
-            <div style={ROYAL_STYLES.statLabel}>Published</div>
-          </div>
-          <div style={ROYAL_STYLES.statBox}>
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>📝</div>
-            <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.warning, fontSize: '28px' }}>{stats.draft}</div>
-            <div style={ROYAL_STYLES.statLabel}>Draft</div>
-          </div>
-        </div>
+        <MetricGrid columns={3}>
+          <MetricCard
+            icon="📦"
+            label="Total Products"
+            value={stats.total}
+            variant="default"
+          />
+          <MetricCard
+            icon="✅"
+            label="Published"
+            value={stats.published}
+            variant="success"
+          />
+          <MetricCard
+            icon="📝"
+            label="Draft"
+            value={stats.draft}
+            variant="warning"
+          />
+        </MetricGrid>
 
         {/* Filters and Search */}
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              flex: 1,
-              minWidth: '200px',
-              padding: '12px',
-              background: ROYAL_COLORS.secondary,
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-              borderRadius: '12px',
-              color: ROYAL_COLORS.text,
-              fontSize: '15px'
-            }}
-          />
+        <div style={{
+          display: 'flex',
+          gap: spacing.md,
+          marginBottom: spacing.xl,
+          flexWrap: 'wrap',
+          alignItems: 'center'
+        }}>
+          <div style={{ flex: '1 1 300px', minWidth: '200px' }}>
+            <Input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              fullWidth
+            />
+          </div>
 
-          {(['all', 'published', 'draft'] as const).map(filterOption => (
-            <button
-              key={filterOption}
-              onClick={() => setFilter(filterOption)}
-              style={{
-                padding: '12px 20px',
-                background: filter === filterOption ? ROYAL_COLORS.gradientPurple : ROYAL_COLORS.secondary,
-                border: 'none',
-                borderRadius: '12px',
-                color: filter === filterOption ? ROYAL_COLORS.textBright : ROYAL_COLORS.text,
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                textTransform: 'capitalize'
-              }}
-            >
-              {filterOption}
-            </button>
-          ))}
+          <div style={{ display: 'flex', gap: spacing.sm, flexWrap: 'wrap' }}>
+            {(['all', 'published', 'draft'] as const).map(filterOption => (
+              <Button
+                key={filterOption}
+                onClick={() => setFilter(filterOption)}
+                variant={filter === filterOption ? 'primary' : 'secondary'}
+                size="md"
+              >
+                {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
+              </Button>
+            ))}
+          </div>
         </div>
 
         {/* Bulk Actions */}
         {selectedProducts.size > 0 && (
-          <div style={{
-            padding: '16px',
-            background: ROYAL_COLORS.gradientCard,
-            borderRadius: '12px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '16px'
-          }}>
-            <div style={{ color: ROYAL_COLORS.text, fontWeight: '600' }}>
-              {selectedProducts.size} products selected
+          <Card
+            variant="elevated"
+            style={{
+              marginBottom: spacing.xl,
+              padding: spacing.xl,
+              background: colors.ui.highlight
+            }}
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: spacing.md
+            }}>
+              <div style={{
+                color: colors.text.primary,
+                fontWeight: typography.fontWeight.semibold,
+                fontSize: typography.fontSize.base
+              }}>
+                {selectedProducts.size} products selected
+              </div>
+              <div style={{ display: 'flex', gap: spacing.sm, flexWrap: 'wrap' }}>
+                <Button
+                  onClick={() => handleBulkToggleVisibility(true)}
+                  variant="primary"
+                  size="sm"
+                >
+                  Publish Selected
+                </Button>
+                <Button
+                  onClick={() => handleBulkToggleVisibility(false)}
+                  variant="secondary"
+                  size="sm"
+                >
+                  Hide Selected
+                </Button>
+                <Button
+                  onClick={() => setSelectedProducts(new Set())}
+                  variant="secondary"
+                  size="sm"
+                >
+                  Clear
+                </Button>
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => handleBulkToggleVisibility(true)}
-                style={{
-                  padding: '10px 16px',
-                  background: ROYAL_COLORS.success,
-                  border: 'none',
-                  borderRadius: '10px',
-                  color: 'white',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer'
-                }}
-              >
-                Publish Selected
-              </button>
-              <button
-                onClick={() => handleBulkToggleVisibility(false)}
-                style={{
-                  padding: '10px 16px',
-                  background: ROYAL_COLORS.warning,
-                  border: 'none',
-                  borderRadius: '10px',
-                  color: 'white',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer'
-                }}
-              >
-                Hide Selected
-              </button>
-              <button
-                onClick={() => setSelectedProducts(new Set())}
-                style={{
-                  padding: '10px 16px',
-                  background: ROYAL_COLORS.secondary,
-                  border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-                  borderRadius: '10px',
-                  color: ROYAL_COLORS.text,
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer'
-                }}
-              >
-                Clear
-              </button>
-            </div>
-          </div>
+          </Card>
         )}
       </div>
 
       {/* Product List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
         {/* Select All Row */}
         {filteredProducts.length > 0 && (
-          <div style={{
-            ...ROYAL_STYLES.card,
-            padding: '12px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            cursor: 'pointer'
-          }}
-          onClick={handleSelectAll}>
-            <input
-              type="checkbox"
-              checked={selectedProducts.size === filteredProducts.length && filteredProducts.length > 0}
-              onChange={() => {}}
-              style={{ cursor: 'pointer' }}
-            />
-            <span style={{ color: ROYAL_COLORS.text, fontWeight: '600' }}>
-              Select All ({filteredProducts.length})
-            </span>
-          </div>
+          <Card
+            variant="outlined"
+            hoverable
+            interactive
+            onClick={handleSelectAll}
+            style={{
+              padding: spacing.lg,
+              cursor: 'pointer'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
+              <input
+                type="checkbox"
+                checked={selectedProducts.size === filteredProducts.length && filteredProducts.length > 0}
+                onChange={() => {}}
+                style={{ cursor: 'pointer', width: '18px', height: '18px' }}
+              />
+              <span style={{
+                color: colors.text.primary,
+                fontWeight: typography.fontWeight.semibold,
+                fontSize: typography.fontSize.base
+              }}>
+                Select All ({filteredProducts.length})
+              </span>
+            </div>
+          </Card>
         )}
 
         {filteredProducts.length === 0 ? (
-          <div style={{ ...ROYAL_STYLES.card, textAlign: 'center', padding: '40px' }}>
-            <div style={{ fontSize: '64px', marginBottom: '16px', opacity: 0.5 }}>📦</div>
-            <div style={{ fontSize: '18px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '8px' }}>
+          <Card variant="outlined" style={{ textAlign: 'center', padding: spacing['3xl'] }}>
+            <div style={{ fontSize: '64px', marginBottom: spacing.lg, opacity: 0.5 }}>📦</div>
+            <div style={{
+              fontSize: typography.fontSize.xl,
+              color: colors.text.primary,
+              fontWeight: typography.fontWeight.semibold,
+              marginBottom: spacing.sm
+            }}>
               No products found
             </div>
-            <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+            <div style={{ fontSize: typography.fontSize.base, color: colors.text.secondary }}>
               {filter !== 'all' ? 'Try changing your filter' : 'Add products to your inventory first'}
             </div>
-          </div>
+          </Card>
         ) : (
           filteredProducts.map(product => (
-            <div
+            <Card
               key={product.id}
+              variant={selectedProducts.has(product.id) ? 'elevated' : 'outlined'}
+              hoverable
               style={{
-                ...ROYAL_STYLES.card,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                transition: 'all 0.3s ease',
-                border: selectedProducts.has(product.id)
-                  ? `2px solid ${ROYAL_COLORS.accent}`
-                  : `1px solid ${ROYAL_COLORS.cardBorder}`
+                padding: spacing.lg,
+                borderColor: selectedProducts.has(product.id) ? colors.brand.primary : undefined,
+                borderWidth: selectedProducts.has(product.id) ? '2px' : undefined,
+                transition: transitions.normal
               }}
             >
-              <input
-                type="checkbox"
-                checked={selectedProducts.has(product.id)}
-                onChange={() => handleSelectProduct(product.id)}
-                style={{ cursor: 'pointer' }}
-              />
-
-              {product.image_url && (
-                <img
-                  src={product.image_url}
-                  alt={product.name}
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    objectFit: 'cover',
-                    borderRadius: '8px',
-                    background: ROYAL_COLORS.secondary
-                  }}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: spacing.lg,
+                flexWrap: 'wrap'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={selectedProducts.has(product.id)}
+                  onChange={() => handleSelectProduct(product.id)}
+                  style={{ cursor: 'pointer', width: '18px', height: '18px' }}
                 />
-              )}
 
-              <div style={{ flex: 1 }}>
-                <div style={{
-                  fontSize: '16px',
-                  fontWeight: '700',
-                  color: ROYAL_COLORS.text,
-                  marginBottom: '4px'
-                }}>
-                  {product.name}
+                {product.image_url ? (
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    style={{
+                      width: '64px',
+                      height: '64px',
+                      objectFit: 'cover',
+                      borderRadius: borderRadius.md,
+                      background: colors.background.secondary,
+                      border: `1px solid ${colors.border.primary}`
+                    }}
+                  />
+                ) : (
+                  <div style={{
+                    width: '64px',
+                    height: '64px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: borderRadius.md,
+                    background: colors.background.secondary,
+                    border: `1px solid ${colors.border.primary}`,
+                    fontSize: '32px'
+                  }}>
+                    📦
+                  </div>
+                )}
+
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                  <div style={{
+                    fontSize: typography.fontSize.lg,
+                    fontWeight: typography.fontWeight.bold,
+                    color: colors.text.primary,
+                    marginBottom: spacing.xs
+                  }}>
+                    {product.name}
+                  </div>
+                  {product.description && (
+                    <div style={{
+                      fontSize: typography.fontSize.sm,
+                      color: colors.text.secondary,
+                      marginBottom: spacing.sm,
+                      lineHeight: typography.lineHeight.normal
+                    }}>
+                      {product.description.substring(0, 100)}{product.description.length > 100 ? '...' : ''}
+                    </div>
+                  )}
+                  <div style={{
+                    display: 'flex',
+                    gap: spacing.lg,
+                    fontSize: typography.fontSize.sm,
+                    color: colors.text.tertiary,
+                    flexWrap: 'wrap'
+                  }}>
+                    {product.sku && <span>SKU: {product.sku}</span>}
+                    <span>Price: {formatCurrency(product.price || 0)}</span>
+                    <span>Stock: {product.stock || 0}</span>
+                  </div>
                 </div>
-                <div style={{
-                  fontSize: '13px',
-                  color: ROYAL_COLORS.muted,
-                  marginBottom: '8px'
-                }}>
-                  {product.description?.substring(0, 100)}{product.description && product.description.length > 100 ? '...' : ''}
-                </div>
+
                 <div style={{
                   display: 'flex',
-                  gap: '12px',
-                  fontSize: '13px',
-                  color: ROYAL_COLORS.muted
+                  gap: spacing.sm,
+                  alignItems: 'center',
+                  flexWrap: 'wrap'
                 }}>
-                  {product.sku && <span>SKU: {product.sku}</span>}
-                  <span>Price: {formatCurrency(product.price || 0)}</span>
-                  <span>Stock: {product.stock || 0}</span>
+                  <Badge
+                    variant={(product.is_visible !== false) ? 'success' : 'warning'}
+                    size="md"
+                  >
+                    {(product.is_visible !== false) ? 'Published' : 'Draft'}
+                  </Badge>
+
+                  <Button
+                    onClick={() => handleToggleVisibility(product.id, product.is_visible !== false)}
+                    disabled={updating}
+                    variant={(product.is_visible !== false) ? 'secondary' : 'primary'}
+                    size="sm"
+                  >
+                    {(product.is_visible !== false) ? 'Hide' : 'Publish'}
+                  </Button>
                 </div>
               </div>
-
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <div style={{
-                  padding: '6px 12px',
-                  background: (product.is_visible !== false)
-                    ? `${ROYAL_COLORS.success}20`
-                    : `${ROYAL_COLORS.warning}20`,
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  color: (product.is_visible !== false) ? ROYAL_COLORS.success : ROYAL_COLORS.warning
-                }}>
-                  {(product.is_visible !== false) ? 'Published' : 'Draft'}
-                </div>
-
-                <button
-                  onClick={() => handleToggleVisibility(product.id, product.is_visible !== false)}
-                  disabled={updating}
-                  style={{
-                    padding: '10px 16px',
-                    background: (product.is_visible !== false)
-                      ? ROYAL_COLORS.secondary
-                      : ROYAL_COLORS.gradientPurple,
-                    border: (product.is_visible !== false)
-                      ? `1px solid ${ROYAL_COLORS.cardBorder}`
-                      : 'none',
-                    borderRadius: '10px',
-                    color: (product.is_visible !== false) ? ROYAL_COLORS.text : ROYAL_COLORS.textBright,
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: updating ? 'not-allowed' : 'pointer',
-                    opacity: updating ? 0.5 : 1
-                  }}
-                >
-                  {(product.is_visible !== false) ? 'Hide' : 'Publish'}
-                </button>
-              </div>
-            </div>
+            </Card>
           ))
         )}
       </div>
