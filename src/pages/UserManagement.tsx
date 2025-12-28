@@ -26,6 +26,7 @@ import { Toast } from '../components/Toast';
 import { AuthDiagnostics } from '../lib/diagnostics';
 import { sessionTracker } from '../lib/sessionTracker';
 import { logger } from '../lib/logger';
+import { hideBackButton } from '../utils/telegram';
 
 interface UserManagementProps {
   onNavigate: (page: string) => void;
@@ -182,8 +183,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
   }, [hasManagementPermission, loadUsers]);
 
   useEffect(() => {
-
-    return () => telegram.hideBackButton();
+    return () => hideBackButton();
   }, [onNavigate]);
 
   useEffect(() => {

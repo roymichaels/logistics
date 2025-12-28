@@ -35,17 +35,7 @@ import { PageTitleProvider } from './context/PageTitleContext';
 import { NavControllerProvider, UIControllerProvider, UIControllerRenderer, DrawerControllerProvider, DataSandboxProvider } from './stubs/migrationStubs';
 import { useTheme } from './foundation/theme';
 import { runtimeEnvironment } from './lib/runtimeEnvironment';
-import { haptic } from './utils/haptic';
-
-// Telegram WebApp API shim
-const telegram = {
-  hapticFeedback: (type: string) => haptic('light'),
-  showAlert: (message: string) => {
-    if (typeof window !== 'undefined') {
-      alert(message);
-    }
-  }
-};
+import { telegram } from './utils/telegram';
 
 // All page components are now lazy-loaded in MigrationRouter
 

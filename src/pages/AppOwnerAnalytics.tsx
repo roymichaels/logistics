@@ -18,6 +18,7 @@ import React, { useState, useEffect } from 'react';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
+import { hideBackButton } from '../utils/telegram';
 
 interface AppOwnerAnalyticsProps {
   onNavigate: (page: string) => void;
@@ -44,8 +45,7 @@ export function AppOwnerAnalytics({ onNavigate, currentUser, dataStore }: AppOwn
   const isAppOwner = currentUser?.role === 'app_owner';
 
   useEffect(() => {
-
-    return () => telegram.hideBackButton();
+    return () => hideBackButton();
   }, [onNavigate]);
 
   useEffect(() => {
