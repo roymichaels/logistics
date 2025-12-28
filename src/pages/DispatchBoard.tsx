@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 
-import { useRoleTheme } from '../hooks/useRoleTheme';
 import { useLanguage } from '../context/LanguageContext';
 import {
   DataStore,
@@ -10,6 +9,10 @@ import {
 } from '../data/types';
 import { Toast } from '../components/Toast';
 import { DispatchOrchestrator, ZoneCoverageResult } from '../lib/dispatchOrchestrator';
+import { PageContainer } from '../components/layout/PageContainer';
+import { PageHeader } from '../components/layout/PageHeader';
+import { ContentCard } from '../components/layout/ContentCard';
+import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 
 import { logger } from '../lib/logger';
 import { haptic } from '../utils/haptic';
@@ -23,7 +26,6 @@ type OrderStatus = 'pending' | 'assigned' | 'in_progress' | 'completed';
 
 export function DispatchBoard({ dataStore }: DispatchBoardProps) {
 
-  const { colors, styles } = useRoleTheme();
   const { t: translations, isRTL } = useLanguage();
   const [zones, setZones] = useState<ZoneCoverageSnapshot[]>([]);
   const [unassignedDrivers, setUnassignedDrivers] = useState<DriverStatusRecord[]>([]);
@@ -172,101 +174,56 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
 
   if (loading) {
     return (
-      <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📡</div>
-        <div style={{ color: colors.muted }}>{translations.dispatchBoardPage.loadingDispatchBoard}</div>
-      </div>
+      <PageContainer>
+        <div style={{ textAlign: 'center', paddingTop: '80px' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📡</div>
+          <div style={{ color: ROYAL_COLORS.muted }}>{translations.dispatchBoardPage.loadingDispatchBoard}</div>
+        </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div style={styles.pageContainer}>
-      {/* Header with Real-Time Indicator */}
-      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+    <PageContainer>
+      <PageHeader
+        icon="📡"
+        title={translations.dispatchBoardPage.title}
+        subtitle={translations.dispatchBoardPage.subtitle}
+        actionButton={
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '50%',
-              background: colors.gradientPrimary,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '24px',
-              boxShadow: colors.glowPrimaryStrong
+              gap: '8px',
+              padding: '6px 12px',
+              background: `${ROYAL_COLORS.success}20`,
+              borderRadius: '20px',
+              border: `1px solid ${ROYAL_COLORS.success}50`
             }}>
-              📡
+              <div style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: ROYAL_COLORS.success,
+                boxShadow: `0 0 8px ${ROYAL_COLORS.success}`,
+                animation: 'pulse 2s infinite'
+              }} />
+              <span style={{ fontSize: '12px', color: ROYAL_COLORS.success, fontWeight: '600' }}>
+                {translations.dispatchBoardPage.realTime}
+              </span>
             </div>
-            <div>
-              <h1 style={{ ...styles.pageTitle, textAlign: isRTL ? 'right' : 'left', marginBottom: '4px' }}>
-                {translations.dispatchBoardPage.title}
-              </h1>
-              <p style={styles.pageSubtitle}>{translations.dispatchBoardPage.subtitle}</p>
-            </div>
+            <button
+              onClick={() => setViewMode(viewMode === 'kanban' ? 'list' : 'kanban')}
+              style={ROYAL_STYLES.buttonSecondary}
+            >
+              {viewMode === 'kanban' ? translations.dispatchBoardPage.list : translations.dispatchBoardPage.kanban}
+            </button>
+            <button onClick={handleRefresh} style={ROYAL_STYLES.buttonSecondary}>
+              🔄 {translations.dispatchBoardPage.refresh}
+            </button>
           </div>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '6px 12px',
-            background: `${colors.success}20`,
-            borderRadius: '20px',
-            border: `1px solid ${colors.success}50`
-          }}>
-            <div style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: colors.success,
-              boxShadow: `0 0 8px ${colors.success}`,
-              animation: 'pulse 2s infinite'
-            }} />
-            <span style={{ fontSize: '12px', color: colors.success, fontWeight: '600' }}>{translations.dispatchBoardPage.realTime}</span>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button
-            onClick={() => {
-              setViewMode(viewMode === 'kanban' ? 'list' : 'kanban');
-
-            }}
-            style={{
-              padding: '10px 16px',
-              background: 'transparent',
-              border: `2px solid ${colors.accent}`,
-              borderRadius: '12px',
-              color: colors.accent,
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease'
-            }}
-          >
-            {viewMode === 'kanban' ? translations.dispatchBoardPage.list : translations.dispatchBoardPage.kanban}
-          </button>
-          <button
-            onClick={handleRefresh}
-            style={{
-              padding: '10px 16px',
-              background: 'transparent',
-              border: `2px solid ${colors.accent}`,
-              borderRadius: '12px',
-              color: colors.accent,
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <span style={{ fontSize: '18px' }}>🔄</span>
-            {translations.dispatchBoardPage.refresh}
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       <style>
         {`
@@ -278,88 +235,40 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
       </style>
 
       {error && (
-        <div
-          style={{
-            marginBottom: '20px',
-            padding: '16px 20px',
-            borderRadius: '14px',
-            background: `${colors.error}15`,
-            border: `1px solid ${colors.error}40`,
-            color: colors.error,
+        <ContentCard style={{ marginBottom: '20px' }}>
+          <div style={{
+            padding: '4px 0',
+            color: ROYAL_COLORS.error,
             fontSize: '14px',
             fontWeight: '500'
-          }}
-        >
-          ⚠️ {error}
-        </div>
+          }}>
+            ⚠️ {error}
+          </div>
+        </ContentCard>
       )}
 
       {/* Dashboard Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        <div
-          style={{ ...styles.statBox, cursor: 'pointer', transition: 'all 200ms ease' }}
-          onClick={() => console.log('Show available drivers')}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = 'none';
-          }}
-        >
+        <ContentCard hoverable onClick={() => console.log('Show available drivers')} style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>🚗</div>
-          <div style={{ ...styles.statValue, fontSize: '28px', color: colors.success }}>{totalOnline}</div>
-          <div style={styles.statLabel}>{translations.dispatchBoardPage.availableDrivers}</div>
-        </div>
-        <div
-          style={{ ...styles.statBox, cursor: 'pointer', transition: 'all 200ms ease' }}
-          onClick={() => console.log('Show zone details')}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = 'none';
-          }}
-        >
+          <div style={{ ...ROYAL_STYLES.statValue, fontSize: '28px', color: ROYAL_COLORS.success }}>{totalOnline}</div>
+          <div style={ROYAL_STYLES.statLabel}>{translations.dispatchBoardPage.availableDrivers}</div>
+        </ContentCard>
+        <ContentCard hoverable onClick={() => console.log('Show zone details')} style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>🗺️</div>
-          <div style={{ ...styles.statValue, fontSize: '28px', color: colors.info }}>{zones.length}</div>
-          <div style={styles.statLabel}>{translations.dispatchBoardPage.coverageZones}</div>
-        </div>
-        <div
-          style={{ ...styles.statBox, cursor: 'pointer', transition: 'all 200ms ease' }}
-          onClick={() => console.log('Filter to active deliveries')}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = 'none';
-          }}
-        >
+          <div style={{ ...ROYAL_STYLES.statValue, fontSize: '28px', color: ROYAL_COLORS.info }}>{zones.length}</div>
+          <div style={ROYAL_STYLES.statLabel}>{translations.dispatchBoardPage.coverageZones}</div>
+        </ContentCard>
+        <ContentCard hoverable onClick={() => console.log('Filter to active deliveries')} style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>🚚</div>
-          <div style={{ ...styles.statValue, fontSize: '28px', color: colors.accent }}>{activeDeliveries}</div>
-          <div style={styles.statLabel}>{translations.dispatchBoardPage.inDelivery}</div>
-        </div>
-        <div
-          style={{ ...styles.statBox, cursor: 'pointer', transition: 'all 200ms ease' }}
-          onClick={() => console.log('Filter to pending assignments')}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = 'none';
-          }}
-        >
+          <div style={{ ...ROYAL_STYLES.statValue, fontSize: '28px', color: ROYAL_COLORS.accent }}>{activeDeliveries}</div>
+          <div style={ROYAL_STYLES.statLabel}>{translations.dispatchBoardPage.inDelivery}</div>
+        </ContentCard>
+        <ContentCard hoverable onClick={() => console.log('Filter to pending assignments')} style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>⏱️</div>
-          <div style={{ ...styles.statValue, fontSize: '28px', color: colors.warning }}>{pendingAssignments}</div>
-          <div style={styles.statLabel}>{translations.dispatchBoardPage.waiting}</div>
-        </div>
+          <div style={{ ...ROYAL_STYLES.statValue, fontSize: '28px', color: ROYAL_COLORS.warning }}>{pendingAssignments}</div>
+          <div style={ROYAL_STYLES.statLabel}>{translations.dispatchBoardPage.waiting}</div>
+        </ContentCard>
       </div>
 
       {/* Kanban Board or List View */}
@@ -371,22 +280,18 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           marginBottom: '24px'
         }}>
           {/* Pending Column */}
-          <div style={{
-            ...styles.card,
-            background: colors.gradientCard,
-            minHeight: '400px'
-          }}>
+          <ContentCard style={{ minHeight: '400px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: colors.text }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: ROYAL_COLORS.text }}>
                 {translations.dispatchBoardPage.waitingForAssignment}
               </h3>
               <div style={{
                 padding: '6px 12px',
-                background: colors.gradientPrimary,
+                background: ROYAL_COLORS.gradientPurple,
                 borderRadius: '12px',
                 fontSize: '14px',
                 fontWeight: '700',
-                color: colors.textBright
+                color: ROYAL_COLORS.textBright
               }}>
                 {getOrdersByStatus('pending').length}
               </div>
@@ -396,7 +301,6 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 <OrderCard
                   key={order.id}
                   order={order}
-                  colors={colors}
                   onAssign={() => {
                     setSelectedOrder(order);
                     setShowDriverSelector(true);
@@ -404,124 +308,110 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 />
               ))}
               {getOrdersByStatus('pending').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: colors.muted }}>
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: ROYAL_COLORS.muted }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>✅</div>
                   <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noWaitingOrders}</div>
                 </div>
               )}
             </div>
-          </div>
+          </ContentCard>
 
           {/* Assigned Column */}
-          <div style={{
-            ...styles.card,
-            background: colors.gradientCard,
-            minHeight: '400px'
-          }}>
+          <ContentCard style={{ minHeight: '400px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: colors.text }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: ROYAL_COLORS.text }}>
                 {translations.dispatchBoardPage.assigned}
               </h3>
               <div style={{
                 padding: '6px 12px',
-                background: colors.gradientPrimary,
+                background: ROYAL_COLORS.gradientPurple,
                 borderRadius: '12px',
                 fontSize: '14px',
                 fontWeight: '700',
-                color: colors.textBright
+                color: ROYAL_COLORS.textBright
               }}>
                 {getOrdersByStatus('assigned').length}
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {getOrdersByStatus('assigned').map(order => (
-                <OrderCard key={order.id} order={order} colors={colors} />
+                <OrderCard key={order.id} order={order} />
               ))}
               {getOrdersByStatus('assigned').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: colors.muted }}>
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: ROYAL_COLORS.muted }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>📎</div>
                   <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noAssignedOrders}</div>
                 </div>
               )}
             </div>
-          </div>
+          </ContentCard>
 
           {/* In Progress Column */}
-          <div style={{
-            ...styles.card,
-            background: colors.gradientCard,
-            minHeight: '400px'
-          }}>
+          <ContentCard style={{ minHeight: '400px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: colors.text }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: ROYAL_COLORS.text }}>
                 {translations.dispatchBoardPage.inProgress}
               </h3>
               <div style={{
                 padding: '6px 12px',
-                background: colors.gradientPrimary,
+                background: ROYAL_COLORS.gradientPurple,
                 borderRadius: '12px',
                 fontSize: '14px',
                 fontWeight: '700',
-                color: colors.textBright
+                color: ROYAL_COLORS.textBright
               }}>
                 {getOrdersByStatus('in_progress').length}
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {getOrdersByStatus('in_progress').map(order => (
-                <OrderCard key={order.id} order={order} colors={colors} />
+                <OrderCard key={order.id} order={order} />
               ))}
               {getOrdersByStatus('in_progress').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: colors.muted }}>
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: ROYAL_COLORS.muted }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>🚦</div>
                   <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noDeliveriesInProgress}</div>
                 </div>
               )}
             </div>
-          </div>
+          </ContentCard>
 
           {/* Completed Column */}
-          <div style={{
-            ...styles.card,
-            background: colors.gradientCard,
-            minHeight: '400px'
-          }}>
+          <ContentCard style={{ minHeight: '400px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: colors.text }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: ROYAL_COLORS.text }}>
                 {translations.dispatchBoardPage.completed}
               </h3>
               <div style={{
                 padding: '6px 12px',
-                background: colors.gradientSuccess,
+                background: ROYAL_COLORS.gradientSuccess,
                 borderRadius: '12px',
                 fontSize: '14px',
                 fontWeight: '700',
-                color: colors.textBright
+                color: ROYAL_COLORS.textBright
               }}>
                 {getOrdersByStatus('completed').length}
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {getOrdersByStatus('completed').slice(0, 5).map(order => (
-                <OrderCard key={order.id} order={order} colors={colors} />
+                <OrderCard key={order.id} order={order} />
               ))}
               {getOrdersByStatus('completed').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: colors.muted }}>
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: ROYAL_COLORS.muted }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>🎯</div>
                   <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noCompletedOrders}</div>
                 </div>
               )}
             </div>
-          </div>
+          </ContentCard>
         </div>
       ) : (
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {outstandingOrders.map(order => (
             <OrderCard
               key={order.id}
               order={order}
-              colors={colors}
               onAssign={!order.assigned_driver ? () => {
                 setSelectedOrder(order);
                 setShowDriverSelector(true);
@@ -546,15 +436,14 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           justifyContent: 'center',
           padding: '20px'
         }}>
-          <div style={{
-            ...styles.card,
+          <ContentCard style={{
             maxWidth: '500px',
             width: '100%',
             maxHeight: '80vh',
             overflow: 'auto'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: colors.text }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.text }}>
                 {translations.dispatchBoardPage.assignDriverToOrder}
               </h3>
               <button
@@ -565,7 +454,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: colors.muted,
+                  color: ROYAL_COLORS.muted,
                   fontSize: '24px',
                   cursor: 'pointer'
                 }}
@@ -577,14 +466,15 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
             {/* Order Info */}
             <div style={{
               padding: '16px',
-              background: colors.secondary,
+              background: ROYAL_COLORS.secondary,
               borderRadius: '12px',
-              marginBottom: '20px'
+              marginBottom: '20px',
+              border: `1px solid ${ROYAL_COLORS.cardBorder}`
             }}>
-              <div style={{ fontSize: '16px', fontWeight: '600', color: colors.text, marginBottom: '8px' }}>
+              <div style={{ fontSize: '16px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '8px' }}>
                 {selectedOrder.customer_name}
               </div>
-              <div style={{ fontSize: '14px', color: colors.muted }}>
+              <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
                 📍 {selectedOrder.customer_address}
               </div>
             </div>
@@ -592,81 +482,67 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
             {/* Available Drivers */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {zones.flatMap(z => z.onlineDrivers).filter(d => d.status === 'available').map(driver => (
-                <button
+                <ContentCard
                   key={driver.driver_id}
+                  hoverable
                   onClick={() => handleAssignDriver(selectedOrder.id, driver.driver_id)}
-                  style={{
-                    padding: '16px',
-                    background: colors.secondary,
-                    border: `2px solid ${colors.cardBorder}`,
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    textAlign: 'right'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.border = `2px solid ${colors.accent}`;
-                    e.currentTarget.style.background = `${colors.accent}15`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.border = `2px solid ${colors.cardBorder}`;
-                    e.currentTarget.style.background = colors.secondary;
-                  }}
+                  style={{ textAlign: isRTL ? 'right' : 'left' }}
                 >
-                  <div style={{ fontSize: '16px', fontWeight: '600', color: colors.text, marginBottom: '4px' }}>
+                  <div style={{ fontSize: '16px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
                     {translations.dispatchBoardPage.driver} #{driver.driver_id}
                   </div>
-                  <div style={{ fontSize: '13px', color: colors.success }}>
+                  <div style={{ fontSize: '13px', color: ROYAL_COLORS.success }}>
                     {translations.dispatchBoardPage.available}
                   </div>
-                </button>
+                </ContentCard>
               ))}
               {zones.flatMap(z => z.onlineDrivers).filter(d => d.status === 'available').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: colors.muted }}>
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: ROYAL_COLORS.muted }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px' }}>🚫</div>
                   <div>{translations.dispatchBoardPage.noAvailableDrivers}</div>
                 </div>
               )}
             </div>
-          </div>
+          </ContentCard>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }
 
 // Order Card Component
-function OrderCard({ order, colors, onAssign }: {
+function OrderCard({ order, onAssign }: {
   order: Order;
-  colors: any;
   onAssign?: () => void;
 }) {
+  const { t: translations } = useLanguage();
+
   return (
     <div style={{
       padding: '16px',
-      background: colors.secondary,
-      border: `1px solid ${colors.cardBorder}`,
+      background: ROYAL_COLORS.secondary,
+      border: `1px solid ${ROYAL_COLORS.cardBorder}`,
       borderRadius: '12px',
       transition: 'all 0.3s ease'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '16px', fontWeight: '600', color: colors.text, marginBottom: '4px' }}>
+          <div style={{ fontSize: '16px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
             {order.customer_name}
           </div>
-          <div style={{ fontSize: '13px', color: colors.muted, marginBottom: '8px' }}>
+          <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, marginBottom: '8px' }}>
             📍 {order.customer_address}
           </div>
-          <div style={{ fontSize: '13px', color: colors.muted }}>
+          <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
             📞 {order.customer_phone}
           </div>
         </div>
         <div style={{
           padding: '6px 12px',
-          background: `${colors.accent}20`,
-          border: `1px solid ${colors.accent}50`,
+          background: `${ROYAL_COLORS.accent}20`,
+          border: `1px solid ${ROYAL_COLORS.accent}50`,
           borderRadius: '8px',
-          color: colors.accent,
+          color: ROYAL_COLORS.accent,
           fontSize: '12px',
           fontWeight: '600'
         }}>
@@ -677,10 +553,10 @@ function OrderCard({ order, colors, onAssign }: {
       {order.assigned_driver && (
         <div style={{
           padding: '8px 12px',
-          background: `${colors.success}15`,
+          background: `${ROYAL_COLORS.success}15`,
           borderRadius: '8px',
           fontSize: '13px',
-          color: colors.success,
+          color: ROYAL_COLORS.success,
           marginBottom: '12px'
         }}>
           🚗 {translations.dispatchBoardPage.driver}: {order.assigned_driver}
@@ -690,19 +566,7 @@ function OrderCard({ order, colors, onAssign }: {
       {onAssign && (
         <button
           onClick={onAssign}
-          style={{
-            width: '100%',
-            padding: '12px',
-            background: colors.gradientPrimary,
-            border: 'none',
-            borderRadius: '10px',
-            color: colors.textBright,
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            boxShadow: colors.glowPrimary
-          }}
+          style={ROYAL_STYLES.buttonPrimary}
         >
           {translations.dispatchBoardPage.assignDriver}
         </button>
