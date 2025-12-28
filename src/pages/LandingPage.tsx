@@ -270,9 +270,9 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               padding: '18px 48px',
               fontSize: '20px',
               fontWeight: '600',
-              background: theme.white,
-              color: '#667eea',
-              border: 'none',
+              background: 'rgba(0, 0, 0, 0.3)',
+              color: '#ffffff',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
               borderRadius: '12px',
               cursor: 'pointer',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
@@ -287,7 +287,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       {/* Platform Capabilities Section */}
       <div className="section-padding" style={{
         padding: '80px 20px',
-        background: 'linear-gradient(to bottom, #f7f8fc, #ffffff)',
+        background: theme.backgroundDark,
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <h2 className="section-title" style={{
@@ -674,7 +674,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       {/* How It Works Section */}
       <div className="section-padding" style={{
         padding: '80px 20px',
-        background: 'linear-gradient(to bottom, #ffffff, #f7f8fc)',
+        background: theme.backgroundSolid,
       }}>
         <div style={{
           maxWidth: '1200px',
@@ -870,9 +870,9 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               padding: '18px 48px',
               fontSize: '20px',
               fontWeight: '600',
-              background: theme.white,
-              color: '#667eea',
-              border: 'none',
+              background: 'rgba(0, 0, 0, 0.3)',
+              color: '#ffffff',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
               borderRadius: '12px',
               cursor: 'pointer',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
