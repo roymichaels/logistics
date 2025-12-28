@@ -35,7 +35,8 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
   const [category, setCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isCartOpen, setCartOpen] = useState(false);
-  const { addItem, items } = useCart();
+  const { addItem, cart } = useCart();
+  const items = cart.items;
 
   useEffect(() => {
     let mounted = true;
