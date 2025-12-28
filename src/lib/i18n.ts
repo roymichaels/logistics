@@ -367,6 +367,7 @@ export interface Translations {
     status: string;
     inProgress: string;
     noTasks: string;
+    confirmDelete: string;
   };
 
   // Inventory
@@ -1092,6 +1093,73 @@ export interface Translations {
     loadingDispatchBoard: string;
   };
 
+  // Team Management
+  teamManagementPage: {
+    title: string;
+    subtitle: string;
+    inviteMember: string;
+    searchPlaceholder: string;
+    roleFilter: string;
+    allRoles: string;
+    statusActive: string;
+    statusPending: string;
+    statusInactive: string;
+    editMember: string;
+    removeMember: string;
+    changeMemberRole: string;
+    memberAdded: string;
+    memberRemoved: string;
+    memberUpdated: string;
+    noTeamMembers: string;
+    loadingTeam: string;
+    errorLoadingTeam: string;
+    confirmRemove: string;
+    name: string;
+    email: string;
+    role: string;
+    status: string;
+    actions: string;
+    lastActive: string;
+  };
+
+  // Drivers Management
+  driversPage: {
+    title: string;
+    subtitle: string;
+    loading: string;
+    loadFailed: string;
+    tryAgain: string;
+    refresh: string;
+    metricsTotal: string;
+    metricsOnline: string;
+    metricsBusy: string;
+    metricsAvailable: string;
+    metricsOffline: string;
+    avgRating: string;
+    filterAll: string;
+    filterOnline: string;
+    filterOffline: string;
+    filterBusy: string;
+    filterAvailable: string;
+    viewList: string;
+    viewMap: string;
+    viewAnalytics: string;
+    searchDrivers: string;
+    addDriver: string;
+    noDrivers: string;
+    driverName: string;
+    driverStatus: string;
+    driverRating: string;
+    driverDeliveries: string;
+    driverEarnings: string;
+    assignDelivery: string;
+    viewProfile: string;
+    statusOnline: string;
+    statusOffline: string;
+    statusBusy: string;
+    statusAvailable: string;
+  };
+
   // Developer Console
   devConsole: {
     title: string;
@@ -1692,6 +1760,7 @@ const hebrewTranslations: Translations = {
     status: 'סטטוס',
     inProgress: 'בתהליך',
     noTasks: 'אין משימות',
+    confirmDelete: 'האם אתה בטוח שברצונך למחוק משימה זו?',
   },
 
   // Inventory
@@ -2403,6 +2472,71 @@ const hebrewTranslations: Translations = {
     loadingDispatchBoard: 'טוען לוח שיגור...',
   },
 
+  teamManagementPage: {
+    title: 'ניהול צוות',
+    subtitle: 'נהל את חברי הצוות והתפקידים שלהם',
+    inviteMember: 'הזמן חבר צוות',
+    searchPlaceholder: 'חפש חברי צוות...',
+    roleFilter: 'סנן לפי תפקיד',
+    allRoles: 'כל התפקידים',
+    statusActive: 'פעיל',
+    statusPending: 'ממתין',
+    statusInactive: 'לא פעיל',
+    editMember: 'ערוך חבר צוות',
+    removeMember: 'הסר חבר צוות',
+    changeMemberRole: 'שנה תפקיד',
+    memberAdded: 'חבר הצוות נוסף בהצלחה',
+    memberRemoved: 'חבר הצוות הוסר בהצלחה',
+    memberUpdated: 'חבר הצוות עודכן בהצלחה',
+    noTeamMembers: 'אין חברי צוות',
+    loadingTeam: 'טוען צוות...',
+    errorLoadingTeam: 'שגיאה בטעינת הצוות',
+    confirmRemove: 'האם אתה בטוח שברצונך להסיר חבר צוות זה?',
+    name: 'שם',
+    email: 'דוא"ל',
+    role: 'תפקיד',
+    status: 'סטטוס',
+    actions: 'פעולות',
+    lastActive: 'פעילות אחרונה',
+  },
+
+  driversPage: {
+    title: 'ניהול נהגים',
+    subtitle: 'נהל את נהגי העסק',
+    loading: 'טוען נהגים...',
+    loadFailed: 'טעינת הנהגים נכשלה',
+    tryAgain: 'נסה שנית',
+    refresh: 'רענן',
+    metricsTotal: 'סה"כ נהגים',
+    metricsOnline: 'מחוברים',
+    metricsBusy: 'עסוקים',
+    metricsAvailable: 'זמינים',
+    metricsOffline: 'לא מחוברים',
+    avgRating: 'דירוג ממוצע',
+    filterAll: 'כל הנהגים',
+    filterOnline: 'מחוברים',
+    filterOffline: 'לא מחוברים',
+    filterBusy: 'עסוקים',
+    filterAvailable: 'זמינים',
+    viewList: 'תצוגת רשימה',
+    viewMap: 'תצוגת מפה',
+    viewAnalytics: 'אנליטיקה',
+    searchDrivers: 'חפש נהגים...',
+    addDriver: 'הוסף נהג',
+    noDrivers: 'אין נהגים',
+    driverName: 'שם הנהג',
+    driverStatus: 'סטטוס',
+    driverRating: 'דירוג',
+    driverDeliveries: 'משלוחים',
+    driverEarnings: 'הכנסות',
+    assignDelivery: 'הקצה משלוח',
+    viewProfile: 'צפה בפרופיל',
+    statusOnline: 'מחובר',
+    statusOffline: 'לא מחובר',
+    statusBusy: 'עסוק',
+    statusAvailable: 'זמין',
+  },
+
   // Developer Console
   devConsole: {
     title: 'קונסולת מפתחים',
@@ -3100,6 +3234,7 @@ const englishTranslations: Translations = {
     status: 'Status',
     inProgress: 'In Progress',
     noTasks: 'No Tasks',
+    confirmDelete: 'Are you sure you want to delete this task?',
   },
 
   // Inventory
@@ -3809,6 +3944,71 @@ const englishTranslations: Translations = {
     errorAssigningDriver: 'Error assigning driver',
     assignDriver: 'Assign Driver',
     loadingDispatchBoard: 'Loading dispatch board...',
+  },
+
+  teamManagementPage: {
+    title: 'Team Management',
+    subtitle: 'Manage your team members and their roles',
+    inviteMember: 'Invite Member',
+    searchPlaceholder: 'Search team members...',
+    roleFilter: 'Filter by role',
+    allRoles: 'All Roles',
+    statusActive: 'Active',
+    statusPending: 'Pending',
+    statusInactive: 'Inactive',
+    editMember: 'Edit Member',
+    removeMember: 'Remove Member',
+    changeMemberRole: 'Change Role',
+    memberAdded: 'Team member added successfully',
+    memberRemoved: 'Team member removed successfully',
+    memberUpdated: 'Team member updated successfully',
+    noTeamMembers: 'No team members',
+    loadingTeam: 'Loading team...',
+    errorLoadingTeam: 'Error loading team',
+    confirmRemove: 'Are you sure you want to remove this team member?',
+    name: 'Name',
+    email: 'Email',
+    role: 'Role',
+    status: 'Status',
+    actions: 'Actions',
+    lastActive: 'Last Active',
+  },
+
+  driversPage: {
+    title: 'Drivers Management',
+    subtitle: 'Manage your business drivers',
+    loading: 'Loading drivers...',
+    loadFailed: 'Failed to load drivers',
+    tryAgain: 'Try Again',
+    refresh: 'Refresh',
+    metricsTotal: 'Total Drivers',
+    metricsOnline: 'Online',
+    metricsBusy: 'Busy',
+    metricsAvailable: 'Available',
+    metricsOffline: 'Offline',
+    avgRating: 'Average Rating',
+    filterAll: 'All Drivers',
+    filterOnline: 'Online',
+    filterOffline: 'Offline',
+    filterBusy: 'Busy',
+    filterAvailable: 'Available',
+    viewList: 'List View',
+    viewMap: 'Map View',
+    viewAnalytics: 'Analytics',
+    searchDrivers: 'Search drivers...',
+    addDriver: 'Add Driver',
+    noDrivers: 'No drivers',
+    driverName: 'Driver Name',
+    driverStatus: 'Status',
+    driverRating: 'Rating',
+    driverDeliveries: 'Deliveries',
+    driverEarnings: 'Earnings',
+    assignDelivery: 'Assign Delivery',
+    viewProfile: 'View Profile',
+    statusOnline: 'Online',
+    statusOffline: 'Offline',
+    statusBusy: 'Busy',
+    statusAvailable: 'Available',
   },
 
   // Developer Console

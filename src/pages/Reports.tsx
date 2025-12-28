@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 
 import { DataStore, User, Order } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { formatCurrency } from '../lib/i18n';
+import { formatCurrency, useI18n } from '../lib/i18n';
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
 import { haptic } from '../utils/haptic';
@@ -24,6 +24,7 @@ interface ReportData {
 }
 
 export function Reports({ dataStore, onNavigate }: ReportsProps) {
+  const { t } = useI18n();
   const [user, setUser] = useState<User | null>(null);
   const [selectedReport, setSelectedReport] = useState<string>('overview');
   const [dateRange, setDateRange] = useState<'day' | 'week' | 'month' | 'year'>('week');
@@ -44,7 +45,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
       setReportData(data);
     } catch (error) {
       logger.error('Failed to load reports:', error);
-      Toast.error('שגיאה בטעינת דוחות');
+      Toast.error(t('reportsPage.errorLoading'));
     } finally {
       setLoading(false);
     }

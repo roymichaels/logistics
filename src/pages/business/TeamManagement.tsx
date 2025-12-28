@@ -3,6 +3,7 @@ import { ROYAL_COLORS, ROYAL_STYLES, getStatusBadgeStyle } from '../../styles/ro
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { ContentCard } from '../../components/layout/ContentCard';
+import { useI18n } from '../../lib/i18n';
 
 interface TeamMember {
   id: string;
@@ -14,6 +15,7 @@ interface TeamMember {
 }
 
 export function TeamManagement() {
+  const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
 
@@ -26,12 +28,12 @@ export function TeamManagement() {
   ];
 
   const roleOptions = [
-    { value: 'all', label: 'All Roles' },
-    { value: 'manager', label: 'Manager' },
-    { value: 'dispatcher', label: 'Dispatcher' },
-    { value: 'warehouse', label: 'Warehouse' },
-    { value: 'sales', label: 'Sales' },
-    { value: 'customer_service', label: 'Customer Service' },
+    { value: 'all', label: t('teamManagementPage.allRoles') },
+    { value: 'manager', label: t('roles.manager') },
+    { value: 'dispatcher', label: t('roles.dispatcher') },
+    { value: 'warehouse', label: t('roles.warehouse') },
+    { value: 'sales', label: t('roles.sales') },
+    { value: 'customer_service', label: t('roles.customerService') },
   ];
 
   const filteredMembers = teamMembers.filter((member) => {
@@ -50,6 +52,15 @@ export function TeamManagement() {
     }
   };
 
+  const getStatusText = (status: 'active' | 'pending' | 'inactive') => {
+    switch (status) {
+      case 'active': return t('teamManagementPage.statusActive');
+      case 'pending': return t('teamManagementPage.statusPending');
+      case 'inactive': return t('teamManagementPage.statusInactive');
+      default: return status;
+    }
+  };
+
   const handleInviteMember = () => {
     console.log('Open invite member modal');
   };
@@ -58,8 +69,8 @@ export function TeamManagement() {
     <PageContainer>
       <PageHeader
         icon="👥"
-        title="Team Management"
-        subtitle="Manage your team members and their roles"
+        title={t('teamManagementPage.title')}
+        subtitle={t('teamManagementPage.subtitle')}
         actionButton={
           <button
             onClick={handleInviteMember}
@@ -70,7 +81,7 @@ export function TeamManagement() {
               gap: '8px'
             }}
           >
-            + Invite Member
+            + {t('teamManagementPage.inviteMember')}
           </button>
         }
       />
@@ -80,7 +91,7 @@ export function TeamManagement() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by name or email..."
+          placeholder={t('teamManagementPage.searchPlaceholder')}
           style={ROYAL_STYLES.input}
         />
         <select
@@ -155,7 +166,7 @@ export function TeamManagement() {
                         marginRight: '6px'
                       }}
                     />
-                    {member.status}
+                    {getStatusText(member.status)}
                   </span>
                 </div>
 
@@ -173,7 +184,7 @@ export function TeamManagement() {
                       fontSize: '14px'
                     }}
                   >
-                    Edit
+                    {t('edit')}
                   </button>
                   <button
                     onClick={() => console.log('Remove member:', member.id)}
@@ -183,7 +194,7 @@ export function TeamManagement() {
                       fontSize: '14px'
                     }}
                   >
-                    Remove
+                    {t('teamManagementPage.removeMember')}
                   </button>
                 </div>
               </div>
@@ -196,7 +207,7 @@ export function TeamManagement() {
         <div style={ROYAL_STYLES.emptyState}>
           <div style={ROYAL_STYLES.emptyStateIcon}>👥</div>
           <p style={ROYAL_STYLES.emptyStateText}>
-            No team members found matching your search.
+            {t('teamManagementPage.noTeamMembers')}
           </p>
         </div>
       )}

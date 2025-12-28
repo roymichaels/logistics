@@ -6,6 +6,7 @@ import { Toast } from '../components/Toast';
 
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 import { logger } from '../lib/logger';
+import { useI18n } from '../lib/i18n';
 import type { FrontendDataStore } from '../lib/frontendDataStore';
 
 interface DriversManagementProps {
@@ -17,6 +18,7 @@ type ViewMode = 'list' | 'map' | 'analytics';
 type StatusFilter = 'all' | 'online' | 'offline' | 'busy' | 'available' | 'on_break';
 
 export function DriversManagement({ dataStore }: DriversManagementProps) {
+  const { t } = useI18n();
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -82,7 +84,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
     return (
       <div style={{ ...ROYAL_STYLES.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚗</div>
-        <div style={{ color: ROYAL_COLORS.muted }}>Loading drivers...</div>
+        <div style={{ color: ROYAL_COLORS.muted }}>{t('driversPage.loading')}</div>
       </div>
     );
   }
@@ -92,7 +94,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
       <div style={{ ...ROYAL_STYLES.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
         <div style={{ color: ROYAL_COLORS.text, marginBottom: '16px' }}>
-          {error.message || 'Failed to load drivers'}
+          {error.message || t('driversPage.loadFailed')}
         </div>
         <button
           onClick={refetch}
@@ -107,7 +109,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
             fontWeight: '600'
           }}
         >
-          Try Again
+          {t('driversPage.tryAgain')}
         </button>
       </div>
     );
@@ -117,9 +119,9 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
     <div style={ROYAL_STYLES.pageContainer}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <h1 style={{ ...ROYAL_STYLES.pageTitle, margin: 0 }}>Driver Management</h1>
+          <h1 style={{ ...ROYAL_STYLES.pageTitle, margin: 0 }}>{t('driversPage.title')}</h1>
           <p style={{ ...ROYAL_STYLES.pageSubtitle, margin: '4px 0 0 0' }}>
-            {filteredDrivers.length} of {drivers.length} drivers
+            {filteredDrivers.length} of {drivers.length} {t('driver')}
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -138,7 +140,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
               opacity: loading ? 0.5 : 1
             }}
           >
-            {loading ? '⟳' : '🔄'} Refresh
+            {loading ? '⟳' : '🔄'} {t('driversPage.refresh')}
           </button>
           <button
             onClick={() => setShowFilters(!showFilters)}

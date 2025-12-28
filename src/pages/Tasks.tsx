@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import { DataStore, Task, User } from '../data/types';
 import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-import { hebrew } from '../lib/i18n';
+import { hebrew, useI18n } from '../lib/i18n';
 import { logger } from '../lib/logger';
 
 interface TasksProps {
@@ -11,6 +11,7 @@ interface TasksProps {
 }
 
 export function Tasks({ dataStore, onNavigate }: TasksProps) {
+  const { t } = useI18n();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -92,7 +93,7 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    const confirmed = window.confirm('האם אתה בטוח שברצונך למחוק משימה זו?');
+    const confirmed = window.confirm(t('tasksPage.confirmDelete'));
     if (!confirmed) return;
 
     try {
