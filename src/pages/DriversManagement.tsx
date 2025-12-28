@@ -84,7 +84,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
     return (
       <div style={{ ...ROYAL_STYLES.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚗</div>
-        <div style={{ color: ROYAL_COLORS.muted }}>{t('driversPage.loading')}</div>
+        <div style={{ color: ROYAL_COLORS.muted }}>{t('driversManagementPage.loading')}</div>
       </div>
     );
   }
@@ -94,7 +94,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
       <div style={{ ...ROYAL_STYLES.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
         <div style={{ color: ROYAL_COLORS.text, marginBottom: '16px' }}>
-          {error.message || t('driversPage.loadFailed')}
+          {error.message || t('driversManagementPage.errorLoadingDrivers')}
         </div>
         <button
           onClick={refetch}
@@ -109,7 +109,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
             fontWeight: '600'
           }}
         >
-          {t('driversPage.tryAgain')}
+          {t('driversManagementPage.refresh')}
         </button>
       </div>
     );
@@ -119,9 +119,9 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
     <div style={ROYAL_STYLES.pageContainer}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <h1 style={{ ...ROYAL_STYLES.pageTitle, margin: 0 }}>{t('driversPage.title')}</h1>
+          <h1 style={{ ...ROYAL_STYLES.pageTitle, margin: 0 }}>{t('driversManagementPage.title')}</h1>
           <p style={{ ...ROYAL_STYLES.pageSubtitle, margin: '4px 0 0 0' }}>
-            {filteredDrivers.length} of {drivers.length} {t('driver')}
+            {filteredDrivers.length} {t('driversManagementPage.driversOutOf')} {drivers.length}
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -140,7 +140,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
               opacity: loading ? 0.5 : 1
             }}
           >
-            {loading ? '⟳' : '🔄'} {t('driversPage.refresh')}
+            {loading ? '⟳' : '🔄'} {t('driversManagementPage.refresh')}
           </button>
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -155,7 +155,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
               cursor: 'pointer'
             }}
           >
-            🔍 Filter
+            🔍 {t('driversManagementPage.filter')}
           </button>
         </div>
       </div>
@@ -164,22 +164,22 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
         <div style={ROYAL_STYLES.statBox}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>👥</div>
           <div style={{ ...ROYAL_STYLES.statValue, fontSize: '28px' }}>{metrics.total}</div>
-          <div style={ROYAL_STYLES.statLabel}>Total Drivers</div>
+          <div style={ROYAL_STYLES.statLabel}>{t('driversManagementPage.totalDrivers')}</div>
         </div>
         <div style={ROYAL_STYLES.statBox}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>🟢</div>
           <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.success, fontSize: '28px' }}>{metrics.online}</div>
-          <div style={ROYAL_STYLES.statLabel}>Online</div>
+          <div style={ROYAL_STYLES.statLabel}>{t('driversManagementPage.online')}</div>
         </div>
         <div style={ROYAL_STYLES.statBox}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>🚚</div>
           <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.info, fontSize: '28px' }}>{metrics.busy}</div>
-          <div style={ROYAL_STYLES.statLabel}>Busy</div>
+          <div style={ROYAL_STYLES.statLabel}>{t('driversManagementPage.busy')}</div>
         </div>
         <div style={ROYAL_STYLES.statBox}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>⭐</div>
           <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.gold, fontSize: '28px' }}>{metrics.avgRating.toFixed(1)}</div>
-          <div style={ROYAL_STYLES.statLabel}>Avg Rating</div>
+          <div style={ROYAL_STYLES.statLabel}>{t('driversManagementPage.averageRating')}</div>
         </div>
       </div>
 
@@ -188,7 +188,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
           <div style={{ marginBottom: '16px' }}>
             <input
               type="text"
-              placeholder="Search by name, phone or vehicle..."
+              placeholder={t('driversManagementPage.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -206,12 +206,12 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
             {(['all', 'online', 'offline', 'busy', 'available', 'on_break'] as StatusFilter[]).map(filter => {
               const labels: Record<StatusFilter, string> = {
-                all: 'All',
-                online: 'Online',
-                offline: 'Offline',
-                busy: 'Busy',
-                available: 'Available',
-                on_break: 'On Break'
+                all: t('driversManagementPage.all'),
+                online: t('driversManagementPage.online'),
+                offline: t('driversManagementPage.offline'),
+                busy: t('driversManagementPage.busy'),
+                available: t('driversManagementPage.available'),
+                on_break: t('driversManagementPage.onBreak')
               };
 
               return (
@@ -243,7 +243,11 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
           <div style={{ display: 'flex', gap: '8px' }}>
             {(['list', 'map', 'analytics'] as ViewMode[]).map(mode => {
               const icons = { list: '📋', map: '🗺️', analytics: '📊' };
-              const labels = { list: 'List', map: 'Map', analytics: 'Analytics' };
+              const labels = {
+                list: t('driversManagementPage.list'),
+                map: t('driversManagementPage.map'),
+                analytics: t('driversManagementPage.analytics')
+              };
 
               return (
                 <button
@@ -280,10 +284,10 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
             <div style={{ ...ROYAL_STYLES.card, textAlign: 'center', padding: '40px' }}>
               <div style={{ fontSize: '64px', marginBottom: '16px', opacity: 0.5 }}>🚗</div>
               <div style={{ fontSize: '18px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '8px' }}>
-                No drivers found
+                {t('driversManagementPage.noDriversFound')}
               </div>
               <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
-                Try changing your filters or search query
+                {t('driversManagementPage.tryChangingFilter')}
               </div>
             </div>
           ) : (
@@ -339,7 +343,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                     fontWeight: '600',
                     color: driver.is_online ? ROYAL_COLORS.success : ROYAL_COLORS.error
                   }}>
-                    {driver.is_online ? '🟢 Online' : '⚫ Offline'}
+                    {driver.is_online ? `🟢 ${t('driversManagementPage.online')}` : `⚫ ${t('driversManagementPage.offline')}`}
                   </div>
                 </div>
 
@@ -354,7 +358,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                     <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.info }}>
                       {driver.active_orders || 0}
                     </div>
-                    <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>Active</div>
+                    <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>{t('driversManagementPage.active')}</div>
                   </div>
                   <div style={{
                     flex: 1,
@@ -366,7 +370,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                     <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.gold }}>
                       {(driver.rating || 5.0).toFixed(1)}⭐
                     </div>
-                    <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>Rating</div>
+                    <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>{t('driversManagementPage.rating')}</div>
                   </div>
                   <div style={{
                     flex: 1,
@@ -378,7 +382,7 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                     <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.success }}>
                       {driver.completed_today || 0}
                     </div>
-                    <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>Today</div>
+                    <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>{t('driversManagementPage.today')}</div>
                   </div>
                 </div>
 
@@ -397,10 +401,10 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
         <div style={{ ...ROYAL_STYLES.card, padding: '40px', textAlign: 'center' }}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>🗺️</div>
           <div style={{ fontSize: '18px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '8px' }}>
-            Map View
+            {t('driversManagementPage.mapView')}
           </div>
           <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
-            Map view coming soon
+            {t('driversManagementPage.mapViewComingSoon')}
           </div>
         </div>
       )}
@@ -409,10 +413,10 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
         <div style={{ ...ROYAL_STYLES.card, padding: '40px', textAlign: 'center' }}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>📊</div>
           <div style={{ fontSize: '18px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '8px' }}>
-            Analytics View
+            {t('driversManagementPage.analyticsView')}
           </div>
           <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
-            Analytics view coming soon
+            {t('driversManagementPage.analyticsViewComingSoon')}
           </div>
         </div>
       )}

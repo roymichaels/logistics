@@ -670,6 +670,13 @@ export interface Translations {
     analytics: string;
     noDriversFound: string;
     tryChangingFilter: string;
+    active: string;
+    rating: string;
+    today: string;
+    mapView: string;
+    mapViewComingSoon: string;
+    analyticsView: string;
+    analyticsViewComingSoon: string;
   };
 
   // User Management
@@ -2032,6 +2039,13 @@ const hebrewTranslations: Translations = {
     analytics: 'ניתוח',
     noDriversFound: 'לא נמצאו נהגים',
     tryChangingFilter: 'נסה לשנות את הסינון או החיפוש',
+    active: 'פעיל',
+    rating: 'דירוג',
+    today: 'היום',
+    mapView: 'תצוגת מפה',
+    mapViewComingSoon: 'תצוגת מפה בקרוב',
+    analyticsView: 'תצוגת ניתוח',
+    analyticsViewComingSoon: 'תצוגת ניתוח בקרוב',
   },
 
   // User Management
@@ -3506,6 +3520,13 @@ const englishTranslations: Translations = {
     analytics: 'Analytics',
     noDriversFound: 'No drivers found',
     tryChangingFilter: 'Try changing the filter or search',
+    active: 'Active',
+    rating: 'Rating',
+    today: 'Today',
+    mapView: 'Map View',
+    mapViewComingSoon: 'Map view coming soon',
+    analyticsView: 'Analytics View',
+    analyticsViewComingSoon: 'Analytics view coming soon',
   },
 
   // User Management
