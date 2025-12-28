@@ -8,9 +8,10 @@ import { SearchBar } from '../components/molecules/SearchBar';
 import { ProductCard, ProductCardSkeleton } from '../components/molecules/ProductCard';
 import { EmptyState } from '../components/molecules/EmptyState';
 import { Card } from '../components/molecules/Card';
+import { MetricCard, MetricGrid } from '../components/dashboard/MetricCard';
 import { CartDrawer } from '../components/modern/CartDrawer';
 import { useCart } from '../hooks/useCart';
-import { colors, spacing } from '../styles/design-system';
+import { colors, spacing, borderRadius, shadows, typography } from '../styles/design-system';
 
 interface CatalogPageProps {
   dataStore: any;
@@ -34,7 +35,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
   const [category, setCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isCartOpen, setCartOpen] = useState(false);
-  const { addItem } = useCart();
+  const { addItem, items } = useCart();
 
   useEffect(() => {
     let mounted = true;
@@ -76,75 +77,138 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
     return result;
   }, [products, category, searchQuery]);
 
-  const contentStyle: React.CSSProperties = {
-    paddingBottom: '80px',
+  const totalCartItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalCartValue = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+
+  const containerStyle: React.CSSProperties = {
+    minHeight: '100vh',
+    background: colors.background.primary,
+    paddingBottom: '100px',
+  };
+
+  const heroStyle: React.CSSProperties = {
+    background: `linear-gradient(135deg, ${colors.brand.primary} 0%, ${colors.brand.primaryDark} 100%)`,
+    padding: `${spacing['3xl']} ${spacing.xl}`,
+    marginBottom: spacing.xl,
+    borderRadius: `0 0 ${borderRadius['2xl']} ${borderRadius['2xl']}`,
+    boxShadow: shadows.xl,
   };
 
   return (
     <>
-      <div style={contentStyle}>
-        <Section
-          title="Search & Filter"
-          style={{
-            padding: `${spacing.lg} ${spacing.lg}`,
-          }}
-        >
-          <SearchBar
-            placeholder="Search products..."
-            onSearch={setSearchQuery}
-            onClear={() => setSearchQuery('')}
-          />
-        </Section>
+      <div style={containerStyle}>
+        <div style={heroStyle}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <Text
+              variant="h1"
+              style={{
+                color: colors.white,
+                marginBottom: spacing.md,
+                fontSize: 'clamp(28px, 5vw, 42px)',
+                fontWeight: 800,
+              }}
+            >
+              Store Catalog
+            </Text>
+            <Text
+              variant="body"
+              style={{
+                color: 'rgba(255, 255, 255, 0.9)',
+                marginBottom: spacing.xl,
+                fontSize: typography.fontSize.lg,
+              }}
+            >
+              Browse our premium collection of security products
+            </Text>
 
-        <Section
-          title="Categories"
-          style={{
-            padding: `0 ${spacing.lg} ${spacing.lg}`,
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              gap: spacing.sm,
-              overflowX: 'auto',
-              padding: spacing.xs,
-              WebkitOverflowScrolling: 'touch',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-            }}
-          >
-            {CATEGORIES.map((cat) => (
-              <Chip
-                key={cat}
-                selected={cat === category}
-                clickable
-                onClick={() => setCategory(cat)}
-              >
-                {cat}
-              </Chip>
-            ))}
+            <MetricGrid columns={3}>
+              <MetricCard
+                label="Total Products"
+                value={products.length}
+                icon="📦"
+                variant="default"
+                size="small"
+              />
+              <MetricCard
+                label="In Your Cart"
+                value={totalCartItems}
+                icon="🛒"
+                variant="success"
+                size="small"
+              />
+              <MetricCard
+                label="Cart Value"
+                value={`₪${totalCartValue.toFixed(2)}`}
+                icon="💰"
+                variant="warning"
+                size="small"
+              />
+            </MetricGrid>
           </div>
-        </Section>
+        </div>
 
-        {loading && (
-          <Section
-            title="Products"
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: `0 ${spacing.xl}` }}>
+          <Card
+            variant="elevated"
             style={{
-              padding: `0 ${spacing.lg} ${spacing.lg}`,
+              marginBottom: spacing.xl,
+              padding: spacing.xl,
+              background: colors.ui.card,
+              border: `1px solid ${colors.border.primary}`,
+              boxShadow: shadows.lg,
             }}
           >
-            <Grid autoFit minItemWidth="240px" gap="lg">
+            <SearchBar
+              placeholder="Search products..."
+              onSearch={setSearchQuery}
+              onClear={() => setSearchQuery('')}
+              style={{ marginBottom: spacing.lg }}
+            />
+
+            <Text
+              variant="small"
+              weight="semibold"
+              style={{
+                color: colors.text.secondary,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                marginBottom: spacing.md,
+              }}
+            >
+              Categories
+            </Text>
+
+            <div
+              style={{
+                display: 'flex',
+                gap: spacing.sm,
+                overflowX: 'auto',
+                padding: spacing.xs,
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+              }}
+            >
+              {CATEGORIES.map((cat) => (
+                <Chip
+                  key={cat}
+                  selected={cat === category}
+                  clickable
+                  onClick={() => setCategory(cat)}
+                >
+                  {cat}
+                </Chip>
+              ))}
+            </div>
+          </Card>
+
+          {loading && (
+            <Grid autoFit minItemWidth="280px" gap="lg">
               <ProductCardSkeleton count={8} />
             </Grid>
-          </Section>
-        )}
+          )}
 
-        {error && (
-          <Section
-            style={{
-              padding: `0 ${spacing.lg} ${spacing.lg}`,
-            }}
-          >
+          {error && (
             <Card variant="outlined">
               <EmptyState
                 variant="error"
@@ -156,58 +220,68 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
                 }}
               />
             </Card>
-          </Section>
-        )}
+          )}
 
-        {!loading && !error && filteredProducts.length === 0 && (
-          <Section
-            style={{
-              padding: `0 ${spacing.lg} ${spacing.lg}`,
-            }}
-          >
-            <EmptyState
-              variant="search"
-              title="No products found"
-              description="Try adjusting your search or filter criteria."
-              action={
-                searchQuery || category !== 'All'
-                  ? {
-                      label: 'Clear Filters',
-                      onClick: () => {
-                        setSearchQuery('');
-                        setCategory('All');
-                      },
-                    }
-                  : undefined
-              }
-            />
-          </Section>
-        )}
+          {!loading && !error && filteredProducts.length === 0 && (
+            <Card variant="outlined">
+              <EmptyState
+                variant="search"
+                title="No products found"
+                description="Try adjusting your search or filter criteria."
+                action={
+                  searchQuery || category !== 'All'
+                    ? {
+                        label: 'Clear Filters',
+                        onClick: () => {
+                          setSearchQuery('');
+                          setCategory('All');
+                        },
+                      }
+                    : undefined
+                }
+              />
+            </Card>
+          )}
 
-        {!loading && !error && filteredProducts.length > 0 && (
-          <Section
-            title={`Products (${filteredProducts.length})`}
-            style={{
-              padding: `0 ${spacing.lg} ${spacing.lg}`,
-            }}
-          >
-            <Grid autoFit minItemWidth="240px" gap="lg">
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={(p) => {
-                    addItem(p);
-                    setCartOpen(true);
+          {!loading && !error && filteredProducts.length > 0 && (
+            <>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: spacing.lg,
+                }}
+              >
+                <Text
+                  variant="h3"
+                  style={{
+                    color: colors.text.primary,
+                    fontWeight: 700,
                   }}
-                  onClick={(p) => {
-                    console.log('Product clicked:', p.name);
-                  }}
-                />
-              ))}
-            </Grid>
-          </Section>
-        )}
+                >
+                  Products ({filteredProducts.length})
+                </Text>
+              </div>
+
+              <Grid autoFit minItemWidth="280px" gap="lg">
+                {filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onAddToCart={(p) => {
+                      addItem(p);
+                      setCartOpen(true);
+                    }}
+                    onClick={(p) => {
+                      console.log('Product clicked:', p.name);
+                    }}
+                  />
+                ))}
+              </Grid>
+            </>
+          )}
+        </div>
       </div>
 
       <CartDrawer

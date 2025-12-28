@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import type { UserProfile, Post, User } from '../data/types';
 import { PostCard } from '../components/social/PostCard';
 import { Card } from '../components/molecules/Card';
+import { MetricCard, MetricGrid } from '../components/dashboard/MetricCard';
 import { Button } from '../components/atoms/Button';
 import { Avatar } from '../components/atoms/Avatar';
 import { Badge } from '../components/atoms/Badge';
@@ -164,35 +165,48 @@ export function UserProfilePage({ userId }: UserProfileProps) {
   }
 
   const tabItems = [
-    { id: 'posts', label: 'Posts' },
-    { id: 'replies', label: 'Replies' },
-    { id: 'media', label: 'Media' },
-    { id: 'likes', label: 'Likes' }
+    { id: 'posts', label: 'Posts', icon: '📝' },
+    { id: 'replies', label: 'Replies', icon: '💬' },
+    { id: 'media', label: 'Media', icon: '📷' },
+    { id: 'likes', label: 'Likes', icon: '❤️' }
   ];
 
   return (
     <div style={{
       minHeight: '100vh',
       background: colors.background.primary,
-      padding: spacing.lg
+      paddingBottom: spacing['3xl']
     }}>
       <div style={{
-        maxWidth: '900px',
-        margin: '0 auto'
+        maxWidth: '1000px',
+        margin: '0 auto',
+        padding: spacing.lg
       }}>
-        <Card style={{ marginBottom: spacing.xl, overflow: 'hidden' }}>
-          {profile.banner_url && (
+        <Card style={{ marginBottom: spacing.xl, overflow: 'hidden', boxShadow: shadows.xl }}>
+          {profile.banner_url ? (
             <div style={{
-              height: '200px',
+              height: '240px',
               background: `url(${profile.banner_url}) center/cover`,
               backgroundColor: colors.background.secondary
             }} />
-          )}
-          {!profile.banner_url && (
+          ) : (
             <div style={{
-              height: '200px',
-              background: `linear-gradient(135deg, ${colors.brand.primary} 0%, ${colors.brand.primaryDark} 100%)`
-            }} />
+              height: '240px',
+              background: `linear-gradient(135deg, ${colors.brand.primary} 0%, ${colors.brand.primaryDark} 100%)`,
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '-50%',
+                right: '-10%',
+                width: '400px',
+                height: '400px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '50%',
+                filter: 'blur(60px)'
+              }} />
+            </div>
           )}
 
           <div style={{ padding: spacing.xl }}>
@@ -200,13 +214,13 @@ export function UserProfilePage({ userId }: UserProfileProps) {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'flex-start',
-              marginTop: `-${spacing.xxxl}`,
-              marginBottom: spacing.lg
+              marginTop: `-${spacing['4xl']}`,
+              marginBottom: spacing.xl
             }}>
               <Avatar
                 src={user.photo_url}
                 alt={user.name || 'User'}
-                size={120}
+                size={140}
                 fallback={user.name || user.username}
                 online={isOwnProfile}
               />
@@ -228,34 +242,46 @@ export function UserProfilePage({ userId }: UserProfileProps) {
               </div>
             </div>
 
-            <div style={{ marginTop: spacing.lg }}>
+            <div style={{ marginTop: spacing.xl }}>
               <h1 style={{
-                ...typography.heading1,
                 color: colors.text.primary,
-                marginBottom: spacing.xs
+                marginBottom: spacing.xs,
+                fontSize: 'clamp(24px, 5vw, 32px)',
+                fontWeight: 800
               }}>
                 {user.name || user.username || 'Unknown User'}
               </h1>
               {user.username && (
                 <p style={{
-                  ...typography.body,
                   color: colors.text.secondary,
-                  marginBottom: spacing.md
+                  marginBottom: spacing.md,
+                  fontSize: typography.fontSize.base
                 }}>
                   @{user.username}
                 </p>
               )}
               {user.role && (
-                <Badge variant="primary" style={{ marginBottom: spacing.md }}>
+                <Badge
+                  variant="primary"
+                  style={{
+                    marginBottom: spacing.md,
+                    background: `linear-gradient(135deg, ${colors.brand.primary} 0%, ${colors.brand.primaryDark} 100%)`,
+                    color: colors.white,
+                    border: 'none',
+                    padding: `${spacing.sm} ${spacing.md}`,
+                    fontSize: typography.fontSize.sm,
+                    fontWeight: typography.fontWeight.bold
+                  }}
+                >
                   {user.role}
                 </Badge>
               )}
               {profile.bio && (
                 <p style={{
-                  ...typography.body,
                   color: colors.text.primary,
-                  marginTop: spacing.md,
-                  lineHeight: 1.6
+                  marginTop: spacing.lg,
+                  lineHeight: 1.7,
+                  fontSize: typography.fontSize.base
                 }}>
                   {profile.bio}
                 </p>
@@ -263,28 +289,29 @@ export function UserProfilePage({ userId }: UserProfileProps) {
 
               <div style={{
                 display: 'flex',
-                gap: spacing.lg,
-                marginTop: spacing.md,
+                gap: spacing.xl,
+                marginTop: spacing.lg,
                 color: colors.text.secondary,
                 flexWrap: 'wrap'
               }}>
                 {profile.location && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing.xs }}>
-                    <span>📍</span>
-                    <span style={typography.small}>{profile.location}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
+                    <span style={{ fontSize: '18px' }}>📍</span>
+                    <span style={{ fontSize: typography.fontSize.base }}>{profile.location}</span>
                   </div>
                 )}
                 {profile.website && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing.xs }}>
-                    <span>🔗</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
+                    <span style={{ fontSize: '18px' }}>🔗</span>
                     <a
                       href={profile.website}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
-                        ...typography.small,
+                        fontSize: typography.fontSize.base,
                         color: colors.brand.primary,
-                        textDecoration: 'none'
+                        textDecoration: 'none',
+                        fontWeight: typography.fontWeight.medium
                       }}
                     >
                       {profile.website}
@@ -293,63 +320,55 @@ export function UserProfilePage({ userId }: UserProfileProps) {
                 )}
               </div>
 
-              <div style={{
-                display: 'flex',
-                gap: spacing.xl,
-                marginTop: spacing.lg
-              }}>
-                <button style={{
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  ...typography.body
-                }}>
-                  <span style={{ fontWeight: 700, color: colors.text.primary }}>
-                    {profile.following_count}
-                  </span>{' '}
-                  <span style={{ color: colors.text.secondary }}>Following</span>
-                </button>
-                <button style={{
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  ...typography.body
-                }}>
-                  <span style={{ fontWeight: 700, color: colors.text.primary }}>
-                    {profile.followers_count}
-                  </span>{' '}
-                  <span style={{ color: colors.text.secondary }}>Followers</span>
-                </button>
-              </div>
+              <MetricGrid columns={2} style={{ marginTop: spacing.xl }}>
+                <MetricCard
+                  label="Following"
+                  value={profile.following_count}
+                  icon="👥"
+                  variant="primary"
+                  size="small"
+                />
+                <MetricCard
+                  label="Followers"
+                  value={profile.followers_count}
+                  icon="⭐"
+                  variant="success"
+                  size="small"
+                />
+              </MetricGrid>
             </div>
           </div>
         </Card>
 
-        <Card style={{ marginBottom: spacing.xl }}>
+        <Card style={{ marginBottom: spacing.xl, boxShadow: shadows.lg }}>
           <div style={{
-            display: 'flex',
-            borderBottom: `1px solid ${colors.border.primary}`
+            display: 'grid',
+            gridTemplateColumns: `repeat(${tabItems.length}, 1fr)`,
+            borderBottom: `2px solid ${colors.border.primary}`
           }}>
             {tabItems.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 style={{
-                  flex: 1,
                   padding: spacing.lg,
-                  background: 'transparent',
+                  background: activeTab === tab.id
+                    ? `linear-gradient(to bottom, ${colors.brand.primaryFaded}, transparent)`
+                    : 'transparent',
                   border: 'none',
-                  ...typography.body,
                   fontWeight: 600,
                   color: activeTab === tab.id ? colors.brand.primary : colors.text.secondary,
                   borderBottom: activeTab === tab.id ? `3px solid ${colors.brand.primary}` : 'none',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: spacing.sm
                 }}
               >
-                {tab.label}
+                <span>{tab.icon}</span>
+                <span>{tab.label}</span>
               </button>
             ))}
           </div>
@@ -371,12 +390,14 @@ export function UserProfilePage({ userId }: UserProfileProps) {
               <div>
                 {posts.map((post, index) => (
                   <div key={post.id}>
-                    <PostCard
-                      post={post}
-                      onLike={(isLiked) => handleLike(post.id, isLiked)}
-                      onRepost={(comment) => handleRepost(post.id, comment)}
-                      onDelete={() => handleDelete(post.id)}
-                    />
+                    <div style={{ padding: spacing.lg }}>
+                      <PostCard
+                        post={post}
+                        onLike={(isLiked) => handleLike(post.id, isLiked)}
+                        onRepost={(comment) => handleRepost(post.id, comment)}
+                        onDelete={() => handleDelete(post.id)}
+                      />
+                    </div>
                     {index < posts.length - 1 && <Divider />}
                   </div>
                 ))}

@@ -39,9 +39,9 @@ export function ProductCard({
   const imageContainerStyle: React.CSSProperties = {
     position: 'relative',
     width: '100%',
-    height: isFeatured ? '200px' : isCompact ? '120px' : '160px',
+    height: isFeatured ? '240px' : isCompact ? '140px' : '200px',
     borderRadius: borderRadius.lg,
-    background: colors.background.tertiary,
+    background: `linear-gradient(135deg, ${colors.brand.primaryFaded} 0%, ${colors.brand.primary} 100%)`,
     border: `1px solid ${colors.border.primary}`,
     display: 'flex',
     alignItems: 'center',
@@ -49,28 +49,28 @@ export function ProductCard({
     marginBottom: spacing.md,
     overflow: 'hidden',
     transition: `all ${transitions.normal}`,
-    boxShadow: isHovered ? shadows.md : shadows.sm,
+    boxShadow: isHovered ? shadows.lg : shadows.md,
   };
 
   const priceTagStyle: React.CSSProperties = {
     position: 'absolute',
-    top: spacing.lg,
-    right: spacing.lg,
-    background: colors.brand.primary,
+    top: spacing.md,
+    right: spacing.md,
+    background: `linear-gradient(135deg, ${colors.brand.primary} 0%, ${colors.brand.primaryDark} 100%)`,
     color: colors.white,
-    padding: `${spacing.md} ${spacing.lg}`,
+    padding: `${spacing.sm} ${spacing.md}`,
     borderRadius: borderRadius.full,
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.bold,
-    boxShadow: shadows.md,
+    boxShadow: shadows.glow,
     backdropFilter: 'blur(8px)',
-    border: `1px solid rgba(255, 255, 255, 0.1)`,
+    border: `1px solid rgba(255, 255, 255, 0.2)`,
   };
 
   const contentStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
-    gap: spacing.md,
+    gap: spacing.sm,
     flex: 1,
   };
 
@@ -78,8 +78,9 @@ export function ProductCard({
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: spacing.lg,
-    gap: spacing.md,
+    marginTop: spacing.md,
+    gap: spacing.sm,
+    flexWrap: 'wrap',
   };
 
   return (
@@ -95,8 +96,10 @@ export function ProductCard({
         flexDirection: 'column',
         height: '100%',
         transition: `all ${transitions.normal}`,
-        transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
-        boxShadow: isHovered ? shadows.lg : shadows.sm,
+        transform: isHovered ? 'translateY(-8px) scale(1.02)' : 'translateY(0) scale(1)',
+        boxShadow: isHovered ? shadows.xl : shadows.md,
+        background: colors.ui.card,
+        border: `1px solid ${isHovered ? colors.brand.primary : colors.border.primary}`,
       }}
     >
       <div style={imageContainerStyle}>
@@ -108,10 +111,12 @@ export function ProductCard({
               width: '100%',
               height: '100%',
               objectFit: 'cover',
+              transition: `all ${transitions.normal}`,
+              transform: isHovered ? 'scale(1.1)' : 'scale(1)',
             }}
           />
         ) : (
-          <span style={{ fontSize: isFeatured ? '72px' : '48px', opacity: 0.4 }}>
+          <span style={{ fontSize: isFeatured ? '80px' : '56px', opacity: 0.6 }}>
             🛍️
           </span>
         )}
@@ -153,13 +158,24 @@ export function ProductCard({
 
         <div style={footerStyle}>
           {product.category && (
-            <Badge variant="info" size="sm">
+            <Badge
+              variant="primary"
+              size="sm"
+              style={{
+                background: `${colors.brand.primaryFaded}`,
+                color: colors.brand.primary,
+                border: `1px solid ${colors.brand.primary}`,
+              }}
+            >
               {product.category}
             </Badge>
           )}
 
           {product.stock_quantity !== undefined && product.stock_quantity < 10 && (
-            <Badge variant={product.stock_quantity === 0 ? 'error' : 'warning'} size="sm">
+            <Badge
+              variant={product.stock_quantity === 0 ? 'error' : 'warning'}
+              size="sm"
+            >
               {product.stock_quantity === 0 ? 'Out of Stock' : `${product.stock_quantity} left`}
             </Badge>
           )}
@@ -174,9 +190,10 @@ export function ProductCard({
           onClick={handleAddToCart}
           disabled={product.stock_quantity === 0}
           style={{
-            marginTop: spacing.lg,
+            marginTop: spacing.md,
             transition: `all ${transitions.fast}`,
-            transform: isHovered && product.stock_quantity !== 0 ? 'scale(1.02)' : 'scale(1)',
+            transform: isHovered && product.stock_quantity !== 0 ? 'scale(1.05)' : 'scale(1)',
+            boxShadow: isHovered && product.stock_quantity !== 0 ? shadows.lg : shadows.sm,
           }}
         >
           {product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
@@ -193,7 +210,7 @@ export interface ProductCardSkeletonProps {
 export function ProductCardSkeleton({ count = 1 }: ProductCardSkeletonProps) {
   const skeletonCards = Array.from({ length: count }, (_, i) => (
     <Card key={i} style={{ display: 'flex', flexDirection: 'column', gap: spacing.lg }}>
-      <Skeleton height="160px" variant="rectangular" />
+      <Skeleton height="200px" variant="rectangular" />
       <Skeleton height="24px" width="80%" />
       <Skeleton height="16px" width="100%" />
       <Skeleton height="16px" width="60%" />
@@ -201,7 +218,7 @@ export function ProductCardSkeleton({ count = 1 }: ProductCardSkeletonProps) {
         <Skeleton height="24px" width="60px" variant="rectangular" />
         <Skeleton height="24px" width="60px" variant="rectangular" />
       </div>
-      <Skeleton height="40px" width="100%" variant="rectangular" style={{ marginTop: spacing.lg }} />
+      <Skeleton height="42px" width="100%" variant="rectangular" style={{ marginTop: spacing.lg }} />
     </Card>
   ));
 
