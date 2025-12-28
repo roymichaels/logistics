@@ -62,42 +62,47 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
   };
 
   const avatarButtonStyles: React.CSSProperties = {
-    width: '40px',
-    height: '40px',
+    width: 'clamp(40px, 10vw, 44px)',
+    height: 'clamp(40px, 10vw, 44px)',
+    minWidth: '44px',
+    minHeight: '44px',
     borderRadius: borderRadius.full,
-    border: `2px solid ${colors.brand.primary}`,
+    border: '1px solid rgba(255, 255, 255, 0.1)',
     background: user?.photo_url
       ? `url(${user.photo_url}) center/cover`
-      : colors.brand.primary,
-    color: colors.white,
+      : 'rgba(255, 255, 255, 0.05)',
+    color: 'rgba(255, 255, 255, 0.7)',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '18px',
+    fontSize: 'clamp(16px, 5vw, 18px)',
     fontWeight: 700,
-    transition: 'all 0.2s ease',
-    boxShadow: dropdownOpen ? `0 0 0 3px ${colors.brand.primaryFaded}` : shadows.md,
+    transition: 'all 0.15s ease',
+    flexShrink: 0,
+    padding: 0,
+    boxShadow: dropdownOpen ? '0 0 0 2px rgba(29, 155, 240, 0.5)' : 'none',
   };
 
   const dropdownStyles: React.CSSProperties = {
     position: 'absolute',
     top: 'calc(100% + 8px)',
-    left: 0,
-    right: 'auto',
+    right: 0,
+    left: 'auto',
     minWidth: '240px',
     maxWidth: 'calc(100vw - 16px)',
-    background: colors.ui.card,
-    border: `1px solid ${colors.border.primary}`,
+    background: 'rgba(30, 30, 35, 0.98)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
     borderRadius: borderRadius.xl,
-    boxShadow: shadows.xl,
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+    backdropFilter: 'blur(12px)',
     zIndex: zIndex.dropdown,
     overflow: 'hidden',
   };
 
   const userInfoStyles: React.CSSProperties = {
     padding: spacing.lg,
-    borderBottom: `1px solid ${colors.border.primary}`,
+    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
   };
 
   const menuItemStyles: React.CSSProperties = {
@@ -109,9 +114,9 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
     alignItems: 'center',
     gap: spacing.md,
     cursor: 'pointer',
-    color: colors.text.primary,
+    color: 'rgba(255, 255, 255, 0.9)',
     fontSize: '14px',
-    transition: 'background 0.2s ease',
+    transition: 'all 0.15s ease',
   };
 
   return (
@@ -128,16 +133,16 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
       {dropdownOpen && (
         <div style={dropdownStyles}>
           <div style={userInfoStyles}>
-            <Text variant="body" weight="semibold" style={{ marginBottom: spacing.xs }}>
+            <Text variant="body" weight="semibold" style={{ marginBottom: spacing.xs, color: 'rgba(255, 255, 255, 0.95)' }}>
               {userName}
             </Text>
             {user?.username && (
-              <Text variant="small" color="secondary" style={{ marginBottom: spacing.xs }}>
+              <Text variant="small" style={{ marginBottom: spacing.xs, color: 'rgba(255, 255, 255, 0.6)' }}>
                 @{user.username}
               </Text>
             )}
             {roleDisplay && (
-              <Text variant="small" style={{ color: colors.brand.primary }}>
+              <Text variant="small" style={{ color: '#1D9BF0' }}>
                 {roleDisplay}
               </Text>
             )}
@@ -148,7 +153,7 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
               onClick={() => handleMenuClick('profile')}
               style={menuItemStyles}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = colors.ui.cardHover;
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';
@@ -162,7 +167,7 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
               onClick={() => handleMenuClick('settings')}
               style={menuItemStyles}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = colors.ui.cardHover;
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';
@@ -176,9 +181,9 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
 
             <button
               onClick={() => handleMenuClick('logout')}
-              style={{ ...menuItemStyles, color: colors.status.error }}
+              style={{ ...menuItemStyles, color: '#FF4444' }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = colors.status.errorFaded;
+                e.currentTarget.style.background = 'rgba(255, 68, 68, 0.1)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';

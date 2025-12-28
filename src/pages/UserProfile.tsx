@@ -3,7 +3,15 @@ import { useAppServices } from '../context/AppServicesContext';
 import { useAuth } from '../context/AuthContext';
 import type { UserProfile, Post, User } from '../data/types';
 import { PostCard } from '../components/social/PostCard';
+import { Card } from '../components/molecules/Card';
+import { Button } from '../components/atoms/Button';
+import { Avatar } from '../components/atoms/Avatar';
+import { Badge } from '../components/atoms/Badge';
+import { Divider } from '../components/atoms/Divider';
+import { EmptyState } from '../components/molecules/EmptyState';
+import { LoadingState } from '../components/molecules/LoadingState';
 import { logger } from '../lib/logger';
+import { colors, spacing, borderRadius, shadows, typography } from '../styles/design-system';
 
 interface UserProfileProps {
   userId?: string;
@@ -143,140 +151,239 @@ export function UserProfilePage({ userId }: UserProfileProps) {
 
   if (!profile || !user) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: colors.background.primary
+      }}>
+        <LoadingState message="Loading profile..." />
       </div>
     );
   }
 
+  const tabItems = [
+    { id: 'posts', label: 'Posts' },
+    { id: 'replies', label: 'Replies' },
+    { id: 'media', label: 'Media' },
+    { id: 'likes', label: 'Likes' }
+  ];
+
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-3xl mx-auto border-x">
-        {profile.banner_url && (
-          <div className="h-48 bg-gray-200">
-            <img src={profile.banner_url} alt="Banner" className="w-full h-full object-cover" />
-          </div>
-        )}
-        {!profile.banner_url && <div className="h-48 bg-gray-300"></div>}
+    <div style={{
+      minHeight: '100vh',
+      background: colors.background.primary,
+      padding: spacing.lg
+    }}>
+      <div style={{
+        maxWidth: '900px',
+        margin: '0 auto'
+      }}>
+        <Card style={{ marginBottom: spacing.xl, overflow: 'hidden' }}>
+          {profile.banner_url && (
+            <div style={{
+              height: '200px',
+              background: `url(${profile.banner_url}) center/cover`,
+              backgroundColor: colors.background.secondary
+            }} />
+          )}
+          {!profile.banner_url && (
+            <div style={{
+              height: '200px',
+              background: `linear-gradient(135deg, ${colors.brand.primary} 0%, ${colors.brand.primaryDark} 100%)`
+            }} />
+          )}
 
-        <div className="px-4 pb-4">
-          <div className="flex justify-between items-start -mt-16 mb-4">
-            <div className="relative">
-              {user.photo_url ? (
-                <img
-                  src={user.photo_url}
-                  alt={user.name || 'User'}
-                  className="w-32 h-32 rounded-full border-4 border-white"
-                />
-              ) : (
-                <div className="w-32 h-32 rounded-full border-4 border-white bg-blue-500 flex items-center justify-center text-white text-4xl font-semibold">
-                  {(user.name?.[0] || user.username?.[0] || 'U').toUpperCase()}
-                </div>
-              )}
+          <div style={{ padding: spacing.xl }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginTop: `-${spacing.xxxl}`,
+              marginBottom: spacing.lg
+            }}>
+              <Avatar
+                src={user.photo_url}
+                alt={user.name || 'User'}
+                size={120}
+                fallback={user.name || user.username}
+                online={isOwnProfile}
+              />
+
+              <div style={{ paddingTop: spacing.xl }}>
+                {isOwnProfile ? (
+                  <Button variant="secondary" size="md">
+                    Edit Profile
+                  </Button>
+                ) : (
+                  <Button
+                    variant={isFollowing ? 'secondary' : 'primary'}
+                    size="md"
+                    onClick={handleFollow}
+                  >
+                    {isFollowing ? 'Following' : 'Follow'}
+                  </Button>
+                )}
+              </div>
             </div>
 
-            <div className="mt-16">
-              {isOwnProfile ? (
-                <button className="px-4 py-2 border border-gray-300 rounded-full font-semibold hover:bg-gray-50 transition-colors">
-                  Edit profile
+            <div style={{ marginTop: spacing.lg }}>
+              <h1 style={{
+                ...typography.heading1,
+                color: colors.text.primary,
+                marginBottom: spacing.xs
+              }}>
+                {user.name || user.username || 'Unknown User'}
+              </h1>
+              {user.username && (
+                <p style={{
+                  ...typography.body,
+                  color: colors.text.secondary,
+                  marginBottom: spacing.md
+                }}>
+                  @{user.username}
+                </p>
+              )}
+              {user.role && (
+                <Badge variant="primary" style={{ marginBottom: spacing.md }}>
+                  {user.role}
+                </Badge>
+              )}
+              {profile.bio && (
+                <p style={{
+                  ...typography.body,
+                  color: colors.text.primary,
+                  marginTop: spacing.md,
+                  lineHeight: 1.6
+                }}>
+                  {profile.bio}
+                </p>
+              )}
+
+              <div style={{
+                display: 'flex',
+                gap: spacing.lg,
+                marginTop: spacing.md,
+                color: colors.text.secondary,
+                flexWrap: 'wrap'
+              }}>
+                {profile.location && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing.xs }}>
+                    <span>📍</span>
+                    <span style={typography.small}>{profile.location}</span>
+                  </div>
+                )}
+                {profile.website && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing.xs }}>
+                    <span>🔗</span>
+                    <a
+                      href={profile.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        ...typography.small,
+                        color: colors.brand.primary,
+                        textDecoration: 'none'
+                      }}
+                    >
+                      {profile.website}
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              <div style={{
+                display: 'flex',
+                gap: spacing.xl,
+                marginTop: spacing.lg
+              }}>
+                <button style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  ...typography.body
+                }}>
+                  <span style={{ fontWeight: 700, color: colors.text.primary }}>
+                    {profile.following_count}
+                  </span>{' '}
+                  <span style={{ color: colors.text.secondary }}>Following</span>
                 </button>
-              ) : (
-                <button
-                  onClick={handleFollow}
-                  className={`px-4 py-2 rounded-full font-semibold transition-colors ${
-                    isFollowing
-                      ? 'border border-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-600'
-                      : 'bg-black text-white hover:bg-gray-800'
-                  }`}
-                >
-                  {isFollowing ? 'Following' : 'Follow'}
+                <button style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  ...typography.body
+                }}>
+                  <span style={{ fontWeight: 700, color: colors.text.primary }}>
+                    {profile.followers_count}
+                  </span>{' '}
+                  <span style={{ color: colors.text.secondary }}>Followers</span>
                 </button>
-              )}
+              </div>
             </div>
           </div>
+        </Card>
 
-          <div className="mt-4">
-            <h1 className="text-2xl font-bold">{user.name || user.username || 'Unknown User'}</h1>
-            {user.username && <p className="text-gray-500">@{user.username}</p>}
-            {profile.bio && <p className="mt-3 text-gray-900">{profile.bio}</p>}
-
-            <div className="flex gap-4 mt-3 text-gray-500">
-              {profile.location && (
-                <div className="flex items-center gap-1">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span>{profile.location}</span>
-                </div>
-              )}
-              {profile.website && (
-                <div className="flex items-center gap-1">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                  </svg>
-                  <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                    {profile.website}
-                  </a>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-4 mt-3">
-              <button className="hover:underline">
-                <span className="font-bold">{profile.following_count}</span>{' '}
-                <span className="text-gray-500">Following</span>
-              </button>
-              <button className="hover:underline">
-                <span className="font-bold">{profile.followers_count}</span>{' '}
-                <span className="text-gray-500">Followers</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="border-b border-gray-200">
-          <div className="flex">
-            {['posts', 'replies', 'media', 'likes'].map((tab) => (
+        <Card style={{ marginBottom: spacing.xl }}>
+          <div style={{
+            display: 'flex',
+            borderBottom: `1px solid ${colors.border.primary}`
+          }}>
+            {tabItems.map((tab) => (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab as any)}
-                className={`flex-1 px-4 py-4 text-center font-semibold capitalize hover:bg-gray-50 transition-colors ${
-                  activeTab === tab
-                    ? 'border-b-2 border-blue-500 text-blue-600'
-                    : 'text-gray-500'
-                }`}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                style={{
+                  flex: 1,
+                  padding: spacing.lg,
+                  background: 'transparent',
+                  border: 'none',
+                  ...typography.body,
+                  fontWeight: 600,
+                  color: activeTab === tab.id ? colors.brand.primary : colors.text.secondary,
+                  borderBottom: activeTab === tab.id ? `3px solid ${colors.brand.primary}` : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
               >
-                {tab}
+                {tab.label}
               </button>
             ))}
           </div>
-        </div>
 
-        <div>
-          {loading ? (
-            <div className="p-8 text-center text-gray-500">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-              <p className="mt-2">Loading posts...</p>
-            </div>
-          ) : posts.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              <p>No posts yet</p>
-            </div>
-          ) : (
-            <div className="divide-y">
-              {posts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  onLike={(isLiked) => handleLike(post.id, isLiked)}
-                  onRepost={(comment) => handleRepost(post.id, comment)}
-                  onDelete={() => handleDelete(post.id)}
+          <div>
+            {loading ? (
+              <div style={{ padding: spacing.xxl }}>
+                <LoadingState message="Loading posts..." />
+              </div>
+            ) : posts.length === 0 ? (
+              <div style={{ padding: spacing.xxl }}>
+                <EmptyState
+                  icon="📝"
+                  title="No posts yet"
+                  description={isOwnProfile ? "You haven't posted anything yet" : "This user hasn't posted anything yet"}
                 />
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ) : (
+              <div>
+                {posts.map((post, index) => (
+                  <div key={post.id}>
+                    <PostCard
+                      post={post}
+                      onLike={(isLiked) => handleLike(post.id, isLiked)}
+                      onRepost={(comment) => handleRepost(post.id, comment)}
+                      onDelete={() => handleDelete(post.id)}
+                    />
+                    {index < posts.length - 1 && <Divider />}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Card>
       </div>
     </div>
   );

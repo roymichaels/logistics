@@ -2,8 +2,10 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { usePageTitle } from '../context/PageTitleContext';
 import { useAppServices } from '../context/AppServicesContext';
+import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../lib/i18n';
 import { UnifiedMenuPanel, MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
+import { UserMenu } from '../components/organisms/UserMenu';
 import { getNavigationForRole } from './navigationSchema';
 import { DevConsoleDrawer } from '../components/dev/DevConsoleDrawer';
 
@@ -14,6 +16,7 @@ interface UnifiedAppShellProps {
 
 export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
   const { userRole, isAuthenticated } = useAppServices();
+  const { user } = useAuth();
   const { title, subtitle } = usePageTitle();
   const location = useLocation();
   const navigate = useNavigate();
@@ -94,37 +97,22 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
         >
           ☰
         </button>
-        <button
-          onClick={() => navigate('/store/profile')}
-          style={{
-            width: 'clamp(40px, 10vw, 44px)',
-            height: 'clamp(40px, 10vw, 44px)',
-            minWidth: '44px',
-            minHeight: '44px',
-            borderRadius: '50%',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            background: 'rgba(255, 255, 255, 0.05)',
-            color: 'rgba(255, 255, 255, 0.7)',
-            display: 'grid',
-            placeItems: 'center',
-            cursor: 'pointer',
-            fontSize: 'clamp(16px, 5vw, 18px)',
-            transition: 'all 0.15s ease',
-            flexShrink: 0,
-            padding: 0,
+        <UserMenu
+          user={user ? {
+            name: user.name || user.username || user.wallet_address?.slice(0, 8),
+            username: user.username,
+            role: userRole || undefined,
+            photo_url: user.photo_url
+          } : undefined}
+          onNavigate={(page) => {
+            if (page === 'profile') navigate('/store/profile');
+            else if (page === 'settings') navigate('/settings');
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.95)';
+          onLogout={() => {
+            localStorage.clear();
+            navigate('/login');
           }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
-          }}
-          aria-label="User menu"
-        >
-          👤
-        </button>
+        />
       </div>
     </div>
   );
