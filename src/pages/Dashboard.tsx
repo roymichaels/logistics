@@ -51,8 +51,8 @@ const DASHBOARD_COLORS = {
 };
 
 export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate }: DashboardProps = {}) {
-  // Get dataStore and navigation from context if not provided as props
-  const { dataStore: contextDataStore } = useAppServices();
+  // Get dataStore, navigation, and currentBusinessId from context if not provided as props
+  const { dataStore: contextDataStore, currentBusinessId } = useAppServices();
   const navigate = useNavigate();
 
   // Use prop if provided, otherwise use context
@@ -300,12 +300,12 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
 
   if (isBusinessOwner) {
     // Business owners can use the dashboard even without business_id - it will show appropriate empty state
-    // Pass the business_id if available, otherwise pass null
-    const businessId = user.business_id || (user as any).active_business_id || null;
+    // Use currentBusinessId from context, fallback to user's business_id fields
+    const businessId = currentBusinessId || user.business_id || (user as any).active_business_id || '';
 
     return (
       <BusinessOwnerDashboard
-        businessId={businessId || ''}
+        businessId={businessId}
         userId={user.id}
         onNavigate={onNavigate}
       />

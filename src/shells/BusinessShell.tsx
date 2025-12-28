@@ -35,23 +35,7 @@ export function BusinessShell({
       path: item.path,
     }));
 
-  const headerContent = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-      <div>
-        <h1
-          style={{
-            margin: 0,
-            fontSize: '18px',
-            fontWeight: '600',
-            color: 'rgba(255, 255, 255, 0.95)',
-          }}
-        >
-          {businessName || 'Business Portal'}
-        </h1>
-      </div>
-    </div>
-  );
-
+  // Don't pass headerContent to UnifiedAppFrame since UnifiedAppShell already renders a header
   return (
     <BaseShell
       role={role}
@@ -65,7 +49,6 @@ export function BusinessShell({
         currentPath={currentPath}
         onNavigate={onNavigate}
         title="Business Menu"
-        headerContent={headerContent}
       >
         {children}
       </UnifiedAppFrame>

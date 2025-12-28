@@ -133,9 +133,35 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         const effectiveRole = (profile.global_role || profile.role) as AppUserRole;
         setUserRole(effectiveRole);
 
-        if (profile.business_id && profile.business_id !== currentBusinessId) {
-          logger.info('🏢 AppServicesContext: Setting new business context:', profile.business_id);
-          setCurrentBusinessId(profile.business_id);
+        // Query user_business_roles to get active business ID
+        let businessIdToSet = profile.business_id;
+        if (!businessIdToSet) {
+          try {
+            const { getSupabase } = await import('../lib/supabaseClient');
+            const supabase = getSupabase();
+
+            if (supabase) {
+              const { data: businessRoles, error: businessError } = await supabase
+                .from('user_business_roles')
+                .select('business_id, is_active')
+                .eq('user_id', user.id)
+                .eq('is_active', true)
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+              if (!businessError && businessRoles && businessRoles.length > 0) {
+                businessIdToSet = businessRoles[0].business_id;
+                logger.info('🏢 AppServicesContext: Retrieved business_id from user_business_roles:', businessIdToSet);
+              }
+            }
+          } catch (queryError) {
+            logger.warn('⚠️ Failed to query user_business_roles:', queryError);
+          }
+        }
+
+        if (businessIdToSet && businessIdToSet !== currentBusinessId) {
+          logger.info('🏢 AppServicesContext: Setting new business context:', businessIdToSet);
+          setCurrentBusinessId(businessIdToSet);
         }
 
         if (wasUser && isNowBusinessOwner) {
@@ -367,7 +393,33 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
               }
             } else {
               // No cached business role, use session or profile business_id
-              const businessToSet = sessionBusinessId || profile.business_id;
+              let businessToSet = sessionBusinessId || profile.business_id;
+
+              // If no business_id found, query user_business_roles table
+              if (!businessToSet) {
+                try {
+                  const { getSupabase } = await import('../lib/supabaseClient');
+                  const supabase = getSupabase();
+
+                  if (supabase) {
+                    const { data: businessRoles, error: businessError } = await supabase
+                      .from('user_business_roles')
+                      .select('business_id, is_active')
+                      .eq('user_id', auth.user.id)
+                      .eq('is_active', true)
+                      .order('created_at', { ascending: false })
+                      .limit(1);
+
+                    if (!businessError && businessRoles && businessRoles.length > 0) {
+                      businessToSet = businessRoles[0].business_id;
+                      logger.info('🏢 Retrieved business_id from user_business_roles:', businessToSet);
+                    }
+                  }
+                } catch (queryError) {
+                  logger.warn('⚠️ Failed to query user_business_roles during initialization:', queryError);
+                }
+              }
+
               if (businessToSet) {
                 logger.info('🏢 Setting business_id from session/profile:', businessToSet);
                 setCurrentBusinessId(businessToSet);
