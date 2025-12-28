@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { UnifiedMenuPanel, MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
+import { BottomNavigation } from '../components/BottomNavigation';
+import { useAuth } from '../context/AuthContext';
 
 interface UnifiedAppFrameProps {
   children: React.ReactNode;
@@ -8,6 +10,7 @@ interface UnifiedAppFrameProps {
   onNavigate: (path: string) => void;
   title?: string;
   headerContent?: React.ReactNode;
+  showBottomNav?: boolean;
 }
 
 export function UnifiedAppFrame({
@@ -17,8 +20,11 @@ export function UnifiedAppFrame({
   onNavigate,
   title = 'Menu',
   headerContent,
+  showBottomNav = true,
 }: UnifiedAppFrameProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const authCtx = useAuth();
+  const userRole = (authCtx?.user as any)?.role || 'user';
 
   return (
     <div
@@ -80,10 +86,20 @@ export function UnifiedAppFrame({
           flex: 1,
           overflow: 'auto',
           width: '100%',
+          paddingBottom: showBottomNav ? '70px' : '0',
         }}
       >
         {children}
       </div>
+
+      {showBottomNav && (
+        <BottomNavigation
+          currentPage={currentPath}
+          onNavigate={onNavigate}
+          userRole={userRole}
+          onOpenSidebar={() => setMenuOpen(true)}
+        />
+      )}
 
       <UnifiedMenuPanel
         isOpen={menuOpen}

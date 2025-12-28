@@ -548,6 +548,10 @@ export class LocalDataStore {
     this.tables.set('users', []);
     this.tables.set('categories', []);
     this.tables.set('roles', []);
+    this.tables.set('zones', []);
+    this.tables.set('driver_zones', []);
+    this.tables.set('tasks', []);
+    this.tables.set('restock_requests', []);
 
     this.saveToStorage();
   }
@@ -582,6 +586,255 @@ export class LocalDataStore {
       logger.error('[LocalDataStore] Failed to create business:', error);
       throw error;
     }
+  }
+
+  async listZones(): Promise<any[]> {
+    try {
+      const zones = this.getTable('zones');
+      logger.debug('[LocalDataStore] Listed zones:', zones.length);
+      return zones;
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to list zones:', error);
+      return [];
+    }
+  }
+
+  async listDriverZones(): Promise<any[]> {
+    try {
+      const driverZones = this.getTable('driver_zones');
+      logger.debug('[LocalDataStore] Listed driver zones:', driverZones.length);
+      return driverZones;
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to list driver zones:', error);
+      return [];
+    }
+  }
+
+  async assignDriverToZone(driverId: string, zoneId: string): Promise<void> {
+    try {
+      const driverZones = this.getTable('driver_zones');
+
+      const existing = driverZones.find(
+        (dz: any) => dz.driver_telegram_id === driverId && dz.zone_id === zoneId && dz.active
+      );
+
+      if (existing) {
+        logger.debug('[LocalDataStore] Driver already assigned to zone');
+        return;
+      }
+
+      const assignment = {
+        id: this.generateId(),
+        driver_telegram_id: driverId,
+        zone_id: zoneId,
+        active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      driverZones.push(assignment);
+      this.saveToStorage();
+      this.notifySubscribers('driver_zones', {
+        eventType: 'INSERT',
+        new: assignment,
+        old: {},
+      });
+
+      logger.info('[LocalDataStore] Assigned driver to zone:', { driverId, zoneId });
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to assign driver to zone:', error);
+      throw error;
+    }
+  }
+
+  async unassignDriverFromZone(driverId: string, zoneId: string): Promise<void> {
+    try {
+      const driverZones = this.getTable('driver_zones');
+
+      const assignment = driverZones.find(
+        (dz: any) => dz.driver_telegram_id === driverId && dz.zone_id === zoneId && dz.active
+      );
+
+      if (!assignment) {
+        logger.warn('[LocalDataStore] Driver zone assignment not found');
+        return;
+      }
+
+      assignment.active = false;
+      assignment.updated_at = new Date().toISOString();
+
+      this.saveToStorage();
+      this.notifySubscribers('driver_zones', {
+        eventType: 'UPDATE',
+        old: { ...assignment, active: true },
+        new: assignment,
+      });
+
+      logger.info('[LocalDataStore] Unassigned driver from zone:', { driverId, zoneId });
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to unassign driver from zone:', error);
+      throw error;
+    }
+  }
+
+  async listRestockRequests(filters?: { status?: string }): Promise<any[]> {
+    try {
+      let requests = this.getTable('restock_requests');
+
+      if (filters?.status) {
+        requests = requests.filter((r: any) => r.status === filters.status);
+      }
+
+      logger.debug('[LocalDataStore] Listed restock requests:', requests.length);
+      return requests;
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to list restock requests:', error);
+      return [];
+    }
+  }
+
+  async approveRestockRequest(id: string, data: { approved_quantity: number }): Promise<void> {
+    try {
+      const requests = this.getTable('restock_requests');
+      const request = requests.find((r: any) => r.id === id);
+
+      if (!request) {
+        throw new Error('Restock request not found');
+      }
+
+      const oldRequest = { ...request };
+      request.status = 'approved';
+      request.approved_quantity = data.approved_quantity;
+      request.approved_at = new Date().toISOString();
+      request.updated_at = new Date().toISOString();
+
+      this.saveToStorage();
+      this.notifySubscribers('restock_requests', {
+        eventType: 'UPDATE',
+        old: oldRequest,
+        new: request,
+      });
+
+      logger.info('[LocalDataStore] Approved restock request:', id);
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to approve restock request:', error);
+      throw error;
+    }
+  }
+
+  async rejectRestockRequest(id: string, data: { notes?: string }): Promise<void> {
+    try {
+      const requests = this.getTable('restock_requests');
+      const request = requests.find((r: any) => r.id === id);
+
+      if (!request) {
+        throw new Error('Restock request not found');
+      }
+
+      const oldRequest = { ...request };
+      request.status = 'rejected';
+      request.rejection_notes = data.notes;
+      request.rejected_at = new Date().toISOString();
+      request.updated_at = new Date().toISOString();
+
+      this.saveToStorage();
+      this.notifySubscribers('restock_requests', {
+        eventType: 'UPDATE',
+        old: oldRequest,
+        new: request,
+      });
+
+      logger.info('[LocalDataStore] Rejected restock request:', id);
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to reject restock request:', error);
+      throw error;
+    }
+  }
+
+  async listMyTasks(): Promise<any[]> {
+    try {
+      const profile = await this.getProfile();
+      if (!profile) {
+        logger.warn('[LocalDataStore] No profile found for listMyTasks');
+        return [];
+      }
+
+      const tasks = this.getTable('tasks');
+      const myTasks = tasks.filter(
+        (t: any) => t.assigned_to === profile.id || t.created_by === profile.id
+      );
+
+      logger.debug('[LocalDataStore] Listed my tasks:', myTasks.length);
+      return myTasks;
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to list my tasks:', error);
+      return [];
+    }
+  }
+
+  async createTask(data: any): Promise<any> {
+    try {
+      const profile = await this.getProfile();
+      if (!profile) {
+        throw new Error('No authenticated user');
+      }
+
+      const tasks = this.getTable('tasks');
+      const task = {
+        id: this.generateId(),
+        ...data,
+        created_by: profile.id,
+        status: data.status || 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      tasks.push(task);
+      this.saveToStorage();
+      this.notifySubscribers('tasks', {
+        eventType: 'INSERT',
+        new: task,
+        old: {},
+      });
+
+      logger.info('[LocalDataStore] Created task:', task.id);
+      return task;
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to create task:', error);
+      throw error;
+    }
+  }
+
+  async updateTask(id: string, updates: any): Promise<any> {
+    try {
+      const tasks = this.getTable('tasks');
+      const task = tasks.find((t: any) => t.id === id);
+
+      if (!task) {
+        throw new Error('Task not found');
+      }
+
+      const oldTask = { ...task };
+      Object.assign(task, updates);
+      task.updated_at = new Date().toISOString();
+
+      this.saveToStorage();
+      this.notifySubscribers('tasks', {
+        eventType: 'UPDATE',
+        old: oldTask,
+        new: task,
+      });
+
+      logger.info('[LocalDataStore] Updated task:', id);
+      return task;
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to update task:', error);
+      throw error;
+    }
+  }
+
+  private generateId(): string {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
   clearAll(): void {

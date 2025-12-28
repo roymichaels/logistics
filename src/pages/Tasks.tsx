@@ -30,39 +30,22 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
       const profile = await dataStore.getProfile();
       setCurrentUser(profile);
 
-      // Load tasks based on role
       let tasksList: Task[] = [];
       if (profile.role === 'infrastructure_owner' || profile.role === 'business_owner' || profile.role === 'manager' || profile.role === 'dispatcher') {
-        // Admins see all tasks
-        if (dataStore.supabase) {
-          const { data, error } = await dataStore.supabase
-            .from('tasks')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-          if (!error && data) {
-            tasksList = data;
-          }
+        const result = await dataStore.from('tasks').select('*').order('created_at', { ascending: false });
+        if (result.success && result.data) {
+          tasksList = result.data;
         }
       } else {
-        // Regular users see their tasks
         tasksList = await dataStore.listMyTasks?.() || [];
       }
 
       setTasks(tasksList);
 
-      // Load users for assignment (if admin)
       if (profile.role === 'infrastructure_owner' || profile.role === 'business_owner' || profile.role === 'manager' || profile.role === 'dispatcher') {
-        if (dataStore.supabase) {
-          const { data: usersData } = await dataStore.supabase
-            .from('users')
-            .select('*')
-            .eq('active', true)
-            .order('name');
-
-          if (usersData) {
-            setUsers(usersData);
-          }
+        const usersResult = await dataStore.from('users').select('*').eq('active', true).order('name');
+        if (usersResult.success && usersResult.data) {
+          setUsers(usersResult.data);
         }
       }
     } catch (error) {
