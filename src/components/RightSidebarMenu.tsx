@@ -27,68 +27,70 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
   const getMenuItems = (): MenuItem[] => {
     if (!userRole) return [];
 
+    const t = i18n.getTranslations();
+
     const menuMap: Record<string, MenuItem[]> = {
       infrastructure_owner: [
-        { id: 'dashboard', label: 'לוח בקרה', icon: '🏠', page: 'dashboard' },
-        { id: 'orders', label: 'הזמנות', icon: '📦', page: 'orders' },
-        { id: 'drivers', label: 'ניהול נהגים', icon: '🚚', page: 'drivers-management' },
-        { id: 'inventory', label: 'מלאי', icon: '📊', page: 'manager-inventory' },
-        { id: 'products', label: 'מוצרים', icon: '🏷️', page: 'products' },
-        { id: 'reports', label: 'דוחות', icon: '📈', page: 'reports' },
-        { id: 'businesses', label: 'עסקים', icon: '🏢', page: 'businesses' },
-        { id: 'zones', label: 'ניהול אזורים', icon: '🗺️', page: 'zone-management' },
-        { id: 'dispatch', label: 'לוח משלוחים', icon: '📋', page: 'dispatch-board' },
-        { id: 'users', label: 'ניהול משתמשים', icon: '👤', page: 'users' }
+        { id: 'dashboard', label: t.dashboard, icon: '🏠', page: 'dashboard' },
+        { id: 'orders', label: t.orders, icon: '📦', page: 'orders' },
+        { id: 'drivers', label: t.driversManagementPage.title, icon: '🚚', page: 'drivers-management' },
+        { id: 'inventory', label: t.manager_inventory, icon: '📊', page: 'manager-inventory' },
+        { id: 'products', label: t.products, icon: '🏷️', page: 'products' },
+        { id: 'reports', label: t.reports, icon: '📈', page: 'reports' },
+        { id: 'businesses', label: t.businesses, icon: '🏢', page: 'businesses' },
+        { id: 'zones', label: t.zoneManagementPage.title, icon: '🗺️', page: 'zone-management' },
+        { id: 'dispatch', label: t.dispatch_board, icon: '📋', page: 'dispatch-board' },
+        { id: 'users', label: t.userManagement.title, icon: '👤', page: 'users' }
       ],
       business_owner: [
-        { id: 'dashboard', label: 'לוח בקרה', icon: '🏠', page: 'dashboard' },
-        { id: 'orders', label: 'הזמנות', icon: '📦', page: 'orders' },
-        { id: 'drivers', label: 'ניהול נהגים', icon: '🚚', page: 'drivers-management' },
-        { id: 'inventory', label: 'מלאי', icon: '📊', page: 'manager-inventory' },
-        { id: 'products', label: 'מוצרים', icon: '🏷️', page: 'products' },
-        { id: 'reports', label: 'דוחות', icon: '📈', page: 'reports' },
-        { id: 'businesses', label: 'עסקים', icon: '🏢', page: 'businesses' },
-        { id: 'zones', label: 'ניהול אזורים', icon: '🗺️', page: 'zone-management' },
-        { id: 'dispatch', label: 'לוח משלוחים', icon: '📋', page: 'dispatch-board' },
-        { id: 'users', label: 'ניהול משתמשים', icon: '👤', page: 'users' }
+        { id: 'dashboard', label: t.dashboard, icon: '🏠', page: 'dashboard' },
+        { id: 'orders', label: t.orders, icon: '📦', page: 'orders' },
+        { id: 'drivers', label: t.driversManagementPage.title, icon: '🚚', page: 'drivers-management' },
+        { id: 'inventory', label: t.manager_inventory, icon: '📊', page: 'manager-inventory' },
+        { id: 'products', label: t.products, icon: '🏷️', page: 'products' },
+        { id: 'reports', label: t.reports, icon: '📈', page: 'reports' },
+        { id: 'businesses', label: t.businesses, icon: '🏢', page: 'businesses' },
+        { id: 'zones', label: t.zoneManagementPage.title, icon: '🗺️', page: 'zone-management' },
+        { id: 'dispatch', label: t.dispatch_board, icon: '📋', page: 'dispatch-board' },
+        { id: 'users', label: t.userManagement.title, icon: '👤', page: 'users' }
       ],
       manager: [
-        { id: 'dashboard', label: 'לוח בקרה', icon: '🏠', page: 'dashboard' },
-        { id: 'orders', label: 'הזמנות', icon: '📦', page: 'orders' },
-        { id: 'drivers', label: 'ניהול נהגים', icon: '🚚', page: 'drivers-management' },
-        { id: 'inventory', label: 'מלאי', icon: '📊', page: 'manager-inventory' },
-        { id: 'products', label: 'מוצרים', icon: '🏷️', page: 'products' },
-        { id: 'reports', label: 'דוחות', icon: '📈', page: 'reports' },
-        { id: 'businesses', label: 'עסקים', icon: '🏢', page: 'businesses' },
-        { id: 'zones', label: 'ניהול אזורים', icon: '🗺️', page: 'zone-management' },
-        { id: 'dispatch', label: 'לוח משלוחים', icon: '📋', page: 'dispatch-board' }
+        { id: 'dashboard', label: t.dashboard, icon: '🏠', page: 'dashboard' },
+        { id: 'orders', label: t.orders, icon: '📦', page: 'orders' },
+        { id: 'drivers', label: t.driversManagementPage.title, icon: '🚚', page: 'drivers-management' },
+        { id: 'inventory', label: t.manager_inventory, icon: '📊', page: 'manager-inventory' },
+        { id: 'products', label: t.products, icon: '🏷️', page: 'products' },
+        { id: 'reports', label: t.reports, icon: '📈', page: 'reports' },
+        { id: 'businesses', label: t.businesses, icon: '🏢', page: 'businesses' },
+        { id: 'zones', label: t.zoneManagementPage.title, icon: '🗺️', page: 'zone-management' },
+        { id: 'dispatch', label: t.dispatch_board, icon: '📋', page: 'dispatch-board' }
       ],
       sales: [
-        { id: 'orders', label: 'הזמנות', icon: '📦', page: 'orders' },
-        { id: 'products', label: 'מוצרים', icon: '🏷️', page: 'products' },
-        { id: 'my-stats', label: 'הביצועים שלי', icon: '📈', page: 'my-stats' },
-        { id: 'customers', label: 'לקוחות', icon: '👥', page: 'customers' }
+        { id: 'orders', label: t.orders, icon: '📦', page: 'orders' },
+        { id: 'products', label: t.products, icon: '🏷️', page: 'products' },
+        { id: 'my-stats', label: t.my_stats, icon: '📈', page: 'my-stats' },
+        { id: 'customers', label: t.customers, icon: '👥', page: 'customers' }
       ],
       warehouse: [
-        { id: 'inventory', label: 'מלאי', icon: '📦', page: 'inventory' },
-        { id: 'incoming', label: 'הגעות', icon: '🚚', page: 'incoming' },
-        { id: 'restock', label: 'בקשות חידוש', icon: '🔄', page: 'restock-requests' },
-        { id: 'logs', label: 'יומנים', icon: '📋', page: 'logs' }
+        { id: 'inventory', label: t.inventory, icon: '📦', page: 'inventory' },
+        { id: 'incoming', label: t.incoming, icon: '🚚', page: 'incoming' },
+        { id: 'restock', label: t.restock_requests, icon: '🔄', page: 'restock-requests' },
+        { id: 'logs', label: t.logs, icon: '📋', page: 'logs' }
       ],
       driver: [
-        { id: 'deliveries', label: 'המשלוחים שלי', icon: '🚚', page: 'my-deliveries' },
-        { id: 'my-inventory', label: 'המלאי שלי', icon: '📦', page: 'my-inventory' },
-        { id: 'zones', label: 'האזורים שלי', icon: '🗺️', page: 'my-zones' },
-        { id: 'status', label: 'סטטוס', icon: '🟢', page: 'driver-status' }
+        { id: 'deliveries', label: t.my_deliveries, icon: '🚚', page: 'my-deliveries' },
+        { id: 'my-inventory', label: t.my_inventory, icon: '📦', page: 'my-inventory' },
+        { id: 'zones', label: t.my_zones, icon: '🗺️', page: 'my-zones' },
+        { id: 'status', label: t.driver_status, icon: '🟢', page: 'driver-status' }
       ],
       dispatcher: [
-        { id: 'dispatch', label: 'לוח משלוחים', icon: '📋', page: 'dispatch-board' },
-        { id: 'drivers', label: 'נהגים', icon: '🚚', page: 'driver-status' },
-        { id: 'orders', label: 'הזמנות', icon: '📦', page: 'orders' }
+        { id: 'dispatch', label: t.dispatch_board, icon: '📋', page: 'dispatch-board' },
+        { id: 'drivers', label: t.driver, icon: '🚚', page: 'driver-status' },
+        { id: 'orders', label: t.orders, icon: '📦', page: 'orders' }
       ],
       customer_service: [
-        { id: 'orders', label: 'הזמנות', icon: '📦', page: 'orders' },
-        { id: 'customers', label: 'לקוחות', icon: '👥', page: 'customers' }
+        { id: 'orders', label: t.orders, icon: '📦', page: 'orders' },
+        { id: 'customers', label: t.customers, icon: '👥', page: 'customers' }
       ]
     };
 
@@ -102,16 +104,17 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
   };
 
   const getRoleLabel = (): string => {
+    const t = i18n.getTranslations();
     switch (userRole) {
-      case 'infrastructure_owner': return 'בעל תשתית';
-      case 'business_owner': return 'בעל עסק';
-      case 'manager': return 'מנהל';
-      case 'sales': return 'מכירות';
-      case 'warehouse': return 'מחסן';
-      case 'driver': return 'נהג';
-      case 'dispatcher': return 'רכז';
-      case 'customer_service': return 'שירות לקוחות';
-      default: return 'משתמש';
+      case 'infrastructure_owner': return t.roles.infrastructureOwner;
+      case 'business_owner': return t.roles.businessOwner;
+      case 'manager': return t.roles.manager;
+      case 'sales': return t.roles.sales;
+      case 'warehouse': return t.roles.warehouse;
+      case 'driver': return t.roles.driver;
+      case 'dispatcher': return t.roles.dispatcher;
+      case 'customer_service': return t.roles.customerService;
+      default: return t.user;
     }
   };
 
