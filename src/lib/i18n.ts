@@ -692,6 +692,57 @@ export interface Translations {
     confirmDelete: string;
   };
 
+  // User Profile Page
+  profilePage: {
+    editProfile: string;
+    viewProfile: string;
+    saveProfile: string;
+    cancelEdit: string;
+    profileUpdated: string;
+    updateFailed: string;
+    savingProfile: string;
+
+    // Fields
+    name: string;
+    username: string;
+    bio: string;
+    location: string;
+    website: string;
+    profilePhoto: string;
+    bannerImage: string;
+
+    // Placeholders
+    namePlaceholder: string;
+    usernamePlaceholder: string;
+    bioPlaceholder: string;
+    locationPlaceholder: string;
+    websitePlaceholder: string;
+
+    // Validation
+    usernameRequired: string;
+    usernameTooShort: string;
+    usernameTooLong: string;
+    usernameInvalid: string;
+    websiteInvalid: string;
+    bioTooLong: string;
+
+    // Actions
+    uploadPhoto: string;
+    removePhoto: string;
+    changePhoto: string;
+
+    // Info
+    following: string;
+    followers: string;
+    posts: string;
+    replies: string;
+    media: string;
+    likes: string;
+    noPostsYet: string;
+    follow: string;
+    unfollow: string;
+  };
+
   // Channels
   channelsPage: {
     title: string;
@@ -1933,6 +1984,57 @@ const hebrewTranslations: Translations = {
     assignRole: 'הקצה תפקיד',
     removeUser: 'הסר משתמש',
     confirmDelete: 'אשר מחיקה',
+  },
+
+  // User Profile
+  profile: {
+    editProfile: 'ערוך פרופיל',
+    viewProfile: 'צפה בפרופיל',
+    saveProfile: 'שמור שינויים',
+    cancelEdit: 'בטל',
+    profileUpdated: 'הפרופיל עודכן בהצלחה',
+    updateFailed: 'שגיאה בעדכון הפרופיל',
+    savingProfile: 'שומר...',
+
+    // Fields
+    name: 'שם',
+    username: 'שם משתמש',
+    bio: 'אודות',
+    location: 'מיקום',
+    website: 'אתר אינטרנט',
+    profilePhoto: 'תמונת פרופיל',
+    bannerImage: 'תמונת רקע',
+
+    // Placeholders
+    namePlaceholder: 'הכנס את שמך',
+    usernamePlaceholder: 'הכנס שם משתמש',
+    bioPlaceholder: 'ספר על עצמך',
+    locationPlaceholder: 'עיר, מדינה',
+    websitePlaceholder: 'https://example.com',
+
+    // Validation
+    usernameRequired: 'שם משתמש נדרש',
+    usernameTooShort: 'שם משתמש חייב להכיל לפחות 3 תווים',
+    usernameTooLong: 'שם משתמש יכול להכיל עד 20 תווים',
+    usernameInvalid: 'שם משתמש יכול להכיל רק אותיות, מספרים וקו תחתון',
+    websiteInvalid: 'כתובת אתר לא תקינה',
+    bioTooLong: 'אודות יכול להכיל עד 160 תווים',
+
+    // Actions
+    uploadPhoto: 'העלה תמונה',
+    removePhoto: 'הסר תמונה',
+    changePhoto: 'שנה תמונה',
+
+    // Info
+    following: 'עוקבים',
+    followers: 'עוקבים',
+    posts: 'פוסטים',
+    replies: 'תגובות',
+    media: 'מדיה',
+    likes: 'לייקים',
+    noPostsYet: 'אין פוסטים עדיין',
+    follow: 'עקוב',
+    unfollow: 'הפסק לעקוב'
   },
 
   // Channels
@@ -3290,6 +3392,57 @@ const englishTranslations: Translations = {
     assignRole: 'Assign Role',
     removeUser: 'Remove User',
     confirmDelete: 'Confirm Delete',
+  },
+
+  // User Profile
+  profile: {
+    editProfile: 'Edit Profile',
+    viewProfile: 'View Profile',
+    saveProfile: 'Save Changes',
+    cancelEdit: 'Cancel',
+    profileUpdated: 'Profile updated successfully',
+    updateFailed: 'Failed to update profile',
+    savingProfile: 'Saving...',
+
+    // Fields
+    name: 'Name',
+    username: 'Username',
+    bio: 'Bio',
+    location: 'Location',
+    website: 'Website',
+    profilePhoto: 'Profile Photo',
+    bannerImage: 'Banner Image',
+
+    // Placeholders
+    namePlaceholder: 'Enter your name',
+    usernamePlaceholder: 'Enter your username',
+    bioPlaceholder: 'Tell us about yourself',
+    locationPlaceholder: 'City, Country',
+    websitePlaceholder: 'https://example.com',
+
+    // Validation
+    usernameRequired: 'Username is required',
+    usernameTooShort: 'Username must be at least 3 characters',
+    usernameTooLong: 'Username can be up to 20 characters',
+    usernameInvalid: 'Username can only contain letters, numbers, and underscores',
+    websiteInvalid: 'Please enter a valid URL',
+    bioTooLong: 'Bio must be 160 characters or less',
+
+    // Actions
+    uploadPhoto: 'Upload Photo',
+    removePhoto: 'Remove Photo',
+    changePhoto: 'Change Photo',
+
+    // Info
+    following: 'Following',
+    followers: 'Followers',
+    posts: 'Posts',
+    replies: 'Replies',
+    media: 'Media',
+    likes: 'Likes',
+    noPostsYet: 'No posts yet',
+    follow: 'Follow',
+    unfollow: 'Unfollow'
   },
 
   // Channels

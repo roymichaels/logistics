@@ -61,7 +61,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
 
     if (category !== 'All') {
       result = result.filter((p) =>
-        (p.category || '').toLowerCase().includes(category.toLowerCase())
+        (p.category || '').trim() === category.trim()
       );
     }
 

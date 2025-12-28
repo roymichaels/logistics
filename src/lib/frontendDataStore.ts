@@ -1502,6 +1502,31 @@ class HebrewLogisticsDataStore implements DataStore {
       generatedAt: now.toISOString()
     };
   }
+
+  async getUserProfile(userId: string): Promise<any> {
+    return {
+      id: userId,
+      bio: this.user.role ? `${this.user.role} at Hebrew Logistics Platform` : '',
+      website: '',
+      location: '',
+      banner_url: '',
+      followers_count: 0,
+      following_count: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+  }
+
+  async updateUserProfile(userId: string, updates: any): Promise<void> {
+    logger.info('[FrontendDataStore] Updating user profile', { userId, updates });
+  }
+
+  async getUser(userId: string): Promise<any> {
+    if (userId === this.user.id) {
+      return this.user;
+    }
+    return null;
+  }
 }
 
 export async function createFrontendDataStore(

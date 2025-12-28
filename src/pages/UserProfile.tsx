@@ -11,6 +11,7 @@ import { Badge } from '../components/atoms/Badge';
 import { Divider } from '../components/atoms/Divider';
 import { EmptyState } from '../components/molecules/EmptyState';
 import { LoadingState } from '../components/molecules/LoadingState';
+import { EditProfileModal } from '../components/organisms/EditProfileModal';
 import { logger } from '../lib/logger';
 import { colors, spacing, borderRadius, shadows, typography } from '../styles/design-system';
 
@@ -27,6 +28,7 @@ export function UserProfilePage({ userId }: UserProfileProps) {
   const [activeTab, setActiveTab] = useState<'posts' | 'replies' | 'media' | 'likes'>('posts');
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const isOwnProfile = !userId || userId === currentUser?.id;
   const targetUserId = userId || currentUser?.id;
@@ -150,6 +152,31 @@ export function UserProfilePage({ userId }: UserProfileProps) {
     }
   };
 
+  const handleSaveProfile = async (updatedProfile: {
+    name?: string;
+    username?: string;
+    bio?: string;
+    location?: string;
+    website?: string;
+    photo_url?: string;
+  }) => {
+    try {
+      await dataStore.updateProfile?.({
+        ...currentUser,
+        ...updatedProfile,
+      });
+      await dataStore.updateUserProfile?.(targetUserId!, {
+        bio: updatedProfile.bio,
+        location: updatedProfile.location,
+        website: updatedProfile.website,
+      });
+      await loadProfile();
+    } catch (error) {
+      logger.error('Failed to save profile:', error);
+      throw error;
+    }
+  };
+
   if (!profile || !user) {
     return (
       <div style={{
@@ -227,7 +254,7 @@ export function UserProfilePage({ userId }: UserProfileProps) {
 
               <div style={{ paddingTop: spacing.xl }}>
                 {isOwnProfile ? (
-                  <Button variant="secondary" size="md">
+                  <Button variant="secondary" size="md" onClick={() => setEditModalOpen(true)}>
                     Edit Profile
                   </Button>
                 ) : (
@@ -406,6 +433,20 @@ export function UserProfilePage({ userId }: UserProfileProps) {
           </div>
         </Card>
       </div>
+
+      <EditProfileModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        currentProfile={{
+          name: user?.name,
+          username: user?.username,
+          bio: profile?.bio,
+          location: profile?.location,
+          website: profile?.website,
+          photo_url: user?.photo_url,
+        }}
+        onSave={handleSaveProfile}
+      />
     </div>
   );
 }
