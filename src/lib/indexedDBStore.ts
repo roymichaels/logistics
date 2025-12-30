@@ -192,6 +192,33 @@ const DEFAULT_STORES: StoreConfig[] = [
   {
     name: 'key_value_store',
     keyPath: 'key'
+  },
+  {
+    name: 'search_index',
+    keyPath: 'id',
+    indexes: [
+      { name: 'storeName', keyPath: 'storeName' },
+      { name: 'docId', keyPath: 'docId' },
+      { name: 'updatedAt', keyPath: 'updatedAt' }
+    ]
+  },
+  {
+    name: 'sync_log',
+    keyPath: 'id',
+    indexes: [
+      { name: 'storeName', keyPath: 'storeName' },
+      { name: 'docId', keyPath: 'docId' },
+      { name: 'synced', keyPath: 'synced' },
+      { name: 'timestamp', keyPath: 'timestamp' }
+    ]
+  },
+  {
+    name: 'sync_conflicts',
+    keyPath: 'id',
+    indexes: [
+      { name: 'docId', keyPath: 'docId' },
+      { name: 'storeName', keyPath: 'storeName' }
+    ]
   }
 ];
 
