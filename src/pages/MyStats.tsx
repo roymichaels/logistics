@@ -3,6 +3,7 @@ import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
 
 import { DataStore, User } from '../data/types';
 import { logger } from '../lib/logger';
+import { getUserDisplayName } from '../utils/userIdentifier';
 
 interface MyStatsProps {
   dataStore: DataStore;
@@ -61,7 +62,7 @@ export function MyStats({ dataStore }: MyStatsProps) {
       }}
     >
       <h1 style={{ fontSize: '24px', margin: '0 0 16px' }}>
-        הביצועים שלי {user?.name ? `• ${user.name}` : ''}
+        הביצועים שלי {user ? `• ${getUserDisplayName(user)}` : ''}
       </h1>
       <p style={{ margin: '0 0 24px', color: hintColor }}>
         מעקב אחרי היעדים, העמלות וההזדמנויות האחרונות שלך.

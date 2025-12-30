@@ -19,6 +19,7 @@ import {
   connectTonWallet,
 } from '../lib/auth/walletAuth';
 import { runtimeEnvironment } from '../lib/runtimeEnvironment';
+import { getUserDisplayName } from '../utils/userIdentifier';
 
 interface AuthContextValue extends AuthState {
   signOut: () => Promise<void>;
@@ -341,35 +342,43 @@ function SxtShimProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   };
 
-  const ctx = useMemo<AuthContextValue>(() => ({
-    user: user ? {
+  const ctx = useMemo<AuthContextValue>(() => {
+    const displayName = user ? getUserDisplayName({
       id: user.walletAddress,
-      username: user.walletAddress,
-      name: user.walletAddress,
-      photo_url: null,
-      role,
-      auth_method: user.walletType,
+      wallet_address: user.walletAddress,
+      role: role || 'customer',
+    } as any) : null;
+
+    return {
+      user: user ? {
+        id: user.walletAddress,
+        username: displayName,
+        name: displayName,
+        photo_url: null,
+        role,
+        auth_method: user.walletType,
+        kycStatus,
+      } as any : null,
+      session: user,
+      isAuthenticated,
+      isLoading,
+      error,
+      signOut: async () => logout(),
+      refreshSession: async () => {},
+      authenticate: async () => {},
+      authenticateWithEthereum: async () => { await loginWithEthereum(); },
+      authenticateWithSolana: async () => { await loginWithSolana(null); },
+      authenticateWithTon: async () => { await loginWithTon(); },
+      walletType: user?.walletType || null,
+      walletAddress: user?.walletAddress || null,
+      walletSession: user || null,
       kycStatus,
-    } as any : null,
-    session: user,
-    isAuthenticated,
-    isLoading,
-    error,
-    signOut: async () => logout(),
-    refreshSession: async () => {},
-    authenticate: async () => {},
-    authenticateWithEthereum: async () => { await loginWithEthereum(); },
-    authenticateWithSolana: async () => { await loginWithSolana(null); },
-    authenticateWithTon: async () => { await loginWithTon(); },
-    walletType: user?.walletType || null,
-    walletAddress: user?.walletAddress || null,
-    walletSession: user || null,
-    kycStatus,
-    loginWithEthereum,
-    loginWithSolana,
-    loginWithTon,
-    logoutWallet: logout,
-  }), [user, role, isAuthenticated, isLoading, error, kycStatus]);
+      loginWithEthereum,
+      loginWithSolana,
+      loginWithTon,
+      logoutWallet: logout,
+    };
+  }, [user, role, isAuthenticated, isLoading, error, kycStatus]);
 
   return <AuthContext.Provider value={ctx}>{children}</AuthContext.Provider>;
 }

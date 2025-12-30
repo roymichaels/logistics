@@ -9,6 +9,7 @@ import { UserMenu } from '../components/organisms/UserMenu';
 import { getNavigationForRole } from './navigationSchema';
 import { DevConsoleDrawer } from '../components/dev/DevConsoleDrawer';
 import { BottomNavigation } from '../components/BottomNavigation';
+import { useUserDisplayName } from '../hooks/useUserDisplayName';
 
 interface UnifiedAppShellProps {
   children: React.ReactNode;
@@ -24,6 +25,7 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
   const { translations } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const [devConsoleOpen, setDevConsoleOpen] = useState(false);
+  const displayName = useUserDisplayName(user);
 
   const resolvedTitle = title === undefined ? 'UndergroundLab' : title;
   const resolvedSubtitle = subtitle;
@@ -100,7 +102,7 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
         </button>
         <UserMenu
           user={user ? {
-            name: user.name || user.username || user.wallet_address?.slice(0, 8),
+            name: displayName,
             username: user.username,
             role: userRole || undefined,
             photo_url: user.photo_url

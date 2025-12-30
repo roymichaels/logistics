@@ -1,6 +1,7 @@
 import { logger } from './logger';
 import { localSessionManager } from './localSessionManager';
 import { roleAssignmentManager } from './roleAssignment';
+import { getUserDisplayName } from '../utils/userIdentifier';
 
 export interface AuthUser {
   id: string;
@@ -31,6 +32,17 @@ interface StoredUserContext {
   infrastructureId: string | null;
   role: string | null;
   lastUpdate: number;
+}
+
+/**
+ * Helper function to format wallet address for display
+ * Returns shortened format: 0xd040...2dfc5
+ */
+function formatWalletForDisplay(walletAddress: string): string {
+  if (!walletAddress || walletAddress.length < 10) {
+    return walletAddress;
+  }
+  return `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
 }
 
 class AuthService {
@@ -68,13 +80,14 @@ class AuthService {
     logger.debug('Processing cross-tab session update');
 
     const role = session.role || 'customer';
+    const displayName = formatWalletForDisplay(session.wallet);
     this.updateState({
       isAuthenticated: true,
       isLoading: false,
       user: {
         id: session.wallet,
-        username: session.wallet,
-        name: session.wallet,
+        username: displayName,
+        name: displayName,
         photo_url: null,
         role,
         auth_method: session.walletType
@@ -130,13 +143,14 @@ class AuthService {
         logger.info('[AUTH] Valid local session found, restoring');
 
         const role = localSession.role;
+        const displayName = formatWalletForDisplay(localSession.wallet);
         this.updateState({
           isAuthenticated: true,
           isLoading: false,
           user: {
             id: localSession.wallet,
-            username: localSession.wallet,
-            name: localSession.wallet,
+            username: displayName,
+            name: displayName,
             photo_url: null,
             role,
             auth_method: localSession.walletType
@@ -242,14 +256,15 @@ class AuthService {
 
       logger.info(`[AUTH] Wallet session created for ${walletAddress} with role: ${role}`);
 
+      const displayName = formatWalletForDisplay(walletAddress);
       this.updateState({
         isAuthenticated: true,
         isLoading: false,
         user: {
           id: walletAddress,
           wallet_address_eth: walletAddress,
-          username: walletAddress,
-          name: walletAddress,
+          username: displayName,
+          name: displayName,
           photo_url: null,
           role,
           auth_method: 'ethereum'
@@ -310,14 +325,15 @@ class AuthService {
 
       logger.info(`[AUTH] Wallet session created for ${walletAddress} with role: ${role}`);
 
+      const displayName = formatWalletForDisplay(walletAddress);
       this.updateState({
         isAuthenticated: true,
         isLoading: false,
         user: {
           id: walletAddress,
           wallet_address_sol: walletAddress,
-          username: walletAddress,
-          name: walletAddress,
+          username: displayName,
+          name: displayName,
           photo_url: null,
           role,
           auth_method: 'solana'
@@ -378,14 +394,15 @@ class AuthService {
 
       logger.info(`[AUTH] Wallet session created for ${walletAddress} with role: ${role}`);
 
+      const displayName = formatWalletForDisplay(walletAddress);
       this.updateState({
         isAuthenticated: true,
         isLoading: false,
         user: {
           id: walletAddress,
           wallet_address_ton: walletAddress,
-          username: walletAddress,
-          name: walletAddress,
+          username: displayName,
+          name: displayName,
           photo_url: null,
           role,
           auth_method: 'ton'
