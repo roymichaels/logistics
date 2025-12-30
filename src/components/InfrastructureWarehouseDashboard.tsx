@@ -5,13 +5,6 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
-import {
-  approveAllocation as approveAllocationService,
-  rejectAllocation as rejectAllocationService,
-  fulfillAllocation as fulfillAllocationService,
-} from '../services/inventory';
-import { Toast } from './Toast';
 import { logger } from '../lib/logger';
 
 interface WarehouseStock {
@@ -59,18 +52,14 @@ export function InfrastructureWarehouseDashboard() {
 
   async function loadWarehouses() {
     try {
-      const { data, error } = await supabase
-        .from('warehouses')
-        .select('*')
-        .eq('scope_level', 'infrastructure')
-        .eq('is_active', true)
-        .order('warehouse_name');
+      const mockData = [
+        { id: 'wh1', warehouse_name: 'Central Warehouse', warehouse_code: 'CW-01' },
+        { id: 'wh2', warehouse_name: 'North Warehouse', warehouse_code: 'NW-02' }
+      ];
+      setWarehouses(mockData);
 
-      if (error) throw error;
-      setWarehouses(data || []);
-
-      if (data && data.length > 0 && !selectedWarehouse) {
-        setSelectedWarehouse(data[0].id);
+      if (mockData.length > 0 && !selectedWarehouse) {
+        setSelectedWarehouse(mockData[0].id);
       }
     } catch (error) {
       logger.error('Failed to load warehouses:', error);
@@ -81,117 +70,52 @@ export function InfrastructureWarehouseDashboard() {
 
   async function loadWarehouseData() {
     try {
-      // Load stock levels
-      const { data: stockData } = await supabase
-        .from('inventory_locations')
-        .select(`
-          *,
-          warehouses (warehouse_name),
-          products (name)
-        `)
-        .eq('location_id', selectedWarehouse);
+      const mockStock: WarehouseStock[] = [
+        {
+          warehouse_id: selectedWarehouse,
+          warehouse_name: 'Central Warehouse',
+          product_id: 'prod1',
+          product_name: 'Encrypted Storage Device',
+          on_hand_quantity: 150,
+          reserved_quantity: 20,
+          available_quantity: 130,
+          low_stock_threshold: 50,
+          is_low_stock: false
+        },
+        {
+          warehouse_id: selectedWarehouse,
+          warehouse_name: 'Central Warehouse',
+          product_id: 'prod2',
+          product_name: 'Security Module',
+          on_hand_quantity: 25,
+          reserved_quantity: 5,
+          available_quantity: 20,
+          low_stock_threshold: 30,
+          is_low_stock: true
+        }
+      ];
+      setStock(mockStock);
 
-      const stockItems: WarehouseStock[] = (stockData || []).map((item: any) => ({
-        warehouse_id: item.location_id,
-        warehouse_name: item.warehouses.warehouse_name,
-        product_id: item.product_id,
-        product_name: item.products.name,
-        on_hand_quantity: item.on_hand_quantity,
-        reserved_quantity: item.reserved_quantity,
-        available_quantity: item.on_hand_quantity - item.reserved_quantity,
-        low_stock_threshold: item.low_stock_threshold,
-        is_low_stock: (item.on_hand_quantity - item.reserved_quantity) < item.low_stock_threshold,
-      }));
-
-      setStock(stockItems);
-
-      // Load pending allocations
-      const { data: allocData } = await supabase
-        .from('stock_allocations')
-        .select(`
-          *,
-          from_warehouse:from_warehouse_id (warehouse_name),
-          to_warehouse:to_warehouse_id (warehouse_name),
-          products (name),
-          businesses (name),
-          requested_by_user:requested_by (name)
-        `)
-        .eq('allocation_status', 'pending')
-        .order('priority', { ascending: false })
-        .order('requested_at', { ascending: true });
-
-      const allocations: PendingAllocation[] = (allocData || []).map((alloc: any) => ({
-        id: alloc.id,
-        allocation_number: alloc.allocation_number,
-        product_name: alloc.products.name,
-        requested_quantity: alloc.requested_quantity,
-        business_name: alloc.businesses.name,
-        requested_by_name: alloc.requested_by_user.name,
-        requested_at: alloc.requested_at,
-        priority: alloc.priority,
-        from_warehouse_name: alloc.from_warehouse.warehouse_name,
-        to_warehouse_name: alloc.to_warehouse.warehouse_name,
-      }));
-
-      setPendingAllocations(allocations);
+      const mockAllocations: PendingAllocation[] = [];
+      setPendingAllocations(mockAllocations);
     } catch (error) {
       logger.error('Failed to load warehouse data:', error);
     }
   }
 
   async function handleApproveAllocation(allocationId: string, approvedQty: number) {
-    try {
-      const response = await approveAllocationService({
-        allocationId,
-        action: 'approve',
-        approvedQuantity: approvedQty,
-      });
-
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to approve allocation');
-      }
-
-      Toast.success(response.message || 'ההקצאה אושרה בהצלחה');
-      await loadWarehouseData();
-    } catch (error: any) {
-      logger.error('Failed to approve allocation:', error);
-      Toast.error(error.message || 'שגיאה באישור ההקצאה');
-    }
+    alert('Allocation approved (mock mode)');
+    await loadWarehouseData();
   }
 
   async function handleRejectAllocation(allocationId: string, reason: string) {
-    try {
-      const response = await rejectAllocationService(allocationId, { reason });
-
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to reject allocation');
-      }
-
-      Toast.success(response.message || 'ההקצאה נדחתה');
-      await loadWarehouseData();
-    } catch (error: any) {
-      logger.error('Failed to reject allocation:', error);
-      Toast.error(error.message || 'שגיאה בדחיית ההקצאה');
-    }
+    alert('Allocation rejected (mock mode)');
+    await loadWarehouseData();
   }
 
   async function handleFulfillAllocation(allocationId: string, deliveredQty: number) {
-    try {
-      const response = await fulfillAllocationService({
-        allocationId,
-        approvedQuantity: deliveredQty,
-      });
-
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to fulfill allocation');
-      }
-
-      Toast.success(response.message || 'המלאי הועבר בהצלחה');
-      await loadWarehouseData();
-    } catch (error: any) {
-      logger.error('Failed to fulfill allocation:', error);
-      Toast.error(error.message || 'שגיאה בביצוע ההעברה');
-    }
+    alert('Allocation fulfilled (mock mode)');
+    await loadWarehouseData();
   }
 
   if (loading) {

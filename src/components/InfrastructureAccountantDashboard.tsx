@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
 import { logger } from '../lib/logger';
 
 interface BusinessRevenue {
@@ -98,74 +97,169 @@ export function InfrastructureAccountantDashboard() {
   }
 
   async function loadBusinessRevenue(startDate: string, endDate: string) {
-    const { data, error } = await supabase.rpc('get_cross_business_revenue', {
-      p_start_date: startDate,
-      p_end_date: endDate
-    });
-
-    if (error) {
-      logger.error('Failed to load business revenue:', error);
-      return;
-    }
-    setBusinessRevenue(data || []);
+    const mockData: BusinessRevenue[] = [
+      {
+        business_id: 'biz1',
+        business_name: 'Security Shop',
+        business_type: 'Retail',
+        total_orders: 145,
+        completed_orders: 132,
+        total_revenue: 187500,
+        average_order_value: 1420.45,
+        revenue_share_percentage: 45.2
+      },
+      {
+        business_id: 'biz2',
+        business_name: 'Privacy Vault',
+        business_type: 'Enterprise',
+        total_orders: 89,
+        completed_orders: 85,
+        total_revenue: 156800,
+        average_order_value: 1844.71,
+        revenue_share_percentage: 37.8
+      },
+      {
+        business_id: 'biz3',
+        business_name: 'CryptoGuard',
+        business_type: 'B2B',
+        total_orders: 34,
+        completed_orders: 32,
+        total_revenue: 70500,
+        average_order_value: 2203.13,
+        revenue_share_percentage: 17.0
+      }
+    ];
+    setBusinessRevenue(mockData);
   }
 
   async function loadPeriodData() {
-    const periodsBack = periodType === 'day' ? 30 : periodType === 'week' ? 12 : 12;
-
-    const { data, error } = await supabase.rpc('get_financial_summary_by_period', {
-      p_business_id: null,
-      p_period: periodType,
-      p_periods_back: periodsBack
-    });
-
-    if (error) {
-      logger.error('Failed to load period data:', error);
-      return;
-    }
-    setPeriodData(data || []);
+    const mockData: PeriodData[] = [
+      {
+        period_start: '2024-01-01',
+        period_end: '2024-01-31',
+        period_label: 'Jan 2024',
+        total_orders: 248,
+        completed_orders: 235,
+        cancelled_orders: 13,
+        total_revenue: 389000,
+        average_order_value: 1655.74,
+        completion_rate: 94.8
+      },
+      {
+        period_start: '2024-02-01',
+        period_end: '2024-02-29',
+        period_label: 'Feb 2024',
+        total_orders: 267,
+        completed_orders: 249,
+        cancelled_orders: 18,
+        total_revenue: 414800,
+        average_order_value: 1666.27,
+        completion_rate: 93.3
+      }
+    ];
+    setPeriodData(mockData);
   }
 
   async function loadProfitabilityReport(startDate: string, endDate: string) {
-    const { data, error } = await supabase.rpc('get_business_profitability_report', {
-      p_start_date: startDate,
-      p_end_date: endDate
-    });
-
-    if (error) {
-      logger.error('Failed to load profitability report:', error);
-      return;
-    }
-    setProfitabilityReport(data || []);
+    const mockData: ProfitabilityReport[] = [
+      {
+        business_id: 'biz1',
+        business_name: 'Security Shop',
+        total_revenue: 187500,
+        total_orders: 145,
+        average_order_value: 1420.45,
+        highest_order_value: 8950,
+        lowest_order_value: 249,
+        order_completion_rate: 91.0,
+        revenue_growth_rate: 15.3,
+        performance_rating: 'Excellent'
+      },
+      {
+        business_id: 'biz2',
+        business_name: 'Privacy Vault',
+        total_revenue: 156800,
+        total_orders: 89,
+        average_order_value: 1844.71,
+        highest_order_value: 12400,
+        lowest_order_value: 599,
+        order_completion_rate: 95.5,
+        revenue_growth_rate: 22.1,
+        performance_rating: 'Excellent'
+      },
+      {
+        business_id: 'biz3',
+        business_name: 'CryptoGuard',
+        total_revenue: 70500,
+        total_orders: 34,
+        average_order_value: 2203.13,
+        highest_order_value: 15600,
+        lowest_order_value: 899,
+        order_completion_rate: 94.1,
+        revenue_growth_rate: 8.7,
+        performance_rating: 'Good'
+      }
+    ];
+    setProfitabilityReport(mockData);
   }
 
   async function loadCostCenters(startDate: string, endDate: string) {
-    const { data, error } = await supabase.rpc('get_cost_center_analysis', {
-      p_start_date: startDate,
-      p_end_date: endDate
-    });
-
-    if (error) {
-      logger.error('Failed to load cost centers:', error);
-      return;
-    }
-    setCostCenters(data || []);
+    const mockData: CostCenter[] = [
+      {
+        cost_center: 'Warehousing',
+        category: 'Operations',
+        total_transactions: 1245,
+        total_amount: 45600,
+        average_transaction: 36.63,
+        percentage_of_total: 32.5
+      },
+      {
+        cost_center: 'Delivery Fleet',
+        category: 'Logistics',
+        total_transactions: 892,
+        total_amount: 38900,
+        average_transaction: 43.61,
+        percentage_of_total: 27.7
+      },
+      {
+        cost_center: 'Customer Support',
+        category: 'Service',
+        total_transactions: 456,
+        total_amount: 28400,
+        average_transaction: 62.28,
+        percentage_of_total: 20.2
+      },
+      {
+        cost_center: 'Technology & Infrastructure',
+        category: 'IT',
+        total_transactions: 234,
+        total_amount: 27600,
+        average_transaction: 117.95,
+        percentage_of_total: 19.6
+      }
+    ];
+    setCostCenters(mockData);
   }
 
   async function handleExportData() {
     try {
-      const startDate = getStartDate(dateRange);
-      const endDate = new Date().toISOString();
+      const exportData = [
+        ...businessRevenue.map(biz => ({
+          type: 'Business Revenue',
+          business: biz.business_name,
+          metric: 'Total Revenue',
+          value: biz.total_revenue,
+          date: new Date().toISOString()
+        })),
+        ...periodData.map(period => ({
+          type: 'Period Summary',
+          period: period.period_label,
+          metric: 'Revenue',
+          value: period.total_revenue,
+          date: period.period_start
+        }))
+      ];
 
-      const { data, error } = await supabase.rpc('get_financial_export_data', {
-        p_business_id: null,
-        p_start_date: startDate,
-        p_end_date: endDate
-      });
-
-      if (error) throw error;
-
-      const csv = convertToCSV(data || []);
+      const csv = convertToCSV(exportData);
       downloadCSV(csv, `financial_export_${dateRange}.csv`);
       alert('Financial data exported successfully');
     } catch (error: any) {

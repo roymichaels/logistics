@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
 import { logger } from '../lib/logger';
 
 interface Order {
@@ -43,242 +42,139 @@ interface ZoneCoverage {
   coverage_percentage: number;
 }
 
+const mockOrders: Order[] = [
+  {
+    id: 'order1',
+    order_number: 'ORD-001',
+    customer_name: 'Tech Corp',
+    delivery_address: '123 Main St, Tel Aviv',
+    status: 'pending',
+    priority: 'high',
+    business_id: 'biz1',
+    business_name: 'Security Shop',
+    assigned_driver: null,
+    driver_name: null,
+    zone_id: 'zone1',
+    zone_name: 'Central Tel Aviv',
+    created_at: new Date().toISOString(),
+    total_amount: 5600
+  },
+  {
+    id: 'order2',
+    order_number: 'ORD-002',
+    customer_name: 'Enterprise Solutions',
+    delivery_address: '456 Rothschild Blvd, Tel Aviv',
+    status: 'assigned',
+    priority: 'normal',
+    business_id: 'biz2',
+    business_name: 'Privacy Vault',
+    assigned_driver: 'driver1',
+    driver_name: 'David Cohen',
+    zone_id: 'zone1',
+    zone_name: 'Central Tel Aviv',
+    created_at: new Date(Date.now() - 3600000).toISOString(),
+    total_amount: 3400
+  }
+];
+
+const mockDrivers: Driver[] = [
+  {
+    id: 'driver1',
+    telegram_id: 'driver1',
+    name: 'David Cohen',
+    phone_number: '+972-50-1234567',
+    current_zone_id: 'zone1',
+    zone_name: 'Central Tel Aviv',
+    active_orders_count: 2,
+    status: 'active',
+    business_id: 'biz1',
+    business_name: 'Security Shop'
+  },
+  {
+    id: 'driver2',
+    telegram_id: 'driver2',
+    name: 'Sarah Levi',
+    phone_number: '+972-52-9876543',
+    current_zone_id: 'zone2',
+    zone_name: 'North Tel Aviv',
+    active_orders_count: 0,
+    status: 'active',
+    business_id: 'biz2',
+    business_name: 'Privacy Vault'
+  }
+];
+
+const mockZones: ZoneCoverage[] = [
+  {
+    zone_id: 'zone1',
+    zone_name: 'Central Tel Aviv',
+    business_id: 'biz1',
+    business_name: 'Security Shop',
+    total_drivers: 5,
+    active_drivers: 4,
+    pending_orders: 8,
+    coverage_percentage: 80
+  },
+  {
+    zone_id: 'zone2',
+    zone_name: 'North Tel Aviv',
+    business_id: 'biz2',
+    business_name: 'Privacy Vault',
+    total_drivers: 3,
+    active_drivers: 2,
+    pending_orders: 3,
+    coverage_percentage: 66.7
+  }
+];
+
+const mockBusinesses = [
+  { id: 'biz1', name: 'Security Shop', business_type: 'Retail', active: true },
+  { id: 'biz2', name: 'Privacy Vault', business_type: 'Enterprise', active: true },
+  { id: 'biz3', name: 'CryptoGuard', business_type: 'B2B', active: true }
+];
+
 export function InfrastructureDispatcherDashboard() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [zoneCoverage, setZoneCoverage] = useState<ZoneCoverage[]>([]);
+  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [drivers, setDrivers] = useState<Driver[]>(mockDrivers);
+  const [zoneCoverage, setZoneCoverage] = useState<ZoneCoverage[]>(mockZones);
   const [selectedBusiness, setSelectedBusiness] = useState<string>('all');
-  const [businesses, setBusinesses] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [businesses] = useState<any[]>(mockBusinesses);
+  const [loading, setLoading] = useState(false);
   const [activeView, setActiveView] = useState<'orders' | 'drivers' | 'zones'>('orders');
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 30000);
-    return () => clearInterval(interval);
   }, [selectedBusiness, filterStatus]);
 
   async function loadData() {
-    try {
-      setLoading(true);
-      await Promise.all([
-        loadBusinesses(),
-        loadOrders(),
-        loadDrivers(),
-        loadZoneCoverage()
-      ]);
-    } catch (error) {
-      logger.error('Failed to load dispatcher data:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function loadBusinesses() {
-    const { data, error } = await supabase
-      .from('businesses')
-      .select('id, name, business_type, active')
-      .eq('active', true)
-      .order('name');
-
-    if (error) throw error;
-    setBusinesses(data || []);
-  }
-
-  async function loadOrders() {
-    let query = supabase
-      .from('orders')
-      .select(`
-        *,
-        business:businesses(name),
-        zone:zones(name)
-      `)
-      .in('status', ['pending', 'confirmed', 'assigned', 'in_transit'])
-      .order('created_at', { ascending: false });
-
-    if (selectedBusiness !== 'all') {
-      query = query.eq('business_id', selectedBusiness);
-    }
-
-    if (filterStatus !== 'all') {
-      query = query.eq('status', filterStatus);
-    }
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-
-    const ordersData: Order[] = (data || []).map((order: any) => ({
-      id: order.id,
-      order_number: order.order_number || 'N/A',
-      customer_name: order.customer_name || 'Unknown',
-      delivery_address: order.delivery_address || 'N/A',
-      status: order.status,
-      priority: order.priority || 'normal',
-      business_id: order.business_id,
-      business_name: order.business?.name || 'N/A',
-      assigned_driver: order.assigned_driver,
-      driver_name: order.driver_name || null,
-      zone_id: order.zone_id,
-      zone_name: order.zone?.name || null,
-      created_at: order.created_at,
-      total_amount: order.total_amount || 0
-    }));
-
-    setOrders(ordersData);
-  }
-
-  async function loadDrivers() {
-    let query = supabase
-      .from('users')
-      .select(`
-        *,
-        business:businesses(name),
-        zone:current_zone_id(name)
-      `)
-      .eq('role', 'driver')
-      .order('name');
-
-    if (selectedBusiness !== 'all') {
-      query = query.eq('business_id', selectedBusiness);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      logger.error('Failed to load drivers:', error);
-      return;
-    }
-
-    const driversData: Driver[] = await Promise.all(
-      (data || []).map(async (driver: any) => {
-        const { count } = await supabase
-          .from('orders')
-          .select('id', { count: 'exact', head: true })
-          .eq('assigned_driver', driver.telegram_id)
-          .in('status', ['assigned', 'in_transit']);
-
-        return {
-          id: driver.id,
-          telegram_id: driver.telegram_id,
-          name: driver.name || 'Unknown',
-          phone_number: driver.phone_number,
-          current_zone_id: driver.current_zone_id,
-          zone_name: driver.zone?.name || null,
-          active_orders_count: count || 0,
-          status: driver.is_active ? 'active' : 'inactive',
-          business_id: driver.business_id,
-          business_name: driver.business?.name || 'N/A'
-        };
-      })
-    );
-
-    setDrivers(driversData);
-  }
-
-  async function loadZoneCoverage() {
-    let query = supabase
-      .from('zones')
-      .select(`
-        *,
-        business:businesses(name)
-      `)
-      .order('name');
-
-    if (selectedBusiness !== 'all') {
-      query = query.eq('business_id', selectedBusiness);
-    }
-
-    const { data: zonesData, error } = await query;
-
-    if (error) {
-      logger.error('Failed to load zones:', error);
-      return;
-    }
-
-    const coverage: ZoneCoverage[] = await Promise.all(
-      (zonesData || []).map(async (zone: any) => {
-        const { count: driverCount } = await supabase
-          .from('users')
-          .select('id', { count: 'exact', head: true })
-          .eq('role', 'driver')
-          .eq('current_zone_id', zone.id);
-
-        const { count: activeDriverCount } = await supabase
-          .from('users')
-          .select('id', { count: 'exact', head: true })
-          .eq('role', 'driver')
-          .eq('current_zone_id', zone.id)
-          .eq('is_active', true);
-
-        const { count: pendingOrders } = await supabase
-          .from('orders')
-          .select('id', { count: 'exact', head: true })
-          .eq('zone_id', zone.id)
-          .eq('status', 'pending');
-
-        return {
-          zone_id: zone.id,
-          zone_name: zone.name,
-          business_id: zone.business_id,
-          business_name: zone.business?.name || 'N/A',
-          total_drivers: driverCount || 0,
-          active_drivers: activeDriverCount || 0,
-          pending_orders: pendingOrders || 0,
-          coverage_percentage: driverCount > 0 ? ((activeDriverCount || 0) / driverCount) * 100 : 0
-        };
-      })
-    );
-
-    setZoneCoverage(coverage);
+    setLoading(true);
+    setTimeout(() => setLoading(false), 300);
   }
 
   async function handleAssignDriver(orderId: string) {
     const driverTelegramId = prompt('Enter driver Telegram ID:');
     if (!driverTelegramId) return;
 
-    try {
-      const { error } = await supabase
-        .from('orders')
-        .update({
-          assigned_driver: driverTelegramId,
-          status: 'assigned',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', orderId);
-
-      if (error) throw error;
-
-      alert('Driver assigned successfully');
-      await loadOrders();
-    } catch (error: any) {
-      logger.error('Failed to assign driver:', error);
-      alert(error.message || 'Failed to assign driver');
-    }
+    const updatedOrders = orders.map(order =>
+      order.id === orderId
+        ? { ...order, assigned_driver: driverTelegramId, status: 'assigned' as const }
+        : order
+    );
+    setOrders(updatedOrders);
+    alert('Driver assigned successfully');
   }
 
   async function handleUnassignDriver(orderId: string) {
     if (!confirm('Are you sure you want to unassign this driver?')) return;
 
-    try {
-      const { error } = await supabase
-        .from('orders')
-        .update({
-          assigned_driver: null,
-          status: 'confirmed',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', orderId);
-
-      if (error) throw error;
-
-      alert('Driver unassigned successfully');
-      await loadOrders();
-    } catch (error: any) {
-      logger.error('Failed to unassign driver:', error);
-      alert(error.message || 'Failed to unassign driver');
-    }
+    const updatedOrders = orders.map(order =>
+      order.id === orderId
+        ? { ...order, assigned_driver: null, driver_name: null, status: 'confirmed' as const }
+        : order
+    );
+    setOrders(updatedOrders);
+    alert('Driver unassigned successfully');
   }
 
   const stats = {

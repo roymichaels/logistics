@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
 import { logger } from '../lib/logger';
 
 interface Business {
@@ -72,57 +71,24 @@ export function InfrastructureManagerDashboard() {
   }
 
   async function loadBusinesses() {
-    const { data, error } = await supabase
-      .from('businesses')
-      .select('id, name, business_type, active')
-      .eq('active', true)
-      .order('name');
-
-    if (error) throw error;
-    setBusinesses(data || []);
+    const mockData: Business[] = [
+      { id: 'biz1', name: 'Security Shop', business_type: 'Retail', active: true },
+      { id: 'biz2', name: 'Privacy Vault', business_type: 'Enterprise', active: true },
+      { id: 'biz3', name: 'CryptoGuard', business_type: 'B2B', active: true }
+    ];
+    setBusinesses(mockData);
   }
 
   async function loadActiveSessions() {
-    const { data, error } = await supabase
-      .from('support_override_sessions')
-      .select(`
-        *,
-        business:businesses(id, name, business_type, active)
-      `)
-      .eq('status', 'active')
-      .order('activated_at', { ascending: false });
-
-    if (error) throw error;
-    setActiveSessions(data || []);
+    setActiveSessions([]);
   }
 
   async function loadSessionHistory() {
-    const { data, error } = await supabase
-      .from('support_override_sessions')
-      .select(`
-        *,
-        business:businesses(id, name, business_type, active)
-      `)
-      .in('status', ['expired', 'deactivated', 'revoked'])
-      .order('activated_at', { ascending: false })
-      .limit(20);
-
-    if (error) throw error;
-    setSessionHistory(data || []);
+    setSessionHistory([]);
   }
 
   async function loadSessionActions(sessionId: string) {
-    const { data, error } = await supabase
-      .from('support_override_actions')
-      .select('*')
-      .eq('session_id', sessionId)
-      .order('performed_at', { ascending: false });
-
-    if (error) {
-      logger.error('Failed to load session actions:', error);
-      return;
-    }
-    setSessionActions(data || []);
+    setSessionActions([]);
   }
 
   async function handleActivateOverride() {
@@ -140,18 +106,10 @@ export function InfrastructureManagerDashboard() {
       setActivating(true);
       setError(null);
 
-      const { data, error } = await supabase.rpc('activate_support_override', {
-        p_business_id: selectedBusiness,
-        p_reason: overrideReason.trim(),
-        p_duration_minutes: durationMinutes
-      });
-
-      if (error) throw error;
-
       setOverrideReason('');
       setSelectedBusiness('');
       await loadActiveSessions();
-      alert('Support override activated successfully');
+      alert('Support override activated successfully (mock mode)');
     } catch (err: any) {
       logger.error('Failed to activate override:', err);
       setError(err.message || 'Failed to activate support override');
@@ -166,16 +124,9 @@ export function InfrastructureManagerDashboard() {
     }
 
     try {
-      const { error } = await supabase.rpc('deactivate_support_override', {
-        p_session_id: sessionId,
-        p_reason: 'Manually deactivated by manager'
-      });
-
-      if (error) throw error;
-
       await loadActiveSessions();
       await loadSessionHistory();
-      alert('Support override deactivated');
+      alert('Support override deactivated (mock mode)');
     } catch (err: any) {
       logger.error('Failed to deactivate override:', err);
       setError(err.message || 'Failed to deactivate override');
