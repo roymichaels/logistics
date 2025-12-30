@@ -7,6 +7,7 @@ import { LoginPage } from '../pages/LoginPage';
 import { RoleSelectionPage } from '../pages/RoleSelectionPage';
 import { getEntryPointForRole } from './UnifiedRouter';
 import { UserRole } from '../shells/types';
+import { PageGuard } from '../components/guards/PageGuard';
 
 const LandingPage = React.lazy(() => import('../pages/LandingPage').then(m => ({ default: m.LandingPage || m.default })));
 const Dashboard = React.lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard || m.default })));
@@ -51,6 +52,7 @@ const AdminPermissionManagement = React.lazy(() => import('../pages/admin/Permis
 const InfrastructurePermissionManagement = React.lazy(() => import('../pages/infrastructure/PermissionManagement').then(m => ({ default: m.InfrastructurePermissionManagement })));
 const BusinessPermissionManagement = React.lazy(() => import('../pages/business/PermissionManagement').then(m => ({ default: m.BusinessPermissionManagement })));
 const InfrastructureCatalogs = React.lazy(() => import('../pages/infrastructure/InfrastructureCatalogs').then(m => ({ default: m.InfrastructureCatalogs })));
+const UnauthorizedPage = React.lazy(() => import('../pages/Unauthorized').then(m => ({ default: m.UnauthorizedPage || m.default })));
 
 // Role-aware redirect component
 function RoleBasedRedirect() {
@@ -62,6 +64,23 @@ function RoleBasedRedirect() {
 
   // Redirect immediately using Navigate component
   return <Navigate to={entryPoint} replace />;
+}
+
+// Guarded route wrapper
+interface GuardedRouteProps {
+  element: React.ReactElement;
+  userRole: UserRole | null;
+  path: string;
+}
+
+function GuardedRoute({ element, userRole, path }: GuardedRouteProps) {
+  return (
+    <PageGuard userRole={userRole} requiredPath={path}>
+      <Suspense fallback={<PageLoadingSkeleton />}>
+        {element}
+      </Suspense>
+    </PageGuard>
+  );
 }
 
 export function SimpleRouter() {
@@ -99,12 +118,12 @@ export function SimpleRouter() {
     );
   }
 
-  // Role-based routes
-  const isBusinessRole = ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'infrastructure_owner'].includes(userRole || '');
-  const isDriverRole = userRole === 'driver';
-  const isCustomerRole = ['customer', 'user'].includes(userRole || '');
+  // Role-based routes - STRICT SEPARATION
   const isAdmin = ['admin', 'superadmin'].includes(userRole || '');
   const isInfraOwner = ['infrastructure_owner', 'accountant'].includes(userRole || '');
+  const isBusinessRole = ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service'].includes(userRole || '');
+  const isDriverRole = userRole === 'driver';
+  const isCustomerRole = ['customer', 'user'].includes(userRole || '');
 
   return (
     <Routes>
@@ -210,6 +229,9 @@ export function SimpleRouter() {
           <Route path="/store/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
         </>
       )}
+
+      {/* Unauthorized access */}
+      <Route path="/unauthorized" element={<Suspense fallback={<PageLoadingSkeleton />}><UnauthorizedPage /></Suspense>} />
 
       {/* Root and catch-all redirect based on role */}
       <Route path="/" element={<RoleBasedRedirect />} />

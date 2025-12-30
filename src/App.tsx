@@ -37,6 +37,9 @@ import { NavControllerProvider, UIControllerProvider, UIControllerRenderer, Draw
 import { useTheme } from './foundation/theme';
 import { runtimeEnvironment } from './lib/runtimeEnvironment';
 import { telegram } from './utils/telegram';
+import { PermissionProvider } from './lib/permissions/PermissionContext';
+import { UserRole } from './shells/types';
+import { OfflineSyncIndicator } from './components/OfflineSyncIndicator';
 
 // All page components are now lazy-loaded in MigrationRouter
 
@@ -739,8 +742,9 @@ export default function App() {
     <>
       <Suspense fallback={<PageLoadingSkeleton />}>
         <LanguageProvider>
-          <PageTitleProvider>
-            <NavControllerProvider>
+          <PermissionProvider role={userRole as UserRole}>
+            <PageTitleProvider>
+              <NavControllerProvider>
               <UIControllerProvider>
                 <DrawerControllerProvider>
                   <DataSandboxProvider>
@@ -792,6 +796,7 @@ export default function App() {
               </UIControllerProvider>
             </NavControllerProvider>
           </PageTitleProvider>
+        </PermissionProvider>
         </LanguageProvider>
       </Suspense>
 
@@ -880,6 +885,7 @@ export default function App() {
       )}
 
       <ToastContainer />
+      <OfflineSyncIndicator />
     </>
   );
 
