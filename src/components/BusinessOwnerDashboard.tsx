@@ -11,6 +11,7 @@ import { useI18n } from '../lib/i18n';
 import { DashboardHeader, MetricCard, MetricGrid, Section, LoadingState, EmptyState } from './dashboard';
 import { theme, colors, spacing, typography, borderRadius, components, getStatusBadgeStyle } from '../styles/theme';
 import { logger } from '../lib/logger';
+import { getSupabase } from '../lib/supabaseClient';
 
 interface FinancialMetrics {
   revenue_today: number;

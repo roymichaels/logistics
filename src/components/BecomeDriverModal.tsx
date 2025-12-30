@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { Toast } from './Toast';
 import { logger } from '../lib/logger';
+import { getSupabase } from '../lib/supabaseClient';
 
 interface BecomeDriverModalProps {
   onClose: () => void;
