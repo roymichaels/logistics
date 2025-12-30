@@ -188,26 +188,26 @@ export function AdminBusinesses() {
   const getStatusColor = (status: Business['status']) => {
     switch (status) {
       case 'active':
-        return colors.green[600];
+        return colors.status.success;
       case 'inactive':
-        return colors.gray[600];
+        return colors.text.tertiary;
       case 'suspended':
-        return colors.red[600];
+        return colors.status.error;
       default:
-        return colors.gray[600];
+        return colors.text.tertiary;
     }
   };
 
   const getStatusBgColor = (status: Business['status']) => {
     switch (status) {
       case 'active':
-        return colors.green[100];
+        return colors.status.successFaded;
       case 'inactive':
-        return colors.gray[200];
+        return colors.border.primary;
       case 'suspended':
-        return colors.red[100];
+        return colors.status.errorFaded;
       default:
-        return colors.gray[200];
+        return colors.border.primary;
     }
   };
 
@@ -237,7 +237,7 @@ export function AdminBusinesses() {
             style={{
               padding: spacing.sm,
               borderRadius: '8px',
-              border: `1px solid ${colors.gray[300]}`,
+              border: `1px solid ${colors.border.secondary}`,
               minWidth: '150px',
             }}
           >
@@ -279,7 +279,7 @@ export function AdminBusinesses() {
                       {business.status}
                     </span>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: spacing.sm, color: colors.gray[700], fontSize: '0.875rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: spacing.sm, color: colors.text.secondary, fontSize: '0.875rem' }}>
                     <div>
                       <strong>Type:</strong> {business.type}
                     </div>

@@ -50,8 +50,8 @@ export function SearchPage({ dataStore, onNavigate }: SearchPageProps) {
 
   const loadProducts = async () => {
     try {
-      const allProducts = await dataStore.getProducts();
-      setProducts(allProducts || []);
+      const allProducts = await dataStore.listProducts?.() || [];
+      setProducts(allProducts);
     } catch (error) {
       console.error('Failed to load products:', error);
       setProducts([]);

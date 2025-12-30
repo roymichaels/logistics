@@ -139,15 +139,15 @@ export function AdminSettings() {
         }
       />
 
-      <div style={{ display: 'flex', gap: spacing.sm, marginBottom: spacing.lg, borderBottom: `2px solid ${colors.gray[200]}` }}>
+      <div style={{ display: 'flex', gap: spacing.sm, marginBottom: spacing.lg, borderBottom: `2px solid ${colors.border.primary}` }}>
         <button
           onClick={() => setActiveTab('general')}
           style={{
             padding: `${spacing.md} ${spacing.lg}`,
             background: 'none',
             border: 'none',
-            borderBottom: activeTab === 'general' ? `3px solid ${colors.blue[600]}` : '3px solid transparent',
-            color: activeTab === 'general' ? colors.blue[600] : colors.gray[600],
+            borderBottom: activeTab === 'general' ? `3px solid ${colors.brand.primary}` : '3px solid transparent',
+            color: activeTab === 'general' ? colors.brand.primary : colors.text.tertiary,
             fontWeight: 600,
             cursor: 'pointer',
           }}
@@ -160,8 +160,8 @@ export function AdminSettings() {
             padding: `${spacing.md} ${spacing.lg}`,
             background: 'none',
             border: 'none',
-            borderBottom: activeTab === 'notifications' ? `3px solid ${colors.blue[600]}` : '3px solid transparent',
-            color: activeTab === 'notifications' ? colors.blue[600] : colors.gray[600],
+            borderBottom: activeTab === 'notifications' ? `3px solid ${colors.brand.primary}` : '3px solid transparent',
+            color: activeTab === 'notifications' ? colors.brand.primary : colors.text.tertiary,
             fontWeight: 600,
             cursor: 'pointer',
           }}
@@ -174,8 +174,8 @@ export function AdminSettings() {
             padding: `${spacing.md} ${spacing.lg}`,
             background: 'none',
             border: 'none',
-            borderBottom: activeTab === 'access' ? `3px solid ${colors.blue[600]}` : '3px solid transparent',
-            color: activeTab === 'access' ? colors.blue[600] : colors.gray[600],
+            borderBottom: activeTab === 'access' ? `3px solid ${colors.brand.primary}` : '3px solid transparent',
+            color: activeTab === 'access' ? colors.brand.primary : colors.text.tertiary,
             fontWeight: 600,
             cursor: 'pointer',
           }}
@@ -188,8 +188,8 @@ export function AdminSettings() {
             padding: `${spacing.md} ${spacing.lg}`,
             background: 'none',
             border: 'none',
-            borderBottom: activeTab === 'appearance' ? `3px solid ${colors.blue[600]}` : '3px solid transparent',
-            color: activeTab === 'appearance' ? colors.blue[600] : colors.gray[600],
+            borderBottom: activeTab === 'appearance' ? `3px solid ${colors.brand.primary}` : '3px solid transparent',
+            color: activeTab === 'appearance' ? colors.brand.primary : colors.text.tertiary,
             fontWeight: 600,
             cursor: 'pointer',
           }}
@@ -244,7 +244,7 @@ export function AdminSettings() {
                     width: '100%',
                     padding: spacing.sm,
                     borderRadius: '8px',
-                    border: `1px solid ${colors.gray[300]}`,
+                    border: `1px solid ${colors.border.secondary}`,
                   }}
                 >
                   <option value="USD">USD - US Dollar</option>
@@ -264,7 +264,7 @@ export function AdminSettings() {
                     width: '100%',
                     padding: spacing.sm,
                     borderRadius: '8px',
-                    border: `1px solid ${colors.gray[300]}`,
+                    border: `1px solid ${colors.border.secondary}`,
                   }}
                 >
                   <option value="UTC">UTC</option>
@@ -285,7 +285,7 @@ export function AdminSettings() {
                     width: '100%',
                     padding: spacing.sm,
                     borderRadius: '8px',
-                    border: `1px solid ${colors.gray[300]}`,
+                    border: `1px solid ${colors.border.secondary}`,
                   }}
                 >
                   <option value="en">English</option>
@@ -305,10 +305,10 @@ export function AdminSettings() {
             Notification Channels
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.lg }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: spacing.md, borderBottom: `1px solid ${colors.gray[200]}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: spacing.md, borderBottom: `1px solid ${colors.border.primary}` }}>
               <div>
                 <div style={{ fontWeight: 600, marginBottom: spacing.xs }}>Enable All Notifications</div>
-                <div style={{ fontSize: '0.875rem', color: colors.gray[600] }}>
+                <div style={{ fontSize: '0.875rem', color: colors.text.tertiary }}>
                   Master switch for all notification channels
                 </div>
               </div>
@@ -317,10 +317,10 @@ export function AdminSettings() {
                 onChange={(checked) => updateSetting('enable_notifications', checked)}
               />
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: spacing.md, borderBottom: `1px solid ${colors.gray[200]}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: spacing.md, borderBottom: `1px solid ${colors.border.primary}` }}>
               <div>
                 <div style={{ fontWeight: 600, marginBottom: spacing.xs }}>Email Notifications</div>
-                <div style={{ fontSize: '0.875rem', color: colors.gray[600] }}>
+                <div style={{ fontSize: '0.875rem', color: colors.text.tertiary }}>
                   Send notifications via email
                 </div>
               </div>
@@ -330,10 +330,10 @@ export function AdminSettings() {
                 disabled={!settings.enable_notifications}
               />
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: spacing.md, borderBottom: `1px solid ${colors.gray[200]}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: spacing.md, borderBottom: `1px solid ${colors.border.primary}` }}>
               <div>
                 <div style={{ fontWeight: 600, marginBottom: spacing.xs }}>SMS Notifications</div>
-                <div style={{ fontSize: '0.875rem', color: colors.gray[600] }}>
+                <div style={{ fontSize: '0.875rem', color: colors.text.tertiary }}>
                   Send notifications via SMS
                 </div>
               </div>
@@ -346,7 +346,7 @@ export function AdminSettings() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontWeight: 600, marginBottom: spacing.xs }}>Push Notifications</div>
-                <div style={{ fontSize: '0.875rem', color: colors.gray[600] }}>
+                <div style={{ fontSize: '0.875rem', color: colors.text.tertiary }}>
                   Send push notifications to mobile devices
                 </div>
               </div>
@@ -367,10 +367,10 @@ export function AdminSettings() {
               System Access
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.lg }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: spacing.md, borderBottom: `1px solid ${colors.gray[200]}` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: spacing.md, borderBottom: `1px solid ${colors.border.primary}` }}>
                 <div>
                   <div style={{ fontWeight: 600, marginBottom: spacing.xs }}>Maintenance Mode</div>
-                  <div style={{ fontSize: '0.875rem', color: colors.gray[600] }}>
+                  <div style={{ fontSize: '0.875rem', color: colors.text.tertiary }}>
                     Disable public access for system maintenance
                   </div>
                 </div>
@@ -379,10 +379,10 @@ export function AdminSettings() {
                   onChange={(checked) => updateSetting('maintenance_mode', checked)}
                 />
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: spacing.md, borderBottom: `1px solid ${colors.gray[200]}` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: spacing.md, borderBottom: `1px solid ${colors.border.primary}` }}>
                 <div>
                   <div style={{ fontWeight: 600, marginBottom: spacing.xs }}>Allow New Business Registration</div>
-                  <div style={{ fontSize: '0.875rem', color: colors.gray[600] }}>
+                  <div style={{ fontSize: '0.875rem', color: colors.text.tertiary }}>
                     Enable new businesses to register on the platform
                   </div>
                 </div>
@@ -391,10 +391,10 @@ export function AdminSettings() {
                   onChange={(checked) => updateSetting('allow_new_businesses', checked)}
                 />
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: spacing.md, borderBottom: `1px solid ${colors.gray[200]}` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: spacing.md, borderBottom: `1px solid ${colors.border.primary}` }}>
                 <div>
                   <div style={{ fontWeight: 600, marginBottom: spacing.xs }}>Allow New Driver Registration</div>
-                  <div style={{ fontSize: '0.875rem', color: colors.gray[600] }}>
+                  <div style={{ fontSize: '0.875rem', color: colors.text.tertiary }}>
                     Enable new drivers to register on the platform
                   </div>
                 </div>
@@ -406,7 +406,7 @@ export function AdminSettings() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ fontWeight: 600, marginBottom: spacing.xs }}>Require KYC Verification</div>
-                  <div style={{ fontSize: '0.875rem', color: colors.gray[600] }}>
+                  <div style={{ fontSize: '0.875rem', color: colors.text.tertiary }}>
                     Require users to complete KYC verification
                   </div>
                 </div>
@@ -435,7 +435,7 @@ export function AdminSettings() {
                 style={{
                   flex: 1,
                   padding: spacing.lg,
-                  border: `2px solid ${settings.theme === 'light' ? colors.blue[600] : colors.gray[300]}`,
+                  border: `2px solid ${settings.theme === 'light' ? colors.brand.primary : colors.border.secondary}`,
                   borderRadius: '8px',
                   background: settings.theme === 'light' ? colors.blue[50] : 'white',
                   cursor: 'pointer',
@@ -453,7 +453,7 @@ export function AdminSettings() {
                 style={{
                   flex: 1,
                   padding: spacing.lg,
-                  border: `2px solid ${settings.theme === 'dark' ? colors.blue[600] : colors.gray[300]}`,
+                  border: `2px solid ${settings.theme === 'dark' ? colors.brand.primary : colors.border.secondary}`,
                   borderRadius: '8px',
                   background: settings.theme === 'dark' ? colors.blue[50] : 'white',
                   cursor: 'pointer',
@@ -471,7 +471,7 @@ export function AdminSettings() {
                 style={{
                   flex: 1,
                   padding: spacing.lg,
-                  border: `2px solid ${settings.theme === 'auto' ? colors.blue[600] : colors.gray[300]}`,
+                  border: `2px solid ${settings.theme === 'auto' ? colors.brand.primary : colors.border.secondary}`,
                   borderRadius: '8px',
                   background: settings.theme === 'auto' ? colors.blue[50] : 'white',
                   cursor: 'pointer',

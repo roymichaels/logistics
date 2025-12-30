@@ -988,6 +988,30 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'channels:view',
     ],
   },
+
+  customer: {
+    role: 'customer',
+    label: 'Customer',
+    level: 'infrastructure',
+    description: 'Customer with shopping and order management access',
+    canSeeFinancials: false,
+    canSeeCrossBusinessData: false,
+    permissions: [
+      // Users - Own profile only
+      'users:view_own',
+
+      // Messaging & Groups - Basic communication
+      'messaging:send',
+      'messaging:view',
+      'groups:view',
+      'channels:view',
+
+      // Shopping & Orders - Customer-specific
+      'catalog:view',
+      'orders:create',
+      'orders:view_own',
+    ],
+  },
 };
 
 /**

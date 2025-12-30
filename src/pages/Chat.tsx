@@ -327,8 +327,8 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
       <div style={{
         padding: '20px',
         textAlign: 'center',
-        color: theme.text_color,
-        backgroundColor: theme.bg_color,
+        color: ROYAL_COLORS.text,
+        backgroundColor: ROYAL_COLORS.background,
         minHeight: '100vh'
       }}>
         טוען צ'אטים...
@@ -354,7 +354,6 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
         setNewMessage={setNewMessage}
         onSendMessage={sendMessage}
         currentUser={currentUser}
-        theme={theme}
         haptic={haptic}
         messagesEndRef={messagesEndRef}
       />
@@ -1151,7 +1150,6 @@ function ChatView({
   setNewMessage,
   onSendMessage,
   currentUser,
-  theme,
   haptic,
   messagesEndRef
 }: {
@@ -1161,7 +1159,6 @@ function ChatView({
   setNewMessage: (msg: string) => void;
   onSendMessage: () => void;
   currentUser?: User;
-  theme: any;
   haptic: () => void;
   messagesEndRef: React.RefObject<HTMLDivElement>;
 }) {
@@ -1271,7 +1268,6 @@ function ChatView({
               key={message.id}
               message={message}
               isMe={message.user === currentUser?.telegram_id}
-              theme={theme}
             />
           ))}
           <div ref={messagesEndRef} />
@@ -1340,7 +1336,7 @@ function ChatView({
   );
 }
 
-function MessageBubble({ message, isMe, theme }: { message: any; isMe: boolean; theme: any }) {
+function MessageBubble({ message, isMe }: { message: any; isMe: boolean }) {
   return (
     <div style={{
       display: 'flex',

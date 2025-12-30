@@ -201,7 +201,7 @@ export function PlatformCatalog() {
             style={{
               padding: spacing.sm,
               borderRadius: '8px',
-              border: `1px solid ${colors.gray[300]}`,
+              border: `1px solid ${colors.border.secondary}`,
             }}
           >
             {categories.map((cat) => (
@@ -246,7 +246,7 @@ export function PlatformCatalog() {
                 />
               )}
               <h3 style={{ marginBottom: spacing.sm }}>{product.name}</h3>
-              <p style={{ color: colors.gray[600], fontSize: '0.875rem', marginBottom: spacing.sm }}>
+              <p style={{ color: colors.text.tertiary, fontSize: '0.875rem', marginBottom: spacing.sm }}>
                 SKU: {product.sku}
               </p>
               <p style={{ fontWeight: 'bold', fontSize: '1.25rem', marginBottom: spacing.md }}>
