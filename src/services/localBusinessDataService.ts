@@ -1,3 +1,5 @@
+import { logger } from '../lib/logger';
+
 export interface Business {
   id: string;
   name: string;
@@ -60,7 +62,7 @@ export const localBusinessDataService = {
       const cached = localStorage.getItem(STORAGE_KEYS.INFRASTRUCTURE);
       return cached ? JSON.parse(cached) : [];
     } catch (error) {
-      console.error('Failed to load infrastructures:', error);
+      logger.error('[localBusinessDataService] Failed to load infrastructures:', error);
       return [];
     }
   },
@@ -102,7 +104,7 @@ export const localBusinessDataService = {
       const cached = localStorage.getItem(STORAGE_KEYS.BUSINESSES);
       return cached ? JSON.parse(cached) : [];
     } catch (error) {
-      console.error('Failed to load businesses:', error);
+      logger.error('[localBusinessDataService] Failed to load businesses:', error);
       return [];
     }
   },
@@ -118,7 +120,7 @@ export const localBusinessDataService = {
       const ownerships: BusinessOwnership[] = cached ? JSON.parse(cached) : [];
       return ownerships.filter(o => o.owner_user_id === userId && o.active);
     } catch (error) {
-      console.error('Failed to load business ownerships:', error);
+      logger.error('[localBusinessDataService] Failed to load business ownerships:', error);
       return [];
     }
   },
@@ -129,7 +131,7 @@ export const localBusinessDataService = {
       const equity: BusinessEquity[] = cached ? JSON.parse(cached) : [];
       return equity.filter(e => e.business_id === businessId && e.active);
     } catch (error) {
-      console.error('Failed to load business equity:', error);
+      logger.error('[localBusinessDataService] Failed to load business equity:', error);
       return [];
     }
   },
@@ -212,7 +214,7 @@ export const localBusinessDataService = {
         allOwnerships.push(...JSON.parse(cached));
       }
     } catch (error) {
-      console.error('Failed to load existing ownerships:', error);
+      logger.error('[localBusinessDataService] Failed to load existing ownerships:', error);
     }
 
     allOwnerships.push(ownership);
@@ -241,7 +243,7 @@ export const localBusinessDataService = {
         allEquities.push(...JSON.parse(cached));
       }
     } catch (error) {
-      console.error('Failed to load existing equity:', error);
+      logger.error('[localBusinessDataService] Failed to load existing equity:', error);
     }
 
     allEquities.push(equity);
@@ -263,7 +265,7 @@ export const localBusinessDataService = {
 
       return equities[index];
     } catch (error) {
-      console.error('Failed to update equity:', error);
+      logger.error('[localBusinessDataService] Failed to update equity:', error);
       return null;
     }
   },
@@ -279,7 +281,7 @@ export const localBusinessDataService = {
       localStorage.setItem(STORAGE_KEYS.EQUITY, JSON.stringify(filtered));
       return true;
     } catch (error) {
-      console.error('Failed to remove equity:', error);
+      logger.error('[localBusinessDataService] Failed to remove equity:', error);
       return false;
     }
   },

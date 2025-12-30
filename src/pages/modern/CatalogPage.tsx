@@ -5,6 +5,7 @@ import { EmptyState } from '@/components/molecules/EmptyState';
 import { Button } from '@/components/atoms/Button';
 import { Box } from '@/components/atoms/Box';
 import type { Product } from '@/data/types';
+import { logger } from '@/lib/logger';
 
 interface CatalogPageProps {
   dataStore: any;
@@ -43,7 +44,7 @@ export function CatalogPage({
           setProducts(list);
         }
       } catch (error) {
-        console.error('Failed to load products:', error);
+        logger.error('[CatalogPage] Failed to load products:', error);
       } finally {
         if (mounted) {
           setLoading(false);

@@ -4,6 +4,7 @@ import { Box } from '@/components/atoms/Box';
 import { Typography } from '@/components/atoms/Typography';
 import { Badge } from '@/components/atoms/Badge';
 import { Button } from '@/components/atoms/Button';
+import { logger } from '@/lib/logger';
 
 interface DriverDashboardPageProps {
   dataStore: any;
@@ -74,7 +75,7 @@ export function DriverDashboardPage({ dataStore, onNavigate }: DriverDashboardPa
         setRecentDeliveries(todayCompleted.slice(0, 5));
       }
     } catch (error) {
-      console.error('Failed to load driver dashboard:', error);
+      logger.error('[DriverDashboardPage] Failed to load driver dashboard:', error);
     } finally {
       if (mounted) {
         setLoading(false);

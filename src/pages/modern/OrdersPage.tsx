@@ -6,6 +6,7 @@ import { Badge } from '@/components/atoms/Badge';
 import { Button } from '@/components/atoms/Button';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import type { Order } from '@/data/types';
+import { logger } from '@/lib/logger';
 
 interface OrdersPageProps {
   dataStore: any;
@@ -49,7 +50,7 @@ export function OrdersPage({ dataStore, onOrderClick }: OrdersPageProps) {
           setOrders(list);
         }
       } catch (error) {
-        console.error('Failed to load orders:', error);
+        logger.error('[OrdersPage] Failed to load orders:', error);
       } finally {
         if (mounted) {
           setLoading(false);

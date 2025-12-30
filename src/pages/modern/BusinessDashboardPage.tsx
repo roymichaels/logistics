@@ -4,6 +4,7 @@ import { Box } from '@/components/atoms/Box';
 import { Typography } from '@/components/atoms/Typography';
 import { Button } from '@/components/atoms/Button';
 import { Badge } from '@/components/atoms/Badge';
+import { logger } from '@/lib/logger';
 
 interface BusinessDashboardPageProps {
   dataStore: any;
@@ -65,7 +66,7 @@ export function BusinessDashboardPage({ dataStore, onNavigate }: BusinessDashboa
           setTopProducts(products.slice(0, 5));
         }
       } catch (error) {
-        console.error('Failed to load dashboard:', error);
+        logger.error('[BusinessDashboardPage] Failed to load dashboard:', error);
       } finally {
         if (mounted) {
           setLoading(false);
