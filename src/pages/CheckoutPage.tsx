@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PaymentMethodSelector, OrderPaymentStatus } from '../components/payments';
-import { supabaseClient } from '../lib/supabaseClient';
 
 interface Order {
   id: string;
@@ -28,30 +27,9 @@ export default function CheckoutPage() {
   }, [orderId]);
 
   const loadOrder = async () => {
-    try {
-      const { data, error } = await supabaseClient
-        .from('orders')
-        .select('*')
-        .eq('id', orderId)
-        .single();
-
-      if (error) throw error;
-      setOrder(data);
-
-      const { data: payment } = await supabaseClient
-        .from('payment_transactions')
-        .select('status')
-        .eq('order_id', orderId)
-        .maybeSingle();
-
-      if (payment?.status === 'confirmed' || payment?.status === 'released') {
-        setPaymentComplete(true);
-      }
-    } catch (error) {
-      console.error('Error loading order:', error);
-    } finally {
-      setLoading(false);
-    }
+    // Frontend-only mode: Payment processing not available
+    console.warn('Payment processing not available in frontend-only mode');
+    setLoading(false);
   };
 
   const handlePaymentSuccess = (paymentId: string) => {

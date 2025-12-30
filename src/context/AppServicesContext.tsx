@@ -174,26 +174,16 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         // Query user_business_roles to get active business ID
         let businessIdToSet = profile.business_id;
         if (!businessIdToSet) {
-          try {
-            const { getSupabase } = await import('../lib/supabaseClient');
-            const supabase = getSupabase();
-
-            if (supabase) {
-              const { data: businessRoles, error: businessError } = await supabase
-                .from('user_business_roles')
-                .select('business_id, is_active')
-                .eq('user_id', user.id)
-                .eq('is_active', true)
-                .order('created_at', { ascending: false })
-                .limit(1);
-
-              if (!businessError && businessRoles && businessRoles.length > 0) {
-                businessIdToSet = businessRoles[0].business_id;
-                logger.info('🏢 AppServicesContext: Retrieved business_id from user_business_roles:', businessIdToSet);
-              }
+          // Frontend-only: Try to get from localStorage
+          const cachedBusinessRole = localStorage.getItem('active_business_role');
+          if (cachedBusinessRole) {
+            try {
+              const parsed = JSON.parse(cachedBusinessRole);
+              businessIdToSet = parsed.business_id;
+              logger.info('🏢 AppServicesContext: Retrieved business_id from localStorage:', businessIdToSet);
+            } catch (e) {
+              logger.warn('⚠️ Failed to parse cached business role:', e);
             }
-          } catch (queryError) {
-            logger.warn('⚠️ Failed to query user_business_roles:', queryError);
           }
         }
 
@@ -437,29 +427,9 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
               // No cached business role, use session or profile business_id
               let businessToSet = sessionBusinessId || profile.business_id;
 
-              // If no business_id found, query user_business_roles table
+              // Frontend-only: Skip database query for business_id
               if (!businessToSet) {
-                try {
-                  const { getSupabase } = await import('../lib/supabaseClient');
-                  const supabase = getSupabase();
-
-                  if (supabase) {
-                    const { data: businessRoles, error: businessError } = await supabase
-                      .from('user_business_roles')
-                      .select('business_id, is_active')
-                      .eq('user_id', auth.user.id)
-                      .eq('is_active', true)
-                      .order('created_at', { ascending: false })
-                      .limit(1);
-
-                    if (!businessError && businessRoles && businessRoles.length > 0) {
-                      businessToSet = businessRoles[0].business_id;
-                      logger.info('🏢 Retrieved business_id from user_business_roles:', businessToSet);
-                    }
-                  }
-                } catch (queryError) {
-                  logger.warn('⚠️ Failed to query user_business_roles during initialization:', queryError);
-                }
+                logger.info('ℹ️ No business_id found in session or profile');
               }
 
               if (businessToSet) {

@@ -4,7 +4,6 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { getSupabase } from '../lib/supabaseClient';
 import { fetchBusinessMetrics } from '../services/metrics';
 import { BusinessBottomNav } from './BusinessBottomNav';
 import { useLanguage } from '../context/LanguageContext';

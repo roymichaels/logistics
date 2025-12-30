@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
 import { Toast } from '../components/Toast';
-
-import { loadConfig } from '../lib/supabaseClient';
 import { ProfileDiagnostics } from '../lib/diagnostics';
 import { logger } from '../lib/logger';
 
@@ -108,94 +106,8 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
   };
 
   const handleRequestRoleAccess = async () => {
-    try {
-
-      logger.info('🔐 Starting promotion process...');
-
-      // Get telegram_id from user object or Telegram SDK
-      let userTelegramId = user?.telegram_id;
-
-      if (!userTelegramId && telegram.user?.id) {
-        userTelegramId = String(telegram.user.id);
-        logger.info('📱 Got telegram_id from Telegram SDK:', userTelegramId);
-      }
-
-      if (!userTelegramId) {
-        logger.error('❌ No telegram_id available');
-        logger.info('User object:', user);
-        logger.info('Telegram user:', telegram.user);
-        logger.info('Telegram initData:', telegram.initData);
-        Toast.error('לא ניתן לזהות משתמש - אנא נסה שוב');
-        return;
-      }
-
-      logger.info('🔐 Promoting user:', userTelegramId);
-      Toast.info('מעדכן הרשאות...');
-
-      // Load runtime configuration
-      const config = await loadConfig();
-
-      if (!config?.supabaseUrl || !config?.supabaseAnonKey) {
-        throw new Error('Edge functions not available in frontend-only mode');
-      }
-
-      logger.info('📡 Calling edge function:', `${config.supabaseUrl}/functions/v1/promote-manager`);
-
-      const response = await fetch(`${config.supabaseUrl}/functions/v1/promote-manager`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.supabaseAnonKey}`
-        },
-        body: JSON.stringify({
-          telegram_id: userTelegramId,
-          pin: '000000'
-          // No target_role - let admin assign appropriate role
-        })
-      });
-
-      logger.info('📡 Response status:', response.status);
-
-      const responseText = await response.text();
-      logger.info('📡 Response body:', responseText);
-
-      if (!response.ok) {
-        let errorMessage = 'Failed to promote user';
-        try {
-          const errorData = JSON.parse(responseText);
-          errorMessage = errorData.error || errorData.details || errorMessage;
-        } catch (e) {
-          errorMessage = responseText || errorMessage;
-        }
-        logger.error('❌ Error response:', errorMessage);
-        throw new Error(errorMessage);
-      }
-
-      const result = JSON.parse(responseText);
-      logger.info('✅ User promoted successfully:', result);
-      logger.info('✅ New role:', result.role);
-
-      Toast.success('בקשה נשלחה בהצלחה! מנהל יאשר בקרוב...');
-
-      // Don't update role - wait for admin approval
-      // Update the user object immediately with the new role
-      if (user) {
-        // Keep existing role until approved
-        // setUser({ ...user, role: 'manager' });
-      }
-
-      // Clear cached user data in the dataStore
-      logger.info('🗑️ Clearing dataStore cache...');
-      if (dataStore?.clearUserCache) {
-        dataStore.clearUserCache();
-      }
-
-      // Wait for admin approval - no need to reload
-      logger.info('✅ Role request submitted, waiting for approval');
-    } catch (error) {
-      logger.error('❌ Failed to promote user:', error);
-      Toast.error(`שגיאה: ${error instanceof Error ? error.message : 'לא ניתן לעדכן הרשאות'}`);
-    }
+    logger.info('🔐 Role request attempted');
+    Toast.error('בקשת גישה אינה זמינה במצב פרונט-אנד בלבד - פנה למנהל');
   };
 
   if (loading) {

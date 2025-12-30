@@ -82,19 +82,13 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
     try {
       logger.info('🔍 UserManagement - Starting user load');
 
-      // Simple session check - no polling, just verify once
-      const { getSupabase } = await import('../lib/supabaseClient');
-      const supabase = getSupabase();
-      const { data: sessionData } = await supabase.auth.getSession();
-
-      if (!sessionData?.session) {
-        logger.warn('⚠️ No active session - pull down to refresh');
-        Toast.error('אין Session פעיל - יש למשוך למטה לרענן');
-        setLoading(false);
-        return;
+      // Frontend-only mode: Simple auth check via localStorage
+      const hasAuth = localStorage.getItem('wallet_address') || localStorage.getItem('userSession');
+      if (!hasAuth) {
+        logger.warn('⚠️ No local auth found');
+      } else {
+        logger.info('✅ Local auth verified, proceeding with queries');
       }
-
-      logger.info('✅ Session verified, proceeding with queries');
 
       // Verify current user
       if (!currentUser?.id) {

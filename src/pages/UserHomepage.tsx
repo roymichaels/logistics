@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { User } from '../data/types';
 import { FrontendDataStore } from '../lib/frontendDataStore';
 import { Toast } from '../components/Toast';
-
-import { loadConfig } from '../lib/supabaseClient';
 import { logger } from '../lib/logger';
 
 interface UserHomepageProps {
@@ -32,29 +30,15 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
 
   // Wait for authentication to be fully established before loading profile
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const supabase = await import('../lib/supabaseClient').then(m => m.getSupabase());
-
-        const { data: sessionData, error } = await supabase.auth.getSession();
-
-        if (error || !sessionData?.session) {
-          logger.error('❌ UserHomepage: No authenticated session');
-          Toast.error('לא מזוהה משתמש - אנא התחבר מחדש');
-          setLoading(false);
-          return;
-        }
-
-        logger.info('✅ UserHomepage: Authentication verified, session ready');
-        setAuthReady(true);
-      } catch (error) {
-        logger.error('❌ UserHomepage: Auth check failed:', error);
-        Toast.error('שגיאה באימות');
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
+    // In frontend-only mode, check localStorage for auth
+    const hasAuth = localStorage.getItem('wallet_address') || localStorage.getItem('userSession');
+    if (hasAuth) {
+      logger.info('✅ UserHomepage: Local auth verified');
+      setAuthReady(true);
+    } else {
+      logger.warn('⚠️ UserHomepage: No local auth found');
+      setAuthReady(true); // Continue anyway, let profile load handle it
+    }
   }, []);
 
   // Only load user profile after auth is confirmed ready
@@ -104,57 +88,8 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
   };
 
   const handleRequestAccess = async () => {
-    try {
-
-      let userTelegramId = user?.telegram_id;
-
-      if (!userTelegramId && telegram.user?.id) {
-        userTelegramId = String(telegram.user.id);
-      }
-
-      if (!userTelegramId) {
-        Toast.error('לא ניתן לזהות משתמש - אנא נסה שוב');
-        return;
-      }
-
-      Toast.info('מעדכן הרשאות...');
-
-      const config = await loadConfig();
-
-      const response = await fetch(`${config.supabaseUrl}/functions/v1/promote-manager`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.supabaseAnonKey}`
-        },
-        body: JSON.stringify({
-          telegram_id: userTelegramId,
-          pin: '000000'
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage = 'Failed to request access';
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.error || errorData.details || errorMessage;
-        } catch {
-          errorMessage = errorText || errorMessage;
-        }
-        throw new Error(errorMessage);
-      }
-
-      const result = await response.json();
-      Toast.success('בקשה נשלחה בהצלחה! מנהל יאשר בקרוב...');
-
-      if (dataStore?.clearUserCache) {
-        dataStore.clearUserCache();
-      }
-    } catch (error) {
-      logger.error('Failed to request access:', error);
-      Toast.error(`שגיאה: ${error instanceof Error ? error.message : 'לא ניתן לשלוח בקשה'}`);
-    }
+    logger.info('🔐 Access request attempted');
+    Toast.error('בקשת גישה אינה זמינה במצב פרונט-אנד בלבד - פנה למנהל');
   };
 
   if (loading) {

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { TelegramBotSetup, CommissionDashboard } from '../components/payments';
-import { supabaseClient } from '../lib/supabaseClient';
 
 interface Business {
   id: string;
@@ -19,36 +18,9 @@ export default function BusinessPaymentSettings() {
   }, []);
 
   const loadBusinesses = async () => {
-    try {
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (!user) return;
-
-      const { data: memberships } = await supabaseClient
-        .from('business_memberships')
-        .select('business_id, role, businesses(id, name)')
-        .eq('user_id', user.id)
-        .in('role', ['owner', 'admin']);
-
-      if (memberships && memberships.length > 0) {
-        const bizList = memberships
-          .map(m => m.businesses)
-          .filter(Boolean) as Business[];
-
-        setBusinesses(bizList);
-        if (bizList.length > 0) {
-          setSelectedBusiness(bizList[0].id);
-        }
-
-        const firstRole = memberships[0].role;
-        if (firstRole === 'infrastructure_owner') {
-          setUserRole('infrastructure_owner');
-        }
-      }
-    } catch (error) {
-      console.error('Error loading businesses:', error);
-    } finally {
-      setLoading(false);
-    }
+    // Frontend-only mode: Payment settings not available
+    console.warn('Payment settings not available in frontend-only mode');
+    setLoading(false);
   };
 
   if (loading) {

@@ -6,7 +6,6 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
 import { logger } from '../lib/logger';
 
 interface Permission {

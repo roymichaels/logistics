@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { CommissionDashboard } from '../components/payments';
-import { supabaseClient } from '../lib/supabaseClient';
 
 interface PlatformStats {
   totalTransactions: number;
@@ -25,27 +24,9 @@ export default function PlatformCommissionsPage() {
   }, []);
 
   const checkAuthorization = async () => {
-    try {
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (!user) return;
-
-      const { data: membership } = await supabaseClient
-        .from('business_memberships')
-        .select('role, businesses(infrastructure_id)')
-        .eq('user_id', user.id)
-        .eq('role', 'infrastructure_owner')
-        .maybeSingle();
-
-      if (membership?.businesses?.infrastructure_id) {
-        setIsAuthorized(true);
-        setInfrastructureId(membership.businesses.infrastructure_id);
-        await loadStats(membership.businesses.infrastructure_id);
-      }
-    } catch (error) {
-      console.error('Error checking authorization:', error);
-    } finally {
-      setLoading(false);
-    }
+    // Frontend-only mode: Payment commissions not available
+    console.warn('Commission tracking not available in frontend-only mode');
+    setLoading(false);
   };
 
   const loadStats = async (infraId: string) => {
