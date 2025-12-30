@@ -175,6 +175,23 @@ const DEFAULT_STORES: StoreConfig[] = [
       { name: 'cart_id', keyPath: 'cart_id' },
       { name: 'product_id', keyPath: 'product_id' }
     ]
+  },
+  {
+    name: 'blobs',
+    keyPath: 'id'
+  },
+  {
+    name: 'blob_metadata',
+    keyPath: 'id',
+    indexes: [
+      { name: 'uploadedAt', keyPath: 'uploadedAt' },
+      { name: 'lastAccessed', keyPath: 'lastAccessed' },
+      { name: 'mimeType', keyPath: 'mimeType' }
+    ]
+  },
+  {
+    name: 'key_value_store',
+    keyPath: 'key'
   }
 ];
 
