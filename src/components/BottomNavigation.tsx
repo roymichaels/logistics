@@ -111,17 +111,14 @@ export function BottomNavigation({
       }
     },
 
-    // ⛔ USER: Unassigned - View Only
+    // ⛔ USER: Unassigned - View Only (acts as customer by default)
     user: {
       tabs: [
-        { id: 'chat', label: translations.chat, icon: '💬' },
-        { id: 'notifications', label: translations.notifications, icon: '🔔' },
-        { id: 'tasks', label: translations.tasks, icon: '✅' }
-      ],
-      action: {
-        label: translations.phrases.actions,
-        icon: '⚡'
-      }
+        { id: 'catalog', label: translations.shop, icon: '🏪' },
+        { id: 'search', label: translations.search || 'Search', icon: '🔍' },
+        { id: 'cart', label: translations.cart, icon: '🛒' },
+        { id: 'orders', label: translations.orders, icon: '📦' }
+      ]
     },
 
     // 🏗️ INFRASTRUCTURE_OWNER: Platform administrator
@@ -232,13 +229,10 @@ export function BottomNavigation({
     customer: {
       tabs: [
         { id: 'catalog', label: translations.shop, icon: '🏪' },
+        { id: 'search', label: translations.search || 'Search', icon: '🔍' },
         { id: 'cart', label: translations.cart, icon: '🛒' },
         { id: 'orders', label: translations.orders, icon: '📦' }
-      ],
-      action: {
-        label: translations.browse,
-        icon: '🔍'
-      }
+      ]
     }
   };
 
@@ -267,10 +261,11 @@ export function BottomNavigation({
       'admin'
     ].includes(userRole);
 
-    // Customer/storefront routes
-    if (userRole === 'customer') {
+    // Customer/storefront routes (includes 'user' role)
+    if (userRole === 'customer' || userRole === 'user') {
       const customerRoutes: Record<string, string> = {
         catalog: '/store/catalog',
+        search: '/store/search',
         cart: '/store/cart',
         orders: '/store/orders',
       };
