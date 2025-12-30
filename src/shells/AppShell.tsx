@@ -135,6 +135,7 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: 'clamp(12px, 3vw, 20px)',
+            paddingLeft: 'var(--header-left-offset, clamp(12px, 3vw, 20px))',
             borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
             backgroundColor: 'rgba(10, 10, 12, 0.3)',
             minHeight: 'var(--header-height-mobile)',

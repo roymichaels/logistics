@@ -520,6 +520,7 @@ export function BottomNavigation({
       <style>{`
         :root {
           --nav-sidebar-offset: 0px;
+          --header-left-offset: clamp(12px, 3vw, 20px);
         }
 
         .bottom-nav-container {
@@ -548,6 +549,7 @@ export function BottomNavigation({
         @media (min-width: 768px) {
           :root {
             --nav-sidebar-offset: 80px;
+            --header-left-offset: 110px;
           }
 
           .bottom-nav-container {
