@@ -41,6 +41,7 @@ const MyOrdersPage = React.lazy(() => import('../store/MyOrdersPage').then(m => 
 const OrderDetailPage = React.lazy(() => import('../store/OrderDetailPage').then(m => ({ default: m.OrderDetailPage })));
 const UserProfile = React.lazy(() => import('../pages/UserProfile').then(m => ({ default: m.UserProfilePage })));
 const PlatformCatalog = React.lazy(() => import('../pages/admin/PlatformCatalog').then(m => ({ default: m.PlatformCatalog })));
+const PlatformDashboard = React.lazy(() => import('../pages/admin/PlatformDashboard').then(m => ({ default: m.PlatformDashboard })));
 const BusinessCatalogManagement = React.lazy(() => import('../pages/business/BusinessCatalogManagement').then(m => ({ default: m.BusinessCatalogManagement })));
 const InfrastructureDashboard = React.lazy(() => import('../pages/infrastructure/InfrastructureDashboard').then(m => ({ default: m.InfrastructureDashboard })));
 const AdminBusinesses = React.lazy(() => import('../pages/admin/AdminBusinesses').then(m => ({ default: m.AdminBusinesses })));
@@ -113,7 +114,7 @@ export function SimpleRouter() {
       {/* Admin/Superadmin routes */}
       {isAdmin && (
         <>
-          <Route path="/admin/platform-dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><Dashboard /></Suspense>} />
+          <Route path="/admin/platform-dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><PlatformDashboard /></Suspense>} />
           <Route path="/admin/platform-catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><PlatformCatalog /></Suspense>} />
           <Route path="/admin/businesses" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminBusinesses /></Suspense>} />
           <Route path="/admin/users" element={<Suspense fallback={<PageLoadingSkeleton />}><UserManagement /></Suspense>} />

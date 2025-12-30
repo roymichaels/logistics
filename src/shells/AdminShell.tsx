@@ -4,6 +4,7 @@ import { UnifiedAppFrame } from '../layouts/UnifiedAppFrame';
 import { getNavigationForRole } from './navigationSchema';
 import { MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
 import { UserRole } from './types';
+import { NavigationProvider } from '../contexts/NavigationContext';
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -47,21 +48,23 @@ export function AdminShell({
       : 'Infrastructure Admin';
 
   return (
-    <BaseShell
-      role={role}
-      currentPath={currentPath}
-      onNavigate={onNavigate}
-      onLogout={onLogout}
-      title={shellTitle}
-    >
-      <UnifiedAppFrame
-        menuItems={menuItems}
+    <NavigationProvider userRole={role}>
+      <BaseShell
+        role={role}
         currentPath={currentPath}
         onNavigate={onNavigate}
-        title={`${shellTitle} Menu`}
+        onLogout={onLogout}
+        title={shellTitle}
       >
-        {children}
-      </UnifiedAppFrame>
-    </BaseShell>
+        <UnifiedAppFrame
+          menuItems={menuItems}
+          currentPath={currentPath}
+          onNavigate={onNavigate}
+          title={`${shellTitle} Menu`}
+        >
+          {children}
+        </UnifiedAppFrame>
+      </BaseShell>
+    </NavigationProvider>
   );
 }
