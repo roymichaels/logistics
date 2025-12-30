@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useI18n } from '../lib/i18n';
-import { useAppServices } from '../context/AppServicesContext';
+import { useSafeAppServices } from '../context/AppServicesContext';
 import { colors, spacing, navigation } from '../styles/design-system';
 import { useAuth } from '../context/AuthContext';
 import { haptic } from '../utils/haptic';
@@ -74,7 +74,8 @@ export function BottomNavigation({
   onShowCreateProduct
 }: BottomNavigationProps) {
 
-  const { currentBusinessId } = useAppServices();
+  const appServices = useSafeAppServices();
+  const currentBusinessId = appServices?.currentBusinessId ?? null;
   const { translations } = useI18n();
   const authCtx = useAuth();
   const authRole = (authCtx?.user as any)?.role || null;

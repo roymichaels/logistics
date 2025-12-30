@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { useAppServices } from '../context/AppServicesContext';
+import { useSafeAppServices } from '../context/AppServicesContext';
 import { useAuth } from '../context/AuthContext';
 import { PageLoadingSkeleton } from '../components/LoadingSkeleton';
 import { LoginPage } from '../pages/LoginPage';
@@ -56,7 +56,8 @@ const UnauthorizedPage = React.lazy(() => import('../pages/Unauthorized').then(m
 
 // Role-aware redirect component
 function RoleBasedRedirect() {
-  const { userRole } = useAppServices();
+  const appServices = useSafeAppServices();
+  const userRole = appServices?.userRole ?? 'user';
   const location = useLocation();
 
   // Get the correct entry point for the user's role
@@ -84,7 +85,10 @@ function GuardedRoute({ element, userRole, path }: GuardedRouteProps) {
 }
 
 export function SimpleRouter() {
-  const { isAuthenticated, userRole, dataStore } = useAppServices();
+  const appServices = useSafeAppServices();
+  const isAuthenticated = appServices?.isAuthenticated ?? false;
+  const userRole = appServices?.userRole ?? 'user';
+  const dataStore = appServices?.dataStore ?? null;
   const { authenticateWithEthereum, authenticateWithSolana, authenticateWithTon, authenticate: authenticateWithTelegram } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();

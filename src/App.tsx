@@ -18,7 +18,7 @@ import { debugLog } from './components/DebugPanel';
 import { hebrew } from './lib/i18n';
 import './lib/diagnostics';
 import { logger } from './lib/logger';
-import { useAppServices } from './context/AppServicesContext';
+import { useSafeAppServices } from './context/AppServicesContext';
 import { useAuth } from './context/AuthContext';
 import { offlineStore } from './utils/offlineStore';
 import { platformDetection } from './lib/platformDetection';
@@ -87,17 +87,16 @@ export default function App() {
   // Use centralized runtime environment to check SXT mode
   // IMPORTANT: Defaults to FALSE (Supabase) unless explicitly enabled via VITE_USE_SXT=1
   const useSXT = runtimeEnvironment.isSxtModeEnabled();
-  const {
-    user,
-    userRole,
-    dataStore,
-    config,
-    loading,
-    error,
-    refreshUserRole,
-    logout,
-    currentBusinessId
-  } = useAppServices();
+  const appServices = useSafeAppServices();
+  const user = appServices?.user ?? null;
+  const userRole = appServices?.userRole ?? 'user';
+  const dataStore = appServices?.dataStore ?? null;
+  const config = appServices?.config ?? null;
+  const loading = appServices?.loading ?? false;
+  const error = appServices?.error ?? null;
+  const refreshUserRole = appServices?.refreshUserRole ?? (() => {});
+  const logout = appServices?.logout ?? (() => {});
+  const currentBusinessId = appServices?.currentBusinessId ?? null;
   const { authenticateWithEthereum, authenticateWithSolana, authenticate: authenticateWithTelegram, isAuthenticated } = useAuth();
   const [currentPage, setCurrentPage] = useState<Page>('catalog');
   const [showOrderWizard, setShowOrderWizard] = useState(false);
