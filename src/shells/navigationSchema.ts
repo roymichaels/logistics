@@ -65,6 +65,24 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     requiredRoles: ['superadmin', 'admin']
   },
   {
+    id: 'platform-catalog',
+    label: 'קטלוג פלטפורמה',
+    path: '/admin/platform-catalog',
+    icon: '📦',
+    description: 'ניהול קטלוג מוצרים ברמת הפלטפורמה',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin']
+  },
+  {
+    id: 'permission-management',
+    label: 'ניהול הרשאות',
+    path: '/admin/permissions',
+    icon: '🔐',
+    description: 'ניהול תפקידים והרשאות',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin']
+  },
+  {
     id: 'system-settings',
     label: 'הגדרות מערכת',
     path: '/admin/system-settings',
@@ -158,6 +176,24 @@ export const INFRASTRUCTURE_SHELL_NAV: NavigationItem[] = [
     requiredRoles: ['infrastructure_owner']
   },
   {
+    id: 'infrastructure-catalogs',
+    label: 'קטלוגים',
+    path: '/infrastructure/catalogs',
+    icon: '📦',
+    description: 'ניהול קטלוגים של כל העסקים',
+    visible: true,
+    requiredRoles: ['infrastructure_owner']
+  },
+  {
+    id: 'infrastructure-permissions',
+    label: 'הרשאות',
+    path: '/infrastructure/permissions',
+    icon: '🔐',
+    description: 'ניהול תפקידים והרשאות',
+    visible: true,
+    requiredRoles: ['infrastructure_owner']
+  },
+  {
     id: 'infrastructure-team',
     label: 'צוות',
     path: '/infrastructure/team',
@@ -209,6 +245,22 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     icon: '📦',
     visible: true,
     requiredRoles: ['business_owner', 'manager', 'warehouse']
+  },
+  {
+    id: 'business-catalog',
+    label: 'קטלוג מוצרים',
+    path: '/business/catalog',
+    icon: '📚',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager', 'warehouse']
+  },
+  {
+    id: 'business-permissions',
+    label: 'הרשאות צוות',
+    path: '/business/permissions',
+    icon: '🔐',
+    visible: true,
+    requiredRoles: ['business_owner']
   },
   {
     id: 'business-dispatch',

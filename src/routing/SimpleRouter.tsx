@@ -46,6 +46,10 @@ const InfrastructureDashboard = React.lazy(() => import('../pages/infrastructure
 const AdminBusinesses = React.lazy(() => import('../pages/admin/AdminBusinesses').then(m => ({ default: m.AdminBusinesses })));
 const AdminSettings = React.lazy(() => import('../pages/admin/AdminSettings').then(m => ({ default: m.AdminSettings })));
 const SupportConsole = React.lazy(() => import('../pages/customer-service/SupportConsole').then(m => ({ default: m.SupportConsole })));
+const AdminPermissionManagement = React.lazy(() => import('../pages/admin/PermissionManagement').then(m => ({ default: m.PermissionManagement })));
+const InfrastructurePermissionManagement = React.lazy(() => import('../pages/infrastructure/PermissionManagement').then(m => ({ default: m.InfrastructurePermissionManagement })));
+const BusinessPermissionManagement = React.lazy(() => import('../pages/business/PermissionManagement').then(m => ({ default: m.BusinessPermissionManagement })));
+const InfrastructureCatalogs = React.lazy(() => import('../pages/infrastructure/InfrastructureCatalogs').then(m => ({ default: m.InfrastructureCatalogs })));
 
 // Role-aware redirect component
 function RoleBasedRedirect() {
@@ -117,6 +121,7 @@ export function SimpleRouter() {
           <Route path="/admin/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
           <Route path="/admin/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><DriversManagement dataStore={dataStore} /></Suspense>} />
           <Route path="/admin/system-settings" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminSettings /></Suspense>} />
+          <Route path="/admin/permissions" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminPermissionManagement /></Suspense>} />
           <Route path="/admin/logs" element={<Suspense fallback={<PageLoadingSkeleton />}><div style={{ padding: '20px', color: '#E7E9EA' }}>Audit Logs - Coming Soon</div></Suspense>} />
           <Route path="/admin/feature-flags" element={<Suspense fallback={<PageLoadingSkeleton />}><div style={{ padding: '20px', color: '#E7E9EA' }}>Feature Flags - Coming Soon</div></Suspense>} />
           <Route path="/admin/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
@@ -131,6 +136,8 @@ export function SimpleRouter() {
           <Route path="/infrastructure/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><InfrastructureDashboard /></Suspense>} />
           <Route path="/infrastructure/businesses" element={<Suspense fallback={<PageLoadingSkeleton />}><Businesses dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/infrastructure/business-catalogs" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessCatalogManagement /></Suspense>} />
+          <Route path="/infrastructure/catalogs" element={<Suspense fallback={<PageLoadingSkeleton />}><InfrastructureCatalogs /></Suspense>} />
+          <Route path="/infrastructure/permissions" element={<Suspense fallback={<PageLoadingSkeleton />}><InfrastructurePermissionManagement /></Suspense>} />
           <Route path="/infrastructure/reports" element={<Suspense fallback={<PageLoadingSkeleton />}><Reports dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/infrastructure/analytics" element={<Suspense fallback={<PageLoadingSkeleton />}><MyStats dataStore={dataStore} /></Suspense>} />
           <Route path="/infrastructure/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
@@ -161,6 +168,7 @@ export function SimpleRouter() {
           <Route path="/business/sales" element={<Suspense fallback={<PageLoadingSkeleton />}><SalesDashboard /></Suspense>} />
           <Route path="/business/support" element={<Suspense fallback={<PageLoadingSkeleton />}><SupportConsole /></Suspense>} />
           <Route path="/business/team" element={<Suspense fallback={<PageLoadingSkeleton />}><TeamManagement /></Suspense>} />
+          <Route path="/business/permissions" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessPermissionManagement /></Suspense>} />
           <Route path="/business/zones" element={<Suspense fallback={<PageLoadingSkeleton />}><ZoneManagement dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/warehouse" element={<Suspense fallback={<PageLoadingSkeleton />}><WarehouseDashboard dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/incoming" element={<Suspense fallback={<PageLoadingSkeleton />}><Incoming dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />

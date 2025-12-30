@@ -47,6 +47,29 @@ export type Permission =
   | 'products:update'
   | 'products:delete'
   | 'products:set_pricing'
+  // Catalog Management
+  | 'catalog:view_platform'
+  | 'catalog:edit_platform'
+  | 'catalog:view_all_businesses'
+  | 'catalog:view_infrastructure'
+  | 'catalog:edit_infrastructure'
+  | 'catalog:view_business'
+  | 'catalog:edit_business'
+  | 'catalog:inherit_from_platform'
+  | 'catalog:inherit_from_infrastructure'
+  | 'catalog:publish_to_businesses'
+  | 'catalog:approve_products'
+  | 'catalog:create_templates'
+  | 'catalog:manage_categories'
+  | 'catalog:bulk_operations'
+  | 'catalog:export'
+  // Permissions Management
+  | 'permissions:view_all'
+  | 'permissions:view_own'
+  | 'permissions:manage_roles'
+  | 'permissions:assign_roles'
+  | 'permissions:audit_logs'
+  | 'permissions:delegate'
   // Inventory
   | 'inventory:view_all_platform'
   | 'inventory:view_all_infrastructure'
@@ -184,6 +207,30 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'products:delete',
       'products:set_pricing',
 
+      // Catalog - Full platform-wide access
+      'catalog:view_platform',
+      'catalog:edit_platform',
+      'catalog:view_all_businesses',
+      'catalog:view_infrastructure',
+      'catalog:edit_infrastructure',
+      'catalog:view_business',
+      'catalog:edit_business',
+      'catalog:inherit_from_platform',
+      'catalog:inherit_from_infrastructure',
+      'catalog:publish_to_businesses',
+      'catalog:approve_products',
+      'catalog:create_templates',
+      'catalog:manage_categories',
+      'catalog:bulk_operations',
+      'catalog:export',
+
+      // Permissions - Full management
+      'permissions:view_all',
+      'permissions:manage_roles',
+      'permissions:assign_roles',
+      'permissions:audit_logs',
+      'permissions:delegate',
+
       // Inventory - Platform-wide access
       'inventory:view_all_platform',
       'inventory:view_all_infrastructure',
@@ -298,6 +345,30 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'products:delete',
       'products:set_pricing',
 
+      // Catalog - Full platform-wide access
+      'catalog:view_platform',
+      'catalog:edit_platform',
+      'catalog:view_all_businesses',
+      'catalog:view_infrastructure',
+      'catalog:edit_infrastructure',
+      'catalog:view_business',
+      'catalog:edit_business',
+      'catalog:inherit_from_platform',
+      'catalog:inherit_from_infrastructure',
+      'catalog:publish_to_businesses',
+      'catalog:approve_products',
+      'catalog:create_templates',
+      'catalog:manage_categories',
+      'catalog:bulk_operations',
+      'catalog:export',
+
+      // Permissions - Full management
+      'permissions:view_all',
+      'permissions:manage_roles',
+      'permissions:assign_roles',
+      'permissions:audit_logs',
+      'permissions:delegate',
+
       // Inventory - Platform-wide access
       'inventory:view_all_platform',
       'inventory:view_all_infrastructure',
@@ -411,6 +482,25 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'products:delete',
       'products:set_pricing',
 
+      // Catalog - Infrastructure-wide access
+      'catalog:view_infrastructure',
+      'catalog:edit_infrastructure',
+      'catalog:view_business',
+      'catalog:edit_business',
+      'catalog:inherit_from_platform',
+      'catalog:publish_to_businesses',
+      'catalog:approve_products',
+      'catalog:create_templates',
+      'catalog:manage_categories',
+      'catalog:bulk_operations',
+      'catalog:export',
+
+      // Permissions - Infrastructure level management
+      'permissions:view_all',
+      'permissions:manage_roles',
+      'permissions:assign_roles',
+      'permissions:audit_logs',
+
       // Inventory - Full cross-business access
       'inventory:view_all_infrastructure',
       'inventory:create',
@@ -504,6 +594,19 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'products:update',
       'products:delete',
       'products:set_pricing',
+
+      // Catalog - Business level access
+      'catalog:view_business',
+      'catalog:edit_business',
+      'catalog:inherit_from_platform',
+      'catalog:inherit_from_infrastructure',
+      'catalog:manage_categories',
+      'catalog:export',
+
+      // Permissions - Business team management
+      'permissions:view_own',
+      'permissions:assign_roles',
+      'permissions:audit_logs',
 
       // Inventory - Full business access
       'inventory:view_all_business',
@@ -1037,6 +1140,29 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'products:update': 'Update product information',
   'products:delete': 'Delete products',
   'products:set_pricing': 'Set product pricing',
+
+  'catalog:view_platform': 'View platform master catalog',
+  'catalog:edit_platform': 'Edit platform master catalog',
+  'catalog:view_all_businesses': 'View all business catalogs across platform',
+  'catalog:view_infrastructure': 'View infrastructure catalog and all businesses within',
+  'catalog:edit_infrastructure': 'Edit infrastructure-level catalog',
+  'catalog:view_business': 'View own business catalog',
+  'catalog:edit_business': 'Edit own business catalog',
+  'catalog:inherit_from_platform': 'Inherit products from platform master catalog',
+  'catalog:inherit_from_infrastructure': 'Inherit products from infrastructure catalog',
+  'catalog:publish_to_businesses': 'Publish catalog changes to multiple businesses',
+  'catalog:approve_products': 'Approve product changes and additions',
+  'catalog:create_templates': 'Create product templates for reuse',
+  'catalog:manage_categories': 'Manage product categories',
+  'catalog:bulk_operations': 'Perform bulk catalog operations',
+  'catalog:export': 'Export catalog data',
+
+  'permissions:view_all': 'View all permissions and roles',
+  'permissions:view_own': 'View own team permissions',
+  'permissions:manage_roles': 'Create and edit role permissions',
+  'permissions:assign_roles': 'Assign roles to users',
+  'permissions:audit_logs': 'View permission change audit logs',
+  'permissions:delegate': 'Delegate permissions temporarily',
 
   'inventory:view_all_platform': 'View all inventory across all infrastructures and businesses',
   'inventory:view_all_infrastructure': 'View all inventory across all businesses',
