@@ -2120,57 +2120,6 @@ const hebrewTranslations: Translations = {
     confirmDelete: 'אשר מחיקה',
   },
 
-  // User Profile
-  profile: {
-    editProfile: 'ערוך פרופיל',
-    viewProfile: 'צפה בפרופיל',
-    saveProfile: 'שמור שינויים',
-    cancelEdit: 'בטל',
-    profileUpdated: 'הפרופיל עודכן בהצלחה',
-    updateFailed: 'שגיאה בעדכון הפרופיל',
-    savingProfile: 'שומר...',
-
-    // Fields
-    name: 'שם',
-    username: 'שם משתמש',
-    bio: 'אודות',
-    location: 'מיקום',
-    website: 'אתר אינטרנט',
-    profilePhoto: 'תמונת פרופיל',
-    bannerImage: 'תמונת רקע',
-
-    // Placeholders
-    namePlaceholder: 'הכנס את שמך',
-    usernamePlaceholder: 'הכנס שם משתמש',
-    bioPlaceholder: 'ספר על עצמך',
-    locationPlaceholder: 'עיר, מדינה',
-    websitePlaceholder: 'https://example.com',
-
-    // Validation
-    usernameRequired: 'שם משתמש נדרש',
-    usernameTooShort: 'שם משתמש חייב להכיל לפחות 3 תווים',
-    usernameTooLong: 'שם משתמש יכול להכיל עד 20 תווים',
-    usernameInvalid: 'שם משתמש יכול להכיל רק אותיות, מספרים וקו תחתון',
-    websiteInvalid: 'כתובת אתר לא תקינה',
-    bioTooLong: 'אודות יכול להכיל עד 160 תווים',
-
-    // Actions
-    uploadPhoto: 'העלה תמונה',
-    removePhoto: 'הסר תמונה',
-    changePhoto: 'שנה תמונה',
-
-    // Info
-    following: 'עוקבים',
-    followers: 'עוקבים',
-    posts: 'פוסטים',
-    replies: 'תגובות',
-    media: 'מדיה',
-    likes: 'לייקים',
-    noPostsYet: 'אין פוסטים עדיין',
-    follow: 'עקוב',
-    unfollow: 'הפסק לעקוב'
-  },
-
   // Channels
   channelsPage: {
     title: 'ערוצים',
@@ -3652,57 +3601,6 @@ const englishTranslations: Translations = {
     confirmDelete: 'Confirm Delete',
   },
 
-  // User Profile
-  profile: {
-    editProfile: 'Edit Profile',
-    viewProfile: 'View Profile',
-    saveProfile: 'Save Changes',
-    cancelEdit: 'Cancel',
-    profileUpdated: 'Profile updated successfully',
-    updateFailed: 'Failed to update profile',
-    savingProfile: 'Saving...',
-
-    // Fields
-    name: 'Name',
-    username: 'Username',
-    bio: 'Bio',
-    location: 'Location',
-    website: 'Website',
-    profilePhoto: 'Profile Photo',
-    bannerImage: 'Banner Image',
-
-    // Placeholders
-    namePlaceholder: 'Enter your name',
-    usernamePlaceholder: 'Enter your username',
-    bioPlaceholder: 'Tell us about yourself',
-    locationPlaceholder: 'City, Country',
-    websitePlaceholder: 'https://example.com',
-
-    // Validation
-    usernameRequired: 'Username is required',
-    usernameTooShort: 'Username must be at least 3 characters',
-    usernameTooLong: 'Username can be up to 20 characters',
-    usernameInvalid: 'Username can only contain letters, numbers, and underscores',
-    websiteInvalid: 'Please enter a valid URL',
-    bioTooLong: 'Bio must be 160 characters or less',
-
-    // Actions
-    uploadPhoto: 'Upload Photo',
-    removePhoto: 'Remove Photo',
-    changePhoto: 'Change Photo',
-
-    // Info
-    following: 'Following',
-    followers: 'Followers',
-    posts: 'Posts',
-    replies: 'Replies',
-    media: 'Media',
-    likes: 'Likes',
-    noPostsYet: 'No posts yet',
-    follow: 'Follow',
-    unfollow: 'Unfollow'
-  },
-
   // Channels
   channelsPage: {
     title: 'Channels',
@@ -4623,16 +4521,15 @@ export function useI18n() {
 
   // Helper to get nested translation keys
   const t = (key: string, ...path: string[]): string => {
-    if (path.length === 0) {
-      return translations[key] || key;
-    }
+    // Handle dot notation: 'teamManagementPage.title' -> ['teamManagementPage', 'title']
+    const keys = key.includes('.') ? key.split('.') : [key, ...path];
 
-    let value: any = translations[key];
-    for (const p of path) {
-      if (value && typeof value === 'object') {
-        value = value[p];
+    let value: any = translations;
+    for (const k of keys) {
+      if (value && typeof value === 'object' && k in value) {
+        value = value[k];
       } else {
-        return key;
+        return key; // Return original key if path not found
       }
     }
     return typeof value === 'string' ? value : key;

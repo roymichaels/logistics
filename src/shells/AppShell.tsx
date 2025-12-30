@@ -8,6 +8,7 @@ import { UnifiedMenuPanel, MenuItemConfig } from '../components/navigation/Unifi
 import { UserMenu } from '../components/organisms/UserMenu';
 import { getNavigationForRole } from './navigationSchema';
 import { DevConsoleDrawer } from '../components/dev/DevConsoleDrawer';
+import { BottomNavigation } from '../components/BottomNavigation';
 
 interface UnifiedAppShellProps {
   children: React.ReactNode;
@@ -148,20 +149,29 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
           flex: 1,
           overflow: 'auto',
           width: '100%',
+          paddingBottom: isAuthenticated ? '70px' : '0',
         }}
       >
         {children}
       </div>
 
       {isAuthenticated && (
-        <UnifiedMenuPanel
-          isOpen={menuOpen}
-          onClose={() => setMenuOpen(false)}
-          items={menuItems}
-          currentPath={location.pathname}
-          onNavigate={navigate}
-          title="Menu"
-        />
+        <>
+          <BottomNavigation
+            currentPage={location.pathname}
+            onNavigate={navigate}
+            userRole={userRole as any}
+            onOpenSidebar={() => setMenuOpen(true)}
+          />
+          <UnifiedMenuPanel
+            isOpen={menuOpen}
+            onClose={() => setMenuOpen(false)}
+            items={menuItems}
+            currentPath={location.pathname}
+            onNavigate={navigate}
+            title="Menu"
+          />
+        </>
       )}
 
       <button
