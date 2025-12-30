@@ -22,12 +22,13 @@ export const colors = {
   },
 
   brand: {
-    primary: '#6A4BFF',      // Royal purple
-    primaryHover: '#7D5EFF', // Purple hover
-    primaryPressed: '#5A3FE8', // Purple pressed
-    primaryFaded: 'rgba(106, 75, 255, 0.1)', // Faded purple
-    secondary: '#A066FF',    // Light purple
+    primary: '#3B82F6',      // Professional blue
+    primaryHover: '#60A5FA', // Blue hover
+    primaryPressed: '#2563EB', // Blue pressed
+    primaryFaded: 'rgba(59, 130, 246, 0.1)', // Faded blue
+    secondary: '#60A5FA',    // Light blue
     accent: '#F0C674',       // Gold accent
+    hover: '#60A5FA',        // Hover state blue
   },
 
   security: {
@@ -55,7 +56,7 @@ export const colors = {
     primary: 'rgba(255, 255, 255, 0.08)',  // Subtle borders
     secondary: 'rgba(255, 255, 255, 0.15)', // Default borders
     hover: 'rgba(255, 255, 255, 0.25)',     // Hover state borders
-    focus: '#6A4BFF',        // Focus state (purple)
+    focus: '#3B82F6',        // Focus state (blue)
     accent: '#F0C674',       // Accent border (gold)
   },
 
@@ -63,13 +64,13 @@ export const colors = {
     card: '#1A1F2A',
     cardHover: '#202736',
     overlay: 'rgba(20, 24, 33, 0.85)',
-    highlight: 'rgba(106, 75, 255, 0.15)',
-    glow: 'rgba(106, 75, 255, 0.3)',
+    highlight: 'rgba(59, 130, 246, 0.15)',
+    glow: 'rgba(59, 130, 246, 0.3)',
   },
 
   interactive: {
     hover: '#202736',
-    active: '#6A4BFF',
+    active: '#3B82F6',
     disabled: '#4B5563',
   },
 
@@ -159,11 +160,11 @@ export const shadows = {
   lg: '0 8px 24px rgba(0, 0, 0, 0.35)',         // Elevated elements
   xl: '0 12px 32px rgba(0, 0, 0, 0.40)',        // Modal shadow
   '2xl': '0 16px 40px rgba(0, 0, 0, 0.45)',     // High elevation
-  glow: '0 0 12px rgba(106, 75, 255, 0.3)',     // Purple glow
-  glowLarge: '0 0 20px rgba(106, 75, 255, 0.4)',// Large purple glow
+  glow: '0 0 12px rgba(59, 130, 246, 0.3)',     // Blue glow
+  glowLarge: '0 0 20px rgba(59, 130, 246, 0.4)',// Large blue glow
   inner: 'inset 0 1px 2px rgba(0, 0, 0, 0.08)', // Inner shadow
-  focus: '0 0 0 2px rgba(106, 75, 255, 0.7)',   // Focus ring
-  focusLarge: '0 0 0 4px rgba(106, 75, 255, 0.5)', // Large focus ring
+  focus: '0 0 0 2px rgba(59, 130, 246, 0.7)',   // Focus ring
+  focusLarge: '0 0 0 4px rgba(59, 130, 246, 0.5)', // Large focus ring
 } as const;
 
 export const transitions = {
@@ -233,15 +234,15 @@ export const backdropBlur = {
 
 // Gradient definitions for modern aesthetic
 export const gradients = {
-  primary: 'linear-gradient(135deg, #6A4BFF 0%, #A066FF 100%)',
-  secondary: 'linear-gradient(135deg, #A066FF 0%, #F0C674 100%)',
+  primary: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)',
+  secondary: 'linear-gradient(135deg, #60A5FA 0%, #F0C674 100%)',
   card: 'linear-gradient(180deg, #1A1F2A 0%, #141821 100%)',
   overlay: 'linear-gradient(180deg, rgba(20, 24, 33, 0) 0%, rgba(20, 24, 33, 0.95) 100%)',
   success: 'linear-gradient(135deg, #4ADE80 0%, #22C55E 100%)',
   warning: 'linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)',
   error: 'linear-gradient(135deg, #F87171 0%, #EF4444 100%)',
-  glow: 'radial-gradient(circle at center, rgba(106, 75, 255, 0.2) 0%, transparent 70%)',
-  cyber: 'linear-gradient(135deg, #6A4BFF 0%, #A066FF 50%, #F0C674 100%)',
+  glow: 'radial-gradient(circle at center, rgba(59, 130, 246, 0.2) 0%, transparent 70%)',
+  cyber: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 50%, #F0C674 100%)',
 } as const;
 
 // Navigation specific values (for glass morphism effects)

@@ -34,6 +34,7 @@ const MyDeliveries = React.lazy(() => import('../pages/MyDeliveries').then(m => 
 const DriverDashboard = React.lazy(() => import('../pages/DriverDashboard').then(m => ({ default: m.DriverDashboard })));
 const DriverEarningsPage = React.lazy(() => import('../pages/DriverEarningsPage').then(m => ({ default: m.default })));
 const CatalogPage = React.lazy(() => import('../store/CatalogPage').then(m => ({ default: m.CatalogPage })));
+const CartPage = React.lazy(() => import('../store/CartPage').then(m => ({ default: m.CartPage })));
 const CheckoutPage = React.lazy(() => import('../store/CheckoutPage').then(m => ({ default: m.CheckoutPage })));
 const MyOrdersPage = React.lazy(() => import('../store/MyOrdersPage').then(m => ({ default: m.MyOrdersPage })));
 const OrderDetailPage = React.lazy(() => import('../store/OrderDetailPage').then(m => ({ default: m.OrderDetailPage })));
@@ -190,7 +191,7 @@ export function SimpleRouter() {
       {isCustomerRole && (
         <>
           <Route path="/store/catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><CatalogPage dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
-          <Route path="/store/cart" element={<Suspense fallback={<PageLoadingSkeleton />}><div style={{ padding: '20px' }}>Cart - Coming Soon</div></Suspense>} />
+          <Route path="/store/cart" element={<Suspense fallback={<PageLoadingSkeleton />}><CartPage onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/store/checkout" element={<Suspense fallback={<PageLoadingSkeleton />}><CheckoutPage dataStore={dataStore} /></Suspense>} />
           <Route path="/store/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><MyOrdersPage dataStore={dataStore} /></Suspense>} />
           <Route path="/store/orders/:orderId" element={<Suspense fallback={<PageLoadingSkeleton />}><OrderDetailPage dataStore={dataStore} /></Suspense>} />

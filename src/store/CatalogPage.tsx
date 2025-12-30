@@ -32,7 +32,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [category, setCategory] = useState<string>('All');
+  const [category, setCategory] = useState<string>('הכל');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isCartOpen, setCartOpen] = useState(false);
   const { addItem, cart } = useCart();
