@@ -220,7 +220,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/dashboard',
     icon: '📊',
     visible: true,
-    requiredRoles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service']
+    requiredRoles: ['business_owner', 'manager'] // Only roles with actual dashboards
   },
   {
     id: 'business-businesses',

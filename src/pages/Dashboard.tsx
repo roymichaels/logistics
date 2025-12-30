@@ -99,9 +99,19 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
       logger.debug('[Dashboard] Profile loaded', { role: profile.role, userId: profile.id });
       setUser(profile);
 
-      // Owner and Manager get custom dashboards
-      if (profile.role === 'infrastructure_owner' || profile.role === 'business_owner' || profile.role === 'manager') {
-        logger.debug('[Dashboard] Loading role-specific dashboard', { role: profile.role });
+      // Roles with custom dashboards or dedicated pages don't need royal dashboard
+      const rolesWithCustomViews = [
+        'infrastructure_owner',
+        'business_owner',
+        'manager',
+        'dispatcher',
+        'warehouse',
+        'sales',
+        'customer_service'
+      ];
+
+      if (rolesWithCustomViews.includes(profile.role)) {
+        logger.debug('[Dashboard] Role has custom dashboard or will be redirected', { role: profile.role });
         setLoading(false);
         return;
       }
@@ -326,6 +336,32 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
   // Manager dashboard - moved down
   if (user?.role === 'manager' || (user as any)?.global_role === 'manager') {
     return <ManagerDashboard dataStore={dataStore} />;
+  }
+
+  // Redirect operational roles to their specific entry points
+  // These roles don't have a generic dashboard - they have specialized interfaces
+  if (user?.role === 'dispatcher' || (user as any)?.global_role === 'dispatcher') {
+    logger.info('[Dashboard] Redirecting dispatcher to dispatch board');
+    onNavigate('/business/dispatch');
+    return null;
+  }
+
+  if (user?.role === 'warehouse' || (user as any)?.global_role === 'warehouse') {
+    logger.info('[Dashboard] Redirecting warehouse to inventory');
+    onNavigate('/business/inventory');
+    return null;
+  }
+
+  if (user?.role === 'sales' || (user as any)?.global_role === 'sales') {
+    logger.info('[Dashboard] Redirecting sales to orders');
+    onNavigate('/business/orders');
+    return null;
+  }
+
+  if (user?.role === 'customer_service' || (user as any)?.global_role === 'customer_service') {
+    logger.info('[Dashboard] Redirecting customer service to support console');
+    onNavigate('/business/support');
+    return null;
   }
 
   // Legacy handling - Show loading/retry state if no business context
