@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { i18n, hebrew, english, type Language } from '../lib/i18n';
-import { supabase } from '../lib/supabaseClient';
-import { logger } from '../lib/logger';
 
 interface LanguageContextType {
   language: Language;
@@ -38,65 +36,12 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     document.documentElement.lang = language;
   }, [language, isRTL]);
 
-  // Save to localStorage and database when language changes
-  const setLanguage = async (lang: Language) => {
+  // Save to localStorage (frontend-only mode)
+  const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    i18n.setLanguage(lang); // Sync with i18n service
+    i18n.setLanguage(lang);
     localStorage.setItem('app_language', lang);
-
-    // Try to save to database if user is logged in
-    try {
-      const raw = (import.meta as any)?.env?.VITE_USE_SXT;
-      const useSXT = raw === undefined || raw === null || raw === '' || ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
-      if (useSXT) {
-        return;
-      }
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase
-          .from('users')
-          .update({ language_preference: lang })
-          .eq('id', user.id);
-      }
-    } catch (error) {
-      logger.warn('Failed to save language preference to database:', error);
-      // Non-critical error, continue with localStorage
-    }
   };
-
-  // Load language preference from database on mount
-  useEffect(() => {
-    const loadUserLanguagePreference = async () => {
-      try {
-        const raw = (import.meta as any)?.env?.VITE_USE_SXT;
-        const useSXT = raw === undefined || raw === null || raw === '' || ['1', 'true', 'yes'].includes(String(raw).toLowerCase());
-        if (useSXT) {
-          return;
-        }
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data, error } = await supabase
-            .from('users')
-            .select('language_preference')
-            .eq('id', user.id)
-            .single();
-
-          if (!error && data?.language_preference) {
-            const dbLang = data.language_preference as Language;
-            if (dbLang !== language) {
-              setLanguageState(dbLang);
-              localStorage.setItem('app_language', dbLang);
-            }
-          }
-        }
-      } catch (error) {
-        logger.warn('Failed to load language preference from database:', error);
-        // Continue with localStorage value
-      }
-    };
-
-    loadUserLanguagePreference();
-  }, []);
 
   const contextValue: LanguageContextType = {
     language,

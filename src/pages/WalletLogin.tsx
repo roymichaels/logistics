@@ -12,7 +12,6 @@ import {
   generateNonce,
   createLocalSession,
 } from '../lib/auth/walletAuth';
-import { supabase } from '../lib/supabaseClient';
 
 export function WalletLogin() {
   const navigate = useNavigate();
@@ -59,24 +58,17 @@ export function WalletLogin() {
         issuedAt: Date.now(),
       });
 
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('*')
-        .eq('wallet_address', address)
-        .maybeSingle();
+      // Store user info in localStorage (frontend-only mode)
+      const userData = {
+        id: address,
+        wallet_address: address,
+        wallet_type: type,
+        username: `user_${address.slice(0, 8)}`,
+        role: 'customer',
+        created_at: new Date().toISOString(),
+      };
 
-      if (!existingUser) {
-        const { error: insertError } = await supabase.from('users').insert({
-          wallet_address: address,
-          wallet_type: type,
-          username: `user_${address.slice(0, 8)}`,
-          role: 'customer',
-        });
-
-        if (insertError) {
-          throw new Error('Failed to create user account');
-        }
-      }
+      localStorage.setItem('user_data', JSON.stringify(userData));
 
       navigate('/store/catalog');
     } catch (err: any) {
