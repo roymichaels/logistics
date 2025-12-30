@@ -696,7 +696,6 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
           onAccept={handleAcceptAssignment}
           onDecline={handleDeclineAssignment}
           onClose={() => setPendingAssignment(null)}
-          theme={theme}
         />
       )}
     </div>

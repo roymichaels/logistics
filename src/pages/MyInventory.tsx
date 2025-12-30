@@ -142,8 +142,8 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
+        backgroundColor: ROYAL_COLORS.background,
+        color: ROYAL_COLORS.text,
         padding: '20px',
         direction: isRTL ? 'rtl' : 'ltr'
       }}
@@ -169,8 +169,8 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
             padding: '10px 16px',
             borderRadius: '12px',
             border: 'none',
-            backgroundColor: theme.button_color,
-            color: theme.button_text_color || '#ffffff',
+            backgroundColor: ROYAL_COLORS.accent,
+            color: ROYAL_COLORS.textBright,
             fontWeight: 600,
             cursor: syncing ? 'wait' : 'pointer',
             opacity: syncing ? 0.7 : 1
@@ -188,7 +188,7 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
             <div
               key={item.product_id}
               style={{
-                backgroundColor: theme.secondary_bg_color || '#ffffff',
+                backgroundColor: ROYAL_COLORS.cardBg,
                 borderRadius: '14px',
                 padding: '16px',
                 border: `1px solid ${hintColor}30`
@@ -231,9 +231,9 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '10px',
-                    border: `1px solid ${theme.hint_color}40`,
-                    backgroundColor: theme.bg_color,
-                    color: theme.text_color
+                    border: `1px solid ${ROYAL_COLORS.muted}40`,
+                    backgroundColor: ROYAL_COLORS.background,
+                    color: ROYAL_COLORS.text
                   }}
                 />
               </div>
@@ -243,7 +243,7 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
           {items.length === 0 && (
             <div
               style={{
-                backgroundColor: theme.secondary_bg_color || '#ffffff',
+                backgroundColor: ROYAL_COLORS.cardBg,
                 borderRadius: '14px',
                 padding: '16px',
                 border: `1px solid ${hintColor}30`,
@@ -267,9 +267,9 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
               flex: 1,
               padding: '10px',
               borderRadius: '10px',
-              border: `1px solid ${theme.hint_color}40`,
-              backgroundColor: theme.bg_color,
-              color: theme.text_color
+              border: `1px solid ${ROYAL_COLORS.muted}40`,
+              backgroundColor: ROYAL_COLORS.background,
+              color: ROYAL_COLORS.text
             }}
           >
             <option value="">{translations.myInventoryPage.selectProductFromList}</option>
@@ -286,8 +286,8 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
               padding: '10px 16px',
               borderRadius: '10px',
               border: 'none',
-              backgroundColor: theme.button_color,
-              color: theme.button_text_color || '#ffffff',
+              backgroundColor: ROYAL_COLORS.accent,
+              color: ROYAL_COLORS.textBright,
               fontWeight: 600,
               cursor: selectedProductId ? 'pointer' : 'not-allowed',
               opacity: selectedProductId ? 1 : 0.6

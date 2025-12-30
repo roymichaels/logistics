@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { DriverPayoutDashboard } from '../components/payments';
 import { supabaseClient } from '../lib/supabaseClient';
 
 interface EarningStats {
@@ -196,10 +195,33 @@ export default function DriverEarningsPage() {
       </div>
 
       {userId && (
-        <DriverPayoutDashboard
-          driverId={userId}
-          businessId={businessId || undefined}
-        />
+        <div style={{
+          padding: '20px',
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          textAlign: 'center'
+        }}>
+          <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px' }}>
+            💳 Payout Dashboard
+          </div>
+          <div style={{ fontSize: '14px', color: '#6b7280' }}>
+            Request a payout to your connected wallet
+          </div>
+          <button style={{
+            marginTop: '16px',
+            padding: '12px 24px',
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '16px',
+            fontWeight: '600',
+            cursor: 'pointer'
+          }}>
+            Request Payout
+          </button>
+        </div>
       )}
 
       <div style={{

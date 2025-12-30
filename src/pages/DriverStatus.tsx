@@ -80,7 +80,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
   }, [assignments, zones]);
 
   const currentStatusLabel = status ? statusLabels[status.status] : translations.driverStatusPage.notAvailable;
-  const hintColor = theme.hint_color || '#999999';
+  const hintColor = ROYAL_COLORS.muted;
 
   const ensureAssignment = useCallback(
     async (zoneId: string) => {
@@ -207,8 +207,8 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
+        backgroundColor: ROYAL_COLORS.background,
+        color: ROYAL_COLORS.text,
         padding: '20px',
         direction: isRTL ? 'rtl' : 'ltr'
       }}
@@ -240,7 +240,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
             style={{
               padding: '16px',
               borderRadius: '14px',
-              backgroundColor: theme.secondary_bg_color || '#ffffff',
+              backgroundColor: ROYAL_COLORS.cardBg,
               border: `1px solid ${hintColor}30`
             }}
           >
@@ -271,8 +271,8 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
                 padding: '12px',
                 borderRadius: '12px',
                 border: 'none',
-                backgroundColor: status.is_online ? theme.button_color + '20' : theme.button_color,
-                color: theme.button_text_color || '#ffffff',
+                backgroundColor: status.is_online ? ROYAL_COLORS.accent + '20' : ROYAL_COLORS.accent,
+                color: ROYAL_COLORS.textBright,
                 fontWeight: 600,
                 cursor: updating ? 'wait' : 'pointer'
               }}
@@ -300,7 +300,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
             style={{
               padding: '16px',
               borderRadius: '14px',
-              backgroundColor: theme.secondary_bg_color || '#ffffff',
+              backgroundColor: ROYAL_COLORS.cardBg,
               border: `1px solid ${hintColor}30`
             }}
           >
@@ -316,9 +316,9 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
                     style={{
                       padding: '10px',
                       borderRadius: '10px',
-                      border: `1px solid ${status.status === value ? theme.button_color : hintColor + '30'}`,
-                      backgroundColor: status.status === value ? theme.button_color + '20' : 'transparent',
-                      color: theme.text_color,
+                      border: `1px solid ${status.status === value ? ROYAL_COLORS.accent : hintColor + '30'}`,
+                      backgroundColor: status.status === value ? ROYAL_COLORS.accent + '20' : 'transparent',
+                      color: ROYAL_COLORS.text,
                       fontWeight: 500,
                       textAlign: 'right',
                       cursor: updating ? 'wait' : 'pointer'
@@ -334,7 +334,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
             style={{
               padding: '16px',
               borderRadius: '14px',
-              backgroundColor: theme.secondary_bg_color || '#ffffff',
+              backgroundColor: ROYAL_COLORS.cardBg,
               border: `1px solid ${hintColor}30`
             }}
           >
@@ -348,9 +348,9 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
                   width: '100%',
                   padding: '10px',
                   borderRadius: '10px',
-                  border: `1px solid ${theme.hint_color}40`,
-                  backgroundColor: theme.bg_color,
-                  color: theme.text_color
+                  border: `1px solid ${ROYAL_COLORS.muted}40`,
+                  backgroundColor: ROYAL_COLORS.background,
+                  color: ROYAL_COLORS.text
                 }}
               >
                 <option value="">{translations.driverStatusPage.noActiveZone}</option>

@@ -133,15 +133,15 @@ export function MyZones({ dataStore }: MyZonesProps) {
 
   const isLoadingZone = (zoneId: string) => savingZoneId === zoneId;
 
-  const hintColor = theme.hint_color || '#999999';
+  const hintColor = ROYAL_COLORS.muted;
   const activeZoneId = status?.current_zone_id || null;
 
   return (
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
+        backgroundColor: ROYAL_COLORS.background,
+        color: ROYAL_COLORS.text,
         padding: '20px',
         direction: isRTL ? 'rtl' : 'ltr'
       }}
@@ -178,8 +178,8 @@ export function MyZones({ dataStore }: MyZonesProps) {
             padding: '8px 12px',
             borderRadius: '12px',
             border: 'none',
-            backgroundColor: theme.button_color,
-            color: theme.button_text_color || '#ffffff',
+            backgroundColor: ROYAL_COLORS.accent,
+            color: ROYAL_COLORS.textBright,
             fontWeight: 600,
             cursor: 'pointer'
           }}
@@ -200,9 +200,9 @@ export function MyZones({ dataStore }: MyZonesProps) {
                 style={{
                   borderRadius: '14px',
                   padding: '16px',
-                  backgroundColor: theme.secondary_bg_color || '#ffffff',
-                  border: `1px solid ${isActive ? theme.button_color : hintColor + '30'}`,
-                  boxShadow: isActive ? `0 0 0 1px ${theme.button_color}40` : undefined
+                  backgroundColor: ROYAL_COLORS.cardBg,
+                  border: `1px solid ${isActive ? ROYAL_COLORS.accent : hintColor + '30'}`,
+                  boxShadow: isActive ? `0 0 0 1px ${ROYAL_COLORS.accent}40` : undefined
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -211,7 +211,7 @@ export function MyZones({ dataStore }: MyZonesProps) {
                     {zone.description && <div style={{ fontSize: '12px', color: hintColor }}>{zone.description}</div>}
                   </div>
                   {isActive && (
-                    <span style={{ fontSize: '12px', color: theme.button_color, fontWeight: 600 }}>{translations.myZonesPage.activeZoneLabel}</span>
+                    <span style={{ fontSize: '12px', color: ROYAL_COLORS.accent, fontWeight: 600 }}>{translations.myZonesPage.activeZoneLabel}</span>
                   )}
                 </div>
 
@@ -224,8 +224,8 @@ export function MyZones({ dataStore }: MyZonesProps) {
                       padding: '10px',
                       borderRadius: '10px',
                       border: 'none',
-                      backgroundColor: isAssigned ? '#ff3b3020' : theme.button_color,
-                      color: isAssigned ? '#ff3b30' : theme.button_text_color || '#ffffff',
+                      backgroundColor: isAssigned ? '#ff3b3020' : ROYAL_COLORS.accent,
+                      color: isAssigned ? '#ff3b30' : ROYAL_COLORS.textBright,
                       fontWeight: 600,
                       cursor: 'pointer',
                       opacity: isLoadingZone(zone.id) ? 0.7 : 1
@@ -240,9 +240,9 @@ export function MyZones({ dataStore }: MyZonesProps) {
                       flex: 1,
                       padding: '10px',
                       borderRadius: '10px',
-                      border: `1px solid ${theme.hint_color}40`,
-                      backgroundColor: isActive ? theme.button_color + '20' : 'transparent',
-                      color: theme.text_color,
+                      border: `1px solid ${ROYAL_COLORS.muted}40`,
+                      backgroundColor: isActive ? ROYAL_COLORS.accent + '20' : 'transparent',
+                      color: ROYAL_COLORS.text,
                       fontWeight: 600,
                       cursor: 'pointer',
                       opacity: isLoadingZone(zone.id) ? 0.7 : 1
@@ -260,7 +260,7 @@ export function MyZones({ dataStore }: MyZonesProps) {
               style={{
                 padding: '16px',
                 borderRadius: '14px',
-                backgroundColor: theme.secondary_bg_color || '#ffffff',
+                backgroundColor: ROYAL_COLORS.cardBg,
                 border: `1px solid ${hintColor}30`,
                 textAlign: 'center',
                 color: hintColor

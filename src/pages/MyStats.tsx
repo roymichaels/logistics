@@ -54,8 +54,8 @@ export function MyStats({ dataStore }: MyStatsProps) {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: theme.bg_color,
-        color: theme.text_color,
+        backgroundColor: ROYAL_COLORS.background,
+        color: ROYAL_COLORS.text,
         padding: '20px',
         direction: 'rtl'
       }}
