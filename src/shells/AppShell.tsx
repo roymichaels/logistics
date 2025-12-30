@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { usePageTitle } from '../context/PageTitleContext';
-import { useAppServices } from '../context/AppServicesContext';
+import { useSafeAppServices } from '../context/AppServicesContext';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../lib/i18n';
 import { UnifiedMenuPanel, MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
@@ -18,7 +18,9 @@ interface UnifiedAppShellProps {
 
 
 export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
-  const { userRole, isAuthenticated } = useAppServices();
+  const appServices = useSafeAppServices();
+  const userRole = appServices?.userRole ?? 'user';
+  const isAuthenticated = appServices?.isAuthenticated ?? false;
   const { user } = useAuth();
   const { title, subtitle } = usePageTitle();
   const location = useLocation();
