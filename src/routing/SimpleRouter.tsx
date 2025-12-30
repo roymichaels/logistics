@@ -53,6 +53,12 @@ const InfrastructurePermissionManagement = React.lazy(() => import('../pages/inf
 const BusinessPermissionManagement = React.lazy(() => import('../pages/business/PermissionManagement').then(m => ({ default: m.BusinessPermissionManagement })));
 const InfrastructureCatalogs = React.lazy(() => import('../pages/infrastructure/InfrastructureCatalogs').then(m => ({ default: m.InfrastructureCatalogs })));
 const UnauthorizedPage = React.lazy(() => import('../pages/Unauthorized').then(m => ({ default: m.UnauthorizedPage || m.default })));
+const Infrastructures = React.lazy(() => import('../pages/admin/Infrastructures').then(m => ({ default: m.default })));
+const Superadmins = React.lazy(() => import('../pages/admin/Superadmins').then(m => ({ default: m.default })));
+const AuditLogs = React.lazy(() => import('../pages/admin/AuditLogs').then(m => ({ default: m.default })));
+const FeatureFlags = React.lazy(() => import('../pages/admin/FeatureFlags').then(m => ({ default: m.default })));
+const BusinessSettings = React.lazy(() => import('../pages/business/Settings').then(m => ({ default: m.default })));
+const InfrastructureSettings = React.lazy(() => import('../pages/infrastructure/Settings').then(m => ({ default: m.default })));
 
 // Role-aware redirect component
 function RoleBasedRedirect() {
@@ -138,6 +144,8 @@ export function SimpleRouter() {
       {isAdmin && (
         <>
           <Route path="/admin/platform-dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><PlatformDashboard /></Suspense>} />
+          <Route path="/admin/infrastructures" element={<Suspense fallback={<PageLoadingSkeleton />}><Infrastructures /></Suspense>} />
+          <Route path="/admin/superadmins" element={<Suspense fallback={<PageLoadingSkeleton />}><Superadmins /></Suspense>} />
           <Route path="/admin/platform-catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><PlatformCatalog /></Suspense>} />
           <Route path="/admin/businesses" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminBusinesses /></Suspense>} />
           <Route path="/admin/users" element={<Suspense fallback={<PageLoadingSkeleton />}><UserManagement /></Suspense>} />
@@ -146,8 +154,8 @@ export function SimpleRouter() {
           <Route path="/admin/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><DriversManagement dataStore={dataStore} /></Suspense>} />
           <Route path="/admin/system-settings" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminSettings /></Suspense>} />
           <Route path="/admin/permissions" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminPermissionManagement /></Suspense>} />
-          <Route path="/admin/logs" element={<Suspense fallback={<PageLoadingSkeleton />}><div style={{ padding: '20px', color: '#E7E9EA' }}>Audit Logs - Coming Soon</div></Suspense>} />
-          <Route path="/admin/feature-flags" element={<Suspense fallback={<PageLoadingSkeleton />}><div style={{ padding: '20px', color: '#E7E9EA' }}>Feature Flags - Coming Soon</div></Suspense>} />
+          <Route path="/admin/logs" element={<Suspense fallback={<PageLoadingSkeleton />}><AuditLogs /></Suspense>} />
+          <Route path="/admin/feature-flags" element={<Suspense fallback={<PageLoadingSkeleton />}><FeatureFlags /></Suspense>} />
           <Route path="/admin/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
           <Route path="/admin/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications /></Suspense>} />
@@ -167,7 +175,7 @@ export function SimpleRouter() {
           <Route path="/infrastructure/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
           <Route path="/infrastructure/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><DriversManagement dataStore={dataStore} /></Suspense>} />
           <Route path="/infrastructure/team" element={<Suspense fallback={<PageLoadingSkeleton />}><TeamManagement /></Suspense>} />
-          <Route path="/infrastructure/settings" element={<Suspense fallback={<PageLoadingSkeleton />}><div style={{ padding: '20px', color: '#E7E9EA' }}>Infrastructure Settings - Coming Soon</div></Suspense>} />
+          <Route path="/infrastructure/settings" element={<Suspense fallback={<PageLoadingSkeleton />}><InfrastructureSettings /></Suspense>} />
         </>
       )}
 
@@ -201,6 +209,7 @@ export function SimpleRouter() {
           <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications /></Suspense>} />
           <Route path="/business/analytics" element={<Suspense fallback={<PageLoadingSkeleton />}><MyStats dataStore={dataStore} /></Suspense>} />
           <Route path="/business/channels" element={<Suspense fallback={<PageLoadingSkeleton />}><Channels dataStore={dataStore} onNavigate={(path) => navigate(path)} currentUser={null} /></Suspense>} />
+          <Route path="/business/settings" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessSettings /></Suspense>} />
           <Route path="/business/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
           <Route path="/store/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
         </>
