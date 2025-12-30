@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Product } from '@/data/types';
+import { logger } from '../lib/logger';
 
 export interface CartItem {
   product: Product;
@@ -27,8 +28,10 @@ export function useCart() {
       try {
         const parsedCart = JSON.parse(stored);
         setCart(calculateCart(parsedCart.items || []));
+        logger.debug('[useCart] Cart loaded from localStorage', { itemCount: parsedCart.items?.length || 0 });
       } catch (error) {
-        console.error('Failed to load cart:', error);
+        logger.error('[useCart] Failed to load cart from localStorage:', error);
+        localStorage.removeItem(CART_STORAGE_KEY);
       }
     }
   }, []);
