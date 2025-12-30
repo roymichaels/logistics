@@ -104,7 +104,7 @@ export function SimpleRouter() {
   const isDriverRole = userRole === 'driver';
   const isCustomerRole = ['customer', 'user'].includes(userRole || '');
   const isAdmin = ['admin', 'superadmin'].includes(userRole || '');
-  const isInfraOwner = userRole === 'infrastructure_owner';
+  const isInfraOwner = ['infrastructure_owner', 'accountant'].includes(userRole || '');
 
   return (
     <Routes>
