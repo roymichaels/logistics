@@ -150,6 +150,8 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
           overflow: 'auto',
           width: '100%',
           paddingBottom: isAuthenticated ? '70px' : '0',
+          paddingLeft: isAuthenticated ? 'var(--nav-sidebar-offset, 0)' : '0',
+          transition: 'padding-left 0.2s ease',
         }}
       >
         {children}

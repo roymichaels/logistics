@@ -27,6 +27,7 @@ const WarehouseDashboard = React.lazy(() => import('../pages/WarehouseDashboard'
 const Incoming = React.lazy(() => import('../pages/Incoming').then(m => ({ default: m.Incoming || m.default })));
 const RestockRequests = React.lazy(() => import('../pages/RestockRequests').then(m => ({ default: m.RestockRequests || m.default })));
 const Tasks = React.lazy(() => import('../pages/Tasks').then(m => ({ default: m.Tasks })));
+const Notifications = React.lazy(() => import('../pages/Notifications').then(m => ({ default: m.Notifications })));
 const MyStats = React.lazy(() => import('../pages/MyStats').then(m => ({ default: m.MyStats })));
 const Channels = React.lazy(() => import('../pages/Channels').then(m => ({ default: m.Channels })));
 const MyDeliveries = React.lazy(() => import('../pages/MyDeliveries').then(m => ({ default: m.MyDeliveries })));
@@ -102,6 +103,9 @@ export function SimpleRouter() {
       {isAdmin && (
         <>
           <Route path="/admin/platform-catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><PlatformCatalog /></Suspense>} />
+          <Route path="/admin/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
+          <Route path="/admin/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
+          <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications /></Suspense>} />
         </>
       )}
 
@@ -138,6 +142,7 @@ export function SimpleRouter() {
           <Route path="/business/incoming" element={<Suspense fallback={<PageLoadingSkeleton />}><Incoming dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/restock" element={<Suspense fallback={<PageLoadingSkeleton />}><RestockRequests dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
+          <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications /></Suspense>} />
           <Route path="/business/analytics" element={<Suspense fallback={<PageLoadingSkeleton />}><MyStats dataStore={dataStore} /></Suspense>} />
           <Route path="/business/channels" element={<Suspense fallback={<PageLoadingSkeleton />}><Channels dataStore={dataStore} onNavigate={(path) => navigate(path)} currentUser={null} /></Suspense>} />
           <Route path="/business/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
@@ -150,6 +155,9 @@ export function SimpleRouter() {
         <>
           <Route path="/driver/deliveries" element={<Suspense fallback={<PageLoadingSkeleton />}><MyDeliveries dataStore={dataStore} /></Suspense>} />
           <Route path="/driver/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverDashboard dataStore={dataStore} /></Suspense>} />
+          <Route path="/driver/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
+          <Route path="/driver/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
+          <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications /></Suspense>} />
           <Route path="/store/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
         </>
       )}
@@ -158,9 +166,11 @@ export function SimpleRouter() {
       {isCustomerRole && (
         <>
           <Route path="/store/catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><CatalogPage dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
+          <Route path="/store/cart" element={<Suspense fallback={<PageLoadingSkeleton />}><div style={{ padding: '20px' }}>Cart - Coming Soon</div></Suspense>} />
           <Route path="/store/checkout" element={<Suspense fallback={<PageLoadingSkeleton />}><CheckoutPage dataStore={dataStore} /></Suspense>} />
           <Route path="/store/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><MyOrdersPage dataStore={dataStore} /></Suspense>} />
           <Route path="/store/orders/:orderId" element={<Suspense fallback={<PageLoadingSkeleton />}><OrderDetailPage dataStore={dataStore} /></Suspense>} />
+          <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications /></Suspense>} />
           <Route path="/store/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
         </>
       )}

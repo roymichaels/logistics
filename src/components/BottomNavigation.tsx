@@ -246,6 +246,71 @@ export function BottomNavigation({
   const tabs = roleConfig?.tabs || [];
   const action = roleConfig?.action;
 
+  /**
+   * Map tab IDs to proper routes based on user role
+   */
+  const getRouteForTab = (tabId: string): string => {
+    // Business roles get /business/ prefix
+    const isBusinessRole = userRole && [
+      'business_owner',
+      'manager',
+      'dispatcher',
+      'sales',
+      'warehouse',
+      'customer_service'
+    ].includes(userRole);
+
+    // Infrastructure roles get /admin/ prefix
+    const isInfraRole = userRole && [
+      'infrastructure_owner',
+      'superadmin',
+      'admin'
+    ].includes(userRole);
+
+    // Customer/storefront routes
+    if (userRole === 'customer') {
+      const customerRoutes: Record<string, string> = {
+        catalog: '/store/catalog',
+        cart: '/store/cart',
+        orders: '/store/orders',
+      };
+      return customerRoutes[tabId] || `/${tabId}`;
+    }
+
+    // Driver routes
+    if (userRole === 'driver') {
+      const driverRoutes: Record<string, string> = {
+        chat: '/driver/chat',
+        notifications: '/notifications',
+        tasks: '/driver/tasks',
+      };
+      return driverRoutes[tabId] || `/${tabId}`;
+    }
+
+    // Business role routes
+    if (isBusinessRole) {
+      const businessRoutes: Record<string, string> = {
+        chat: '/business/chat',
+        notifications: '/notifications',
+        tasks: '/business/tasks',
+      };
+      return businessRoutes[tabId] || `/${tabId}`;
+    }
+
+    // Infrastructure/admin routes
+    if (isInfraRole) {
+      const adminRoutes: Record<string, string> = {
+        chat: '/admin/chat',
+        notifications: '/notifications',
+        tasks: '/admin/tasks',
+      };
+      return adminRoutes[tabId] || `/${tabId}`;
+    }
+
+    // Fallback for generic routes
+    return `/${tabId}`;
+  };
+
   const handleActionClick = () => {
     if (action?.disabled) return;
     haptic();
@@ -342,53 +407,58 @@ export function BottomNavigation({
   const rightSideTabs = totalTabs - leftSideTabs; // tabs to the right of center button
 
   // Render function for tab buttons
-  const renderTab = (tab: TabDefinition) => (
-    <button
-      key={tab.id}
-      onClick={() => {
-        haptic();
-        onNavigate(tab.id);
-      }}
-      style={{
-        flex: 1,
-        minWidth: '0',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '4px',
-        padding: '6px 4px',
-        border: 'none',
-        backgroundColor: 'transparent',
-        color: currentPage === tab.id ? colors.brand.primary : colors.text.secondary,
-        cursor: 'pointer',
-        fontSize: '11px',
-        fontWeight: currentPage === tab.id ? '700' : '400',
-        position: 'relative',
-        transition: 'all 200ms ease-in-out',
-        transform: 'scale(1)'
-      }}
-    >
-      <span style={{
-        fontSize: '26px',
-        transition: 'all 200ms ease-in-out'
-      }}>
-        {tab.icon}
-      </span>
-      <span>{tab.label}</span>
-      {currentPage === tab.id && (
-        <div style={{
-          position: 'absolute',
-          bottom: '0',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '40px',
-          height: '4px',
-          background: colors.brand.primary,
-          borderRadius: '4px 4px 0 0'
-        }} />
-      )}
-    </button>
-  );
+  const renderTab = (tab: TabDefinition) => {
+    const route = getRouteForTab(tab.id);
+    const isActive = currentPage.includes(tab.id) || currentPage === route;
+
+    return (
+      <button
+        key={tab.id}
+        onClick={() => {
+          haptic();
+          onNavigate(route);
+        }}
+        style={{
+          flex: 1,
+          minWidth: '0',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '4px',
+          padding: '6px 4px',
+          border: 'none',
+          backgroundColor: 'transparent',
+          color: isActive ? colors.brand.primary : colors.text.secondary,
+          cursor: 'pointer',
+          fontSize: '11px',
+          fontWeight: isActive ? '700' : '400',
+          position: 'relative',
+          transition: 'all 200ms ease-in-out',
+          transform: 'scale(1)'
+        }}
+      >
+        <span style={{
+          fontSize: '26px',
+          transition: 'all 200ms ease-in-out'
+        }}>
+          {tab.icon}
+        </span>
+        <span>{tab.label}</span>
+        {isActive && (
+          <div style={{
+            position: 'absolute',
+            bottom: '0',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '40px',
+            height: '4px',
+            background: colors.brand.primary,
+            borderRadius: '4px 4px 0 0'
+          }} />
+        )}
+      </button>
+    );
+  };
 
   // Add תפריט button first (on the far right in RTL layout)
   if (hasSidebarButton) {
@@ -448,6 +518,10 @@ export function BottomNavigation({
   return (
     <>
       <style>{`
+        :root {
+          --nav-sidebar-offset: 0px;
+        }
+
         .bottom-nav-container {
           position: fixed;
           bottom: 0;
@@ -472,6 +546,10 @@ export function BottomNavigation({
         }
 
         @media (min-width: 768px) {
+          :root {
+            --nav-sidebar-offset: 80px;
+          }
+
           .bottom-nav-container {
             bottom: 0 !important;
             top: 0 !important;
