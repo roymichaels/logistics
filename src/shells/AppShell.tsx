@@ -10,6 +10,7 @@ import { getNavigationForRole } from './navigationSchema';
 import { DevConsoleDrawer } from '../components/dev/DevConsoleDrawer';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { useUserDisplayName } from '../hooks/useUserDisplayName';
+import { NavigationProvider } from '../contexts/NavigationContext';
 
 interface UnifiedAppShellProps {
   children: React.ReactNode;
@@ -121,15 +122,16 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
   );
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100%',
-        height: '100vh',
-        backgroundColor: 'rgba(18, 18, 20, 0.95)',
-      }}
-    >
+    <NavigationProvider userRole={userRole}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
+          height: '100vh',
+          backgroundColor: 'rgba(18, 18, 20, 0.95)',
+        }}
+      >
       {isAuthenticated && (
         <header
           style={{
@@ -219,6 +221,7 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
         isOpen={devConsoleOpen}
         onClose={() => setDevConsoleOpen(false)}
       />
-    </div>
+      </div>
+    </NavigationProvider>
   );
 }
