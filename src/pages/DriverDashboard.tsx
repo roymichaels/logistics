@@ -90,36 +90,9 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
       loadDriverData();
     }, 30000);
 
-    const subscription = supabase
-      .channel('driver-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'order_assignments',
-          filter: `driver_id=eq.${user?.telegram_id}`
-        },
-        () => {
-
-          loadDriverData();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders'
-        },
-        () => {
-          loadDriverData();
-        }
-      )
-      .subscribe();
-
+    let watchId: number | null = null;
     if ('geolocation' in navigator) {
-      const watchId = navigator.geolocation.watchPosition(
+      watchId = navigator.geolocation.watchPosition(
         async (position) => {
           if (user && isOnline) {
             await driverService.updateDriverLocation(
@@ -144,19 +117,15 @@ export function DriverDashboard({ dataStore }: DriverDashboardProps) {
           timeout: 27000
         }
       );
-
-      return () => {
-        navigator.geolocation.clearWatch(watchId);
-        clearInterval(interval);
-        subscription.unsubscribe();
-      };
     }
 
     return () => {
       clearInterval(interval);
-      subscription.unsubscribe();
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+      }
     };
-  }, [loadDriverData, user, isOnline, driverService, supabase]);
+  }, [loadDriverData, user, isOnline, driverService]);
 
   const handleAcceptAssignment = async (assignmentId: string) => {
     try {

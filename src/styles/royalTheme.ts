@@ -54,6 +54,8 @@ export const ROYAL_COLORS = {
   // Glows & Effects
   glowPurple: '0 0 20px rgba(29, 155, 240, 0.3)',
   glowPurpleStrong: '0 0 30px rgba(29, 155, 240, 0.5)',
+  glowPrimary: '0 0 20px rgba(29, 155, 240, 0.3)',
+  glowPrimaryStrong: '0 0 30px rgba(29, 155, 240, 0.5)',
   glowGold: '0 0 20px rgba(255, 212, 0, 0.3)',
   glowCrimson: '0 0 20px rgba(244, 33, 46, 0.3)',
 
@@ -64,6 +66,7 @@ export const ROYAL_COLORS = {
 
   // Gradients
   gradientPurple: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
+  gradientPrimary: 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)',
   gradientGold: 'linear-gradient(135deg, #FFD400 0%, #FFA500 100%)',
   gradientCrimson: 'linear-gradient(135deg, #F4212E 0%, #C9191E 100%)',
   gradientSuccess: 'linear-gradient(135deg, #00BA7C 0%, #00A368 100%)',
