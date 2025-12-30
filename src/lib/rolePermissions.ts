@@ -566,6 +566,61 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
     ],
   },
 
+  accountant: {
+    role: 'accountant',
+    label: 'Infrastructure Accountant',
+    level: 'infrastructure',
+    description: 'Financial specialist with read-only access to all financial data and reports across infrastructure',
+    canSeeFinancials: true,
+    canSeeCrossBusinessData: true,
+    canSeeCrossInfrastructureData: false,
+    permissions: [
+      // Infrastructure - View only
+      'infrastructure:view_own',
+
+      // Business - View across infrastructure
+      'business:view_all_in_infrastructure',
+
+      // Orders - View for financial tracking
+      'orders:view_all_infrastructure',
+
+      // Products - View only
+      'products:view',
+
+      // Catalog - View only
+      'catalog:view_infrastructure',
+      'catalog:view_business',
+      'catalog:export',
+
+      // Inventory - View for financial tracking
+      'inventory:view_all_infrastructure',
+
+      // Users - View for organizational context
+      'users:view_all_infrastructure',
+
+      // Financial - Complete visibility across ALL businesses (read-only)
+      'financial:view_all_infrastructure',
+      'financial:view_business_revenue',
+      'financial:view_business_costs',
+      'financial:view_business_profit',
+      'financial:view_ownership_distribution',
+      'financial:export_reports',
+
+      // Analytics - Complete cross-business access (read-only)
+      'analytics:view_all_infrastructure',
+      'analytics:export',
+
+      // System - Audit log access
+      'system:view_audit_logs',
+
+      // Messaging & Groups - Team communication
+      'messaging:send',
+      'messaging:view',
+      'groups:view',
+      'channels:view',
+    ],
+  },
+
   // ========================================
   // BUSINESS LEVEL ROLES
   // These roles are tied to specific businesses and cannot operate across businesses
@@ -1008,8 +1063,8 @@ export function canViewCrossBusinessData(user: User | null): boolean {
 export function requiresBusinessContext(user: User | null): boolean {
   if (!user) return false;
 
-  // Infrastructure owners don't need business context (they can see everything)
-  if (user.role === 'infrastructure_owner') return false;
+  // Infrastructure owners and accountants don't need business context (they can see everything in their infrastructure)
+  if (user.role === 'infrastructure_owner' || user.role === 'accountant') return false;
 
   // All other roles are business-scoped
   return true;
@@ -1085,6 +1140,7 @@ export function getDataAccessScope(role: User['role']): 'platform' | 'infrastruc
     case 'admin':
       return 'platform'; // All infrastructures and businesses
     case 'infrastructure_owner':
+    case 'accountant':
       return 'infrastructure'; // All businesses within infrastructure
     case 'business_owner':
     case 'manager':

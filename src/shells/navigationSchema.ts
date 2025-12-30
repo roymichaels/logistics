@@ -128,7 +128,7 @@ export const INFRASTRUCTURE_SHELL_NAV: NavigationItem[] = [
     icon: '🏗️',
     description: 'תצוגה מצטברת של כל העסקים',
     visible: true,
-    requiredRoles: ['infrastructure_owner']
+    requiredRoles: ['infrastructure_owner', 'accountant']
   },
   {
     id: 'my-businesses',
@@ -146,7 +146,7 @@ export const INFRASTRUCTURE_SHELL_NAV: NavigationItem[] = [
     icon: '📊',
     description: 'דוחות פיננסיים של כל העסקים',
     visible: true,
-    requiredRoles: ['infrastructure_owner']
+    requiredRoles: ['infrastructure_owner', 'accountant']
   },
   {
     id: 'cross-business-analytics',
@@ -155,7 +155,7 @@ export const INFRASTRUCTURE_SHELL_NAV: NavigationItem[] = [
     icon: '📈',
     description: 'ניתוח ביצועים בכל התשתית',
     visible: true,
-    requiredRoles: ['infrastructure_owner']
+    requiredRoles: ['infrastructure_owner', 'accountant']
   },
   {
     id: 'infrastructure-orders',
@@ -164,7 +164,7 @@ export const INFRASTRUCTURE_SHELL_NAV: NavigationItem[] = [
     icon: '📋',
     description: 'הזמנות מכל העסקים',
     visible: true,
-    requiredRoles: ['infrastructure_owner']
+    requiredRoles: ['infrastructure_owner', 'accountant']
   },
   {
     id: 'infrastructure-drivers',
@@ -425,6 +425,7 @@ export function getNavigationForRole(role: UserRole | null): NavigationItem[] {
       navItems = ADMIN_SHELL_NAV;
       break;
     case 'infrastructure_owner':
+    case 'accountant':
       navItems = INFRASTRUCTURE_SHELL_NAV;
       break;
     case 'business_owner':
@@ -462,6 +463,7 @@ export function getShellTypeForRole(role: UserRole | null): 'admin' | 'infrastru
     case 'admin':
       return 'admin';
     case 'infrastructure_owner':
+    case 'accountant':
       return 'infrastructure';
     case 'business_owner':
     case 'manager':

@@ -37,14 +37,14 @@ export const UNIFIED_ROUTES: RouteConfig[] = [
   {
     path: '/infrastructure',
     name: 'Infrastructure',
-    roles: ['infrastructure_owner'],
+    roles: ['infrastructure_owner', 'accountant'],
     isEntryPoint: true,
     children: [
-      { path: '/infrastructure/dashboard', name: 'Infrastructure Dashboard', roles: ['infrastructure_owner'], isEntryPoint: true },
+      { path: '/infrastructure/dashboard', name: 'Infrastructure Dashboard', roles: ['infrastructure_owner', 'accountant'], isEntryPoint: true },
       { path: '/infrastructure/businesses', name: 'My Businesses', roles: ['infrastructure_owner'] },
-      { path: '/infrastructure/reports', name: 'Consolidated Reports', roles: ['infrastructure_owner'] },
-      { path: '/infrastructure/analytics', name: 'Analytics', roles: ['infrastructure_owner'] },
-      { path: '/infrastructure/orders', name: 'All Orders', roles: ['infrastructure_owner'] },
+      { path: '/infrastructure/reports', name: 'Consolidated Reports', roles: ['infrastructure_owner', 'accountant'] },
+      { path: '/infrastructure/analytics', name: 'Analytics', roles: ['infrastructure_owner', 'accountant'] },
+      { path: '/infrastructure/orders', name: 'All Orders', roles: ['infrastructure_owner', 'accountant'] },
       { path: '/infrastructure/drivers', name: 'All Drivers', roles: ['infrastructure_owner'] },
       { path: '/infrastructure/team', name: 'Team', roles: ['infrastructure_owner'] },
       { path: '/infrastructure/business-catalogs', name: 'Business Catalogs', roles: ['infrastructure_owner'] },
@@ -104,10 +104,10 @@ export const UNIFIED_ROUTES: RouteConfig[] = [
   {
     path: '/auth',
     name: 'Authentication',
-    roles: ['superadmin', 'admin', 'infrastructure_owner', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'user'],
+    roles: ['superadmin', 'admin', 'infrastructure_owner', 'accountant', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'user'],
     children: [
-      { path: '/auth/login', name: 'Login', roles: ['superadmin', 'admin', 'infrastructure_owner', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'user'] },
-      { path: '/auth/kyc', name: 'KYC', roles: ['superadmin', 'admin', 'infrastructure_owner', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'user'] }
+      { path: '/auth/login', name: 'Login', roles: ['superadmin', 'admin', 'infrastructure_owner', 'accountant', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'user'] },
+      { path: '/auth/kyc', name: 'KYC', roles: ['superadmin', 'admin', 'infrastructure_owner', 'accountant', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'user'] }
     ]
   }
 ];
@@ -142,6 +142,7 @@ export function getEntryPointForRole(role: UserRole | null): string {
     superadmin: '/admin/platform-dashboard',
     admin: '/admin/platform-dashboard',
     infrastructure_owner: '/infrastructure/dashboard',
+    accountant: '/infrastructure/dashboard',
     business_owner: '/business/dashboard',
     manager: '/business/dashboard',
     warehouse: '/business/inventory',

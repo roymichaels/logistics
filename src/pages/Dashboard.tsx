@@ -4,6 +4,7 @@ import { useSkeleton } from '../hooks/useSkeleton';
 import { Toast } from '../components/Toast';
 import { OwnerDashboard } from '../components/OwnerDashboard';
 import { InfrastructureOwnerDashboard } from '../components/InfrastructureOwnerDashboard';
+import { InfrastructureAccountantDashboard } from '../components/InfrastructureAccountantDashboard';
 import { BusinessOwnerDashboard } from '../components/BusinessOwnerDashboard';
 import { ManagerDashboard } from '../components/ManagerDashboard';
 import { RoleDiagnostics } from '../lib/diagnostics';
@@ -102,6 +103,7 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
       // Roles with custom dashboards or dedicated pages don't need royal dashboard
       const rolesWithCustomViews = [
         'infrastructure_owner',
+        'accountant',
         'business_owner',
         'manager',
         'dispatcher',
@@ -313,6 +315,12 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
   if (user?.role === 'infrastructure_owner' || (user as any)?.global_role === 'infrastructure_owner') {
     // Routing to InfrastructureOwnerDashboard
     return <InfrastructureOwnerDashboard dataStore={dataStore} user={user} onNavigate={onNavigate} />;
+  }
+
+  // Accountant gets financial/accounting-focused infrastructure dashboard
+  if (user?.role === 'accountant' || (user as any)?.global_role === 'accountant') {
+    // Routing to InfrastructureAccountantDashboard
+    return <InfrastructureAccountantDashboard dataStore={dataStore} user={user} onNavigate={onNavigate} />;
   }
 
   // Business Owner gets business-specific financial dashboard

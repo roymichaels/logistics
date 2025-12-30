@@ -6,6 +6,7 @@ export type UserRole =
   | 'infrastructure_owner'
   | 'business_owner'
   | 'manager'
+  | 'accountant'
   | 'warehouse'
   | 'dispatcher'
   | 'sales'
