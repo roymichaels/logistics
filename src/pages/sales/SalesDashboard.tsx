@@ -40,10 +40,10 @@ export function SalesDashboard() {
   const getStatusColor = (status: string) => {
     const colors_map: Record<string, string> = {
       new: ROYAL_COLORS.info,
-      contacted: '#9333ea',
+      contacted: '#06b6d4',
       qualified: '#3b82f6',
       proposal: '#f59e0b',
-      negotiation: '#8b5cf6',
+      negotiation: '#0ea5e9',
       won: ROYAL_COLORS.success,
       lost: ROYAL_COLORS.error,
     };

@@ -154,7 +154,7 @@ export function DriverManagementPage({ dataStore, onNavigate }: DriverManagement
           width: '60px',
           height: '60px',
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+          background: 'linear-gradient(135deg, #3b82f6, #0ea5e9)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

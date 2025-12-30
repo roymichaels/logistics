@@ -146,7 +146,7 @@ export function OrderManagementPage({
     {
       id: 'confirmed',
       title: 'Confirmed',
-      color: '#8b5cf6',
+      color: '#0ea5e9',
       items: orders
         .filter((o) => o.status === 'confirmed')
         .map((order) => ({

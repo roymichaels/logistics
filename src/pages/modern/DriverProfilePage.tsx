@@ -102,7 +102,7 @@ export function DriverProfilePage({ dataStore, onNavigate }: DriverProfilePagePr
   const hero = (
     <Box
       style={{
-        background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+        background: 'linear-gradient(135deg, #3b82f6 0%, #0ea5e9 100%)',
         padding: '40px 20px',
         textAlign: 'center',
         color: 'white',
@@ -350,7 +350,7 @@ export function DriverProfilePage({ dataStore, onNavigate }: DriverProfilePagePr
                 style={{
                   height: '100%',
                   width: `${profile.stats.completion_rate}%`,
-                  backgroundColor: '#8b5cf6',
+                  backgroundColor: '#0ea5e9',
                   borderRadius: '4px',
                 }}
               />

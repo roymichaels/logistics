@@ -64,11 +64,11 @@ export const colors = {
 
   // Role-specific accent colors (subtle tints)
   role: {
-    infrastructure: '#8B5CF6',  // Purple tint
+    infrastructure: '#0EA5E9',  // Sky blue tint
     business: '#3B82F6',        // Blue tint
     manager: '#10B981',         // Green tint
     driver: '#F59E0B',          // Amber tint
-    warehouse: '#6366F1',       // Indigo tint
+    warehouse: '#06B6D4',       // Cyan tint
     sales: '#EC4899',           // Pink tint
   },
 

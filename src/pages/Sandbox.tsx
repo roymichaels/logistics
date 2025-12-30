@@ -61,7 +61,7 @@ export function Sandbox({ dataStore, onNavigate }: SandboxProps) {
             style={{
               padding: '10px 14px',
               borderRadius: '10px',
-              background: '#8b5cf6',
+              background: '#0ea5e9',
               color: '#fff',
               border: 'none',
               fontWeight: 600,

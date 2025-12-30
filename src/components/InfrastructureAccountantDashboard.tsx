@@ -595,7 +595,7 @@ export function InfrastructureAccountantDashboard() {
           align-items: center;
           margin-bottom: 32px;
           padding: 24px;
-          background: linear-gradient(135deg, #8b5cf6 0%, #1A8CD8 100%);
+          background: linear-gradient(135deg, #0ea5e9 0%, #1A8CD8 100%);
           border-radius: 12px;
           color: white;
         }
@@ -635,7 +635,7 @@ export function InfrastructureAccountantDashboard() {
         .btn-export {
           padding: 10px 20px;
           background: white;
-          color: #8b5cf6;
+          color: #0ea5e9;
           border: none;
           border-radius: 6px;
           font-size: 14px;
@@ -732,8 +732,8 @@ export function InfrastructureAccountantDashboard() {
         }
 
         .view-tab.active {
-          color: #8b5cf6;
-          border-bottom-color: #8b5cf6;
+          color: #0ea5e9;
+          border-bottom-color: #0ea5e9;
         }
 
         .overview-view h2,
@@ -794,7 +794,7 @@ export function InfrastructureAccountantDashboard() {
         .revenue-share {
           font-size: 24px;
           font-weight: 700;
-          color: #8b5cf6;
+          color: #0ea5e9;
         }
 
         .business-metrics,
@@ -864,7 +864,7 @@ export function InfrastructureAccountantDashboard() {
         .highlight-value {
           font-size: 28px;
           font-weight: 700;
-          color: #8b5cf6;
+          color: #0ea5e9;
           margin-bottom: 4px;
         }
 
@@ -966,7 +966,7 @@ export function InfrastructureAccountantDashboard() {
 
         .chart-bar {
           width: 100%;
-          background: linear-gradient(180deg, #8b5cf6 0%, #1A8CD8 100%);
+          background: linear-gradient(180deg, #0ea5e9 0%, #1A8CD8 100%);
           border-radius: 4px 4px 0 0;
           display: flex;
           align-items: flex-start;
@@ -1040,7 +1040,7 @@ export function InfrastructureAccountantDashboard() {
         .amount-value {
           font-size: 24px;
           font-weight: 700;
-          color: #8b5cf6;
+          color: #0ea5e9;
           margin-bottom: 4px;
         }
 
@@ -1085,7 +1085,7 @@ export function InfrastructureAccountantDashboard() {
 
         .cost-bar-fill {
           height: 100%;
-          background: linear-gradient(90deg, #8b5cf6 0%, #1A8CD8 100%);
+          background: linear-gradient(90deg, #0ea5e9 0%, #1A8CD8 100%);
           transition: width 0.3s ease;
         }
 
@@ -1101,7 +1101,7 @@ export function InfrastructureAccountantDashboard() {
           width: 40px;
           height: 40px;
           border: 4px solid #f3f4f6;
-          border-top-color: #8b5cf6;
+          border-top-color: #0ea5e9;
           border-radius: 50%;
           animation: spin 0.8s linear infinite;
           margin-bottom: 16px;

@@ -404,7 +404,7 @@ export function DriverEarningsDashboard({ dataStore, driverProfileId }: DriverEa
                   {earning.bonus_amount > 0 && (
                     <div>
                       <span style={{ opacity: 0.6 }}>בונוס:</span>{' '}
-                      <span style={{ fontWeight: 'bold', color: '#8b5cf6' }}>₪{earning.bonus_amount.toFixed(2)}</span>
+                      <span style={{ fontWeight: 'bold', color: '#0ea5e9' }}>₪{earning.bonus_amount.toFixed(2)}</span>
                     </div>
                   )}
                 </div>

@@ -37,7 +37,7 @@ interface Order {
 const STATUS_CONFIG = {
   pending: { label: 'Pending', variant: 'warning' as const, color: '#f59e0b' },
   confirmed: { label: 'Confirmed', variant: 'info' as const, color: '#3b82f6' },
-  preparing: { label: 'Preparing', variant: 'info' as const, color: '#8b5cf6' },
+  preparing: { label: 'Preparing', variant: 'info' as const, color: '#0ea5e9' },
   out_for_delivery: { label: 'Out for Delivery', variant: 'info' as const, color: '#06b6d4' },
   delivered: { label: 'Delivered', variant: 'success' as const, color: '#10b981' },
   cancelled: { label: 'Cancelled', variant: 'error' as const, color: '#ef4444' },

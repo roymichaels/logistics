@@ -151,7 +151,7 @@ export function BusinessDashboardPage({ dataStore, onNavigate }: BusinessDashboa
           <Box
             style={{
               height: '200px',
-              background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #0ea5e9 100%)',
               borderRadius: '8px',
               display: 'flex',
               flexDirection: 'column',
