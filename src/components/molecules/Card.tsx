@@ -1,8 +1,14 @@
 import React from 'react';
-import { colors, spacing, borderRadius, shadows, transitions, typography } from '../../design-system';
+import { TELEGRAM_THEME } from '../../styles/telegramTheme';
+
+const spacing: any = TELEGRAM_THEME.spacing;
+const colors = TELEGRAM_THEME.colors;
+const borderRadius = TELEGRAM_THEME.radius;
+const transitions = TELEGRAM_THEME.transitions;
+const typography = TELEGRAM_THEME.typography;
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'elevated' | 'outlined' | 'flat';
+  variant?: 'default' | 'elevated' | 'outlined' | 'flat' | 'glass';
   padding?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12 | 16 | 20 | 24;
   hoverable?: boolean;
   noPadding?: boolean;
@@ -25,14 +31,16 @@ export function Card({
 
   const variantStyles: Record<string, React.CSSProperties> = {
     default: {
-      background: colors.ui.card,
-      border: `1px solid ${colors.border.primary}`,
+      background: colors.card.background,
+      border: colors.card.border,
       boxShadow: 'none',
+      backdropFilter: 'blur(20px)',
     },
     elevated: {
-      background: colors.ui.card,
-      boxShadow: shadows.sm,
-      border: `1px solid ${colors.border.secondary}`,
+      background: colors.card.background,
+      boxShadow: colors.shadow,
+      border: colors.card.border,
+      backdropFilter: 'blur(20px)',
     },
     outlined: {
       background: 'transparent',
@@ -40,9 +48,15 @@ export function Card({
       boxShadow: 'none',
     },
     flat: {
-      background: colors.ui.card,
+      background: colors.background.tertiary,
       border: 'none',
       boxShadow: 'none',
+    },
+    glass: {
+      background: TELEGRAM_THEME.glass.background,
+      border: TELEGRAM_THEME.glass.border,
+      backdropFilter: TELEGRAM_THEME.glass.backdropFilter,
+      boxShadow: TELEGRAM_THEME.glass.shadow,
     },
   };
 
@@ -52,15 +66,15 @@ export function Card({
     if (isPressed) {
       return {
         transform: 'scale(0.98)',
-        background: colors.background.tertiary,
+        background: colors.background.hover,
       };
     }
 
     if (isHovered) {
       return {
-        background: colors.ui.cardHover,
+        background: colors.card.hover,
         border: variant !== 'flat' ? `1px solid ${colors.border.hover}` : 'none',
-        boxShadow: variant === 'elevated' ? shadows.md : shadows.sm,
+        boxShadow: variant === 'elevated' ? colors.shadowLarge : colors.shadow,
       };
     }
 
@@ -68,9 +82,9 @@ export function Card({
   };
 
   const cardStyles: React.CSSProperties = {
-    borderRadius: borderRadius.xl,
-    padding: noPadding ? 0 : spacing[padding],
-    transition: `all ${transitions.normal}`,
+    borderRadius: borderRadius.lg,
+    padding: noPadding ? 0 : spacing['2xl'],
+    transition: transitions.normal,
     cursor: hoverable || interactive ? 'pointer' : 'default',
     userSelect: 'none',
     WebkitTapHighlightColor: 'transparent',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { colors, spacing, borderRadius, typography, transitions, shadows } from '../../design-system';
+import { TELEGRAM_THEME } from '../../styles/telegramTheme';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'ghost' | 'link';
@@ -28,12 +28,12 @@ export function Button({
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing[2],
+    gap: TELEGRAM_THEME.spacing.sm,
     border: 'none',
     cursor: disabled || loading ? 'not-allowed' : 'pointer',
-    fontFamily: typography.fontFamily.primary,
-    fontWeight: typography.fontWeight.bold,
-    transition: `all ${transitions.normal}`,
+    fontFamily: TELEGRAM_THEME.typography.fontFamily.primary,
+    fontWeight: TELEGRAM_THEME.typography.fontWeight.semibold,
+    transition: TELEGRAM_THEME.transitions.normal,
     outline: 'none',
     opacity: disabled || loading ? 0.5 : 1,
     width: fullWidth ? '100%' : 'auto',
@@ -45,68 +45,68 @@ export function Button({
 
   const sizeStyles: Record<string, React.CSSProperties> = {
     sm: {
-      padding: `${spacing[2]} ${spacing[5]}`,
-      fontSize: typography.fontSize.sm,
-      borderRadius: borderRadius['2xl'],
-      minHeight: '36px',
-      fontWeight: typography.fontWeight.bold,
+      padding: TELEGRAM_THEME.components.button.padding.small,
+      fontSize: TELEGRAM_THEME.typography.fontSize.sm,
+      borderRadius: TELEGRAM_THEME.radius.xl,
+      minHeight: TELEGRAM_THEME.components.button.height.small,
+      fontWeight: TELEGRAM_THEME.typography.fontWeight.semibold,
     },
     md: {
-      padding: `${spacing[3]} ${spacing[7]}`,
-      fontSize: typography.fontSize.base,
-      borderRadius: borderRadius['2xl'],
-      minHeight: '44px',
-      fontWeight: typography.fontWeight.bold,
+      padding: TELEGRAM_THEME.components.button.padding.medium,
+      fontSize: TELEGRAM_THEME.typography.fontSize.base,
+      borderRadius: TELEGRAM_THEME.radius.xl,
+      minHeight: TELEGRAM_THEME.components.button.height.medium,
+      fontWeight: TELEGRAM_THEME.typography.fontWeight.semibold,
     },
     lg: {
-      padding: `${spacing[4]} ${spacing[8]}`,
-      fontSize: typography.fontSize.lg,
-      borderRadius: borderRadius['2xl'],
-      minHeight: '48px',
-      fontWeight: typography.fontWeight.bold,
+      padding: TELEGRAM_THEME.components.button.padding.large,
+      fontSize: TELEGRAM_THEME.typography.fontSize.lg,
+      borderRadius: TELEGRAM_THEME.radius.xl,
+      minHeight: TELEGRAM_THEME.components.button.height.large,
+      fontWeight: TELEGRAM_THEME.typography.fontWeight.semibold,
     },
   };
 
   const variantStyles: Record<string, React.CSSProperties> = {
     primary: {
-      background: colors.brand.primary,
-      color: colors.white,
-      boxShadow: shadows.sm,
+      background: TELEGRAM_THEME.colors.accent.primary,
+      color: TELEGRAM_THEME.colors.white,
+      boxShadow: 'none',
       border: 'none',
     },
     secondary: {
-      background: 'transparent',
-      color: colors.text.primary,
-      border: `1px solid ${colors.border.primary}`,
+      background: TELEGRAM_THEME.colors.accent.faded,
+      color: TELEGRAM_THEME.colors.accent.primary,
+      border: `1px solid ${TELEGRAM_THEME.colors.accent.border}`,
       boxShadow: 'none',
     },
     success: {
-      background: colors.status.success,
-      color: colors.white,
-      boxShadow: shadows.sm,
+      background: TELEGRAM_THEME.colors.status.success,
+      color: TELEGRAM_THEME.colors.white,
+      boxShadow: 'none',
       border: 'none',
     },
     warning: {
-      background: colors.status.warning,
-      color: colors.text.inverse,
-      boxShadow: shadows.sm,
+      background: TELEGRAM_THEME.colors.status.warning,
+      color: TELEGRAM_THEME.colors.black,
+      boxShadow: 'none',
       border: 'none',
     },
     danger: {
-      background: colors.status.error,
-      color: colors.white,
-      boxShadow: shadows.sm,
+      background: TELEGRAM_THEME.colors.status.error,
+      color: TELEGRAM_THEME.colors.white,
+      boxShadow: 'none',
       border: 'none',
     },
     ghost: {
       background: 'transparent',
-      color: colors.text.primary,
+      color: TELEGRAM_THEME.colors.text.primary,
       border: 'none',
       boxShadow: 'none',
     },
     link: {
       background: 'transparent',
-      color: colors.brand.primary,
+      color: TELEGRAM_THEME.colors.text.link,
       padding: '0',
       minHeight: 'auto',
       boxShadow: 'none',
@@ -122,12 +122,11 @@ export function Button({
 
     const hoverMap: Record<string, React.CSSProperties> = {
       primary: {
-        background: colors.brand.hover,
-        boxShadow: shadows.md,
+        background: TELEGRAM_THEME.colors.accent.hover,
       },
       secondary: {
-        background: colors.ui.cardHover,
-        borderColor: colors.border.hover,
+        background: TELEGRAM_THEME.colors.accent.light,
+        borderColor: TELEGRAM_THEME.colors.accent.primary,
       },
       success: {
         filter: 'brightness(1.1)',
@@ -139,7 +138,7 @@ export function Button({
         filter: 'brightness(1.1)',
       },
       ghost: {
-        background: colors.ui.cardHover,
+        background: TELEGRAM_THEME.colors.background.hover,
       },
       link: {
         textDecoration: 'underline',

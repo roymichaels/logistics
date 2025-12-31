@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-
 import { DataStore, Notification } from '../data/types';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { TELEGRAM_THEME } from '../styles/telegramTheme';
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
 import { hideBackButton } from '../utils/telegram';
@@ -20,18 +19,23 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #1a0033 0%, #0a001a 100%)',
+        background: TELEGRAM_THEME.colors.background.primary,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '20px'
+        padding: TELEGRAM_THEME.spacing.xl
       }}>
         <div style={{
           textAlign: 'center',
-          color: ROYAL_COLORS.text
+          color: TELEGRAM_THEME.colors.text.primary
         }}>
-          <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔔</div>
-          <p style={{ fontSize: '18px', color: ROYAL_COLORS.muted }}>Loading notifications...</p>
+          <div style={{ fontSize: '64px', marginBottom: TELEGRAM_THEME.spacing.lg }}>🔔</div>
+          <p style={{
+            fontSize: TELEGRAM_THEME.typography.fontSize.lg,
+            color: TELEGRAM_THEME.colors.text.secondary
+          }}>
+            Loading notifications...
+          </p>
         </div>
       </div>
     );
@@ -96,7 +100,7 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
       await loadNotifications();
     } catch (error) {
       logger.error('Failed to mark notification as read:', error);
-      Toast.error('שגיאה בסימון התראה');
+      Toast.error('Failed to mark notification');
     }
   };
 
@@ -105,7 +109,7 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
       const unreadIds = notifications.filter(n => !n.read_at).map(n => n.id);
 
       if (unreadIds.length === 0) {
-        Toast.show('אין התראות לא נקראות', 'info');
+        Toast.show('No unread notifications', 'info');
         return;
       }
 
@@ -113,10 +117,10 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
 
       await Promise.all(unreadIds.map(id => dataStore.markNotificationAsRead!(id)));
       await loadNotifications();
-      Toast.success('כל ההתראות סומנו כנקראו');
+      Toast.success('All notifications marked as read');
     } catch (error) {
       logger.error('Failed to mark all as read:', error);
-      Toast.error('שגיאה בסימון התראות');
+      Toast.error('Failed to mark notifications');
     }
   };
 
@@ -133,14 +137,14 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
   };
 
   const getNotificationColor = (type?: string, isRead?: boolean) => {
-    if (isRead) return ROYAL_COLORS.muted;
+    if (isRead) return TELEGRAM_THEME.colors.text.tertiary;
     switch (type) {
-      case 'order_assigned': return ROYAL_COLORS.teal;
-      case 'order_completed': return ROYAL_COLORS.emerald;
-      case 'low_stock': return ROYAL_COLORS.crimson;
-      case 'restock_approved': return ROYAL_COLORS.accent;
-      case 'user_registered': return ROYAL_COLORS.gold;
-      default: return ROYAL_COLORS.text;
+      case 'order_assigned': return TELEGRAM_THEME.colors.accent.primary;
+      case 'order_completed': return TELEGRAM_THEME.colors.status.success;
+      case 'low_stock': return TELEGRAM_THEME.colors.status.error;
+      case 'restock_approved': return TELEGRAM_THEME.colors.accent.primary;
+      case 'user_registered': return TELEGRAM_THEME.colors.status.warning;
+      default: return TELEGRAM_THEME.colors.text.primary;
     }
   };
 
@@ -149,61 +153,99 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #1a0033 0%, #0a001a 100%)',
-      paddingTop: '16px',
+      background: TELEGRAM_THEME.colors.background.primary,
+      paddingTop: TELEGRAM_THEME.spacing.lg,
       paddingBottom: '80px',
-      direction: 'rtl'
     }}>
       <div style={{
         maxWidth: '600px',
         margin: '0 auto',
-        padding: '0 16px'
+        padding: `0 ${TELEGRAM_THEME.spacing.lg}`
       }}>
+        {/* Header */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '20px'
+          marginBottom: TELEGRAM_THEME.spacing.xl
         }}>
           <h2 style={{
             margin: 0,
-            fontSize: '28px',
-            fontWeight: '700',
-            color: ROYAL_COLORS.text,
-            textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
+            fontSize: TELEGRAM_THEME.typography.fontSize['3xl'],
+            fontWeight: TELEGRAM_THEME.typography.fontWeight.bold,
+            color: TELEGRAM_THEME.colors.text.primary,
           }}>
-            התראות {unreadCount > 0 && <span style={{ color: ROYAL_COLORS.accent }}>({unreadCount})</span>}
+            Notifications {unreadCount > 0 && (
+              <span style={{ color: TELEGRAM_THEME.colors.accent.primary }}>
+                ({unreadCount})
+              </span>
+            )}
           </h2>
+          {unreadCount > 0 && (
+            <button
+              onClick={handleMarkAllAsRead}
+              style={{
+                background: TELEGRAM_THEME.colors.accent.faded,
+                color: TELEGRAM_THEME.colors.accent.primary,
+                border: `1px solid ${TELEGRAM_THEME.colors.accent.border}`,
+                borderRadius: TELEGRAM_THEME.radius.xl,
+                padding: `${TELEGRAM_THEME.spacing.sm} ${TELEGRAM_THEME.spacing.lg}`,
+                fontSize: TELEGRAM_THEME.typography.fontSize.sm,
+                fontWeight: TELEGRAM_THEME.typography.fontWeight.semibold,
+                cursor: 'pointer',
+                transition: TELEGRAM_THEME.transitions.normal,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = TELEGRAM_THEME.colors.accent.light;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = TELEGRAM_THEME.colors.accent.faded;
+              }}
+            >
+              Mark all read
+            </button>
+          )}
         </div>
 
+        {/* Filter Tabs */}
         <div style={{
           display: 'flex',
-          gap: '8px',
-          marginBottom: '20px',
-          overflowX: 'auto'
+          gap: TELEGRAM_THEME.spacing.sm,
+          marginBottom: TELEGRAM_THEME.spacing.xl,
+          borderBottom: `1px solid ${TELEGRAM_THEME.colors.border.primary}`,
         }}>
           {[
-            { id: 'all', label: 'הכל' },
-            { id: 'unread', label: `לא נקראו (${unreadCount})` },
-            { id: 'read', label: 'נקראו' }
+            { id: 'all', label: 'All' },
+            { id: 'unread', label: `Unread (${unreadCount})` },
+            { id: 'read', label: 'Read' }
           ].map(f => (
             <button
               key={f.id}
               onClick={() => setFilter(f.id as any)}
               style={{
-                padding: '10px 20px',
-                borderRadius: '12px',
+                padding: `${TELEGRAM_THEME.spacing.md} ${TELEGRAM_THEME.spacing.lg}`,
                 border: 'none',
-                background: filter === f.id
-                  ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
-                  : ROYAL_COLORS.card,
-                color: ROYAL_COLORS.text,
-                fontSize: '14px',
-                fontWeight: '600',
+                background: 'transparent',
+                color: filter === f.id
+                  ? TELEGRAM_THEME.colors.accent.primary
+                  : TELEGRAM_THEME.colors.text.secondary,
+                fontSize: TELEGRAM_THEME.typography.fontSize.base,
+                fontWeight: TELEGRAM_THEME.typography.fontWeight.semibold,
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                boxShadow: filter === f.id ? '0 4px 12px rgba(29, 155, 240, 0.3)' : 'none',
-                transition: 'all 0.3s ease'
+                transition: TELEGRAM_THEME.transitions.normal,
+                borderBottom: filter === f.id
+                  ? `2px solid ${TELEGRAM_THEME.colors.accent.primary}`
+                  : '2px solid transparent',
+              }}
+              onMouseEnter={(e) => {
+                if (filter !== f.id) {
+                  e.currentTarget.style.color = TELEGRAM_THEME.colors.text.primary;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (filter !== f.id) {
+                  e.currentTarget.style.color = TELEGRAM_THEME.colors.text.secondary;
+                }
               }}
             >
               {f.label}
@@ -211,118 +253,113 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
           ))}
         </div>
 
-        {unreadCount > 0 && (
-          <button
-            onClick={handleMarkAllAsRead}
-            style={{
-              width: '100%',
-              padding: '14px',
-              borderRadius: '12px',
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-              background: ROYAL_COLORS.card,
-              color: ROYAL_COLORS.accent,
-              fontSize: '15px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              marginBottom: '16px',
-              transition: 'all 0.3s ease'
-            }}
-          >
-            סמן הכל כנקרא
-          </button>
-        )}
-
+        {/* Notifications List */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔔</div>
-            <p style={{ color: ROYAL_COLORS.muted, fontSize: '16px' }}>טוען התראות...</p>
+          <div style={{
+            textAlign: 'center',
+            padding: TELEGRAM_THEME.spacing['5xl'],
+            color: TELEGRAM_THEME.colors.text.secondary
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: TELEGRAM_THEME.spacing.lg }}>⏳</div>
+            <p>Loading notifications...</p>
           </div>
         ) : notifications.length === 0 ? (
           <div style={{
-            ...ROYAL_STYLES.emptyState,
-            padding: '60px 20px',
-            borderRadius: '16px',
-            background: ROYAL_COLORS.card
+            textAlign: 'center',
+            padding: TELEGRAM_THEME.spacing['5xl'],
+            color: TELEGRAM_THEME.colors.text.secondary
           }}>
-            <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔔</div>
-            <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text, fontSize: '20px' }}>
-              אין התראות
-            </h3>
-            <div style={{ ...ROYAL_STYLES.emptyStateText, fontSize: '15px' }}>
-              {filter === 'unread' ? 'כל ההתראות נקראו' : 'אין התראות להצגה'}
-            </div>
+            <div style={{ fontSize: '64px', marginBottom: TELEGRAM_THEME.spacing.lg }}>📭</div>
+            <p style={{ fontSize: TELEGRAM_THEME.typography.fontSize.lg }}>
+              No notifications
+            </p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: TELEGRAM_THEME.spacing.md,
+          }}>
             {notifications.map(notification => (
               <div
                 key={notification.id}
                 onClick={() => !notification.read_at && handleMarkAsRead(notification.id)}
                 style={{
-                  padding: '16px',
-                  borderRadius: '16px',
                   background: notification.read_at
-                    ? ROYAL_COLORS.card
-                    : 'rgba(29, 155, 240, 0.1)',
-                  border: `1px solid ${notification.read_at ? ROYAL_COLORS.cardBorder : ROYAL_COLORS.accent}40`,
+                    ? 'transparent'
+                    : TELEGRAM_THEME.glass.background,
+                  backdropFilter: notification.read_at ? 'none' : TELEGRAM_THEME.glass.backdropFilter,
+                  border: `1px solid ${TELEGRAM_THEME.colors.border.primary}`,
+                  borderRadius: TELEGRAM_THEME.radius.lg,
+                  padding: TELEGRAM_THEME.spacing.lg,
                   cursor: notification.read_at ? 'default' : 'pointer',
-                  transition: 'all 0.3s ease',
-                  opacity: notification.read_at ? 0.7 : 1,
-                  boxShadow: notification.read_at ? 'none' : '0 4px 12px rgba(29, 155, 240, 0.2)'
+                  transition: TELEGRAM_THEME.transitions.normal,
+                  opacity: notification.read_at ? 0.6 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (!notification.read_at) {
+                    e.currentTarget.style.background = TELEGRAM_THEME.colors.card.hover;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!notification.read_at) {
+                    e.currentTarget.style.background = TELEGRAM_THEME.glass.background;
+                  }
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div style={{
+                  display: 'flex',
+                  gap: TELEGRAM_THEME.spacing.md,
+                  alignItems: 'flex-start'
+                }}>
                   <div style={{
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '12px',
-                    background: `${getNotificationColor(notification.type, !!notification.read_at)}20`,
-                    border: `2px solid ${getNotificationColor(notification.type, !!notification.read_at)}40`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '22px',
+                    fontSize: '32px',
                     flexShrink: 0
                   }}>
                     {getNotificationIcon(notification.type)}
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{
-                      fontSize: '16px',
-                      fontWeight: notification.read_at ? '500' : '700',
-                      color: notification.read_at ? ROYAL_COLORS.muted : ROYAL_COLORS.text,
-                      marginBottom: '6px'
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      marginBottom: TELEGRAM_THEME.spacing.xs
                     }}>
-                      {notification.title}
+                      <h3 style={{
+                        margin: 0,
+                        fontSize: TELEGRAM_THEME.typography.fontSize.base,
+                        fontWeight: TELEGRAM_THEME.typography.fontWeight.semibold,
+                        color: getNotificationColor(notification.type, !!notification.read_at),
+                      }}>
+                        {notification.title}
+                      </h3>
+                      {!notification.read_at && (
+                        <span style={{
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          background: TELEGRAM_THEME.colors.accent.primary,
+                          flexShrink: 0,
+                          marginLeft: TELEGRAM_THEME.spacing.sm
+                        }} />
+                      )}
                     </div>
-                    <div style={{
-                      fontSize: '14px',
-                      color: ROYAL_COLORS.muted,
-                      marginBottom: '8px',
-                      lineHeight: '1.6'
+                    <p style={{
+                      margin: 0,
+                      fontSize: TELEGRAM_THEME.typography.fontSize.base,
+                      color: TELEGRAM_THEME.colors.text.secondary,
+                      lineHeight: TELEGRAM_THEME.typography.lineHeight.relaxed,
                     }}>
                       {notification.message}
-                    </div>
-                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
-                      {new Date(notification.created_at).toLocaleString('he-IL', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                    </p>
+                    <div style={{
+                      marginTop: TELEGRAM_THEME.spacing.sm,
+                      fontSize: TELEGRAM_THEME.typography.fontSize.sm,
+                      color: TELEGRAM_THEME.colors.text.tertiary
+                    }}>
+                      {new Date(notification.created_at).toLocaleString()}
                     </div>
                   </div>
-                  {!notification.read_at && (
-                    <div style={{
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                      background: ROYAL_COLORS.accent,
-                      flexShrink: 0,
-                      marginTop: '8px',
-                      boxShadow: '0 0 8px rgba(29, 155, 240, 0.6)'
-                    }} />
-                  )}
                 </div>
               </div>
             ))}

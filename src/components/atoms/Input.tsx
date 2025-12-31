@@ -1,5 +1,11 @@
 import React from 'react';
-import { colors, spacing, borderRadius, typography, transitions, shadows } from '../../design-system';
+import { TELEGRAM_THEME } from '../../styles/telegramTheme';
+
+const colors = TELEGRAM_THEME.colors;
+const spacing: any = TELEGRAM_THEME.spacing;
+const borderRadius = TELEGRAM_THEME.radius;
+const typography = TELEGRAM_THEME.typography;
+const transitions = TELEGRAM_THEME.transitions;
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: boolean;
@@ -38,23 +44,23 @@ export function Input({
 
   const inputStyles: React.CSSProperties = {
     width: '100%',
-    padding: `${spacing[3]} ${spacing[4]}`,
-    paddingLeft: leftIcon ? spacing[10] : spacing[4],
-    paddingRight: rightIcon ? spacing[10] : spacing[4],
-    background: colors.background.secondary,
-    border: `1px solid ${error ? colors.status.error : isFocused ? colors.border.focus : colors.border.primary}`,
-    borderRadius: borderRadius['2xl'],
-    color: colors.text.primary,
+    padding: `${spacing.md} ${spacing.lg}`,
+    paddingLeft: leftIcon ? '40px' : spacing.lg,
+    paddingRight: rightIcon ? '40px' : spacing.lg,
+    background: colors.input.background,
+    border: `1px solid ${error ? colors.status.error : isFocused ? colors.input.borderFocus : colors.input.border}`,
+    borderRadius: borderRadius.md,
+    color: colors.input.text,
     fontSize: typography.fontSize.base,
     fontFamily: typography.fontFamily.primary,
     fontWeight: typography.fontWeight.normal,
     lineHeight: typography.lineHeight.normal,
     outline: 'none',
-    transition: `all ${transitions.normal}`,
+    transition: transitions.normal,
     opacity: disabled ? 0.5 : 1,
     cursor: disabled ? 'not-allowed' : 'text',
     minHeight: '44px',
-    boxShadow: isFocused ? (error ? `0 0 0 2px ${colors.status.errorFaded}` : shadows.focus) : 'none',
+    boxShadow: isFocused ? (error ? `0 0 0 2px ${colors.status.errorFaded}` : `0 0 0 2px ${colors.accent.faded}`) : 'none',
     ...style,
   };
 
