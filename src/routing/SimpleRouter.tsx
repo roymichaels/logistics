@@ -158,6 +158,7 @@ export function SimpleRouter() {
           <Route path="/admin/feature-flags" element={<Suspense fallback={<PageLoadingSkeleton />}><FeatureFlags /></Suspense>} />
           <Route path="/admin/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
           <Route path="/admin/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
+          <Route path="/admin/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
           <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
         </>
       )}
@@ -176,6 +177,7 @@ export function SimpleRouter() {
           <Route path="/infrastructure/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><DriversManagement dataStore={dataStore} /></Suspense>} />
           <Route path="/infrastructure/team" element={<Suspense fallback={<PageLoadingSkeleton />}><TeamManagement /></Suspense>} />
           <Route path="/infrastructure/settings" element={<Suspense fallback={<PageLoadingSkeleton />}><InfrastructureSettings /></Suspense>} />
+          <Route path="/infrastructure/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
         </>
       )}
 

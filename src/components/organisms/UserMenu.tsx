@@ -50,6 +50,17 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
     if (!role) return '/store/profile';
 
     switch (role) {
+      case 'infrastructure_owner':
+        return '/infrastructure/profile';
+      case 'superadmin':
+        return '/admin/profile';
+      case 'business_owner':
+      case 'manager':
+      case 'warehouse':
+      case 'dispatcher':
+      case 'sales':
+      case 'customer_service':
+        return '/business/profile';
       case 'driver':
         return '/driver/profile';
       case 'customer':
