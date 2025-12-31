@@ -5,6 +5,7 @@ import { getNavigationForRole } from './navigationSchema';
 import { MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
 import { UserRole } from './types';
 import { NavigationProvider } from '../contexts/NavigationContext';
+import { logger } from '../lib/logger';
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -47,6 +48,16 @@ export function AdminShell({
       ? 'Platform Administrator'
       : 'Infrastructure Admin';
 
+  const handleShowCreateUser = () => {
+    logger.info('[AdminShell] Navigate to user management');
+    onNavigate('/admin/users');
+  };
+
+  const handleShowCreateTask = () => {
+    logger.info('[AdminShell] Navigate to tasks');
+    onNavigate('/admin/tasks');
+  };
+
   return (
     <NavigationProvider userRole={role}>
       <BaseShell
@@ -61,6 +72,8 @@ export function AdminShell({
           currentPath={currentPath}
           onNavigate={onNavigate}
           title={`${shellTitle} Menu`}
+          onShowCreateUser={handleShowCreateUser}
+          onShowCreateTask={handleShowCreateTask}
         >
           {children}
         </UnifiedAppFrame>

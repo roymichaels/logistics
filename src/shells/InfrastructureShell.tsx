@@ -3,6 +3,7 @@ import { BaseShell } from './BaseShell';
 import { UnifiedAppFrame } from '../layouts/UnifiedAppFrame';
 import { getNavigationForRole } from './navigationSchema';
 import { MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
+import { logger } from '../lib/logger';
 
 interface InfrastructureShellProps {
   children: React.ReactNode;
@@ -39,6 +40,16 @@ export function InfrastructureShell({
       icon: item.icon || '📌',
       path: item.path,
     }));
+
+  const handleShowCreateUser = () => {
+    logger.info('[InfrastructureShell] Navigate to team management');
+    onNavigate('/infrastructure/team');
+  };
+
+  const handleShowCreateTask = () => {
+    logger.info('[InfrastructureShell] Navigate to tasks');
+    onNavigate('/infrastructure/tasks');
+  };
 
   return (
     <BaseShell
@@ -86,6 +97,8 @@ export function InfrastructureShell({
         currentPath={currentPath}
         onNavigate={onNavigate}
         title="Infrastructure Menu"
+        onShowCreateUser={handleShowCreateUser}
+        onShowCreateTask={handleShowCreateTask}
       >
         {children}
       </UnifiedAppFrame>

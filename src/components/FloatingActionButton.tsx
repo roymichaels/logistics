@@ -30,10 +30,28 @@ export function FloatingActionMenu({
   const authCtx = useAuth();
   const authRole = (authCtx?.user as any)?.role || null;
   void authRole;
+
+  const getPathPrefix = (role: string): string => {
+    if (['business_owner', 'manager', 'sales', 'dispatcher', 'warehouse', 'customer_service'].includes(role)) {
+      return '/business/';
+    }
+    if (role === 'driver') {
+      return '/driver/';
+    }
+    if (['infrastructure_owner', 'accountant'].includes(role)) {
+      return '/infrastructure/';
+    }
+    if (['admin', 'superadmin'].includes(role)) {
+      return '/admin/';
+    }
+    return '/';
+  };
+
   const getRoleActions = (): RoleAction[] => {
     if (!user) return [];
 
     const actions: RoleAction[] = [];
+    const pathPrefix = getPathPrefix(user.role);
 
     // Infrastructure Owner / Business Owner / Manager - Full access
     if (['infrastructure_owner', 'business_owner', 'manager'].includes(user.role)) {
@@ -54,8 +72,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientSuccess,
         onClick: () => {
           onClose();
-          onNavigate('products');
-
+          onNavigate(`${pathPrefix}products`);
         }
       });
       actions.push({
@@ -65,7 +82,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientGold,
         onClick: () => {
           onClose();
-          onNavigate('reports');
+          onNavigate(`${pathPrefix}reports`);
         }
       });
       actions.push({
@@ -75,7 +92,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientCrimson,
         onClick: () => {
           onClose();
-          onNavigate('dispatch');
+          onNavigate(`${pathPrefix}dispatch`);
         }
       });
     }
@@ -99,7 +116,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientGold,
         onClick: () => {
           onClose();
-          onNavigate('products');
+          onNavigate(`${pathPrefix}products`);
         }
       });
       actions.push({
@@ -109,7 +126,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientSuccess,
         onClick: () => {
           onClose();
-          onNavigate('inventory');
+          onNavigate(`${pathPrefix}inventory`);
         }
       });
       actions.push({
@@ -119,7 +136,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientCrimson,
         onClick: () => {
           onClose();
-          onNavigate('my-stats');
+          onNavigate('/my-stats');
         }
       });
     }
@@ -133,7 +150,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientPurple,
         onClick: () => {
           onClose();
-          onNavigate('dispatch-board');
+          onNavigate(`${pathPrefix}dispatch`);
         }
       });
       actions.push({
@@ -143,7 +160,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientSuccess,
         onClick: () => {
           onClose();
-          onNavigate('zone-management');
+          onNavigate(`${pathPrefix}zones`);
         }
       });
       actions.push({
@@ -153,7 +170,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientGold,
         onClick: () => {
           onClose();
-          onNavigate('driver-status');
+          onNavigate(`${pathPrefix}drivers`);
         }
       });
       actions.push({
@@ -163,7 +180,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientCrimson,
         onClick: () => {
           onClose();
-          onNavigate('orders');
+          onNavigate(`${pathPrefix}orders`);
         }
       });
     }
@@ -177,7 +194,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientSuccess,
         onClick: () => {
           onClose();
-          onNavigate('driver-status');
+          onNavigate('/driver/status');
         }
       });
       actions.push({
@@ -187,7 +204,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientPurple,
         onClick: () => {
           onClose();
-          onNavigate('my-deliveries');
+          onNavigate('/driver/deliveries');
         }
       });
       actions.push({
@@ -197,7 +214,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientGold,
         onClick: () => {
           onClose();
-          onNavigate('my-inventory');
+          onNavigate('/driver/my-inventory');
         }
       });
       actions.push({
@@ -207,7 +224,6 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientCrimson,
         onClick: () => {
           onClose();
-
           if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
               () => logger.info('Location updated'),
@@ -227,7 +243,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientPurple,
         onClick: () => {
           onClose();
-          onNavigate('incoming');
+          onNavigate(`${pathPrefix}incoming`);
         }
       });
       actions.push({
@@ -237,7 +253,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientGold,
         onClick: () => {
           onClose();
-          onNavigate('inventory');
+          onNavigate(`${pathPrefix}inventory`);
         }
       });
       actions.push({
@@ -247,7 +263,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientSuccess,
         onClick: () => {
           onClose();
-          onNavigate('warehouse-dashboard');
+          onNavigate(`${pathPrefix}warehouse`);
         }
       });
       actions.push({
@@ -257,7 +273,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientCrimson,
         onClick: () => {
           onClose();
-          onNavigate('restock-requests');
+          onNavigate('/restock-requests');
         }
       });
     }
@@ -271,7 +287,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientPurple,
         onClick: () => {
           onClose();
-          onNavigate('orders');
+          onNavigate(`${pathPrefix}orders`);
         }
       });
       actions.push({
@@ -291,7 +307,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientGold,
         onClick: () => {
           onClose();
-          onNavigate('orders');
+          onNavigate(`${pathPrefix}orders`);
         }
       });
       actions.push({
@@ -301,7 +317,7 @@ export function FloatingActionMenu({
         color: ROYAL_COLORS.gradientCrimson,
         onClick: () => {
           onClose();
-          onNavigate('chat');
+          onNavigate(`${pathPrefix}chat`);
         }
       });
     }

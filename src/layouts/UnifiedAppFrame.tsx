@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UnifiedMenuPanel, MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
 import { BottomNavigation } from '../components/BottomNavigation';
+import { FloatingActionMenu } from '../components/FloatingActionButton';
 import { useAuth } from '../context/AuthContext';
 import { shellEngine, ShellConfig } from '../foundation/engine/ShellEngine';
 import { logger } from '../lib/logger';
@@ -13,6 +14,15 @@ interface UnifiedAppFrameProps {
   title?: string;
   headerContent?: React.ReactNode;
   showBottomNav?: boolean;
+  onShowModeSelector?: () => void;
+  onShowCreateOrder?: () => void;
+  onShowCreateTask?: () => void;
+  onShowScanBarcode?: () => void;
+  onShowContactCustomer?: () => void;
+  onShowCheckInventory?: () => void;
+  onShowCreateRoute?: () => void;
+  onShowCreateUser?: () => void;
+  onShowCreateProduct?: () => void;
 }
 
 export function UnifiedAppFrame({
@@ -23,8 +33,18 @@ export function UnifiedAppFrame({
   title = 'Menu',
   headerContent,
   showBottomNav: showBottomNavProp,
+  onShowModeSelector,
+  onShowCreateOrder,
+  onShowCreateTask,
+  onShowScanBarcode,
+  onShowContactCustomer,
+  onShowCheckInventory,
+  onShowCreateRoute,
+  onShowCreateUser,
+  onShowCreateProduct,
 }: UnifiedAppFrameProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [shellConfig, setShellConfig] = useState<ShellConfig>(() => shellEngine.getCurrentShell());
   const [roleKey, setRoleKey] = useState(0);
   const authCtx = useAuth();
@@ -132,6 +152,15 @@ export function UnifiedAppFrame({
           onNavigate={onNavigate}
           userRole={userRole}
           onOpenSidebar={() => setMenuOpen(true)}
+          onShowActionMenu={() => setActionMenuOpen(true)}
+          onShowCreateOrder={onShowCreateOrder}
+          onShowCreateTask={onShowCreateTask}
+          onShowScanBarcode={onShowScanBarcode}
+          onShowContactCustomer={onShowContactCustomer}
+          onShowCheckInventory={onShowCheckInventory}
+          onShowCreateRoute={onShowCreateRoute}
+          onShowCreateUser={onShowCreateUser}
+          onShowCreateProduct={onShowCreateProduct}
         />
       )}
 
@@ -142,6 +171,13 @@ export function UnifiedAppFrame({
         currentPath={currentPath}
         onNavigate={onNavigate}
         title={title}
+      />
+
+      <FloatingActionMenu
+        isOpen={actionMenuOpen}
+        onClose={() => setActionMenuOpen(false)}
+        onNavigate={onNavigate}
+        onShowModeSelector={onShowModeSelector || (() => {})}
       />
     </div>
   );

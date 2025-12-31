@@ -3,6 +3,7 @@ import { BaseShell } from './BaseShell';
 import { UnifiedAppFrame } from '../layouts/UnifiedAppFrame';
 import { getNavigationForRole } from './navigationSchema';
 import { MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
+import { logger } from '../lib/logger';
 
 interface DriverShellProps {
   children: React.ReactNode;
@@ -32,6 +33,16 @@ export function DriverShell({
       path: item.path,
     }));
 
+  const handleShowCheckInventory = () => {
+    logger.info('[DriverShell] Navigate to my inventory');
+    onNavigate('/driver/my-inventory');
+  };
+
+  const handleShowCreateTask = () => {
+    logger.info('[DriverShell] Navigate to tasks');
+    onNavigate('/driver/tasks');
+  };
+
   return (
     <BaseShell
       role="driver"
@@ -45,6 +56,8 @@ export function DriverShell({
         currentPath={currentPath}
         onNavigate={onNavigate}
         title="Driver Menu"
+        onShowCheckInventory={handleShowCheckInventory}
+        onShowCreateTask={handleShowCreateTask}
       >
         {children}
       </UnifiedAppFrame>
