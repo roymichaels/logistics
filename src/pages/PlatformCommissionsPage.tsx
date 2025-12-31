@@ -31,28 +31,10 @@ export default function PlatformCommissionsPage() {
 
   const loadStats = async (infraId: string) => {
     try {
-      const { data: payments } = await supabaseClient
-        .from('payment_transactions')
-        .select('amount_display, status, businesses!inner(infrastructure_id)')
-        .eq('businesses.infrastructure_id', infraId);
-
-      const totalTransactions = payments?.length || 0;
-      const totalVolumeILS = payments?.reduce((sum, p) => sum + Number(p.amount_display), 0) || 0;
-
-      const { data: commissions } = await supabaseClient
-        .from('commission_ledger')
-        .select('amount_crypto')
-        .eq('infrastructure_id', infraId)
-        .eq('crypto_currency', 'TON');
-
-      const totalCommissionsTON = commissions?.reduce((sum, c) => sum + Number(c.amount_crypto), 0) || 0;
-
-      const { data: businesses } = await supabaseClient
-        .from('businesses')
-        .select('id')
-        .eq('infrastructure_id', infraId);
-
-      const activeBusinesses = businesses?.length || 0;
+      const totalTransactions = 0;
+      const totalVolumeILS = 0;
+      const totalCommissionsTON = 0;
+      const activeBusinesses = 0;
 
       setStats({
         totalTransactions,

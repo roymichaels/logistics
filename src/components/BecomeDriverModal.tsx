@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { Toast } from './Toast';
 import { logger } from '../lib/logger';
-import { getSupabase } from '../lib/supabaseClient';
+import { getUnifiedDataStore } from '../lib/storage/UnifiedDataStore';
 
 interface BecomeDriverModalProps {
   onClose: () => void;
@@ -75,16 +75,11 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
     try {
       setSubmitting(true);
 
-      const supabase = await getSupabase();
-      const { data: { user } } = await supabase.auth.getUser();
+      const store = getUnifiedDataStore();
+      const currentUserId = localStorage.getItem('currentUserId') || `user_${Date.now()}`;
 
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
+      logger.info('🔄 Submitting driver application for user:', currentUserId);
 
-      logger.info('🔄 Submitting driver application for user:', user.id);
-
-      // Create driver application record
       const applicationData = {
         vehicle_type: formData.vehicleType,
         license_number: formData.licenseNumber,
@@ -93,43 +88,18 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
         notes: formData.notes
       };
 
-      const { data: application, error: appError } = await supabase
-        .from('driver_applications')
-        .insert({
-          user_id: user.id,
-          application_data: applicationData,
-          status: 'pending',
-          submitted_at: new Date().toISOString()
-        })
-        .select()
-        .single();
+      const newApplication = {
+        id: `app_${Date.now()}`,
+        user_id: currentUserId,
+        application_data: applicationData,
+        status: 'pending',
+        submitted_at: new Date().toISOString()
+      };
 
-      if (appError) {
-        logger.error('❌ Error creating driver application:', appError);
-        throw appError;
-      }
+      const existingApps = await store.get<any[]>('driver_applications') || [];
+      await store.set('driver_applications', [...existingApps, newApplication]);
 
-      logger.info('✅ Driver application created:', application);
-
-      // Create driver profile
-      const { error: profileError } = await supabase
-        .from('driver_profiles')
-        .insert({
-          user_id: user.id,
-          application_status: 'pending',
-          verification_status: 'unverified',
-          vehicle_type: formData.vehicleType,
-          is_active: false,
-          is_online: false,
-          notes: formData.notes
-        });
-
-      if (profileError) {
-        logger.error('❌ Error creating driver profile:', profileError);
-        throw profileError;
-      }
-
-      logger.info('✅ Driver profile created successfully');
+      logger.info('✅ Driver application created:', newApplication);
 
       Toast.success('הבקשה נשלחה בהצלחה! נציג יצור איתך קשר בקרוב');
 

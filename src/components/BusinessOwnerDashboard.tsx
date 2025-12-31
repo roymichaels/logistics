@@ -11,7 +11,6 @@ import { useI18n } from '../lib/i18n';
 import { DashboardHeader, MetricCard, MetricGrid, Section, LoadingState, EmptyState } from './dashboard';
 import { theme, colors, spacing, typography, borderRadius, components, getStatusBadgeStyle } from '../styles/theme';
 import { logger } from '../lib/logger';
-import { getSupabase } from '../lib/supabaseClient';
 
 interface FinancialMetrics {
   revenue_today: number;
@@ -85,47 +84,11 @@ export function BusinessOwnerDashboard({ businessId, userId, onNavigate }: Busin
   useEffect(() => {
     loadDashboardData();
 
-    // Real-time updates with error handling
-    const supabase = getSupabase();
-    if (!supabase) {
-      logger.warn('Supabase not available for real-time subscriptions');
-      return;
-    }
+    const interval = setInterval(() => {
+      loadDashboardData();
+    }, 30000);
 
-    let subscription: any = null;
-
-    try {
-      subscription = supabase
-        .channel(`business-${businessId}`)
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-          filter: `business_id=eq.${businessId}`
-        }, (payload) => {
-          logger.debug('Real-time order update received', { payload });
-          loadDashboardData();
-        })
-        .subscribe((status: string, error?: Error) => {
-          if (error) {
-            logger.error('Subscription error', error);
-          } else {
-            logger.debug('Subscription status', { status });
-          }
-        });
-    } catch (error) {
-      logger.error('Failed to set up real-time subscription', error as Error);
-    }
-
-    return () => {
-      if (subscription) {
-        try {
-          subscription.unsubscribe();
-        } catch (error) {
-          logger.error('Error unsubscribing', error as Error);
-        }
-      }
-    };
+    return () => clearInterval(interval);
   }, [businessId]);
 
   async function loadDashboardData() {

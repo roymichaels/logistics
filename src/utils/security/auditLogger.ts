@@ -41,11 +41,6 @@ export class SecurityAuditLogger {
     this.startQueueProcessor();
   }
 
-  private getSupabaseClient(): any | null {
-    logger.debug('[FRONTEND-ONLY] Supabase not available in frontend-only mode');
-    return null;
-  }
-
   /**
    * Log a security event
    */

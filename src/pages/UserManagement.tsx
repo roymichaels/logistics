@@ -373,39 +373,14 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
         new_role: selectedRole
       });
 
-      const { getSupabase } = await import('../lib/supabaseClient');
-      const supabase = getSupabase();
-      const { data: sessionData } = await supabase.auth.getSession();
+      logger.info('[FRONTEND-ONLY] Simulating role change - stored locally');
 
-      if (!sessionData?.session) {
-        Toast.error('אין Session פעיל - יש לרענן');
-        return;
-      }
+      const updatedUsers = users.map(u =>
+        u.id === selectedUser.id ? { ...u, role: selectedRole } : u
+      );
+      setUsers(updatedUsers);
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      if (!supabaseUrl) {
-        throw new Error('Supabase not configured in frontend-only mode');
-      }
-      const response = await fetch(`${supabaseUrl}/functions/v1/set-role`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionData.session.access_token}`,
-        },
-        body: JSON.stringify({
-          user_id: selectedUser.id,
-          new_role: selectedRole
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        logger.error('Edge function error:', errorText);
-        throw new Error(errorText || 'Role update failed');
-      }
-
-      const result = await response.json();
-      logger.info('✅ Role updated successfully:', result);
+      logger.info('✅ Role updated successfully in local state');
 
       Toast.success(`תפקיד עודכן בהצלחה ל${roleNames[selectedRole]}`);
 

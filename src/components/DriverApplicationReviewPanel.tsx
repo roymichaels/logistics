@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ROYAL_COLORS } from '../styles/royalTheme';
 import { Toast } from './Toast';
 import { logger } from '../lib/logger';
-import { getSupabase } from '../lib/supabaseClient';
+import { getUnifiedDataStore } from '../lib/storage/UnifiedDataStore';
 
 interface DriverApplication {
   id: string;
@@ -35,20 +35,17 @@ export function DriverApplicationReviewPanel() {
   const loadApplications = async () => {
     try {
       setLoading(true);
-      const supabase = await getSupabase();
+      const store = getUnifiedDataStore();
 
-      const { data, error } = await supabase
-        .from('driver_applications')
-        .select(`
-          *,
-          user:users!inner(id, name, username, phone)
-        `)
-        .in('status', ['pending', 'under_review'])
-        .order('submitted_at', { ascending: false });
+      const data = await store.get<DriverApplication[]>('driver_applications') || [];
 
-      if (error) throw error;
+      const pendingApps = data.filter(app =>
+        app.status === 'pending' || app.status === 'under_review'
+      ).sort((a, b) =>
+        new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
+      );
 
-      setApplications(data || []);
+      setApplications(pendingApps);
     } catch (error) {
       logger.error('Failed to load applications:', error);
       Toast.error('שגיאה בטעינת הבקשות');
@@ -62,16 +59,24 @@ export function DriverApplicationReviewPanel() {
 
     try {
       setProcessing(true);
-      const supabase = await getSupabase();
+      const store = getUnifiedDataStore();
 
-      // Call the approve function
-      const { data, error } = await supabase.rpc('approve_driver_application', {
-        p_application_id: selectedApplication.id,
-        p_approved_by: (await supabase.auth.getUser()).data.user?.id,
-        p_notes: reviewNotes || null,
-      });
+      const currentUserId = localStorage.getItem('currentUserId') || 'system';
+      const allApps = await store.get<DriverApplication[]>('driver_applications') || [];
 
-      if (error) throw error;
+      const updatedApps = allApps.map(app =>
+        app.id === selectedApplication.id
+          ? {
+              ...app,
+              status: 'approved',
+              reviewed_by: currentUserId,
+              reviewed_at: new Date().toISOString(),
+              review_notes: reviewNotes || undefined,
+            }
+          : app
+      );
+
+      await store.set('driver_applications', updatedApps);
 
       Toast.success('הבקשה אושרה בהצלחה!');
       setSelectedApplication(null);
@@ -90,34 +95,24 @@ export function DriverApplicationReviewPanel() {
 
     try {
       setProcessing(true);
-      const supabase = await getSupabase();
-      const { data: { user } } = await supabase.auth.getUser();
+      const store = getUnifiedDataStore();
 
-      if (!user) throw new Error('Not authenticated');
+      const currentUserId = localStorage.getItem('currentUserId') || 'system';
+      const allApps = await store.get<DriverApplication[]>('driver_applications') || [];
 
-      const { error: appError } = await supabase
-        .from('driver_applications')
-        .update({
-          status: 'rejected',
-          reviewed_by: user.id,
-          reviewed_at: new Date().toISOString(),
-          review_notes: reviewNotes,
-          rejected_at: new Date().toISOString(),
-        })
-        .eq('id', selectedApplication.id);
+      const updatedApps = allApps.map(app =>
+        app.id === selectedApplication.id
+          ? {
+              ...app,
+              status: 'rejected',
+              reviewed_by: currentUserId,
+              reviewed_at: new Date().toISOString(),
+              review_notes: reviewNotes,
+            }
+          : app
+      );
 
-      if (appError) throw appError;
-
-      const { error: profileError } = await supabase
-        .from('driver_profiles')
-        .update({
-          application_status: 'rejected',
-          verification_status: 'rejected',
-          rejection_reason: reviewNotes,
-        })
-        .eq('user_id', selectedApplication.user_id);
-
-      if (profileError) throw profileError;
+      await store.set('driver_applications', updatedApps);
 
       Toast.success('הבקשה נדחתה');
       setSelectedApplication(null);

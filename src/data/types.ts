@@ -2,8 +2,6 @@
 // Base Type Definitions
 // ============================================================================
 
-import type { SupabaseClient } from '../lib/supabaseTypes';
-
 // Database Row Types for Query Results
 export type DatabaseRow = Record<string, unknown>;
 
