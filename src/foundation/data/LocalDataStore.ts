@@ -333,6 +333,45 @@ export class LocalDataStore {
     return new QueryBuilder(this, tableName);
   }
 
+  async query(tableName: string, options?: { where?: Record<string, any> }): Promise<any[]> {
+    if (!this.tables.has(tableName)) {
+      this.tables.set(tableName, []);
+    }
+
+    let data = this.getTable(tableName);
+
+    if (options?.where) {
+      data = data.filter(record => {
+        return Object.entries(options.where!).every(([key, value]) => {
+          return record[key] === value;
+        });
+      });
+    }
+
+    return data;
+  }
+
+  async update(tableName: string, id: string, updates: Record<string, any>): Promise<void> {
+    if (!this.tables.has(tableName)) {
+      throw new Error(`Table ${tableName} does not exist`);
+    }
+
+    const data = this.getTable(tableName);
+    const index = data.findIndex(record => record.id === id);
+
+    if (index === -1) {
+      throw new Error(`Record with id ${id} not found in ${tableName}`);
+    }
+
+    data[index] = {
+      ...data[index],
+      ...updates,
+      updated_at: new Date().toISOString()
+    };
+
+    this.saveToStorage();
+  }
+
   async getProfile(): Promise<any> {
     try {
       const session = localStorage.getItem('local-wallet-session');
