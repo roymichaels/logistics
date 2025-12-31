@@ -203,49 +203,64 @@ export function UserProfilePage({ userId }: UserProfileProps) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: colors.background.primary,
+      background: '#15202B',
       paddingBottom: spacing['3xl']
     }}>
       <div style={{
-        maxWidth: '1000px',
+        maxWidth: '600px',
         margin: '0 auto',
-        padding: spacing.lg
+        position: 'relative'
       }}>
-        <Card style={{ marginBottom: spacing.xl, overflow: 'hidden', boxShadow: shadows.xl }}>
-          {profile.banner_url ? (
-            <div style={{
-              height: '240px',
-              background: `url(${profile.banner_url}) center/cover`,
-              backgroundColor: colors.background.secondary
-            }} />
-          ) : (
-            <div style={{
-              height: '240px',
-              background: `linear-gradient(135deg, ${colors.brand.primary} 0%, ${colors.brand.primaryDark} 100%)`,
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
-              <div style={{
-                position: 'absolute',
-                top: '-50%',
-                right: '-10%',
-                width: '400px',
-                height: '400px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: '50%',
-                filter: 'blur(60px)'
-              }} />
-            </div>
-          )}
-
-          <div style={{ padding: spacing.xl }}>
-            <div style={{
+        {/* Settings Button - Top Right */}
+        {isOwnProfile && (
+          <button
+            onClick={() => setSettingsModalOpen(true)}
+            style={{
+              position: 'absolute',
+              top: spacing.lg,
+              right: spacing.lg,
+              width: '44px',
+              height: '44px',
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: 'none',
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              marginTop: `-${spacing['4xl']}`,
-              marginBottom: spacing.xl
-            }}>
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontSize: '20px',
+              color: 'rgba(255, 255, 255, 0.7)',
+              transition: 'all 0.2s ease',
+              zIndex: 10
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+            }}
+          >
+            ⚙️
+          </button>
+        )}
+
+        {/* Profile Content */}
+        <div style={{
+          background: 'rgba(30, 30, 35, 0.8)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '16px',
+          margin: spacing.lg,
+          padding: `${spacing['3xl']} ${spacing.xl}`,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          textAlign: 'center'
+        }}>
+          {/* Avatar */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            marginBottom: spacing.xl
+          }}>
+            <div style={{ position: 'relative' }}>
               <Avatar
                 src={user.photo_url}
                 alt={user.name || 'User'}
@@ -253,152 +268,222 @@ export function UserProfilePage({ userId }: UserProfileProps) {
                 fallback={user.name || user.username}
                 online={isOwnProfile}
               />
-
-              <div style={{ paddingTop: spacing.xl }}>
-                {isOwnProfile ? (
-                  <Button variant="secondary" size="md" onClick={() => setEditModalOpen(true)}>
-                    Edit Profile
-                  </Button>
-                ) : (
-                  <Button
-                    variant={isFollowing ? 'secondary' : 'primary'}
-                    size="md"
-                    onClick={handleFollow}
-                  >
-                    {isFollowing ? 'Following' : 'Follow'}
-                  </Button>
-                )}
-              </div>
             </div>
+          </div>
 
-            <div style={{ marginTop: spacing.xl }}>
-              <h1 style={{
-                color: colors.text.primary,
-                marginBottom: spacing.xs,
-                fontSize: 'clamp(24px, 5vw, 32px)',
-                fontWeight: 800
-              }}>
-                {user.name || user.username || 'Unknown User'}
-              </h1>
-              {user.username && (
-                <p style={{
-                  color: colors.text.secondary,
-                  marginBottom: spacing.md,
-                  fontSize: typography.fontSize.base
-                }}>
-                  @{user.username}
-                </p>
+          {/* Edit Profile Button */}
+          {isOwnProfile && (
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={() => setEditModalOpen(true)}
+              style={{
+                marginBottom: spacing.xl,
+                background: 'rgba(29, 155, 240, 0.1)',
+                color: '#1D9BF0',
+                border: '1px solid rgba(29, 155, 240, 0.3)',
+                padding: '10px 24px',
+                borderRadius: '20px',
+                fontWeight: 600
+              }}
+            >
+              Edit Profile
+            </Button>
+          )}
+
+          {!isOwnProfile && (
+            <Button
+              variant={isFollowing ? 'secondary' : 'primary'}
+              size="md"
+              onClick={handleFollow}
+              style={{
+                marginBottom: spacing.xl,
+                padding: '10px 32px',
+                borderRadius: '20px',
+                fontWeight: 600
+              }}
+            >
+              {isFollowing ? 'Following' : 'Follow'}
+            </Button>
+          )}
+
+          {/* User Info */}
+          <h1 style={{
+            color: '#E7E9EA',
+            marginBottom: spacing.xs,
+            fontSize: 'clamp(24px, 5vw, 28px)',
+            fontWeight: 700,
+            letterSpacing: '-0.5px'
+          }}>
+            {user.name || user.username || 'Unknown User'}
+          </h1>
+
+          {user.username && (
+            <p style={{
+              color: '#71767B',
+              marginBottom: spacing.md,
+              fontSize: '15px'
+            }}>
+              @{user.username}
+            </p>
+          )}
+
+          {user.wallet_address && (
+            <p style={{
+              color: '#71767B',
+              marginBottom: spacing.md,
+              fontSize: '13px',
+              fontFamily: 'monospace',
+              wordBreak: 'break-all',
+              padding: `${spacing.xs} ${spacing.md}`,
+              background: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: '8px',
+              display: 'inline-block'
+            }}>
+              {user.wallet_address}
+            </p>
+          )}
+
+          {user.role && (
+            <div style={{
+              display: 'inline-block',
+              marginBottom: spacing.lg
+            }}>
+              <Badge
+                variant="primary"
+                style={{
+                  background: 'rgba(29, 155, 240, 0.15)',
+                  color: '#1D9BF0',
+                  border: '1px solid rgba(29, 155, 240, 0.3)',
+                  padding: `${spacing.sm} ${spacing.md}`,
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}
+              >
+                {user.role}
+              </Badge>
+            </div>
+          )}
+
+          {profile.bio && (
+            <p style={{
+              color: '#E7E9EA',
+              marginTop: spacing.lg,
+              marginBottom: spacing.lg,
+              lineHeight: 1.6,
+              fontSize: '15px',
+              maxWidth: '400px',
+              margin: `${spacing.lg} auto`
+            }}>
+              {profile.bio}
+            </p>
+          )}
+
+          {/* Location & Website */}
+          {(profile.location || profile.website) && (
+            <div style={{
+              display: 'flex',
+              gap: spacing.lg,
+              justifyContent: 'center',
+              marginTop: spacing.lg,
+              marginBottom: spacing.xl,
+              color: '#71767B',
+              flexWrap: 'wrap'
+            }}>
+              {profile.location && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: spacing.xs }}>
+                  <span style={{ fontSize: '16px' }}>📍</span>
+                  <span style={{ fontSize: '14px' }}>{profile.location}</span>
+                </div>
               )}
-              {user.role && (
-                <Badge
-                  variant="primary"
-                  style={{
-                    marginBottom: spacing.md,
-                    background: `linear-gradient(135deg, ${colors.brand.primary} 0%, ${colors.brand.primaryDark} 100%)`,
-                    color: colors.white,
-                    border: 'none',
-                    padding: `${spacing.sm} ${spacing.md}`,
-                    fontSize: typography.fontSize.sm,
-                    fontWeight: typography.fontWeight.bold
-                  }}
-                >
-                  {user.role}
-                </Badge>
-              )}
-              {profile.bio && (
-                <p style={{
-                  color: colors.text.primary,
-                  marginTop: spacing.lg,
-                  lineHeight: 1.7,
-                  fontSize: typography.fontSize.base
-                }}>
-                  {profile.bio}
-                </p>
-              )}
-
-              <div style={{
-                display: 'flex',
-                gap: spacing.xl,
-                marginTop: spacing.lg,
-                color: colors.text.secondary,
-                flexWrap: 'wrap'
-              }}>
-                {profile.location && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
-                    <span style={{ fontSize: '18px' }}>📍</span>
-                    <span style={{ fontSize: typography.fontSize.base }}>{profile.location}</span>
-                  </div>
-                )}
-                {profile.website && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
-                    <span style={{ fontSize: '18px' }}>🔗</span>
-                    <a
-                      href={profile.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        fontSize: typography.fontSize.base,
-                        color: colors.brand.primary,
-                        textDecoration: 'none',
-                        fontWeight: typography.fontWeight.medium
-                      }}
-                    >
-                      {profile.website}
-                    </a>
-                  </div>
-                )}
-              </div>
-
-              <MetricGrid columns={2} style={{ marginTop: spacing.xl }}>
-                <MetricCard
-                  label="Following"
-                  value={profile.following_count}
-                  icon="👥"
-                  variant="primary"
-                  size="small"
-                />
-                <MetricCard
-                  label="Followers"
-                  value={profile.followers_count}
-                  icon="⭐"
-                  variant="success"
-                  size="small"
-                />
-              </MetricGrid>
-
-              {isOwnProfile && (
-                <div style={{
-                  marginTop: spacing.xl,
-                  display: 'flex',
-                  justifyContent: 'center'
-                }}>
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    onClick={() => setSettingsModalOpen(true)}
+              {profile.website && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: spacing.xs }}>
+                  <span style={{ fontSize: '16px' }}>🔗</span>
+                  <a
+                    href={profile.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     style={{
-                      width: '100%',
-                      maxWidth: '300px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: spacing.sm
+                      fontSize: '14px',
+                      color: '#1D9BF0',
+                      textDecoration: 'none'
                     }}
                   >
-                    <span style={{ fontSize: '1.25rem' }}>⚙️</span>
-                    <span>Settings</span>
-                  </Button>
+                    {profile.website.replace(/^https?:\/\//, '')}
+                  </a>
                 </div>
               )}
             </div>
-          </div>
-        </Card>
+          )}
 
-        <Card style={{ marginBottom: spacing.xl, boxShadow: shadows.lg }}>
+          {/* Stats - Followers/Following */}
+          <div style={{
+            display: 'flex',
+            gap: spacing.xl,
+            justifyContent: 'center',
+            marginTop: spacing.xl,
+            paddingTop: spacing.lg,
+            borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{
+                fontSize: '20px',
+                fontWeight: 700,
+                color: '#E7E9EA',
+                marginBottom: spacing.xs
+              }}>
+                {profile.following_count || 0}
+              </div>
+              <div style={{
+                fontSize: '13px',
+                color: '#71767B',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Following
+              </div>
+            </div>
+            <div style={{
+              width: '1px',
+              background: 'rgba(255, 255, 255, 0.1)'
+            }} />
+            <div style={{ textAlign: 'center' }}>
+              <div style={{
+                fontSize: '20px',
+                fontWeight: 700,
+                color: '#E7E9EA',
+                marginBottom: spacing.xs
+              }}>
+                {profile.followers_count || 0}
+              </div>
+              <div style={{
+                fontSize: '13px',
+                color: '#71767B',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Followers
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs Section */}
+        <div style={{
+          background: 'rgba(30, 30, 35, 0.8)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '16px',
+          margin: spacing.lg,
+          marginTop: spacing.xl,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          overflow: 'hidden'
+        }}>
           <div style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${tabItems.length}, 1fr)`,
-            borderBottom: `2px solid ${colors.border.primary}`
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
           }}>
             {tabItems.map((tab) => (
               <button
@@ -406,19 +491,28 @@ export function UserProfilePage({ userId }: UserProfileProps) {
                 onClick={() => setActiveTab(tab.id as any)}
                 style={{
                   padding: spacing.lg,
-                  background: activeTab === tab.id
-                    ? `linear-gradient(to bottom, ${colors.brand.primaryFaded}, transparent)`
-                    : 'transparent',
+                  background: 'transparent',
                   border: 'none',
                   fontWeight: 600,
-                  color: activeTab === tab.id ? colors.brand.primary : colors.text.secondary,
-                  borderBottom: activeTab === tab.id ? `3px solid ${colors.brand.primary}` : 'none',
+                  color: activeTab === tab.id ? '#1D9BF0' : '#71767B',
+                  borderBottom: activeTab === tab.id ? '2px solid #1D9BF0' : '2px solid transparent',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: spacing.sm
+                  gap: spacing.sm,
+                  fontSize: '14px'
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== tab.id) {
+                    e.currentTarget.style.color = '#8B98A5';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== tab.id) {
+                    e.currentTarget.style.color = '#71767B';
+                  }
                 }}
               >
                 <span>{tab.icon}</span>
@@ -458,7 +552,7 @@ export function UserProfilePage({ userId }: UserProfileProps) {
               </div>
             )}
           </div>
-        </Card>
+        </div>
       </div>
 
       <EditProfileModal
