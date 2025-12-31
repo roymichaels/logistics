@@ -158,7 +158,7 @@ export function SimpleRouter() {
           <Route path="/admin/feature-flags" element={<Suspense fallback={<PageLoadingSkeleton />}><FeatureFlags /></Suspense>} />
           <Route path="/admin/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
           <Route path="/admin/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
-          <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications /></Suspense>} />
+          <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
         </>
       )}
 
@@ -206,7 +206,7 @@ export function SimpleRouter() {
           <Route path="/business/incoming" element={<Suspense fallback={<PageLoadingSkeleton />}><Incoming dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/restock" element={<Suspense fallback={<PageLoadingSkeleton />}><RestockRequests dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
-          <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications /></Suspense>} />
+          <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/analytics" element={<Suspense fallback={<PageLoadingSkeleton />}><MyStats dataStore={dataStore} /></Suspense>} />
           <Route path="/business/channels" element={<Suspense fallback={<PageLoadingSkeleton />}><Channels dataStore={dataStore} onNavigate={(path) => navigate(path)} currentUser={null} /></Suspense>} />
           <Route path="/business/settings" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessSettings /></Suspense>} />
@@ -224,7 +224,7 @@ export function SimpleRouter() {
           <Route path="/driver/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
           <Route path="/driver/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
           <Route path="/driver/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
-          <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications /></Suspense>} />
+          <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/store/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
         </>
       )}
@@ -238,7 +238,7 @@ export function SimpleRouter() {
           <Route path="/store/checkout" element={<Suspense fallback={<PageLoadingSkeleton />}><CheckoutPage dataStore={dataStore} /></Suspense>} />
           <Route path="/store/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><MyOrdersPage dataStore={dataStore} /></Suspense>} />
           <Route path="/store/orders/:orderId" element={<Suspense fallback={<PageLoadingSkeleton />}><OrderDetailPage dataStore={dataStore} /></Suspense>} />
-          <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications /></Suspense>} />
+          <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/store/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
         </>
       )}

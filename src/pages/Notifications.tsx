@@ -16,6 +16,27 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
 
+  if (!dataStore) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #1a0033 0%, #0a001a 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px'
+      }}>
+        <div style={{
+          textAlign: 'center',
+          color: ROYAL_COLORS.text
+        }}>
+          <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔔</div>
+          <p style={{ fontSize: '18px', color: ROYAL_COLORS.muted }}>Loading notifications...</p>
+        </div>
+      </div>
+    );
+  }
+
   useEffect(() => {
     return () => hideBackButton();
   }, [onNavigate]);
@@ -24,7 +45,7 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
     loadNotifications();
 
     let unsubscribe: (() => void) | undefined;
-    if (dataStore.subscribeToChanges) {
+    if (dataStore && dataStore.subscribeToChanges) {
       unsubscribe = dataStore.subscribeToChanges('notifications', (payload) => {
         if (payload.new || payload.old) {
           loadNotifications();
@@ -41,7 +62,7 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
 
   const loadNotifications = async () => {
     try {
-      if (!dataStore.listNotifications) {
+      if (!dataStore || !dataStore.listNotifications) {
         setLoading(false);
         return;
       }
