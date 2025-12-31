@@ -15,6 +15,7 @@ import { userService } from '../lib/userService';
 import { logger } from '../lib/logger';
 import { runtimeEnvironment } from '../lib/runtimeEnvironment';
 import { shellEngine, ShellType } from '../foundation/engine/ShellEngine';
+import { localBusinessDataService } from '../services/localBusinessDataService';
 
 const DEV_ROLE_OVERRIDE_KEY = 'dev-console:role-override';
 
@@ -362,6 +363,30 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         setUser(appUser);
         setUserRole(effectiveRole as AppUserRole);
+
+        // Auto-detect and set business for business owners (wallet auth / frontend-only)
+        if (effectiveRole === 'business_owner') {
+          logger.info('🏢 Business owner detected, checking for businesses...');
+          try {
+            const myBusinesses = localBusinessDataService.getMyBusinesses(appUser.id);
+            if (myBusinesses && myBusinesses.length > 0) {
+              const firstBusiness = myBusinesses[0];
+              logger.info('🏢 Auto-setting business context for business owner:', {
+                businessId: firstBusiness.business_id,
+                userId: appUser.id
+              });
+              setCurrentBusinessId(firstBusiness.business_id);
+
+              // Also update user object with business_id
+              appUser.business_id = firstBusiness.business_id;
+              setUser({ ...appUser });
+            } else {
+              logger.warn('⚠️ Business owner has no businesses yet');
+            }
+          } catch (error) {
+            logger.error('❌ Failed to auto-detect business for owner:', error);
+          }
+        }
 
         if (cancelled) return;
 
