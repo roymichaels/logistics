@@ -46,14 +46,54 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
   const userInitial = userName[0]?.toUpperCase() || 'U';
   const roleDisplay = user?.role ? roleDisplayMap[user.role] || user.role : '';
 
+  const getSettingsPath = (role?: string): string => {
+    if (!role) return '/store/profile';
+
+    switch (role) {
+      case 'superadmin':
+      case 'admin':
+        return '/admin/system-settings';
+      case 'infrastructure_owner':
+      case 'accountant':
+        return '/infrastructure/settings';
+      case 'business_owner':
+      case 'manager':
+      case 'warehouse':
+      case 'dispatcher':
+      case 'sales':
+      case 'customer_service':
+        return '/business/settings';
+      case 'driver':
+        return '/driver/profile';
+      case 'customer':
+      case 'user':
+      default:
+        return '/store/profile';
+    }
+  };
+
+  const getProfilePath = (role?: string): string => {
+    if (!role) return '/store/profile';
+
+    switch (role) {
+      case 'driver':
+        return '/driver/profile';
+      case 'customer':
+      case 'user':
+        return '/store/profile';
+      default:
+        return '/store/profile';
+    }
+  };
+
   const handleMenuClick = (action: 'profile' | 'settings' | 'logout') => {
     setDropdownOpen(false);
     switch (action) {
       case 'profile':
-        onNavigate?.('profile');
+        onNavigate?.(getProfilePath(user?.role));
         break;
       case 'settings':
-        onNavigate?.('settings');
+        onNavigate?.(getSettingsPath(user?.role));
         break;
       case 'logout':
         onLogout?.();
