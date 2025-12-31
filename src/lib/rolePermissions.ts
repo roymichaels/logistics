@@ -749,6 +749,10 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'inventory:request_restock',
       'inventory:approve_restock',
 
+      // Catalog - Can view and edit business catalog
+      'catalog:view_business',
+      'catalog:edit_business',
+
       // Users - Team management (no ownership changes)
       'users:view_business',
       'users:create',
@@ -800,6 +804,9 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
 
       // Products - View only
       'products:view',
+
+      // Catalog - View only (for dispatch planning)
+      'catalog:view_business',
 
       // Inventory - View for dispatch decisions
       'inventory:view_business',
@@ -878,6 +885,9 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       'products:create',
       'products:update',
 
+      // Catalog - View only (for inventory planning)
+      'catalog:view_business',
+
       // Inventory - Full warehouse access
       'inventory:view_business',
       'inventory:create',
@@ -917,6 +927,9 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
       // Products - View catalog
       'products:view',
 
+      // Catalog - View only (for sales activities)
+      'catalog:view_business',
+
       // Inventory - Read-only view
       'inventory:view_business',
       'inventory:request_restock',
@@ -955,6 +968,9 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
 
       // Products - View catalog
       'products:view',
+
+      // Catalog - View only (for customer support)
+      'catalog:view_business',
 
       // Inventory - View for customer queries
       'inventory:view_business',
