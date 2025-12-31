@@ -46,32 +46,6 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
   const userInitial = userName[0]?.toUpperCase() || 'U';
   const roleDisplay = user?.role ? roleDisplayMap[user.role] || user.role : '';
 
-  const getSettingsPath = (role?: string): string => {
-    if (!role) return '/store/profile';
-
-    switch (role) {
-      case 'superadmin':
-      case 'admin':
-        return '/admin/system-settings';
-      case 'infrastructure_owner':
-      case 'accountant':
-        return '/infrastructure/settings';
-      case 'business_owner':
-      case 'manager':
-      case 'warehouse':
-      case 'dispatcher':
-      case 'sales':
-      case 'customer_service':
-        return '/business/settings';
-      case 'driver':
-        return '/driver/profile';
-      case 'customer':
-      case 'user':
-      default:
-        return '/store/profile';
-    }
-  };
-
   const getProfilePath = (role?: string): string => {
     if (!role) return '/store/profile';
 
@@ -86,14 +60,11 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
     }
   };
 
-  const handleMenuClick = (action: 'profile' | 'settings' | 'logout') => {
+  const handleMenuClick = (action: 'profile' | 'logout') => {
     setDropdownOpen(false);
     switch (action) {
       case 'profile':
         onNavigate?.(getProfilePath(user?.role));
-        break;
-      case 'settings':
-        onNavigate?.(getSettingsPath(user?.role));
         break;
       case 'logout':
         onLogout?.();
@@ -201,20 +172,6 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
             >
               <span style={{ fontSize: '18px' }}>👤</span>
               <span>הפרופיל שלי</span>
-            </button>
-
-            <button
-              onClick={() => handleMenuClick('settings')}
-              style={menuItemStyles}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-              }}
-            >
-              <span style={{ fontSize: '18px' }}>⚙️</span>
-              <span>הגדרות</span>
             </button>
 
             <Divider spacing="xs" />

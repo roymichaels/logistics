@@ -12,6 +12,7 @@ import { Divider } from '../components/atoms/Divider';
 import { EmptyState } from '../components/molecules/EmptyState';
 import { LoadingState } from '../components/molecules/LoadingState';
 import { EditProfileModal } from '../components/organisms/EditProfileModal';
+import { SettingsModal } from '../components/organisms/SettingsModal';
 import { logger } from '../lib/logger';
 import { colors, spacing, borderRadius, shadows, typography } from '../styles/design-system';
 
@@ -29,6 +30,7 @@ export function UserProfilePage({ userId }: UserProfileProps) {
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
   const isOwnProfile = !userId || userId === currentUser?.id;
   const targetUserId = userId || currentUser?.id;
@@ -363,6 +365,31 @@ export function UserProfilePage({ userId }: UserProfileProps) {
                   size="small"
                 />
               </MetricGrid>
+
+              {isOwnProfile && (
+                <div style={{
+                  marginTop: spacing.xl,
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}>
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    onClick={() => setSettingsModalOpen(true)}
+                    style={{
+                      width: '100%',
+                      maxWidth: '300px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: spacing.sm
+                    }}
+                  >
+                    <span style={{ fontSize: '1.25rem' }}>⚙️</span>
+                    <span>Settings</span>
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </Card>
@@ -446,6 +473,11 @@ export function UserProfilePage({ userId }: UserProfileProps) {
           photo_url: user?.photo_url,
         }}
         onSave={handleSaveProfile}
+      />
+
+      <SettingsModal
+        isOpen={settingsModalOpen}
+        onClose={() => setSettingsModalOpen(false)}
       />
     </div>
   );
