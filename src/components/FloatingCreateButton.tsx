@@ -454,7 +454,7 @@ export function FloatingCreateButton({
             bottom: '96px',
             left: '50%',
             transform: 'translateX(-50%)',
-            backgroundColor: theme.bg_color,
+            backgroundColor: '#192734',
             borderRadius: '16px',
             padding: '16px',
             boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
@@ -469,7 +469,7 @@ export function FloatingCreateButton({
               textAlign: 'center',
               fontWeight: 600,
               marginBottom: '12px',
-              color: theme.text_color
+              color: '#E7E9EA'
             }}
           >
             {actionLabel}
@@ -494,9 +494,9 @@ export function FloatingCreateButton({
               >
                 <span style={{ fontSize: '24px' }}>{action.icon}</span>
                 <span style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: theme.text_color }}>{action.label}</div>
+                  <div style={{ fontWeight: 600, color: '#E7E9EA' }}>{action.label}</div>
                   {action.description && (
-                    <div style={{ fontSize: '12px', color: theme.hint_color }}>{action.description}</div>
+                    <div style={{ fontSize: '12px', color: '#8899A6' }}>{action.description}</div>
                   )}
                 </span>
               </button>
@@ -508,9 +508,9 @@ export function FloatingCreateButton({
               style={{
                 marginTop: '16px',
                 padding: '8px 12px',
-                backgroundColor: theme.secondary_bg_color,
+                backgroundColor: '#192734',
                 borderRadius: '8px',
-                color: theme.hint_color,
+                color: '#8899A6',
                 fontSize: '11px',
                 textAlign: 'center'
               }}
@@ -549,8 +549,8 @@ export function FloatingCreateButton({
             height: '62px',
             borderRadius: '50%',
             border: 'none',
-            backgroundColor: isDisabled ? `${theme.hint_color}30` : theme.button_color || '#007aff',
-            color: isDisabled ? theme.hint_color : theme.button_text_color || '#ffffff',
+            backgroundColor: isDisabled ? 'rgba(136, 153, 166, 0.3)' : '#1D9BF0',
+            color: isDisabled ? '#8899A6' : '#ffffff',
             fontSize: '26px',
             cursor: isDisabled ? 'not-allowed' : 'pointer',
             boxShadow: isDisabled ? 'none' : '0 8px 16px rgba(0,0,0,0.3)',
@@ -562,7 +562,7 @@ export function FloatingCreateButton({
         >
           {isOpen ? '×' : actionIcon}
         </button>
-        <span style={{ fontSize: '12px', color: theme.hint_color }}>{actionLabel}</span>
+        <span style={{ fontSize: '12px', color: '#8899A6' }}>{actionLabel}</span>
       </div>
     </>
   );
