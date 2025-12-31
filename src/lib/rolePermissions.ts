@@ -450,9 +450,9 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
 
   infrastructure_owner: {
     role: 'infrastructure_owner',
-    label: 'Infrastructure Owner',
-    level: 'infrastructure',
-    description: 'Owner of multiple businesses grouped as infrastructure with full access within their infrastructure',
+    label: 'Multi-Business Owner',
+    level: 'business',
+    description: 'Owner of multiple businesses with full access across all owned businesses. Uses Business Portal with multi-business features.',
     canSeeFinancials: true,
     canSeeCrossBusinessData: true,
     canSeeCrossInfrastructureData: false,
@@ -631,7 +631,7 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
     role: 'business_owner',
     label: 'Business Owner',
     level: 'business',
-    description: 'Business equity holder with full access to their business including all financial data',
+    description: 'Business equity holder with full access to their business(es) including all financial data. Can own one or multiple businesses.',
     canSeeFinancials: true,
     canSeeCrossBusinessData: false,
     permissions: [

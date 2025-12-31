@@ -1,7 +1,6 @@
 import React from 'react';
 import { UserRole } from './types';
 import { AdminShell } from './AdminShell';
-import { InfrastructureShell } from './InfrastructureShell';
 import { BusinessShell } from './BusinessShell';
 import { DriverShell } from './DriverShell';
 import { StoreShell } from './StoreShell';
@@ -15,6 +14,8 @@ interface ShellSelectorProps {
   metadata?: {
     businessName?: string;
     businessId?: string;
+    availableBusinesses?: Array<{ id: string; name: string }>;
+    onBusinessSwitch?: (businessId: string | null) => void;
     driverName?: string;
     driverEarnings?: number;
     cartItemCount?: number;
@@ -45,21 +46,9 @@ export function ShellSelector({
     );
   }
 
-  // Infrastructure Owner uses InfrastructureShell
-  if (role === 'infrastructure_owner') {
-    return (
-      <InfrastructureShell
-        onNavigate={onNavigate}
-        onLogout={onLogout}
-        currentPath={currentPath}
-      >
-        {children}
-      </InfrastructureShell>
-    );
-  }
-
-  // Business roles use BusinessShell
+  // Business roles use BusinessShell (including infrastructure_owner)
   if (
+    role === 'infrastructure_owner' ||
     role === 'business_owner' ||
     role === 'manager' ||
     role === 'warehouse' ||
@@ -75,6 +64,8 @@ export function ShellSelector({
         currentPath={currentPath}
         businessName={metadata.businessName}
         businessId={metadata.businessId}
+        availableBusinesses={metadata.availableBusinesses}
+        onBusinessSwitch={metadata.onBusinessSwitch}
       >
         {children}
       </BusinessShell>

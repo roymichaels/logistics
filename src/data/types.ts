@@ -186,6 +186,7 @@ export interface User {
   department?: string;
   phone?: string;
   business_id?: string;
+  owned_business_ids?: string[]; // For business_owner or infrastructure_owner with multiple businesses
   last_active?: string;
   wallet_address?: string;
   wallet_type?: 'ethereum' | 'solana' | 'ton';

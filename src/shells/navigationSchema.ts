@@ -220,7 +220,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/dashboard',
     icon: '📊',
     visible: true,
-    requiredRoles: ['business_owner', 'manager'] // Only roles with actual dashboards
+    requiredRoles: ['infrastructure_owner', 'business_owner', 'manager']
   },
   {
     id: 'business-businesses',
@@ -228,7 +228,25 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/businesses',
     icon: '🏢',
     visible: true,
-    requiredRoles: ['business_owner'] // Manager should NOT manage businesses
+    requiredRoles: ['infrastructure_owner', 'business_owner']
+  },
+  {
+    id: 'consolidated-reports',
+    label: 'דוחות מאוחדים',
+    path: '/business/reports',
+    icon: '📊',
+    description: 'דוחות פיננסיים של כל העסקים',
+    visible: true,
+    requiredRoles: ['infrastructure_owner', 'accountant']
+  },
+  {
+    id: 'cross-business-analytics',
+    label: 'אנליטיקה מתקדמת',
+    path: '/business/analytics',
+    icon: '📈',
+    description: 'ניתוח ביצועים בכל העסקים',
+    visible: true,
+    requiredRoles: ['infrastructure_owner', 'accountant']
   },
   {
     id: 'business-orders',
@@ -464,7 +482,6 @@ export function getShellTypeForRole(role: UserRole | null): 'admin' | 'infrastru
       return 'admin';
     case 'infrastructure_owner':
     case 'accountant':
-      return 'infrastructure';
     case 'business_owner':
     case 'manager':
     case 'warehouse':
