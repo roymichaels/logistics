@@ -111,8 +111,7 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
             photo_url: user.photo_url
           } : undefined}
           onNavigate={(page) => {
-            if (page === 'profile') navigate('/store/profile');
-            else if (page === 'settings') navigate('/settings');
+            navigate(page);
           }}
           onLogout={() => {
             localStorage.clear();
