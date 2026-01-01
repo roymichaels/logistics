@@ -16,7 +16,7 @@ const Products = React.lazy(() => import('../pages/Products').then(m => ({ defau
 const BusinessCatalog = React.lazy(() => import('../pages/BusinessCatalog').then(m => ({ default: m.BusinessCatalog || m.default })));
 const Chat = React.lazy(() => import('../pages/Chat').then(m => ({ default: m.Chat || m.default })));
 const Businesses = React.lazy(() => import('../pages/Businesses').then(m => ({ default: m.Businesses })));
-const Inventory = React.lazy(() => import('../pages/Inventory').then(m => ({ default: m.Inventory })));
+const Inventory = React.lazy(() => import('../modules/inventory/pages/UnifiedInventoryPage').then(m => ({ default: m.UnifiedInventoryPage })));
 const DispatchBoard = React.lazy(() => import('../pages/DispatchBoard').then(m => ({ default: m.DispatchBoard })));
 const DriversManagement = React.lazy(() => import('../pages/DriversManagement').then(m => ({ default: m.DriversManagement })));
 const Reports = React.lazy(() => import('../pages/Reports').then(m => ({ default: m.Reports })));

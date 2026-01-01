@@ -1,19 +1,17 @@
-import {
-  DataStore,
-  DriverInventoryRecord,
-  DriverZoneAssignment,
-  DriverStatusRecord,
-  Order,
-  DriverMovementAction
-} from '../data/types';
-import { InventoryService } from './inventoryService';
+import { logger } from './logger';
+import { DataStore, Order } from '../data/types';
+
+/**
+ * STUB: This is a temporary stub for the legacy DispatchService
+ * This stub exists only to prevent build errors in files that haven't been migrated yet.
+ */
 
 export interface DriverCandidate {
   driverId: string;
-  status: DriverStatusRecord;
-  zones: DriverZoneAssignment[];
-  inventory: DriverInventoryRecord[];
-  missingItems: { product_id: string; missing: number }[];
+  status: any;
+  zones: any[];
+  inventory: any[];
+  missingItems: any[];
   matches: boolean;
   totalInventory: number;
   score: number;
@@ -25,59 +23,20 @@ export interface DispatchEligibilityParams {
 }
 
 export class DispatchService {
-  private readonly inventoryService: InventoryService;
-
-  constructor(private dataStore: DataStore, inventoryService?: InventoryService) {
-    this.inventoryService = inventoryService ?? new InventoryService(dataStore);
+  constructor(private dataStore: DataStore) {
+    logger.warn('[DispatchService] Using legacy stub');
   }
 
   async getEligibleDrivers(params: DispatchEligibilityParams): Promise<DriverCandidate[]> {
-    const availability = await this.inventoryService.getDriverAvailability(params.items, {
-      zoneId: params.zoneId,
-      onlyOnline: true
-    });
-
-    return availability
-      .filter(candidate => candidate.matches)
-      .map(candidate => ({
-        driverId: candidate.driver.driver_id,
-        status: candidate.driver,
-        zones: candidate.zones,
-        inventory: candidate.inventory,
-        missingItems: candidate.missing_items,
-        matches: candidate.matches,
-        totalInventory: candidate.total_inventory,
-        score: candidate.score
-      }))
-      .sort((a, b) => b.score - a.score);
+    logger.warn('[DispatchService] getEligibleDrivers stub called');
+    return [];
   }
 
-  async assignOrder(order: Order, driverId: string, zoneId?: string): Promise<void> {
+  async assignOrderToDriver(orderId: string, driverId: string): Promise<void> {
+    logger.warn('[DispatchService] assignOrderToDriver stub called');
     if (!this.dataStore.updateOrder) {
-      throw new Error('Data store does not support updating orders');
+      throw new Error('Update order not available');
     }
-
-    await this.dataStore.updateOrder(order.id, {
-      status: 'assigned',
-      assigned_driver: driverId
-    });
-
-    if (this.dataStore.updateDriverStatus) {
-      await this.dataStore.updateDriverStatus({
-        driver_id: driverId,
-        status: 'delivering',
-        zone_id: typeof zoneId === 'undefined' ? undefined : zoneId,
-        note: `הזמנה ${order.id} הוקצתה`
-      });
-    }
-
-    if (this.dataStore.logDriverMovement) {
-      await this.dataStore.logDriverMovement({
-        driver_id: driverId,
-        zone_id: zoneId,
-        action: 'order_assigned' as DriverMovementAction,
-        details: `הזמנה ${order.id} הוקצתה לנהג`
-      });
-    }
+    await this.dataStore.updateOrder(orderId, { assigned_driver: driverId });
   }
 }

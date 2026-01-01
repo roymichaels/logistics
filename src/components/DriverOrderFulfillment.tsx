@@ -3,7 +3,6 @@ import { Order, DataStore, User } from '../data/types';
 import { ORDER_STATUS_COLORS } from '../styles/orderTheme';
 import { Toast } from './Toast';
 
-import { deliverOrder } from '../services/inventory';
 import { logger } from '../lib/logger';
 
 interface DriverOrderFulfillmentProps {
@@ -105,14 +104,16 @@ export function DriverOrderFulfillment({
 
     setUploadingProof(true);
     try {
-      const response = await deliverOrder({
-        orderId,
-        proofUrl: proofImage,
-      });
-
-      if (!response.success) {
-        throw new Error('המערכת לא הצליחה לעדכן את המשלוח');
+      // In frontend-only mode, update order status directly
+      if (!dataStore.updateOrder) {
+        throw new Error('Update order method not available');
       }
+
+      await dataStore.updateOrder(orderId, {
+        status: 'delivered',
+        delivered_at: new Date().toISOString(),
+        proof_image_url: proofImage || undefined
+      });
 
       Toast.success('משלוח הושלם בהצלחה! 🎉');
 
