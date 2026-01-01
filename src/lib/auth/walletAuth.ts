@@ -1,5 +1,5 @@
-// Unified wallet auth helpers (standalone; not yet wired into UI or contexts).
-// SAFE MODE: no Supabase changes, no AuthContext changes.
+// Unified wallet auth helpers for frontend-only authentication.
+// Supports Ethereum, Solana, and TON wallet connections.
 
 const SESSION_KEY = 'sxt.wallet.session';
 

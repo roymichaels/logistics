@@ -46,7 +46,7 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   // Use centralized runtime environment to check SXT mode
-  // IMPORTANT: Defaults to FALSE (Supabase) unless explicitly enabled
+  // IMPORTANT: Frontend-only mode is the default authentication method
   const useSXT = runtimeEnvironment.isSxtModeEnabled();
 
   if (useSXT) {
@@ -239,7 +239,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// Shim provider when running in SxT mode (bypass Supabase)
+// Shim provider when running in SxT mode (blockchain-based authentication)
 function SxtShimProvider({ children }: { children: React.ReactNode }) {
   const { user: sxtUser, role, isAuthenticated: sxtIsAuthenticated, isLoading: sxtIsLoading } = useSxtAuth();
   // Use centralized runtime environment to check SXT mode
