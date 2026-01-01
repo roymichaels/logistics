@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { formatCurrency, hebrew } from '../lib/i18n';
 import { Toast } from './Toast';
 
@@ -139,36 +139,36 @@ export function AnalyticsDashboard({ dataStore, user, businessId }: AnalyticsDas
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      new: ROYAL_COLORS.info,
-      confirmed: ROYAL_COLORS.success,
-      preparing: ROYAL_COLORS.warning,
-      ready: ROYAL_COLORS.accent,
-      out_for_delivery: ROYAL_COLORS.gold,
-      delivered: ROYAL_COLORS.success,
-      cancelled: ROYAL_COLORS.error
+      new: tokens.colors.status.info,
+      confirmed: tokens.colors.status.success,
+      preparing: tokens.colors.status.warning,
+      ready: tokens.colors.brand.primary,
+      out_for_delivery: tokens.colors.status.warning,
+      delivered: tokens.colors.status.success,
+      cancelled: tokens.colors.status.error
     };
-    return colors[status] || ROYAL_COLORS.muted;
+    return colors[status] || tokens.colors.text.secondary;
   };
 
   if (loading) {
     return (
-      <div style={ROYAL_STYLES.pageContainer}>
+      <div style={styles.pageContainer}>
         <div style={{ textAlign: 'center', paddingTop: '60px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-          <div style={{ color: ROYAL_COLORS.muted }}>{hebrew.loading}</div>
+          <div style={{ color: tokens.colors.text.secondary }}>{hebrew.loading}</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ ...ROYAL_STYLES.pageContainer, padding: '20px' }}>
+    <div style={{ ...styles.pageContainer, padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={ROYAL_STYLES.pageTitle}>📊 ניתוח ביצועים</h1>
+        <h1 style={styles.pageTitle}>📊 ניתוח ביצועים</h1>
         <button
           onClick={loadAnalytics}
           style={{
-            ...ROYAL_STYLES.buttonSecondary,
+            ...styles.button.secondary,
             padding: '10px 16px',
             fontSize: '14px',
             display: 'flex',
@@ -192,9 +192,9 @@ export function AnalyticsDashboard({ dataStore, user, businessId }: AnalyticsDas
             style={{
               padding: '8px 16px',
               borderRadius: '10px',
-              border: timeRange === range ? 'none' : `1px solid ${ROYAL_COLORS.cardBorder}`,
-              background: timeRange === range ? ROYAL_COLORS.gradientPurple : ROYAL_COLORS.secondary,
-              color: ROYAL_COLORS.text,
+              border: timeRange === range ? 'none' : `1px solid ${tokens.colors.background.cardBorder}`,
+              background: timeRange === range ? tokens.gradients.primary : tokens.colors.background.secondary,
+              color: tokens.colors.text.primary,
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -212,80 +212,80 @@ export function AnalyticsDashboard({ dataStore, user, businessId }: AnalyticsDas
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '20px' }}>
         <div style={{
-          ...ROYAL_STYLES.card,
-          background: `linear-gradient(135deg, ${ROYAL_COLORS.success}15, ${ROYAL_COLORS.secondary})`,
-          border: `1px solid ${ROYAL_COLORS.success}30`
+          ...styles.card,
+          background: `linear-gradient(135deg, ${tokens.colors.status.success}15, ${tokens.colors.background.secondary})`,
+          border: `1px solid ${tokens.colors.status.success}30`
         }}>
-          <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '8px', fontWeight: '500' }}>
+          <div style={{ fontSize: '14px', color: tokens.colors.text.secondary, marginBottom: '8px', fontWeight: '500' }}>
             שיעור השלמה
           </div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: ROYAL_COLORS.success }}>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: tokens.colors.status.success }}>
             {metrics.orderCompletionRate.toFixed(1)}%
           </div>
-          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginTop: '8px' }}>
+          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginTop: '8px' }}>
             מתוך כל ההזמנות
           </div>
         </div>
 
         <div style={{
-          ...ROYAL_STYLES.card,
-          background: `linear-gradient(135deg, ${ROYAL_COLORS.info}15, ${ROYAL_COLORS.secondary})`,
-          border: `1px solid ${ROYAL_COLORS.info}30`
+          ...styles.card,
+          background: `linear-gradient(135deg, ${tokens.colors.status.info}15, ${tokens.colors.background.secondary})`,
+          border: `1px solid ${tokens.colors.status.info}30`
         }}>
-          <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '8px', fontWeight: '500' }}>
+          <div style={{ fontSize: '14px', color: tokens.colors.text.secondary, marginBottom: '8px', fontWeight: '500' }}>
             זמן משלוח ממוצע
           </div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: ROYAL_COLORS.info }}>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: tokens.colors.status.info }}>
             {metrics.averageDeliveryTime}
           </div>
-          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginTop: '8px' }}>
+          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginTop: '8px' }}>
             דקות
           </div>
         </div>
 
         <div style={{
-          ...ROYAL_STYLES.card,
-          background: `linear-gradient(135deg, ${ROYAL_COLORS.gold}15, ${ROYAL_COLORS.secondary})`,
-          border: `1px solid ${ROYAL_COLORS.gold}30`
+          ...styles.card,
+          background: `linear-gradient(135deg, ${tokens.colors.status.warning}15, ${tokens.colors.background.secondary})`,
+          border: `1px solid ${tokens.colors.status.warning}30`
         }}>
-          <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '8px', fontWeight: '500' }}>
+          <div style={{ fontSize: '14px', color: tokens.colors.text.secondary, marginBottom: '8px', fontWeight: '500' }}>
             שביעות רצון
           </div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: ROYAL_COLORS.gold, textShadow: ROYAL_COLORS.glowGold }}>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: tokens.colors.status.warning, textShadow: tokens.glows.warning }}>
             {metrics.customerSatisfaction.toFixed(1)}
           </div>
-          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginTop: '8px' }}>
+          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginTop: '8px' }}>
             מתוך 5
           </div>
         </div>
 
         <div style={{
-          ...ROYAL_STYLES.card,
-          background: `linear-gradient(135deg, ${ROYAL_COLORS.accent}15, ${ROYAL_COLORS.secondary})`,
-          border: `1px solid ${ROYAL_COLORS.accent}30`
+          ...styles.card,
+          background: `linear-gradient(135deg, ${tokens.colors.brand.primary}15, ${tokens.colors.background.secondary})`,
+          border: `1px solid ${tokens.colors.brand.primary}30`
         }}>
-          <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '8px', fontWeight: '500' }}>
+          <div style={{ fontSize: '14px', color: tokens.colors.text.secondary, marginBottom: '8px', fontWeight: '500' }}>
             ניצול נהגים
           </div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: ROYAL_COLORS.accent }}>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: tokens.colors.brand.primary }}>
             {metrics.driverUtilization}%
           </div>
-          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginTop: '8px' }}>
+          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginTop: '8px' }}>
             ממוצע
           </div>
         </div>
       </div>
 
       {metrics.peakHours.length > 0 && (
-        <div style={ROYAL_STYLES.card}>
-          <h3 style={ROYAL_STYLES.cardTitle}>⏰ שעות שיא</h3>
+        <div style={styles.card}>
+          <h3 style={styles.cardTitle}>⏰ שעות שיא</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {metrics.peakHours.map(({ hour, orderCount }) => (
               <div
                 key={hour}
                 style={{
                   padding: '14px',
-                  background: ROYAL_COLORS.secondary,
+                  background: tokens.colors.background.secondary,
                   borderRadius: '12px',
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -293,15 +293,15 @@ export function AnalyticsDashboard({ dataStore, user, businessId }: AnalyticsDas
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.text }}>
+                  <div style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text.primary }}>
                     {hour.toString().padStart(2, '0')}:00 - {(hour + 1).toString().padStart(2, '0')}:00
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.accent }}>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: tokens.colors.brand.primary }}>
                     {orderCount}
                   </div>
-                  <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>הזמנות</div>
+                  <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>הזמנות</div>
                 </div>
               </div>
             ))}
@@ -310,22 +310,22 @@ export function AnalyticsDashboard({ dataStore, user, businessId }: AnalyticsDas
       )}
 
       {Object.keys(metrics.ordersByStatus).length > 0 && (
-        <div style={ROYAL_STYLES.card}>
-          <h3 style={ROYAL_STYLES.cardTitle}>📋 הזמנות לפי סטטוס</h3>
+        <div style={styles.card}>
+          <h3 style={styles.cardTitle}>📋 הזמנות לפי סטטוס</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {Object.entries(metrics.ordersByStatus).map(([status, count]) => (
               <div
                 key={status}
                 style={{
                   padding: '14px',
-                  background: ROYAL_COLORS.secondary,
+                  background: tokens.colors.background.secondary,
                   borderRadius: '12px',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center'
                 }}
               >
-                <div style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.text }}>
+                <div style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text.primary }}>
                   {getStatusLabel(status)}
                 </div>
                 <div style={{
@@ -346,8 +346,8 @@ export function AnalyticsDashboard({ dataStore, user, businessId }: AnalyticsDas
       )}
 
       {metrics.topProducts.length > 0 && (
-        <div style={ROYAL_STYLES.card}>
-          <h3 style={ROYAL_STYLES.cardTitle}>🏆 מוצרים מובילים</h3>
+        <div style={styles.card}>
+          <h3 style={styles.cardTitle}>🏆 מוצרים מובילים</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {metrics.topProducts.map((product, index) => (
               <div
@@ -355,13 +355,13 @@ export function AnalyticsDashboard({ dataStore, user, businessId }: AnalyticsDas
                 style={{
                   padding: '14px',
                   background: index < 3
-                    ? `linear-gradient(135deg, ${ROYAL_COLORS.gold}10, ${ROYAL_COLORS.secondary})`
-                    : ROYAL_COLORS.secondary,
+                    ? `linear-gradient(135deg, ${tokens.colors.status.warning}10, ${tokens.colors.background.secondary})`
+                    : tokens.colors.background.secondary,
                   borderRadius: '12px',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  border: index < 3 ? `1px solid ${ROYAL_COLORS.gold}30` : 'none'
+                  border: index < 3 ? `1px solid ${tokens.colors.status.warning}30` : 'none'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -369,26 +369,26 @@ export function AnalyticsDashboard({ dataStore, user, businessId }: AnalyticsDas
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
-                    background: index < 3 ? ROYAL_COLORS.gradientGold : ROYAL_COLORS.card,
+                    background: index < 3 ? tokens.gradients.warning : tokens.colors.background.card,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: '14px',
                     fontWeight: '700',
-                    color: index < 3 ? '#1a0a00' : ROYAL_COLORS.text
+                    color: index < 3 ? '#1a0a00' : tokens.colors.text.primary
                   }}>
                     {index + 1}
                   </div>
                   <div>
-                    <div style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '2px' }}>
+                    <div style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '2px' }}>
                       {product.name}
                     </div>
-                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                    <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
                       {product.quantity} יחידות נמכרו
                     </div>
                   </div>
                 </div>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: index < 3 ? ROYAL_COLORS.gold : ROYAL_COLORS.text }}>
+                <div style={{ fontSize: '16px', fontWeight: '700', color: index < 3 ? tokens.colors.status.warning : tokens.colors.text.primary }}>
                   {formatCurrency(product.revenue)}
                 </div>
               </div>
@@ -397,34 +397,34 @@ export function AnalyticsDashboard({ dataStore, user, businessId }: AnalyticsDas
         </div>
       )}
 
-      <div style={ROYAL_STYLES.card}>
-        <h3 style={ROYAL_STYLES.cardTitle}>💡 המלצות</h3>
+      <div style={styles.card}>
+        <h3 style={styles.cardTitle}>💡 המלצות</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {metrics.orderCompletionRate < 90 && (
-            <div style={{ padding: '16px', background: `${ROYAL_COLORS.warning}10`, border: `1px solid ${ROYAL_COLORS.warning}30`, borderRadius: '12px' }}>
-              <div style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.warning, marginBottom: '8px' }}>
+            <div style={{ padding: '16px', background: `${tokens.colors.status.warning}10`, border: `1px solid ${tokens.colors.status.warning}30`, borderRadius: '12px' }}>
+              <div style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.status.warning, marginBottom: '8px' }}>
                 ⚠️ שיעור השלמה נמוך
               </div>
-              <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, lineHeight: '1.5' }}>
+              <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, lineHeight: '1.5' }}>
                 שקול לבחון את תהליכי האספקה ולייעל את תיאום הנהגים
               </div>
             </div>
           )}
           {metrics.driverUtilization < 70 && (
-            <div style={{ padding: '16px', background: `${ROYAL_COLORS.info}10`, border: `1px solid ${ROYAL_COLORS.info}30`, borderRadius: '12px' }}>
-              <div style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.info, marginBottom: '8px' }}>
+            <div style={{ padding: '16px', background: `${tokens.colors.status.info}10`, border: `1px solid ${tokens.colors.status.info}30`, borderRadius: '12px' }}>
+              <div style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.status.info, marginBottom: '8px' }}>
                 ℹ️ ניצול נמוך של נהגים
               </div>
-              <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, lineHeight: '1.5' }}>
+              <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, lineHeight: '1.5' }}>
                 אפשר לייעל את חלוקת המשימות בין הנהגים
               </div>
             </div>
           )}
-          <div style={{ padding: '16px', background: `${ROYAL_COLORS.success}10`, border: `1px solid ${ROYAL_COLORS.success}30`, borderRadius: '12px' }}>
-            <div style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.success, marginBottom: '8px' }}>
+          <div style={{ padding: '16px', background: `${tokens.colors.status.success}10`, border: `1px solid ${tokens.colors.status.success}30`, borderRadius: '12px' }}>
+            <div style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.status.success, marginBottom: '8px' }}>
               ✅ ביצועים טובים
               </div>
-            <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, lineHeight: '1.5' }}>
+            <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, lineHeight: '1.5' }}>
               המערכת פועלת ביעילות, המשך לעקוב אחר המגמות
             </div>
           </div>

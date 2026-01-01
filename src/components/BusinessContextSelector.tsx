@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, User, UserBusinessAccess } from '../data/types';
-import { ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens } from '../styles/tokens';
 import { hebrew } from '../lib/i18n';
 import { Toast } from './Toast';
 import { logger } from '../lib/logger';
@@ -244,24 +244,24 @@ const styles = {
   },
   loader: {
     padding: '12px 16px',
-    color: ROYAL_COLORS.muted,
+    color: tokens.colors.text.secondary,
     fontSize: '14px'
   },
   singleBusiness: {
     display: 'flex',
     alignItems: 'center',
     padding: '8px 12px',
-    backgroundColor: ROYAL_COLORS.cardBg,
+    backgroundColor: tokens.colors.background.cardBg,
     borderRadius: '8px',
-    border: `1px solid ${ROYAL_COLORS.border}`
+    border: `1px solid ${tokens.colors.border.default}`
   },
   selector: {
     display: 'flex',
     alignItems: 'center',
     padding: '8px 12px',
-    backgroundColor: ROYAL_COLORS.cardBg,
+    backgroundColor: tokens.colors.background.cardBg,
     borderRadius: '8px',
-    border: `1px solid ${ROYAL_COLORS.border}`,
+    border: `1px solid ${tokens.colors.border.default}`,
     cursor: 'pointer',
     transition: 'all 0.2s ease'
   },
@@ -276,23 +276,23 @@ const styles = {
   businessName: {
     fontSize: '14px',
     fontWeight: 600,
-    color: ROYAL_COLORS.text,
+    color: tokens.colors.text.primary,
     whiteSpace: 'nowrap' as const,
     overflow: 'hidden',
     textOverflow: 'ellipsis'
   },
   businessRole: {
     fontSize: '12px',
-    color: ROYAL_COLORS.muted,
+    color: tokens.colors.text.secondary,
     marginTop: '2px'
   },
   ownership: {
-    color: ROYAL_COLORS.gold,
+    color: tokens.colors.status.warning,
     fontWeight: 600
   },
   arrow: {
     fontSize: '10px',
-    color: ROYAL_COLORS.muted,
+    color: tokens.colors.text.secondary,
     marginLeft: '8px'
   },
   dropdown: {
@@ -300,10 +300,10 @@ const styles = {
     top: 'calc(100% + 4px)',
     left: 0,
     right: 0,
-    backgroundColor: ROYAL_COLORS.cardBg,
+    backgroundColor: tokens.colors.background.cardBg,
     borderRadius: '8px',
-    border: `1px solid ${ROYAL_COLORS.border}`,
-    boxShadow: ROYAL_COLORS.shadowStrong,
+    border: `1px solid ${tokens.colors.border.default}`,
+    boxShadow: tokens.shadows.mdStrong,
     maxHeight: '300px',
     overflowY: 'auto' as const,
     zIndex: 1000
@@ -315,7 +315,7 @@ const styles = {
     padding: '12px 16px',
     cursor: 'pointer',
     transition: 'background-color 0.2s ease',
-    borderBottom: `1px solid ${ROYAL_COLORS.border}`
+    borderBottom: `1px solid ${tokens.colors.border.default}`
   },
   dropdownItemActive: {
     backgroundColor: `rgba(246, 201, 69, 0.15)`
@@ -327,7 +327,7 @@ const styles = {
   dropdownBusinessName: {
     fontSize: '14px',
     fontWeight: 600,
-    color: ROYAL_COLORS.text,
+    color: tokens.colors.text.primary,
     marginBottom: '4px',
     display: 'flex',
     alignItems: 'center',
@@ -335,19 +335,19 @@ const styles = {
   },
   dropdownBusinessRole: {
     fontSize: '12px',
-    color: ROYAL_COLORS.muted
+    color: tokens.colors.text.secondary
   },
   primaryBadge: {
     fontSize: '10px',
     padding: '2px 6px',
-    backgroundColor: ROYAL_COLORS.gold,
-    color: ROYAL_COLORS.backgroundSolid,
+    backgroundColor: tokens.colors.status.warning,
+    color: tokens.colors.background.primarySolid,
     borderRadius: '4px',
     fontWeight: 600
   },
   checkmark: {
     fontSize: '16px',
-    color: ROYAL_COLORS.gold,
+    color: tokens.colors.status.warning,
     marginLeft: '12px'
   }
 };

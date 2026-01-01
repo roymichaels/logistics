@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore } from '../data/types';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { Toast } from './Toast';
 import { logger } from '../lib/logger';
 
@@ -96,15 +96,15 @@ export function AuditLogViewer({ dataStore, targetUserId, limitRecords = 50 }: A
     switch (actionType) {
       case 'user_approved':
       case 'user_reactivated':
-        return ROYAL_COLORS.emerald;
+        return tokens.colors.status.success;
       case 'user_rejected':
       case 'user_suspended':
-        return ROYAL_COLORS.crimson;
+        return tokens.colors.status.error;
       case 'role_change':
       case 'permissions_changed':
-        return ROYAL_COLORS.accent;
+        return tokens.colors.brand.primary;
       default:
-        return ROYAL_COLORS.teal;
+        return tokens.colors.brand.primary;
     }
   };
 
@@ -123,19 +123,19 @@ export function AuditLogViewer({ dataStore, targetUserId, limitRecords = 50 }: A
 
   if (loading) {
     return (
-      <div style={ROYAL_STYLES.card}>
+      <div style={styles.card}>
         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>טוען יומן פעולות...</p>
+          <p style={{ color: tokens.colors.text.secondary }}>טוען יומן פעולות...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={ROYAL_STYLES.card}>
+    <div style={styles.card}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h3 style={{ margin: 0, fontSize: '18px', color: ROYAL_COLORS.text }}>
+        <h3 style={{ margin: 0, fontSize: '18px', color: tokens.colors.text.primary }}>
           יומן פעולות ({filteredLogs.length})
         </h3>
         <select
@@ -144,9 +144,9 @@ export function AuditLogViewer({ dataStore, targetUserId, limitRecords = 50 }: A
           style={{
             padding: '8px 12px',
             borderRadius: '8px',
-            border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-            background: ROYAL_COLORS.card,
-            color: ROYAL_COLORS.text,
+            border: `1px solid ${tokens.colors.background.cardBorder}`,
+            background: tokens.colors.background.card,
+            color: tokens.colors.text.primary,
             fontSize: '12px',
             cursor: 'pointer'
           }}
@@ -159,12 +159,12 @@ export function AuditLogViewer({ dataStore, targetUserId, limitRecords = 50 }: A
       </div>
 
       {filteredLogs.length === 0 ? (
-        <div style={ROYAL_STYLES.emptyState}>
-          <div style={ROYAL_STYLES.emptyStateIcon}>📋</div>
-          <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text }}>
+        <div style={styles.emptyState.container}>
+          <div style={styles.emptyState.containerIcon}>📋</div>
+          <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text.primary }}>
             אין רשומות
           </h3>
-          <div style={ROYAL_STYLES.emptyStateText}>
+          <div style={styles.emptyState.containerText}>
             יומן הפעולות ריק
           </div>
         </div>
@@ -177,7 +177,7 @@ export function AuditLogViewer({ dataStore, targetUserId, limitRecords = 50 }: A
                 padding: '16px',
                 borderRadius: '12px',
                 background: 'rgba(255, 255, 255, 0.03)',
-                border: `1px solid ${ROYAL_COLORS.cardBorder}`
+                border: `1px solid ${tokens.colors.background.cardBorder}`
               }}
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
@@ -208,7 +208,7 @@ export function AuditLogViewer({ dataStore, targetUserId, limitRecords = 50 }: A
                   }}>
                     {getActionLabel(log.action_type)}
                   </div>
-                  <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                  <div style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '4px' }}>
                     <strong>{log.actor_name || log.actor_id}</strong>
                     {log.target_user_name && (
                       <>
@@ -218,17 +218,17 @@ export function AuditLogViewer({ dataStore, targetUserId, limitRecords = 50 }: A
                     )}
                   </div>
                   {(log.old_role || log.new_role) && (
-                    <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                    <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
                       {log.old_role && `מ-${log.old_role} `}
                       {log.new_role && `ל-${log.new_role}`}
                     </div>
                   )}
                   {log.notes && (
-                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginTop: '8px', fontStyle: 'italic' }}>
+                    <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginTop: '8px', fontStyle: 'italic' }}>
                       {log.notes}
                     </div>
                   )}
-                  <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted, marginTop: '8px' }}>
+                  <div style={{ fontSize: '11px', color: tokens.colors.text.secondary, marginTop: '8px' }}>
                     {new Date(log.created_at).toLocaleString('he-IL', {
                       year: 'numeric',
                       month: '2-digit',

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens } from '../styles/tokens';
 import { Toast } from './Toast';
 import { logger } from '../lib/logger';
 import { getUnifiedDataStore } from '../lib/storage/UnifiedDataStore';
@@ -157,8 +157,8 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
 
       <div
         style={{
-          background: ROYAL_COLORS.cardBg,
-          border: `1px solid ${ROYAL_COLORS.border}`,
+          background: tokens.colors.background.cardBg,
+          border: `1px solid ${tokens.colors.border.default}`,
           borderRadius: '20px',
           maxWidth: '600px',
           width: '100%',
@@ -166,7 +166,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: ROYAL_COLORS.glowPrimaryStrong,
+          boxShadow: tokens.glows.primaryStrong,
           animation: 'slideUp 0.3s ease-out',
           direction: 'rtl'
         }}
@@ -175,7 +175,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
         <div
           style={{
             padding: '24px',
-            borderBottom: `1px solid ${ROYAL_COLORS.border}`,
+            borderBottom: `1px solid ${tokens.colors.border.default}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between'
@@ -189,7 +189,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   margin: 0,
                   fontSize: '24px',
                   fontWeight: '700',
-                  color: ROYAL_COLORS.text
+                  color: tokens.colors.text.primary
                 }}
               >
                 הצטרף כנהג
@@ -198,7 +198,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                 style={{
                   margin: 0,
                   fontSize: '14px',
-                  color: ROYAL_COLORS.muted,
+                  color: tokens.colors.text.secondary,
                   marginTop: '4px'
                 }}
               >
@@ -213,16 +213,16 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
               border: 'none',
               fontSize: '28px',
               cursor: 'pointer',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               padding: '4px',
               lineHeight: 1,
               transition: 'color 0.2s ease'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = ROYAL_COLORS.text;
+              e.currentTarget.style.color = tokens.colors.text.primary;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.color = ROYAL_COLORS.muted;
+              e.currentTarget.style.color = tokens.colors.text.secondary;
             }}
           >
             ×
@@ -246,7 +246,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text
+                  color: tokens.colors.text.primary
                 }}
               >
                 סוג הרכב <span style={{ color: '#ff6b8a' }}>*</span>
@@ -269,10 +269,10 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                         padding: '14px',
                         background: isSelected
                           ? 'linear-gradient(135deg, rgba(77, 208, 225, 0.3), rgba(77, 208, 225, 0.1))'
-                          : ROYAL_COLORS.secondary,
+                          : tokens.colors.background.secondary,
                         border: isSelected
                           ? '2px solid #4dd0e1'
-                          : `1px solid ${ROYAL_COLORS.cardBorder}`,
+                          : `1px solid ${tokens.colors.background.cardBorder}`,
                         borderRadius: '12px',
                         cursor: 'pointer',
                         display: 'flex',
@@ -288,7 +288,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                         style={{
                           fontSize: '14px',
                           fontWeight: '600',
-                          color: ROYAL_COLORS.text
+                          color: tokens.colors.text.primary
                         }}
                       >
                         {vehicle.label}
@@ -307,7 +307,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text
+                  color: tokens.colors.text.primary
                 }}
               >
                 מספר רישיון נהיגה <span style={{ color: '#ff6b8a' }}>*</span>
@@ -320,20 +320,20 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                 style={{
                   width: '100%',
                   padding: '12px 16px',
-                  background: ROYAL_COLORS.secondary,
-                  border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                  background: tokens.colors.background.secondary,
+                  border: `1px solid ${tokens.colors.background.cardBorder}`,
                   borderRadius: '12px',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   fontSize: '15px',
                   fontFamily: 'inherit',
                   outline: 'none',
                   transition: 'border-color 0.2s ease'
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = ROYAL_COLORS.primary;
+                  e.currentTarget.style.borderColor = tokens.colors.brand.primary;
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorder;
+                  e.currentTarget.style.borderColor = tokens.colors.background.cardBorder;
                 }}
               />
             </div>
@@ -346,7 +346,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text
+                  color: tokens.colors.text.primary
                 }}
               >
                 מספר טלפון <span style={{ color: '#ff6b8a' }}>*</span>
@@ -359,20 +359,20 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                 style={{
                   width: '100%',
                   padding: '12px 16px',
-                  background: ROYAL_COLORS.secondary,
-                  border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                  background: tokens.colors.background.secondary,
+                  border: `1px solid ${tokens.colors.background.cardBorder}`,
                   borderRadius: '12px',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   fontSize: '15px',
                   fontFamily: 'inherit',
                   outline: 'none',
                   transition: 'border-color 0.2s ease'
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = ROYAL_COLORS.primary;
+                  e.currentTarget.style.borderColor = tokens.colors.brand.primary;
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorder;
+                  e.currentTarget.style.borderColor = tokens.colors.background.cardBorder;
                 }}
               />
             </div>
@@ -385,7 +385,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text
+                  color: tokens.colors.text.primary
                 }}
               >
                 זמינות <span style={{ color: '#ff6b8a' }}>*</span>
@@ -402,16 +402,16 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                         padding: '12px 16px',
                         background: isSelected
                           ? 'linear-gradient(135deg, rgba(77, 208, 225, 0.3), rgba(77, 208, 225, 0.1))'
-                          : ROYAL_COLORS.secondary,
+                          : tokens.colors.background.secondary,
                         border: isSelected
                           ? '2px solid #4dd0e1'
-                          : `1px solid ${ROYAL_COLORS.cardBorder}`,
+                          : `1px solid ${tokens.colors.background.cardBorder}`,
                         borderRadius: '12px',
                         cursor: 'pointer',
                         textAlign: 'right',
                         fontSize: '15px',
                         fontWeight: '600',
-                        color: ROYAL_COLORS.text,
+                        color: tokens.colors.text.primary,
                         transition: 'all 0.2s ease',
                         fontFamily: 'inherit'
                       }}
@@ -431,7 +431,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text
+                  color: tokens.colors.text.primary
                 }}
               >
                 הערות נוספות (אופציונלי)
@@ -444,10 +444,10 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                 style={{
                   width: '100%',
                   padding: '12px 16px',
-                  background: ROYAL_COLORS.secondary,
-                  border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                  background: tokens.colors.background.secondary,
+                  border: `1px solid ${tokens.colors.background.cardBorder}`,
                   borderRadius: '12px',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   fontSize: '15px',
                   fontFamily: 'inherit',
                   outline: 'none',
@@ -455,10 +455,10 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   transition: 'border-color 0.2s ease'
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = ROYAL_COLORS.primary;
+                  e.currentTarget.style.borderColor = tokens.colors.brand.primary;
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorder;
+                  e.currentTarget.style.borderColor = tokens.colors.background.cardBorder;
                 }}
               />
             </div>
@@ -481,7 +481,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   style={{
                     margin: 0,
                     fontSize: '13px',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                     lineHeight: '1.6'
                   }}
                 >
@@ -496,7 +496,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
         <div
           style={{
             padding: '20px',
-            borderTop: `1px solid ${ROYAL_COLORS.border}`,
+            borderTop: `1px solid ${tokens.colors.border.default}`,
             display: 'flex',
             gap: '12px'
           }}
@@ -508,7 +508,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
               flex: 1,
               padding: '14px',
               background: submitting
-                ? ROYAL_COLORS.secondary
+                ? tokens.colors.background.secondary
                 : 'linear-gradient(135deg, #4dd0e1, #00acc1)',
               border: 'none',
               borderRadius: '12px',
@@ -541,9 +541,9 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
             style={{
               padding: '14px 24px',
               background: 'transparent',
-              border: `1px solid ${ROYAL_COLORS.border}`,
+              border: `1px solid ${tokens.colors.border.default}`,
               borderRadius: '12px',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               fontSize: '16px',
               fontWeight: '600',
               cursor: submitting ? 'not-allowed' : 'pointer',
@@ -553,14 +553,14 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
             }}
             onMouseEnter={(e) => {
               if (!submitting) {
-                e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorderHover;
-                e.currentTarget.style.color = ROYAL_COLORS.text;
+                e.currentTarget.style.borderColor = tokens.colors.background.cardBorderHover;
+                e.currentTarget.style.color = tokens.colors.text.primary;
               }
             }}
             onMouseLeave={(e) => {
               if (!submitting) {
-                e.currentTarget.style.borderColor = ROYAL_COLORS.border;
-                e.currentTarget.style.color = ROYAL_COLORS.muted;
+                e.currentTarget.style.borderColor = tokens.colors.border.default;
+                e.currentTarget.style.color = tokens.colors.text.secondary;
               }
             }}
           >
