@@ -3,6 +3,7 @@ export * from './useBusinessDataRefetch';
 export * from './useCart';
 export * from './useCollapse';
 export * from './useCompactMode';
+export * from './useDashboardData';
 export * from './useDataFetch';
 export * from './useDataLoader';
 export * from './useDrawerController';
