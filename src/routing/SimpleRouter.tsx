@@ -11,7 +11,7 @@ import { PageGuard } from '../components/guards/PageGuard';
 
 const LandingPage = React.lazy(() => import('../pages/LandingPage').then(m => ({ default: m.LandingPage || m.default })));
 const Dashboard = React.lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard || m.default })));
-const Orders = React.lazy(() => import('../pages/Orders').then(m => ({ default: m.Orders || m.default })));
+const Orders = React.lazy(() => import('../modules/orders/pages/UnifiedOrdersPage').then(m => ({ default: m.UnifiedOrdersPage })));
 const Products = React.lazy(() => import('../pages/Products').then(m => ({ default: m.Products || m.default })));
 const BusinessCatalog = React.lazy(() => import('../pages/BusinessCatalog').then(m => ({ default: m.BusinessCatalog || m.default })));
 const Chat = React.lazy(() => import('../pages/Chat').then(m => ({ default: m.Chat || m.default })));
