@@ -1,10 +1,19 @@
 import { FrontendDataStore } from '../../lib/frontendDataStore';
 import { OrderRepository } from '../../data/repositories/OrderRepository';
+import { InventoryRepository } from '../../data/repositories/InventoryRepository';
+import { DriverRepository } from '../../data/repositories/DriverRepository';
+import { ZoneRepository } from '../../data/repositories/ZoneRepository';
 import { IOrderRepository } from '../../domain/orders/repositories/IOrderRepository';
+import { IInventoryRepository } from '../../domain/inventory/repositories/IInventoryRepository';
+import { IDriverRepository } from '../../domain/drivers/repositories/IDriverRepository';
+import { IZoneRepository } from '../../domain/zones/repositories/IZoneRepository';
 
 export interface ServiceContainer {
   dataStore: FrontendDataStore;
   orderRepository: IOrderRepository;
+  inventoryRepository: IInventoryRepository;
+  driverRepository: IDriverRepository;
+  zoneRepository: IZoneRepository;
 }
 
 let container: ServiceContainer | null = null;
@@ -15,10 +24,16 @@ export function createServiceContainer(dataStore: FrontendDataStore): ServiceCon
   }
 
   const orderRepository = new OrderRepository(dataStore);
+  const inventoryRepository = new InventoryRepository(dataStore);
+  const driverRepository = new DriverRepository(dataStore);
+  const zoneRepository = new ZoneRepository(dataStore);
 
   container = {
     dataStore,
     orderRepository,
+    inventoryRepository,
+    driverRepository,
+    zoneRepository,
   };
 
   return container;
