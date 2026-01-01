@@ -245,8 +245,8 @@ export function getNavigationConfig(
             <NavItem
               icon="📈"
               label="My Stats"
-              active={isActive('/my-stats')}
-              onClick={() => onNavigate('/my-stats')}
+              active={isActive('/business/analytics')}
+              onClick={() => onNavigate('/business/analytics')}
             />
           </div>
         ),
@@ -288,10 +288,16 @@ export function getNavigationConfig(
         sidebar: (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <NavItem
-              icon="📊"
-              label="Analytics"
-              active={isActive('/admin/analytics')}
-              onClick={() => onNavigate('/admin/analytics')}
+              icon="🌐"
+              label="Platform Dashboard"
+              active={isActive('/admin/platform-dashboard')}
+              onClick={() => onNavigate('/admin/platform-dashboard')}
+            />
+            <NavItem
+              icon="🏗️"
+              label="Infrastructures"
+              active={isActive('/admin/infrastructures')}
+              onClick={() => onNavigate('/admin/infrastructures')}
             />
             <NavItem
               icon="🏢"
@@ -306,11 +312,61 @@ export function getNavigationConfig(
               onClick={() => onNavigate('/admin/users')}
             />
             <NavItem
+              icon="📊"
+              label="Analytics"
+              active={isActive('/admin/analytics')}
+              onClick={() => onNavigate('/admin/analytics')}
+            />
+            <NavItem
               icon="📋"
               label="Orders"
-              active={isActive('/business/orders')}
-              onClick={() => onNavigate('/business/orders')}
+              active={isActive('/admin/orders')}
+              onClick={() => onNavigate('/admin/orders')}
             />
+            <NavItem
+              icon="🚗"
+              label="Drivers"
+              active={isActive('/admin/drivers')}
+              onClick={() => onNavigate('/admin/drivers')}
+            />
+            <NavItem
+              icon="📦"
+              label="Platform Catalog"
+              active={isActive('/admin/platform-catalog')}
+              onClick={() => onNavigate('/admin/platform-catalog')}
+            />
+            <NavItem
+              icon="🔐"
+              label="Permissions"
+              active={isActive('/admin/permissions')}
+              onClick={() => onNavigate('/admin/permissions')}
+            />
+            <NavItem
+              icon="⚙️"
+              label="Settings"
+              active={isActive('/admin/system-settings')}
+              onClick={() => onNavigate('/admin/system-settings')}
+            />
+            <NavItem
+              icon="📜"
+              label="Audit Logs"
+              active={isActive('/admin/logs')}
+              onClick={() => onNavigate('/admin/logs')}
+            />
+            <NavItem
+              icon="🚩"
+              label="Feature Flags"
+              active={isActive('/admin/feature-flags')}
+              onClick={() => onNavigate('/admin/feature-flags')}
+            />
+            {role === 'superadmin' && (
+              <NavItem
+                icon="👑"
+                label="Super Admins"
+                active={isActive('/admin/superadmins')}
+                onClick={() => onNavigate('/admin/superadmins')}
+              />
+            )}
           </div>
         ),
         bottomNav: null,

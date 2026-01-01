@@ -81,7 +81,19 @@ type Page =
   | 'catalog'
   | 'sandbox'
   | 'start-new'
-  | 'kyc';
+  | 'kyc'
+  | 'platform-dashboard'
+  | 'infrastructures'
+  | 'admin-businesses'
+  | 'admin-analytics'
+  | 'admin-orders'
+  | 'admin-drivers'
+  | 'platform-catalog'
+  | 'admin-permissions'
+  | 'admin-settings'
+  | 'audit-logs'
+  | 'feature-flags'
+  | 'superadmins';
 
 export default function App() {
   // Use centralized runtime environment to check SXT mode
@@ -158,6 +170,18 @@ export default function App() {
     sandbox: '/sandbox',
     'start-new': '/start-new',
     kyc: '/store/kyc',
+    'platform-dashboard': '/admin/platform-dashboard',
+    'infrastructures': '/admin/infrastructures',
+    'admin-businesses': '/admin/businesses',
+    'admin-analytics': '/admin/analytics',
+    'admin-orders': '/admin/orders',
+    'admin-drivers': '/admin/drivers',
+    'platform-catalog': '/admin/platform-catalog',
+    'admin-permissions': '/admin/permissions',
+    'admin-settings': '/admin/system-settings',
+    'audit-logs': '/admin/logs',
+    'feature-flags': '/admin/feature-flags',
+    'superadmins': '/admin/superadmins',
   };
 
   const pathToPage = useMemo(() => {

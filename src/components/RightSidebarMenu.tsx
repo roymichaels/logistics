@@ -14,7 +14,7 @@ interface MenuItem {
 interface RightSidebarMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  userRole: 'infrastructure_owner' | 'business_owner' | 'manager' | 'driver' | 'warehouse' | 'sales' | 'dispatcher' | 'customer_service' | null;
+  userRole: 'admin' | 'superadmin' | 'infrastructure_owner' | 'business_owner' | 'manager' | 'driver' | 'warehouse' | 'sales' | 'dispatcher' | 'customer_service' | null;
   currentPage: string;
   onNavigate: (page: string) => void;
 }
@@ -30,6 +30,35 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
     const t = i18n.getTranslations();
 
     const menuMap: Record<string, MenuItem[]> = {
+      admin: [
+        { id: 'platform-dashboard', label: 'Platform Dashboard', icon: '🌐', page: 'platform-dashboard' },
+        { id: 'infrastructures', label: 'Infrastructures', icon: '🏗️', page: 'infrastructures' },
+        { id: 'businesses', label: 'All Businesses', icon: '🏢', page: 'admin-businesses' },
+        { id: 'users', label: 'All Users', icon: '👥', page: 'user-management' },
+        { id: 'analytics', label: 'Platform Analytics', icon: '📊', page: 'admin-analytics' },
+        { id: 'orders', label: 'All Orders', icon: '📋', page: 'admin-orders' },
+        { id: 'drivers', label: 'All Drivers', icon: '🚗', page: 'admin-drivers' },
+        { id: 'catalog', label: 'Platform Catalog', icon: '📦', page: 'platform-catalog' },
+        { id: 'permissions', label: 'Permissions', icon: '🔐', page: 'admin-permissions' },
+        { id: 'settings', label: 'System Settings', icon: '⚙️', page: 'admin-settings' },
+        { id: 'logs', label: 'Audit Logs', icon: '📜', page: 'audit-logs' },
+        { id: 'feature-flags', label: 'Feature Flags', icon: '🚩', page: 'feature-flags' }
+      ],
+      superadmin: [
+        { id: 'platform-dashboard', label: 'Platform Dashboard', icon: '🌐', page: 'platform-dashboard' },
+        { id: 'infrastructures', label: 'Infrastructures', icon: '🏗️', page: 'infrastructures' },
+        { id: 'businesses', label: 'All Businesses', icon: '🏢', page: 'admin-businesses' },
+        { id: 'users', label: 'All Users', icon: '👥', page: 'user-management' },
+        { id: 'analytics', label: 'Platform Analytics', icon: '📊', page: 'admin-analytics' },
+        { id: 'orders', label: 'All Orders', icon: '📋', page: 'admin-orders' },
+        { id: 'drivers', label: 'All Drivers', icon: '🚗', page: 'admin-drivers' },
+        { id: 'catalog', label: 'Platform Catalog', icon: '📦', page: 'platform-catalog' },
+        { id: 'permissions', label: 'Permissions', icon: '🔐', page: 'admin-permissions' },
+        { id: 'settings', label: 'System Settings', icon: '⚙️', page: 'admin-settings' },
+        { id: 'logs', label: 'Audit Logs', icon: '📜', page: 'audit-logs' },
+        { id: 'feature-flags', label: 'Feature Flags', icon: '🚩', page: 'feature-flags' },
+        { id: 'superadmins', label: 'Super Admins', icon: '👑', page: 'superadmins' }
+      ],
       infrastructure_owner: [
         { id: 'dashboard', label: t.dashboard, icon: '🏠', page: 'dashboard' },
         { id: 'orders', label: t.orders, icon: '📦', page: 'orders' },
@@ -106,6 +135,8 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
   const getRoleLabel = (): string => {
     const t = i18n.getTranslations();
     switch (userRole) {
+      case 'superadmin': return 'Super Administrator';
+      case 'admin': return 'Platform Administrator';
       case 'infrastructure_owner': return t.roles.infrastructureOwner;
       case 'business_owner': return t.roles.businessOwner;
       case 'manager': return t.roles.manager;
