@@ -2,9 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useSkeleton } from '../hooks/useSkeleton';
 import { Toast } from '../components/Toast';
-import { OwnerDashboard } from '../components/OwnerDashboard';
-import { BusinessOwnerDashboard } from '../components/BusinessOwnerDashboard';
-import { ManagerDashboard } from '../components/ManagerDashboard';
+import { UnifiedDashboard } from '../components/dashboard-v2';
 import { RoleDiagnostics } from '../lib/diagnostics';
 import type { FrontendDataStore } from '../lib/frontendDataStore';
 import { registerDashboardSubscriptions } from './subscriptionHelpers';
@@ -314,22 +312,36 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
   const isBusinessOwner = user?.role === 'business_owner' || (user as any)?.global_role === 'business_owner';
 
   if (isBusinessOwner) {
-    // Business owners can use the dashboard even without business_id - it will show appropriate empty state
-    // Use currentBusinessId from context, fallback to user's business_id fields
     const businessId = currentBusinessId || user.business_id || (user as any).active_business_id || '';
 
     return (
-      <BusinessOwnerDashboard
-        businessId={businessId}
-        userId={user.id}
+      <UnifiedDashboard
+        role="business_owner"
+        dataFetcher={async () => ({
+          revenueToday: 0,
+          ordersToday: 0,
+          profitMargin: 0,
+          avgOrderValue: 0
+        })}
         onNavigate={onNavigate}
       />
     );
   }
 
-  // Manager dashboard - moved down
   if (user?.role === 'manager' || (user as any)?.global_role === 'manager') {
-    return <ManagerDashboard dataStore={dataStore} />;
+    return (
+      <UnifiedDashboard
+        role="manager"
+        dataFetcher={async () => ({
+          totalMembers: 0,
+          activeMembers: 0,
+          ordersToday: 0,
+          pendingApprovals: 0,
+          teamRevenue: 0
+        })}
+        onNavigate={onNavigate}
+      />
+    );
   }
 
   // Redirect operational roles to their specific entry points
