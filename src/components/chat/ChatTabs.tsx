@@ -1,5 +1,5 @@
 import React from 'react';
-import { ROYAL_COLORS } from '../../styles/royalTheme';
+import { tokens } from '../../styles/tokens';
 
 type ChatTab = 'conversations' | 'groups' | 'users';
 
@@ -15,7 +15,7 @@ export function ChatTabs({ activeTab, onTabChange, unreadCount = 0 }: ChatTabsPr
       display: 'flex',
       gap: '8px',
       marginBottom: '20px',
-      borderBottom: `2px solid ${ROYAL_COLORS.cardBorder}`,
+      borderBottom: `2px solid ${tokens.colors.background.cardBorder}`,
       paddingBottom: '12px'
     }}>
       <TabButton
@@ -60,10 +60,10 @@ function TabButton({
       style={{
         flex: 1,
         padding: '12px 16px',
-        background: active ? ROYAL_COLORS.gradientPurple : 'transparent',
+        background: active ? tokens.gradients.primary : 'transparent',
         border: 'none',
         borderRadius: '12px',
-        color: active ? '#fff' : ROYAL_COLORS.muted,
+        color: active ? '#fff' : tokens.colors.text.secondary,
         fontSize: '15px',
         fontWeight: '600',
         cursor: 'pointer',
@@ -72,7 +72,7 @@ function TabButton({
         justifyContent: 'center',
         gap: '8px',
         transition: 'all 0.3s ease',
-        boxShadow: active ? ROYAL_COLORS.glowPurple : 'none',
+        boxShadow: active ? tokens.glows.primary : 'none',
         position: 'relative'
       }}
     >

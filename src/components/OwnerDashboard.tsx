@@ -4,7 +4,7 @@ import { formatCurrency, hebrew } from '../lib/i18n';
 import { Toast } from './Toast';
 
 import { colors, commonStyles } from '../styles/design-system';
-import { ROYAL_STYLES, ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { FinancialDashboard } from './FinancialDashboard';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
 import { CreateBusinessModal } from './CreateBusinessModal';
@@ -667,20 +667,20 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
 
       {selectedView === 'users' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={ROYAL_STYLES.card}>
-            <h3 style={ROYAL_STYLES.cardTitle}>ניהול משתמשים</h3>
+          <div style={styles.card}>
+            <h3 style={styles.cardTitle}>ניהול משתמשים</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '20px' }}>
-              <div style={{ ...ROYAL_STYLES.statBox, background: `${ROYAL_COLORS.accent}10`, border: `1px solid ${ROYAL_COLORS.accent}30` }}>
-                <div style={{ fontSize: '36px', fontWeight: '700', color: ROYAL_COLORS.accent, marginBottom: '8px' }}>
+              <div style={{ ...styles.stat.box, background: `${tokens.colors.brand.primary}10`, border: `1px solid ${tokens.colors.brand.primary}30` }}>
+                <div style={{ fontSize: '36px', fontWeight: '700', color: tokens.colors.brand.primary, marginBottom: '8px' }}>
                   {systemMetrics.totalUsers}
                 </div>
-                <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>סך משתמשים</div>
+                <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>סך משתמשים</div>
               </div>
-              <div style={{ ...ROYAL_STYLES.statBox, background: `${ROYAL_COLORS.success}10`, border: `1px solid ${ROYAL_COLORS.success}30` }}>
-                <div style={{ fontSize: '36px', fontWeight: '700', color: ROYAL_COLORS.success, marginBottom: '8px' }}>
+              <div style={{ ...styles.stat.box, background: `${tokens.colors.status.success}10`, border: `1px solid ${tokens.colors.status.success}30` }}>
+                <div style={{ fontSize: '36px', fontWeight: '700', color: tokens.colors.status.success, marginBottom: '8px' }}>
                   {systemMetrics.activeUsers}
                 </div>
-                <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>פעילים (7 ימים)</div>
+                <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>פעילים (7 ימים)</div>
               </div>
             </div>
             <ActionButton
@@ -691,8 +691,8 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
             />
           </div>
 
-          <div style={ROYAL_STYLES.card}>
-            <h3 style={ROYAL_STYLES.cardTitle}>פעולות מהירות</h3>
+          <div style={styles.card}>
+            <h3 style={styles.cardTitle}>פעולות מהירות</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <ActionButton
                 label="הזמן משתמש חדש"
@@ -730,43 +730,43 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
 
       {selectedView === 'config' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={ROYAL_STYLES.card}>
-            <h3 style={ROYAL_STYLES.cardTitle}>⚙️ הגדרות מערכת</h3>
+          <div style={styles.card}>
+            <h3 style={styles.cardTitle}>⚙️ הגדרות מערכת</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ padding: '16px', background: ROYAL_COLORS.secondary, borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ padding: '16px', background: tokens.colors.background.secondary, borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>🔐 אבטחה</div>
-                  <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>ניהול הרשאות ואימות</div>
+                  <div style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '4px' }}>🔐 אבטחה</div>
+                  <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>ניהול הרשאות ואימות</div>
                 </div>
                 <button
                   onClick={() => Toast.info('פאנל אבטחה יתווסף בקרוב')}
-                  style={{ ...ROYAL_STYLES.buttonSecondary, padding: '8px 16px', fontSize: '14px' }}
+                  style={{ ...styles.button.secondary, padding: '8px 16px', fontSize: '14px' }}
                 >
                   הגדר →
                 </button>
               </div>
 
-              <div style={{ padding: '16px', background: ROYAL_COLORS.secondary, borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ padding: '16px', background: tokens.colors.background.secondary, borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>🔌 אינטגרציות</div>
-                  <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>חיבור למערכות חיצוניות</div>
+                  <div style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '4px' }}>🔌 אינטגרציות</div>
+                  <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>חיבור למערכות חיצוניות</div>
                 </div>
                 <button
                   onClick={() => Toast.info('ניהול אינטגרציות יתווסף בקרוב')}
-                  style={{ ...ROYAL_STYLES.buttonSecondary, padding: '8px 16px', fontSize: '14px' }}
+                  style={{ ...styles.button.secondary, padding: '8px 16px', fontSize: '14px' }}
                 >
                   הגדר →
                 </button>
               </div>
 
-              <div style={{ padding: '16px', background: ROYAL_COLORS.secondary, borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ padding: '16px', background: tokens.colors.background.secondary, borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>🔑 API Keys</div>
-                  <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>ניהול גישה למערכת</div>
+                  <div style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '4px' }}>🔑 API Keys</div>
+                  <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>ניהול גישה למערכת</div>
                 </div>
                 <button
                   onClick={() => Toast.info('ניהול API Keys יתווסף בקרוב')}
-                  style={{ ...ROYAL_STYLES.buttonSecondary, padding: '8px 16px', fontSize: '14px' }}
+                  style={{ ...styles.button.secondary, padding: '8px 16px', fontSize: '14px' }}
                 >
                   הגדר →
                 </button>
@@ -774,15 +774,15 @@ export function OwnerDashboard({ dataStore, user, onNavigate }: OwnerDashboardPr
             </div>
           </div>
 
-          <div style={ROYAL_STYLES.card}>
-            <h3 style={ROYAL_STYLES.cardTitle}>🔔 התראות מערכת</h3>
+          <div style={styles.card}>
+            <h3 style={styles.cardTitle}>🔔 התראות מערכת</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ padding: '16px', background: `${ROYAL_COLORS.success}10`, border: `1px solid ${ROYAL_COLORS.success}30`, borderRadius: '12px' }}>
+              <div style={{ padding: '16px', background: `${tokens.colors.status.success}10`, border: `1px solid ${tokens.colors.status.success}30`, borderRadius: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                   <span style={{ fontSize: '20px' }}>✅</span>
-                  <span style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.success }}>מערכת פעילה</span>
+                  <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.status.success }}>מערכת פעילה</span>
                 </div>
-                <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>כל המערכות פועלות כראוי</div>
+                <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>כל המערכות פועלות כראוי</div>
               </div>
             </div>
           </div>
@@ -845,11 +845,11 @@ function ActionButton({ label, icon, onClick, colors }: {
   colors?: any;
 }) {
   const themeColors = colors || {
-    cardBorder: ROYAL_COLORS.cardBorder,
-    secondary: ROYAL_COLORS.secondary,
-    text: ROYAL_COLORS.text,
-    accent: ROYAL_COLORS.accent,
-    muted: ROYAL_COLORS.muted
+    cardBorder: tokens.colors.background.cardBorder,
+    secondary: tokens.colors.background.secondary,
+    text: tokens.colors.text.primary,
+    accent: tokens.colors.brand.primary,
+    muted: tokens.colors.text.secondary
   };
 
   return (

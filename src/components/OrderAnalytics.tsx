@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { logger } from '../lib/logger';
 
 interface OrderAnalyticsProps {
@@ -143,43 +143,43 @@ export function OrderAnalytics({ supabase, userRole }: OrderAnalyticsProps) {
 
   if (!['owner', 'manager', 'dispatcher'].includes(userRole)) {
     return (
-      <div style={{ ...ROYAL_STYLES.pageContainer, textAlign: 'center' }}>
+      <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>🚫</div>
-        <div style={{ color: ROYAL_COLORS.error }}>אין הרשאה לצפות בנתונים אלו</div>
+        <div style={{ color: tokens.colors.status.error }}>אין הרשאה לצפות בנתונים אלו</div>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div style={{ ...ROYAL_STYLES.pageContainer, textAlign: 'center' }}>
+      <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-        <div style={{ color: ROYAL_COLORS.muted }}>טוען אנליטיקה...</div>
+        <div style={{ color: tokens.colors.text.secondary }}>טוען אנליטיקה...</div>
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div style={{ ...ROYAL_STYLES.pageContainer, textAlign: 'center' }}>
+      <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>😕</div>
-        <div style={{ color: ROYAL_COLORS.error }}>שגיאה בטעינת נתונים</div>
+        <div style={{ color: tokens.colors.status.error }}>שגיאה בטעינת נתונים</div>
       </div>
     );
   }
 
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
-      <div style={{ ...ROYAL_STYLES.pageHeader, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+    <div style={styles.pageContainer}>
+      <div style={{ ...styles.pageHeader, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <div>
-          <h1 style={ROYAL_STYLES.pageTitle}>אנליטיקת הזמנות</h1>
-          <p style={ROYAL_STYLES.pageSubtitle}>מבט מקיף על ביצועי המערכת</p>
+          <h1 style={styles.pageTitle}>אנליטיקת הזמנות</h1>
+          <p style={styles.pageSubtitle}>מבט מקיף על ביצועי המערכת</p>
         </div>
         <select
           value={timeRange}
           onChange={(e) => setTimeRange(e.target.value as any)}
           style={{
-            ...ROYAL_STYLES.input,
+            ...styles.input,
             width: 'auto',
             padding: '10px 16px'
           }}
@@ -192,64 +192,64 @@ export function OrderAnalytics({ supabase, userRole }: OrderAnalyticsProps) {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={ROYAL_STYLES.statValue}>{data.totalOrders}</div>
-          <div style={ROYAL_STYLES.statLabel}>סך הזמנות</div>
+        <div style={styles.stat.box}>
+          <div style={styles.stat.value}>{data.totalOrders}</div>
+          <div style={styles.stat.label}>סך הזמנות</div>
         </div>
 
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.success }}>
+        <div style={styles.stat.box}>
+          <div style={{ ...styles.stat.value, color: tokens.colors.status.success }}>
             {data.completedOrders}
           </div>
-          <div style={ROYAL_STYLES.statLabel}>הושלמו</div>
-          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginTop: '4px' }}>
+          <div style={styles.stat.label}>הושלמו</div>
+          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginTop: '4px' }}>
             {completionRate.toFixed(1)}%
           </div>
         </div>
 
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.error }}>
+        <div style={styles.stat.box}>
+          <div style={{ ...styles.stat.value, color: tokens.colors.status.error }}>
             {data.cancelledOrders}
           </div>
-          <div style={ROYAL_STYLES.statLabel}>בוטלו</div>
-          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginTop: '4px' }}>
+          <div style={styles.stat.label}>בוטלו</div>
+          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginTop: '4px' }}>
             {cancellationRate.toFixed(1)}%
           </div>
         </div>
 
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.gold }}>
+        <div style={styles.stat.box}>
+          <div style={{ ...styles.stat.value, color: tokens.colors.status.warning }}>
             ₪{data.totalRevenue.toLocaleString()}
           </div>
-          <div style={ROYAL_STYLES.statLabel}>סך הכנסות</div>
+          <div style={styles.stat.label}>סך הכנסות</div>
         </div>
 
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.info }}>
+        <div style={styles.stat.box}>
+          <div style={{ ...styles.stat.value, color: tokens.colors.status.info }}>
             ₪{data.avgOrderValue.toFixed(0)}
           </div>
-          <div style={ROYAL_STYLES.statLabel}>ממוצע הזמנה</div>
+          <div style={styles.stat.label}>ממוצע הזמנה</div>
         </div>
 
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.accentBright }}>
+        <div style={styles.stat.box}>
+          <div style={{ ...styles.stat.value, color: tokens.colors.brand.primaryBright }}>
             {data.avgDeliveryTime.toFixed(0)}<span style={{ fontSize: '16px' }}>m</span>
           </div>
-          <div style={ROYAL_STYLES.statLabel}>זמן משלוח ממוצע</div>
+          <div style={styles.stat.label}>זמן משלוח ממוצע</div>
         </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-        <div style={ROYAL_STYLES.card}>
-          <h2 style={ROYAL_STYLES.cardTitle}>הזמנות לפי סטטוס</h2>
+        <div style={styles.card}>
+          <h2 style={styles.cardTitle}>הזמנות לפי סטטוס</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {Object.entries(data.ordersByStatus).map(([status, count]) => {
               const percentage = (count / data.totalOrders) * 100;
               return (
                 <div key={status}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '14px', color: ROYAL_COLORS.text }}>{status}</span>
-                    <span style={{ fontSize: '14px', fontWeight: '700', color: ROYAL_COLORS.accent }}>
+                    <span style={{ fontSize: '14px', color: tokens.colors.text.primary }}>{status}</span>
+                    <span style={{ fontSize: '14px', fontWeight: '700', color: tokens.colors.brand.primary }}>
                       {count} ({percentage.toFixed(1)}%)
                     </span>
                   </div>
@@ -257,7 +257,7 @@ export function OrderAnalytics({ supabase, userRole }: OrderAnalyticsProps) {
                     style={{
                       width: '100%',
                       height: '8px',
-                      background: ROYAL_COLORS.secondary,
+                      background: tokens.colors.background.secondary,
                       borderRadius: '4px',
                       overflow: 'hidden'
                     }}
@@ -266,7 +266,7 @@ export function OrderAnalytics({ supabase, userRole }: OrderAnalyticsProps) {
                       style={{
                         width: `${percentage}%`,
                         height: '100%',
-                        background: ROYAL_COLORS.gradientPurple,
+                        background: tokens.gradients.primary,
                         transition: 'width 0.5s ease'
                       }}
                     />
@@ -277,10 +277,10 @@ export function OrderAnalytics({ supabase, userRole }: OrderAnalyticsProps) {
           </div>
         </div>
 
-        <div style={ROYAL_STYLES.card}>
-          <h2 style={ROYAL_STYLES.cardTitle}>נהגים מובילים</h2>
+        <div style={styles.card}>
+          <h2 style={styles.cardTitle}>נהגים מובילים</h2>
           {data.topDrivers.length === 0 ? (
-            <div style={{ textAlign: 'center', color: ROYAL_COLORS.muted, padding: '20px' }}>
+            <div style={{ textAlign: 'center', color: tokens.colors.text.secondary, padding: '20px' }}>
               אין נתונים זמינים
             </div>
           ) : (
@@ -293,9 +293,9 @@ export function OrderAnalytics({ supabase, userRole }: OrderAnalyticsProps) {
                     alignItems: 'center',
                     gap: '16px',
                     padding: '12px',
-                    background: ROYAL_COLORS.secondary,
+                    background: tokens.colors.background.secondary,
                     borderRadius: '12px',
-                    border: `1px solid ${ROYAL_COLORS.cardBorder}`
+                    border: `1px solid ${tokens.colors.background.cardBorder}`
                   }}
                 >
                   <div
@@ -303,22 +303,22 @@ export function OrderAnalytics({ supabase, userRole }: OrderAnalyticsProps) {
                       width: '40px',
                       height: '40px',
                       borderRadius: '50%',
-                      background: ROYAL_COLORS.gradientPurple,
+                      background: tokens.gradients.primary,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '18px',
                       fontWeight: '700',
-                      color: ROYAL_COLORS.textBright
+                      color: tokens.colors.text.primaryBright
                     }}
                   >
                     #{index + 1}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '16px', fontWeight: '700', color: ROYAL_COLORS.text }}>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: tokens.colors.text.primary }}>
                       {driver.driver_name}
                     </div>
-                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                    <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
                       {driver.deliveries} משלוחים • ⭐ {driver.rating.toFixed(1)}
                     </div>
                   </div>
@@ -329,8 +329,8 @@ export function OrderAnalytics({ supabase, userRole }: OrderAnalyticsProps) {
         </div>
       </div>
 
-      <div style={ROYAL_STYLES.card}>
-        <h2 style={ROYAL_STYLES.cardTitle}>הזמנות לפי שעה ביום</h2>
+      <div style={styles.card}>
+        <h2 style={styles.cardTitle}>הזמנות לפי שעה ביום</h2>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '200px', padding: '20px 0' }}>
           {data.ordersPerHour.map((item) => {
             const maxCount = Math.max(...data.ordersPerHour.map((o) => o.count));
@@ -352,7 +352,7 @@ export function OrderAnalytics({ supabase, userRole }: OrderAnalyticsProps) {
                     width: '100%',
                     height: `${height}%`,
                     minHeight: item.count > 0 ? '4px' : '0',
-                    background: ROYAL_COLORS.gradientPurple,
+                    background: tokens.gradients.primary,
                     borderRadius: '4px 4px 0 0',
                     transition: 'height 0.5s ease',
                     position: 'relative',
@@ -360,7 +360,7 @@ export function OrderAnalytics({ supabase, userRole }: OrderAnalyticsProps) {
                   }}
                   title={`${item.hour}:00 - ${item.count} הזמנות`}
                 />
-                <div style={{ fontSize: '10px', color: ROYAL_COLORS.muted }}>
+                <div style={{ fontSize: '10px', color: tokens.colors.text.secondary }}>
                   {item.hour}
                 </div>
               </div>

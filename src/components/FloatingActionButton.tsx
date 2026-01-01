@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { useAppServices } from '../context/AppServicesContext';
 import { logger } from '../lib/logger';
 import { useAuth } from '../context/AuthContext';
@@ -59,7 +59,7 @@ export function FloatingActionMenu({
         icon: '📦',
         label: 'הזמנה חדשה',
         description: 'צור הזמנה מטלגרם או ממשק',
-        color: ROYAL_COLORS.gradientPurple,
+        color: tokens.gradients.primary,
         onClick: () => {
           onClose();
           onShowModeSelector();
@@ -69,7 +69,7 @@ export function FloatingActionMenu({
         icon: '🏷️',
         label: 'מוצר חדש',
         description: 'הוסף מוצר לקטלוג',
-        color: ROYAL_COLORS.gradientSuccess,
+        color: tokens.gradients.success,
         onClick: () => {
           onClose();
           onNavigate(`${pathPrefix}products`);
@@ -79,7 +79,7 @@ export function FloatingActionMenu({
         icon: '📊',
         label: 'דוחות',
         description: 'צפה בדוחות והזמנות',
-        color: ROYAL_COLORS.gradientGold,
+        color: tokens.gradients.warning,
         onClick: () => {
           onClose();
           onNavigate(`${pathPrefix}reports`);
@@ -89,7 +89,7 @@ export function FloatingActionMenu({
         icon: '👥',
         label: 'ניהול נהגים',
         description: 'הקצאות ומעקב נהגים',
-        color: ROYAL_COLORS.gradientCrimson,
+        color: tokens.gradients.error,
         onClick: () => {
           onClose();
           onNavigate(`${pathPrefix}dispatch`);
@@ -103,7 +103,7 @@ export function FloatingActionMenu({
         icon: '💬',
         label: 'הזמנה בשיחה',
         description: 'צור הזמנה ישירות עם לקוח',
-        color: ROYAL_COLORS.gradientPurple,
+        color: tokens.gradients.primary,
         onClick: () => {
           onClose();
           onShowModeSelector();
@@ -113,7 +113,7 @@ export function FloatingActionMenu({
         icon: '🛒',
         label: 'חנות דיגיטלית',
         description: 'שלח קישור לחנות',
-        color: ROYAL_COLORS.gradientGold,
+        color: tokens.gradients.warning,
         onClick: () => {
           onClose();
           onNavigate(`${pathPrefix}products`);
@@ -123,7 +123,7 @@ export function FloatingActionMenu({
         icon: '📦',
         label: 'בדיקת מלאי',
         description: 'בדוק מלאי זמין',
-        color: ROYAL_COLORS.gradientSuccess,
+        color: tokens.gradients.success,
         onClick: () => {
           onClose();
           onNavigate(`${pathPrefix}inventory`);
@@ -133,7 +133,7 @@ export function FloatingActionMenu({
         icon: '📈',
         label: 'הביצועים שלי',
         description: 'צפה בביצועי המכירות',
-        color: ROYAL_COLORS.gradientCrimson,
+        color: tokens.gradients.error,
         onClick: () => {
           onClose();
           onNavigate('/my-stats');
@@ -147,7 +147,7 @@ export function FloatingActionMenu({
         icon: '📋',
         label: 'הקצאת הזמנה',
         description: 'הקצה הזמנה לנהג זמין',
-        color: ROYAL_COLORS.gradientPurple,
+        color: tokens.gradients.primary,
         onClick: () => {
           onClose();
           onNavigate(`${pathPrefix}dispatch`);
@@ -157,7 +157,7 @@ export function FloatingActionMenu({
         icon: '🗺️',
         label: 'כיסוי אזורי',
         description: 'צפה בכיסוי אזורים',
-        color: ROYAL_COLORS.gradientSuccess,
+        color: tokens.gradients.success,
         onClick: () => {
           onClose();
           onNavigate(`${pathPrefix}zones`);
@@ -167,7 +167,7 @@ export function FloatingActionMenu({
         icon: '🚚',
         label: 'נהגים זמינים',
         description: 'חפש נהג זמין לפי אזור',
-        color: ROYAL_COLORS.gradientGold,
+        color: tokens.gradients.warning,
         onClick: () => {
           onClose();
           onNavigate(`${pathPrefix}drivers`);
@@ -177,7 +177,7 @@ export function FloatingActionMenu({
         icon: '📦',
         label: 'הזמנות ממתינות',
         description: 'צפה בהזמנות להקצאה',
-        color: ROYAL_COLORS.gradientCrimson,
+        color: tokens.gradients.error,
         onClick: () => {
           onClose();
           onNavigate(`${pathPrefix}orders`);
@@ -191,7 +191,7 @@ export function FloatingActionMenu({
         icon: '🟢',
         label: 'שינוי סטטוס',
         description: 'עבור מקוון/לא מקוון',
-        color: ROYAL_COLORS.gradientSuccess,
+        color: tokens.gradients.success,
         onClick: () => {
           onClose();
           onNavigate('/driver/status');
@@ -201,7 +201,7 @@ export function FloatingActionMenu({
         icon: '🚚',
         label: 'המשלוחים שלי',
         description: 'צפה במשלוחים פעילים',
-        color: ROYAL_COLORS.gradientPurple,
+        color: tokens.gradients.primary,
         onClick: () => {
           onClose();
           onNavigate('/driver/deliveries');
@@ -211,7 +211,7 @@ export function FloatingActionMenu({
         icon: '📦',
         label: 'המלאי שלי',
         description: 'בדוק מלאי ברכב',
-        color: ROYAL_COLORS.gradientGold,
+        color: tokens.gradients.warning,
         onClick: () => {
           onClose();
           onNavigate('/driver/my-inventory');
@@ -221,7 +221,7 @@ export function FloatingActionMenu({
         icon: '📍',
         label: 'עדכון מיקום',
         description: 'עדכן מיקום ידני',
-        color: ROYAL_COLORS.gradientCrimson,
+        color: tokens.gradients.error,
         onClick: () => {
           onClose();
           if ('geolocation' in navigator) {
@@ -240,7 +240,7 @@ export function FloatingActionMenu({
         icon: '📷',
         label: 'סריקת קבלה',
         description: 'סרוק ברקוד להזנת מלאי',
-        color: ROYAL_COLORS.gradientPurple,
+        color: tokens.gradients.primary,
         onClick: () => {
           onClose();
           onNavigate(`${pathPrefix}incoming`);
@@ -250,7 +250,7 @@ export function FloatingActionMenu({
         icon: '🔄',
         label: 'העברת מלאי',
         description: 'העבר מלאי בין מיקומים',
-        color: ROYAL_COLORS.gradientGold,
+        color: tokens.gradients.warning,
         onClick: () => {
           onClose();
           onNavigate(`${pathPrefix}inventory`);
@@ -260,7 +260,7 @@ export function FloatingActionMenu({
         icon: '📋',
         label: 'ספירת מלאי',
         description: 'בצע ספירה מדגמית',
-        color: ROYAL_COLORS.gradientSuccess,
+        color: tokens.gradients.success,
         onClick: () => {
           onClose();
           onNavigate(`${pathPrefix}warehouse`);
@@ -270,7 +270,7 @@ export function FloatingActionMenu({
         icon: '🔁',
         label: 'בקשת חידוש',
         description: 'פתח בקשת חידוש',
-        color: ROYAL_COLORS.gradientCrimson,
+        color: tokens.gradients.error,
         onClick: () => {
           onClose();
           onNavigate('/restock-requests');
@@ -284,7 +284,7 @@ export function FloatingActionMenu({
         icon: '🔍',
         label: 'חיפוש הזמנה',
         description: 'חפש הזמנה לפי טלפון',
-        color: ROYAL_COLORS.gradientPurple,
+        color: tokens.gradients.primary,
         onClick: () => {
           onClose();
           onNavigate(`${pathPrefix}orders`);
@@ -294,7 +294,7 @@ export function FloatingActionMenu({
         icon: '🧾',
         label: 'הזמנה חדשה',
         description: 'צור הזמנה עבור לקוח',
-        color: ROYAL_COLORS.gradientSuccess,
+        color: tokens.gradients.success,
         onClick: () => {
           onClose();
           onShowModeSelector();
@@ -304,7 +304,7 @@ export function FloatingActionMenu({
         icon: '✏️',
         label: 'עדכון סטטוס',
         description: 'עדכן סטטוס הזמנה',
-        color: ROYAL_COLORS.gradientGold,
+        color: tokens.gradients.warning,
         onClick: () => {
           onClose();
           onNavigate(`${pathPrefix}orders`);
@@ -314,7 +314,7 @@ export function FloatingActionMenu({
         icon: '💬',
         label: 'צ\'אט עם לקוח',
         description: 'פתח שיחת צ\'אט',
-        color: ROYAL_COLORS.gradientCrimson,
+        color: tokens.gradients.error,
         onClick: () => {
           onClose();
           onNavigate(`${pathPrefix}chat`);
@@ -361,10 +361,10 @@ export function FloatingActionMenu({
     >
       <div
         style={{
-          ...ROYAL_STYLES.card,
+          ...styles.card,
           maxWidth: '500px',
           width: '100%',
-          padding: '24px',
+          padding: tokens.spacing.xl,
           marginBottom: '80px',
           animation: 'slideUp 0.3s ease'
         }}
@@ -372,17 +372,17 @@ export function FloatingActionMenu({
       >
         <h2 style={{
           margin: '0 0 8px 0',
-          fontSize: '20px',
-          fontWeight: '700',
-          color: ROYAL_COLORS.text,
+          fontSize: tokens.typography.fontSize.lg,
+          fontWeight: tokens.typography.fontWeight.bold,
+          color: tokens.colors.text.primary,
           textAlign: 'center'
         }}>
           ⚡ פעולות מהירות
         </h2>
         <p style={{
           margin: '0 0 20px 0',
-          fontSize: '13px',
-          color: ROYAL_COLORS.muted,
+          fontSize: tokens.typography.fontSize.sm,
+          color: tokens.colors.text.secondary,
           textAlign: 'center'
         }}>
           {getRoleLabel()}
@@ -400,14 +400,14 @@ export function FloatingActionMenu({
                 padding: '16px',
                 background: action.color,
                 border: 'none',
-                borderRadius: '12px',
-                color: ROYAL_COLORS.textBright,
+                borderRadius: tokens.radius.md,
+                color: tokens.colors.text.bright,
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
                 textAlign: 'right',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px'
+                gap: tokens.spacing.md
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateX(-4px)';
@@ -438,10 +438,10 @@ export function FloatingActionMenu({
             padding: '12px',
             background: 'transparent',
             border: 'none',
-            borderRadius: '12px',
-            color: ROYAL_COLORS.muted,
+            borderRadius: tokens.radius.md,
+            color: tokens.colors.text.secondary,
             cursor: 'pointer',
-            fontSize: '14px',
+            fontSize: tokens.typography.fontSize.sm,
             marginTop: '16px',
             width: '100%'
           }}

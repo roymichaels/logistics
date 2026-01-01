@@ -1,7 +1,5 @@
 import React from 'react';
 
-import { ROYAL_COLORS } from '../styles/royalTheme';
-
 interface SidebarToggleButtonProps {
   onClick: () => void;
   hasNotifications?: boolean;

@@ -15,7 +15,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import type { DataStore, Order, User, Zone, DriverStatusRecord } from '../data/types';
 import { hasPermission } from '../lib/rolePermissions';
 import { Toast } from './Toast';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { logger } from '../lib/logger';
 
 interface ManagerOrdersViewProps {
@@ -233,21 +233,21 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
 
   if (loading) {
     return (
-      <div style={ROYAL_STYLES.pageContainer}>
+      <div style={styles.pageContainer}>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>טוען הזמנות...</p>
+          <p style={{ color: tokens.colors.text.secondary }}>טוען הזמנות...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
+    <div style={styles.pageContainer}>
       {/* Header */}
-      <div style={ROYAL_STYLES.pageHeader}>
-        <h1 style={ROYAL_STYLES.pageTitle}>📦 ניהול הזמנות</h1>
-        <p style={ROYAL_STYLES.pageSubtitle}>ניהול מקיף של הזמנות, הקצאות ומעקב סטטוס</p>
+      <div style={styles.pageHeader}>
+        <h1 style={styles.pageTitle}>📦 ניהול הזמנות</h1>
+        <p style={styles.pageSubtitle}>ניהול מקיף של הזמנות, הקצאות ומעקב סטטוס</p>
       </div>
 
       {/* Analytics Dashboard */}
@@ -261,7 +261,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
               marginBottom: '12px',
             }}
           >
-            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: ROYAL_COLORS.text }}>
+            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: tokens.colors.text.primary }}>
               סטטיסטיקות
             </h2>
             <button
@@ -269,7 +269,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: ROYAL_COLORS.muted,
+                color: tokens.colors.text.secondary,
                 cursor: 'pointer',
                 fontSize: '14px',
               }}
@@ -290,25 +290,25 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
               icon="🆕"
               label="חדשות"
               value={analytics.newOrders.toString()}
-              color={ROYAL_COLORS.warning}
+              color={tokens.colors.status.warning}
             />
             <MetricCard
               icon="⚡"
               label="בתהליך"
               value={analytics.inProgress.toString()}
-              color={ROYAL_COLORS.info}
+              color={tokens.colors.status.info}
             />
             <MetricCard
               icon="✅"
               label="הושלמו"
               value={analytics.completed.toString()}
-              color={ROYAL_COLORS.success}
+              color={tokens.colors.status.success}
             />
             <MetricCard
               icon="💰"
               label="הכנסות"
               value={`₪${analytics.totalRevenue.toLocaleString()}`}
-              color={ROYAL_COLORS.gold}
+              color={tokens.colors.status.warning}
             />
             <MetricCard
               icon="📈"
@@ -320,7 +320,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
       )}
 
       {/* Filters and Search */}
-      <div style={ROYAL_STYLES.card}>
+      <div style={styles.card}>
         {/* Search */}
         <input
           type="search"
@@ -328,7 +328,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           style={{
-            ...ROYAL_STYLES.input,
+            ...styles.input,
             marginBottom: '16px',
             fontSize: '15px',
           }}
@@ -342,7 +342,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
               marginBottom: '8px',
               fontSize: '14px',
               fontWeight: '600',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
             }}
           >
             סינון לפי סטטוס
@@ -381,12 +381,12 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
                 style={{
                   padding: '8px 16px',
                   border: `2px solid ${
-                    filters.status === status.value ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder
+                    filters.status === status.value ? tokens.colors.brand.primary : tokens.colors.background.cardBorder
                   }`,
                   borderRadius: '20px',
                   background:
-                    filters.status === status.value ? ROYAL_COLORS.accent + '20' : 'transparent',
-                  color: filters.status === status.value ? ROYAL_COLORS.accent : ROYAL_COLORS.text,
+                    filters.status === status.value ? tokens.colors.brand.primary + '20' : 'transparent',
+                  color: filters.status === status.value ? tokens.colors.brand.primary : tokens.colors.text.primary,
                   fontSize: '14px',
                   fontWeight: '600',
                   cursor: 'pointer',
@@ -401,7 +401,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
                   style={{
                     fontSize: '12px',
                     opacity: 0.7,
-                    background: ROYAL_COLORS.secondary,
+                    background: tokens.colors.background.secondary,
                     padding: '2px 6px',
                     borderRadius: '10px',
                   }}
@@ -422,7 +422,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
                 marginBottom: '6px',
                 fontSize: '13px',
                 fontWeight: '600',
-                color: ROYAL_COLORS.muted,
+                color: tokens.colors.text.secondary,
               }}
             >
               טווח תאריכים
@@ -431,7 +431,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
               value={filters.dateRange}
               onChange={e => setFilters({ ...filters, dateRange: e.target.value as DateRange })}
               style={{
-                ...ROYAL_STYLES.input,
+                ...styles.input,
                 padding: '10px 12px',
                 fontSize: '14px',
               }}
@@ -450,7 +450,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
                 marginBottom: '6px',
                 fontSize: '13px',
                 fontWeight: '600',
-                color: ROYAL_COLORS.muted,
+                color: tokens.colors.text.secondary,
               }}
             >
               נהג
@@ -459,7 +459,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
               value={filters.driver}
               onChange={e => setFilters({ ...filters, driver: e.target.value })}
               style={{
-                ...ROYAL_STYLES.input,
+                ...styles.input,
                 padding: '10px 12px',
                 fontSize: '14px',
               }}
@@ -479,16 +479,16 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
       {selectedOrders.size > 0 && (
         <div
           style={{
-            ...ROYAL_STYLES.card,
+            ...styles.card,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            background: ROYAL_COLORS.accent + '10',
-            border: `2px solid ${ROYAL_COLORS.accent}`,
+            background: tokens.colors.brand.primary + '10',
+            border: `2px solid ${tokens.colors.brand.primary}`,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontWeight: '600', color: ROYAL_COLORS.accent }}>
+            <span style={{ fontWeight: '600', color: tokens.colors.brand.primary }}>
               {selectedOrders.size} הזמנות נבחרו
             </span>
             <button
@@ -496,9 +496,9 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
               style={{
                 padding: '6px 12px',
                 background: 'transparent',
-                border: `1px solid ${ROYAL_COLORS.accent}`,
+                border: `1px solid ${tokens.colors.brand.primary}`,
                 borderRadius: '6px',
-                color: ROYAL_COLORS.accent,
+                color: tokens.colors.brand.primary,
                 fontSize: '13px',
                 fontWeight: '600',
                 cursor: 'pointer',
@@ -513,7 +513,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
               <button
                 onClick={handleBulkAssign}
                 style={{
-                  ...ROYAL_STYLES.buttonPrimary,
+                  ...styles.button.primary,
                   padding: '8px 16px',
                   fontSize: '14px',
                 }}
@@ -526,7 +526,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
       )}
 
       {/* Orders List */}
-      <div style={ROYAL_STYLES.card}>
+      <div style={styles.card}>
         <div
           style={{
             display: 'flex',
@@ -535,7 +535,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
             marginBottom: '16px',
           }}
         >
-          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: ROYAL_COLORS.text }}>
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: tokens.colors.text.primary }}>
             הזמנות ({filteredOrders.length})
           </h2>
 
@@ -543,7 +543,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
             <button
               onClick={selectAllFiltered}
               style={{
-                ...ROYAL_STYLES.buttonSecondary,
+                ...styles.button.secondary,
                 padding: '8px 12px',
                 fontSize: '13px',
               }}
@@ -554,7 +554,7 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
             <button
               onClick={handleExportCSV}
               style={{
-                ...ROYAL_STYLES.buttonSecondary,
+                ...styles.button.secondary,
                 padding: '8px 12px',
                 fontSize: '13px',
               }}
@@ -565,9 +565,9 @@ export function ManagerOrdersView({ dataStore, user, onNavigate }: ManagerOrders
         </div>
 
         {filteredOrders.length === 0 ? (
-          <div style={ROYAL_STYLES.emptyState}>
-            <div style={ROYAL_STYLES.emptyStateIcon}>📦</div>
-            <p style={ROYAL_STYLES.emptyStateText}>לא נמצאו הזמנות</p>
+          <div style={styles.emptyState.container}>
+            <div style={styles.emptyState.containerIcon}>📦</div>
+            <p style={styles.emptyState.containerText}>לא נמצאו הזמנות</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -595,7 +595,7 @@ function MetricCard({
   icon,
   label,
   value,
-  color = ROYAL_COLORS.accent,
+  color = tokens.colors.brand.primary,
 }: {
   icon: string;
   label: string;
@@ -603,10 +603,10 @@ function MetricCard({
   color?: string;
 }) {
   return (
-    <div style={ROYAL_STYLES.statBox}>
+    <div style={styles.stat.box}>
       <div style={{ fontSize: '24px', marginBottom: '4px' }}>{icon}</div>
-      <div style={{ ...ROYAL_STYLES.statValue, color, fontSize: '20px' }}>{value}</div>
-      <div style={{ ...ROYAL_STYLES.statLabel, fontSize: '11px' }}>{label}</div>
+      <div style={{ ...styles.stat.value, color, fontSize: '20px' }}>{value}</div>
+      <div style={{ ...styles.stat.label, fontSize: '11px' }}>{label}</div>
     </div>
   );
 }
@@ -625,18 +625,18 @@ function OrderCard({
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
       case 'new':
-        return ROYAL_COLORS.warning;
+        return tokens.colors.status.warning;
       case 'confirmed':
       case 'preparing':
-        return ROYAL_COLORS.info;
+        return tokens.colors.status.info;
       case 'out_for_delivery':
-        return ROYAL_COLORS.accent;
+        return tokens.colors.brand.primary;
       case 'delivered':
-        return ROYAL_COLORS.success;
+        return tokens.colors.status.success;
       case 'cancelled':
-        return ROYAL_COLORS.crimson;
+        return tokens.colors.status.error;
       default:
-        return ROYAL_COLORS.muted;
+        return tokens.colors.text.secondary;
     }
   };
 
@@ -657,8 +657,8 @@ function OrderCard({
     <div
       style={{
         padding: '16px',
-        background: selected ? ROYAL_COLORS.accent + '10' : ROYAL_COLORS.secondary,
-        border: `2px solid ${selected ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+        background: selected ? tokens.colors.brand.primary + '10' : tokens.colors.background.secondary,
+        border: `2px solid ${selected ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
         borderRadius: '12px',
         cursor: 'pointer',
         transition: 'all 0.2s ease',
@@ -681,10 +681,10 @@ function OrderCard({
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <div>
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '600', color: ROYAL_COLORS.text }}>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '600', color: tokens.colors.text.primary }}>
                 {order.customer_name}
               </h3>
-              <p style={{ margin: 0, fontSize: '13px', color: ROYAL_COLORS.muted }}>
+              <p style={{ margin: 0, fontSize: '13px', color: tokens.colors.text.secondary }}>
                 📞 {order.customer_phone}
               </p>
             </div>
@@ -707,8 +707,8 @@ function OrderCard({
                 <div
                   style={{
                     padding: '2px 8px',
-                    background: ROYAL_COLORS.warning + '20',
-                    color: ROYAL_COLORS.warning,
+                    background: tokens.colors.status.warning + '20',
+                    color: tokens.colors.status.warning,
                     borderRadius: '8px',
                     fontSize: '11px',
                     fontWeight: '600',
@@ -720,15 +720,15 @@ function OrderCard({
             </div>
           </div>
 
-          <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: ROYAL_COLORS.muted }}>
+          <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: tokens.colors.text.secondary }}>
             📍 {order.customer_address}
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
+            <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>
               🕒 {new Date(order.created_at).toLocaleString('he-IL')}
             </div>
-            <div style={{ fontSize: '16px', fontWeight: '600', color: ROYAL_COLORS.gold }}>
+            <div style={{ fontSize: '16px', fontWeight: '600', color: tokens.colors.status.warning }}>
               ₪{order.total_amount?.toLocaleString() || 0}
             </div>
           </div>
@@ -738,10 +738,10 @@ function OrderCard({
               style={{
                 marginTop: '8px',
                 padding: '6px 10px',
-                background: ROYAL_COLORS.info + '10',
+                background: tokens.colors.status.info + '10',
                 borderRadius: '8px',
                 fontSize: '12px',
-                color: ROYAL_COLORS.info,
+                color: tokens.colors.status.info,
               }}
             >
               🚗 נהג: {order.assigned_driver}

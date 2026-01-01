@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { User } from '../data/types';
-import { ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens } from '../styles/tokens';
 import { hebrew } from '../lib/i18n';
 
 interface RoleSelectionModalProps {
@@ -77,19 +77,19 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
       direction: 'rtl'
     }}>
       <div style={{
-        backgroundColor: ROYAL_COLORS.cardBg,
+        backgroundColor: tokens.colors.background.cardBg,
         borderRadius: '20px',
-        border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+        border: `1px solid ${tokens.colors.background.cardBorder}`,
         maxWidth: '500px',
         width: '100%',
         maxHeight: '90vh',
         overflow: 'auto',
-        boxShadow: ROYAL_COLORS.shadowStrong
+        boxShadow: tokens.shadows.mdStrong
       }}>
         {/* Header */}
         <div style={{
           padding: '24px',
-          borderBottom: `1px solid ${ROYAL_COLORS.border}`,
+          borderBottom: `1px solid ${tokens.colors.border.default}`,
           background: 'linear-gradient(135deg, rgba(29, 155, 240, 0.2) 0%, rgba(123, 63, 242, 0.2) 100%)'
         }}>
           <div style={{
@@ -103,7 +103,7 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
             margin: 0,
             fontSize: '24px',
             fontWeight: '700',
-            color: ROYAL_COLORS.text,
+            color: tokens.colors.text.primary,
             textAlign: 'center',
             marginBottom: '8px'
           }}>
@@ -112,7 +112,7 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
           <p style={{
             margin: 0,
             fontSize: '14px',
-            color: ROYAL_COLORS.muted,
+            color: tokens.colors.text.secondary,
             textAlign: 'center',
             lineHeight: '1.5'
           }}>
@@ -135,11 +135,11 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
                 marginBottom: '12px',
                 borderRadius: '12px',
                 border: selectedRole === role.value
-                  ? `2px solid ${ROYAL_COLORS.primary}`
-                  : `1px solid ${ROYAL_COLORS.border}`,
+                  ? `2px solid ${tokens.colors.brand.primary}`
+                  : `1px solid ${tokens.colors.border.default}`,
                 backgroundColor: selectedRole === role.value
                   ? 'rgba(29, 155, 240, 0.1)'
-                  : ROYAL_COLORS.secondary,
+                  : tokens.colors.background.secondary,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 display: 'flex',
@@ -148,14 +148,14 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
               }}
               onMouseEnter={(e) => {
                 if (selectedRole !== role.value) {
-                  e.currentTarget.style.backgroundColor = ROYAL_COLORS.secondaryHover;
-                  e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorderHover;
+                  e.currentTarget.style.backgroundColor = tokens.colors.background.secondaryHover;
+                  e.currentTarget.style.borderColor = tokens.colors.background.cardBorderHover;
                 }
               }}
               onMouseLeave={(e) => {
                 if (selectedRole !== role.value) {
-                  e.currentTarget.style.backgroundColor = ROYAL_COLORS.secondary;
-                  e.currentTarget.style.borderColor = ROYAL_COLORS.border;
+                  e.currentTarget.style.backgroundColor = tokens.colors.background.secondary;
+                  e.currentTarget.style.borderColor = tokens.colors.border.default;
                 }
               }}
             >
@@ -169,14 +169,14 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
                 <div style={{
                   fontSize: '16px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   marginBottom: '4px'
                 }}>
                   {role.label}
                 </div>
                 <div style={{
                   fontSize: '13px',
-                  color: ROYAL_COLORS.muted,
+                  color: tokens.colors.text.secondary,
                   lineHeight: '1.4'
                 }}>
                   {role.description}
@@ -185,7 +185,7 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
               {selectedRole === role.value && (
                 <div style={{
                   fontSize: '20px',
-                  color: ROYAL_COLORS.primary
+                  color: tokens.colors.brand.primary
                 }}>
                   ✓
                 </div>
@@ -197,7 +197,7 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
         {/* Footer Actions */}
         <div style={{
           padding: '20px',
-          borderTop: `1px solid ${ROYAL_COLORS.border}`,
+          borderTop: `1px solid ${tokens.colors.border.default}`,
           display: 'flex',
           gap: '12px',
           justifyContent: 'stretch'
@@ -209,9 +209,9 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
                 flex: 1,
                 padding: '12px',
                 borderRadius: '12px',
-                border: `1px solid ${ROYAL_COLORS.border}`,
+                border: `1px solid ${tokens.colors.border.default}`,
                 backgroundColor: 'transparent',
-                color: ROYAL_COLORS.muted,
+                color: tokens.colors.text.secondary,
                 fontSize: '16px',
                 fontWeight: '600',
                 cursor: 'pointer',
@@ -230,9 +230,9 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
               borderRadius: '12px',
               border: 'none',
               background: selectedRole
-                ? ROYAL_COLORS.gradientPurple
-                : ROYAL_COLORS.secondary,
-              color: selectedRole ? ROYAL_COLORS.textBright : ROYAL_COLORS.hint,
+                ? tokens.gradients.primary
+                : tokens.colors.background.secondary,
+              color: selectedRole ? tokens.colors.text.primaryBright : tokens.colors.text.hint,
               fontSize: '16px',
               fontWeight: '600',
               cursor: selectedRole ? 'pointer' : 'not-allowed',

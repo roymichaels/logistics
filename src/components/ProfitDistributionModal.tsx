@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 
 import {
   calculateProfitDistribution,
@@ -142,14 +142,14 @@ export function ProfitDistributionModal({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return ROYAL_COLORS.success;
+        return tokens.colors.status.success;
       case 'processing':
-        return ROYAL_COLORS.warning;
+        return tokens.colors.status.warning;
       case 'failed':
       case 'cancelled':
-        return ROYAL_COLORS.error;
+        return tokens.colors.status.error;
       default:
-        return ROYAL_COLORS.muted;
+        return tokens.colors.text.secondary;
     }
   };
 
@@ -189,7 +189,7 @@ export function ProfitDistributionModal({
     >
       <div
         style={{
-          ...ROYAL_STYLES.card,
+          ...styles.card,
           width: '100%',
           maxWidth: '800px',
           maxHeight: '90vh',
@@ -202,17 +202,17 @@ export function ProfitDistributionModal({
         <div
           style={{
             padding: '20px',
-            borderBottom: `1px solid ${ROYAL_COLORS.border}`,
+            borderBottom: `1px solid ${tokens.colors.border.default}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}
         >
           <div>
-            <h2 style={{ margin: '0 0 4px 0', fontSize: '20px', color: ROYAL_COLORS.text }}>
+            <h2 style={{ margin: '0 0 4px 0', fontSize: '20px', color: tokens.colors.text.primary }}>
               💰 חלוקת רווחים
             </h2>
-            <p style={{ margin: 0, fontSize: '14px', color: ROYAL_COLORS.muted }}>
+            <p style={{ margin: 0, fontSize: '14px', color: tokens.colors.text.secondary }}>
               {businessName}
             </p>
           </div>
@@ -222,7 +222,7 @@ export function ProfitDistributionModal({
               backgroundColor: 'transparent',
               border: 'none',
               fontSize: '28px',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               cursor: 'pointer',
               padding: '4px',
               lineHeight: 1,
@@ -236,7 +236,7 @@ export function ProfitDistributionModal({
         <div
           style={{
             display: 'flex',
-            backgroundColor: ROYAL_COLORS.secondary,
+            backgroundColor: tokens.colors.background.secondary,
             margin: '16px',
             borderRadius: '8px',
             padding: '4px',
@@ -247,8 +247,8 @@ export function ProfitDistributionModal({
             style={{
               flex: 1,
               padding: '8px 12px',
-              backgroundColor: activeTab === 'create' ? ROYAL_COLORS.card : 'transparent',
-              color: activeTab === 'create' ? ROYAL_COLORS.text : ROYAL_COLORS.muted,
+              backgroundColor: activeTab === 'create' ? tokens.colors.background.card : 'transparent',
+              color: activeTab === 'create' ? tokens.colors.text.primary : tokens.colors.text.secondary,
               border: 'none',
               borderRadius: '6px',
               fontSize: '14px',
@@ -263,8 +263,8 @@ export function ProfitDistributionModal({
             style={{
               flex: 1,
               padding: '8px 12px',
-              backgroundColor: activeTab === 'history' ? ROYAL_COLORS.card : 'transparent',
-              color: activeTab === 'history' ? ROYAL_COLORS.text : ROYAL_COLORS.muted,
+              backgroundColor: activeTab === 'history' ? tokens.colors.background.card : 'transparent',
+              color: activeTab === 'history' ? tokens.colors.text.primary : tokens.colors.text.secondary,
               border: 'none',
               borderRadius: '6px',
               fontSize: '14px',
@@ -282,7 +282,7 @@ export function ProfitDistributionModal({
             {/* Period Selection */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
-                <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                   תאריך התחלה
                 </label>
                 <input
@@ -292,16 +292,16 @@ export function ProfitDistributionModal({
                   style={{
                     width: '100%',
                     padding: '12px',
-                    backgroundColor: ROYAL_COLORS.secondary,
-                    border: `1px solid ${ROYAL_COLORS.border}`,
+                    backgroundColor: tokens.colors.background.secondary,
+                    border: `1px solid ${tokens.colors.border.default}`,
                     borderRadius: '8px',
                     fontSize: '14px',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                   }}
                 />
               </div>
               <div>
-                <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                   תאריך סיום
                 </label>
                 <input
@@ -311,11 +311,11 @@ export function ProfitDistributionModal({
                   style={{
                     width: '100%',
                     padding: '12px',
-                    backgroundColor: ROYAL_COLORS.secondary,
-                    border: `1px solid ${ROYAL_COLORS.border}`,
+                    backgroundColor: tokens.colors.background.secondary,
+                    border: `1px solid ${tokens.colors.border.default}`,
                     borderRadius: '8px',
                     fontSize: '14px',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                   }}
                 />
               </div>
@@ -324,7 +324,7 @@ export function ProfitDistributionModal({
             {/* Total Profit and Currency */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
               <div>
-                <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                   סה"כ רווח לחלוקה
                 </label>
                 <input
@@ -336,16 +336,16 @@ export function ProfitDistributionModal({
                   style={{
                     width: '100%',
                     padding: '12px',
-                    backgroundColor: ROYAL_COLORS.secondary,
-                    border: `1px solid ${ROYAL_COLORS.border}`,
+                    backgroundColor: tokens.colors.background.secondary,
+                    border: `1px solid ${tokens.colors.border.default}`,
                     borderRadius: '8px',
                     fontSize: '14px',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                   }}
                 />
               </div>
               <div>
-                <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                   מטבע
                 </label>
                 <select
@@ -354,11 +354,11 @@ export function ProfitDistributionModal({
                   style={{
                     width: '100%',
                     padding: '12px',
-                    backgroundColor: ROYAL_COLORS.secondary,
-                    border: `1px solid ${ROYAL_COLORS.border}`,
+                    backgroundColor: tokens.colors.background.secondary,
+                    border: `1px solid ${tokens.colors.border.default}`,
                     borderRadius: '8px',
                     fontSize: '14px',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                   }}
                 >
                   <option value="ILS">₪</option>
@@ -373,7 +373,7 @@ export function ProfitDistributionModal({
               onClick={handleCalculate}
               disabled={loading || totalProfit <= 0}
               style={{
-                ...ROYAL_STYLES.buttonPrimary,
+                ...styles.button.primary,
                 opacity: loading || totalProfit <= 0 ? 0.5 : 1,
               }}
             >
@@ -383,8 +383,8 @@ export function ProfitDistributionModal({
             {/* Calculation Results */}
             {calculations.length > 0 && (
               <>
-                <div style={{ borderTop: `1px solid ${ROYAL_COLORS.border}`, paddingTop: '20px' }}>
-                  <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: ROYAL_COLORS.text }}>
+                <div style={{ borderTop: `1px solid ${tokens.colors.border.default}`, paddingTop: '20px' }}>
+                  <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: tokens.colors.text.primary }}>
                     תוצאות חישוב
                   </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -393,7 +393,7 @@ export function ProfitDistributionModal({
                         key={calc.stakeholder_id}
                         style={{
                           padding: '16px',
-                          backgroundColor: ROYAL_COLORS.secondary,
+                          backgroundColor: tokens.colors.background.secondary,
                           borderRadius: '8px',
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -401,14 +401,14 @@ export function ProfitDistributionModal({
                         }}
                       >
                         <div>
-                          <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '4px' }}>
+                          <div style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600', marginBottom: '4px' }}>
                             {calc.stakeholder_name}
                           </div>
-                          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
                             {calc.profit_share_percentage.toFixed(2)}% חלק ברווחים
                           </div>
                         </div>
-                        <div style={{ fontSize: '18px', color: ROYAL_COLORS.success, fontWeight: '700' }}>
+                        <div style={{ fontSize: '18px', color: tokens.colors.status.success, fontWeight: '700' }}>
                           {getCurrencySymbol(currency)}{calc.distribution_amount.toLocaleString()}
                         </div>
                       </div>
@@ -421,8 +421,8 @@ export function ProfitDistributionModal({
                   <button
                     onClick={() => setShowConfirm(true)}
                     style={{
-                      ...ROYAL_STYLES.buttonPrimary,
-                      background: ROYAL_COLORS.gradientPrimary,
+                      ...styles.button.primary,
+                      background: tokens.gradients.primary,
                     }}
                   >
                     אשר ויצור חלוקות
@@ -436,13 +436,13 @@ export function ProfitDistributionModal({
                       borderRadius: '8px',
                     }}
                   >
-                    <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '12px' }}>
+                    <div style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '12px' }}>
                       ⚠️ פעולה זו תיצור {calculations.length} רשומות חלוקה. האם אתה בטוח?
                     </div>
                     <div style={{ display: 'flex', gap: '12px' }}>
                       <button
                         onClick={() => setShowConfirm(false)}
-                        style={{ ...ROYAL_STYLES.buttonSecondary, flex: 1 }}
+                        style={{ ...styles.button.secondary, flex: 1 }}
                       >
                         ביטול
                       </button>
@@ -450,9 +450,9 @@ export function ProfitDistributionModal({
                         onClick={handleCreate}
                         disabled={loading}
                         style={{
-                          ...ROYAL_STYLES.buttonPrimary,
+                          ...styles.button.primary,
                           flex: 1,
-                          background: ROYAL_COLORS.success,
+                          background: tokens.colors.status.success,
                           opacity: loading ? 0.5 : 1,
                         }}
                       >
@@ -467,16 +467,16 @@ export function ProfitDistributionModal({
         ) : (
           <div style={{ padding: '20px' }}>
             {loading ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: ROYAL_COLORS.muted }}>
+              <div style={{ textAlign: 'center', padding: '40px', color: tokens.colors.text.secondary }}>
                 טוען...
               </div>
             ) : distributions.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px' }}>
                 <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-                <div style={{ fontSize: '16px', color: ROYAL_COLORS.text, marginBottom: '8px' }}>
+                <div style={{ fontSize: '16px', color: tokens.colors.text.primary, marginBottom: '8px' }}>
                   אין חלוקות רווחים
                 </div>
-                <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
                   חלוקות שתיצור יופיעו כאן
                 </div>
               </div>
@@ -487,18 +487,18 @@ export function ProfitDistributionModal({
                     key={dist.id}
                     style={{
                       padding: '16px',
-                      backgroundColor: ROYAL_COLORS.secondary,
+                      backgroundColor: tokens.colors.background.secondary,
                       borderRadius: '8px',
-                      border: `1px solid ${ROYAL_COLORS.border}`,
+                      border: `1px solid ${tokens.colors.border.default}`,
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
                       <div>
-                        <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '4px' }}>
+                        <div style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600', marginBottom: '4px' }}>
                           תקופה: {new Date(dist.distribution_period_start).toLocaleDateString('he-IL')} -{' '}
                           {new Date(dist.distribution_period_end).toLocaleDateString('he-IL')}
                         </div>
-                        <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                        <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
                           {dist.stakeholder_percentage.toFixed(2)}% חלק
                         </div>
                       </div>
@@ -516,7 +516,7 @@ export function ProfitDistributionModal({
                       </div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontSize: '18px', color: ROYAL_COLORS.success, fontWeight: '700' }}>
+                      <div style={{ fontSize: '18px', color: tokens.colors.status.success, fontWeight: '700' }}>
                         {getCurrencySymbol(dist.currency)}{dist.distribution_amount.toLocaleString()}
                       </div>
                       {dist.payment_status === 'pending' && (
@@ -524,7 +524,7 @@ export function ProfitDistributionModal({
                           onClick={() => handleMarkAsPaid(dist)}
                           style={{
                             padding: '6px 16px',
-                            backgroundColor: ROYAL_COLORS.success,
+                            backgroundColor: tokens.colors.status.success,
                             color: 'white',
                             border: 'none',
                             borderRadius: '6px',

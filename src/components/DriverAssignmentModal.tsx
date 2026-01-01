@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { Toast } from './Toast';
 import { logger } from '../lib/logger';
 
@@ -126,15 +126,15 @@ export function DriverAssignmentModal({
     >
       <div
         style={{
-          background: ROYAL_COLORS.card,
-          border: `2px solid ${isUrgent ? ROYAL_COLORS.crimson : ROYAL_COLORS.cardBorder}`,
+          background: tokens.colors.background.card,
+          border: `2px solid ${isUrgent ? tokens.colors.status.error : tokens.colors.background.cardBorder}`,
           borderRadius: '24px',
           padding: '32px',
           maxWidth: '500px',
           width: '100%',
           maxHeight: '90vh',
           overflowY: 'auto',
-          boxShadow: isUrgent ? ROYAL_COLORS.glowCrimson : ROYAL_COLORS.glowPurpleStrong,
+          boxShadow: isUrgent ? tokens.glows.error : tokens.glows.primaryStrong,
           animation: isUrgent ? 'pulse 2s infinite' : 'none'
         }}
       >
@@ -144,24 +144,24 @@ export function DriverAssignmentModal({
             marginBottom: '24px',
             padding: '16px',
             background: isUrgent
-              ? `linear-gradient(135deg, ${ROYAL_COLORS.crimson}20, ${ROYAL_COLORS.warning}20)`
-              : `linear-gradient(135deg, ${ROYAL_COLORS.accent}20, ${ROYAL_COLORS.accentBright}20)`,
+              ? `linear-gradient(135deg, ${tokens.colors.status.error}20, ${tokens.colors.status.warning}20)`
+              : `linear-gradient(135deg, ${tokens.colors.brand.primary}20, ${tokens.colors.brand.primaryBright}20)`,
             borderRadius: '16px',
-            border: `1px solid ${isUrgent ? ROYAL_COLORS.crimson : ROYAL_COLORS.accent}50`
+            border: `1px solid ${isUrgent ? tokens.colors.status.error : tokens.colors.brand.primary}50`
           }}
         >
           <div
             style={{
               fontSize: '48px',
               fontWeight: '700',
-              color: isUrgent ? ROYAL_COLORS.crimson : ROYAL_COLORS.accent,
+              color: isUrgent ? tokens.colors.status.error : tokens.colors.brand.primary,
               marginBottom: '8px',
-              textShadow: isUrgent ? ROYAL_COLORS.glowCrimson : ROYAL_COLORS.glowPurple
+              textShadow: isUrgent ? tokens.glows.error : tokens.glows.primary
             }}
           >
             {formatTime(timeRemaining)}
           </div>
-          <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, fontWeight: '600' }}>
+          <div style={{ fontSize: '14px', color: tokens.colors.text.secondary, fontWeight: '600' }}>
             {isUrgent ? 'זמן אוזל!' : 'זמן להגיב'}
           </div>
         </div>
@@ -171,9 +171,9 @@ export function DriverAssignmentModal({
             margin: '0 0 24px 0',
             fontSize: '28px',
             fontWeight: '700',
-            color: ROYAL_COLORS.text,
+            color: tokens.colors.text.primary,
             textAlign: 'center',
-            textShadow: ROYAL_COLORS.glowPurple
+            textShadow: tokens.glows.primary
           }}
         >
           הזמנה חדשה מחכה לך
@@ -182,9 +182,9 @@ export function DriverAssignmentModal({
         <div style={{ marginBottom: '24px' }}>
           <div
             style={{
-              ...ROYAL_STYLES.card,
+              ...styles.card,
               marginBottom: '16px',
-              background: ROYAL_COLORS.secondary
+              background: tokens.colors.background.secondary
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
@@ -196,17 +196,17 @@ export function DriverAssignmentModal({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: ROYAL_COLORS.gradientPurple,
+                  background: tokens.gradients.primary,
                   borderRadius: '12px'
                 }}
               >
                 👤
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.text }}>
+                <div style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.text.primary }}>
                   {assignment.order.customer_name}
                 </div>
-                <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
                   {assignment.order.customer_phone}
                 </div>
               </div>
@@ -215,10 +215,10 @@ export function DriverAssignmentModal({
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
               <div style={{ fontSize: '24px' }}>📍</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                <div style={{ fontSize: '14px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
                   כתובת מסירה
                 </div>
-                <div style={{ fontSize: '16px', color: ROYAL_COLORS.text, lineHeight: '1.5' }}>
+                <div style={{ fontSize: '16px', color: tokens.colors.text.primary, lineHeight: '1.5' }}>
                   {assignment.order.customer_address}
                 </div>
               </div>
@@ -235,40 +235,40 @@ export function DriverAssignmentModal({
           >
             <div
               style={{
-                ...ROYAL_STYLES.statBox,
-                background: ROYAL_COLORS.secondary
+                ...styles.stat.box,
+                background: tokens.colors.background.secondary
               }}
             >
               <div
                 style={{
                   fontSize: '28px',
                   fontWeight: '700',
-                  color: ROYAL_COLORS.gold,
+                  color: tokens.colors.status.warning,
                   marginBottom: '4px'
                 }}
               >
                 ₪{assignment.order.total_amount.toLocaleString()}
               </div>
-              <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>סכום הזמנה</div>
+              <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>סכום הזמנה</div>
             </div>
 
             <div
               style={{
-                ...ROYAL_STYLES.statBox,
-                background: ROYAL_COLORS.secondary
+                ...styles.stat.box,
+                background: tokens.colors.background.secondary
               }}
             >
               <div
                 style={{
                   fontSize: '28px',
                   fontWeight: '700',
-                  color: ROYAL_COLORS.accentBright,
+                  color: tokens.colors.brand.primaryBright,
                   marginBottom: '4px'
                 }}
               >
                 {totalItems}
               </div>
-              <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>פריטים</div>
+              <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>פריטים</div>
             </div>
           </div>
 
@@ -285,16 +285,16 @@ export function DriverAssignmentModal({
                 <div
                   style={{
                     padding: '12px',
-                    background: ROYAL_COLORS.secondary,
+                    background: tokens.colors.background.secondary,
                     borderRadius: '12px',
                     textAlign: 'center',
-                    border: `1px solid ${ROYAL_COLORS.cardBorder}`
+                    border: `1px solid ${tokens.colors.background.cardBorder}`
                   }}
                 >
-                  <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
                     מרחק משוער
                   </div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.info }}>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: tokens.colors.status.info }}>
                     {assignment.order.estimated_distance.toFixed(1)} ק"מ
                   </div>
                 </div>
@@ -304,16 +304,16 @@ export function DriverAssignmentModal({
                 <div
                   style={{
                     padding: '12px',
-                    background: ROYAL_COLORS.secondary,
+                    background: tokens.colors.background.secondary,
                     borderRadius: '12px',
                     textAlign: 'center',
-                    border: `1px solid ${ROYAL_COLORS.cardBorder}`
+                    border: `1px solid ${tokens.colors.background.cardBorder}`
                   }}
                 >
-                  <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
                     זמן משוער
                   </div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.success }}>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: tokens.colors.status.success }}>
                     {assignment.order.estimated_time} דקות
                   </div>
                 </div>
@@ -324,8 +324,8 @@ export function DriverAssignmentModal({
           {assignment.order.items && assignment.order.items.length > 0 && (
             <div
               style={{
-                ...ROYAL_STYLES.card,
-                background: ROYAL_COLORS.secondary,
+                ...styles.card,
+                background: tokens.colors.background.secondary,
                 maxHeight: '200px',
                 overflowY: 'auto'
               }}
@@ -334,7 +334,7 @@ export function DriverAssignmentModal({
                 style={{
                   fontSize: '14px',
                   fontWeight: '700',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   marginBottom: '12px'
                 }}
               >
@@ -349,12 +349,12 @@ export function DriverAssignmentModal({
                     padding: '8px 0',
                     borderBottom:
                       index < assignment.order.items.length - 1
-                        ? `1px solid ${ROYAL_COLORS.cardBorder}50`
+                        ? `1px solid ${tokens.colors.background.cardBorder}50`
                         : 'none'
                   }}
                 >
-                  <span style={{ color: ROYAL_COLORS.text }}>{item.product_name || item.name}</span>
-                  <span style={{ color: ROYAL_COLORS.muted }}>×{item.quantity}</span>
+                  <span style={{ color: tokens.colors.text.primary }}>{item.product_name || item.name}</span>
+                  <span style={{ color: tokens.colors.text.secondary }}>×{item.quantity}</span>
                 </div>
               ))}
             </div>
@@ -365,8 +365,8 @@ export function DriverAssignmentModal({
               style={{
                 marginTop: '16px',
                 padding: '12px',
-                background: `${ROYAL_COLORS.warning}20`,
-                border: `1px solid ${ROYAL_COLORS.warning}50`,
+                background: `${tokens.colors.status.warning}20`,
+                border: `1px solid ${tokens.colors.status.warning}50`,
                 borderRadius: '12px'
               }}
             >
@@ -374,13 +374,13 @@ export function DriverAssignmentModal({
                 style={{
                   fontSize: '12px',
                   fontWeight: '700',
-                  color: ROYAL_COLORS.warning,
+                  color: tokens.colors.status.warning,
                   marginBottom: '4px'
                 }}
               >
                 הערות
               </div>
-              <div style={{ fontSize: '14px', color: ROYAL_COLORS.text }}>
+              <div style={{ fontSize: '14px', color: tokens.colors.text.primary }}>
                 {assignment.order.notes}
               </div>
             </div>
@@ -393,7 +393,7 @@ export function DriverAssignmentModal({
               onClick={handleAccept}
               disabled={isAccepting || timeRemaining === 0}
               style={{
-                ...ROYAL_STYLES.buttonPrimary,
+                ...styles.button.primary,
                 width: '100%',
                 fontSize: '18px',
                 padding: '16px',
@@ -408,7 +408,7 @@ export function DriverAssignmentModal({
               onClick={() => setShowDeclineForm(true)}
               disabled={isDeclining || timeRemaining === 0}
               style={{
-                ...ROYAL_STYLES.buttonSecondary,
+                ...styles.button.secondary,
                 width: '100%',
                 fontSize: '16px',
                 padding: '14px'
@@ -426,7 +426,7 @@ export function DriverAssignmentModal({
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text
+                  color: tokens.colors.text.primary
                 }}
               >
                 סיבת הדחייה (אופציונלי)
@@ -439,10 +439,10 @@ export function DriverAssignmentModal({
                 style={{
                   width: '100%',
                   padding: '12px',
-                  background: ROYAL_COLORS.secondary,
-                  border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                  background: tokens.colors.background.secondary,
+                  border: `1px solid ${tokens.colors.background.cardBorder}`,
                   borderRadius: '12px',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   fontSize: '14px',
                   resize: 'vertical',
                   fontFamily: 'inherit'
@@ -455,7 +455,7 @@ export function DriverAssignmentModal({
                 onClick={handleDecline}
                 disabled={isDeclining}
                 style={{
-                  ...ROYAL_STYLES.buttonDanger,
+                  ...styles.button.danger,
                   width: '100%',
                   opacity: isDeclining ? 0.5 : 1,
                   cursor: isDeclining ? 'not-allowed' : 'pointer'
@@ -471,7 +471,7 @@ export function DriverAssignmentModal({
                 }}
                 disabled={isDeclining}
                 style={{
-                  ...ROYAL_STYLES.buttonSecondary,
+                  ...styles.button.secondary,
                   width: '100%'
                 }}
               >
@@ -486,7 +486,7 @@ export function DriverAssignmentModal({
         {`
           @keyframes pulse {
             0%, 100% {
-              box-shadow: ${ROYAL_COLORS.glowCrimson};
+              box-shadow: ${tokens.glows.error};
             }
             50% {
               box-shadow: 0 0 40px rgba(255, 107, 138, 0.6);

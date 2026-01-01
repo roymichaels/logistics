@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { formatCurrency, hebrew } from '../lib/i18n';
 import { Toast } from './Toast';
 
@@ -196,23 +196,23 @@ export function FinancialDashboard({ dataStore, user, businessId, onNavigate }: 
 
   if (loading) {
     return (
-      <div style={ROYAL_STYLES.pageContainer}>
+      <div style={styles.pageContainer}>
         <div style={{ textAlign: 'center', paddingTop: '60px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>💰</div>
-          <div style={{ color: ROYAL_COLORS.muted }}>{hebrew.loading}</div>
+          <div style={{ color: tokens.colors.text.secondary }}>{hebrew.loading}</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ ...ROYAL_STYLES.pageContainer, padding: '20px' }}>
+    <div style={{ ...styles.pageContainer, padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={ROYAL_STYLES.pageTitle}>💰 לוח כספי</h1>
+        <h1 style={styles.pageTitle}>💰 לוח כספי</h1>
         <button
           onClick={loadFinancialData}
           style={{
-            ...ROYAL_STYLES.buttonSecondary,
+            ...styles.button.secondary,
             padding: '10px 16px',
             fontSize: '14px',
             display: 'flex',
@@ -236,9 +236,9 @@ export function FinancialDashboard({ dataStore, user, businessId, onNavigate }: 
             style={{
               padding: '8px 16px',
               borderRadius: '10px',
-              border: timeRange === range ? 'none' : `1px solid ${ROYAL_COLORS.cardBorder}`,
-              background: timeRange === range ? ROYAL_COLORS.gradientPurple : ROYAL_COLORS.secondary,
-              color: ROYAL_COLORS.text,
+              border: timeRange === range ? 'none' : `1px solid ${tokens.colors.background.cardBorder}`,
+              background: timeRange === range ? tokens.gradients.primary : tokens.colors.background.secondary,
+              color: tokens.colors.text.primary,
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -256,82 +256,82 @@ export function FinancialDashboard({ dataStore, user, businessId, onNavigate }: 
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '20px' }}>
         <div style={{
-          ...ROYAL_STYLES.card,
-          background: `linear-gradient(135deg, ${ROYAL_COLORS.gold}15, ${ROYAL_COLORS.secondary})`,
-          border: `1px solid ${ROYAL_COLORS.gold}30`
+          ...styles.card,
+          background: `linear-gradient(135deg, ${tokens.colors.status.warning}15, ${tokens.colors.background.secondary})`,
+          border: `1px solid ${tokens.colors.status.warning}30`
         }}>
-          <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '8px', fontWeight: '500' }}>
+          <div style={{ fontSize: '14px', color: tokens.colors.text.secondary, marginBottom: '8px', fontWeight: '500' }}>
             סך הכנסות
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: ROYAL_COLORS.gold, textShadow: ROYAL_COLORS.glowGold }}>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: tokens.colors.status.warning, textShadow: tokens.glows.warning }}>
             {formatCurrency(metrics.totalRevenue)}
           </div>
         </div>
 
         <div style={{
-          ...ROYAL_STYLES.card,
-          background: `linear-gradient(135deg, ${ROYAL_COLORS.success}15, ${ROYAL_COLORS.secondary})`,
-          border: `1px solid ${ROYAL_COLORS.success}30`
+          ...styles.card,
+          background: `linear-gradient(135deg, ${tokens.colors.status.success}15, ${tokens.colors.background.secondary})`,
+          border: `1px solid ${tokens.colors.status.success}30`
         }}>
-          <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '8px', fontWeight: '500' }}>
+          <div style={{ fontSize: '14px', color: tokens.colors.text.secondary, marginBottom: '8px', fontWeight: '500' }}>
             רווח נקי
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: ROYAL_COLORS.success }}>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: tokens.colors.status.success }}>
             {formatCurrency(metrics.netProfit)}
           </div>
         </div>
 
         <div style={{
-          ...ROYAL_STYLES.card,
-          background: `linear-gradient(135deg, ${ROYAL_COLORS.info}15, ${ROYAL_COLORS.secondary})`,
-          border: `1px solid ${ROYAL_COLORS.info}30`
+          ...styles.card,
+          background: `linear-gradient(135deg, ${tokens.colors.status.info}15, ${tokens.colors.background.secondary})`,
+          border: `1px solid ${tokens.colors.status.info}30`
         }}>
-          <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '8px', fontWeight: '500' }}>
+          <div style={{ fontSize: '14px', color: tokens.colors.text.secondary, marginBottom: '8px', fontWeight: '500' }}>
             שולי רווח
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: ROYAL_COLORS.info }}>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: tokens.colors.status.info }}>
             {metrics.profitMargin.toFixed(1)}%
           </div>
         </div>
 
         <div style={{
-          ...ROYAL_STYLES.card,
-          background: `linear-gradient(135deg, ${ROYAL_COLORS.warning}15, ${ROYAL_COLORS.secondary})`,
-          border: `1px solid ${ROYAL_COLORS.warning}30`
+          ...styles.card,
+          background: `linear-gradient(135deg, ${tokens.colors.status.warning}15, ${tokens.colors.background.secondary})`,
+          border: `1px solid ${tokens.colors.status.warning}30`
         }}>
-          <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '8px', fontWeight: '500' }}>
+          <div style={{ fontSize: '14px', color: tokens.colors.text.secondary, marginBottom: '8px', fontWeight: '500' }}>
             תשלומים ממתינים
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: ROYAL_COLORS.warning }}>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: tokens.colors.status.warning }}>
             {formatCurrency(metrics.pendingPayments)}
           </div>
         </div>
       </div>
 
-      <div style={ROYAL_STYLES.card}>
-        <h3 style={ROYAL_STYLES.cardTitle}>📊 הכנסות לפי תקופה</h3>
+      <div style={styles.card}>
+        <h3 style={styles.cardTitle}>📊 הכנסות לפי תקופה</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
-          <div style={{ padding: '16px', background: ROYAL_COLORS.secondary, borderRadius: '12px' }}>
-            <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, marginBottom: '8px' }}>היום</div>
-            <div style={{ fontSize: '22px', fontWeight: '700', color: ROYAL_COLORS.text }}>
+          <div style={{ padding: '16px', background: tokens.colors.background.secondary, borderRadius: '12px' }}>
+            <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '8px' }}>היום</div>
+            <div style={{ fontSize: '22px', fontWeight: '700', color: tokens.colors.text.primary }}>
               {formatCurrency(metrics.todayRevenue)}
             </div>
           </div>
-          <div style={{ padding: '16px', background: ROYAL_COLORS.secondary, borderRadius: '12px' }}>
-            <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, marginBottom: '8px' }}>שבוע</div>
-            <div style={{ fontSize: '22px', fontWeight: '700', color: ROYAL_COLORS.text }}>
+          <div style={{ padding: '16px', background: tokens.colors.background.secondary, borderRadius: '12px' }}>
+            <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '8px' }}>שבוע</div>
+            <div style={{ fontSize: '22px', fontWeight: '700', color: tokens.colors.text.primary }}>
               {formatCurrency(metrics.weekRevenue)}
             </div>
           </div>
-          <div style={{ padding: '16px', background: ROYAL_COLORS.secondary, borderRadius: '12px' }}>
-            <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, marginBottom: '8px' }}>חודש</div>
-            <div style={{ fontSize: '22px', fontWeight: '700', color: ROYAL_COLORS.text }}>
+          <div style={{ padding: '16px', background: tokens.colors.background.secondary, borderRadius: '12px' }}>
+            <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '8px' }}>חודש</div>
+            <div style={{ fontSize: '22px', fontWeight: '700', color: tokens.colors.text.primary }}>
               {formatCurrency(metrics.monthRevenue)}
             </div>
           </div>
-          <div style={{ padding: '16px', background: ROYAL_COLORS.secondary, borderRadius: '12px' }}>
-            <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, marginBottom: '8px' }}>שנה</div>
-            <div style={{ fontSize: '22px', fontWeight: '700', color: ROYAL_COLORS.text }}>
+          <div style={{ padding: '16px', background: tokens.colors.background.secondary, borderRadius: '12px' }}>
+            <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '8px' }}>שנה</div>
+            <div style={{ fontSize: '22px', fontWeight: '700', color: tokens.colors.text.primary }}>
               {formatCurrency(metrics.yearRevenue)}
             </div>
           </div>
@@ -339,15 +339,15 @@ export function FinancialDashboard({ dataStore, user, businessId, onNavigate }: 
       </div>
 
       {revenueByCategory.length > 0 && (
-        <div style={ROYAL_STYLES.card}>
-          <h3 style={ROYAL_STYLES.cardTitle}>📈 הכנסות לפי קטגוריה</h3>
+        <div style={styles.card}>
+          <h3 style={styles.cardTitle}>📈 הכנסות לפי קטגוריה</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {revenueByCategory.map(cat => (
               <div
                 key={cat.category}
                 style={{
                   padding: '16px',
-                  background: ROYAL_COLORS.secondary,
+                  background: tokens.colors.background.secondary,
                   borderRadius: '12px',
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -355,14 +355,14 @@ export function FinancialDashboard({ dataStore, user, businessId, onNavigate }: 
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                  <div style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '4px' }}>
                     {cat.category}
                   </div>
-                  <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
+                  <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>
                     {cat.percentage.toFixed(1)}% מסך ההכנסות
                   </div>
                 </div>
-                <div style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.gold }}>
+                <div style={{ fontSize: '18px', fontWeight: '700', color: tokens.colors.status.warning }}>
                   {formatCurrency(cat.revenue)}
                 </div>
               </div>
@@ -371,13 +371,13 @@ export function FinancialDashboard({ dataStore, user, businessId, onNavigate }: 
         </div>
       )}
 
-      <div style={ROYAL_STYLES.card}>
-        <h3 style={ROYAL_STYLES.cardTitle}>📥 ייצוא דוחות</h3>
+      <div style={styles.card}>
+        <h3 style={styles.cardTitle}>📥 ייצוא דוחות</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <button
             onClick={() => handleExportFinancialReport('json')}
             style={{
-              ...ROYAL_STYLES.buttonPrimary,
+              ...styles.button.primary,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -390,7 +390,7 @@ export function FinancialDashboard({ dataStore, user, businessId, onNavigate }: 
           <button
             onClick={() => handleExportFinancialReport('csv')}
             style={{
-              ...ROYAL_STYLES.buttonSecondary,
+              ...styles.button.secondary,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

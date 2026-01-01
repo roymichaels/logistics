@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens } from '../styles/tokens';
 
 import type { User, DataStore } from '../data/types';
 
@@ -176,13 +176,13 @@ export function GroupChannelCreateModal({
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: ROYAL_COLORS.card,
+          background: tokens.colors.background.card,
           borderRadius: '20px',
           maxWidth: '500px',
           width: '100%',
           maxHeight: '90vh',
           overflow: 'auto',
-          border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+          border: `1px solid ${tokens.colors.background.cardBorder}`,
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
         }}
       >
@@ -190,7 +190,7 @@ export function GroupChannelCreateModal({
         <div
           style={{
             padding: '20px',
-            borderBottom: `1px solid ${ROYAL_COLORS.cardBorder}`,
+            borderBottom: `1px solid ${tokens.colors.background.cardBorder}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between'
@@ -201,7 +201,7 @@ export function GroupChannelCreateModal({
               margin: 0,
               fontSize: '22px',
               fontWeight: '700',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               display: 'flex',
               alignItems: 'center',
               gap: '10px'
@@ -219,7 +219,7 @@ export function GroupChannelCreateModal({
               border: 'none',
               fontSize: '24px',
               cursor: 'pointer',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               padding: '4px',
               lineHeight: 1
             }}
@@ -238,7 +238,7 @@ export function GroupChannelCreateModal({
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: ROYAL_COLORS.text
+                color: tokens.colors.text.primary
               }}
             >
               שם {mode === 'group' ? 'הקבוצה' : 'הערוץ'}
@@ -253,10 +253,10 @@ export function GroupChannelCreateModal({
               style={{
                 width: '100%',
                 padding: '12px 16px',
-                border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                border: `1px solid ${tokens.colors.background.cardBorder}`,
                 borderRadius: '12px',
-                background: ROYAL_COLORS.background,
-                color: ROYAL_COLORS.text,
+                background: tokens.colors.background.primary,
+                color: tokens.colors.text.primary,
                 fontSize: '16px',
                 outline: 'none'
               }}
@@ -271,7 +271,7 @@ export function GroupChannelCreateModal({
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: ROYAL_COLORS.text
+                color: tokens.colors.text.primary
               }}
             >
               תיאור (אופציונלי)
@@ -284,10 +284,10 @@ export function GroupChannelCreateModal({
               style={{
                 width: '100%',
                 padding: '12px 16px',
-                border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                border: `1px solid ${tokens.colors.background.cardBorder}`,
                 borderRadius: '12px',
-                background: ROYAL_COLORS.background,
-                color: ROYAL_COLORS.text,
+                background: tokens.colors.background.primary,
+                color: tokens.colors.text.primary,
                 fontSize: '16px',
                 resize: 'vertical',
                 outline: 'none',
@@ -304,7 +304,7 @@ export function GroupChannelCreateModal({
                 marginBottom: '12px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: ROYAL_COLORS.text
+                color: tokens.colors.text.primary
               }}
             >
               סוג
@@ -322,14 +322,14 @@ export function GroupChannelCreateModal({
                     borderRadius: '12px',
                     border: `2px solid ${
                       type === typeOption.value
-                        ? ROYAL_COLORS.accent
-                        : ROYAL_COLORS.cardBorder
+                        ? tokens.colors.brand.primary
+                        : tokens.colors.background.cardBorder
                     }`,
                     background:
                       type === typeOption.value
-                        ? `${ROYAL_COLORS.accent}20`
-                        : ROYAL_COLORS.background,
-                    color: ROYAL_COLORS.text,
+                        ? `${tokens.colors.brand.primary}20`
+                        : tokens.colors.background.primary,
+                    color: tokens.colors.text.primary,
                     cursor: 'pointer',
                     textAlign: 'right',
                     transition: 'all 0.2s ease'
@@ -347,7 +347,7 @@ export function GroupChannelCreateModal({
                         {typeOption.label}
                       </div>
                       <div
-                        style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}
+                        style={{ fontSize: '13px', color: tokens.colors.text.secondary }}
                       >
                         {typeOption.description}
                       </div>
@@ -369,7 +369,7 @@ export function GroupChannelCreateModal({
                 marginBottom: '12px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: ROYAL_COLORS.text
+                color: tokens.colors.text.primary
               }}
             >
               {mode === 'group'
@@ -386,10 +386,10 @@ export function GroupChannelCreateModal({
               style={{
                 width: '100%',
                 padding: '12px 16px',
-                border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                border: `1px solid ${tokens.colors.background.cardBorder}`,
                 borderRadius: '12px',
-                background: ROYAL_COLORS.background,
-                color: ROYAL_COLORS.text,
+                background: tokens.colors.background.primary,
+                color: tokens.colors.text.primary,
                 fontSize: '16px',
                 marginBottom: '12px',
                 outline: 'none'
@@ -401,9 +401,9 @@ export function GroupChannelCreateModal({
               style={{
                 maxHeight: '200px',
                 overflow: 'auto',
-                border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                border: `1px solid ${tokens.colors.background.cardBorder}`,
                 borderRadius: '12px',
-                background: ROYAL_COLORS.background
+                background: tokens.colors.background.primary
               }}
             >
               {filteredUsers.length === 0 ? (
@@ -411,7 +411,7 @@ export function GroupChannelCreateModal({
                   style={{
                     padding: '20px',
                     textAlign: 'center',
-                    color: ROYAL_COLORS.muted
+                    color: tokens.colors.text.secondary
                   }}
                 >
                   לא נמצאו משתמשים
@@ -431,11 +431,11 @@ export function GroupChannelCreateModal({
                         width: '100%',
                         padding: '12px 16px',
                         border: 'none',
-                        borderBottom: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                        borderBottom: `1px solid ${tokens.colors.background.cardBorder}`,
                         background: isSelected
-                          ? `${ROYAL_COLORS.accent}15`
+                          ? `${tokens.colors.brand.primary}15`
                           : 'transparent',
-                        color: ROYAL_COLORS.text,
+                        color: tokens.colors.text.primary,
                         cursor:
                           isCurrentUser && mode === 'group'
                             ? 'not-allowed'
@@ -478,7 +478,7 @@ export function GroupChannelCreateModal({
                             <div
                               style={{
                                 fontSize: '13px',
-                                color: ROYAL_COLORS.muted
+                                color: tokens.colors.text.secondary
                               }}
                             >
                               @{user.username}
@@ -488,7 +488,7 @@ export function GroupChannelCreateModal({
                       </div>
                       {isSelected && (
                         <span
-                          style={{ fontSize: '20px', color: ROYAL_COLORS.accent }}
+                          style={{ fontSize: '20px', color: tokens.colors.brand.primary }}
                         >
                           ✓
                         </span>
@@ -526,9 +526,9 @@ export function GroupChannelCreateModal({
                 flex: 1,
                 padding: '14px',
                 borderRadius: '12px',
-                border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                border: `1px solid ${tokens.colors.background.cardBorder}`,
                 background: 'transparent',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 fontSize: '16px',
                 fontWeight: '600',
                 cursor: loading ? 'not-allowed' : 'pointer',
@@ -547,14 +547,14 @@ export function GroupChannelCreateModal({
                 border: 'none',
                 background:
                   loading || !name.trim()
-                    ? ROYAL_COLORS.cardBorder
-                    : ROYAL_COLORS.gradientPurple,
+                    ? tokens.colors.background.cardBorder
+                    : tokens.gradients.primary,
                 color: '#fff',
                 fontSize: '16px',
                 fontWeight: '600',
                 cursor: loading || !name.trim() ? 'not-allowed' : 'pointer',
                 boxShadow:
-                  loading || !name.trim() ? 'none' : ROYAL_COLORS.glowPurple
+                  loading || !name.trim() ? 'none' : tokens.glows.primary
               }}
             >
               {loading ? 'יוצר...' : 'יצירה'}

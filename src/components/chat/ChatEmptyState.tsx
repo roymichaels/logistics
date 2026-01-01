@@ -1,5 +1,5 @@
 import React from 'react';
-import { ROYAL_STYLES, ROYAL_COLORS } from '../../styles/royalTheme';
+import { tokens } from '../../styles/tokens';
 
 interface ChatEmptyStateProps {
   icon: string;
@@ -14,16 +14,16 @@ interface ChatEmptyStateProps {
 export function ChatEmptyState({ icon, title, message, action }: ChatEmptyStateProps) {
   return (
     <div style={{
-      ...ROYAL_STYLES.emptyState,
+      ...styles.emptyState.container,
       padding: '60px 20px',
       borderRadius: '16px',
-      background: ROYAL_COLORS.card
+      background: tokens.colors.background.card
     }}>
       <div style={{ fontSize: '64px', marginBottom: '16px' }}>{icon}</div>
-      <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text, fontSize: '20px' }}>
+      <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text.primary, fontSize: '20px' }}>
         {title}
       </h3>
-      <div style={{ ...ROYAL_STYLES.emptyStateText, fontSize: '15px', marginBottom: action ? '24px' : '0' }}>
+      <div style={{ ...styles.emptyState.containerText, fontSize: '15px', marginBottom: action ? '24px' : '0' }}>
         {message}
       </div>
       {action && (
@@ -33,12 +33,12 @@ export function ChatEmptyState({ icon, title, message, action }: ChatEmptyStateP
             padding: '14px 32px',
             borderRadius: '12px',
             border: 'none',
-            background: ROYAL_COLORS.gradientPurple,
+            background: tokens.gradients.primary,
             color: '#fff',
             fontSize: '16px',
             fontWeight: '600',
             cursor: 'pointer',
-            boxShadow: ROYAL_COLORS.glowPurple,
+            boxShadow: tokens.glows.primary,
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
@@ -51,7 +51,7 @@ export function ChatEmptyState({ icon, title, message, action }: ChatEmptyStateP
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = ROYAL_COLORS.glowPurple;
+            e.currentTarget.style.boxShadow = tokens.glows.primary;
           }}
         >
           <span style={{ fontSize: '20px' }}>+</span>

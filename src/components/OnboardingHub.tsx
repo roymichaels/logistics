@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../data/types';
-import { ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens } from '../styles/tokens';
 
 type OnboardingPathway = 'business_owner' | 'team_member' | 'browse' | null;
 
@@ -108,7 +108,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
             margin: 0,
             fontSize: '36px',
             fontWeight: '700',
-            color: ROYAL_COLORS.textBright,
+            color: tokens.colors.text.primaryBright,
             marginBottom: '12px',
             animation: 'fadeInUp 0.8s ease-out 0.1s backwards'
           }}>
@@ -117,7 +117,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
           <p style={{
             margin: 0,
             fontSize: '18px',
-            color: ROYAL_COLORS.muted,
+            color: tokens.colors.text.secondary,
             lineHeight: '1.6',
             maxWidth: '600px',
             marginLeft: 'auto',
@@ -147,14 +147,14 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
                   background: pathway.gradient,
                   border: isSelected
                     ? `2px solid ${pathway.color}`
-                    : `1px solid ${ROYAL_COLORS.cardBorder}`,
+                    : `1px solid ${tokens.colors.background.cardBorder}`,
                   borderRadius: '20px',
                   padding: '28px',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
                   boxShadow: isSelected
                     ? `0 8px 30px ${pathway.color}40`
-                    : ROYAL_COLORS.shadow,
+                    : tokens.shadows.md,
                   transform: isSelected ? 'scale(1.02)' : 'scale(1)',
                   animation: `fadeInUp 0.8s ease-out ${0.3 + index * 0.1}s backwards`,
                   position: 'relative',
@@ -169,7 +169,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
                 onMouseLeave={(e) => {
                   if (!isSelected) {
                     e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.boxShadow = ROYAL_COLORS.shadow;
+                    e.currentTarget.style.boxShadow = tokens.shadows.md;
                   }
                 }}
               >
@@ -209,7 +209,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
                   margin: 0,
                   fontSize: '24px',
                   fontWeight: '700',
-                  color: ROYAL_COLORS.textBright,
+                  color: tokens.colors.text.primaryBright,
                   marginBottom: '8px',
                   textAlign: 'center'
                 }}>
@@ -232,7 +232,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
                 <p style={{
                   margin: 0,
                   fontSize: '15px',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   lineHeight: '1.6',
                   marginBottom: isExpanded ? '20px' : '0'
                 }}>
@@ -251,7 +251,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
                       margin: '0 0 12px 0',
                       fontSize: '16px',
                       fontWeight: '600',
-                      color: ROYAL_COLORS.textBright
+                      color: tokens.colors.text.primaryBright
                     }}>
                       מה מקבלים:
                     </h4>
@@ -259,7 +259,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
                       margin: 0,
                       padding: '0 0 0 20px',
                       fontSize: '14px',
-                      color: ROYAL_COLORS.text,
+                      color: tokens.colors.text.primary,
                       lineHeight: '1.8'
                     }}>
                       {pathway.benefits.map((benefit, i) => (
@@ -276,7 +276,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
                   textAlign: 'center',
                   marginTop: '16px',
                   fontSize: '12px',
-                  color: ROYAL_COLORS.muted,
+                  color: tokens.colors.text.secondary,
                   fontWeight: '600'
                 }}>
                   {isExpanded ? '▲ לחץ להסתרת פרטים' : '▼ לחץ לפרטים נוספים'}
@@ -301,10 +301,10 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
               padding: '18px',
               background: selectedPathway
                 ? 'linear-gradient(120deg, #1D9BF0, #f6c945)'
-                : ROYAL_COLORS.secondary,
+                : tokens.colors.background.secondary,
               border: 'none',
               borderRadius: '16px',
-              color: selectedPathway ? '#ffffff' : ROYAL_COLORS.hint,
+              color: selectedPathway ? '#ffffff' : tokens.colors.text.hint,
               fontSize: '18px',
               fontWeight: '700',
               cursor: selectedPathway ? 'pointer' : 'not-allowed',
@@ -335,21 +335,21 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
                 width: '100%',
                 padding: '14px',
                 background: 'transparent',
-                border: `1px solid ${ROYAL_COLORS.border}`,
+                border: `1px solid ${tokens.colors.border.default}`,
                 borderRadius: '14px',
-                color: ROYAL_COLORS.muted,
+                color: tokens.colors.text.secondary,
                 fontSize: '15px',
                 fontWeight: '600',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorderHover;
-                e.currentTarget.style.color = ROYAL_COLORS.text;
+                e.currentTarget.style.borderColor = tokens.colors.background.cardBorderHover;
+                e.currentTarget.style.color = tokens.colors.text.primary;
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = ROYAL_COLORS.border;
-                e.currentTarget.style.color = ROYAL_COLORS.muted;
+                e.currentTarget.style.borderColor = tokens.colors.border.default;
+                e.currentTarget.style.color = tokens.colors.text.secondary;
               }}
             >
               דלג לעכשיו
@@ -362,7 +362,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
           marginTop: '30px',
           padding: '20px',
           background: 'rgba(29, 155, 240, 0.1)',
-          border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+          border: `1px solid ${tokens.colors.background.cardBorder}`,
           borderRadius: '14px',
           textAlign: 'center',
           animation: 'fadeIn 1s ease-out 0.8s backwards'
@@ -376,7 +376,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
           <p style={{
             margin: 0,
             fontSize: '14px',
-            color: ROYAL_COLORS.muted,
+            color: tokens.colors.text.secondary,
             lineHeight: '1.6'
           }}>
             תוכל תמיד לשנות את ההגדרות והתפקיד שלך מדף ההגדרות

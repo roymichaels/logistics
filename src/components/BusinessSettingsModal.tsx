@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 
 import { DataStore } from '../data/types';
 import { Toast } from './Toast';
@@ -152,8 +152,8 @@ export function BusinessSettingsModal({
           justifyContent: 'center',
         }}
       >
-        <div style={{ ...ROYAL_STYLES.card, padding: '40px', textAlign: 'center' }}>
-          <div style={{ color: ROYAL_COLORS.text }}>Loading settings...</div>
+        <div style={{ ...styles.card, padding: '40px', textAlign: 'center' }}>
+          <div style={{ color: tokens.colors.text.primary }}>Loading settings...</div>
         </div>
       </div>
     );
@@ -178,7 +178,7 @@ export function BusinessSettingsModal({
     >
       <div
         style={{
-          ...ROYAL_STYLES.card,
+          ...styles.card,
           width: '100%',
           maxWidth: '700px',
           maxHeight: '90vh',
@@ -191,17 +191,17 @@ export function BusinessSettingsModal({
         <div
           style={{
             padding: '20px',
-            borderBottom: `1px solid ${ROYAL_COLORS.border}`,
+            borderBottom: `1px solid ${tokens.colors.border.default}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}
         >
           <div>
-            <h2 style={{ margin: '0 0 4px 0', fontSize: '20px', color: ROYAL_COLORS.text }}>
+            <h2 style={{ margin: '0 0 4px 0', fontSize: '20px', color: tokens.colors.text.primary }}>
               ⚙️ הגדרות עסק
             </h2>
-            <p style={{ margin: 0, fontSize: '14px', color: ROYAL_COLORS.muted }}>
+            <p style={{ margin: 0, fontSize: '14px', color: tokens.colors.text.secondary }}>
               {businessName}
             </p>
           </div>
@@ -211,7 +211,7 @@ export function BusinessSettingsModal({
               backgroundColor: 'transparent',
               border: 'none',
               fontSize: '28px',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               cursor: 'pointer',
               padding: '4px',
               lineHeight: 1,
@@ -226,7 +226,7 @@ export function BusinessSettingsModal({
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(4, 1fr)',
-            backgroundColor: ROYAL_COLORS.secondary,
+            backgroundColor: tokens.colors.background.secondary,
             margin: '16px',
             borderRadius: '8px',
             padding: '4px',
@@ -244,8 +244,8 @@ export function BusinessSettingsModal({
               onClick={() => setActiveTab(tab.key as any)}
               style={{
                 padding: '8px 4px',
-                backgroundColor: activeTab === tab.key ? ROYAL_COLORS.card : 'transparent',
-                color: activeTab === tab.key ? ROYAL_COLORS.text : ROYAL_COLORS.muted,
+                backgroundColor: activeTab === tab.key ? tokens.colors.background.card : 'transparent',
+                color: activeTab === tab.key ? tokens.colors.text.primary : tokens.colors.text.secondary,
                 border: 'none',
                 borderRadius: '6px',
                 fontSize: '12px',
@@ -264,7 +264,7 @@ export function BusinessSettingsModal({
             <>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                 <div>
-                  <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                  <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                     צבע ראשי
                   </label>
                   <input
@@ -275,15 +275,15 @@ export function BusinessSettingsModal({
                       width: '100%',
                       height: '48px',
                       padding: '4px',
-                      backgroundColor: ROYAL_COLORS.secondary,
-                      border: `1px solid ${ROYAL_COLORS.border}`,
+                      backgroundColor: tokens.colors.background.secondary,
+                      border: `1px solid ${tokens.colors.border.default}`,
                       borderRadius: '8px',
                       cursor: 'pointer',
                     }}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                  <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                     צבע משני
                   </label>
                   <input
@@ -294,15 +294,15 @@ export function BusinessSettingsModal({
                       width: '100%',
                       height: '48px',
                       padding: '4px',
-                      backgroundColor: ROYAL_COLORS.secondary,
-                      border: `1px solid ${ROYAL_COLORS.border}`,
+                      backgroundColor: tokens.colors.background.secondary,
+                      border: `1px solid ${tokens.colors.border.default}`,
                       borderRadius: '8px',
                       cursor: 'pointer',
                     }}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                  <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                     צבע הדגשה
                   </label>
                   <input
@@ -313,8 +313,8 @@ export function BusinessSettingsModal({
                       width: '100%',
                       height: '48px',
                       padding: '4px',
-                      backgroundColor: ROYAL_COLORS.secondary,
-                      border: `1px solid ${ROYAL_COLORS.border}`,
+                      backgroundColor: tokens.colors.background.secondary,
+                      border: `1px solid ${tokens.colors.border.default}`,
                       borderRadius: '8px',
                       cursor: 'pointer',
                     }}
@@ -323,7 +323,7 @@ export function BusinessSettingsModal({
               </div>
 
               <div>
-                <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                   מצב תצוגה
                 </label>
                 <select
@@ -332,11 +332,11 @@ export function BusinessSettingsModal({
                   style={{
                     width: '100%',
                     padding: '12px',
-                    backgroundColor: ROYAL_COLORS.secondary,
-                    border: `1px solid ${ROYAL_COLORS.border}`,
+                    backgroundColor: tokens.colors.background.secondary,
+                    border: `1px solid ${tokens.colors.border.default}`,
                     borderRadius: '8px',
                     fontSize: '14px',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                   }}
                 >
                   <option value="auto">אוטומטי</option>
@@ -351,7 +351,7 @@ export function BusinessSettingsModal({
             <>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
-                  <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                  <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                     מטבע ברירת מחדל
                   </label>
                   <select
@@ -360,11 +360,11 @@ export function BusinessSettingsModal({
                     style={{
                       width: '100%',
                       padding: '12px',
-                      backgroundColor: ROYAL_COLORS.secondary,
-                      border: `1px solid ${ROYAL_COLORS.border}`,
+                      backgroundColor: tokens.colors.background.secondary,
+                      border: `1px solid ${tokens.colors.border.default}`,
                       borderRadius: '8px',
                       fontSize: '14px',
-                      color: ROYAL_COLORS.text,
+                      color: tokens.colors.text.primary,
                     }}
                   >
                     <option value="ILS">₪ שקל ישראלי</option>
@@ -373,7 +373,7 @@ export function BusinessSettingsModal({
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                  <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                     אזור זמן
                   </label>
                   <select
@@ -382,11 +382,11 @@ export function BusinessSettingsModal({
                     style={{
                       width: '100%',
                       padding: '12px',
-                      backgroundColor: ROYAL_COLORS.secondary,
-                      border: `1px solid ${ROYAL_COLORS.border}`,
+                      backgroundColor: tokens.colors.background.secondary,
+                      border: `1px solid ${tokens.colors.border.default}`,
                       borderRadius: '8px',
                       fontSize: '14px',
-                      color: ROYAL_COLORS.text,
+                      color: tokens.colors.text.primary,
                     }}
                   >
                     <option value="Asia/Jerusalem">ירושלים</option>
@@ -398,7 +398,7 @@ export function BusinessSettingsModal({
               </div>
 
               <div>
-                <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                   קידומת מספר הזמנה
                 </label>
                 <input
@@ -409,11 +409,11 @@ export function BusinessSettingsModal({
                   style={{
                     width: '100%',
                     padding: '12px',
-                    backgroundColor: ROYAL_COLORS.secondary,
-                    border: `1px solid ${ROYAL_COLORS.border}`,
+                    backgroundColor: tokens.colors.background.secondary,
+                    border: `1px solid ${tokens.colors.border.default}`,
                     borderRadius: '8px',
                     fontSize: '14px',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                   }}
                 />
               </div>
@@ -424,7 +424,7 @@ export function BusinessSettingsModal({
                   alignItems: 'center',
                   gap: '12px',
                   padding: '12px',
-                  backgroundColor: ROYAL_COLORS.secondary,
+                  backgroundColor: tokens.colors.background.secondary,
                   borderRadius: '8px',
                 }}
               >
@@ -435,7 +435,7 @@ export function BusinessSettingsModal({
                   onChange={(e) => setSettings({ ...settings, auto_confirm_orders: e.target.checked })}
                   style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                 />
-                <label htmlFor="auto_confirm" style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600', cursor: 'pointer' }}>
+                <label htmlFor="auto_confirm" style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600', cursor: 'pointer' }}>
                   אישור הזמנות אוטומטי
                 </label>
               </div>
@@ -445,7 +445,7 @@ export function BusinessSettingsModal({
           {activeTab === 'legal' && (
             <>
               <div>
-                <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                   שם ישות משפטית
                 </label>
                 <input
@@ -455,18 +455,18 @@ export function BusinessSettingsModal({
                   style={{
                     width: '100%',
                     padding: '12px',
-                    backgroundColor: ROYAL_COLORS.secondary,
-                    border: `1px solid ${ROYAL_COLORS.border}`,
+                    backgroundColor: tokens.colors.background.secondary,
+                    border: `1px solid ${tokens.colors.border.default}`,
                     borderRadius: '8px',
                     fontSize: '14px',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                   }}
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
-                  <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                  <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                     מספר עוסק מורשה
                   </label>
                   <input
@@ -476,16 +476,16 @@ export function BusinessSettingsModal({
                     style={{
                       width: '100%',
                       padding: '12px',
-                      backgroundColor: ROYAL_COLORS.secondary,
-                      border: `1px solid ${ROYAL_COLORS.border}`,
+                      backgroundColor: tokens.colors.background.secondary,
+                      border: `1px solid ${tokens.colors.border.default}`,
                       borderRadius: '8px',
                       fontSize: '14px',
-                      color: ROYAL_COLORS.text,
+                      color: tokens.colors.text.primary,
                     }}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                  <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                     מספר רישום עסק
                   </label>
                   <input
@@ -495,11 +495,11 @@ export function BusinessSettingsModal({
                     style={{
                       width: '100%',
                       padding: '12px',
-                      backgroundColor: ROYAL_COLORS.secondary,
-                      border: `1px solid ${ROYAL_COLORS.border}`,
+                      backgroundColor: tokens.colors.background.secondary,
+                      border: `1px solid ${tokens.colors.border.default}`,
                       borderRadius: '8px',
                       fontSize: '14px',
-                      color: ROYAL_COLORS.text,
+                      color: tokens.colors.text.primary,
                     }}
                   />
                 </div>
@@ -507,7 +507,7 @@ export function BusinessSettingsModal({
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
-                  <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                  <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                     אימייל ליצירת קשר
                   </label>
                   <input
@@ -517,16 +517,16 @@ export function BusinessSettingsModal({
                     style={{
                       width: '100%',
                       padding: '12px',
-                      backgroundColor: ROYAL_COLORS.secondary,
-                      border: `1px solid ${ROYAL_COLORS.border}`,
+                      backgroundColor: tokens.colors.background.secondary,
+                      border: `1px solid ${tokens.colors.border.default}`,
                       borderRadius: '8px',
                       fontSize: '14px',
-                      color: ROYAL_COLORS.text,
+                      color: tokens.colors.text.primary,
                     }}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                  <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                     טלפון
                   </label>
                   <input
@@ -536,18 +536,18 @@ export function BusinessSettingsModal({
                     style={{
                       width: '100%',
                       padding: '12px',
-                      backgroundColor: ROYAL_COLORS.secondary,
-                      border: `1px solid ${ROYAL_COLORS.border}`,
+                      backgroundColor: tokens.colors.background.secondary,
+                      border: `1px solid ${tokens.colors.border.default}`,
                       borderRadius: '8px',
                       fontSize: '14px',
-                      color: ROYAL_COLORS.text,
+                      color: tokens.colors.text.primary,
                     }}
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
                   אתר אינטרנט
                 </label>
                 <input
@@ -558,11 +558,11 @@ export function BusinessSettingsModal({
                   style={{
                     width: '100%',
                     padding: '12px',
-                    backgroundColor: ROYAL_COLORS.secondary,
-                    border: `1px solid ${ROYAL_COLORS.border}`,
+                    backgroundColor: tokens.colors.background.secondary,
+                    border: `1px solid ${tokens.colors.border.default}`,
                     borderRadius: '8px',
                     fontSize: '14px',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                   }}
                 />
               </div>
@@ -577,7 +577,7 @@ export function BusinessSettingsModal({
                   alignItems: 'center',
                   gap: '12px',
                   padding: '12px',
-                  backgroundColor: ROYAL_COLORS.secondary,
+                  backgroundColor: tokens.colors.background.secondary,
                   borderRadius: '8px',
                 }}
               >
@@ -588,7 +588,7 @@ export function BusinessSettingsModal({
                   onChange={(e) => setSettings({ ...settings, email_notifications: e.target.checked })}
                   style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                 />
-                <label htmlFor="email_notif" style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600', cursor: 'pointer', flex: 1 }}>
+                <label htmlFor="email_notif" style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600', cursor: 'pointer', flex: 1 }}>
                   📧 התראות במייל
                 </label>
               </div>
@@ -599,7 +599,7 @@ export function BusinessSettingsModal({
                   alignItems: 'center',
                   gap: '12px',
                   padding: '12px',
-                  backgroundColor: ROYAL_COLORS.secondary,
+                  backgroundColor: tokens.colors.background.secondary,
                   borderRadius: '8px',
                 }}
               >
@@ -610,7 +610,7 @@ export function BusinessSettingsModal({
                   onChange={(e) => setSettings({ ...settings, sms_notifications: e.target.checked })}
                   style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                 />
-                <label htmlFor="sms_notif" style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600', cursor: 'pointer', flex: 1 }}>
+                <label htmlFor="sms_notif" style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600', cursor: 'pointer', flex: 1 }}>
                   💬 התראות SMS
                 </label>
               </div>
@@ -621,7 +621,7 @@ export function BusinessSettingsModal({
                   alignItems: 'center',
                   gap: '12px',
                   padding: '12px',
-                  backgroundColor: ROYAL_COLORS.secondary,
+                  backgroundColor: tokens.colors.background.secondary,
                   borderRadius: '8px',
                 }}
               >
@@ -632,7 +632,7 @@ export function BusinessSettingsModal({
                   onChange={(e) => setSettings({ ...settings, push_notifications: e.target.checked })}
                   style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                 />
-                <label htmlFor="push_notif" style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600', cursor: 'pointer', flex: 1 }}>
+                <label htmlFor="push_notif" style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600', cursor: 'pointer', flex: 1 }}>
                   🔔 התראות Push
                 </label>
               </div>
@@ -644,7 +644,7 @@ export function BusinessSettingsModal({
         <div
           style={{
             padding: '20px',
-            borderTop: `1px solid ${ROYAL_COLORS.border}`,
+            borderTop: `1px solid ${tokens.colors.border.default}`,
             display: 'flex',
             gap: '12px',
           }}
@@ -653,7 +653,7 @@ export function BusinessSettingsModal({
             onClick={onClose}
             disabled={saving}
             style={{
-              ...ROYAL_STYLES.buttonSecondary,
+              ...styles.button.secondary,
               flex: 1,
               opacity: saving ? 0.5 : 1,
             }}
@@ -664,7 +664,7 @@ export function BusinessSettingsModal({
             onClick={handleSave}
             disabled={saving}
             style={{
-              ...ROYAL_STYLES.buttonPrimary,
+              ...styles.button.primary,
               flex: 1,
               opacity: saving ? 0.5 : 1,
             }}

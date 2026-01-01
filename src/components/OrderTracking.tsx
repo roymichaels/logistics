@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { ROYAL_COLORS, ROYAL_STYLES, getStatusBadgeStyle } from '../styles/royalTheme';
+import { getStatusBadgeStyle, tokens } from '../styles/tokens';
 import { Toast } from './Toast';
 import { logger } from '../lib/logger';
 
@@ -175,7 +175,7 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
     return (
       <div
         style={{
-          ...ROYAL_STYLES.pageContainer,
+          ...styles.pageContainer,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
@@ -191,7 +191,7 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
           >
             ⚡
           </div>
-          <div style={{ color: ROYAL_COLORS.muted }}>טוען מעקב הזמנה...</div>
+          <div style={{ color: tokens.colors.text.secondary }}>טוען מעקב הזמנה...</div>
         </div>
       </div>
     );
@@ -199,12 +199,12 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
 
   if (error || !order) {
     return (
-      <div style={ROYAL_STYLES.pageContainer}>
+      <div style={styles.pageContainer}>
         <div style={{ textAlign: 'center', padding: '40px' }}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>😕</div>
-          <div style={{ color: ROYAL_COLORS.error, marginBottom: '16px' }}>{error}</div>
+          <div style={{ color: tokens.colors.status.error, marginBottom: '16px' }}>{error}</div>
           {onClose && (
-            <button onClick={onClose} style={ROYAL_STYLES.buttonPrimary}>
+            <button onClick={onClose} style={styles.button.primary}>
               חזור
             </button>
           )}
@@ -214,12 +214,12 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
   }
 
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
+    <div style={styles.pageContainer}>
       {onClose && (
         <button
           onClick={onClose}
           style={{
-            ...ROYAL_STYLES.buttonSecondary,
+            ...styles.button.secondary,
             marginBottom: '16px',
             padding: '8px 16px'
           }}
@@ -228,8 +228,8 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
         </button>
       )}
 
-      <div style={ROYAL_STYLES.pageHeader}>
-        <h1 style={ROYAL_STYLES.pageTitle}>מעקב הזמנה #{order.id.slice(0, 8)}</h1>
+      <div style={styles.pageHeader}>
+        <h1 style={styles.pageTitle}>מעקב הזמנה #{order.id.slice(0, 8)}</h1>
         <div style={{ ...getStatusBadgeStyle(order.status), marginTop: '8px' }}>
           {getStatusIcon(order.status)} {getStatusLabel(order.status)}
         </div>
@@ -237,9 +237,9 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
 
       <div
         style={{
-          ...ROYAL_STYLES.card,
+          ...styles.card,
           marginBottom: '20px',
-          background: ROYAL_COLORS.gradientCard
+          background: tokens.gradients.card
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
@@ -251,7 +251,7 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: ROYAL_COLORS.gradientPurple,
+              background: tokens.gradients.primary,
               borderRadius: '16px'
             }}
           >
@@ -262,13 +262,13 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
               style={{
                 fontSize: '20px',
                 fontWeight: '700',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 marginBottom: '4px'
               }}
             >
               {order.customer_name}
             </div>
-            <div style={{ fontSize: '16px', color: ROYAL_COLORS.muted, lineHeight: '1.5' }}>
+            <div style={{ fontSize: '16px', color: tokens.colors.text.secondary, lineHeight: '1.5' }}>
               {order.customer_address}
             </div>
           </div>
@@ -278,8 +278,8 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
           <div
             style={{
               padding: '12px',
-              background: `${ROYAL_COLORS.info}20`,
-              border: `1px solid ${ROYAL_COLORS.info}50`,
+              background: `${tokens.colors.status.info}20`,
+              border: `1px solid ${tokens.colors.status.info}50`,
               borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
@@ -288,8 +288,8 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
           >
             <div style={{ fontSize: '24px' }}>⏰</div>
             <div>
-              <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>זמן אספקה משוער</div>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: ROYAL_COLORS.info }}>
+              <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>זמן אספקה משוער</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: tokens.colors.status.info }}>
                 {new Date(order.estimated_delivery_time).toLocaleTimeString('he-IL', {
                   hour: '2-digit',
                   minute: '2-digit'
@@ -300,8 +300,8 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
         )}
       </div>
 
-      <div style={{ ...ROYAL_STYLES.card, marginBottom: '20px' }}>
-        <h3 style={ROYAL_STYLES.cardTitle}>התקדמות משלוח</h3>
+      <div style={{ ...styles.card, marginBottom: '20px' }}>
+        <h3 style={styles.cardTitle}>התקדמות משלוח</h3>
         <div style={{ position: 'relative', paddingRight: '40px' }}>
           {statusSteps.slice(0, -1).map((step, index) => {
             const isCompleted = index <= currentStepIndex;
@@ -317,7 +317,7 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
                       top: '32px',
                       width: '2px',
                       height: 'calc(100% - 16px)',
-                      background: isCompleted ? ROYAL_COLORS.accent : `${ROYAL_COLORS.hint}30`
+                      background: isCompleted ? tokens.colors.brand.primary : `${tokens.colors.text.hint}30`
                     }}
                   />
                 )}
@@ -331,16 +331,16 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
                       height: '32px',
                       borderRadius: '50%',
                       background: isCompleted
-                        ? ROYAL_COLORS.gradientPurple
-                        : ROYAL_COLORS.secondary,
+                        ? tokens.gradients.primary
+                        : tokens.colors.background.secondary,
                       border: `2px solid ${
-                        isCurrent ? ROYAL_COLORS.accentBright : ROYAL_COLORS.cardBorder
+                        isCurrent ? tokens.colors.brand.primaryBright : tokens.colors.background.cardBorder
                       }`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '16px',
-                      boxShadow: isCurrent ? ROYAL_COLORS.glowPurpleStrong : 'none',
+                      boxShadow: isCurrent ? tokens.glows.primaryStrong : 'none',
                       animation: isCurrent ? 'pulse 2s infinite' : 'none'
                     }}
                   >
@@ -352,14 +352,14 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
                       style={{
                         fontSize: '16px',
                         fontWeight: isCurrent ? '700' : '600',
-                        color: isCompleted ? ROYAL_COLORS.text : ROYAL_COLORS.mutedDark,
+                        color: isCompleted ? tokens.colors.text.primary : tokens.colors.text.secondaryDark,
                         marginBottom: '4px'
                       }}
                     >
                       {getStatusLabel(step)}
                     </div>
                     {statusHistory.find((h) => h.status === step) && (
-                      <div style={{ fontSize: '12px', color: ROYAL_COLORS.hint }}>
+                      <div style={{ fontSize: '12px', color: tokens.colors.text.hint }}>
                         {new Date(
                           statusHistory.find((h) => h.status === step)!.timestamp
                         ).toLocaleString('he-IL')}
@@ -374,15 +374,15 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
       </div>
 
       {driverInfo && (
-        <div style={{ ...ROYAL_STYLES.card, marginBottom: '20px' }}>
-          <h3 style={ROYAL_STYLES.cardTitle}>פרטי שליח</h3>
+        <div style={{ ...styles.card, marginBottom: '20px' }}>
+          <h3 style={styles.cardTitle}>פרטי שליח</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div
               style={{
                 width: '64px',
                 height: '64px',
                 borderRadius: '50%',
-                background: ROYAL_COLORS.gradientPurple,
+                background: tokens.gradients.primary,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -396,28 +396,28 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
                 style={{
                   fontSize: '18px',
                   fontWeight: '700',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   marginBottom: '4px'
                 }}
               >
                 {driverInfo.name || 'שליח'}
               </div>
               {driverInfo.phone && (
-                <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                <div style={{ fontSize: '14px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
                   📞 {driverInfo.phone}
                 </div>
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ color: ROYAL_COLORS.gold }}>
+                <div style={{ color: tokens.colors.status.warning }}>
                   ⭐ {driverInfo.rating.toFixed(1)}
                 </div>
                 {driverInfo.vehicle_type && (
-                  <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                  <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
                     • {driverInfo.vehicle_type}
                   </div>
                 )}
                 {driverInfo.vehicle_plate && (
-                  <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                  <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
                     • {driverInfo.vehicle_plate}
                   </div>
                 )}
@@ -427,8 +427,8 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
         </div>
       )}
 
-      <div style={{ ...ROYAL_STYLES.card, marginBottom: '20px' }}>
-        <h3 style={ROYAL_STYLES.cardTitle}>פרטי הזמנה</h3>
+      <div style={{ ...styles.card, marginBottom: '20px' }}>
+        <h3 style={styles.cardTitle}>פרטי הזמנה</h3>
         <div style={{ marginBottom: '16px' }}>
           {order.items.map((item: any, index: number) => (
             <div
@@ -438,18 +438,18 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
                 justifyContent: 'space-between',
                 padding: '12px 0',
                 borderBottom:
-                  index < order.items.length - 1 ? `1px solid ${ROYAL_COLORS.cardBorder}50` : 'none'
+                  index < order.items.length - 1 ? `1px solid ${tokens.colors.background.cardBorder}50` : 'none'
               }}
             >
               <div>
-                <div style={{ fontSize: '16px', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                <div style={{ fontSize: '16px', color: tokens.colors.text.primary, marginBottom: '4px' }}>
                   {item.product_name || item.name}
                 </div>
-                <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
                   ₪{item.price} × {item.quantity}
                 </div>
               </div>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: ROYAL_COLORS.accent }}>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: tokens.colors.brand.primary }}>
                 ₪{(item.price * item.quantity).toLocaleString()}
               </div>
             </div>
@@ -461,21 +461,21 @@ export function OrderTracking({ orderId, supabase, onClose }: OrderTrackingProps
             display: 'flex',
             justifyContent: 'space-between',
             paddingTop: '16px',
-            borderTop: `2px solid ${ROYAL_COLORS.cardBorder}`,
+            borderTop: `2px solid ${tokens.colors.background.cardBorder}`,
             fontSize: '20px',
             fontWeight: '700'
           }}
         >
-          <span style={{ color: ROYAL_COLORS.text }}>סה"כ</span>
-          <span style={{ color: ROYAL_COLORS.gold }}>
+          <span style={{ color: tokens.colors.text.primary }}>סה"כ</span>
+          <span style={{ color: tokens.colors.status.warning }}>
             ₪{order.total_amount.toLocaleString()}
           </span>
         </div>
       </div>
 
       {order.delivery_proof_url && (
-        <div style={{ ...ROYAL_STYLES.card, marginBottom: '20px' }}>
-          <h3 style={ROYAL_STYLES.cardTitle}>אישור מסירה</h3>
+        <div style={{ ...styles.card, marginBottom: '20px' }}>
+          <h3 style={styles.cardTitle}>אישור מסירה</h3>
           <img
             src={order.delivery_proof_url}
             alt="Delivery proof"

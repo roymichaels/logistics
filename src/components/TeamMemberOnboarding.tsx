@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../data/types';
-import { ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens } from '../styles/tokens';
 
 import { Toast } from './Toast';
 import { hebrew, roleNames, roleIcons } from '../lib/i18n';
@@ -226,7 +226,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
               margin: 0,
               fontSize: '28px',
               fontWeight: '700',
-              color: ROYAL_COLORS.textBright,
+              color: tokens.colors.text.primaryBright,
               marginBottom: '8px',
               animation: 'fadeInUp 0.6s ease-out 0.1s backwards'
             }}>
@@ -235,7 +235,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
             <p style={{
               margin: 0,
               fontSize: '15px',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               animation: 'fadeInUp 0.6s ease-out 0.2s backwards'
             }}>
               {currentStep === 'role_selection'
@@ -262,28 +262,28 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
                   key={role.value}
                   onClick={() => handleRoleSelect(role.value)}
                   style={{
-                    background: ROYAL_COLORS.card,
+                    background: tokens.colors.background.card,
                     border: isSelected
-                      ? `2px solid ${ROYAL_COLORS.primary}`
-                      : `1px solid ${ROYAL_COLORS.cardBorder}`,
+                      ? `2px solid ${tokens.colors.brand.primary}`
+                      : `1px solid ${tokens.colors.background.cardBorder}`,
                     borderRadius: '16px',
                     padding: '20px',
                     cursor: 'pointer',
                     transition: 'all 0.3s ease',
                     position: 'relative',
-                    boxShadow: isSelected ? ROYAL_COLORS.glowPrimaryStrong : ROYAL_COLORS.shadow,
+                    boxShadow: isSelected ? tokens.glows.primaryStrong : tokens.shadows.md,
                     animation: `fadeInUp 0.6s ease-out ${0.3 + index * 0.05}s backwards`
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
                       e.currentTarget.style.transform = 'translateY(-4px)';
-                      e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorderHover;
+                      e.currentTarget.style.borderColor = tokens.colors.background.cardBorderHover;
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) {
                       e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorder;
+                      e.currentTarget.style.borderColor = tokens.colors.background.cardBorder;
                     }
                   }}
                 >
@@ -295,7 +295,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
                       width: '28px',
                       height: '28px',
                       borderRadius: '50%',
-                      background: ROYAL_COLORS.primary,
+                      background: tokens.colors.brand.primary,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -319,7 +319,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
                     margin: 0,
                     fontSize: '18px',
                     fontWeight: '700',
-                    color: ROYAL_COLORS.textBright,
+                    color: tokens.colors.text.primaryBright,
                     marginBottom: '8px',
                     textAlign: 'center'
                   }}>
@@ -329,7 +329,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
                   <p style={{
                     margin: 0,
                     fontSize: '14px',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                     lineHeight: '1.5',
                     marginBottom: isExpanded ? '16px' : '0'
                   }}>
@@ -340,13 +340,13 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
                     <div style={{
                       marginTop: '16px',
                       paddingTop: '16px',
-                      borderTop: `1px solid ${ROYAL_COLORS.border}`,
+                      borderTop: `1px solid ${tokens.colors.border.default}`,
                       animation: 'fadeIn 0.3s ease-out'
                     }}>
                       <div style={{
                         fontSize: '13px',
                         fontWeight: '600',
-                        color: ROYAL_COLORS.text,
+                        color: tokens.colors.text.primary,
                         marginBottom: '8px'
                       }}>
                         אחריות עיקרית:
@@ -355,7 +355,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
                         margin: 0,
                         padding: '0 0 0 16px',
                         fontSize: '12px',
-                        color: ROYAL_COLORS.muted,
+                        color: tokens.colors.text.secondary,
                         lineHeight: '1.6'
                       }}>
                         {role.responsibilities.slice(0, 3).map((resp, i) => (
@@ -369,7 +369,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
                     textAlign: 'center',
                     marginTop: '12px',
                     fontSize: '11px',
-                    color: ROYAL_COLORS.muted,
+                    color: tokens.colors.text.secondary,
                     fontWeight: '600'
                   }}>
                     {isExpanded ? '▲ הסתר' : '▼ לחץ לפרטים'}
@@ -383,12 +383,12 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
         {/* Role Details */}
         {currentStep === 'role_details' && selectedRoleData && (
           <div style={{
-            background: ROYAL_COLORS.card,
-            border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+            background: tokens.colors.background.card,
+            border: `1px solid ${tokens.colors.background.cardBorder}`,
             borderRadius: '20px',
             padding: '28px',
             marginBottom: '20px',
-            boxShadow: ROYAL_COLORS.shadow
+            boxShadow: tokens.shadows.md
           }}>
             <div style={{
               textAlign: 'center',
@@ -401,7 +401,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
                 margin: 0,
                 fontSize: '24px',
                 fontWeight: '700',
-                color: ROYAL_COLORS.textBright,
+                color: tokens.colors.text.primaryBright,
                 marginBottom: '8px'
               }}>
                 {selectedRoleData.label}
@@ -409,7 +409,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
               <p style={{
                 margin: 0,
                 fontSize: '15px',
-                color: ROYAL_COLORS.text
+                color: tokens.colors.text.primary
               }}>
                 {selectedRoleData.description}
               </p>
@@ -420,7 +420,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
                 margin: '0 0 12px 0',
                 fontSize: '16px',
                 fontWeight: '700',
-                color: ROYAL_COLORS.textBright,
+                color: tokens.colors.text.primaryBright,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
@@ -432,7 +432,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
                 margin: 0,
                 padding: '0 0 0 20px',
                 fontSize: '14px',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 lineHeight: '1.8'
               }}>
                 {selectedRoleData.responsibilities.map((resp, i) => (
@@ -446,7 +446,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
                 margin: '0 0 12px 0',
                 fontSize: '16px',
                 fontWeight: '700',
-                color: ROYAL_COLORS.textBright,
+                color: tokens.colors.text.primaryBright,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
@@ -458,7 +458,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
                 margin: 0,
                 padding: '0 0 0 20px',
                 fontSize: '14px',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 lineHeight: '1.8'
               }}>
                 {selectedRoleData.requirements.map((req, i) => (
@@ -484,7 +484,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
                   <p style={{
                     margin: 0,
                     fontSize: '13px',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                     lineHeight: '1.6'
                   }}>
                     בקשתך תישלח למנהל העסק לאישור. תקבל הודעה ברגע שהבקשה תאושר ותוכל להתחיל לעבוד.
@@ -498,12 +498,12 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
         {/* Submitting */}
         {currentStep === 'submitting' && (
           <div style={{
-            background: ROYAL_COLORS.card,
-            border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+            background: tokens.colors.background.card,
+            border: `1px solid ${tokens.colors.background.cardBorder}`,
             borderRadius: '20px',
             padding: '60px 28px',
             textAlign: 'center',
-            boxShadow: ROYAL_COLORS.shadow
+            boxShadow: tokens.shadows.md
           }}>
             <div style={{
               fontSize: '72px',
@@ -516,7 +516,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
               margin: 0,
               fontSize: '24px',
               fontWeight: '700',
-              color: ROYAL_COLORS.textBright,
+              color: tokens.colors.text.primaryBright,
               marginBottom: '12px'
             }}>
               שולח בקשה...
@@ -524,7 +524,7 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
             <p style={{
               margin: 0,
               fontSize: '15px',
-              color: ROYAL_COLORS.muted
+              color: tokens.colors.text.secondary
             }}>
               הבקשה נשלחת למנהל לאישור
             </p>
@@ -543,19 +543,19 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
                 flex: 1,
                 padding: '16px',
                 background: 'transparent',
-                border: `1px solid ${ROYAL_COLORS.border}`,
+                border: `1px solid ${tokens.colors.border.default}`,
                 borderRadius: '14px',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 fontSize: '16px',
                 fontWeight: '600',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorderHover;
+                e.currentTarget.style.borderColor = tokens.colors.background.cardBorderHover;
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = ROYAL_COLORS.border;
+                e.currentTarget.style.borderColor = tokens.colors.border.default;
               }}
             >
               → חזור
@@ -569,10 +569,10 @@ export function TeamMemberOnboarding({ onComplete, onBack }: TeamMemberOnboardin
                 padding: '16px',
                 background: selectedRole
                   ? 'linear-gradient(120deg, #4dd0e1, #26c6da)'
-                  : ROYAL_COLORS.secondary,
+                  : tokens.colors.background.secondary,
                 border: 'none',
                 borderRadius: '14px',
-                color: selectedRole ? '#ffffff' : ROYAL_COLORS.hint,
+                color: selectedRole ? '#ffffff' : tokens.colors.text.hint,
                 fontSize: '16px',
                 fontWeight: '700',
                 cursor: selectedRole ? 'pointer' : 'not-allowed',

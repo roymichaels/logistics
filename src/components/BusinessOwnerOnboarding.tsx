@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, BusinessType } from '../data/types';
-import { ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens } from '../styles/tokens';
 
 import { Toast } from './Toast';
 import { logger } from '../lib/logger';
@@ -275,7 +275,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: ROYAL_COLORS.text,
+        color: tokens.colors.text.primary,
         direction: 'rtl'
       }}>
         <div style={{ textAlign: 'center' }}>
@@ -336,7 +336,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                 margin: 0,
                 fontSize: '28px',
                 fontWeight: '700',
-                color: ROYAL_COLORS.textBright,
+                color: tokens.colors.text.primaryBright,
                 marginBottom: '8px'
               }}>
                 {getStepTitle()}
@@ -344,7 +344,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
               <p style={{
                 margin: 0,
                 fontSize: '14px',
-                color: ROYAL_COLORS.muted
+                color: tokens.colors.text.secondary
               }}>
                 שלב {getStepNumber()} מתוך 2
               </p>
@@ -354,12 +354,12 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
 
         {/* Step Content */}
         <div style={{
-          background: ROYAL_COLORS.card,
-          border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+          background: tokens.colors.background.card,
+          border: `1px solid ${tokens.colors.background.cardBorder}`,
           borderRadius: '20px',
           padding: '28px',
           marginBottom: '20px',
-          boxShadow: ROYAL_COLORS.shadow
+          boxShadow: tokens.shadows.md
         }}>
           {/* Business Type Selection - REMOVED */}
           {false && (
@@ -367,7 +367,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
               <p style={{
                 margin: '0 0 20px 0',
                 fontSize: '15px',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 lineHeight: '1.6'
               }}>
                 בחר את סוג העסק שלך. זה יעזור לנו להתאים את המערכת לצרכים שלך.
@@ -391,11 +391,11 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                         padding: '20px',
                         borderRadius: '12px',
                         border: isSelected
-                          ? `2px solid ${ROYAL_COLORS.primary}`
-                          : `1px solid ${ROYAL_COLORS.border}`,
+                          ? `2px solid ${tokens.colors.brand.primary}`
+                          : `1px solid ${tokens.colors.border.default}`,
                         background: isSelected
                           ? 'rgba(29, 155, 240, 0.15)'
-                          : ROYAL_COLORS.secondary,
+                          : tokens.colors.background.secondary,
                         cursor: 'pointer',
                         transition: 'all 0.2s ease',
                         position: 'relative'
@@ -407,7 +407,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                           top: '8px',
                           left: '8px',
                           fontSize: '16px',
-                          color: ROYAL_COLORS.primary
+                          color: tokens.colors.brand.primary
                         }}>
                           ✓
                         </div>
@@ -422,7 +422,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                       <div style={{
                         fontSize: '16px',
                         fontWeight: '600',
-                        color: ROYAL_COLORS.text,
+                        color: tokens.colors.text.primary,
                         textAlign: 'center',
                         marginBottom: '4px'
                       }}>
@@ -431,7 +431,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                       {type.description && (
                         <div style={{
                           fontSize: '13px',
-                          color: ROYAL_COLORS.muted,
+                          color: tokens.colors.text.secondary,
                           textAlign: 'center'
                         }}>
                           {type.description}
@@ -456,17 +456,17 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                 textAlign: 'center'
               }}>
                 <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔐</div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '4px' }}>
                   מעבדה תת-קרקעית מאובטחת
                 </div>
-                <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, lineHeight: '1.5' }}>
+                <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, lineHeight: '1.5' }}>
                   עסק פרטי עם סחר מקוון, לוגיסטיקה, צוות וקהילה
                 </div>
               </div>
               <p style={{
                 margin: '0 0 24px 0',
                 fontSize: '15px',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 lineHeight: '1.6'
               }}>
                 מלא את פרטי העסק הפרטי שלך
@@ -478,7 +478,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                     display: 'block',
                     fontSize: '14px',
                     fontWeight: '600',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                     marginBottom: '8px'
                   }}>
                     שם העסק (אנגלית)
@@ -497,18 +497,18 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                       width: '100%',
                       padding: '14px',
                       borderRadius: '12px',
-                      border: `1px solid ${errors.businessName ? '#ff6b8a' : ROYAL_COLORS.border}`,
-                      background: ROYAL_COLORS.secondary,
-                      color: ROYAL_COLORS.text,
+                      border: `1px solid ${errors.businessName ? '#ff6b8a' : tokens.colors.border.default}`,
+                      background: tokens.colors.background.secondary,
+                      color: tokens.colors.text.primary,
                       fontSize: '15px',
                       outline: 'none',
                       boxSizing: 'border-box'
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = errors.businessName ? '#ff6b8a' : ROYAL_COLORS.primary;
+                      e.currentTarget.style.borderColor = errors.businessName ? '#ff6b8a' : tokens.colors.brand.primary;
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = errors.businessName ? '#ff6b8a' : ROYAL_COLORS.border;
+                      e.currentTarget.style.borderColor = errors.businessName ? '#ff6b8a' : tokens.colors.border.default;
                     }}
                   />
                   {errors.businessName && (
@@ -527,7 +527,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                     display: 'block',
                     fontSize: '14px',
                     fontWeight: '600',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                     marginBottom: '8px'
                   }}>
                     שם העסק (עברית)
@@ -546,19 +546,19 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                       width: '100%',
                       padding: '14px',
                       borderRadius: '12px',
-                      border: `1px solid ${errors.businessNameHebrew ? '#ff6b8a' : ROYAL_COLORS.border}`,
-                      background: ROYAL_COLORS.secondary,
-                      color: ROYAL_COLORS.text,
+                      border: `1px solid ${errors.businessNameHebrew ? '#ff6b8a' : tokens.colors.border.default}`,
+                      background: tokens.colors.background.secondary,
+                      color: tokens.colors.text.primary,
                       fontSize: '15px',
                       outline: 'none',
                       boxSizing: 'border-box',
                       direction: 'rtl'
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = errors.businessNameHebrew ? '#ff6b8a' : ROYAL_COLORS.primary;
+                      e.currentTarget.style.borderColor = errors.businessNameHebrew ? '#ff6b8a' : tokens.colors.brand.primary;
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = errors.businessNameHebrew ? '#ff6b8a' : ROYAL_COLORS.border;
+                      e.currentTarget.style.borderColor = errors.businessNameHebrew ? '#ff6b8a' : tokens.colors.border.default;
                     }}
                   />
                   {errors.businessNameHebrew && (
@@ -578,7 +578,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                     display: 'block',
                     fontSize: '14px',
                     fontWeight: '600',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                     marginBottom: '8px'
                   }}>
                     קידומת מספר הזמנה
@@ -598,19 +598,19 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                       width: '100%',
                       padding: '14px',
                       borderRadius: '12px',
-                      border: `1px solid ${errors.orderPrefix ? '#ff6b8a' : ROYAL_COLORS.border}`,
-                      background: ROYAL_COLORS.secondary,
-                      color: ROYAL_COLORS.text,
+                      border: `1px solid ${errors.orderPrefix ? '#ff6b8a' : tokens.colors.border.default}`,
+                      background: tokens.colors.background.secondary,
+                      color: tokens.colors.text.primary,
                       fontSize: '15px',
                       outline: 'none',
                       boxSizing: 'border-box',
                       textTransform: 'uppercase'
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = errors.orderPrefix ? '#ff6b8a' : ROYAL_COLORS.primary;
+                      e.currentTarget.style.borderColor = errors.orderPrefix ? '#ff6b8a' : tokens.colors.brand.primary;
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = errors.orderPrefix ? '#ff6b8a' : ROYAL_COLORS.border;
+                      e.currentTarget.style.borderColor = errors.orderPrefix ? '#ff6b8a' : tokens.colors.border.default;
                     }}
                   />
                   {errors.orderPrefix ? (
@@ -626,7 +626,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                     <p style={{
                       margin: '6px 0 0 0',
                       fontSize: '12px',
-                      color: ROYAL_COLORS.muted
+                      color: tokens.colors.text.secondary
                     }}>
                       לדוגמה: {orderPrefix || 'ORD'}-0001, {orderPrefix || 'ORD'}-0002
                     </p>
@@ -648,17 +648,17 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                 textAlign: 'center'
               }}>
                 <div style={{ fontSize: '32px', marginBottom: '8px' }}>🎨</div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '4px' }}>
                   עיצוב המותג שלך
                 </div>
-                <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, lineHeight: '1.5' }}>
+                <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, lineHeight: '1.5' }}>
                   בחר ערכת צבעים שמתאימה לאופי העסק הפרטי שלך
                 </div>
               </div>
               <p style={{
                 margin: '0 0 20px 0',
                 fontSize: '15px',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 lineHeight: '1.6',
                 textAlign: 'center'
               }}>
@@ -681,7 +681,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                         borderRadius: '12px',
                         border: isSelected
                           ? `2px solid ${color.primary}`
-                          : `1px solid ${ROYAL_COLORS.border}`,
+                          : `1px solid ${tokens.colors.border.default}`,
                         background: `linear-gradient(135deg, ${color.primary}40, ${color.secondary}20)`,
                         cursor: 'pointer',
                         transition: 'all 0.2s ease',
@@ -726,7 +726,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                       <div style={{
                         fontSize: '11px',
                         fontWeight: '600',
-                        color: ROYAL_COLORS.text,
+                        color: tokens.colors.text.primary,
                         textAlign: 'center'
                       }}>
                         {color.name}
@@ -748,7 +748,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                 <div style={{
                   fontSize: '13px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   marginBottom: '16px',
                   textAlign: 'center',
                   opacity: 0.7
@@ -758,7 +758,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
 
                 {/* Business Card Preview */}
                 <div style={{
-                  background: ROYAL_COLORS.card,
+                  background: tokens.colors.background.card,
                   padding: '20px',
                   borderRadius: '12px',
                   marginBottom: '16px',
@@ -775,7 +775,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                   </div>
                   <div style={{
                     fontSize: '13px',
-                    color: ROYAL_COLORS.muted,
+                    color: tokens.colors.text.secondary,
                     marginBottom: '12px',
                     textAlign: 'right'
                   }}>
@@ -797,7 +797,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
 
                 {/* Order Card Preview */}
                 <div style={{
-                  background: ROYAL_COLORS.secondary,
+                  background: tokens.colors.background.secondary,
                   padding: '16px',
                   borderRadius: '10px',
                   display: 'flex',
@@ -808,7 +808,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                   <div>
                     <div style={{
                       fontSize: '11px',
-                      color: ROYAL_COLORS.muted,
+                      color: tokens.colors.text.secondary,
                       marginBottom: '4px'
                     }}>
                       מספר הזמנה
@@ -853,7 +853,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                 margin: 0,
                 fontSize: '24px',
                 fontWeight: '700',
-                color: ROYAL_COLORS.textBright,
+                color: tokens.colors.text.primaryBright,
                 marginBottom: '12px'
               }}>
                 יוצר את העסק שלך...
@@ -861,7 +861,7 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
               <p style={{
                 margin: 0,
                 fontSize: '15px',
-                color: ROYAL_COLORS.muted
+                color: tokens.colors.text.secondary
               }}>
                 רק עוד רגע...
               </p>
@@ -881,19 +881,19 @@ export function BusinessOwnerOnboarding({ dataStore, onComplete, onBack }: Busin
                 flex: 1,
                 padding: '16px',
                 background: 'transparent',
-                border: `1px solid ${ROYAL_COLORS.border}`,
+                border: `1px solid ${tokens.colors.border.default}`,
                 borderRadius: '14px',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 fontSize: '16px',
                 fontWeight: '600',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorderHover;
+                e.currentTarget.style.borderColor = tokens.colors.background.cardBorderHover;
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = ROYAL_COLORS.border;
+                e.currentTarget.style.borderColor = tokens.colors.border.default;
               }}
             >
               → חזור

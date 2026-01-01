@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { i18n } from '../lib/i18n';
 import { useAuth } from '../context/AuthContext';
 
@@ -186,14 +186,14 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
           flexDirection: 'column',
           animation: 'slideInRight 0.3s ease',
           direction: 'rtl',
-          borderLeft: `1px solid ${ROYAL_COLORS.cardBorder}`
+          borderLeft: `1px solid ${tokens.colors.background.cardBorder}`
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div style={{
           padding: '24px 20px',
-          borderBottom: `1px solid ${ROYAL_COLORS.cardBorder}`,
+          borderBottom: `1px solid ${tokens.colors.background.cardBorder}`,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
@@ -203,14 +203,14 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
               margin: 0,
               fontSize: '20px',
               fontWeight: '700',
-              color: ROYAL_COLORS.text
+              color: tokens.colors.text.primary
             }}>
               {i18n.getTranslations().header.menu}
             </h2>
             <p style={{
               margin: '4px 0 0 0',
               fontSize: '13px',
-              color: ROYAL_COLORS.muted
+              color: tokens.colors.text.secondary
             }}>
               {getRoleLabel()}
             </p>
@@ -223,7 +223,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
               borderRadius: '50%',
               border: 'none',
               background: 'rgba(255, 255, 255, 0.1)',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               fontSize: '20px',
               cursor: 'pointer',
               display: 'flex',
@@ -263,7 +263,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
                   background: isActive
                     ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
                     : 'transparent',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   fontSize: '15px',
                   fontWeight: isActive ? '600' : '500',
                   cursor: 'pointer',
@@ -304,11 +304,11 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
         {/* Footer */}
         <div style={{
           padding: '16px 20px',
-          borderTop: `1px solid ${ROYAL_COLORS.cardBorder}`
+          borderTop: `1px solid ${tokens.colors.background.cardBorder}`
         }}>
           <div style={{
             fontSize: '11px',
-            color: ROYAL_COLORS.muted,
+            color: tokens.colors.text.secondary,
             textAlign: 'center'
           }}>
             {i18n.isRTL() ? 'גרסה 1.0.0' : 'Version 1.0.0'}

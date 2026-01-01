@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { sessionTracker } from '../lib/sessionTracker';
-import { ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens } from '../styles/tokens';
 import { logger } from '../lib/logger';
 
 interface SessionStatusProps {
@@ -41,10 +41,10 @@ export function SessionStatusIndicator({ showDetails = false, compact = false }:
   };
 
   const statusConfig = {
-    checking: { icon: '⏳', color: ROYAL_COLORS.info, label: 'בודק...' },
-    ready: { icon: '✅', color: ROYAL_COLORS.success, label: 'מחובר' },
-    warning: { icon: '⚠️', color: ROYAL_COLORS.warning, label: 'חסרים נתונים' },
-    error: { icon: '❌', color: ROYAL_COLORS.crimson, label: 'לא מחובר' }
+    checking: { icon: '⏳', color: tokens.colors.status.info, label: 'בודק...' },
+    ready: { icon: '✅', color: tokens.colors.status.success, label: 'מחובר' },
+    warning: { icon: '⚠️', color: tokens.colors.status.warning, label: 'חסרים נתונים' },
+    error: { icon: '❌', color: tokens.colors.status.error, label: 'לא מחובר' }
   };
 
   const config = statusConfig[status];
@@ -55,13 +55,13 @@ export function SessionStatusIndicator({ showDetails = false, compact = false }:
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: '6px',
+          gap: tokens.spacing.xs,
           padding: '4px 10px',
-          borderRadius: '12px',
+          borderRadius: tokens.radius.md,
           background: config.color + '20',
           border: `1px solid ${config.color}40`,
-          fontSize: '12px',
-          fontWeight: '600',
+          fontSize: tokens.typography.fontSize.xs,
+          fontWeight: tokens.typography.fontWeight.semibold,
           color: config.color
         }}
       >
@@ -78,10 +78,10 @@ export function SessionStatusIndicator({ showDetails = false, compact = false }:
         bottom: '80px',
         left: '16px',
         right: '16px',
-        background: ROYAL_COLORS.cardBg,
+        background: tokens.colors.background.card,
         border: `2px solid ${config.color}`,
-        borderRadius: '12px',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+        borderRadius: tokens.radius.md,
+        boxShadow: tokens.shadows.lg,
         zIndex: 9998,
         maxWidth: expanded ? '500px' : '200px',
         transition: 'all 0.3s ease',
@@ -103,16 +103,16 @@ export function SessionStatusIndicator({ showDetails = false, compact = false }:
           <span style={{ fontSize: '20px' }}>{config.icon}</span>
           <div>
             <div style={{
-              fontSize: '14px',
-              fontWeight: '600',
-              color: ROYAL_COLORS.text
+              fontSize: tokens.typography.fontSize.sm,
+              fontWeight: tokens.typography.fontWeight.semibold,
+              color: tokens.colors.text.primary
             }}>
               {config.label}
             </div>
             {status === 'warning' && (
               <div style={{
                 fontSize: '11px',
-                color: ROYAL_COLORS.muted,
+                color: tokens.colors.text.secondary,
                 marginTop: '2px'
               }}>
                 חסרים JWT claims
@@ -121,8 +121,8 @@ export function SessionStatusIndicator({ showDetails = false, compact = false }:
           </div>
         </div>
         <span style={{
-          fontSize: '12px',
-          color: ROYAL_COLORS.muted,
+          fontSize: tokens.typography.fontSize.xs,
+          color: tokens.colors.text.secondary,
           transform: expanded ? 'rotate(180deg)' : 'rotate(0)',
           transition: 'transform 0.3s ease'
         }}>
@@ -134,16 +134,16 @@ export function SessionStatusIndicator({ showDetails = false, compact = false }:
         <div
           style={{
             padding: '12px 16px',
-            borderTop: `1px solid ${ROYAL_COLORS.cardBorder}`,
-            fontSize: '12px',
+            borderTop: `1px solid ${tokens.colors.border.default}`,
+            fontSize: tokens.typography.fontSize.xs,
             maxHeight: '300px',
             overflowY: 'auto'
           }}
         >
           <div style={{ marginBottom: '12px' }}>
             <div style={{
-              fontWeight: '600',
-              color: ROYAL_COLORS.text,
+              fontWeight: tokens.typography.fontWeight.semibold,
+              color: tokens.colors.text.primary,
               marginBottom: '8px'
             }}>
               סטטוס Session:
@@ -167,24 +167,24 @@ export function SessionStatusIndicator({ showDetails = false, compact = false }:
           {details.claims && Object.keys(details.claims).length > 0 && (
             <div style={{ marginBottom: '12px' }}>
               <div style={{
-                fontWeight: '600',
-                color: ROYAL_COLORS.text,
+                fontWeight: tokens.typography.fontWeight.semibold,
+                color: tokens.colors.text.primary,
                 marginBottom: '8px'
               }}>
                 JWT Claims:
               </div>
               <div style={{
-                background: ROYAL_COLORS.secondary,
+                background: tokens.colors.background.secondary,
                 padding: '8px',
-                borderRadius: '6px',
+                borderRadius: tokens.radius.xs,
                 fontSize: '11px',
                 fontFamily: 'monospace',
-                color: ROYAL_COLORS.muted,
+                color: tokens.colors.text.secondary,
                 wordBreak: 'break-all'
               }}>
                 {Object.entries(details.claims).map(([key, value]) => (
                   <div key={key} style={{ marginBottom: '4px' }}>
-                    <span style={{ color: ROYAL_COLORS.accent }}>{key}:</span>{' '}
+                    <span style={{ color: tokens.colors.brand.primary }}>{key}:</span>{' '}
                     <span>{String(value) || 'N/A'}</span>
                   </div>
                 ))}
@@ -195,18 +195,18 @@ export function SessionStatusIndicator({ showDetails = false, compact = false }:
           {details.errors && details.errors.length > 0 && (
             <div>
               <div style={{
-                fontWeight: '600',
-                color: ROYAL_COLORS.crimson,
+                fontWeight: tokens.typography.fontWeight.semibold,
+                color: tokens.colors.status.error,
                 marginBottom: '8px'
               }}>
                 שגיאות:
               </div>
               <div style={{
-                background: ROYAL_COLORS.crimson + '20',
+                background: tokens.colors.status.error + '20',
                 padding: '8px',
-                borderRadius: '6px',
+                borderRadius: tokens.radius.xs,
                 fontSize: '11px',
-                color: ROYAL_COLORS.crimson
+                color: tokens.colors.status.error
               }}>
                 {details.errors.map((err: string, i: number) => (
                   <div key={i}>• {err}</div>
@@ -226,12 +226,12 @@ export function SessionStatusIndicator({ showDetails = false, compact = false }:
               width: '100%',
               marginTop: '12px',
               padding: '8px',
-              background: ROYAL_COLORS.info,
-              color: '#fff',
+              background: tokens.colors.status.info,
+              color: tokens.colors.text.bright,
               border: 'none',
-              borderRadius: '6px',
-              fontSize: '12px',
-              fontWeight: '600',
+              borderRadius: tokens.radius.xs,
+              fontSize: tokens.typography.fontSize.xs,
+              fontWeight: tokens.typography.fontWeight.semibold,
               cursor: 'pointer'
             }}
           >
@@ -250,12 +250,12 @@ function StatusLine({ label, value }: { label: string; value: boolean }) {
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: '6px 8px',
-      background: ROYAL_COLORS.secondary,
-      borderRadius: '6px'
+      background: tokens.colors.background.secondary,
+      borderRadius: tokens.radius.xs
     }}>
-      <span style={{ color: ROYAL_COLORS.muted }}>{label}</span>
+      <span style={{ color: tokens.colors.text.secondary }}>{label}</span>
       <span style={{
-        fontSize: '16px'
+        fontSize: tokens.typography.fontSize.base
       }}>
         {value ? '✅' : '❌'}
       </span>

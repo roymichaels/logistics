@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, Notification } from '../data/types';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { Toast } from './Toast';
 import { logger } from '../lib/logger';
 
@@ -95,21 +95,21 @@ export function NotificationCenter({ dataStore, onClose }: NotificationCenterPro
   };
 
   const getNotificationColor = (type?: string, isRead?: boolean) => {
-    if (isRead) return ROYAL_COLORS.muted;
+    if (isRead) return tokens.colors.text.secondary;
 
     switch (type) {
       case 'order_assigned':
-        return ROYAL_COLORS.teal;
+        return tokens.colors.brand.primary;
       case 'order_completed':
-        return ROYAL_COLORS.emerald;
+        return tokens.colors.status.success;
       case 'low_stock':
-        return ROYAL_COLORS.crimson;
+        return tokens.colors.status.error;
       case 'restock_approved':
-        return ROYAL_COLORS.accent;
+        return tokens.colors.brand.primary;
       case 'user_registered':
-        return ROYAL_COLORS.gold;
+        return tokens.colors.status.warning;
       default:
-        return ROYAL_COLORS.text;
+        return tokens.colors.text.primary;
     }
   };
 
@@ -134,15 +134,15 @@ export function NotificationCenter({ dataStore, onClose }: NotificationCenterPro
         width: '100%',
         maxWidth: '600px',
         maxHeight: '90vh',
-        background: ROYAL_COLORS.background,
+        background: tokens.colors.background.primary,
         borderTopLeftRadius: '24px',
         borderTopRightRadius: '24px',
         padding: '24px',
         overflowY: 'auto',
-        boxShadow: ROYAL_COLORS.shadow
+        boxShadow: tokens.shadows.md
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0, fontSize: '24px', color: ROYAL_COLORS.text }}>
+          <h2 style={{ margin: 0, fontSize: '24px', color: tokens.colors.text.primary }}>
             התראות {unreadCount > 0 && `(${unreadCount})`}
           </h2>
           <button
@@ -153,7 +153,7 @@ export function NotificationCenter({ dataStore, onClose }: NotificationCenterPro
               borderRadius: '8px',
               border: 'none',
               background: 'rgba(255, 255, 255, 0.1)',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               fontSize: '18px',
               cursor: 'pointer',
               display: 'flex',
@@ -185,8 +185,8 @@ export function NotificationCenter({ dataStore, onClose }: NotificationCenterPro
                 border: 'none',
                 background: filter === f.id
                   ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
-                  : ROYAL_COLORS.card,
-                color: ROYAL_COLORS.text,
+                  : tokens.colors.background.card,
+                color: tokens.colors.text.primary,
                 fontSize: '13px',
                 fontWeight: '600',
                 cursor: 'pointer',
@@ -205,9 +205,9 @@ export function NotificationCenter({ dataStore, onClose }: NotificationCenterPro
               width: '100%',
               padding: '12px',
               borderRadius: '12px',
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-              background: ROYAL_COLORS.card,
-              color: ROYAL_COLORS.accent,
+              border: `1px solid ${tokens.colors.background.cardBorder}`,
+              background: tokens.colors.background.card,
+              color: tokens.colors.brand.primary,
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -221,15 +221,15 @@ export function NotificationCenter({ dataStore, onClose }: NotificationCenterPro
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px 20px' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔔</div>
-            <p style={{ color: ROYAL_COLORS.muted }}>טוען התראות...</p>
+            <p style={{ color: tokens.colors.text.secondary }}>טוען התראות...</p>
           </div>
         ) : notifications.length === 0 ? (
-          <div style={ROYAL_STYLES.emptyState}>
-            <div style={ROYAL_STYLES.emptyStateIcon}>🔔</div>
-            <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text }}>
+          <div style={styles.emptyState.container}>
+            <div style={styles.emptyState.containerIcon}>🔔</div>
+            <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text.primary }}>
               אין התראות
             </h3>
-            <div style={ROYAL_STYLES.emptyStateText}>
+            <div style={styles.emptyState.containerText}>
               {filter === 'unread' ? 'כל ההתראות נקראו' : 'אין התראות להצגה'}
             </div>
           </div>
@@ -245,7 +245,7 @@ export function NotificationCenter({ dataStore, onClose }: NotificationCenterPro
                   background: notification.read_at
                     ? 'rgba(255, 255, 255, 0.03)'
                     : 'rgba(29, 155, 240, 0.1)',
-                  border: `1px solid ${notification.read_at ? ROYAL_COLORS.cardBorder : ROYAL_COLORS.accent}40`,
+                  border: `1px solid ${notification.read_at ? tokens.colors.background.cardBorder : tokens.colors.brand.primary}40`,
                   cursor: notification.read_at ? 'default' : 'pointer',
                   transition: 'all 0.2s ease',
                   opacity: notification.read_at ? 0.7 : 1
@@ -270,20 +270,20 @@ export function NotificationCenter({ dataStore, onClose }: NotificationCenterPro
                     <div style={{
                       fontSize: '15px',
                       fontWeight: notification.read_at ? '500' : '600',
-                      color: notification.read_at ? ROYAL_COLORS.muted : ROYAL_COLORS.text,
+                      color: notification.read_at ? tokens.colors.text.secondary : tokens.colors.text.primary,
                       marginBottom: '4px'
                     }}>
                       {notification.title}
                     </div>
                     <div style={{
                       fontSize: '13px',
-                      color: ROYAL_COLORS.muted,
+                      color: tokens.colors.text.secondary,
                       marginBottom: '8px',
                       lineHeight: '1.5'
                     }}>
                       {notification.message}
                     </div>
-                    <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>
+                    <div style={{ fontSize: '11px', color: tokens.colors.text.secondary }}>
                       {new Date(notification.created_at).toLocaleString('he-IL', {
                         month: 'short',
                         day: 'numeric',
@@ -297,7 +297,7 @@ export function NotificationCenter({ dataStore, onClose }: NotificationCenterPro
                       width: '8px',
                       height: '8px',
                       borderRadius: '50%',
-                      background: ROYAL_COLORS.accent,
+                      background: tokens.colors.brand.primary,
                       flexShrink: 0,
                       marginTop: '6px'
                     }} />

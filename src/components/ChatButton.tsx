@@ -1,5 +1,5 @@
 import React from 'react';
-import { ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens } from '../styles/tokens';
 
 interface ChatButtonProps {
   userId: string;
@@ -27,9 +27,9 @@ export function ChatButton({ userId, userName, onStartChat, icon = '💬', size 
       style={{
         padding,
         borderRadius: '12px',
-        border: `1px solid ${ROYAL_COLORS.accent}40`,
-        background: `${ROYAL_COLORS.accent}15`,
-        color: ROYAL_COLORS.accent,
+        border: `1px solid ${tokens.colors.brand.primary}40`,
+        background: `${tokens.colors.brand.primary}15`,
+        color: tokens.colors.brand.primary,
         fontSize,
         fontWeight: '600',
         cursor: 'pointer',
@@ -40,12 +40,12 @@ export function ChatButton({ userId, userName, onStartChat, icon = '💬', size 
         whiteSpace: 'nowrap'
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = `${ROYAL_COLORS.accent}25`;
+        e.currentTarget.style.background = `${tokens.colors.brand.primary}25`;
         e.currentTarget.style.transform = 'translateY(-2px)';
         e.currentTarget.style.boxShadow = '0 4px 12px rgba(29, 155, 240, 0.3)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = `${ROYAL_COLORS.accent}15`;
+        e.currentTarget.style.background = `${tokens.colors.brand.primary}15`;
         e.currentTarget.style.transform = 'translateY(0)';
         e.currentTarget.style.boxShadow = 'none';
       }}

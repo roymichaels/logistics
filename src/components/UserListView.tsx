@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
-import { ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens } from '../styles/tokens';
 import { roleNames, roleIcons } from '../lib/i18n';
 import type { User } from '../data/types';
 import { UserProfileModal } from './UserProfileModal';
@@ -104,7 +104,7 @@ export function UserListView({
             margin: '0 0 20px 0',
             fontSize: '28px',
             fontWeight: '700',
-            color: ROYAL_COLORS.text,
+            color: tokens.colors.text.primary,
             textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
           }}
         >
@@ -120,10 +120,10 @@ export function UserListView({
           style={{
             width: '100%',
             padding: '14px 16px',
-            border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+            border: `1px solid ${tokens.colors.background.cardBorder}`,
             borderRadius: '12px',
-            background: ROYAL_COLORS.card,
-            color: ROYAL_COLORS.text,
+            background: tokens.colors.background.card,
+            color: tokens.colors.text.primary,
             fontSize: '16px',
             marginBottom: '16px'
           }}
@@ -171,16 +171,16 @@ export function UserListView({
             style={{
               padding: '60px 20px',
               textAlign: 'center',
-              background: ROYAL_COLORS.card,
+              background: tokens.colors.background.card,
               borderRadius: '16px',
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`
+              border: `1px solid ${tokens.colors.background.cardBorder}`
             }}
           >
             <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔍</div>
-            <h3 style={{ margin: '0 0 8px 0', color: ROYAL_COLORS.text, fontSize: '18px' }}>
+            <h3 style={{ margin: '0 0 8px 0', color: tokens.colors.text.primary, fontSize: '18px' }}>
               לא נמצאו משתמשים
             </h3>
-            <p style={{ margin: 0, color: ROYAL_COLORS.muted, fontSize: '14px' }}>
+            <p style={{ margin: 0, color: tokens.colors.text.secondary, fontSize: '14px' }}>
               נסה לשנות את החיפוש או הסינון
             </p>
           </div>
@@ -193,7 +193,7 @@ export function UserListView({
                     margin: '0 0 12px 0',
                     fontSize: '16px',
                     fontWeight: '600',
-                    color: ROYAL_COLORS.accent,
+                    color: tokens.colors.brand.primary,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px'
@@ -282,9 +282,9 @@ function RoleFilterChip({
       style={{
         padding: '8px 16px',
         borderRadius: '20px',
-        border: `1px solid ${selected ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
-        background: selected ? ROYAL_COLORS.gradientPurple : ROYAL_COLORS.card,
-        color: selected ? '#fff' : ROYAL_COLORS.text,
+        border: `1px solid ${selected ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
+        background: selected ? tokens.gradients.primary : tokens.colors.background.card,
+        color: selected ? '#fff' : tokens.colors.text.primary,
         fontSize: '14px',
         fontWeight: '600',
         cursor: 'pointer',
@@ -293,7 +293,7 @@ function RoleFilterChip({
         alignItems: 'center',
         gap: '6px',
         transition: 'all 0.2s ease',
-        boxShadow: selected ? ROYAL_COLORS.glowPurple : 'none'
+        boxShadow: selected ? tokens.glows.primary : 'none'
       }}
     >
       {icon && <span style={{ fontSize: '16px' }}>{icon}</span>}
@@ -334,10 +334,10 @@ function UserCard({
       onClick={onClick}
       style={{
         padding: '16px',
-        background: ROYAL_COLORS.card,
+        background: tokens.colors.background.card,
         borderRadius: '16px',
         cursor: 'pointer',
-        border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+        border: `1px solid ${tokens.colors.background.cardBorder}`,
         transition: 'all 0.3s ease',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
         display: 'flex',
@@ -369,7 +369,7 @@ function UserCard({
             fontSize: '24px',
             fontWeight: '700',
             color: '#fff',
-            border: `2px solid ${ROYAL_COLORS.cardBorder}`
+            border: `2px solid ${tokens.colors.background.cardBorder}`
           }}
         >
           {!user.photo_url && userInitial}
@@ -384,7 +384,7 @@ function UserCard({
               height: '16px',
               borderRadius: '50%',
               backgroundColor: user.online_status === 'online' ? '#34c759' : '#8e8e93',
-              border: '3px solid ' + ROYAL_COLORS.card,
+              border: '3px solid ' + tokens.colors.background.card,
               boxShadow: user.online_status === 'online'
                 ? '0 2px 4px rgba(52, 199, 89, 0.4)'
                 : '0 2px 4px rgba(142, 142, 147, 0.2)'
@@ -409,7 +409,7 @@ function UserCard({
               margin: 0,
               fontSize: '17px',
               fontWeight: '700',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
@@ -425,7 +425,7 @@ function UserCard({
                 background: 'rgba(29, 155, 240, 0.2)',
                 fontSize: '11px',
                 fontWeight: '600',
-                color: ROYAL_COLORS.accent
+                color: tokens.colors.brand.primary
               }}
             >
               אתה
@@ -438,7 +438,7 @@ function UserCard({
             style={{
               margin: '0 0 4px 0',
               fontSize: '14px',
-              color: ROYAL_COLORS.accent,
+              color: tokens.colors.brand.primary,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
@@ -454,7 +454,7 @@ function UserCard({
             alignItems: 'center',
             gap: '6px',
             fontSize: '13px',
-            color: ROYAL_COLORS.muted
+            color: tokens.colors.text.secondary
           }}
         >
           <span style={{ fontSize: '14px' }}>
@@ -476,7 +476,7 @@ function UserCard({
           onClick={onMessageClick}
           style={{
             padding: '10px',
-            background: ROYAL_COLORS.gradientPurple,
+            background: tokens.gradients.primary,
             border: 'none',
             borderRadius: '12px',
             cursor: 'pointer',
@@ -484,7 +484,7 @@ function UserCard({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: ROYAL_COLORS.glowPurple,
+            boxShadow: tokens.glows.primary,
             transition: 'all 0.2s ease'
           }}
           onMouseEnter={(e) => {

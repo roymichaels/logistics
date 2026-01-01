@@ -1,5 +1,5 @@
 import React from 'react';
-import { ROYAL_COLORS } from '../../styles/royalTheme';
+import { tokens } from '../../styles/tokens';
 
 interface ChatHeaderProps {
   title: string;
@@ -22,7 +22,7 @@ export function ChatHeader({ title, canCreateGroup, showCreateMenu, onCreateMenu
         margin: '0',
         fontSize: '28px',
         fontWeight: '700',
-        color: ROYAL_COLORS.text,
+        color: tokens.colors.text.primary,
         textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
       }}>
         {title}
@@ -37,12 +37,12 @@ export function ChatHeader({ title, canCreateGroup, showCreateMenu, onCreateMenu
             padding: '8px 14px',
             borderRadius: '12px',
             border: 'none',
-            background: ROYAL_COLORS.gradientPurple,
+            background: tokens.gradients.primary,
             color: '#fff',
             fontSize: '28px',
             fontWeight: '300',
             cursor: 'pointer',
-            boxShadow: ROYAL_COLORS.glowPurple,
+            boxShadow: tokens.glows.primary,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

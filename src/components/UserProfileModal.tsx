@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens } from '../styles/tokens';
 import { roleNames, roleIcons } from '../lib/i18n';
 import type { User } from '../data/types';
 import { haptic } from '../utils/haptic';
@@ -87,14 +87,14 @@ export function UserProfileModal({
     >
       <div
         style={{
-          backgroundColor: ROYAL_COLORS.card,
+          backgroundColor: tokens.colors.background.card,
           borderRadius: '20px',
           maxWidth: '420px',
           width: '100%',
           maxHeight: '85vh',
           overflow: 'auto',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
-          border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+          border: `1px solid ${tokens.colors.background.cardBorder}`,
           transform: isClosing ? 'scale(0.95)' : 'scale(1)',
           transition: 'transform 0.2s ease-out'
         }}
@@ -157,8 +157,8 @@ export function UserProfileModal({
               fontSize: '48px',
               fontWeight: '700',
               color: '#fff',
-              boxShadow: ROYAL_COLORS.glowPurpleStrong,
-              border: `4px solid ${ROYAL_COLORS.cardBorder}`,
+              boxShadow: tokens.glows.primaryStrong,
+              border: `4px solid ${tokens.colors.background.cardBorder}`,
               position: 'relative'
             }}
           >
@@ -174,7 +174,7 @@ export function UserProfileModal({
                 height: '24px',
                 borderRadius: '50%',
                 backgroundColor: '#34c759',
-                border: '3px solid ' + ROYAL_COLORS.card,
+                border: '3px solid ' + tokens.colors.background.card,
                 boxShadow: '0 2px 8px rgba(52, 199, 89, 0.4)'
               }}
             />
@@ -186,7 +186,7 @@ export function UserProfileModal({
               margin: '0 0 8px 0',
               fontSize: '26px',
               fontWeight: '700',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               textShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
             }}
           >
@@ -199,7 +199,7 @@ export function UserProfileModal({
               style={{
                 margin: '0 0 16px 0',
                 fontSize: '15px',
-                color: ROYAL_COLORS.accent,
+                color: tokens.colors.brand.primary,
                 fontWeight: '500'
               }}
             >
@@ -214,9 +214,9 @@ export function UserProfileModal({
               alignItems: 'center',
               gap: '8px',
               padding: '10px 20px',
-              background: ROYAL_COLORS.gradientPurple,
+              background: tokens.gradients.primary,
               borderRadius: '12px',
-              boxShadow: ROYAL_COLORS.glowPurple
+              boxShadow: tokens.glows.primary
             }}
           >
             <span style={{ fontSize: '18px' }}>
@@ -297,7 +297,7 @@ export function UserProfileModal({
                 padding: '16px',
                 background: 'rgba(29, 155, 240, 0.1)',
                 borderRadius: '12px',
-                color: ROYAL_COLORS.accent,
+                color: tokens.colors.brand.primary,
                 fontSize: '14px',
                 fontWeight: '500'
               }}
@@ -319,21 +319,21 @@ function InfoRow({ icon, label, value }: { icon: string; label: string; value: s
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: '14px 16px',
-        background: ROYAL_COLORS.secondary,
+        background: tokens.colors.background.secondary,
         borderRadius: '12px',
-        border: `1px solid ${ROYAL_COLORS.cardBorder}`
+        border: `1px solid ${tokens.colors.background.cardBorder}`
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <span style={{ fontSize: '18px' }}>{icon}</span>
-        <span style={{ fontSize: '14px', color: ROYAL_COLORS.muted, fontWeight: '500' }}>
+        <span style={{ fontSize: '14px', color: tokens.colors.text.secondary, fontWeight: '500' }}>
           {label}
         </span>
       </div>
       <span
         style={{
           fontSize: '14px',
-          color: ROYAL_COLORS.text,
+          color: tokens.colors.text.primary,
           fontWeight: '600',
           textAlign: 'left',
           maxWidth: '60%',
@@ -366,14 +366,14 @@ function ActionButton({
         alignItems: 'center',
         gap: '12px',
         padding: '14px 20px',
-        background: primary ? ROYAL_COLORS.gradientPurple : ROYAL_COLORS.secondary,
-        border: primary ? 'none' : `1px solid ${ROYAL_COLORS.cardBorder}`,
+        background: primary ? tokens.gradients.primary : tokens.colors.background.secondary,
+        border: primary ? 'none' : `1px solid ${tokens.colors.background.cardBorder}`,
         borderRadius: '12px',
         cursor: 'pointer',
         width: '100%',
         textAlign: 'right',
         transition: 'all 0.2s ease',
-        boxShadow: primary ? ROYAL_COLORS.glowPurple : 'none'
+        boxShadow: primary ? tokens.glows.primary : 'none'
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-2px)';
@@ -383,7 +383,7 @@ function ActionButton({
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = primary ? ROYAL_COLORS.glowPurple : 'none';
+        e.currentTarget.style.boxShadow = primary ? tokens.glows.primary : 'none';
       }}
     >
       <div
@@ -405,12 +405,12 @@ function ActionButton({
           flex: 1,
           fontSize: '16px',
           fontWeight: '600',
-          color: primary ? '#fff' : ROYAL_COLORS.text
+          color: primary ? '#fff' : tokens.colors.text.primary
         }}
       >
         {label}
       </span>
-      <span style={{ fontSize: '18px', color: primary ? '#fff' : ROYAL_COLORS.accent }}>←</span>
+      <span style={{ fontSize: '18px', color: primary ? '#fff' : tokens.colors.brand.primary }}>←</span>
     </button>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens } from '../styles/tokens';
 import { Toast } from './Toast';
 import { logger } from '../lib/logger';
 import { getUnifiedDataStore } from '../lib/storage/UnifiedDataStore';
@@ -130,7 +130,7 @@ export function DriverApplicationReviewPanel() {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-        <div style={{ color: ROYAL_COLORS.text }}>טוען בקשות...</div>
+        <div style={{ color: tokens.colors.text.primary }}>טוען בקשות...</div>
       </div>
     );
   }
@@ -139,10 +139,10 @@ export function DriverApplicationReviewPanel() {
     return (
       <div style={{ padding: '40px', textAlign: 'center', direction: 'rtl' }}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div>
-        <h3 style={{ margin: 0, color: ROYAL_COLORS.text, marginBottom: '8px' }}>
+        <h3 style={{ margin: 0, color: tokens.colors.text.primary, marginBottom: '8px' }}>
           אין בקשות ממתינות
         </h3>
-        <p style={{ margin: 0, color: ROYAL_COLORS.muted }}>
+        <p style={{ margin: 0, color: tokens.colors.text.secondary }}>
           כל הבקשות טופלו
         </p>
       </div>
@@ -151,7 +151,7 @@ export function DriverApplicationReviewPanel() {
 
   return (
     <div style={{ padding: '20px', direction: 'rtl' }}>
-      <h2 style={{ margin: '0 0 20px 0', color: ROYAL_COLORS.text }}>
+      <h2 style={{ margin: '0 0 20px 0', color: tokens.colors.text.primary }}>
         סקירת בקשות נהגים ({applications.length})
       </h2>
 
@@ -160,8 +160,8 @@ export function DriverApplicationReviewPanel() {
           <div
             key={app.id}
             style={{
-              background: ROYAL_COLORS.card,
-              border: `1px solid ${ROYAL_COLORS.border}`,
+              background: tokens.colors.background.card,
+              border: `1px solid ${tokens.colors.border.default}`,
               borderRadius: '12px',
               padding: '20px',
               cursor: 'pointer',
@@ -169,23 +169,23 @@ export function DriverApplicationReviewPanel() {
             }}
             onClick={() => setSelectedApplication(app)}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = ROYAL_COLORS.primary;
+              e.currentTarget.style.borderColor = tokens.colors.brand.primary;
               e.currentTarget.style.transform = 'translateY(-2px)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = ROYAL_COLORS.border;
+              e.currentTarget.style.borderColor = tokens.colors.border.default;
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <div style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.text, marginBottom: '8px' }}>
+                <div style={{ fontSize: '18px', fontWeight: '700', color: tokens.colors.text.primary, marginBottom: '8px' }}>
                   {app.user?.name || 'משתמש'}
                 </div>
-                <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                <div style={{ fontSize: '14px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
                   טלפון: {app.application_data?.phone || 'לא צוין'}
                 </div>
-                <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
                   סוג רכב: {app.application_data?.vehicle_type || 'לא צוין'}
                 </div>
               </div>
@@ -223,7 +223,7 @@ export function DriverApplicationReviewPanel() {
         >
           <div
             style={{
-              background: ROYAL_COLORS.cardBg,
+              background: tokens.colors.background.cardBg,
               borderRadius: '20px',
               maxWidth: '600px',
               width: '100%',
@@ -233,35 +233,35 @@ export function DriverApplicationReviewPanel() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 style={{ margin: '0 0 24px 0', color: ROYAL_COLORS.text }}>
+            <h2 style={{ margin: '0 0 24px 0', color: tokens.colors.text.primary }}>
               סקירת בקשה
             </h2>
 
             <div style={{ marginBottom: '24px' }}>
               <div style={{ marginBottom: '16px' }}>
-                <strong style={{ color: ROYAL_COLORS.text }}>שם:</strong>{' '}
-                <span style={{ color: ROYAL_COLORS.muted }}>{selectedApplication.user?.name || 'לא צוין'}</span>
+                <strong style={{ color: tokens.colors.text.primary }}>שם:</strong>{' '}
+                <span style={{ color: tokens.colors.text.secondary }}>{selectedApplication.user?.name || 'לא צוין'}</span>
               </div>
               <div style={{ marginBottom: '16px' }}>
-                <strong style={{ color: ROYAL_COLORS.text }}>טלפון:</strong>{' '}
-                <span style={{ color: ROYAL_COLORS.muted }}>{selectedApplication.application_data?.phone || 'לא צוין'}</span>
+                <strong style={{ color: tokens.colors.text.primary }}>טלפון:</strong>{' '}
+                <span style={{ color: tokens.colors.text.secondary }}>{selectedApplication.application_data?.phone || 'לא צוין'}</span>
               </div>
               <div style={{ marginBottom: '16px' }}>
-                <strong style={{ color: ROYAL_COLORS.text }}>סוג רכב:</strong>{' '}
-                <span style={{ color: ROYAL_COLORS.muted }}>{selectedApplication.application_data?.vehicle_type || 'לא צוין'}</span>
+                <strong style={{ color: tokens.colors.text.primary }}>סוג רכב:</strong>{' '}
+                <span style={{ color: tokens.colors.text.secondary }}>{selectedApplication.application_data?.vehicle_type || 'לא צוין'}</span>
               </div>
               <div style={{ marginBottom: '16px' }}>
-                <strong style={{ color: ROYAL_COLORS.text }}>רישיון נהיגה:</strong>{' '}
-                <span style={{ color: ROYAL_COLORS.muted }}>{selectedApplication.application_data?.license_number || 'לא צוין'}</span>
+                <strong style={{ color: tokens.colors.text.primary }}>רישיון נהיגה:</strong>{' '}
+                <span style={{ color: tokens.colors.text.secondary }}>{selectedApplication.application_data?.license_number || 'לא צוין'}</span>
               </div>
               <div style={{ marginBottom: '16px' }}>
-                <strong style={{ color: ROYAL_COLORS.text }}>זמינות:</strong>{' '}
-                <span style={{ color: ROYAL_COLORS.muted }}>{selectedApplication.application_data?.availability || 'לא צוין'}</span>
+                <strong style={{ color: tokens.colors.text.primary }}>זמינות:</strong>{' '}
+                <span style={{ color: tokens.colors.text.secondary }}>{selectedApplication.application_data?.availability || 'לא צוין'}</span>
               </div>
               {selectedApplication.application_data?.notes && (
                 <div>
-                  <strong style={{ color: ROYAL_COLORS.text }}>הערות:</strong>
-                  <div style={{ marginTop: '8px', color: ROYAL_COLORS.muted, whiteSpace: 'pre-wrap' }}>
+                  <strong style={{ color: tokens.colors.text.primary }}>הערות:</strong>
+                  <div style={{ marginTop: '8px', color: tokens.colors.text.secondary, whiteSpace: 'pre-wrap' }}>
                     {selectedApplication.application_data.notes}
                   </div>
                 </div>
@@ -269,7 +269,7 @@ export function DriverApplicationReviewPanel() {
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: ROYAL_COLORS.text, fontWeight: '600' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: tokens.colors.text.primary, fontWeight: '600' }}>
                 הערות סקירה
               </label>
               <textarea
@@ -281,9 +281,9 @@ export function DriverApplicationReviewPanel() {
                   width: '100%',
                   padding: '12px',
                   borderRadius: '8px',
-                  border: `1px solid ${ROYAL_COLORS.border}`,
-                  background: ROYAL_COLORS.secondary,
-                  color: ROYAL_COLORS.text,
+                  border: `1px solid ${tokens.colors.border.default}`,
+                  background: tokens.colors.background.secondary,
+                  color: tokens.colors.text.primary,
                   fontSize: '14px',
                   fontFamily: 'inherit',
                   resize: 'vertical',

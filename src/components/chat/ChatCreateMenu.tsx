@@ -1,5 +1,5 @@
 import React from 'react';
-import { ROYAL_COLORS } from '../../styles/royalTheme';
+import { tokens } from '../../styles/tokens';
 
 interface ChatCreateMenuProps {
   isOpen: boolean;
@@ -18,8 +18,8 @@ export function ChatCreateMenu({ isOpen, onCreateGroup, onCreateChannel, onHapti
         top: '100%',
         left: 0,
         marginTop: '8px',
-        background: ROYAL_COLORS.card,
-        border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+        background: tokens.colors.background.card,
+        border: `1px solid ${tokens.colors.background.cardBorder}`,
         borderRadius: '12px',
         boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
         zIndex: 1001,
@@ -37,7 +37,7 @@ export function ChatCreateMenu({ isOpen, onCreateGroup, onCreateChannel, onHapti
           padding: '14px 16px',
           border: 'none',
           background: 'transparent',
-          color: ROYAL_COLORS.text,
+          color: tokens.colors.text.primary,
           fontSize: '16px',
           textAlign: 'right',
           cursor: 'pointer',
@@ -47,7 +47,7 @@ export function ChatCreateMenu({ isOpen, onCreateGroup, onCreateChannel, onHapti
           transition: 'background 0.2s ease'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = `${ROYAL_COLORS.accent}20`;
+          e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.background = 'transparent';
@@ -56,7 +56,7 @@ export function ChatCreateMenu({ isOpen, onCreateGroup, onCreateChannel, onHapti
         <span style={{ fontSize: '24px' }}>👥</span>
         <span style={{ fontWeight: '600' }}>קבוצה חדשה</span>
       </button>
-      <div style={{ height: '1px', background: ROYAL_COLORS.cardBorder }} />
+      <div style={{ height: '1px', background: tokens.colors.background.cardBorder }} />
       <button
         onClick={() => {
           onHaptic();
@@ -67,7 +67,7 @@ export function ChatCreateMenu({ isOpen, onCreateGroup, onCreateChannel, onHapti
           padding: '14px 16px',
           border: 'none',
           background: 'transparent',
-          color: ROYAL_COLORS.text,
+          color: tokens.colors.text.primary,
           fontSize: '16px',
           textAlign: 'right',
           cursor: 'pointer',
@@ -77,7 +77,7 @@ export function ChatCreateMenu({ isOpen, onCreateGroup, onCreateChannel, onHapti
           transition: 'background 0.2s ease'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = `${ROYAL_COLORS.accent}20`;
+          e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.background = 'transparent';

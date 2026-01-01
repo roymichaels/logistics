@@ -11,16 +11,7 @@ interface DualModeOrderEntryProps {
   onCancel: () => void;
 }
 
-const ROYAL_COLORS = {
-  card: 'rgba(24, 10, 45, 0.75)',
-  cardBorder: 'rgba(140, 91, 238, 0.45)',
-  muted: '#bfa9ff',
-  text: '#f4f1ff',
-  accent: '#1D9BF0',
-  gold: '#f6c945',
-  teal: '#4dd0e1',
-  shadow: '0 20px 40px rgba(20, 4, 54, 0.45)'
-};
+
 
 interface CartItem {
   product: Product;
@@ -223,20 +214,20 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
       <div style={{
         maxWidth: '800px',
         margin: '0 auto',
-        background: ROYAL_COLORS.card,
+        background: tokens.colors.background.card,
         borderRadius: '16px',
         padding: '24px',
-        boxShadow: ROYAL_COLORS.shadow,
-        border: `1px solid ${ROYAL_COLORS.cardBorder}`
+        boxShadow: tokens.shadows.md,
+        border: `1px solid ${tokens.colors.background.cardBorder}`
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h2 style={{ color: ROYAL_COLORS.text, margin: 0 }}>📝 Create Order</h2>
+          <h2 style={{ color: tokens.colors.text.primary, margin: 0 }}>📝 Create Order</h2>
           <button
             onClick={onCancel}
             style={{
               background: 'transparent',
               border: 'none',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               fontSize: '24px',
               cursor: 'pointer',
               padding: '0',
@@ -254,10 +245,10 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
             style={{
               flex: 1,
               padding: '12px',
-              background: mode === 'text' ? ROYAL_COLORS.accent : 'transparent',
-              border: `2px solid ${mode === 'text' ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+              background: mode === 'text' ? tokens.colors.brand.primary : 'transparent',
+              border: `2px solid ${mode === 'text' ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
               borderRadius: '12px',
-              color: mode === 'text' ? '#fff' : ROYAL_COLORS.text,
+              color: mode === 'text' ? '#fff' : tokens.colors.text.primary,
               fontWeight: '600',
               cursor: 'pointer'
             }}
@@ -269,10 +260,10 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
             style={{
               flex: 1,
               padding: '12px',
-              background: mode === 'storefront' ? ROYAL_COLORS.accent : 'transparent',
-              border: `2px solid ${mode === 'storefront' ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+              background: mode === 'storefront' ? tokens.colors.brand.primary : 'transparent',
+              border: `2px solid ${mode === 'storefront' ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
               borderRadius: '12px',
-              color: mode === 'storefront' ? '#fff' : ROYAL_COLORS.text,
+              color: mode === 'storefront' ? '#fff' : tokens.colors.text.primary,
               fontWeight: '600',
               cursor: 'pointer'
             }}
@@ -293,9 +284,9 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
                 minHeight: '120px',
                 padding: '12px',
                 background: 'rgba(0,0,0,0.3)',
-                border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                border: `1px solid ${tokens.colors.background.cardBorder}`,
                 borderRadius: '8px',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 fontSize: '14px',
                 fontFamily: 'inherit',
                 resize: 'vertical'
@@ -306,7 +297,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
               style={{
                 marginTop: '12px',
                 padding: '10px 20px',
-                background: ROYAL_COLORS.accent,
+                background: tokens.colors.brand.primary,
                 border: 'none',
                 borderRadius: '8px',
                 color: '#fff',
@@ -331,9 +322,9 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
                 width: '100%',
                 padding: '12px',
                 background: 'rgba(0,0,0,0.3)',
-                border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                border: `1px solid ${tokens.colors.background.cardBorder}`,
                 borderRadius: '8px',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 fontSize: '14px',
                 marginBottom: '12px'
               }}
@@ -353,14 +344,14 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
                   }}
                 >
                   <div>
-                    <div style={{ color: ROYAL_COLORS.text, fontWeight: '600' }}>{product.name}</div>
-                    <div style={{ color: ROYAL_COLORS.gold, fontSize: '14px' }}>${product.price}</div>
+                    <div style={{ color: tokens.colors.text.primary, fontWeight: '600' }}>{product.name}</div>
+                    <div style={{ color: tokens.colors.status.warning, fontSize: '14px' }}>${product.price}</div>
                   </div>
                   <button
                     onClick={() => handleAddToCart(product)}
                     style={{
                       padding: '8px 16px',
-                      background: ROYAL_COLORS.accent,
+                      background: tokens.colors.brand.primary,
                       border: 'none',
                       borderRadius: '6px',
                       color: '#fff',
@@ -378,7 +369,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
         {/* Cart */}
         {cart.length > 0 && (
           <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ color: ROYAL_COLORS.text, marginBottom: '12px' }}>Cart</h3>
+            <h3 style={{ color: tokens.colors.text.primary, marginBottom: '12px' }}>Cart</h3>
             {cart.map(item => (
               <div
                 key={item.product.id}
@@ -393,8 +384,8 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
                 }}
               >
                 <div style={{ flex: 1 }}>
-                  <div style={{ color: ROYAL_COLORS.text }}>{item.product.name}</div>
-                  <div style={{ color: ROYAL_COLORS.gold, fontSize: '14px' }}>
+                  <div style={{ color: tokens.colors.text.primary }}>{item.product.name}</div>
+                  <div style={{ color: tokens.colors.status.warning, fontSize: '14px' }}>
                     ${item.product.price} × {item.quantity} = ${(item.product.price * item.quantity).toFixed(2)}
                   </div>
                 </div>
@@ -403,26 +394,26 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
                     onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
                     style={{
                       padding: '4px 12px',
-                      background: ROYAL_COLORS.cardBorder,
+                      background: tokens.colors.background.cardBorder,
                       border: 'none',
                       borderRadius: '4px',
-                      color: ROYAL_COLORS.text,
+                      color: tokens.colors.text.primary,
                       cursor: 'pointer'
                     }}
                   >
                     -
                   </button>
-                  <span style={{ color: ROYAL_COLORS.text, minWidth: '30px', textAlign: 'center' }}>
+                  <span style={{ color: tokens.colors.text.primary, minWidth: '30px', textAlign: 'center' }}>
                     {item.quantity}
                   </span>
                   <button
                     onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
                     style={{
                       padding: '4px 12px',
-                      background: ROYAL_COLORS.cardBorder,
+                      background: tokens.colors.background.cardBorder,
                       border: 'none',
                       borderRadius: '4px',
-                      color: ROYAL_COLORS.text,
+                      color: tokens.colors.text.primary,
                       cursor: 'pointer'
                     }}
                   >
@@ -451,7 +442,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
               borderRadius: '8px',
               textAlign: 'right'
             }}>
-              <div style={{ color: ROYAL_COLORS.gold, fontSize: '18px', fontWeight: '700' }}>
+              <div style={{ color: tokens.colors.status.warning, fontSize: '18px', fontWeight: '700' }}>
                 Total: ${calculateTotal().toFixed(2)}
               </div>
             </div>
@@ -460,7 +451,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
 
         {/* Customer Info */}
         <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ color: ROYAL_COLORS.text, marginBottom: '12px' }}>Customer Information</h3>
+          <h3 style={{ color: tokens.colors.text.primary, marginBottom: '12px' }}>Customer Information</h3>
           <input
             type="text"
             value={customerName}
@@ -470,9 +461,9 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
               width: '100%',
               padding: '12px',
               background: 'rgba(0,0,0,0.3)',
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '8px',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               fontSize: '14px',
               marginBottom: '12px'
             }}
@@ -486,9 +477,9 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
               width: '100%',
               padding: '12px',
               background: 'rgba(0,0,0,0.3)',
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '8px',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               fontSize: '14px',
               marginBottom: '12px'
             }}
@@ -502,9 +493,9 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
               minHeight: '80px',
               padding: '12px',
               background: 'rgba(0,0,0,0.3)',
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '8px',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               fontSize: '14px',
               marginBottom: '12px',
               resize: 'vertical'
@@ -519,9 +510,9 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
               minHeight: '60px',
               padding: '12px',
               background: 'rgba(0,0,0,0.3)',
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '8px',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               fontSize: '14px',
               resize: 'vertical'
             }}
@@ -536,9 +527,9 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
               flex: 1,
               padding: '14px',
               background: 'transparent',
-              border: `2px solid ${ROYAL_COLORS.cardBorder}`,
+              border: `2px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '12px',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               fontWeight: '600',
               cursor: 'pointer'
             }}
@@ -551,7 +542,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
             style={{
               flex: 1,
               padding: '14px',
-              background: loading || cart.length === 0 ? ROYAL_COLORS.cardBorder : ROYAL_COLORS.accent,
+              background: loading || cart.length === 0 ? tokens.colors.background.cardBorder : tokens.colors.brand.primary,
               border: 'none',
               borderRadius: '12px',
               color: '#fff',

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens } from '../styles/tokens';
 import { listBusinesses, type BusinessRecord } from '../services/business';
 import { Toast } from './Toast';
 
@@ -112,8 +112,8 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
 
       <div
         style={{
-          background: ROYAL_COLORS.cardBg,
-          border: `1px solid ${ROYAL_COLORS.border}`,
+          background: tokens.colors.background.cardBg,
+          border: `1px solid ${tokens.colors.border.default}`,
           borderRadius: '20px',
           maxWidth: '600px',
           width: '100%',
@@ -121,7 +121,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: ROYAL_COLORS.glowPrimaryStrong,
+          boxShadow: tokens.glows.primaryStrong,
           animation: 'slideUp 0.3s ease-out',
           direction: 'rtl'
         }}
@@ -130,7 +130,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
         <div
           style={{
             padding: '24px',
-            borderBottom: `1px solid ${ROYAL_COLORS.border}`,
+            borderBottom: `1px solid ${tokens.colors.border.default}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between'
@@ -144,7 +144,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                   margin: 0,
                   fontSize: '24px',
                   fontWeight: '700',
-                  color: ROYAL_COLORS.text
+                  color: tokens.colors.text.primary
                 }}
               >
                 חפש עסק
@@ -153,7 +153,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                 style={{
                   margin: 0,
                   fontSize: '14px',
-                  color: ROYAL_COLORS.muted,
+                  color: tokens.colors.text.secondary,
                   marginTop: '4px'
                 }}
               >
@@ -168,16 +168,16 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
               border: 'none',
               fontSize: '28px',
               cursor: 'pointer',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               padding: '4px',
               lineHeight: 1,
               transition: 'color 0.2s ease'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = ROYAL_COLORS.text;
+              e.currentTarget.style.color = tokens.colors.text.primary;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.color = ROYAL_COLORS.muted;
+              e.currentTarget.style.color = tokens.colors.text.secondary;
             }}
           >
             ×
@@ -185,7 +185,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
         </div>
 
         {/* Search Input */}
-        <div style={{ padding: '20px', borderBottom: `1px solid ${ROYAL_COLORS.border}` }}>
+        <div style={{ padding: '20px', borderBottom: `1px solid ${tokens.colors.border.default}` }}>
           <div
             style={{
               position: 'relative',
@@ -212,20 +212,20 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
               style={{
                 width: '100%',
                 padding: '14px 48px 14px 16px',
-                background: ROYAL_COLORS.secondary,
-                border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                background: tokens.colors.background.secondary,
+                border: `1px solid ${tokens.colors.background.cardBorder}`,
                 borderRadius: '12px',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 fontSize: '15px',
                 fontFamily: 'inherit',
                 outline: 'none',
                 transition: 'border-color 0.2s ease'
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = ROYAL_COLORS.primary;
+                e.currentTarget.style.borderColor = tokens.colors.brand.primary;
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorder;
+                e.currentTarget.style.borderColor = tokens.colors.background.cardBorder;
               }}
             />
           </div>
@@ -246,7 +246,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '40px',
-                color: ROYAL_COLORS.muted
+                color: tokens.colors.text.secondary
               }}
             >
               טוען...
@@ -256,7 +256,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
               style={{
                 textAlign: 'center',
                 padding: '40px',
-                color: ROYAL_COLORS.muted
+                color: tokens.colors.text.secondary
               }}
             >
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
@@ -276,10 +276,10 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                       padding: '16px',
                       background: isSelected
                         ? 'linear-gradient(135deg, rgba(29, 155, 240, 0.2), rgba(29, 155, 240, 0.1))'
-                        : ROYAL_COLORS.secondary,
+                        : tokens.colors.background.secondary,
                       border: isSelected
-                        ? `2px solid ${ROYAL_COLORS.primary}`
-                        : `1px solid ${ROYAL_COLORS.cardBorder}`,
+                        ? `2px solid ${tokens.colors.brand.primary}`
+                        : `1px solid ${tokens.colors.background.cardBorder}`,
                       borderRadius: '12px',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
@@ -287,13 +287,13 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorderHover;
+                        e.currentTarget.style.borderColor = tokens.colors.background.cardBorderHover;
                         e.currentTarget.style.transform = 'translateY(-2px)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorder;
+                        e.currentTarget.style.borderColor = tokens.colors.background.cardBorder;
                         e.currentTarget.style.transform = 'translateY(0)';
                       }
                     }}
@@ -307,7 +307,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                           width: '24px',
                           height: '24px',
                           borderRadius: '50%',
-                          background: ROYAL_COLORS.primary,
+                          background: tokens.colors.brand.primary,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -325,7 +325,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                           width: '48px',
                           height: '48px',
                           borderRadius: '12px',
-                          background: `linear-gradient(135deg, ${business.primary_color || ROYAL_COLORS.primary}, ${business.secondary_color || ROYAL_COLORS.accent})`,
+                          background: `linear-gradient(135deg, ${business.primary_color || tokens.colors.brand.primary}, ${business.secondary_color || tokens.colors.brand.primary})`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -342,7 +342,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                             margin: 0,
                             fontSize: '18px',
                             fontWeight: '600',
-                            color: ROYAL_COLORS.text,
+                            color: tokens.colors.text.primary,
                             marginBottom: '4px'
                           }}
                         >
@@ -354,7 +354,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                             alignItems: 'center',
                             gap: '8px',
                             fontSize: '13px',
-                            color: ROYAL_COLORS.muted
+                            color: tokens.colors.text.secondary
                           }}
                         >
                           {business.business_type && (
@@ -384,7 +384,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
         <div
           style={{
             padding: '20px',
-            borderTop: `1px solid ${ROYAL_COLORS.border}`,
+            borderTop: `1px solid ${tokens.colors.border.default}`,
             display: 'flex',
             gap: '12px'
           }}
@@ -397,10 +397,10 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
               padding: '14px',
               background: selectedBusiness
                 ? 'linear-gradient(120deg, #1D9BF0, #f6c945)'
-                : ROYAL_COLORS.secondary,
+                : tokens.colors.background.secondary,
               border: 'none',
               borderRadius: '12px',
-              color: selectedBusiness ? '#ffffff' : ROYAL_COLORS.hint,
+              color: selectedBusiness ? '#ffffff' : tokens.colors.text.hint,
               fontSize: '16px',
               fontWeight: '600',
               cursor: selectedBusiness ? 'pointer' : 'not-allowed',
@@ -428,9 +428,9 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
             style={{
               padding: '14px 24px',
               background: 'transparent',
-              border: `1px solid ${ROYAL_COLORS.border}`,
+              border: `1px solid ${tokens.colors.border.default}`,
               borderRadius: '12px',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               fontSize: '16px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -438,12 +438,12 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
               fontFamily: 'inherit'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorderHover;
-              e.currentTarget.style.color = ROYAL_COLORS.text;
+              e.currentTarget.style.borderColor = tokens.colors.background.cardBorderHover;
+              e.currentTarget.style.color = tokens.colors.text.primary;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = ROYAL_COLORS.border;
-              e.currentTarget.style.color = ROYAL_COLORS.muted;
+              e.currentTarget.style.borderColor = tokens.colors.border.default;
+              e.currentTarget.style.color = tokens.colors.text.secondary;
             }}
           >
             ביטול

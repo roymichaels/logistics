@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ROYAL_COLORS } from '../../styles/royalTheme';
+import { tokens } from '../../styles/tokens';
 
 interface ContentCardProps {
   children: React.ReactNode;
@@ -14,10 +14,10 @@ export function ContentCard({ children, hoverable, onClick, style, className }: 
 
   const baseStyle: React.CSSProperties = {
     padding: '24px',
-    background: ROYAL_COLORS.card,
-    border: `1px solid ${isHovered && hoverable ? ROYAL_COLORS.cardBorderHover : ROYAL_COLORS.cardBorder}`,
+    background: tokens.colors.background.card,
+    border: `1px solid ${isHovered && hoverable ? tokens.colors.background.cardBorderHover : tokens.colors.background.cardBorder}`,
     borderRadius: '20px',
-    boxShadow: isHovered && hoverable ? ROYAL_COLORS.shadowStrong : ROYAL_COLORS.shadow,
+    boxShadow: isHovered && hoverable ? tokens.shadows.mdStrong : tokens.shadows.md,
     transition: 'all 0.3s ease',
     cursor: onClick ? 'pointer' : 'default',
     transform: isHovered && hoverable ? 'translateY(-2px)' : 'none',

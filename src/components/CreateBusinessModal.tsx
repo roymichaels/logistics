@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DataStore, User } from '../data/types';
 
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { logger } from '../lib/logger';
 import { localBusinessDataService } from '../services/localBusinessDataService';
 import { useAppServices } from '../context/AppServicesContext';
@@ -131,25 +131,25 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       backdropFilter: 'blur(4px)'
     }}>
       <div style={{
-        backgroundColor: ROYAL_COLORS.backgroundSolid,
-        border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+        backgroundColor: tokens.colors.background.primarySolid,
+        border: `1px solid ${tokens.colors.background.cardBorder}`,
         borderRadius: '16px',
         maxWidth: '500px',
         width: '100%',
         maxHeight: '85vh',
         overflowY: 'auto',
-        boxShadow: ROYAL_COLORS.shadowStrong
+        boxShadow: tokens.shadows.mdStrong
       }}>
         <div style={{
           padding: '20px',
-          borderBottom: `1px solid ${ROYAL_COLORS.border}`
+          borderBottom: `1px solid ${tokens.colors.border.default}`
         }}>
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
           }}>
-            <h2 style={{ margin: 0, color: ROYAL_COLORS.text, fontSize: '20px', fontWeight: '700' }}>
+            <h2 style={{ margin: 0, color: tokens.colors.text.primary, fontSize: '20px', fontWeight: '700' }}>
               🏢 צור עסק פרטי
             </h2>
             <button
@@ -158,7 +158,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
                 backgroundColor: 'transparent',
                 border: 'none',
                 fontSize: '28px',
-                color: ROYAL_COLORS.muted,
+                color: tokens.colors.text.secondary,
                 cursor: 'pointer',
                 padding: '0',
                 lineHeight: '1'
@@ -179,12 +179,12 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
           }}>
             <div style={{
               fontSize: '13px',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               lineHeight: '1.6',
               textAlign: 'center'
             }}>
               <div style={{ fontWeight: '600', marginBottom: '4px' }}>מעבדה תת-קרקעית מאובטחת</div>
-              <div style={{ color: ROYAL_COLORS.muted, fontSize: '12px' }}>
+              <div style={{ color: tokens.colors.text.secondary, fontSize: '12px' }}>
                 עסק פרטי עם סחר מקוון, לוגיסטיקה, צוות ועוד
               </div>
             </div>
@@ -196,7 +196,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: ROYAL_COLORS.text
+                color: tokens.colors.text.primary
               }}>
                 שם העסק בעברית *
               </label>
@@ -206,7 +206,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
                 onChange={(e) => setFormData({ ...formData, name_hebrew: e.target.value })}
                 disabled={loading}
                 style={{
-                  ...ROYAL_STYLES.input,
+                  ...styles.input,
                   fontSize: '16px',
                   direction: 'rtl'
                 }}
@@ -220,7 +220,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: ROYAL_COLORS.text
+                color: tokens.colors.text.primary
               }}>
                 Business Name (English) *
               </label>
@@ -230,7 +230,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 disabled={loading}
                 style={{
-                  ...ROYAL_STYLES.input,
+                  ...styles.input,
                   fontSize: '16px'
                 }}
                 placeholder="Secret Gadgets Shop"
@@ -239,10 +239,10 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
                 <div style={{
                   marginTop: '8px',
                   padding: '8px 12px',
-                  background: ROYAL_COLORS.secondary,
+                  background: tokens.colors.background.secondary,
                   borderRadius: '8px',
                   fontSize: '12px',
-                  color: ROYAL_COLORS.muted
+                  color: tokens.colors.text.secondary
                 }}>
                   <span style={{ fontWeight: '600' }}>קידומת הזמנה:</span> {formData.name.substring(0, 3).toUpperCase() || 'BUS'}-0001
                 </div>
@@ -299,7 +299,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
                 type="submit"
                 disabled={loading || !isReady || isInitializing || !!initError}
                 style={{
-                  ...ROYAL_STYLES.buttonPrimary,
+                  ...styles.button.primary,
                   flex: 1,
                   opacity: (loading || !isReady || isInitializing || !!initError) ? 0.6 : 1,
                   cursor: (loading || !isReady || isInitializing || !!initError) ? 'not-allowed' : 'pointer'
@@ -312,7 +312,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
                 onClick={onClose}
                 disabled={loading}
                 style={{
-                  ...ROYAL_STYLES.buttonSecondary,
+                  ...styles.button.secondary,
                   flex: 1
                 }}
               >

@@ -5,7 +5,7 @@ import { telegram } from '../utils/telegram';
 import { PageContainer } from './layout/PageContainer';
 import { PageHeader } from './layout/PageHeader';
 import { ContentCard } from './layout/ContentCard';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { logger } from '../lib/logger';
 
 interface ZoneManagerProps {
@@ -181,7 +181,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
       <PageContainer>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>טוען...</p>
+          <p style={{ color: tokens.colors.text.secondary }}>טוען...</p>
         </div>
       </PageContainer>
     );
@@ -199,7 +199,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
               resetForm();
               setShowCreateModal(true);
             }}
-            style={ROYAL_STYLES.buttonPrimary}
+            style={styles.button.primary}
           >
             + אזור חדש
           </button>
@@ -218,7 +218,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
                 background: 'rgba(20, 8, 46, 0.6)',
                 border: '1px solid rgba(29, 155, 240, 0.3)',
                 borderRadius: '12px',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 fontSize: '14px',
                 outline: 'none'
               }}
@@ -231,7 +231,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
                 background: 'rgba(20, 8, 46, 0.6)',
                 border: '1px solid rgba(29, 155, 240, 0.3)',
                 borderRadius: '12px',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 fontSize: '14px',
                 outline: 'none'
               }}
@@ -249,7 +249,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
                 background: 'rgba(20, 8, 46, 0.6)',
                 border: '1px solid rgba(29, 155, 240, 0.3)',
                 borderRadius: '12px',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 fontSize: '14px',
                 outline: 'none'
               }}
@@ -268,7 +268,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>🗺️</div>
               <div style={{ padding: '48px', textAlign: 'center' }}>
                 <h3 style={{ margin: '0 0 8px', fontSize: '20px' }}>אין אזורים</h3>
-                <p style={{ margin: 0, color: ROYAL_COLORS.muted }}>
+                <p style={{ margin: 0, color: tokens.colors.text.secondary }}>
                   צור אזור חדש כדי להתחיל
                 </p>
               </div>
@@ -320,7 +320,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
                     </div>
 
                     {zone.description && (
-                      <p style={{ margin: '0 0 12px', color: ROYAL_COLORS.muted, fontSize: '14px' }}>
+                      <p style={{ margin: '0 0 12px', color: tokens.colors.text.secondary, fontSize: '14px' }}>
                         {zone.description}
                       </p>
                     )}
@@ -352,7 +352,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
                         background: 'rgba(77, 208, 225, 0.2)',
                         border: '1px solid rgba(77, 208, 225, 0.4)',
                         borderRadius: '10px',
-                        color: ROYAL_COLORS.teal,
+                        color: tokens.colors.brand.primary,
                         fontSize: '14px',
                         fontWeight: '600',
                         cursor: 'pointer'

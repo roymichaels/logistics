@@ -1,5 +1,5 @@
 import React from 'react';
-import { ROYAL_COLORS } from '../../styles/royalTheme';
+import { tokens } from '../../styles/tokens';
 
 interface ChatSearchProps {
   value: string;
@@ -17,10 +17,10 @@ export function ChatSearch({ value, onChange, placeholder }: ChatSearchProps) {
       style={{
         width: '100%',
         padding: '14px 16px',
-        border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+        border: `1px solid ${tokens.colors.background.cardBorder}`,
         borderRadius: '12px',
-        background: ROYAL_COLORS.card,
-        color: ROYAL_COLORS.text,
+        background: tokens.colors.background.card,
+        color: tokens.colors.text.primary,
         fontSize: '16px',
         marginBottom: '20px'
       }}

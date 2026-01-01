@@ -14,7 +14,7 @@ import React, { useState, useMemo } from 'react';
 import type { User, UserRegistration } from '../data/types';
 
 import { Toast } from './Toast';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import {
   canChangeUserRole,
   ROLE_PERMISSIONS,
@@ -155,7 +155,7 @@ export function RoleChangeWorkflow({
             width: '60px',
             height: '60px',
             borderRadius: '30px',
-            background: ROYAL_COLORS.gradientPurple,
+            background: tokens.gradients.primary,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -167,25 +167,25 @@ export function RoleChangeWorkflow({
         >
           {userName[0]}
         </div>
-        <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: ROYAL_COLORS.text }}>{userName}</h3>
+        <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: tokens.colors.text.primary }}>{userName}</h3>
         {'username' in targetUser && targetUser.username && (
-          <p style={{ margin: 0, color: ROYAL_COLORS.muted, fontSize: '14px' }}>@{targetUser.username}</p>
+          <p style={{ margin: 0, color: tokens.colors.text.secondary, fontSize: '14px' }}>@{targetUser.username}</p>
         )}
       </div>
 
       {/* Current Role Display */}
       <div
         style={{
-          ...ROYAL_STYLES.card,
-          background: ROYAL_COLORS.secondary,
+          ...styles.card,
+          background: tokens.colors.background.secondary,
           marginBottom: '20px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span style={{ fontSize: '24px' }}>{roleIcons[currentRole]}</span>
           <div>
-            <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '2px' }}>תפקיד נוכחי</div>
-            <div style={{ fontSize: '16px', fontWeight: '600', color: ROYAL_COLORS.text }}>
+            <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '2px' }}>תפקיד נוכחי</div>
+            <div style={{ fontSize: '16px', fontWeight: '600', color: tokens.colors.text.primary }}>
               {roleNames[currentRole]}
             </div>
           </div>
@@ -200,7 +200,7 @@ export function RoleChangeWorkflow({
             marginBottom: '12px',
             fontSize: '16px',
             fontWeight: '600',
-            color: ROYAL_COLORS.text,
+            color: tokens.colors.text.primary,
           }}
         >
           בחר תפקיד חדש:
@@ -226,11 +226,11 @@ export function RoleChangeWorkflow({
                 style={{
                   padding: '14px 16px',
                   border: `2px solid ${
-                    isSelected ? ROYAL_COLORS.accent : isDisabled ? ROYAL_COLORS.cardBorder + '50' : ROYAL_COLORS.cardBorder
+                    isSelected ? tokens.colors.brand.primary : isDisabled ? tokens.colors.background.cardBorder + '50' : tokens.colors.background.cardBorder
                   }`,
                   borderRadius: '12px',
-                  background: isSelected ? ROYAL_COLORS.accent + '20' : 'transparent',
-                  color: isDisabled ? ROYAL_COLORS.muted : ROYAL_COLORS.text,
+                  background: isSelected ? tokens.colors.brand.primary + '20' : 'transparent',
+                  color: isDisabled ? tokens.colors.text.secondary : tokens.colors.text.primary,
                   fontSize: '16px',
                   cursor: isDisabled ? 'not-allowed' : 'pointer',
                   display: 'flex',
@@ -243,9 +243,9 @@ export function RoleChangeWorkflow({
               >
                 <span style={{ fontSize: '20px' }}>{roleIcons[typedRole]}</span>
                 <span style={{ flex: 1, textAlign: 'right' }}>{name}</span>
-                {isSelected && <span style={{ color: ROYAL_COLORS.accent, fontSize: '18px' }}>✓</span>}
+                {isSelected && <span style={{ color: tokens.colors.brand.primary, fontSize: '18px' }}>✓</span>}
                 {isDisabled && (
-                  <span style={{ fontSize: '12px', color: ROYAL_COLORS.crimson }}>🔒</span>
+                  <span style={{ fontSize: '12px', color: tokens.colors.status.error }}>🔒</span>
                 )}
               </button>
             );
@@ -257,10 +257,10 @@ export function RoleChangeWorkflow({
             style={{
               marginTop: '12px',
               padding: '12px',
-              background: ROYAL_COLORS.crimson + '10',
-              border: `1px solid ${ROYAL_COLORS.crimson}`,
+              background: tokens.colors.status.error + '10',
+              border: `1px solid ${tokens.colors.status.error}`,
               borderRadius: '8px',
-              color: ROYAL_COLORS.crimson,
+              color: tokens.colors.status.error,
               fontSize: '14px',
             }}
           >
@@ -272,7 +272,7 @@ export function RoleChangeWorkflow({
       {/* Permission Changes Display */}
       {hasChanges && authCheck.allowed && (
         <div style={{ marginBottom: '20px' }}>
-          <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: '600', color: ROYAL_COLORS.text }}>
+          <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: '600', color: tokens.colors.text.primary }}>
             שינויים בהרשאות:
           </h4>
 
@@ -282,7 +282,7 @@ export function RoleChangeWorkflow({
                 style={{
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.success,
+                  color: tokens.colors.status.success,
                   marginBottom: '6px',
                 }}
               >
@@ -291,19 +291,19 @@ export function RoleChangeWorkflow({
               <div
                 style={{
                   padding: '10px',
-                  background: ROYAL_COLORS.success + '10',
+                  background: tokens.colors.status.success + '10',
                   borderRadius: '8px',
                   maxHeight: '150px',
                   overflowY: 'auto',
                 }}
               >
                 {permissionDiff.added.slice(0, 5).map(perm => (
-                  <div key={perm} style={{ fontSize: '13px', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                  <div key={perm} style={{ fontSize: '13px', color: tokens.colors.text.primary, marginBottom: '4px' }}>
                     • {PERMISSION_DESCRIPTIONS[perm as Permission]}
                   </div>
                 ))}
                 {permissionDiff.added.length > 5 && (
-                  <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginTop: '6px' }}>
+                  <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginTop: '6px' }}>
                     ועוד {permissionDiff.added.length - 5} הרשאות...
                   </div>
                 )}
@@ -317,7 +317,7 @@ export function RoleChangeWorkflow({
                 style={{
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.crimson,
+                  color: tokens.colors.status.error,
                   marginBottom: '6px',
                 }}
               >
@@ -326,19 +326,19 @@ export function RoleChangeWorkflow({
               <div
                 style={{
                   padding: '10px',
-                  background: ROYAL_COLORS.crimson + '10',
+                  background: tokens.colors.status.error + '10',
                   borderRadius: '8px',
                   maxHeight: '150px',
                   overflowY: 'auto',
                 }}
               >
                 {permissionDiff.removed.slice(0, 5).map(perm => (
-                  <div key={perm} style={{ fontSize: '13px', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                  <div key={perm} style={{ fontSize: '13px', color: tokens.colors.text.primary, marginBottom: '4px' }}>
                     • {PERMISSION_DESCRIPTIONS[perm as Permission]}
                   </div>
                 ))}
                 {permissionDiff.removed.length > 5 && (
-                  <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginTop: '6px' }}>
+                  <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginTop: '6px' }}>
                     ועוד {permissionDiff.removed.length - 5} הרשאות...
                   </div>
                 )}
@@ -357,7 +357,7 @@ export function RoleChangeWorkflow({
               marginBottom: '8px',
               fontSize: '14px',
               fontWeight: '600',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
             }}
           >
             סיבה לשינוי התפקיד: *
@@ -368,7 +368,7 @@ export function RoleChangeWorkflow({
             placeholder="הסבר קצר מדוע משנים את התפקיד..."
             rows={3}
             style={{
-              ...ROYAL_STYLES.input,
+              ...styles.input,
               width: '100%',
               resize: 'vertical',
               fontSize: '14px',
@@ -379,11 +379,11 @@ export function RoleChangeWorkflow({
               style={{
                 marginTop: '8px',
                 padding: '8px 12px',
-                background: ROYAL_COLORS.warning + '10',
-                border: `1px solid ${ROYAL_COLORS.warning}`,
+                background: tokens.colors.status.warning + '10',
+                border: `1px solid ${tokens.colors.status.warning}`,
                 borderRadius: '6px',
                 fontSize: '13px',
-                color: ROYAL_COLORS.warning,
+                color: tokens.colors.status.warning,
               }}
             >
               ⚠️ שינוי זה דורש אישור בעל הפלטפורמה
@@ -397,7 +397,7 @@ export function RoleChangeWorkflow({
         <button
           onClick={onCancel}
           style={{
-            ...ROYAL_STYLES.buttonSecondary,
+            ...styles.button.secondary,
             flex: 1,
             padding: '12px',
             fontSize: '16px',
@@ -411,7 +411,7 @@ export function RoleChangeWorkflow({
           onClick={handleRoleChange}
           disabled={!hasChanges || !authCheck.allowed || !reason.trim() || loading}
           style={{
-            ...ROYAL_STYLES.buttonPrimary,
+            ...styles.button.primary,
             flex: 1,
             padding: '12px',
             fontSize: '16px',

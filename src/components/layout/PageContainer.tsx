@@ -1,5 +1,5 @@
 import React from 'react';
-import { ROYAL_COLORS } from '../../styles/royalTheme';
+import { tokens } from '../../styles/tokens';
 
 interface PageContainerProps {
   children: React.ReactNode;
@@ -18,10 +18,10 @@ export function PageContainer({
     <div
       style={{
         minHeight: '100vh',
-        background: ROYAL_COLORS.background,
+        background: tokens.colors.background.primary,
         padding: '20px',
         paddingBottom: '100px',
-        color: ROYAL_COLORS.text,
+        color: tokens.colors.text.primary,
         position: 'relative',
         overflow: 'hidden',
         ...style
