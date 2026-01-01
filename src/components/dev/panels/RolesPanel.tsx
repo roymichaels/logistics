@@ -37,12 +37,15 @@ export function RolesPanel() {
     localSessionManager.assignRoleToWallet(currentSession.wallet, newRole);
     localStorage.setItem(ROLE_OVERRIDE_KEY, newRole);
 
+    window.dispatchEvent(new CustomEvent('dev-role-changed'));
+
     const entryPoint = getEntryPointForRole(newRole as any);
-    navigate(entryPoint);
 
     setTimeout(() => {
+      navigate(entryPoint);
+      setSwitchingRole(false);
       window.location.reload();
-    }, 100);
+    }, 150);
   };
 
   const clearSession = () => {

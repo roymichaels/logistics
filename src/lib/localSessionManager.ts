@@ -73,6 +73,13 @@ export class LocalSessionManager {
       roleMap[walletAddress.toLowerCase()] = role;
       localStorage.setItem(ROLE_MAP_KEY, JSON.stringify(roleMap));
       logger.info(`[ROLES] Assigned role "${role}" to wallet ${walletAddress}`);
+
+      const session = this.getSession();
+      if (session && session.wallet.toLowerCase() === walletAddress.toLowerCase()) {
+        session.role = role;
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+        logger.info(`[ROLES] Updated current session role to "${role}"`);
+      }
     } catch (error) {
       logger.error('[ROLES] Failed to assign role', error);
     }
