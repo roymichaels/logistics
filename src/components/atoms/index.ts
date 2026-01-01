@@ -9,6 +9,7 @@ export * from './Grid';
 export * from './Icon';
 export * from './Input';
 export * from './List';
+export * from './ProgressBar';
 export * from './Radio';
 export * from './ResponsiveContainer';
 export * from './ResponsiveGrid';

@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
-
+import { colors, spacing } from '../styles/theme';
 import { DataStore, User } from '../data/types';
 import { logger } from '../lib/logger';
 import { getUserDisplayName } from '../utils/userIdentifier';
+import { MetricCardWithProgress } from '../components/organisms/MetricCardWithProgress';
+import { LeaderboardCard, LeaderboardEntry } from '../components/organisms/LeaderboardCard';
 
 interface MyStatsProps {
   dataStore: DataStore;
@@ -11,11 +12,7 @@ interface MyStatsProps {
 }
 
 export function MyStats({ dataStore }: MyStatsProps) {
-
   const [user, setUser] = useState<User | null>(null);
-  const accentColor = '#007aff';
-  const subtleBackground = '#f4f4f4';
-  const hintColor = '#999999';
 
   useEffect(() => {
     let mounted = true;
@@ -35,18 +32,18 @@ export function MyStats({ dataStore }: MyStatsProps) {
 
   const performance = useMemo(
     () => [
-      { label: 'יעד חודשי', value: '₪120,000', progress: 74 },
-      { label: 'עסקאות סגורות', value: '32', progress: 58 },
-      { label: 'לקוחות פעילים', value: '18', progress: 82 }
+      { label: 'יעד חודשי', value: '₪120,000', progress: 74, max: 100 },
+      { label: 'עסקאות סגורות', value: '32', progress: 58, max: 100 },
+      { label: 'לקוחות פעילים', value: '18', progress: 82, max: 100 }
     ],
     []
   );
 
-  const leaderboard = useMemo(
+  const leaderboardData: LeaderboardEntry[] = useMemo(
     () => [
-      { name: 'את', value: '₪88,450', highlight: true },
-      { name: 'גלעד', value: '₪81,320' },
-      { name: 'נועה', value: '₪73,980' }
+      { id: '1', name: 'את', value: '₪88,450', rank: 1 },
+      { id: '2', name: 'גלעד', value: '₪81,320', rank: 2 },
+      { id: '3', name: 'נועה', value: '₪73,980', rank: 3 }
     ],
     []
   );
@@ -55,78 +52,43 @@ export function MyStats({ dataStore }: MyStatsProps) {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: ROYAL_COLORS.background,
-        color: ROYAL_COLORS.text,
-        padding: '20px',
+        backgroundColor: colors.background.primary,
+        color: colors.text.primary,
+        padding: spacing['2xl'],
         direction: 'rtl'
       }}
     >
-      <h1 style={{ fontSize: '24px', margin: '0 0 16px' }}>
+      <h1 style={{ fontSize: '24px', margin: '0 0 8px', fontWeight: '700' }}>
         הביצועים שלי {user ? `• ${getUserDisplayName(user)}` : ''}
       </h1>
-      <p style={{ margin: '0 0 24px', color: hintColor }}>
+      <p style={{ margin: '0 0 24px', color: colors.text.secondary, fontSize: '14px' }}>
         מעקב אחרי היעדים, העמלות וההזדמנויות האחרונות שלך.
       </p>
 
-      <section style={{ display: 'grid', gap: '16px' }}>
+      <div
+        style={{
+          display: 'grid',
+          gap: spacing.lg,
+          marginBottom: spacing['4xl']
+        }}
+      >
         {performance.map((item) => (
-          <div
+          <MetricCardWithProgress
             key={item.label}
-            style={{
-              borderRadius: '14px',
-              backgroundColor: subtleBackground,
-              padding: '16px'
-            }}
-          >
-            <div style={{ fontSize: '16px', marginBottom: '8px' }}>{item.label}</div>
-            <div style={{ fontSize: '22px', fontWeight: 600, marginBottom: '12px' }}>{item.value}</div>
-            <div
-              style={{
-                height: '8px',
-                borderRadius: '999px',
-                backgroundColor: `${hintColor}40`,
-                overflow: 'hidden'
-              }}
-            >
-              <div
-                style={{
-                  width: `${item.progress}%`,
-                  height: '100%',
-                  backgroundColor: accentColor,
-                  transition: 'width 0.3s ease'
-                }}
-              />
-            </div>
-          </div>
+            label={item.label}
+            value={item.value}
+            progress={item.progress}
+            max={item.max}
+            variant="primary"
+          />
         ))}
-      </section>
+      </div>
 
-      <section style={{ marginTop: '28px' }}>
-        <h2 style={{ margin: '0 0 12px', fontSize: '18px' }}>טבלת מכירות</h2>
-        <div style={{ display: 'grid', gap: '12px' }}>
-          {leaderboard.map((row) => (
-            <div
-              key={row.name}
-              style={{
-                padding: '16px',
-                borderRadius: '12px',
-                border: `1px solid ${row.highlight ? accentColor : `${hintColor}30`}`,
-                backgroundColor: row.highlight
-                  ? `${accentColor}20`
-                  : subtleBackground
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: row.highlight ? 700 : 500 }}>
-                  {row.name}
-                  {row.highlight ? ' (את)' : ''}
-                </span>
-                <span>{row.value}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <LeaderboardCard
+        title="טבלת מכירות"
+        entries={leaderboardData}
+        highlightIndex={0}
+      />
     </div>
   );
 }
