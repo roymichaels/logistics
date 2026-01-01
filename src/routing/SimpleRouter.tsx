@@ -54,6 +54,7 @@ const Infrastructures = React.lazy(() => import('../pages/admin/Infrastructures'
 const Superadmins = React.lazy(() => import('../pages/admin/Superadmins').then(m => ({ default: m.default })));
 const AuditLogs = React.lazy(() => import('../pages/admin/AuditLogs').then(m => ({ default: m.default })));
 const FeatureFlags = React.lazy(() => import('../pages/admin/FeatureFlags').then(m => ({ default: m.default })));
+const AdminAnalytics = React.lazy(() => import('../pages/admin/AdminAnalytics').then(m => ({ default: m.AdminAnalytics })));
 const BusinessSettings = React.lazy(() => import('../pages/business/Settings').then(m => ({ default: m.default })));
 
 // Role-aware redirect component
@@ -144,7 +145,7 @@ export function SimpleRouter() {
           <Route path="/admin/platform-catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><PlatformCatalog /></Suspense>} />
           <Route path="/admin/businesses" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminBusinesses /></Suspense>} />
           <Route path="/admin/users" element={<Suspense fallback={<PageLoadingSkeleton />}><UserManagement /></Suspense>} />
-          <Route path="/admin/analytics" element={<Suspense fallback={<PageLoadingSkeleton />}><MyStats dataStore={dataStore} /></Suspense>} />
+          <Route path="/admin/analytics" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminAnalytics dataStore={dataStore} /></Suspense>} />
           <Route path="/admin/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
           <Route path="/admin/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><DriversManagement dataStore={dataStore} /></Suspense>} />
           <Route path="/admin/system-settings" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminSettings /></Suspense>} />

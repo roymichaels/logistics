@@ -7,7 +7,7 @@ import { getUserDisplayName } from '../utils/userIdentifier';
 
 interface MyStatsProps {
   dataStore: DataStore;
-  onNavigate: (page: string) => void;
+  onNavigate?: (page: string) => void;
 }
 
 export function MyStats({ dataStore }: MyStatsProps) {
