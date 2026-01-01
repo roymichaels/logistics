@@ -1,6 +1,6 @@
 import React from 'react';
 import { Order } from '../../data/types';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../../styles/royalTheme';
+import { tokens } from '../../styles/tokens';
 
 interface OrderCardProps {
   order: Order;
@@ -10,12 +10,12 @@ interface OrderCardProps {
 export function OrderCard({ order, onClick }: OrderCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'new': return ROYAL_COLORS.warning;
-      case 'assigned': return ROYAL_COLORS.info;
-      case 'enroute': return ROYAL_COLORS.accent;
-      case 'delivered': return ROYAL_COLORS.success;
-      case 'failed': return ROYAL_COLORS.crimson;
-      default: return ROYAL_COLORS.muted;
+      case 'new': return tokens.colors.status.warning;
+      case 'assigned': return tokens.colors.status.info;
+      case 'enroute': return tokens.colors.brand.primary;
+      case 'delivered': return tokens.colors.status.success;
+      case 'failed': return tokens.colors.status.error;
+      default: return tokens.colors.text.secondary;
     }
   };
 
@@ -34,17 +34,17 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
     <div
       onClick={onClick}
       style={{
-        ...ROYAL_STYLES.card,
+        ...styles.card,
         cursor: 'pointer',
         transition: 'all 0.3s ease'
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = ROYAL_COLORS.shadowStrong;
+        e.currentTarget.style.boxShadow = tokens.shadows.mdStrong;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = ROYAL_COLORS.shadow;
+        e.currentTarget.style.boxShadow = tokens.shadows.md;
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
@@ -53,14 +53,14 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
             margin: '0 0 6px 0',
             fontSize: '18px',
             fontWeight: '700',
-            color: ROYAL_COLORS.text
+            color: tokens.colors.text.primary
           }}>
             {order.customer_name}
           </h3>
           <p style={{
             margin: '0 0 4px 0',
             fontSize: '14px',
-            color: ROYAL_COLORS.muted,
+            color: tokens.colors.text.secondary,
             lineHeight: '1.5'
           }}>
             📞 {order.customer_phone}
@@ -68,7 +68,7 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
           <p style={{
             margin: 0,
             fontSize: '14px',
-            color: ROYAL_COLORS.muted,
+            color: tokens.colors.text.secondary,
             lineHeight: '1.5'
           }}>
             📍 {order.customer_address}
@@ -90,12 +90,12 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '12px', borderTop: `1px solid ${ROYAL_COLORS.cardBorder}` }}>
-        <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '12px', borderTop: `1px solid ${tokens.colors.background.cardBorder}` }}>
+        <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>
           🕒 {new Date(order.created_at).toLocaleString('he-IL')}
         </div>
         {order.total_amount && (
-          <div style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.gold }}>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: tokens.colors.status.warning }}>
             ₪{order.total_amount.toLocaleString()}
           </div>
         )}
@@ -105,11 +105,11 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
         <div style={{
           marginTop: '12px',
           padding: '8px 12px',
-          background: ROYAL_COLORS.info + '10',
-          border: `1px solid ${ROYAL_COLORS.info}30`,
+          background: tokens.colors.status.info + '10',
+          border: `1px solid ${tokens.colors.status.info}30`,
           borderRadius: '8px',
           fontSize: '13px',
-          color: ROYAL_COLORS.info
+          color: tokens.colors.status.info
         }}>
           🚗 נהג: {order.assigned_driver}
         </div>

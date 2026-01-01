@@ -15,7 +15,7 @@ import { Toast } from '../components/Toast';
 import type { Product } from '../application/queries/catalog.queries';
 import { hebrew, formatCurrency } from '../lib/i18n';
 import { colors, spacing, commonStyles } from '../styles/design-system';
-import { ROYAL_STYLES, ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { Input } from '../components/atoms/Input';
 import { logger } from '../lib/logger';
 import { useNavigate } from 'react-router-dom';
@@ -168,10 +168,10 @@ export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
             style={{
               marginTop: '16px',
               padding: '12px 24px',
-              background: ROYAL_COLORS.gradientPurple,
+              background: tokens.gradients.primary,
               border: 'none',
               borderRadius: '12px',
-              color: ROYAL_COLORS.textBright,
+              color: tokens.colors.text.primaryBright,
               fontSize: '16px',
               fontWeight: '600',
               cursor: 'pointer'
@@ -221,12 +221,12 @@ export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
                 Diagnostics.logEvent({ type: 'log', message: 'Category filter changed', data: { category: cat } });
               }}
               style={{
-                ...ROYAL_STYLES.buttonSecondary,
+                ...styles.button.secondary,
                 padding: '8px 16px',
                 fontSize: '14px',
                 whiteSpace: 'nowrap',
-                background: filter === cat ? ROYAL_COLORS.gradientCard : ROYAL_COLORS.cardBg,
-                border: `1px solid ${filter === cat ? ROYAL_COLORS.primary : ROYAL_COLORS.cardBorder}`
+                background: filter === cat ? tokens.gradients.card : tokens.colors.background.cardBg,
+                border: `1px solid ${filter === cat ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`
               }}
             >
               {cat === 'all' ? 'הכל' : cat}
@@ -242,7 +242,7 @@ export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
             setShowCreateModal(true);
           }}
           style={{
-            ...ROYAL_STYLES.buttonPrimary,
+            ...styles.button.primary,
             width: '100%',
             marginBottom: '24px'
           }}
@@ -252,9 +252,9 @@ export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
       )}
 
       {filteredProducts.length === 0 ? (
-        <div style={ROYAL_STYLES.emptyState}>
-          <div style={ROYAL_STYLES.emptyStateIcon}>📦</div>
-          <div style={ROYAL_STYLES.emptyStateText}>
+        <div style={styles.emptyState.container}>
+          <div style={styles.emptyState.containerIcon}>📦</div>
+          <div style={styles.emptyState.containerText}>
             {searchQuery ? 'לא נמצאו מוצרים' : 'אין מוצרים להצגה'}
           </div>
         </div>
@@ -314,7 +314,7 @@ function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
 
   return (
     <div style={{
-      ...ROYAL_STYLES.card,
+      ...styles.card,
       cursor: 'pointer',
       display: 'flex',
       flexDirection: 'column'
@@ -345,7 +345,7 @@ function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
           <h3 style={{
             margin: '0 0 8px 0',
             fontSize: '18px',
-            color: ROYAL_COLORS.text,
+            color: tokens.colors.text.primary,
             fontWeight: '600'
           }}>
             {product.name}
@@ -355,7 +355,7 @@ function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
             <p style={{
               margin: '0 0 12px 0',
               fontSize: '14px',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               lineHeight: '1.4'
             }}>
               {product.description}
@@ -371,7 +371,7 @@ function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
             <div style={{
               fontSize: '20px',
               fontWeight: '700',
-              color: ROYAL_COLORS.primary
+              color: tokens.colors.brand.primary
             }}>
               {formatCurrency(product.price)}
             </div>
@@ -384,7 +384,7 @@ function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
                 border: '1px solid rgba(138, 43, 226, 0.4)',
                 fontSize: '12px',
                 fontWeight: '600',
-                color: ROYAL_COLORS.primary
+                color: tokens.colors.brand.primary
               }}>
                 {product.category}
               </div>
@@ -394,7 +394,7 @@ function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
           {product.sku && (
             <div style={{
               fontSize: '12px',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               marginTop: '4px'
             }}>
               SKU: {product.sku}
@@ -407,19 +407,19 @@ function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
         <div style={{
           marginTop: '16px',
           paddingTop: '16px',
-          borderTop: `1px solid ${ROYAL_COLORS.border}`
+          borderTop: `1px solid ${tokens.colors.border.default}`
         }}>
           {product.barcode && (
             <div style={{ marginBottom: '8px' }}>
-              <span style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>ברקוד: </span>
-              <span style={{ fontSize: '14px', color: ROYAL_COLORS.text }}>{product.barcode}</span>
+              <span style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>ברקוד: </span>
+              <span style={{ fontSize: '14px', color: tokens.colors.text.primary }}>{product.barcode}</span>
             </div>
           )}
 
           {product.unit && (
             <div style={{ marginBottom: '8px' }}>
-              <span style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>יחידת מידה: </span>
-              <span style={{ fontSize: '14px', color: ROYAL_COLORS.text }}>{product.unit}</span>
+              <span style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>יחידת מידה: </span>
+              <span style={{ fontSize: '14px', color: tokens.colors.text.primary }}>{product.unit}</span>
             </div>
           )}
 
@@ -435,7 +435,7 @@ function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
                   onEdit();
                 }}
                 style={{
-                  ...ROYAL_STYLES.buttonSecondary,
+                  ...styles.button.secondary,
                   flex: 1
                 }}
               >
@@ -448,7 +448,7 @@ function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
                 }}
                 disabled={deleting}
                 style={{
-                  ...ROYAL_STYLES.buttonDanger,
+                  ...styles.button.danger,
                   flex: 0.5,
                   opacity: deleting ? 0.5 : 1,
                   cursor: deleting ? 'not-allowed' : 'pointer'
@@ -520,25 +520,25 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          backgroundColor: ROYAL_COLORS.cardBg,
+          backgroundColor: tokens.colors.background.cardBg,
           borderRadius: '20px',
-          border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+          border: `1px solid ${tokens.colors.background.cardBorder}`,
           maxWidth: '500px',
           width: '100%',
           maxHeight: '90vh',
           overflow: 'auto',
-          boxShadow: ROYAL_COLORS.shadowStrong
+          boxShadow: tokens.shadows.mdStrong
         }}
       >
         <div style={{
           padding: '24px',
-          borderBottom: `1px solid ${ROYAL_COLORS.border}`
+          borderBottom: `1px solid ${tokens.colors.border.default}`
         }}>
           <h2 style={{
             margin: 0,
             fontSize: '24px',
             fontWeight: '700',
-            color: ROYAL_COLORS.text
+            color: tokens.colors.text.primary
           }}>
             {product ? 'ערוך מוצר' : 'הוסף מוצר חדש'}
           </h2>
@@ -552,7 +552,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: ROYAL_COLORS.text
+                color: tokens.colors.text.primary
               }}>
                 שם המוצר *
               </label>
@@ -560,7 +560,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                style={ROYAL_STYLES.input}
+                style={styles.input}
                 placeholder="שם המוצר"
                 disabled={loading}
               />
@@ -572,7 +572,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: ROYAL_COLORS.text
+                color: tokens.colors.text.primary
               }}>
                 תיאור
               </label>
@@ -581,7 +581,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
                 style={{
-                  ...ROYAL_STYLES.input,
+                  ...styles.input,
                   resize: 'vertical'
                 }}
                 placeholder="תיאור המוצר"
@@ -596,7 +596,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text
+                  color: tokens.colors.text.primary
                 }}>
                   מחיר *
                 </label>
@@ -605,7 +605,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                   step="0.01"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                  style={ROYAL_STYLES.input}
+                  style={styles.input}
                   placeholder="0.00"
                   disabled={loading}
                 />
@@ -617,7 +617,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text
+                  color: tokens.colors.text.primary
                 }}>
                   קטגוריה
                 </label>
@@ -625,7 +625,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                   type="text"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  style={ROYAL_STYLES.input}
+                  style={styles.input}
                   placeholder="קטגוריה"
                   disabled={loading}
                 />
@@ -639,7 +639,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text
+                  color: tokens.colors.text.primary
                 }}>
                   SKU
                 </label>
@@ -647,7 +647,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                   type="text"
                   value={formData.sku}
                   onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                  style={ROYAL_STYLES.input}
+                  style={styles.input}
                   placeholder="SKU"
                   disabled={loading}
                 />
@@ -659,7 +659,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text
+                  color: tokens.colors.text.primary
                 }}>
                   ברקוד
                 </label>
@@ -667,7 +667,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                   type="text"
                   value={formData.barcode}
                   onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                  style={ROYAL_STYLES.input}
+                  style={styles.input}
                   placeholder="ברקוד"
                   disabled={loading}
                 />
@@ -680,14 +680,14 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: ROYAL_COLORS.text
+                color: tokens.colors.text.primary
               }}>
                 יחידת מידה
               </label>
               <select
                 value={formData.unit}
                 onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                style={ROYAL_STYLES.input}
+                style={styles.input}
                 disabled={loading}
               >
                 <option value="יחידה">יחידה</option>
@@ -704,7 +704,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: ROYAL_COLORS.text
+                color: tokens.colors.text.primary
               }}>
                 כתובת תמונה (URL)
               </label>
@@ -712,7 +712,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                 type="text"
                 value={formData.image_url}
                 onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                style={ROYAL_STYLES.input}
+                style={styles.input}
                 placeholder="https://..."
                 disabled={loading}
               />
@@ -735,7 +735,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                 htmlFor="active"
                 style={{
                   fontSize: '14px',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   cursor: 'pointer'
                 }}
               >
@@ -753,7 +753,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
               type="button"
               onClick={onClose}
               style={{
-                ...ROYAL_STYLES.buttonSecondary,
+                ...styles.button.secondary,
                 flex: 1
               }}
               disabled={loading}
@@ -763,7 +763,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
             <button
               type="submit"
               style={{
-                ...ROYAL_STYLES.buttonPrimary,
+                ...styles.button.primary,
                 flex: 2,
                 opacity: loading ? 0.5 : 1,
                 cursor: loading ? 'not-allowed' : 'pointer'

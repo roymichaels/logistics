@@ -4,7 +4,7 @@ import { useOrders, useOrder, useCreateOrder, useAssignOrder, useUpdateOrderStat
 import { useApp } from '../application/services/useApp';
 import { Diagnostics } from '../foundation/diagnostics/DiagnosticsStore';
 import { Toast } from '../components/Toast';
-import { ROYAL_STYLES, ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ContentCard } from '../components/layout/ContentCard';
@@ -41,10 +41,10 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
   });
 
   const theme = {
-    bg_color: ROYAL_COLORS.card,
-    text_color: ROYAL_COLORS.text,
-    link_color: ROYAL_COLORS.accent,
-    hint_color: ROYAL_COLORS.muted,
+    bg_color: tokens.colors.background.card,
+    text_color: tokens.colors.text.primary,
+    link_color: tokens.colors.brand.primary,
+    hint_color: tokens.colors.text.secondary,
   };
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
       <PageContainer>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>{t('ordersPage.loadingOrders')}</p>
+          <p style={{ color: tokens.colors.text.secondary }}>{t('ordersPage.loadingOrders')}</p>
         </div>
       </PageContainer>
     );
@@ -108,10 +108,10 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
       <PageContainer>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
-          <p style={{ color: ROYAL_COLORS.text, marginBottom: '20px' }}>{error.message || t('ordersPage.errorLoadingOrders')}</p>
+          <p style={{ color: tokens.colors.text.primary, marginBottom: '20px' }}>{error.message || t('ordersPage.errorLoadingOrders')}</p>
           <button
             onClick={refetch}
-            style={ROYAL_STYLES.buttonPrimary}
+            style={styles.button.primary}
           >
             {t('ordersPage.tryAgain')}
           </button>
@@ -167,7 +167,7 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
         >
           <div
             style={{
-              ...ROYAL_STYLES.card,
+              ...styles.card,
               maxWidth: '400px',
               width: '100%',
               padding: '32px'
@@ -178,7 +178,7 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
               margin: '0 0 24px 0',
               fontSize: '24px',
               fontWeight: '700',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               textAlign: 'center'
             }}>
               {t('ordersPage.title')}
@@ -193,10 +193,10 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
               style={{
                 width: '100%',
                 padding: '20px',
-                background: ROYAL_COLORS.gradientPurple,
+                background: tokens.gradients.primary,
                 border: 'none',
                 borderRadius: '16px',
-                color: ROYAL_COLORS.textBright,
+                color: tokens.colors.text.primaryBright,
                 cursor: 'pointer',
                 fontSize: '16px',
                 fontWeight: '700',
@@ -216,7 +216,7 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
                 padding: '12px',
                 background: 'transparent',
                 border: 'none',
-                color: ROYAL_COLORS.muted,
+                color: tokens.colors.text.secondary,
                 cursor: 'pointer',
                 fontSize: '14px'
               }}
@@ -234,7 +234,7 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
         actionButton={
           <button
             onClick={handleCreateOrder}
-            style={ROYAL_STYLES.buttonPrimary}
+            style={styles.button.primary}
           >
             {t('ordersPage.createOrder')}
           </button>
@@ -247,7 +247,7 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         style={{
-          ...ROYAL_STYLES.input,
+          ...styles.input,
           marginBottom: '20px',
           fontSize: '15px'
         }}
@@ -273,10 +273,10 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
               }}
               style={{
                 padding: '10px 20px',
-                border: `2px solid ${filter === status ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+                border: `2px solid ${filter === status ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
                 borderRadius: '20px',
-                background: filter === status ? ROYAL_COLORS.accent + '20' : 'transparent',
-                color: filter === status ? ROYAL_COLORS.accent : ROYAL_COLORS.text,
+                background: filter === status ? tokens.colors.brand.primary + '20' : 'transparent',
+                color: filter === status ? tokens.colors.brand.primary : tokens.colors.text.primary,
                 fontSize: '14px',
                 fontWeight: '600',
                 cursor: 'pointer',
@@ -294,10 +294,10 @@ export function Orders({ dataStore: propDataStore, onNavigate: propOnNavigate }:
         <ContentCard>
           <div style={{ textAlign: 'center', padding: '40px 20px' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
-            <p style={{ color: ROYAL_COLORS.muted, marginBottom: '20px' }}>{t('ordersPage.noOrdersFound')}</p>
+            <p style={{ color: tokens.colors.text.secondary, marginBottom: '20px' }}>{t('ordersPage.noOrdersFound')}</p>
             <button
               onClick={handleCreateOrder}
-              style={ROYAL_STYLES.buttonPrimary}
+              style={styles.button.primary}
             >
               {t('ordersPage.createFirstOrder')}
             </button>
@@ -327,12 +327,12 @@ function OrderCard({ order, onClick }: {
 }) {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'new': return ROYAL_COLORS.warning;
-      case 'assigned': return ROYAL_COLORS.info;
-      case 'enroute': return ROYAL_COLORS.accent;
-      case 'delivered': return ROYAL_COLORS.success;
-      case 'failed': return ROYAL_COLORS.crimson;
-      default: return ROYAL_COLORS.muted;
+      case 'new': return tokens.colors.status.warning;
+      case 'assigned': return tokens.colors.status.info;
+      case 'enroute': return tokens.colors.brand.primary;
+      case 'delivered': return tokens.colors.status.success;
+      case 'failed': return tokens.colors.status.error;
+      default: return tokens.colors.text.secondary;
     }
   };
 
@@ -344,21 +344,21 @@ function OrderCard({ order, onClick }: {
             margin: '0 0 6px 0',
             fontSize: '18px',
             fontWeight: '700',
-            color: ROYAL_COLORS.text
+            color: tokens.colors.text.primary
           }}>
             {order.customer_name}
           </h3>
           <p style={{
             margin: '0 0 4px 0',
             fontSize: '14px',
-            color: ROYAL_COLORS.muted
+            color: tokens.colors.text.secondary
           }}>
             📞 {order.customer_phone}
           </p>
           <p style={{
             margin: 0,
             fontSize: '14px',
-            color: ROYAL_COLORS.muted
+            color: tokens.colors.text.secondary
           }}>
             📍 {order.customer_address}
           </p>
@@ -379,7 +379,7 @@ function OrderCard({ order, onClick }: {
       </div>
 
       {order.total_amount && (
-        <div style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.gold, marginTop: '12px' }}>
+        <div style={{ fontSize: '18px', fontWeight: '700', color: tokens.colors.status.warning, marginTop: '12px' }}>
           ${order.total_amount.toLocaleString()}
         </div>
       )}
@@ -434,7 +434,7 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
     return (
       <div style={{ padding: '20px', textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-        <div style={{ color: ROYAL_COLORS.muted }}>{t('orderDetail.loadingOrderDetails')}</div>
+        <div style={{ color: tokens.colors.text.secondary }}>{t('orderDetail.loadingOrderDetails')}</div>
       </div>
     );
   }
@@ -443,17 +443,17 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
     return (
       <div style={{ padding: '20px', textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
-        <div style={{ color: ROYAL_COLORS.text, marginBottom: '16px' }}>
+        <div style={{ color: tokens.colors.text.primary, marginBottom: '16px' }}>
           {error?.message || t('orderDetail.orderNotFound')}
         </div>
         <button
           onClick={onBack}
           style={{
             padding: '12px 24px',
-            background: ROYAL_COLORS.gradientPurple,
+            background: tokens.gradients.primary,
             border: 'none',
             borderRadius: '12px',
-            color: ROYAL_COLORS.textBright,
+            color: tokens.colors.text.primaryBright,
             cursor: 'pointer'
           }}
         >
@@ -464,13 +464,13 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
   }
 
   return (
-    <div style={{ padding: '16px', minHeight: '100vh', backgroundColor: ROYAL_COLORS.background }}>
+    <div style={{ padding: '16px', minHeight: '100vh', backgroundColor: tokens.colors.background.primary }}>
       <button
         onClick={onBack}
         style={{
           background: 'transparent',
           border: 'none',
-          color: ROYAL_COLORS.accent,
+          color: tokens.colors.brand.primary,
           fontSize: '16px',
           cursor: 'pointer',
           marginBottom: '16px',
@@ -482,20 +482,20 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
         {t('orderDetail.back')}
       </button>
 
-      <div style={{ ...ROYAL_STYLES.card, marginBottom: '16px' }}>
-        <h2 style={{ margin: '0 0 16px 0', fontSize: '24px', fontWeight: '700', color: ROYAL_COLORS.text }}>
+      <div style={{ ...styles.card, marginBottom: '16px' }}>
+        <h2 style={{ margin: '0 0 16px 0', fontSize: '24px', fontWeight: '700', color: tokens.colors.text.primary }}>
           {order.customer_name}
         </h2>
-        <p style={{ margin: '0 0 8px 0', color: ROYAL_COLORS.muted }}>
+        <p style={{ margin: '0 0 8px 0', color: tokens.colors.text.secondary }}>
           📞 {order.customer_phone}
         </p>
-        <p style={{ margin: '0', color: ROYAL_COLORS.muted }}>
+        <p style={{ margin: '0', color: tokens.colors.text.secondary }}>
           📍 {order.customer_address}
         </p>
       </div>
 
       {order.status !== 'delivered' && order.status !== 'cancelled' && (
-        <div style={{ ...ROYAL_STYLES.card }}>
+        <div style={{ ...styles.card }}>
           <h3 style={{ margin: '0 0 12px 0', fontSize: '18px', fontWeight: '600' }}>
             {t('orderDetail.actions')}
           </h3>
@@ -506,10 +506,10 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
                 disabled={updating}
                 style={{
                   padding: '12px',
-                  background: ROYAL_COLORS.gradientPurple,
+                  background: tokens.gradients.primary,
                   border: 'none',
                   borderRadius: '12px',
-                  color: ROYAL_COLORS.textBright,
+                  color: tokens.colors.text.primaryBright,
                   cursor: updating ? 'not-allowed' : 'pointer',
                   opacity: updating ? 0.5 : 1
                 }}
@@ -526,7 +526,7 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
                   background: ROYAL_COLORS.gradientInfo,
                   border: 'none',
                   borderRadius: '12px',
-                  color: ROYAL_COLORS.textBright,
+                  color: tokens.colors.text.primaryBright,
                   cursor: updating ? 'not-allowed' : 'pointer',
                   opacity: updating ? 0.5 : 1
                 }}
@@ -540,10 +540,10 @@ function OrderDetail({ orderId, dataStore, onBack, onUpdate, theme }: {
                 disabled={updating}
                 style={{
                   padding: '12px',
-                  background: ROYAL_COLORS.gradientSuccess,
+                  background: tokens.gradients.success,
                   border: 'none',
                   borderRadius: '12px',
-                  color: ROYAL_COLORS.textBright,
+                  color: tokens.colors.text.primaryBright,
                   cursor: updating ? 'not-allowed' : 'pointer',
                   opacity: updating ? 0.5 : 1
                 }}
@@ -730,7 +730,7 @@ function CreateOrderForm({ dataStore, onCancel, onSuccess, theme }: {
           disabled={loading}
           style={{
             padding: '16px',
-            background: loading ? theme.hint_color : ROYAL_COLORS.gradientPurple,
+            background: loading ? theme.hint_color : tokens.gradients.primary,
             border: 'none',
             borderRadius: '12px',
             color: '#fff',

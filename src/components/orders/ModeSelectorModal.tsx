@@ -1,6 +1,6 @@
 import React from 'react';
+import { tokens } from '../../styles/tokens';
 
-import { ROYAL_COLORS, ROYAL_STYLES } from '../../styles/royalTheme';
 
 interface ModeSelectorModalProps {
   isOpen: boolean;
@@ -30,7 +30,7 @@ export function ModeSelectorModal({ isOpen, onClose, onSelectMode }: ModeSelecto
     >
       <div
         style={{
-          ...ROYAL_STYLES.card,
+          ...styles.card,
           maxWidth: '400px',
           width: '100%',
           padding: '32px',
@@ -42,7 +42,7 @@ export function ModeSelectorModal({ isOpen, onClose, onSelectMode }: ModeSelecto
           margin: '0 0 8px 0',
           fontSize: '24px',
           fontWeight: '700',
-          color: ROYAL_COLORS.text,
+          color: tokens.colors.text.primary,
           textAlign: 'center'
         }}>
           🎯 בחר סוג הזמנה
@@ -50,7 +50,7 @@ export function ModeSelectorModal({ isOpen, onClose, onSelectMode }: ModeSelecto
         <p style={{
           margin: '0 0 24px 0',
           fontSize: '14px',
-          color: ROYAL_COLORS.muted,
+          color: tokens.colors.text.secondary,
           textAlign: 'center'
         }}>
           איך תרצה ליצור את ההזמנה?
@@ -65,21 +65,21 @@ export function ModeSelectorModal({ isOpen, onClose, onSelectMode }: ModeSelecto
             }}
             style={{
               padding: '20px',
-              background: ROYAL_COLORS.gradientPurple,
+              background: tokens.gradients.primary,
               border: 'none',
               borderRadius: '16px',
-              color: ROYAL_COLORS.textBright,
+              color: tokens.colors.text.primaryBright,
               cursor: 'pointer',
               transition: 'all 0.3s ease',
-              boxShadow: ROYAL_COLORS.glowPurple
+              boxShadow: tokens.glows.primary
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.02)';
-              e.currentTarget.style.boxShadow = ROYAL_COLORS.glowPurpleStrong;
+              e.currentTarget.style.boxShadow = tokens.glows.primaryStrong;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = ROYAL_COLORS.glowPurple;
+              e.currentTarget.style.boxShadow = tokens.glows.primary;
             }}
           >
             <div style={{ fontSize: '32px', marginBottom: '8px' }}>💬</div>
@@ -99,27 +99,27 @@ export function ModeSelectorModal({ isOpen, onClose, onSelectMode }: ModeSelecto
             }}
             style={{
               padding: '20px',
-              background: ROYAL_COLORS.secondary,
-              border: `2px solid ${ROYAL_COLORS.cardBorder}`,
+              background: tokens.colors.background.secondary,
+              border: `2px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '16px',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               cursor: 'pointer',
               transition: 'all 0.3s ease'
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.02)';
-              e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorderHover;
+              e.currentTarget.style.borderColor = tokens.colors.background.cardBorderHover;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorder;
+              e.currentTarget.style.borderColor = tokens.colors.background.cardBorder;
             }}
           >
             <div style={{ fontSize: '32px', marginBottom: '8px' }}>🛒</div>
             <div style={{ fontSize: '18px', fontWeight: '700', marginBottom: '4px' }}>
               בחירת מוצרים
             </div>
-            <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
+            <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>
               בנה הזמנה עם ממשק מוצרים
             </div>
           </button>
@@ -134,7 +134,7 @@ export function ModeSelectorModal({ isOpen, onClose, onSelectMode }: ModeSelecto
               background: 'transparent',
               border: 'none',
               borderRadius: '12px',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               cursor: 'pointer',
               fontSize: '14px',
               marginTop: '8px'

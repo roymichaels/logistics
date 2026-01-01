@@ -4,7 +4,7 @@ import { useApp } from '../application/services/useApp';
 import { Diagnostics } from '../foundation/diagnostics/DiagnosticsStore';
 import { Toast } from '../components/Toast';
 
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { logger } from '../lib/logger';
 import { useI18n } from '../lib/i18n';
 import type { FrontendDataStore } from '../lib/frontendDataStore';
@@ -82,28 +82,28 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
 
   if (loading && drivers.length === 0) {
     return (
-      <div style={{ ...ROYAL_STYLES.pageContainer, textAlign: 'center' }}>
+      <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚗</div>
-        <div style={{ color: ROYAL_COLORS.muted }}>{t('driversManagementPage.loading')}</div>
+        <div style={{ color: tokens.colors.text.secondary }}>{t('driversManagementPage.loading')}</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ ...ROYAL_STYLES.pageContainer, textAlign: 'center' }}>
+      <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
-        <div style={{ color: ROYAL_COLORS.text, marginBottom: '16px' }}>
+        <div style={{ color: tokens.colors.text.primary, marginBottom: '16px' }}>
           {error.message || t('driversManagementPage.errorLoadingDrivers')}
         </div>
         <button
           onClick={refetch}
           style={{
             padding: '12px 24px',
-            background: ROYAL_COLORS.gradientPurple,
+            background: tokens.gradients.primary,
             border: 'none',
             borderRadius: '12px',
-            color: ROYAL_COLORS.textBright,
+            color: tokens.colors.text.primaryBright,
             cursor: 'pointer',
             fontSize: '16px',
             fontWeight: '600'
@@ -116,11 +116,11 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
   }
 
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
+    <div style={styles.pageContainer}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <h1 style={{ ...ROYAL_STYLES.pageTitle, margin: 0 }}>{t('driversManagementPage.title')}</h1>
-          <p style={{ ...ROYAL_STYLES.pageSubtitle, margin: '4px 0 0 0' }}>
+          <h1 style={{ ...styles.pageTitle, margin: 0 }}>{t('driversManagementPage.title')}</h1>
+          <p style={{ ...styles.pageSubtitle, margin: '4px 0 0 0' }}>
             {filteredDrivers.length} {t('driversManagementPage.driversOutOf')} {drivers.length}
           </p>
         </div>
@@ -131,9 +131,9 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
             style={{
               padding: '10px 16px',
               background: 'transparent',
-              border: `2px solid ${ROYAL_COLORS.accent}`,
+              border: `2px solid ${tokens.colors.brand.primary}`,
               borderRadius: '12px',
-              color: ROYAL_COLORS.accent,
+              color: tokens.colors.brand.primary,
               fontSize: '14px',
               fontWeight: '600',
               cursor: loading ? 'not-allowed' : 'pointer',
@@ -146,10 +146,10 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
             onClick={() => setShowFilters(!showFilters)}
             style={{
               padding: '10px 16px',
-              background: showFilters ? ROYAL_COLORS.gradientPurple : 'transparent',
-              border: `2px solid ${ROYAL_COLORS.accent}`,
+              background: showFilters ? tokens.gradients.primary : 'transparent',
+              border: `2px solid ${tokens.colors.brand.primary}`,
               borderRadius: '12px',
-              color: showFilters ? ROYAL_COLORS.textBright : ROYAL_COLORS.accent,
+              color: showFilters ? tokens.colors.text.primaryBright : tokens.colors.brand.primary,
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer'
@@ -161,30 +161,30 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '24px' }}>
-        <div style={ROYAL_STYLES.statBox}>
+        <div style={styles.stat.box}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>👥</div>
-          <div style={{ ...ROYAL_STYLES.statValue, fontSize: '28px' }}>{metrics.total}</div>
-          <div style={ROYAL_STYLES.statLabel}>{t('driversManagementPage.totalDrivers')}</div>
+          <div style={{ ...styles.stat.value, fontSize: '28px' }}>{metrics.total}</div>
+          <div style={styles.stat.label}>{t('driversManagementPage.totalDrivers')}</div>
         </div>
-        <div style={ROYAL_STYLES.statBox}>
+        <div style={styles.stat.box}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>🟢</div>
-          <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.success, fontSize: '28px' }}>{metrics.online}</div>
-          <div style={ROYAL_STYLES.statLabel}>{t('driversManagementPage.online')}</div>
+          <div style={{ ...styles.stat.value, color: tokens.colors.status.success, fontSize: '28px' }}>{metrics.online}</div>
+          <div style={styles.stat.label}>{t('driversManagementPage.online')}</div>
         </div>
-        <div style={ROYAL_STYLES.statBox}>
+        <div style={styles.stat.box}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>🚚</div>
-          <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.info, fontSize: '28px' }}>{metrics.busy}</div>
-          <div style={ROYAL_STYLES.statLabel}>{t('driversManagementPage.busy')}</div>
+          <div style={{ ...styles.stat.value, color: tokens.colors.status.info, fontSize: '28px' }}>{metrics.busy}</div>
+          <div style={styles.stat.label}>{t('driversManagementPage.busy')}</div>
         </div>
-        <div style={ROYAL_STYLES.statBox}>
+        <div style={styles.stat.box}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>⭐</div>
-          <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.gold, fontSize: '28px' }}>{metrics.avgRating.toFixed(1)}</div>
-          <div style={ROYAL_STYLES.statLabel}>{t('driversManagementPage.averageRating')}</div>
+          <div style={{ ...styles.stat.value, color: tokens.colors.status.warning, fontSize: '28px' }}>{metrics.avgRating.toFixed(1)}</div>
+          <div style={styles.stat.label}>{t('driversManagementPage.averageRating')}</div>
         </div>
       </div>
 
       {showFilters && (
-        <div style={{ ...ROYAL_STYLES.card, marginBottom: '20px', padding: '20px' }}>
+        <div style={{ ...styles.card, marginBottom: '20px', padding: '20px' }}>
           <div style={{ marginBottom: '16px' }}>
             <input
               type="text"
@@ -194,10 +194,10 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
               style={{
                 width: '100%',
                 padding: '12px',
-                background: ROYAL_COLORS.secondary,
-                border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                background: tokens.colors.background.secondary,
+                border: `1px solid ${tokens.colors.background.cardBorder}`,
                 borderRadius: '12px',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 fontSize: '15px'
               }}
             />
@@ -224,10 +224,10 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                   }}
                   style={{
                     padding: '8px 16px',
-                    background: statusFilter === filter ? ROYAL_COLORS.gradientPurple : 'transparent',
-                    border: `1px solid ${statusFilter === filter ? 'transparent' : ROYAL_COLORS.cardBorder}`,
+                    background: statusFilter === filter ? tokens.gradients.primary : 'transparent',
+                    border: `1px solid ${statusFilter === filter ? 'transparent' : tokens.colors.background.cardBorder}`,
                     borderRadius: '10px',
-                    color: statusFilter === filter ? ROYAL_COLORS.textBright : ROYAL_COLORS.muted,
+                    color: statusFilter === filter ? tokens.colors.text.primaryBright : tokens.colors.text.secondary,
                     fontSize: '14px',
                     fontWeight: '600',
                     cursor: 'pointer',
@@ -260,14 +260,14 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                   style={{
                     flex: 1,
                     padding: '10px',
-                    background: viewMode === mode ? ROYAL_COLORS.gradientPurple : ROYAL_COLORS.secondary,
+                    background: viewMode === mode ? tokens.gradients.primary : tokens.colors.background.secondary,
                     border: 'none',
                     borderRadius: '10px',
-                    color: viewMode === mode ? ROYAL_COLORS.textBright : ROYAL_COLORS.text,
+                    color: viewMode === mode ? tokens.colors.text.primaryBright : tokens.colors.text.primary,
                     fontSize: '14px',
                     fontWeight: '600',
                     cursor: 'pointer',
-                    boxShadow: viewMode === mode ? ROYAL_COLORS.glowPurple : 'none'
+                    boxShadow: viewMode === mode ? tokens.glows.primary : 'none'
                   }}
                 >
                   {icons[mode]} {labels[mode]}
@@ -281,12 +281,12 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
       {viewMode === 'list' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {filteredDrivers.length === 0 ? (
-            <div style={{ ...ROYAL_STYLES.card, textAlign: 'center', padding: '40px' }}>
+            <div style={{ ...styles.card, textAlign: 'center', padding: '40px' }}>
               <div style={{ fontSize: '64px', marginBottom: '16px', opacity: 0.5 }}>🚗</div>
-              <div style={{ fontSize: '18px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '8px' }}>
+              <div style={{ fontSize: '18px', color: tokens.colors.text.primary, fontWeight: '600', marginBottom: '8px' }}>
                 {t('driversManagementPage.noDriversFound')}
               </div>
-              <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+              <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
                 {t('driversManagementPage.tryChangingFilter')}
               </div>
             </div>
@@ -300,14 +300,14 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                   Diagnostics.logEvent({ type: 'nav', message: 'Navigate to driver detail', data: { driverId: driver.id } });
                 }}
                 style={{
-                  ...ROYAL_STYLES.card,
+                  ...styles.card,
                   cursor: 'pointer',
                   background: selectedDriverId === driver.id
-                    ? ROYAL_COLORS.gradientCard
-                    : ROYAL_COLORS.secondary,
+                    ? tokens.gradients.card
+                    : tokens.colors.background.secondary,
                   border: `2px solid ${selectedDriverId === driver.id
-                    ? ROYAL_COLORS.accent
-                    : ROYAL_COLORS.cardBorder}`,
+                    ? tokens.colors.brand.primary
+                    : tokens.colors.background.cardBorder}`,
                   transition: 'all 0.3s ease'
                 }}
               >
@@ -317,31 +317,31 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                       width: '48px',
                       height: '48px',
                       borderRadius: '50%',
-                      background: driver.is_online ? ROYAL_COLORS.gradientSuccess : ROYAL_COLORS.secondary,
+                      background: driver.is_online ? tokens.gradients.success : tokens.colors.background.secondary,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '24px',
-                      border: `2px solid ${driver.is_online ? ROYAL_COLORS.success : ROYAL_COLORS.cardBorder}`
+                      border: `2px solid ${driver.is_online ? tokens.colors.status.success : tokens.colors.background.cardBorder}`
                     }}>
                       🚗
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                      <div style={{ fontSize: '18px', fontWeight: '700', color: tokens.colors.text.primary, marginBottom: '4px' }}>
                         {driver.name || driver.id}
                       </div>
-                      <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
+                      <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>
                         {driver.vehicle_type || 'Unknown'} • {driver.vehicle_plate || 'N/A'}
                       </div>
                     </div>
                   </div>
                   <div style={{
                     padding: '6px 12px',
-                    background: driver.is_online ? `${ROYAL_COLORS.success}20` : `${ROYAL_COLORS.error}20`,
+                    background: driver.is_online ? `${tokens.colors.status.success}20` : `${tokens.colors.status.error}20`,
                     borderRadius: '8px',
                     fontSize: '12px',
                     fontWeight: '600',
-                    color: driver.is_online ? ROYAL_COLORS.success : ROYAL_COLORS.error
+                    color: driver.is_online ? tokens.colors.status.success : tokens.colors.status.error
                   }}>
                     {driver.is_online ? `🟢 ${t('driversManagementPage.online')}` : `⚫ ${t('driversManagementPage.offline')}`}
                   </div>
@@ -351,43 +351,43 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
                   <div style={{
                     flex: 1,
                     padding: '10px',
-                    background: ROYAL_COLORS.background,
+                    background: tokens.colors.background.primary,
                     borderRadius: '10px',
                     textAlign: 'center'
                   }}>
-                    <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.info }}>
+                    <div style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.status.info }}>
                       {driver.active_orders || 0}
                     </div>
-                    <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>{t('driversManagementPage.active')}</div>
+                    <div style={{ fontSize: '11px', color: tokens.colors.text.secondary }}>{t('driversManagementPage.active')}</div>
                   </div>
                   <div style={{
                     flex: 1,
                     padding: '10px',
-                    background: ROYAL_COLORS.background,
+                    background: tokens.colors.background.primary,
                     borderRadius: '10px',
                     textAlign: 'center'
                   }}>
-                    <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.gold }}>
+                    <div style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.status.warning }}>
                       {(driver.rating || 5.0).toFixed(1)}⭐
                     </div>
-                    <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>{t('driversManagementPage.rating')}</div>
+                    <div style={{ fontSize: '11px', color: tokens.colors.text.secondary }}>{t('driversManagementPage.rating')}</div>
                   </div>
                   <div style={{
                     flex: 1,
                     padding: '10px',
-                    background: ROYAL_COLORS.background,
+                    background: tokens.colors.background.primary,
                     borderRadius: '10px',
                     textAlign: 'center'
                   }}>
-                    <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.success }}>
+                    <div style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.status.success }}>
                       {driver.completed_today || 0}
                     </div>
-                    <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>{t('driversManagementPage.today')}</div>
+                    <div style={{ fontSize: '11px', color: tokens.colors.text.secondary }}>{t('driversManagementPage.today')}</div>
                   </div>
                 </div>
 
                 {driver.phone && (
-                  <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, display: 'flex', alignItems: 'center', gap: '6px' }}>
                     📞 {driver.phone}
                   </div>
                 )}
@@ -398,24 +398,24 @@ export function DriversManagement({ dataStore }: DriversManagementProps) {
       )}
 
       {viewMode === 'map' && (
-        <div style={{ ...ROYAL_STYLES.card, padding: '40px', textAlign: 'center' }}>
+        <div style={{ ...styles.card, padding: '40px', textAlign: 'center' }}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>🗺️</div>
-          <div style={{ fontSize: '18px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '8px' }}>
+          <div style={{ fontSize: '18px', color: tokens.colors.text.primary, fontWeight: '600', marginBottom: '8px' }}>
             {t('driversManagementPage.mapView')}
           </div>
-          <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+          <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
             {t('driversManagementPage.mapViewComingSoon')}
           </div>
         </div>
       )}
 
       {viewMode === 'analytics' && (
-        <div style={{ ...ROYAL_STYLES.card, padding: '40px', textAlign: 'center' }}>
+        <div style={{ ...styles.card, padding: '40px', textAlign: 'center' }}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>📊</div>
-          <div style={{ fontSize: '18px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '8px' }}>
+          <div style={{ fontSize: '18px', color: tokens.colors.text.primary, fontWeight: '600', marginBottom: '8px' }}>
             {t('driversManagementPage.analyticsView')}
           </div>
-          <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+          <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
             {t('driversManagementPage.analyticsViewComingSoon')}
           </div>
         </div>

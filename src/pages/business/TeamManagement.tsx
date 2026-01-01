@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ROYAL_COLORS, ROYAL_STYLES, getStatusBadgeStyle } from '../../styles/royalTheme';
+import { getStatusBadgeStyle, tokens } from '../../styles/tokens';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { ContentCard } from '../../components/layout/ContentCard';
@@ -45,10 +45,10 @@ export function TeamManagement() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return ROYAL_COLORS.success;
-      case 'pending': return ROYAL_COLORS.warning;
-      case 'inactive': return ROYAL_COLORS.error;
-      default: return ROYAL_COLORS.muted;
+      case 'active': return tokens.colors.status.success;
+      case 'pending': return tokens.colors.status.warning;
+      case 'inactive': return tokens.colors.status.error;
+      default: return tokens.colors.text.secondary;
     }
   };
 
@@ -75,7 +75,7 @@ export function TeamManagement() {
           <button
             onClick={handleInviteMember}
             style={{
-              ...ROYAL_STYLES.buttonPrimary,
+              ...styles.button.primary,
               display: 'flex',
               alignItems: 'center',
               gap: '8px'
@@ -92,12 +92,12 @@ export function TeamManagement() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={t('teamManagementPage.searchPlaceholder')}
-          style={ROYAL_STYLES.input}
+          style={styles.input}
         />
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          style={{ ...ROYAL_STYLES.input, minWidth: '200px' }}
+          style={{ ...styles.input, minWidth: '200px' }}
         >
           {roleOptions.map((option) => (
             <option key={option.value} value={option.value}>
@@ -122,13 +122,13 @@ export function TeamManagement() {
                   width: '56px',
                   height: '56px',
                   borderRadius: '50%',
-                  background: ROYAL_COLORS.gradientPurple,
+                  background: tokens.gradients.primary,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '24px',
                   fontWeight: '700',
-                  color: ROYAL_COLORS.white,
+                  color: tokens.colors.text.bright,
                   flexShrink: 0,
                   boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)'
                 }}
@@ -137,10 +137,10 @@ export function TeamManagement() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ marginBottom: '12px' }}>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: tokens.colors.text.primary, marginBottom: '4px' }}>
                     {member.name}
                   </h3>
-                  <p style={{ margin: 0, fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                  <p style={{ margin: 0, fontSize: '14px', color: tokens.colors.text.secondary }}>
                     {member.email}
                   </p>
                 </div>
@@ -148,8 +148,8 @@ export function TeamManagement() {
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                   <span
                     style={{
-                      ...ROYAL_STYLES.badge,
-                      ...ROYAL_STYLES.badgeInfo,
+                      ...styles.badge.base,
+                      ...styles.badge.baseInfo,
                       textTransform: 'capitalize'
                     }}
                   >
@@ -170,7 +170,7 @@ export function TeamManagement() {
                   </span>
                 </div>
 
-                <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '16px' }}>
+                <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '16px' }}>
                   Joined {new Date(member.joinedDate).toLocaleDateString()}
                 </div>
 
@@ -178,7 +178,7 @@ export function TeamManagement() {
                   <button
                     onClick={() => console.log('Edit member:', member.id)}
                     style={{
-                      ...ROYAL_STYLES.buttonSecondary,
+                      ...styles.button.secondary,
                       flex: 1,
                       padding: '8px 16px',
                       fontSize: '14px'
@@ -189,7 +189,7 @@ export function TeamManagement() {
                   <button
                     onClick={() => console.log('Remove member:', member.id)}
                     style={{
-                      ...ROYAL_STYLES.buttonDanger,
+                      ...styles.button.danger,
                       padding: '8px 16px',
                       fontSize: '14px'
                     }}
@@ -204,9 +204,9 @@ export function TeamManagement() {
       </div>
 
       {filteredMembers.length === 0 && (
-        <div style={ROYAL_STYLES.emptyState}>
-          <div style={ROYAL_STYLES.emptyStateIcon}>👥</div>
-          <p style={ROYAL_STYLES.emptyStateText}>
+        <div style={styles.emptyState.container}>
+          <div style={styles.emptyState.containerIcon}>👥</div>
+          <p style={styles.emptyState.containerText}>
             {t('teamManagementPage.noTeamMembers')}
           </p>
         </div>

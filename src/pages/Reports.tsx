@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
 import { DataStore, User, Order } from '../data/types';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { formatCurrency, useI18n } from '../lib/i18n';
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
@@ -171,22 +171,22 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
 
   const getStatusColor = (status: string) => {
     const colors: { [key: string]: string } = {
-      new: ROYAL_COLORS.accent,
-      confirmed: ROYAL_COLORS.teal,
-      preparing: ROYAL_COLORS.gold,
-      ready: ROYAL_COLORS.emerald,
-      out_for_delivery: ROYAL_COLORS.accent,
-      delivered: ROYAL_COLORS.emerald,
-      cancelled: ROYAL_COLORS.crimson
+      new: tokens.colors.brand.primary,
+      confirmed: tokens.colors.brand.primary,
+      preparing: tokens.colors.status.warning,
+      ready: tokens.colors.status.success,
+      out_for_delivery: tokens.colors.brand.primary,
+      delivered: tokens.colors.status.success,
+      cancelled: tokens.colors.status.error
     };
-    return colors[status] || ROYAL_COLORS.muted;
+    return colors[status] || tokens.colors.text.secondary;
   };
 
   if (loading) {
     return (
       <div style={{
         minHeight: '100vh',
-        background: ROYAL_COLORS.background,
+        background: tokens.colors.background.primary,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -194,7 +194,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-          <div style={{ color: ROYAL_COLORS.text, fontSize: '18px' }}>טוען דוחות...</div>
+          <div style={{ color: tokens.colors.text.primary, fontSize: '18px' }}>טוען דוחות...</div>
         </div>
       </div>
     );
@@ -203,7 +203,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: ROYAL_COLORS.background,
+      background: tokens.colors.background.primary,
       paddingTop: '16px',
       paddingBottom: '80px',
       direction: 'rtl'
@@ -219,7 +219,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
             margin: 0,
             fontSize: '28px',
             fontWeight: '700',
-            color: ROYAL_COLORS.text,
+            color: tokens.colors.text.primary,
             textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
           }}>
             📊 דוחות
@@ -246,8 +246,8 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                 border: 'none',
                 background: selectedReport === type.id
                   ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
-                  : ROYAL_COLORS.card,
-                color: selectedReport === type.id ? '#fff' : ROYAL_COLORS.text,
+                  : tokens.colors.background.card,
+                color: selectedReport === type.id ? '#fff' : tokens.colors.text.primary,
                 fontSize: '14px',
                 fontWeight: '600',
                 cursor: 'pointer',
@@ -281,9 +281,9 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                 flex: 1,
                 padding: '8px 12px',
                 borderRadius: '8px',
-                border: `1px solid ${dateRange === range.id ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
-                background: dateRange === range.id ? `${ROYAL_COLORS.accent}20` : ROYAL_COLORS.card,
-                color: dateRange === range.id ? ROYAL_COLORS.accent : ROYAL_COLORS.text,
+                border: `1px solid ${dateRange === range.id ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
+                background: dateRange === range.id ? `${tokens.colors.brand.primary}20` : tokens.colors.background.card,
+                color: dateRange === range.id ? tokens.colors.brand.primary : tokens.colors.text.primary,
                 fontSize: '13px',
                 fontWeight: '600',
                 cursor: 'pointer',
@@ -303,50 +303,50 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
               gap: '12px',
               marginBottom: '24px'
             }}>
-              <div style={{ ...ROYAL_STYLES.card, padding: '16px' }}>
-                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '8px' }}>
+              <div style={{ ...styles.card, padding: '16px' }}>
+                <div style={{ color: tokens.colors.text.secondary, fontSize: '14px', marginBottom: '8px' }}>
                   סה"כ הזמנות
                 </div>
-                <div style={{ color: ROYAL_COLORS.text, fontSize: '28px', fontWeight: '700' }}>
+                <div style={{ color: tokens.colors.text.primary, fontSize: '28px', fontWeight: '700' }}>
                   {reportData.totalOrders}
                 </div>
               </div>
 
-              <div style={{ ...ROYAL_STYLES.card, padding: '16px' }}>
-                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '8px' }}>
+              <div style={{ ...styles.card, padding: '16px' }}>
+                <div style={{ color: tokens.colors.text.secondary, fontSize: '14px', marginBottom: '8px' }}>
                   הזמנות הושלמו
                 </div>
-                <div style={{ color: ROYAL_COLORS.emerald, fontSize: '28px', fontWeight: '700' }}>
+                <div style={{ color: tokens.colors.status.success, fontSize: '28px', fontWeight: '700' }}>
                   {reportData.completedOrders}
                 </div>
               </div>
 
-              <div style={{ ...ROYAL_STYLES.card, padding: '16px' }}>
-                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '8px' }}>
+              <div style={{ ...styles.card, padding: '16px' }}>
+                <div style={{ color: tokens.colors.text.secondary, fontSize: '14px', marginBottom: '8px' }}>
                   הכנסות
                 </div>
-                <div style={{ color: ROYAL_COLORS.gold, fontSize: '24px', fontWeight: '700' }}>
+                <div style={{ color: tokens.colors.status.warning, fontSize: '24px', fontWeight: '700' }}>
                   {formatCurrency(reportData.totalRevenue)}
                 </div>
               </div>
 
-              <div style={{ ...ROYAL_STYLES.card, padding: '16px' }}>
-                <div style={{ color: ROYAL_COLORS.muted, fontSize: '14px', marginBottom: '8px' }}>
+              <div style={{ ...styles.card, padding: '16px' }}>
+                <div style={{ color: tokens.colors.text.secondary, fontSize: '14px', marginBottom: '8px' }}>
                   ממוצע הזמנה
                 </div>
-                <div style={{ color: ROYAL_COLORS.teal, fontSize: '24px', fontWeight: '700' }}>
+                <div style={{ color: tokens.colors.brand.primary, fontSize: '24px', fontWeight: '700' }}>
                   {formatCurrency(reportData.averageOrderValue)}
                 </div>
               </div>
             </div>
 
             {reportData.ordersByStatus.length > 0 && (
-              <div style={{ ...ROYAL_STYLES.card, marginBottom: '24px' }}>
+              <div style={{ ...styles.card, marginBottom: '24px' }}>
                 <h3 style={{
                   margin: '0 0 16px 0',
                   fontSize: '18px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text
+                  color: tokens.colors.text.primary
                 }}>
                   התפלגות לפי סטטוס
                 </h3>
@@ -361,7 +361,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                       background: `${getStatusColor(item.status)}10`,
                       border: `1px solid ${getStatusColor(item.status)}30`
                     }}>
-                      <span style={{ color: ROYAL_COLORS.text, fontWeight: '600' }}>
+                      <span style={{ color: tokens.colors.text.primary, fontWeight: '600' }}>
                         {getStatusLabel(item.status)}
                       </span>
                       <span style={{
@@ -378,12 +378,12 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
             )}
 
             {reportData.topProducts.length > 0 && (
-              <div style={{ ...ROYAL_STYLES.card, marginBottom: '24px' }}>
+              <div style={{ ...styles.card, marginBottom: '24px' }}>
                 <h3 style={{
                   margin: '0 0 16px 0',
                   fontSize: '18px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text
+                  color: tokens.colors.text.primary
                 }}>
                   מוצרים מובילים
                 </h3>
@@ -392,8 +392,8 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                     <div key={product.name} style={{
                       padding: '12px',
                       borderRadius: '8px',
-                      background: index === 0 ? `${ROYAL_COLORS.gold}10` : ROYAL_COLORS.card,
-                      border: `1px solid ${index === 0 ? ROYAL_COLORS.gold : ROYAL_COLORS.cardBorder}40`
+                      background: index === 0 ? `${tokens.colors.status.warning}10` : tokens.colors.background.card,
+                      border: `1px solid ${index === 0 ? tokens.colors.status.warning : tokens.colors.background.cardBorder}40`
                     }}>
                       <div style={{
                         display: 'flex',
@@ -402,14 +402,14 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                         marginBottom: '8px'
                       }}>
                         <span style={{
-                          color: ROYAL_COLORS.text,
+                          color: tokens.colors.text.primary,
                           fontWeight: '600',
                           fontSize: '15px'
                         }}>
                           {index === 0 && '👑 '}{product.name}
                         </span>
                         <span style={{
-                          color: ROYAL_COLORS.gold,
+                          color: tokens.colors.status.warning,
                           fontWeight: '700',
                           fontSize: '16px'
                         }}>
@@ -417,7 +417,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                         </span>
                       </div>
                       <div style={{
-                        color: ROYAL_COLORS.muted,
+                        color: tokens.colors.text.secondary,
                         fontSize: '13px'
                       }}>
                         {product.sales} מכירות
@@ -429,12 +429,12 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
             )}
 
             {reportData.revenueByDay.length > 0 && (
-              <div style={{ ...ROYAL_STYLES.card }}>
+              <div style={{ ...styles.card }}>
                 <h3 style={{
                   margin: '0 0 16px 0',
                   fontSize: '18px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text
+                  color: tokens.colors.text.primary
                 }}>
                   מגמת הכנסות
                 </h3>
@@ -446,14 +446,14 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                       alignItems: 'center',
                       padding: '8px 0'
                     }}>
-                      <span style={{ color: ROYAL_COLORS.muted, fontSize: '14px' }}>
+                      <span style={{ color: tokens.colors.text.secondary, fontSize: '14px' }}>
                         {new Date(item.date).toLocaleDateString('he-IL', {
                           month: 'short',
                           day: 'numeric'
                         })}
                       </span>
                       <span style={{
-                        color: ROYAL_COLORS.emerald,
+                        color: tokens.colors.status.success,
                         fontWeight: '600',
                         fontSize: '15px'
                       }}>

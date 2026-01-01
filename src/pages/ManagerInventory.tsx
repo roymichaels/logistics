@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 
 import { logger } from '../lib/logger';
 import { useI18n } from '../lib/i18n';

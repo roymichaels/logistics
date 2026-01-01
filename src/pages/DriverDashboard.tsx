@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { DataStore, User, Order } from '../data/types';
 import { DriverService, DriverStats, OrderAssignment } from '../lib/driverService';
 import { DriverAssignmentModal, AssignmentDetails } from '../components/DriverAssignmentModal';
-import { getStatusBadgeStyle } from '../styles/royalTheme';
+import { getStatusBadgeStyle } from '../styles/tokens';
 import { Toast } from '../components/Toast';
 
 import { useRoleTheme } from '../hooks/useRoleTheme';

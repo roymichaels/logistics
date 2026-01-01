@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { DataStore, DriverStatusRecord, DriverZoneAssignment, Zone } from '../data/types';
 
 import { Toast } from '../components/Toast';
@@ -133,15 +133,15 @@ export function MyZones({ dataStore }: MyZonesProps) {
 
   const isLoadingZone = (zoneId: string) => savingZoneId === zoneId;
 
-  const hintColor = ROYAL_COLORS.muted;
+  const hintColor = tokens.colors.text.secondary;
   const activeZoneId = status?.current_zone_id || null;
 
   return (
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: ROYAL_COLORS.background,
-        color: ROYAL_COLORS.text,
+        backgroundColor: tokens.colors.background.primary,
+        color: tokens.colors.text.primary,
         padding: '20px',
         direction: isRTL ? 'rtl' : 'ltr'
       }}
@@ -178,8 +178,8 @@ export function MyZones({ dataStore }: MyZonesProps) {
             padding: '8px 12px',
             borderRadius: '12px',
             border: 'none',
-            backgroundColor: ROYAL_COLORS.accent,
-            color: ROYAL_COLORS.textBright,
+            backgroundColor: tokens.colors.brand.primary,
+            color: tokens.colors.text.primaryBright,
             fontWeight: 600,
             cursor: 'pointer'
           }}
@@ -200,9 +200,9 @@ export function MyZones({ dataStore }: MyZonesProps) {
                 style={{
                   borderRadius: '14px',
                   padding: '16px',
-                  backgroundColor: ROYAL_COLORS.cardBg,
-                  border: `1px solid ${isActive ? ROYAL_COLORS.accent : hintColor + '30'}`,
-                  boxShadow: isActive ? `0 0 0 1px ${ROYAL_COLORS.accent}40` : undefined
+                  backgroundColor: tokens.colors.background.cardBg,
+                  border: `1px solid ${isActive ? tokens.colors.brand.primary : hintColor + '30'}`,
+                  boxShadow: isActive ? `0 0 0 1px ${tokens.colors.brand.primary}40` : undefined
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -211,7 +211,7 @@ export function MyZones({ dataStore }: MyZonesProps) {
                     {zone.description && <div style={{ fontSize: '12px', color: hintColor }}>{zone.description}</div>}
                   </div>
                   {isActive && (
-                    <span style={{ fontSize: '12px', color: ROYAL_COLORS.accent, fontWeight: 600 }}>{translations.myZonesPage.activeZoneLabel}</span>
+                    <span style={{ fontSize: '12px', color: tokens.colors.brand.primary, fontWeight: 600 }}>{translations.myZonesPage.activeZoneLabel}</span>
                   )}
                 </div>
 
@@ -224,8 +224,8 @@ export function MyZones({ dataStore }: MyZonesProps) {
                       padding: '10px',
                       borderRadius: '10px',
                       border: 'none',
-                      backgroundColor: isAssigned ? '#ff3b3020' : ROYAL_COLORS.accent,
-                      color: isAssigned ? '#ff3b30' : ROYAL_COLORS.textBright,
+                      backgroundColor: isAssigned ? '#ff3b3020' : tokens.colors.brand.primary,
+                      color: isAssigned ? '#ff3b30' : tokens.colors.text.primaryBright,
                       fontWeight: 600,
                       cursor: 'pointer',
                       opacity: isLoadingZone(zone.id) ? 0.7 : 1
@@ -240,9 +240,9 @@ export function MyZones({ dataStore }: MyZonesProps) {
                       flex: 1,
                       padding: '10px',
                       borderRadius: '10px',
-                      border: `1px solid ${ROYAL_COLORS.muted}40`,
-                      backgroundColor: isActive ? ROYAL_COLORS.accent + '20' : 'transparent',
-                      color: ROYAL_COLORS.text,
+                      border: `1px solid ${tokens.colors.text.secondary}40`,
+                      backgroundColor: isActive ? tokens.colors.brand.primary + '20' : 'transparent',
+                      color: tokens.colors.text.primary,
                       fontWeight: 600,
                       cursor: 'pointer',
                       opacity: isLoadingZone(zone.id) ? 0.7 : 1
@@ -260,7 +260,7 @@ export function MyZones({ dataStore }: MyZonesProps) {
               style={{
                 padding: '16px',
                 borderRadius: '14px',
-                backgroundColor: ROYAL_COLORS.cardBg,
+                backgroundColor: tokens.colors.background.cardBg,
                 border: `1px solid ${hintColor}30`,
                 textAlign: 'center',
                 color: hintColor

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ROYAL_COLORS, ROYAL_STYLES, getStatusBadgeStyle } from '../../styles/royalTheme';
+import { getStatusBadgeStyle, tokens } from '../../styles/tokens';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { ContentCard } from '../../components/layout/ContentCard';
@@ -51,10 +51,10 @@ export function SupportDashboard() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return ROYAL_COLORS.error;
-      case 'medium': return ROYAL_COLORS.warning;
-      case 'low': return ROYAL_COLORS.info;
-      default: return ROYAL_COLORS.muted;
+      case 'high': return tokens.colors.status.error;
+      case 'medium': return tokens.colors.status.warning;
+      case 'low': return tokens.colors.status.info;
+      default: return tokens.colors.text.secondary;
     }
   };
 
@@ -85,9 +85,9 @@ export function SupportDashboard() {
           <ContentCard key={stat.label} hoverable onClick={() => console.log('View stats:', stat.label)}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
               <div>
-                <div style={ROYAL_STYLES.statLabel}>{stat.label}</div>
-                <div style={ROYAL_STYLES.statValue}>{stat.value}</div>
-                <div style={{ fontSize: '14px', color: stat.isPositive ? ROYAL_COLORS.success : ROYAL_COLORS.warning, fontWeight: 600 }}>
+                <div style={styles.stat.label}>{stat.label}</div>
+                <div style={styles.stat.value}>{stat.value}</div>
+                <div style={{ fontSize: '14px', color: stat.isPositive ? tokens.colors.status.success : tokens.colors.status.warning, fontWeight: 600 }}>
                   {stat.change}
                 </div>
               </div>
@@ -106,12 +106,12 @@ export function SupportDashboard() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search tickets..."
-                style={ROYAL_STYLES.input}
+                style={styles.input}
               />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                style={{ ...ROYAL_STYLES.input, minWidth: '150px', margin: 0 }}
+                style={{ ...styles.input, minWidth: '150px', margin: 0 }}
               >
                 {statusOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -132,12 +132,12 @@ export function SupportDashboard() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '12px', fontWeight: 600, color: ROYAL_COLORS.muted }}>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: tokens.colors.text.secondary }}>
                           {ticket.id}
                         </span>
                         <span
                           style={{
-                            ...ROYAL_STYLES.badge,
+                            ...styles.badge.base,
                             backgroundColor: getPriorityColor(ticket.priority) + '20',
                             color: getPriorityColor(ticket.priority),
                             border: `1px solid ${getPriorityColor(ticket.priority)}40`,
@@ -151,16 +151,16 @@ export function SupportDashboard() {
                           {ticket.status}
                         </span>
                       </div>
-                      <div style={{ fontSize: '16px', fontWeight: 600, color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                      <div style={{ fontSize: '16px', fontWeight: 600, color: tokens.colors.text.primary, marginBottom: '4px' }}>
                         {ticket.subject}
                       </div>
-                      <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                      <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
                         {ticket.customer} • {ticket.category}
                       </div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                    <span style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
                       {ticket.createdAt}
                     </span>
                     <button
@@ -169,7 +169,7 @@ export function SupportDashboard() {
                         console.log('Reply to ticket:', ticket.id);
                       }}
                       style={{
-                        ...ROYAL_STYLES.buttonPrimary,
+                        ...styles.button.primary,
                         padding: '6px 12px',
                         fontSize: '12px'
                       }}
@@ -182,9 +182,9 @@ export function SupportDashboard() {
             </div>
 
             {filteredTickets.length === 0 && (
-              <div style={ROYAL_STYLES.emptyState}>
-                <div style={ROYAL_STYLES.emptyStateIcon}>🎫</div>
-                <p style={ROYAL_STYLES.emptyStateText}>
+              <div style={styles.emptyState.container}>
+                <div style={styles.emptyState.containerIcon}>🎫</div>
+                <p style={styles.emptyState.containerText}>
                   No tickets found matching your search.
                 </p>
               </div>
@@ -194,7 +194,7 @@ export function SupportDashboard() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <ContentCard>
-            <h3 style={{ ...ROYAL_STYLES.cardTitle, fontSize: '16px' }}>Quick Actions</h3>
+            <h3 style={{ ...styles.cardTitle, fontSize: '16px' }}>Quick Actions</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {quickActions.map((action) => (
                 <button
@@ -205,20 +205,20 @@ export function SupportDashboard() {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '12px',
-                    background: ROYAL_COLORS.secondary,
-                    border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                    background: tokens.colors.background.secondary,
+                    border: `1px solid ${tokens.colors.background.cardBorder}`,
                     borderRadius: '12px',
                     cursor: 'pointer',
                     transition: 'all 0.3s ease',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = ROYAL_COLORS.secondaryHover;
-                    e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorderHover;
+                    e.currentTarget.style.background = tokens.colors.background.secondaryHover;
+                    e.currentTarget.style.borderColor = tokens.colors.background.cardBorderHover;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = ROYAL_COLORS.secondary;
-                    e.currentTarget.style.borderColor = ROYAL_COLORS.cardBorder;
+                    e.currentTarget.style.background = tokens.colors.background.secondary;
+                    e.currentTarget.style.borderColor = tokens.colors.background.cardBorder;
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -231,8 +231,8 @@ export function SupportDashboard() {
                     <span
                       style={{
                         padding: '4px 8px',
-                        background: ROYAL_COLORS.primary,
-                        color: ROYAL_COLORS.white,
+                        background: tokens.colors.brand.primary,
+                        color: tokens.colors.text.bright,
                         borderRadius: '12px',
                         fontSize: '12px',
                         fontWeight: 700,

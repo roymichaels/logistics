@@ -5,7 +5,7 @@ import { ZoneManager } from '../components/ZoneManager';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ContentCard } from '../components/layout/ContentCard';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { logger } from '../lib/logger';
 import { useI18n } from '../lib/i18n';
 
@@ -125,7 +125,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
       <PageContainer>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>{translations.zoneManagementPage.loading}</p>
+          <p style={{ color: tokens.colors.text.secondary }}>{translations.zoneManagementPage.loading}</p>
         </div>
       </PageContainer>
     );
@@ -152,14 +152,14 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
             style={{
               flex: 1,
               padding: '12px',
-              background: viewMode === 'manager' ? ROYAL_COLORS.gradientPurple : ROYAL_COLORS.secondary,
-              border: viewMode === 'manager' ? 'none' : `1px solid ${ROYAL_COLORS.cardBorder}`,
+              background: viewMode === 'manager' ? tokens.gradients.primary : tokens.colors.background.secondary,
+              border: viewMode === 'manager' ? 'none' : `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '12px',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer',
-              boxShadow: viewMode === 'manager' ? ROYAL_COLORS.shadowStrong : 'none'
+              boxShadow: viewMode === 'manager' ? tokens.shadows.mdStrong : 'none'
             }}
           >
             {translations.zoneManagementPage.zoneManagement}
@@ -172,14 +172,14 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
             style={{
               flex: 1,
               padding: '12px',
-              background: viewMode === 'assignments' ? ROYAL_COLORS.gradientPurple : ROYAL_COLORS.secondary,
-              border: viewMode === 'assignments' ? 'none' : `1px solid ${ROYAL_COLORS.cardBorder}`,
+              background: viewMode === 'assignments' ? tokens.gradients.primary : tokens.colors.background.secondary,
+              border: viewMode === 'assignments' ? 'none' : `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '12px',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer',
-              boxShadow: viewMode === 'assignments' ? ROYAL_COLORS.shadowStrong : 'none'
+              boxShadow: viewMode === 'assignments' ? tokens.shadows.mdStrong : 'none'
             }}
           >
             {translations.zoneManagementPage.assignDrivers}
@@ -199,7 +199,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
               >
                 <div>
                   <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '700' }}>{zone.name}</h2>
-                  <p style={{ margin: '4px 0 0', color: ROYAL_COLORS.muted, fontSize: '14px' }}>
+                  <p style={{ margin: '4px 0 0', color: tokens.colors.text.secondary, fontSize: '14px' }}>
                     {zone.city} • {zone.assigned_drivers.length} {translations.zoneManagementPage.assignedDrivers}
                   </p>
                 </div>
@@ -209,7 +209,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                     setShowAssignModal(true);
 
                   }}
-                  style={ROYAL_STYLES.buttonPrimary}
+                  style={styles.button.primary}
                 >
                   {translations.zoneManagementPage.assignDriver}
                 </button>
@@ -220,10 +220,10 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                   style={{
                     padding: '24px',
                     textAlign: 'center',
-                    color: ROYAL_COLORS.muted,
-                    background: ROYAL_COLORS.secondary,
+                    color: tokens.colors.text.secondary,
+                    background: tokens.colors.background.secondary,
                     borderRadius: '16px',
-                    border: `1px dashed ${ROYAL_COLORS.cardBorder}`
+                    border: `1px dashed ${tokens.colors.background.cardBorder}`
                   }}
                 >
                   {translations.zoneManagementPage.noDriversAssigned}
@@ -261,7 +261,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                         </div>
                         <div>
                           <div style={{ fontWeight: '600' }}>{driver.name}</div>
-                          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
                             ID: {driver.telegram_id}
                           </div>
                         </div>

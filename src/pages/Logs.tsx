@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DataStore, InventoryLog, Product } from '../data/types';
 
 import { hebrew, formatDate, formatTime } from '../lib/i18n';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
 
@@ -117,46 +117,46 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
   const getLogColor = (changeType: string) => {
     switch (changeType) {
       case 'restock':
-        return ROYAL_COLORS.teal;
+        return tokens.colors.brand.primary;
       case 'transfer':
-        return ROYAL_COLORS.accent;
+        return tokens.colors.brand.primary;
       case 'adjustment':
-        return ROYAL_COLORS.gold;
+        return tokens.colors.status.warning;
       case 'reservation':
-        return ROYAL_COLORS.crimson;
+        return tokens.colors.status.error;
       case 'release':
-        return ROYAL_COLORS.emerald;
+        return tokens.colors.status.success;
       case 'sale':
-        return ROYAL_COLORS.gold;
+        return tokens.colors.status.warning;
       default:
-        return ROYAL_COLORS.muted;
+        return tokens.colors.text.secondary;
     }
   };
 
   const getQuantityColor = (quantity: number) => {
-    if (quantity > 0) return ROYAL_COLORS.emerald;
-    if (quantity < 0) return ROYAL_COLORS.crimson;
-    return ROYAL_COLORS.muted;
+    if (quantity > 0) return tokens.colors.status.success;
+    if (quantity < 0) return tokens.colors.status.error;
+    return tokens.colors.text.secondary;
   };
 
   if (loading) {
     return (
-      <div style={ROYAL_STYLES.pageContainer}>
+      <div style={styles.pageContainer}>
         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📝</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>{hebrew.loading}</p>
+          <p style={{ color: tokens.colors.text.secondary }}>{hebrew.loading}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
+    <div style={styles.pageContainer}>
       {/* Header */}
-      <div style={ROYAL_STYLES.pageHeader}>
+      <div style={styles.pageHeader}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>📝</div>
-        <h1 style={ROYAL_STYLES.pageTitle}>{hebrew.logs}</h1>
-        <p style={ROYAL_STYLES.pageSubtitle}>
+        <h1 style={styles.pageTitle}>{hebrew.logs}</h1>
+        <p style={styles.pageSubtitle}>
           יומן תנועות מלאי והיסטוריה מלאה
         </p>
       </div>
@@ -171,9 +171,9 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
               width: '100%',
               padding: '12px 16px',
               borderRadius: '12px',
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-              background: ROYAL_COLORS.card,
-              color: ROYAL_COLORS.text,
+              border: `1px solid ${tokens.colors.background.cardBorder}`,
+              background: tokens.colors.background.card,
+              color: tokens.colors.text.primary,
               fontSize: '14px',
               fontWeight: '500',
               cursor: 'pointer',
@@ -213,12 +213,12 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
               padding: '10px 14px',
               borderRadius: '10px',
               border: filter === tab.key
-                ? `2px solid ${ROYAL_COLORS.accent}`
-                : `1px solid ${ROYAL_COLORS.cardBorder}`,
+                ? `2px solid ${tokens.colors.brand.primary}`
+                : `1px solid ${tokens.colors.background.cardBorder}`,
               background: filter === tab.key
                 ? 'rgba(29, 155, 240, 0.15)'
-                : ROYAL_COLORS.card,
-              color: filter === tab.key ? ROYAL_COLORS.accent : ROYAL_COLORS.text,
+                : tokens.colors.background.card,
+              color: filter === tab.key ? tokens.colors.brand.primary : tokens.colors.text.primary,
               fontSize: '13px',
               fontWeight: filter === tab.key ? '600' : '500',
               cursor: 'pointer',
@@ -241,39 +241,39 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
         gap: '12px',
         marginBottom: '24px'
       }}>
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={ROYAL_STYLES.statValue}>{logs.length}</div>
-          <div style={ROYAL_STYLES.statLabel}>סה"כ רשומות</div>
+        <div style={styles.stat.box}>
+          <div style={styles.stat.value}>{logs.length}</div>
+          <div style={styles.stat.label}>סה"כ רשומות</div>
         </div>
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.gold }}>
+        <div style={styles.stat.box}>
+          <div style={{ ...styles.stat.value, color: tokens.colors.status.warning }}>
             {logs.filter(l => l.change_type === 'sale').length}
           </div>
-          <div style={ROYAL_STYLES.statLabel}>מכירות</div>
+          <div style={styles.stat.label}>מכירות</div>
         </div>
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.teal }}>
+        <div style={styles.stat.box}>
+          <div style={{ ...styles.stat.value, color: tokens.colors.brand.primary }}>
             {logs.filter(l => l.change_type === 'restock').length}
           </div>
-          <div style={ROYAL_STYLES.statLabel}>חידושים</div>
+          <div style={styles.stat.label}>חידושים</div>
         </div>
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.accent }}>
+        <div style={styles.stat.box}>
+          <div style={{ ...styles.stat.value, color: tokens.colors.brand.primary }}>
             {logs.filter(l => l.change_type === 'transfer').length}
           </div>
-          <div style={ROYAL_STYLES.statLabel}>העברות</div>
+          <div style={styles.stat.label}>העברות</div>
         </div>
       </div>
 
       {/* Logs List */}
       {logs.length === 0 ? (
-        <div style={ROYAL_STYLES.card}>
-          <div style={ROYAL_STYLES.emptyState}>
-            <div style={ROYAL_STYLES.emptyStateIcon}>📭</div>
-            <h3 style={{ margin: '0 0 8px 0', color: ROYAL_COLORS.text }}>
+        <div style={styles.card}>
+          <div style={styles.emptyState.container}>
+            <div style={styles.emptyState.containerIcon}>📭</div>
+            <h3 style={{ margin: '0 0 8px 0', color: tokens.colors.text.primary }}>
               אין רשומות {filter !== 'all' ? 'מסוג זה' : ''}
             </h3>
-            <div style={ROYAL_STYLES.emptyStateText}>
+            <div style={styles.emptyState.containerText}>
               כל תנועות המלאי יופיעו כאן
             </div>
           </div>
@@ -281,7 +281,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {logs.map(log => (
-            <div key={log.id} style={ROYAL_STYLES.card}>
+            <div key={log.id} style={styles.card}>
               <div style={{
                 display: 'flex',
                 alignItems: 'flex-start',
@@ -309,7 +309,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
                   <div style={{
                     fontSize: '16px',
                     fontWeight: '600',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                     marginBottom: '4px'
                   }}>
                     {log.product?.name || 'מוצר לא ידוע'}
@@ -332,7 +332,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
                   {/* Location Info */}
                   <div style={{
                     fontSize: '13px',
-                    color: ROYAL_COLORS.muted,
+                    color: tokens.colors.text.secondary,
                     marginBottom: '8px'
                   }}>
                     {log.from_location && log.to_location ? (
@@ -363,7 +363,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
                     </div>
                     <div style={{
                       fontSize: '12px',
-                      color: ROYAL_COLORS.muted
+                      color: tokens.colors.text.secondary
                     }}>
                       {formatDate(log.created_at)} • {formatTime(log.created_at)}
                     </div>
@@ -376,9 +376,9 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
                       padding: '8px 12px',
                       borderRadius: '8px',
                       background: 'rgba(24, 10, 45, 0.5)',
-                      border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                      border: `1px solid ${tokens.colors.background.cardBorder}`,
                       fontSize: '12px',
-                      color: ROYAL_COLORS.muted
+                      color: tokens.colors.text.secondary
                     }}>
                       {Object.entries(log.metadata).map(([key, value]) => (
                         <div key={key}>
@@ -393,7 +393,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
                     <div style={{
                       marginTop: '8px',
                       fontSize: '11px',
-                      color: ROYAL_COLORS.muted,
+                      color: tokens.colors.text.secondary,
                       fontFamily: 'monospace'
                     }}>
                       ID: {log.reference_id}
@@ -412,7 +412,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
           marginTop: '24px',
           padding: '16px',
           textAlign: 'center',
-          color: ROYAL_COLORS.muted,
+          color: tokens.colors.text.secondary,
           fontSize: '14px'
         }}>
           מוצגות {limit} רשומות אחרונות

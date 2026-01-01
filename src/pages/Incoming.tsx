@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DataStore, InventoryLog } from '../data/types';
 
 import { useI18n } from '../lib/i18n';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
 
@@ -84,22 +84,22 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
 
   if (loading) {
     return (
-      <div style={ROYAL_STYLES.pageContainer}>
+      <div style={styles.pageContainer}>
         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚚</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>{translations.common.loading}</p>
+          <p style={{ color: tokens.colors.text.secondary }}>{translations.common.loading}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
+    <div style={styles.pageContainer}>
       {/* Header */}
-      <div style={ROYAL_STYLES.pageHeader}>
+      <div style={styles.pageHeader}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>🚚</div>
-        <h1 style={ROYAL_STYLES.pageTitle}>{translations.incomingPage.title}</h1>
-        <p style={ROYAL_STYLES.pageSubtitle}>
+        <h1 style={styles.pageTitle}>{translations.incomingPage.title}</h1>
+        <p style={styles.pageSubtitle}>
           {translations.incomingPage.subtitle}
         </p>
       </div>
@@ -124,12 +124,12 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
               padding: '12px 16px',
               borderRadius: '12px',
               border: filter === tab.key
-                ? `2px solid ${ROYAL_COLORS.accent}`
-                : `1px solid ${ROYAL_COLORS.cardBorder}`,
+                ? `2px solid ${tokens.colors.brand.primary}`
+                : `1px solid ${tokens.colors.background.cardBorder}`,
               background: filter === tab.key
                 ? 'rgba(29, 155, 240, 0.15)'
-                : ROYAL_COLORS.card,
-              color: filter === tab.key ? ROYAL_COLORS.accent : ROYAL_COLORS.text,
+                : tokens.colors.background.card,
+              color: filter === tab.key ? tokens.colors.brand.primary : tokens.colors.text.primary,
               fontSize: '14px',
               fontWeight: filter === tab.key ? '600' : '500',
               cursor: 'pointer',
@@ -153,33 +153,33 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
         gap: '12px',
         marginBottom: '24px'
       }}>
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={ROYAL_STYLES.statValue}>{logs.length}</div>
-          <div style={ROYAL_STYLES.statLabel}>{translations.incomingPage.totalIncoming}</div>
+        <div style={styles.stat.box}>
+          <div style={styles.stat.value}>{logs.length}</div>
+          <div style={styles.stat.label}>{translations.incomingPage.totalIncoming}</div>
         </div>
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.teal }}>
+        <div style={styles.stat.box}>
+          <div style={{ ...styles.stat.value, color: tokens.colors.brand.primary }}>
             {logs.filter(l => l.change_type === 'restock').length}
           </div>
-          <div style={ROYAL_STYLES.statLabel}>{translations.incomingPage.restocks}</div>
+          <div style={styles.stat.label}>{translations.incomingPage.restocks}</div>
         </div>
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.gold }}>
+        <div style={styles.stat.box}>
+          <div style={{ ...styles.stat.value, color: tokens.colors.status.warning }}>
             {logs.filter(l => l.change_type === 'transfer').length}
           </div>
-          <div style={ROYAL_STYLES.statLabel}>{translations.incomingPage.transfers}</div>
+          <div style={styles.stat.label}>{translations.incomingPage.transfers}</div>
         </div>
       </div>
 
       {/* Logs List */}
       {logs.length === 0 ? (
-        <div style={ROYAL_STYLES.card}>
-          <div style={ROYAL_STYLES.emptyState}>
-            <div style={ROYAL_STYLES.emptyStateIcon}>📭</div>
-            <h3 style={{ margin: '0 0 8px 0', color: ROYAL_COLORS.text }}>
+        <div style={styles.card}>
+          <div style={styles.emptyState.container}>
+            <div style={styles.emptyState.containerIcon}>📭</div>
+            <h3 style={{ margin: '0 0 8px 0', color: tokens.colors.text.primary }}>
               {translations.incomingPage.noIncoming} {filter !== 'all' ? translations.incomingPage.noIncomingOfType : ''}
             </h3>
-            <div style={ROYAL_STYLES.emptyStateText}>
+            <div style={styles.emptyState.containerText}>
               {translations.incomingPage.allIncomingWillAppear}
             </div>
           </div>
@@ -187,7 +187,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {logs.map(log => (
-            <div key={log.id} style={ROYAL_STYLES.card}>
+            <div key={log.id} style={styles.card}>
               <div style={{
                 display: 'flex',
                 alignItems: 'flex-start',
@@ -219,7 +219,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
                   <div style={{
                     fontSize: '16px',
                     fontWeight: '600',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                     marginBottom: '4px'
                   }}>
                     {log.product?.name || translations.incomingPage.unknownProduct}
@@ -236,8 +236,8 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
                       ? 'rgba(77, 208, 225, 0.2)'
                       : 'rgba(246, 201, 69, 0.2)',
                     color: log.change_type === 'restock'
-                      ? ROYAL_COLORS.teal
-                      : ROYAL_COLORS.gold,
+                      ? tokens.colors.brand.primary
+                      : tokens.colors.status.warning,
                     marginBottom: '8px'
                   }}>
                     {getLogTypeLabel(log.change_type)}
@@ -246,7 +246,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
                   {/* Location Info */}
                   <div style={{
                     fontSize: '14px',
-                    color: ROYAL_COLORS.muted,
+                    color: tokens.colors.text.secondary,
                     marginBottom: '4px'
                   }}>
                     {log.from_location ? (
@@ -265,13 +265,13 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
                     <div style={{
                       fontSize: '18px',
                       fontWeight: '700',
-                      color: log.quantity_change > 0 ? ROYAL_COLORS.emerald : ROYAL_COLORS.crimson
+                      color: log.quantity_change > 0 ? tokens.colors.status.success : tokens.colors.status.error
                     }}>
                       {log.quantity_change > 0 ? '+' : ''}{log.quantity_change} {translations.incomingPage.units}
                     </div>
                     <div style={{
                       fontSize: '13px',
-                      color: ROYAL_COLORS.muted
+                      color: tokens.colors.text.secondary
                     }}>
                       {formatDate(log.created_at)} • {formatTime(log.created_at)}
                     </div>
@@ -284,9 +284,9 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
                 <div style={{
                   marginTop: '12px',
                   paddingTop: '12px',
-                  borderTop: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                  borderTop: `1px solid ${tokens.colors.background.cardBorder}`,
                   fontSize: '12px',
-                  color: ROYAL_COLORS.muted
+                  color: tokens.colors.text.secondary
                 }}>
                   {translations.incomingPage.id}: {log.reference_id}
                 </div>

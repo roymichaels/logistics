@@ -1,6 +1,6 @@
 import React from 'react';
+import { tokens } from '../../styles/tokens';
 
-import { ROYAL_COLORS } from '../../styles/royalTheme';
 
 interface OrdersFiltersProps {
   filter: string;
@@ -27,10 +27,10 @@ export function OrdersFilters({ filter, onFilterChange }: OrdersFiltersProps) {
           }}
           style={{
             padding: '10px 20px',
-            border: `2px solid ${filter === option.value ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+            border: `2px solid ${filter === option.value ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
             borderRadius: '20px',
-            background: filter === option.value ? ROYAL_COLORS.accent + '20' : 'transparent',
-            color: filter === option.value ? ROYAL_COLORS.accent : ROYAL_COLORS.text,
+            background: filter === option.value ? tokens.colors.brand.primary + '20' : 'transparent',
+            color: filter === option.value ? tokens.colors.brand.primary : tokens.colors.text.primary,
             fontSize: '14px',
             fontWeight: '600',
             cursor: 'pointer',

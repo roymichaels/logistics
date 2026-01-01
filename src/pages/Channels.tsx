@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 
 import { DataStore, Channel, User } from '../data/types';
 import { hebrew } from '../lib/i18n';
@@ -119,14 +119,14 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
           margin: '0 0 20px 0',
           fontSize: '28px',
           fontWeight: '700',
-          color: ROYAL_COLORS.text,
+          color: tokens.colors.text.primary,
           textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
         }}>
           📢 ערוצי עדכונים
         </h1>
         <p style={{
           margin: '0 0 24px 0',
-          color: ROYAL_COLORS.muted,
+          color: tokens.colors.text.secondary,
           fontSize: '15px'
         }}>
           הודעות חשובות ועדכוני מערכת
@@ -135,17 +135,17 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
         {/* Channels List */}
         {channels.length === 0 ? (
           <div style={{
-            ...ROYAL_STYLES.emptyState,
+            ...styles.emptyState.container,
             padding: '60px 20px',
             borderRadius: '16px',
-            background: ROYAL_COLORS.card,
+            background: tokens.colors.background.card,
             textAlign: 'center'
           }}>
             <div style={{ fontSize: '64px', marginBottom: '16px' }}>📢</div>
-            <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text, fontSize: '20px' }}>
+            <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text.primary, fontSize: '20px' }}>
               אין ערוצים זמינים
             </h3>
-            <div style={{ ...ROYAL_STYLES.emptyStateText, fontSize: '15px', marginBottom: '24px' }}>
+            <div style={{ ...styles.emptyState.containerText, fontSize: '15px', marginBottom: '24px' }}>
               {canCreateChannel
                 ? 'צור ערוץ חדש לפרסום הודעות ועדכונים'
                 : 'ערוצי עדכונים יופיעו כאן'}
@@ -160,12 +160,12 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
                   padding: '14px 32px',
                   borderRadius: '12px',
                   border: 'none',
-                  background: ROYAL_COLORS.gradientPurple,
+                  background: tokens.gradients.primary,
                   color: '#fff',
                   fontSize: '16px',
                   fontWeight: '600',
                   cursor: 'pointer',
-                  boxShadow: ROYAL_COLORS.glowPurple,
+                  boxShadow: tokens.glows.primary,
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
@@ -178,7 +178,7 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = ROYAL_COLORS.glowPurple;
+                  e.currentTarget.style.boxShadow = tokens.glows.primary;
                 }}
               >
                 <span style={{ fontSize: '20px' }}>+</span>
@@ -218,12 +218,12 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
             width: '56px',
             height: '56px',
             borderRadius: '50%',
-            background: ROYAL_COLORS.gradientPurple,
+            background: tokens.gradients.primary,
             border: 'none',
             color: '#fff',
             fontSize: '28px',
             cursor: 'pointer',
-            boxShadow: `${ROYAL_COLORS.glowPurple}, 0 0 30px rgba(29, 155, 240, 0.5)`,
+            boxShadow: `${tokens.glows.primary}, 0 0 30px rgba(29, 155, 240, 0.5)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -236,7 +236,7 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
-            e.currentTarget.style.boxShadow = `${ROYAL_COLORS.glowPurple}, 0 0 30px rgba(29, 155, 240, 0.5)`;
+            e.currentTarget.style.boxShadow = `${tokens.glows.primary}, 0 0 30px rgba(29, 155, 240, 0.5)`;
           }}
           title="יצירת ערוץ חדש"
         >
@@ -281,7 +281,7 @@ function ChannelCard({ channel, onClick, theme }: {
       case 'announcements': return '#007aff';
       case 'updates': return '#34c759';
       case 'alerts': return '#ff3b30';
-      default: return ROYAL_COLORS.muted;
+      default: return tokens.colors.text.secondary;
     }
   };
 
@@ -290,10 +290,10 @@ function ChannelCard({ channel, onClick, theme }: {
       onClick={onClick}
       style={{
         padding: '16px',
-        background: ROYAL_COLORS.card,
+        background: tokens.colors.background.card,
         borderRadius: '16px',
         cursor: 'pointer',
-        border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+        border: `1px solid ${tokens.colors.background.cardBorder}`,
         transition: 'all 0.3s ease',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
       }}
@@ -327,21 +327,21 @@ function ChannelCard({ channel, onClick, theme }: {
             margin: '0 0 6px 0',
             fontSize: '17px',
             fontWeight: '700',
-            color: ROYAL_COLORS.text
+            color: tokens.colors.text.primary
           }}>
             {channel.name}
           </h3>
           <p style={{
             margin: '0 0 6px 0',
             fontSize: '14px',
-            color: ROYAL_COLORS.muted,
+            color: tokens.colors.text.secondary,
             lineHeight: '1.5'
           }}>
             {channel.description}
           </p>
           <div style={{
             fontSize: '13px',
-            color: ROYAL_COLORS.muted,
+            color: tokens.colors.text.secondary,
             fontWeight: '500'
           }}>
             {channel.subscribers.length} מנויים
@@ -365,7 +365,7 @@ function ChannelCard({ channel, onClick, theme }: {
             {channel.type === 'announcements' ? 'הודעות' :
              channel.type === 'updates' ? 'עדכונים' : 'התראות'}
           </div>
-          <div style={{ fontSize: '20px', color: ROYAL_COLORS.accent }}>
+          <div style={{ fontSize: '20px', color: tokens.colors.brand.primary }}>
             ←
           </div>
         </div>

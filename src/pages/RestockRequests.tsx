@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DataStore, RestockRequest, User } from '../data/types';
 
 import { hebrew, formatDate, formatTime } from '../lib/i18n';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { Toast } from '../components/Toast';
 
 import { logger } from '../lib/logger';
@@ -137,17 +137,17 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return ROYAL_COLORS.gold;
+        return tokens.colors.status.warning;
       case 'approved':
-        return ROYAL_COLORS.teal;
+        return tokens.colors.brand.primary;
       case 'in_transit':
-        return ROYAL_COLORS.accent;
+        return tokens.colors.brand.primary;
       case 'fulfilled':
-        return ROYAL_COLORS.emerald;
+        return tokens.colors.status.success;
       case 'rejected':
-        return ROYAL_COLORS.crimson;
+        return tokens.colors.status.error;
       default:
-        return ROYAL_COLORS.muted;
+        return tokens.colors.text.secondary;
     }
   };
 
@@ -190,10 +190,10 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
 
   if (loading) {
     return (
-      <div style={ROYAL_STYLES.pageContainer}>
+      <div style={styles.pageContainer}>
         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔄</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>{hebrew.loading}</p>
+          <p style={{ color: tokens.colors.text.secondary }}>{hebrew.loading}</p>
         </div>
       </div>
     );
@@ -201,7 +201,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
 
   if (selectedRequest) {
     return (
-      <div style={ROYAL_STYLES.pageContainer}>
+      <div style={styles.pageContainer}>
         {/* Header with Back Button */}
         <div style={{
           display: 'flex',
@@ -214,22 +214,22 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
             style={{
               padding: '8px 12px',
               borderRadius: '8px',
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
-              background: ROYAL_COLORS.card,
-              color: ROYAL_COLORS.text,
+              border: `1px solid ${tokens.colors.background.cardBorder}`,
+              background: tokens.colors.background.card,
+              color: tokens.colors.text.primary,
               fontSize: '16px',
               cursor: 'pointer'
             }}
           >
             ← חזרה
           </button>
-          <h2 style={{ margin: 0, fontSize: '20px', color: ROYAL_COLORS.text }}>
+          <h2 style={{ margin: 0, fontSize: '20px', color: tokens.colors.text.primary }}>
             פרטי בקשה
           </h2>
         </div>
 
         {/* Request Details Card */}
-        <div style={ROYAL_STYLES.card}>
+        <div style={styles.card}>
           {/* Status Badge */}
           <div style={{
             display: 'inline-block',
@@ -250,13 +250,13 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
               margin: '0 0 8px 0',
               fontSize: '22px',
               fontWeight: '700',
-              color: ROYAL_COLORS.text
+              color: tokens.colors.text.primary
             }}>
               {selectedRequest.product?.name || 'מוצר לא ידוע'}
             </h3>
             <div style={{
               fontSize: '14px',
-              color: ROYAL_COLORS.muted
+              color: tokens.colors.text.secondary
             }}>
               SKU: {selectedRequest.product?.sku || 'N/A'}
             </div>
@@ -273,12 +273,12 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
               padding: '16px',
               borderRadius: '12px',
               background: 'rgba(29, 155, 240, 0.1)',
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`
+              border: `1px solid ${tokens.colors.background.cardBorder}`
             }}>
-              <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+              <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
                 כמות מבוקשת
               </div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: ROYAL_COLORS.accent }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: tokens.colors.brand.primary }}>
                 {selectedRequest.requested_quantity} יח'
               </div>
             </div>
@@ -287,12 +287,12 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
                 padding: '16px',
                 borderRadius: '12px',
                 background: 'rgba(77, 208, 225, 0.1)',
-                border: `1px solid ${ROYAL_COLORS.cardBorder}`
+                border: `1px solid ${tokens.colors.background.cardBorder}`
               }}>
-                <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
                   כמות מאושרת
                 </div>
-                <div style={{ fontSize: '24px', fontWeight: '700', color: ROYAL_COLORS.teal }}>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: tokens.colors.brand.primary }}>
                   {selectedRequest.approved_quantity} יח'
                 </div>
               </div>
@@ -302,19 +302,19 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
           {/* Locations */}
           {selectedRequest.from_location && (
             <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+              <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
                 ממיקום
               </div>
-              <div style={{ fontSize: '16px', color: ROYAL_COLORS.text }}>
+              <div style={{ fontSize: '16px', color: tokens.colors.text.primary }}>
                 {selectedRequest.from_location.name}
               </div>
             </div>
           )}
           <div style={{ marginBottom: '20px' }}>
-            <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+            <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
               למיקום
             </div>
-            <div style={{ fontSize: '16px', color: ROYAL_COLORS.text }}>
+            <div style={{ fontSize: '16px', color: tokens.colors.text.primary }}>
               {selectedRequest.to_location?.name || 'מיקום לא ידוע'}
             </div>
           </div>
@@ -324,19 +324,19 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
             padding: '16px',
             borderRadius: '12px',
             background: 'rgba(24, 10, 45, 0.5)',
-            border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+            border: `1px solid ${tokens.colors.background.cardBorder}`,
             marginBottom: '20px'
           }}>
             <div style={{ marginBottom: '8px' }}>
-              <span style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>נוצר: </span>
-              <span style={{ fontSize: '14px', color: ROYAL_COLORS.text }}>
+              <span style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>נוצר: </span>
+              <span style={{ fontSize: '14px', color: tokens.colors.text.primary }}>
                 {formatDate(selectedRequest.created_at)} • {formatTime(selectedRequest.created_at)}
               </span>
             </div>
             {selectedRequest.approved_at && (
               <div style={{ marginBottom: '8px' }}>
-                <span style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>אושר: </span>
-                <span style={{ fontSize: '14px', color: ROYAL_COLORS.text }}>
+                <span style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>אושר: </span>
+                <span style={{ fontSize: '14px', color: tokens.colors.text.primary }}>
                   {formatDate(selectedRequest.approved_at)} • {formatTime(selectedRequest.approved_at)}
                 </span>
               </div>
@@ -349,13 +349,13 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
               padding: '16px',
               borderRadius: '12px',
               background: 'rgba(246, 201, 69, 0.1)',
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              border: `1px solid ${tokens.colors.background.cardBorder}`,
               marginBottom: '20px'
             }}>
-              <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, marginBottom: '8px' }}>
+              <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '8px' }}>
                 הערות
               </div>
-              <div style={{ fontSize: '14px', color: ROYAL_COLORS.text }}>
+              <div style={{ fontSize: '14px', color: tokens.colors.text.primary }}>
                 {selectedRequest.notes}
               </div>
             </div>
@@ -372,7 +372,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
                     padding: '14px 20px',
                     borderRadius: '12px',
                     border: 'none',
-                    background: ROYAL_COLORS.emerald,
+                    background: tokens.colors.status.success,
                     color: '#fff',
                     fontSize: '16px',
                     fontWeight: '600',
@@ -388,9 +388,9 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
                   style={{
                     padding: '14px 20px',
                     borderRadius: '12px',
-                    border: `1px solid ${ROYAL_COLORS.crimson}`,
+                    border: `1px solid ${tokens.colors.status.error}`,
                     background: 'transparent',
-                    color: ROYAL_COLORS.crimson,
+                    color: tokens.colors.status.error,
                     fontSize: '16px',
                     fontWeight: '600',
                     cursor: actionInProgress ? 'not-allowed' : 'pointer',
@@ -409,7 +409,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
                   padding: '14px 20px',
                   borderRadius: '12px',
                   border: 'none',
-                  background: ROYAL_COLORS.teal,
+                  background: tokens.colors.brand.primary,
                   color: '#fff',
                   fontSize: '16px',
                   fontWeight: '600',
@@ -427,12 +427,12 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
   }
 
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
+    <div style={styles.pageContainer}>
       {/* Header */}
-      <div style={ROYAL_STYLES.pageHeader}>
+      <div style={styles.pageHeader}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔄</div>
-        <h1 style={ROYAL_STYLES.pageTitle}>{hebrew.restock_requests}</h1>
-        <p style={ROYAL_STYLES.pageSubtitle}>
+        <h1 style={styles.pageTitle}>{hebrew.restock_requests}</h1>
+        <p style={styles.pageSubtitle}>
           ניהול בקשות חידוש המלאי
         </p>
       </div>
@@ -459,12 +459,12 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
               padding: '10px 16px',
               borderRadius: '10px',
               border: filter === tab.key
-                ? `2px solid ${ROYAL_COLORS.accent}`
-                : `1px solid ${ROYAL_COLORS.cardBorder}`,
+                ? `2px solid ${tokens.colors.brand.primary}`
+                : `1px solid ${tokens.colors.background.cardBorder}`,
               background: filter === tab.key
                 ? 'rgba(29, 155, 240, 0.15)'
-                : ROYAL_COLORS.card,
-              color: filter === tab.key ? ROYAL_COLORS.accent : ROYAL_COLORS.text,
+                : tokens.colors.background.card,
+              color: filter === tab.key ? tokens.colors.brand.primary : tokens.colors.text.primary,
               fontSize: '13px',
               fontWeight: filter === tab.key ? '600' : '500',
               cursor: 'pointer',
@@ -487,33 +487,33 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
         gap: '12px',
         marginBottom: '24px'
       }}>
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={ROYAL_STYLES.statValue}>{requests.length}</div>
-          <div style={ROYAL_STYLES.statLabel}>סה"כ בקשות</div>
+        <div style={styles.stat.box}>
+          <div style={styles.stat.value}>{requests.length}</div>
+          <div style={styles.stat.label}>סה"כ בקשות</div>
         </div>
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.gold }}>
+        <div style={styles.stat.box}>
+          <div style={{ ...styles.stat.value, color: tokens.colors.status.warning }}>
             {requests.filter(r => r.status === 'pending').length}
           </div>
-          <div style={ROYAL_STYLES.statLabel}>ממתינות</div>
+          <div style={styles.stat.label}>ממתינות</div>
         </div>
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={{ ...ROYAL_STYLES.statValue, color: ROYAL_COLORS.emerald }}>
+        <div style={styles.stat.box}>
+          <div style={{ ...styles.stat.value, color: tokens.colors.status.success }}>
             {requests.filter(r => r.status === 'fulfilled').length}
           </div>
-          <div style={ROYAL_STYLES.statLabel}>מומשו</div>
+          <div style={styles.stat.label}>מומשו</div>
         </div>
       </div>
 
       {/* Requests List */}
       {requests.length === 0 ? (
-        <div style={ROYAL_STYLES.card}>
-          <div style={ROYAL_STYLES.emptyState}>
-            <div style={ROYAL_STYLES.emptyStateIcon}>📭</div>
-            <h3 style={{ margin: '0 0 8px 0', color: ROYAL_COLORS.text }}>
+        <div style={styles.card}>
+          <div style={styles.emptyState.container}>
+            <div style={styles.emptyState.containerIcon}>📭</div>
+            <h3 style={{ margin: '0 0 8px 0', color: tokens.colors.text.primary }}>
               אין בקשות {filter !== 'all' ? 'בסטטוס זה' : ''}
             </h3>
-            <div style={ROYAL_STYLES.emptyStateText}>
+            <div style={styles.emptyState.containerText}>
               כל בקשות חידוש המלאי יופיעו כאן
             </div>
           </div>
@@ -525,7 +525,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
               key={request.id}
               onClick={() => setSelectedRequest(request)}
               style={{
-                ...ROYAL_STYLES.card,
+                ...styles.card,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease'
               }}
@@ -557,7 +557,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
                   <div style={{
                     fontSize: '16px',
                     fontWeight: '600',
-                    color: ROYAL_COLORS.text,
+                    color: tokens.colors.text.primary,
                     marginBottom: '4px'
                   }}>
                     {request.product?.name || 'מוצר לא ידוע'}
@@ -580,7 +580,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
                   {/* Location Info */}
                   <div style={{
                     fontSize: '13px',
-                    color: ROYAL_COLORS.muted,
+                    color: tokens.colors.text.secondary,
                     marginBottom: '8px'
                   }}>
                     → {request.to_location?.name || 'מיקום לא ידוע'}
@@ -595,13 +595,13 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
                     <div style={{
                       fontSize: '16px',
                       fontWeight: '700',
-                      color: ROYAL_COLORS.accent
+                      color: tokens.colors.brand.primary
                     }}>
                       {request.requested_quantity} יח'
                     </div>
                     <div style={{
                       fontSize: '12px',
-                      color: ROYAL_COLORS.muted
+                      color: tokens.colors.text.secondary
                     }}>
                       {formatDate(request.created_at)}
                     </div>
@@ -611,7 +611,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
                 {/* Arrow */}
                 <div style={{
                   fontSize: '20px',
-                  color: ROYAL_COLORS.muted,
+                  color: tokens.colors.text.secondary,
                   marginTop: '12px'
                 }}>
                   ←

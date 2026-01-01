@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 
 import { DataStore, DriverInventoryRecord, Product } from '../data/types';
 import { Toast } from '../components/Toast';
@@ -142,8 +142,8 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: ROYAL_COLORS.background,
-        color: ROYAL_COLORS.text,
+        backgroundColor: tokens.colors.background.primary,
+        color: tokens.colors.text.primary,
         padding: '20px',
         direction: isRTL ? 'rtl' : 'ltr'
       }}
@@ -169,8 +169,8 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
             padding: '10px 16px',
             borderRadius: '12px',
             border: 'none',
-            backgroundColor: ROYAL_COLORS.accent,
-            color: ROYAL_COLORS.textBright,
+            backgroundColor: tokens.colors.brand.primary,
+            color: tokens.colors.text.primaryBright,
             fontWeight: 600,
             cursor: syncing ? 'wait' : 'pointer',
             opacity: syncing ? 0.7 : 1
@@ -188,7 +188,7 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
             <div
               key={item.product_id}
               style={{
-                backgroundColor: ROYAL_COLORS.cardBg,
+                backgroundColor: tokens.colors.background.cardBg,
                 borderRadius: '14px',
                 padding: '16px',
                 border: `1px solid ${hintColor}30`
@@ -231,9 +231,9 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
                     width: '100%',
                     padding: '10px',
                     borderRadius: '10px',
-                    border: `1px solid ${ROYAL_COLORS.muted}40`,
-                    backgroundColor: ROYAL_COLORS.background,
-                    color: ROYAL_COLORS.text
+                    border: `1px solid ${tokens.colors.text.secondary}40`,
+                    backgroundColor: tokens.colors.background.primary,
+                    color: tokens.colors.text.primary
                   }}
                 />
               </div>
@@ -243,7 +243,7 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
           {items.length === 0 && (
             <div
               style={{
-                backgroundColor: ROYAL_COLORS.cardBg,
+                backgroundColor: tokens.colors.background.cardBg,
                 borderRadius: '14px',
                 padding: '16px',
                 border: `1px solid ${hintColor}30`,
@@ -267,9 +267,9 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
               flex: 1,
               padding: '10px',
               borderRadius: '10px',
-              border: `1px solid ${ROYAL_COLORS.muted}40`,
-              backgroundColor: ROYAL_COLORS.background,
-              color: ROYAL_COLORS.text
+              border: `1px solid ${tokens.colors.text.secondary}40`,
+              backgroundColor: tokens.colors.background.primary,
+              color: tokens.colors.text.primary
             }}
           >
             <option value="">{translations.myInventoryPage.selectProductFromList}</option>
@@ -286,8 +286,8 @@ export function MyInventory({ dataStore }: MyInventoryProps) {
               padding: '10px 16px',
               borderRadius: '10px',
               border: 'none',
-              backgroundColor: ROYAL_COLORS.accent,
-              color: ROYAL_COLORS.textBright,
+              backgroundColor: tokens.colors.brand.primary,
+              color: tokens.colors.text.primaryBright,
               fontWeight: 600,
               cursor: selectedProductId ? 'pointer' : 'not-allowed',
               opacity: selectedProductId ? 1 : 0.6

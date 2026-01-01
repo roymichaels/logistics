@@ -3,25 +3,14 @@ import { User } from '../data/types';
 import { FrontendDataStore } from '../lib/frontendDataStore';
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
+import { tokens } from '../styles/tokens';
 
 interface UserHomepageProps {
   dataStore: FrontendDataStore;
   onNavigate: (page: string) => void;
 }
 
-const ROYAL_COLORS = {
-  background: 'radial-gradient(125% 125% at 50% 0%, rgba(95, 46, 170, 0.55) 0%, rgba(12, 2, 25, 0.95) 45%, #03000a 100%)',
-  card: 'rgba(24, 10, 45, 0.75)',
-  cardBorder: 'rgba(140, 91, 238, 0.45)',
-  muted: '#bfa9ff',
-  text: '#f4f1ff',
-  accent: '#1D9BF0',
-  gold: '#f6c945',
-  crimson: '#ff6b8a',
-  teal: '#4dd0e1',
-  emerald: '#4ade80',
-  shadow: '0 20px 40px rgba(20, 4, 54, 0.45)'
-};
+
 
 export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
   const [user, setUser] = useState<User | null>(null);
@@ -96,11 +85,11 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
     return (
       <div style={{
         minHeight: '100vh',
-        background: ROYAL_COLORS.background,
+        background: tokens.colors.background.primary,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: ROYAL_COLORS.text
+        color: tokens.colors.text.primary
       }}>
         <div>טוען...</div>
       </div>
@@ -110,7 +99,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: ROYAL_COLORS.background,
+      background: tokens.colors.background.primary,
       padding: '20px',
       paddingBottom: '100px',
       direction: 'rtl',
@@ -142,7 +131,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
             margin: 0,
             fontSize: '32px',
             fontWeight: '700',
-            color: ROYAL_COLORS.text,
+            color: tokens.colors.text.primary,
             marginBottom: '12px'
           }}>
             ברוכים הבאים, {user?.name || 'משתמש'}!
@@ -150,7 +139,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
           <p style={{
             margin: 0,
             fontSize: '16px',
-            color: ROYAL_COLORS.muted,
+            color: tokens.colors.text.secondary,
             lineHeight: '1.6',
             maxWidth: '500px',
             marginLeft: 'auto',
@@ -163,12 +152,12 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
         </div>
 
         <div style={{
-          background: ROYAL_COLORS.card,
-          border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+          background: tokens.colors.background.card,
+          border: `1px solid ${tokens.colors.background.cardBorder}`,
           borderRadius: '20px',
           padding: '28px',
           marginBottom: '24px',
-          boxShadow: ROYAL_COLORS.shadow
+          boxShadow: tokens.shadows.md
         }}>
           <div style={{
             display: 'flex',
@@ -194,7 +183,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
                 margin: 0,
                 fontSize: '20px',
                 fontWeight: '700',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 marginBottom: '6px'
               }}>
                 הפרופיל שלך
@@ -202,7 +191,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
               <p style={{
                 margin: 0,
                 fontSize: '14px',
-                color: ROYAL_COLORS.muted
+                color: tokens.colors.text.secondary
               }}>
                 פרטי המשתמש והסטטוס שלך במערכת
               </p>
@@ -218,8 +207,8 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
               background: 'rgba(29, 155, 240, 0.1)',
               borderRadius: '12px'
             }}>
-              <span style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>שם מלא</span>
-              <span style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.text }}>
+              <span style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>שם מלא</span>
+              <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text.primary }}>
                 {user?.name || 'לא זמין'}
               </span>
             </div>
@@ -232,8 +221,8 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
               background: 'rgba(29, 155, 240, 0.1)',
               borderRadius: '12px'
             }}>
-              <span style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>שם משתמש</span>
-              <span style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.accent }}>
+              <span style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>שם משתמש</span>
+              <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.brand.primary }}>
                 @{user?.username || user?.telegram_id || 'לא זמין'}
               </span>
             </div>
@@ -246,7 +235,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
               background: 'rgba(29, 155, 240, 0.1)',
               borderRadius: '12px'
             }}>
-              <span style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>סטטוס</span>
+              <span style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>סטטוס</span>
               <span style={{
                 display: 'inline-block',
                 padding: '6px 12px',
@@ -254,7 +243,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
                 border: '1px solid rgba(255, 107, 138, 0.4)',
                 borderRadius: '8px',
                 fontSize: '13px',
-                color: ROYAL_COLORS.crimson,
+                color: tokens.colors.status.error,
                 fontWeight: '600'
               }}>
                 משתמש רגיל
@@ -265,11 +254,11 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
 
         <div style={{
           background: 'linear-gradient(135deg, rgba(29, 155, 240, 0.2), rgba(29, 155, 240, 0.05))',
-          border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+          border: `1px solid ${tokens.colors.background.cardBorder}`,
           borderRadius: '20px',
           padding: '28px',
           marginBottom: '24px',
-          boxShadow: ROYAL_COLORS.shadow
+          boxShadow: tokens.shadows.md
         }}>
           <div style={{
             display: 'flex',
@@ -282,7 +271,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
               margin: 0,
               fontSize: '20px',
               fontWeight: '700',
-              color: ROYAL_COLORS.text
+              color: tokens.colors.text.primary
             }}>
               שלבים הבאים
             </h3>
@@ -291,7 +280,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
           <p style={{
             margin: '0 0 20px',
             fontSize: '15px',
-            color: ROYAL_COLORS.text,
+            color: tokens.colors.text.primary,
             lineHeight: '1.6'
           }}>
             כדי לקבל גישה למערכת הלוגיסטיקה, עליך לבקש הקצאת תפקיד.
@@ -349,7 +338,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
                 margin: '0 0 10px',
                 fontSize: '16px',
                 fontWeight: '700',
-                color: ROYAL_COLORS.teal
+                color: tokens.colors.brand.primary
               }}>
                 תפקידים זמינים במערכת
               </h4>
@@ -357,7 +346,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
                 margin: 0,
                 padding: '0 0 0 20px',
                 fontSize: '14px',
-                color: ROYAL_COLORS.text,
+                color: tokens.colors.text.primary,
                 lineHeight: '1.8'
               }}>
                 <li><strong>מנהל</strong> - ניהול מלא של המערכת והצוות</li>
@@ -374,14 +363,14 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
           marginTop: '24px',
           padding: '16px',
           background: 'rgba(29, 155, 240, 0.1)',
-          border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+          border: `1px solid ${tokens.colors.background.cardBorder}`,
           borderRadius: '14px',
           textAlign: 'center'
         }}>
           <p style={{
             margin: 0,
             fontSize: '13px',
-            color: ROYAL_COLORS.muted,
+            color: tokens.colors.text.secondary,
             lineHeight: '1.6'
           }}>
             צריך עזרה? פנה למנהל הארגון שלך או לתמיכה הטכנית

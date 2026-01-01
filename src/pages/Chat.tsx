@@ -5,7 +5,7 @@ import { hebrew } from '../lib/i18n';
 import { logger } from '../lib/logger';
 import { EncryptedChatComponent } from '../components/EncryptedChat';
 import { initializeEncryptedChatService } from '../utils/security/encryptedChatService';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { UserListView } from '../components/UserListView';
 import { UserProfileModal } from '../components/UserProfileModal';
 import { GroupChannelCreateModal } from '../components/GroupChannelCreateModal';
@@ -327,8 +327,8 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
       <div style={{
         padding: '20px',
         textAlign: 'center',
-        color: ROYAL_COLORS.text,
-        backgroundColor: ROYAL_COLORS.background,
+        color: tokens.colors.text.primary,
+        backgroundColor: tokens.colors.background.primary,
         minHeight: '100vh'
       }}>
         טוען צ'אטים...
@@ -392,7 +392,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
             margin: '0',
             fontSize: '28px',
             fontWeight: '700',
-            color: ROYAL_COLORS.text,
+            color: tokens.colors.text.primary,
             textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
           }}>
             💬 הודעות
@@ -408,12 +408,12 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                   padding: '8px 14px',
                   borderRadius: '12px',
                   border: 'none',
-                  background: ROYAL_COLORS.gradientPurple,
+                  background: tokens.gradients.primary,
                   color: '#fff',
                   fontSize: '28px',
                   fontWeight: '300',
                   cursor: 'pointer',
-                  boxShadow: ROYAL_COLORS.glowPurple,
+                  boxShadow: tokens.glows.primary,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -434,8 +434,8 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                     top: '100%',
                     left: 0,
                     marginTop: '8px',
-                    background: ROYAL_COLORS.card,
-                    border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                    background: tokens.colors.background.card,
+                    border: `1px solid ${tokens.colors.background.cardBorder}`,
                     borderRadius: '12px',
                     boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
                     zIndex: 1001,
@@ -455,7 +455,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                       padding: '14px 16px',
                       border: 'none',
                       background: 'transparent',
-                      color: ROYAL_COLORS.text,
+                      color: tokens.colors.text.primary,
                       fontSize: '16px',
                       textAlign: 'right',
                       cursor: 'pointer',
@@ -465,7 +465,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                       transition: 'background 0.2s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = `${ROYAL_COLORS.accent}20`;
+                      e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = 'transparent';
@@ -474,7 +474,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                     <span style={{ fontSize: '24px' }}>👥</span>
                     <span style={{ fontWeight: '600' }}>קבוצה חדשה</span>
                   </button>
-                  <div style={{ height: '1px', background: ROYAL_COLORS.cardBorder }} />
+                  <div style={{ height: '1px', background: tokens.colors.background.cardBorder }} />
                   <button
                     onClick={() => {
                       haptic();
@@ -487,7 +487,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                       padding: '14px 16px',
                       border: 'none',
                       background: 'transparent',
-                      color: ROYAL_COLORS.text,
+                      color: tokens.colors.text.primary,
                       fontSize: '16px',
                       textAlign: 'right',
                       cursor: 'pointer',
@@ -497,7 +497,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                       transition: 'background 0.2s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = `${ROYAL_COLORS.accent}20`;
+                      e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = 'transparent';
@@ -517,7 +517,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
           display: 'flex',
           gap: '8px',
           marginBottom: '20px',
-          borderBottom: `2px solid ${ROYAL_COLORS.cardBorder}`,
+          borderBottom: `2px solid ${tokens.colors.background.cardBorder}`,
           paddingBottom: '12px'
         }}>
           <TabButton
@@ -560,10 +560,10 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
             style={{
               width: '100%',
               padding: '14px 16px',
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '12px',
-              background: ROYAL_COLORS.card,
-              color: ROYAL_COLORS.text,
+              background: tokens.colors.background.card,
+              color: tokens.colors.text.primary,
               fontSize: '16px',
               marginBottom: '20px'
             }}
@@ -614,13 +614,13 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  background: ROYAL_COLORS.gradientPurple,
+                  background: tokens.gradients.primary,
                   border: '3px solid rgba(255, 255, 255, 0.2)',
                   color: '#fff',
                   fontSize: '32px',
                   fontWeight: '300',
                   cursor: 'pointer',
-                  boxShadow: `${ROYAL_COLORS.glowPurple}, 0 4px 20px rgba(29, 155, 240, 0.6)`,
+                  boxShadow: `${tokens.glows.primary}, 0 4px 20px rgba(29, 155, 240, 0.6)`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -634,7 +634,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
-                  e.currentTarget.style.boxShadow = `${ROYAL_COLORS.glowPurple}, 0 4px 20px rgba(29, 155, 240, 0.6)`;
+                  e.currentTarget.style.boxShadow = `${tokens.glows.primary}, 0 4px 20px rgba(29, 155, 240, 0.6)`;
                 }}
                 title="יצירת קבוצה חדשה"
               >
@@ -649,16 +649,16 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
             <div
               style={{
                 padding: '12px 16px',
-                background: `${ROYAL_COLORS.accent}15`,
-                border: `1px solid ${ROYAL_COLORS.accent}40`,
+                background: `${tokens.colors.brand.primary}15`,
+                border: `1px solid ${tokens.colors.brand.primary}40`,
                 borderRadius: '12px',
                 marginBottom: '16px'
               }}
             >
-              <div style={{ fontSize: '14px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '4px' }}>
                 🌐 היקף גישה: {userScope === 'all' ? 'כל התשתית' : 'העסק שלך'}
               </div>
-              <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
+              <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>
                 {users.length} משתמשים זמינים ({onlineUsersCount} מחוברים, {offlineUsersCount} לא מחוברים)
               </div>
             </div>
@@ -704,12 +704,12 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
             </div>
             <div style={{
               padding: '10px 16px',
-              background: `${ROYAL_COLORS.accent}10`,
-              border: `1px solid ${ROYAL_COLORS.accent}30`,
+              background: `${tokens.colors.brand.primary}10`,
+              border: `1px solid ${tokens.colors.brand.primary}30`,
               borderRadius: '10px',
               marginBottom: '16px',
               fontSize: '13px',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               display: 'flex',
               alignItems: 'center',
               gap: '8px'
@@ -785,10 +785,10 @@ function TabButton({
       style={{
         flex: 1,
         padding: '12px 16px',
-        background: active ? ROYAL_COLORS.gradientPurple : 'transparent',
+        background: active ? tokens.gradients.primary : 'transparent',
         border: 'none',
         borderRadius: '12px',
-        color: active ? '#fff' : ROYAL_COLORS.muted,
+        color: active ? '#fff' : tokens.colors.text.secondary,
         fontSize: '15px',
         fontWeight: '600',
         cursor: 'pointer',
@@ -797,7 +797,7 @@ function TabButton({
         justifyContent: 'center',
         gap: '8px',
         transition: 'all 0.3s ease',
-        boxShadow: active ? ROYAL_COLORS.glowPurple : 'none',
+        boxShadow: active ? tokens.glows.primary : 'none',
         position: 'relative'
       }}
     >
@@ -831,16 +831,16 @@ function ConversationsList({
   if (conversations.length === 0) {
     return (
       <div style={{
-        ...ROYAL_STYLES.emptyState,
+        ...styles.emptyState.container,
         padding: '60px 20px',
         borderRadius: '16px',
-        background: ROYAL_COLORS.card
+        background: tokens.colors.background.card
       }}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>💬</div>
-        <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text, fontSize: '20px' }}>
+        <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text.primary, fontSize: '20px' }}>
           אין שיחות פעילות
         </h3>
-        <div style={{ ...ROYAL_STYLES.emptyStateText, fontSize: '15px' }}>
+        <div style={{ ...styles.emptyState.containerText, fontSize: '15px' }}>
           לחץ על "משתמשים" כדי להתחיל שיחה חדשה
         </div>
       </div>
@@ -867,12 +867,12 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
       onClick={onClick}
       style={{
         padding: '16px',
-        background: ROYAL_COLORS.card,
+        background: tokens.colors.background.card,
         borderRadius: '16px',
         cursor: 'pointer',
-        border: `1px solid ${hasUnread ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+        border: `1px solid ${hasUnread ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
         transition: 'all 0.3s ease',
-        boxShadow: hasUnread ? ROYAL_COLORS.glowPurple : '0 2px 8px rgba(0, 0, 0, 0.2)',
+        boxShadow: hasUnread ? tokens.glows.primary : '0 2px 8px rgba(0, 0, 0, 0.2)',
         display: 'flex',
         alignItems: 'center',
         gap: '14px'
@@ -883,7 +883,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = hasUnread ? ROYAL_COLORS.glowPurple : '0 2px 8px rgba(0, 0, 0, 0.2)';
+        e.currentTarget.style.boxShadow = hasUnread ? tokens.glows.primary : '0 2px 8px rgba(0, 0, 0, 0.2)';
       }}
     >
       {/* Avatar with online status */}
@@ -902,7 +902,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
             fontSize: '24px',
             fontWeight: '700',
             color: '#fff',
-            border: `2px solid ${hasUnread ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`
+            border: `2px solid ${hasUnread ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`
           }}
         >
           {!otherUser?.photo_url && userInitial}
@@ -917,7 +917,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
               height: '16px',
               borderRadius: '50%',
               backgroundColor: '#34c759',
-              border: '3px solid ' + ROYAL_COLORS.card,
+              border: '3px solid ' + tokens.colors.background.card,
               boxShadow: '0 2px 4px rgba(52, 199, 89, 0.4)'
             }}
           />
@@ -932,7 +932,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
               margin: 0,
               fontSize: '17px',
               fontWeight: hasUnread ? '700' : '600',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
@@ -941,7 +941,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
             {userName}
           </h3>
           {conversation.room?.last_message_at && (
-            <span style={{ fontSize: '13px', color: ROYAL_COLORS.muted, flexShrink: 0, marginLeft: '8px' }}>
+            <span style={{ fontSize: '13px', color: tokens.colors.text.secondary, flexShrink: 0, marginLeft: '8px' }}>
               {formatTime(conversation.room.last_message_at)}
             </span>
           )}
@@ -952,7 +952,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
             style={{
               margin: 0,
               fontSize: '14px',
-              color: hasUnread ? ROYAL_COLORS.text : ROYAL_COLORS.muted,
+              color: hasUnread ? tokens.colors.text.primary : tokens.colors.text.secondary,
               fontWeight: hasUnread ? '500' : '400',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -972,7 +972,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
             height: '24px',
             padding: '0 8px',
             borderRadius: '12px',
-            background: ROYAL_COLORS.accent,
+            background: tokens.colors.brand.primary,
             color: '#fff',
             fontSize: '13px',
             fontWeight: '700',
@@ -1003,16 +1003,16 @@ function GroupsList({
   if (groups.length === 0) {
     return (
       <div style={{
-        ...ROYAL_STYLES.emptyState,
+        ...styles.emptyState.container,
         padding: '60px 20px',
         borderRadius: '16px',
-        background: ROYAL_COLORS.card
+        background: tokens.colors.background.card
       }}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>👥</div>
-        <h3 style={{ margin: '0 0 12px 0', color: ROYAL_COLORS.text, fontSize: '20px' }}>
+        <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text.primary, fontSize: '20px' }}>
           אין קבוצות זמינות
         </h3>
-        <div style={{ ...ROYAL_STYLES.emptyStateText, fontSize: '15px', marginBottom: '24px' }}>
+        <div style={{ ...styles.emptyState.containerText, fontSize: '15px', marginBottom: '24px' }}>
           {canCreateGroup
             ? 'צור קבוצה חדשה כדי להתחיל שיחת צוות'
             : 'קבוצות צ\'אט יופיעו כאן'}
@@ -1024,12 +1024,12 @@ function GroupsList({
               padding: '14px 32px',
               borderRadius: '12px',
               border: 'none',
-              background: ROYAL_COLORS.gradientPurple,
+              background: tokens.gradients.primary,
               color: '#fff',
               fontSize: '16px',
               fontWeight: '600',
               cursor: 'pointer',
-              boxShadow: ROYAL_COLORS.glowPurple,
+              boxShadow: tokens.glows.primary,
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
@@ -1042,7 +1042,7 @@ function GroupsList({
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = ROYAL_COLORS.glowPurple;
+              e.currentTarget.style.boxShadow = tokens.glows.primary;
             }}
           >
             <span style={{ fontSize: '20px' }}>+</span>
@@ -1077,10 +1077,10 @@ function ChatCard({ chat, onClick }: { chat: GroupChat; onClick: () => void }) {
       onClick={onClick}
       style={{
         padding: '16px',
-        background: ROYAL_COLORS.card,
+        background: tokens.colors.background.card,
         borderRadius: '16px',
         cursor: 'pointer',
-        border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+        border: `1px solid ${tokens.colors.background.cardBorder}`,
         transition: 'all 0.3s ease',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
       }}
@@ -1098,8 +1098,8 @@ function ChatCard({ chat, onClick }: { chat: GroupChat; onClick: () => void }) {
           width: '48px',
           height: '48px',
           borderRadius: '14px',
-          background: `${ROYAL_COLORS.accent}20`,
-          border: `2px solid ${ROYAL_COLORS.accent}40`,
+          background: `${tokens.colors.brand.primary}20`,
+          border: `2px solid ${tokens.colors.brand.primary}40`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1114,28 +1114,28 @@ function ChatCard({ chat, onClick }: { chat: GroupChat; onClick: () => void }) {
             margin: '0 0 6px 0',
             fontSize: '17px',
             fontWeight: '700',
-            color: ROYAL_COLORS.text
+            color: tokens.colors.text.primary
           }}>
             {chat.name}
           </h3>
           <p style={{
             margin: '0 0 6px 0',
             fontSize: '14px',
-            color: ROYAL_COLORS.muted,
+            color: tokens.colors.text.secondary,
             lineHeight: '1.5'
           }}>
             {chat.description}
           </p>
           <div style={{
             fontSize: '13px',
-            color: ROYAL_COLORS.muted,
+            color: tokens.colors.text.secondary,
             fontWeight: '500'
           }}>
             {chat.members.length} חברים
           </div>
         </div>
 
-        <div style={{ fontSize: '20px', color: ROYAL_COLORS.accent }}>
+        <div style={{ fontSize: '20px', color: tokens.colors.brand.primary }}>
           ←
         </div>
       </div>
@@ -1178,8 +1178,8 @@ function ChatView({
     }}>
       <div style={{
         padding: '16px',
-        borderBottom: `2px solid ${ROYAL_COLORS.cardBorder}`,
-        background: ROYAL_COLORS.card,
+        borderBottom: `2px solid ${tokens.colors.background.cardBorder}`,
+        background: tokens.colors.background.card,
         boxShadow: '0 2px 12px rgba(0, 0, 0, 0.3)',
         display: 'flex',
         alignItems: 'center',
@@ -1201,7 +1201,7 @@ function ChatView({
                 fontSize: '18px',
                 fontWeight: '700',
                 color: '#fff',
-                border: `2px solid ${ROYAL_COLORS.cardBorder}`
+                border: `2px solid ${tokens.colors.background.cardBorder}`
               }}
             >
               {!chat.otherUser.photo_url && (chat.otherUser.name?.[0] || '?')}
@@ -1216,7 +1216,7 @@ function ChatView({
                   height: '12px',
                   borderRadius: '50%',
                   backgroundColor: '#34c759',
-                  border: '2px solid ' + ROYAL_COLORS.card
+                  border: '2px solid ' + tokens.colors.background.card
                 }}
               />
             )}
@@ -1228,7 +1228,7 @@ function ChatView({
             margin: 0,
             fontSize: '18px',
             fontWeight: '700',
-            color: ROYAL_COLORS.text
+            color: tokens.colors.text.primary
           }}>
             {chatName}
           </h2>
@@ -1236,7 +1236,7 @@ function ChatView({
             <p style={{
               margin: '4px 0 0 0',
               fontSize: '13px',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               fontWeight: '500'
             }}>
               {chat.members?.length || 0} חברים פעילים
@@ -1281,8 +1281,8 @@ function ChatView({
         left: 0,
         right: 0,
         padding: '16px',
-        borderTop: `2px solid ${ROYAL_COLORS.cardBorder}`,
-        background: ROYAL_COLORS.card,
+        borderTop: `2px solid ${tokens.colors.background.cardBorder}`,
+        background: tokens.colors.background.card,
         boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.3)'
       }}>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', maxWidth: '600px', margin: '0 auto' }}>
@@ -1299,10 +1299,10 @@ function ChatView({
             style={{
               flex: 1,
               padding: '14px 18px',
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '24px',
-              background: ROYAL_COLORS.background,
-              color: ROYAL_COLORS.text,
+              background: tokens.colors.background.primary,
+              color: tokens.colors.text.primary,
               fontSize: '16px'
             }}
           />
@@ -1313,7 +1313,7 @@ function ChatView({
               padding: '0',
               background: newMessage.trim()
                 ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
-                : ROYAL_COLORS.cardBorder,
+                : tokens.colors.background.cardBorder,
               color: '#fff',
               border: 'none',
               borderRadius: '50%',
@@ -1349,8 +1349,8 @@ function MessageBubble({ message, isMe }: { message: any; isMe: boolean }) {
           width: '36px',
           height: '36px',
           borderRadius: '12px',
-          background: `${ROYAL_COLORS.accent}30`,
-          border: `2px solid ${ROYAL_COLORS.accent}50`,
+          background: `${tokens.colors.brand.primary}30`,
+          border: `2px solid ${tokens.colors.brand.primary}50`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1366,12 +1366,12 @@ function MessageBubble({ message, isMe }: { message: any; isMe: boolean }) {
         padding: '12px 16px',
         background: isMe
           ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
-          : ROYAL_COLORS.card,
+          : tokens.colors.background.card,
         color: '#fff',
         borderRadius: '18px',
         borderBottomRightRadius: isMe ? '4px' : '18px',
         borderBottomLeftRadius: isMe ? '18px' : '4px',
-        border: isMe ? 'none' : `1px solid ${ROYAL_COLORS.cardBorder}`,
+        border: isMe ? 'none' : `1px solid ${tokens.colors.background.cardBorder}`,
         boxShadow: isMe
           ? '0 4px 12px rgba(29, 155, 240, 0.3)'
           : '0 2px 8px rgba(0, 0, 0, 0.2)'
@@ -1381,7 +1381,7 @@ function MessageBubble({ message, isMe }: { message: any; isMe: boolean }) {
             fontSize: '13px',
             fontWeight: '700',
             marginBottom: '6px',
-            color: ROYAL_COLORS.accent
+            color: tokens.colors.brand.primary
           }}>
             {message.user}
           </div>
@@ -1389,7 +1389,7 @@ function MessageBubble({ message, isMe }: { message: any; isMe: boolean }) {
         <div style={{
           fontSize: '15px',
           lineHeight: '1.5',
-          color: isMe ? '#fff' : ROYAL_COLORS.text
+          color: isMe ? '#fff' : tokens.colors.text.primary
         }}>
           {message.message}
         </div>
@@ -1398,7 +1398,7 @@ function MessageBubble({ message, isMe }: { message: any; isMe: boolean }) {
           marginTop: '6px',
           opacity: 0.8,
           textAlign: isMe ? 'left' : 'right',
-          color: isMe ? '#fff' : ROYAL_COLORS.muted
+          color: isMe ? '#fff' : tokens.colors.text.secondary
         }}>
           {formatTime(message.timestamp)}
         </div>
@@ -1409,8 +1409,8 @@ function MessageBubble({ message, isMe }: { message: any; isMe: boolean }) {
           width: '36px',
           height: '36px',
           borderRadius: '12px',
-          background: `${ROYAL_COLORS.gold}30`,
-          border: `2px solid ${ROYAL_COLORS.gold}50`,
+          background: `${tokens.colors.status.warning}30`,
+          border: `2px solid ${tokens.colors.status.warning}50`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1443,9 +1443,9 @@ function FilterButton({
       style={{
         padding: '8px 16px',
         borderRadius: '20px',
-        border: `2px solid ${active ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
-        background: active ? ROYAL_COLORS.gradientPurple : ROYAL_COLORS.card,
-        color: active ? '#fff' : ROYAL_COLORS.text,
+        border: `2px solid ${active ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
+        background: active ? tokens.gradients.primary : tokens.colors.background.card,
+        color: active ? '#fff' : tokens.colors.text.primary,
         fontSize: '14px',
         fontWeight: '600',
         cursor: 'pointer',
@@ -1454,7 +1454,7 @@ function FilterButton({
         alignItems: 'center',
         gap: '6px',
         transition: 'all 0.2s ease',
-        boxShadow: active ? ROYAL_COLORS.glowPurple : 'none',
+        boxShadow: active ? tokens.glows.primary : 'none',
         flexShrink: 0
       }}
     >

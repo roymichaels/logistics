@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens } from '../styles/tokens';
 
 interface EarningStats {
   totalDeliveries: number;
@@ -56,9 +56,9 @@ export default function DriverEarningsPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', minHeight: '100vh', backgroundColor: ROYAL_COLORS.background }}>
+      <div style={{ padding: '20px', textAlign: 'center', minHeight: '100vh', backgroundColor: tokens.colors.background.primary }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-        <div style={{ color: ROYAL_COLORS.text }}>Loading earnings...</div>
+        <div style={{ color: tokens.colors.text.primary }}>Loading earnings...</div>
       </div>
     );
   }
@@ -69,13 +69,13 @@ export default function DriverEarningsPage() {
       maxWidth: '900px',
       margin: '0 auto',
       minHeight: '100vh',
-      backgroundColor: ROYAL_COLORS.background
+      backgroundColor: tokens.colors.background.primary
     }}>
       <h1 style={{
         fontSize: '28px',
         fontWeight: '700',
         marginBottom: '24px',
-        color: ROYAL_COLORS.text
+        color: tokens.colors.text.primary
       }}>
         💰 My Earnings
       </h1>
@@ -88,60 +88,60 @@ export default function DriverEarningsPage() {
       }}>
         <div style={{
           padding: '20px',
-          backgroundColor: ROYAL_COLORS.card,
+          backgroundColor: tokens.colors.background.card,
           borderRadius: '12px',
-          boxShadow: ROYAL_COLORS.shadow,
-          border: `2px solid ${ROYAL_COLORS.success}`
+          boxShadow: tokens.shadows.md,
+          border: `2px solid ${tokens.colors.status.success}`
         }}>
-          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '8px' }}>
+          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '8px' }}>
             Total Deliveries
           </div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: ROYAL_COLORS.success }}>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: tokens.colors.status.success }}>
             {stats.totalDeliveries}
           </div>
         </div>
 
         <div style={{
           padding: '20px',
-          backgroundColor: ROYAL_COLORS.card,
+          backgroundColor: tokens.colors.background.card,
           borderRadius: '12px',
-          boxShadow: ROYAL_COLORS.shadow,
-          border: `2px solid ${ROYAL_COLORS.info}`
+          boxShadow: tokens.shadows.md,
+          border: `2px solid ${tokens.colors.status.info}`
         }}>
-          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '8px' }}>
+          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '8px' }}>
             Today
           </div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: ROYAL_COLORS.info }}>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: tokens.colors.status.info }}>
             {stats.completedToday}
           </div>
         </div>
 
         <div style={{
           padding: '20px',
-          backgroundColor: ROYAL_COLORS.card,
+          backgroundColor: tokens.colors.background.card,
           borderRadius: '12px',
-          boxShadow: ROYAL_COLORS.shadow,
-          border: `2px solid ${ROYAL_COLORS.gold}`
+          boxShadow: tokens.shadows.md,
+          border: `2px solid ${tokens.colors.status.warning}`
         }}>
-          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '8px' }}>
+          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '8px' }}>
             Total Earnings (ILS)
           </div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: ROYAL_COLORS.gold }}>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: tokens.colors.status.warning }}>
             ₪{stats.totalEarningsILS.toFixed(2)}
           </div>
         </div>
 
         <div style={{
           padding: '20px',
-          backgroundColor: ROYAL_COLORS.card,
+          backgroundColor: tokens.colors.background.card,
           borderRadius: '12px',
-          boxShadow: ROYAL_COLORS.shadow,
-          border: `2px solid ${ROYAL_COLORS.accent}`
+          boxShadow: tokens.shadows.md,
+          border: `2px solid ${tokens.colors.brand.primary}`
         }}>
-          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '8px' }}>
+          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '8px' }}>
             Pending Payouts
           </div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: ROYAL_COLORS.accent }}>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: tokens.colors.brand.primary }}>
             {stats.pendingPayouts}
           </div>
         </div>
@@ -149,15 +149,15 @@ export default function DriverEarningsPage() {
 
       <div style={{
         padding: '20px',
-        backgroundColor: ROYAL_COLORS.secondary,
+        backgroundColor: tokens.colors.background.secondary,
         borderRadius: '12px',
-        border: `2px solid ${ROYAL_COLORS.gold}50`,
+        border: `2px solid ${tokens.colors.status.warning}50`,
         marginBottom: '32px'
       }}>
-        <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px', color: ROYAL_COLORS.text }}>
+        <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px', color: tokens.colors.text.primary }}>
           💡 Earnings Breakdown
         </div>
-        <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+        <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
           You earn 20% of each order value. Payments are held in escrow until delivery confirmation, then released to your wallet. Withdraw anytime below!
         </div>
       </div>
@@ -165,28 +165,28 @@ export default function DriverEarningsPage() {
       {userId && (
         <div style={{
           padding: '20px',
-          backgroundColor: ROYAL_COLORS.card,
+          backgroundColor: tokens.colors.background.card,
           borderRadius: '12px',
-          boxShadow: ROYAL_COLORS.shadow,
+          boxShadow: tokens.shadows.md,
           textAlign: 'center'
         }}>
-          <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px', color: ROYAL_COLORS.text }}>
+          <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px', color: tokens.colors.text.primary }}>
             💳 Payout Dashboard
           </div>
-          <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+          <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
             Request a payout to your connected wallet
           </div>
           <button style={{
             marginTop: '16px',
             padding: '12px 24px',
-            background: ROYAL_COLORS.gradientPurple,
-            color: ROYAL_COLORS.textBright,
+            background: tokens.gradients.primary,
+            color: tokens.colors.text.primaryBright,
             border: 'none',
             borderRadius: '8px',
             fontSize: '16px',
             fontWeight: '600',
             cursor: 'pointer',
-            boxShadow: ROYAL_COLORS.glowPurpleStrong
+            boxShadow: tokens.glows.primaryStrong
           }}>
             Request Payout
           </button>
@@ -196,13 +196,13 @@ export default function DriverEarningsPage() {
       <div style={{
         marginTop: '32px',
         padding: '20px',
-        backgroundColor: ROYAL_COLORS.secondary,
+        backgroundColor: tokens.colors.background.secondary,
         borderRadius: '12px'
       }}>
-        <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px', color: ROYAL_COLORS.text }}>
+        <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px', color: tokens.colors.text.primary }}>
           📊 How It Works
         </h3>
-        <ol style={{ paddingLeft: '20px', fontSize: '14px', color: ROYAL_COLORS.muted }}>
+        <ol style={{ paddingLeft: '20px', fontSize: '14px', color: tokens.colors.text.secondary }}>
           <li style={{ marginBottom: '8px' }}>
             Complete deliveries and earn 20% of order value
           </li>

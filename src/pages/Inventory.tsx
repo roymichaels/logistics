@@ -11,7 +11,7 @@ import { Button } from '../components/atoms/Button';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ContentCard } from '../components/layout/ContentCard';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import type { Product } from '../application/queries/catalog.queries';
 import type { InventoryItem } from '../application/queries/inventory.queries';
 
@@ -145,10 +145,10 @@ export function Inventory({ onNavigate }: InventoryProps) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'in_stock': return ROYAL_COLORS.success;
-      case 'low': return ROYAL_COLORS.warning;
-      case 'out': return ROYAL_COLORS.error;
-      default: return ROYAL_COLORS.muted;
+      case 'in_stock': return tokens.colors.status.success;
+      case 'low': return tokens.colors.status.warning;
+      case 'out': return tokens.colors.status.error;
+      default: return tokens.colors.text.secondary;
     }
   };
 
@@ -172,7 +172,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
         }}>
           <div style={{ textAlign: 'center' }}>
             <Spinner />
-            <p style={{ marginTop: '16px', color: ROYAL_COLORS.muted }}>טוען מלאי...</p>
+            <p style={{ marginTop: '16px', color: tokens.colors.text.secondary }}>טוען מלאי...</p>
           </div>
         </div>
       </PageContainer>
@@ -190,7 +190,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
         }}>
           <div style={{ textAlign: 'center', padding: '20px' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
-            <p style={{ color: ROYAL_COLORS.text, marginBottom: '20px' }}>
+            <p style={{ color: tokens.colors.text.primary, marginBottom: '20px' }}>
               {error.message || 'שגיאה בטעינת מלאי'}
             </p>
             <Button onClick={refetch}>נסה שוב</Button>
@@ -205,7 +205,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
       <PageContainer>
         <ContentCard>
           <h2 style={{
-            color: ROYAL_COLORS.text,
+            color: tokens.colors.text.primary,
             marginBottom: '20px',
             fontSize: '20px',
             fontWeight: '600',
@@ -217,7 +217,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
             <label style={{
               display: 'block',
               marginBottom: '8px',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               fontSize: '14px',
             }}>
               כמות (שינוי)
@@ -230,7 +230,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
                 quantity: parseInt(e.target.value) || 0
               }))}
               style={{
-                ...ROYAL_STYLES.input,
+                ...styles.input,
               }}
             />
           </div>
@@ -239,7 +239,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
             <label style={{
               display: 'block',
               marginBottom: '8px',
-              color: ROYAL_COLORS.text,
+              color: tokens.colors.text.primary,
               fontSize: '14px',
             }}>
               סיבה
@@ -253,7 +253,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
               }))}
               placeholder="למה המלאי משתנה?"
               style={{
-                ...ROYAL_STYLES.input,
+                ...styles.input,
               }}
             />
           </div>
@@ -263,7 +263,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
               onClick={handleAdjustInventory}
               disabled={adjusting || !adjustmentData.reason}
               style={{
-                ...ROYAL_STYLES.buttonPrimary,
+                ...styles.button.primary,
                 flex: 1,
                 opacity: (adjusting || !adjustmentData.reason) ? 0.5 : 1,
                 cursor: (adjusting || !adjustmentData.reason) ? 'not-allowed' : 'pointer'
@@ -277,7 +277,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
                 setAdjustmentData({ quantity: 0, reason: '' });
               }}
               style={{
-                ...ROYAL_STYLES.buttonSecondary,
+                ...styles.button.secondary,
                 flex: 1
               }}
             >
@@ -300,12 +300,12 @@ export function Inventory({ onNavigate }: InventoryProps) {
       {lowStockItems && lowStockItems.length > 0 && (
         <ContentCard style={{
           background: 'rgba(255, 212, 0, 0.15)',
-          border: `1px solid ${ROYAL_COLORS.warning}`,
+          border: `1px solid ${tokens.colors.status.warning}`,
           marginBottom: '20px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '20px' }}>⚠️</span>
-            <span style={{ color: ROYAL_COLORS.warning, fontWeight: '600' }}>
+            <span style={{ color: tokens.colors.status.warning, fontWeight: '600' }}>
               {lowStockItems.length} פריטים במלאי נמוך
             </span>
           </div>
@@ -329,9 +329,9 @@ export function Inventory({ onNavigate }: InventoryProps) {
             style={{
               padding: '8px 16px',
               borderRadius: '12px',
-              border: filter === f.value ? 'none' : `1px solid ${ROYAL_COLORS.cardBorder}`,
-              background: filter === f.value ? ROYAL_COLORS.gradientPurple : ROYAL_COLORS.secondary,
-              color: ROYAL_COLORS.text,
+              border: filter === f.value ? 'none' : `1px solid ${tokens.colors.background.cardBorder}`,
+              background: filter === f.value ? tokens.gradients.primary : tokens.colors.background.secondary,
+              color: tokens.colors.text.primary,
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -367,7 +367,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
                 <h3 style={{
                   fontSize: '16px',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   marginBottom: '4px',
                 }}>
                   {item.product_name}
@@ -401,7 +401,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
               <div>
                 <div style={{
                   fontSize: '12px',
-                  color: ROYAL_COLORS.muted,
+                  color: tokens.colors.text.secondary,
                   marginBottom: '4px',
                 }}>
                   במלאי
@@ -409,7 +409,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
                 <div style={{
                   fontSize: '20px',
                   fontWeight: '700',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                 }}>
                   {item.totalOnHand}
                 </div>
@@ -417,7 +417,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
               <div>
                 <div style={{
                   fontSize: '12px',
-                  color: ROYAL_COLORS.muted,
+                  color: tokens.colors.text.secondary,
                   marginBottom: '4px',
                 }}>
                   שמור
@@ -425,7 +425,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
                 <div style={{
                   fontSize: '20px',
                   fontWeight: '700',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                 }}>
                   {item.totalReserved}
                 </div>
@@ -442,7 +442,7 @@ export function Inventory({ onNavigate }: InventoryProps) {
             padding: '40px 20px',
           }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
-            <p style={{ color: ROYAL_COLORS.muted }}>
+            <p style={{ color: tokens.colors.text.secondary }}>
               {filter === 'all' ? 'אין פריטי מלאי' : `אין פריטים ב${filter === 'low' ? 'מלאי נמוך' : 'מלאי אזל'}`}
             </p>
           </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { DataStore, User } from '../data/types';
 import { hebrew } from '../lib/i18n';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 
 import { CreateBusinessModal } from '../components/CreateBusinessModal';
 import { AddEquityStakeholderModal } from '../components/AddEquityStakeholderModal';
@@ -150,13 +150,13 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
   // Show initialization error
   if (initError) {
     return (
-      <div style={ROYAL_STYLES.pageContainer}>
+      <div style={styles.pageContainer}>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
-          <h2 style={{ color: ROYAL_COLORS.text, marginBottom: '12px', fontSize: '20px' }}>
+          <h2 style={{ color: tokens.colors.text.primary, marginBottom: '12px', fontSize: '20px' }}>
             שגיאה בטעינת העמוד
           </h2>
-          <p style={{ color: ROYAL_COLORS.muted, marginBottom: '24px' }}>
+          <p style={{ color: tokens.colors.text.secondary, marginBottom: '24px' }}>
             {initError}
           </p>
           <button
@@ -167,7 +167,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
               window.location.reload();
             }}
             style={{
-              ...ROYAL_STYLES.buttonPrimary,
+              ...styles.button.primary,
               padding: '12px 24px',
             }}
           >
@@ -188,7 +188,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
     };
 
     return (
-      <div style={ROYAL_STYLES.pageContainer}>
+      <div style={styles.pageContainer}>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏢</div>
           <div style={{
@@ -196,7 +196,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
             width: '40px',
             height: '40px',
             border: '4px solid rgba(29, 155, 240, 0.2)',
-            borderTopColor: ROYAL_COLORS.accent,
+            borderTopColor: tokens.colors.brand.primary,
             borderRadius: '50%',
             animation: 'spin 1s linear infinite',
             marginBottom: '16px'
@@ -206,10 +206,10 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
               to { transform: rotate(360deg); }
             }
           `}</style>
-          <p style={{ color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '8px' }}>
+          <p style={{ color: tokens.colors.text.primary, fontWeight: '600', marginBottom: '8px' }}>
             {loadingMessages[initStage]}
           </p>
-          <p style={{ color: ROYAL_COLORS.muted, fontSize: '14px' }}>
+          <p style={{ color: tokens.colors.text.secondary, fontSize: '14px' }}>
             אנא המתן...
           </p>
         </div>
@@ -218,22 +218,22 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
   }
 
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
-      <div style={ROYAL_STYLES.pageHeader}>
+    <div style={styles.pageContainer}>
+      <div style={styles.pageHeader}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>🏢</div>
-        <h1 style={ROYAL_STYLES.pageTitle}>{hebrew.businesses}</h1>
-        <p style={ROYAL_STYLES.pageSubtitle}>
+        <h1 style={styles.pageTitle}>{hebrew.businesses}</h1>
+        <p style={styles.pageSubtitle}>
           ניהול עסקים ובעלויות
         </p>
       </div>
 
       {/* My Ownerships Summary */}
       <div style={{
-        ...ROYAL_STYLES.card,
-        background: ROYAL_COLORS.gradientCard,
+        ...styles.card,
+        background: tokens.gradients.card,
         marginBottom: '24px'
       }}>
-        <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: ROYAL_COLORS.text, fontWeight: '600' }}>
+        <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: tokens.colors.text.primary, fontWeight: '600' }}>
           הבעלויות שלי
         </h3>
         <div style={{
@@ -241,13 +241,13 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
           gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
           gap: '16px'
         }}>
-          <div style={ROYAL_STYLES.statBox}>
-            <div style={ROYAL_STYLES.statValue}>{businessesIOwn}</div>
-            <div style={ROYAL_STYLES.statLabel}>עסקים</div>
+          <div style={styles.stat.box}>
+            <div style={styles.stat.value}>{businessesIOwn}</div>
+            <div style={styles.stat.label}>עסקים</div>
           </div>
-          <div style={ROYAL_STYLES.statBox}>
-            <div style={ROYAL_STYLES.statValue}>{totalOwnershipPercentage.toFixed(1)}%</div>
-            <div style={ROYAL_STYLES.statLabel}>סה"כ בעלות</div>
+          <div style={styles.stat.box}>
+            <div style={styles.stat.value}>{totalOwnershipPercentage.toFixed(1)}%</div>
+            <div style={styles.stat.label}>סה"כ בעלות</div>
           </div>
         </div>
       </div>
@@ -263,7 +263,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
 
             }}
             style={{
-              ...ROYAL_STYLES.buttonPrimary,
+              ...styles.button.primary,
               width: '100%',
               display: 'flex',
               alignItems: 'center',
@@ -282,7 +282,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
           <h2 style={{
             margin: '0 0 16px 0',
             fontSize: '20px',
-            color: ROYAL_COLORS.text,
+            color: tokens.colors.text.primary,
             fontWeight: '600'
           }}>
             העסקים שלי
@@ -305,7 +305,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
           <h2 style={{
             margin: '0 0 16px 0',
             fontSize: '20px',
-            color: ROYAL_COLORS.text,
+            color: tokens.colors.text.primary,
             fontWeight: '600'
           }}>
             כל העסקים בפלטפורמה
@@ -325,9 +325,9 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
 
       {/* Empty State */}
       {myOwnerships.length === 0 && businesses.length === 0 && (
-        <div style={ROYAL_STYLES.emptyState}>
-          <div style={ROYAL_STYLES.emptyStateIcon}>🏢</div>
-          <div style={ROYAL_STYLES.emptyStateText}>
+        <div style={styles.emptyState.container}>
+          <div style={styles.emptyState.containerIcon}>🏢</div>
+          <div style={styles.emptyState.containerText}>
             אין עסקים להצגה
           </div>
         </div>
@@ -357,25 +357,25 @@ function OwnershipCard({ ownership, onNavigate }: {
     <div
       onClick={() => onNavigate(`/business/${ownership.business_id}`)}
       style={{
-        ...ROYAL_STYLES.card,
+        ...styles.card,
         cursor: 'pointer',
         transition: 'all 0.3s ease'
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = ROYAL_COLORS.cardHover;
+        e.currentTarget.style.background = tokens.colors.background.cardHover;
         e.currentTarget.style.transform = 'translateY(-2px)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = ROYAL_COLORS.card;
+        e.currentTarget.style.background = tokens.colors.background.card;
         e.currentTarget.style.transform = 'translateY(0)';
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
         <div>
-          <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: ROYAL_COLORS.text, fontWeight: '600' }}>
+          <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: tokens.colors.text.primary, fontWeight: '600' }}>
             {ownership.business?.name || 'עסק'}
           </h3>
-          <p style={{ margin: 0, fontSize: '14px', color: ROYAL_COLORS.muted }}>
+          <p style={{ margin: 0, fontSize: '14px', color: tokens.colors.text.secondary }}>
             {ownership.business?.description || 'אין תיאור'}
           </p>
         </div>
@@ -386,7 +386,7 @@ function OwnershipCard({ ownership, onNavigate }: {
           border: '1px solid rgba(29, 155, 240, 0.4)',
           fontSize: '14px',
           fontWeight: '600',
-          color: ROYAL_COLORS.accent
+          color: tokens.colors.brand.primary
         }}>
           {ownership.ownership_percentage}%
         </div>
@@ -398,25 +398,25 @@ function OwnershipCard({ ownership, onNavigate }: {
         gap: '12px',
         padding: '12px',
         borderRadius: '8px',
-        background: ROYAL_COLORS.secondary
+        background: tokens.colors.background.secondary
       }}>
         <div>
-          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>סוג בעלות</div>
-          <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600' }}>
+          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>סוג בעלות</div>
+          <div style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600' }}>
             {ownership.equity_type === 'founder' ? 'מייסד' :
              ownership.equity_type === 'investor' ? 'משקיע' :
              ownership.equity_type === 'employee' ? 'עובד' : 'שותף'}
           </div>
         </div>
         <div>
-          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>חלוקת רווחים</div>
-          <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600' }}>
+          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>חלוקת רווחים</div>
+          <div style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600' }}>
             {ownership.profit_share_percentage}%
           </div>
         </div>
         <div>
-          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>זכויות הצבעה</div>
-          <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600' }}>
+          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>זכויות הצבעה</div>
+          <div style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600' }}>
             {ownership.voting_rights ? '✓ כן' : '✗ לא'}
           </div>
         </div>
@@ -491,7 +491,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
   const availableOwnership = 100 - totalOwnership;
 
   return (
-    <div style={ROYAL_STYLES.card}>
+    <div style={styles.card}>
       <div
         onClick={() => {
           setExpanded(!expanded);
@@ -501,11 +501,11 @@ function BusinessCard({ business, dataStore, onUpdate }: {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
           <div>
-            <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: ROYAL_COLORS.text, fontWeight: '600' }}>
+            <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: tokens.colors.text.primary, fontWeight: '600' }}>
               {business.name}
             </h3>
             {business.description && (
-              <p style={{ margin: 0, fontSize: '14px', color: ROYAL_COLORS.muted }}>
+              <p style={{ margin: 0, fontSize: '14px', color: tokens.colors.text.secondary }}>
                 {business.description}
               </p>
             )}
@@ -520,7 +520,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
           gap: '8px',
           alignItems: 'center',
           fontSize: '14px',
-          color: ROYAL_COLORS.muted
+          color: tokens.colors.text.secondary
         }}>
           <span>{owners.length} בעלים</span>
           <span>•</span>
@@ -528,19 +528,19 @@ function BusinessCard({ business, dataStore, onUpdate }: {
           {availableOwnership > 0 && (
             <>
               <span>•</span>
-              <span style={{ color: ROYAL_COLORS.success }}>{availableOwnership}% פנוי</span>
+              <span style={{ color: tokens.colors.status.success }}>{availableOwnership}% פנוי</span>
             </>
           )}
         </div>
       </div>
 
       {expanded && (
-        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: `1px solid ${ROYAL_COLORS.border}` }}>
+        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: `1px solid ${tokens.colors.border.default}` }}>
           {/* Tab Selector */}
           <div
             style={{
               display: 'flex',
-              backgroundColor: ROYAL_COLORS.secondary,
+              backgroundColor: tokens.colors.background.secondary,
               marginBottom: '16px',
               borderRadius: '8px',
               padding: '4px',
@@ -555,8 +555,8 @@ function BusinessCard({ business, dataStore, onUpdate }: {
               style={{
                 flex: 1,
                 padding: '8px 12px',
-                backgroundColor: activeTab === 'equity' ? ROYAL_COLORS.card : 'transparent',
-                color: activeTab === 'equity' ? ROYAL_COLORS.text : ROYAL_COLORS.muted,
+                backgroundColor: activeTab === 'equity' ? tokens.colors.background.card : 'transparent',
+                color: activeTab === 'equity' ? tokens.colors.text.primary : tokens.colors.text.secondary,
                 border: 'none',
                 borderRadius: '6px',
                 fontSize: '14px',
@@ -575,8 +575,8 @@ function BusinessCard({ business, dataStore, onUpdate }: {
               style={{
                 flex: 1,
                 padding: '8px 12px',
-                backgroundColor: activeTab === 'legacy' ? ROYAL_COLORS.card : 'transparent',
-                color: activeTab === 'legacy' ? ROYAL_COLORS.text : ROYAL_COLORS.muted,
+                backgroundColor: activeTab === 'legacy' ? tokens.colors.background.card : 'transparent',
+                color: activeTab === 'legacy' ? tokens.colors.text.primary : tokens.colors.text.secondary,
                 border: 'none',
                 borderRadius: '6px',
                 fontSize: '14px',
@@ -591,11 +591,11 @@ function BusinessCard({ business, dataStore, onUpdate }: {
           {activeTab === 'equity' ? (
             <div>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '20px', color: ROYAL_COLORS.muted }}>
+            <div style={{ textAlign: 'center', padding: '20px', color: tokens.colors.text.secondary }}>
               טוען בעלים...
             </div>
           ) : owners.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '20px', color: ROYAL_COLORS.muted }}>
+            <div style={{ textAlign: 'center', padding: '20px', color: tokens.colors.text.secondary }}>
               אין בעלים רשומים
             </div>
           ) : (
@@ -606,17 +606,17 @@ function BusinessCard({ business, dataStore, onUpdate }: {
                   style={{
                     padding: '12px',
                     borderRadius: '8px',
-                    background: ROYAL_COLORS.secondary,
+                    background: tokens.colors.background.secondary,
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center'
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600' }}>
+                    <div style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600' }}>
                       {owner.owner?.name || owner.owner?.username || 'משתמש'}
                     </div>
-                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                    <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
                       {owner.equity_type === 'founder' ? 'מייסד' :
                        owner.equity_type === 'investor' ? 'משקיע' :
                        owner.equity_type === 'employee' ? 'עובד' : 'שותף'}
@@ -625,7 +625,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
                   <div style={{
                     fontSize: '16px',
                     fontWeight: '700',
-                    color: ROYAL_COLORS.accent
+                    color: tokens.colors.brand.primary
                   }}>
                     {owner.ownership_percentage}%
                   </div>
@@ -654,25 +654,25 @@ function BusinessCard({ business, dataStore, onUpdate }: {
                   marginBottom: '16px',
                 }}
               >
-                <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '4px' }}>
+                <div style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600', marginBottom: '4px' }}>
                   💰 הון זמין: {availableEquity.toFixed(2)}%
                 </div>
-                <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
                   מוקצה: {(100 - availableEquity).toFixed(2)}% | סה"כ: 100%
                 </div>
               </div>
 
               {loading ? (
-                <div style={{ textAlign: 'center', padding: '20px', color: ROYAL_COLORS.muted }}>
+                <div style={{ textAlign: 'center', padding: '20px', color: tokens.colors.text.secondary }}>
                   טוען נתוני הון...
                 </div>
               ) : equityStakeholders.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '20px' }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px' }}>💎</div>
-                  <div style={{ fontSize: '16px', color: ROYAL_COLORS.text, marginBottom: '8px', fontWeight: '600' }}>
+                  <div style={{ fontSize: '16px', color: tokens.colors.text.primary, marginBottom: '8px', fontWeight: '600' }}>
                     אין בעלי מניות
                   </div>
-                  <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                  <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
                     הוסף בעלי מניות לעסק
                   </div>
                 </div>
@@ -684,21 +684,21 @@ function BusinessCard({ business, dataStore, onUpdate }: {
                       style={{
                         padding: '12px',
                         borderRadius: '8px',
-                        background: ROYAL_COLORS.secondary,
-                        border: `1px solid ${ROYAL_COLORS.border}`,
+                        background: tokens.colors.background.secondary,
+                        border: `1px solid ${tokens.colors.border.default}`,
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600', marginBottom: '2px' }}>
+                          <div style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600', marginBottom: '2px' }}>
                             {stakeholder.stakeholder_name}
                           </div>
-                          <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
                             {stakeholder.equity_type === 'founder' ? '👨‍💼 מייסד' :
                              stakeholder.equity_type === 'investor' ? '💰 משקיע' :
                              stakeholder.equity_type === 'employee' ? '👤 עובד' : '🤝 שותף'}
                             {!stakeholder.is_fully_vested && (
-                              <span style={{ marginRight: '8px', color: ROYAL_COLORS.warning }}>
+                              <span style={{ marginRight: '8px', color: tokens.colors.status.warning }}>
                                 ⏳ {stakeholder.vested_percentage.toFixed(0)}% הבשיל
                               </span>
                             )}
@@ -708,11 +708,11 @@ function BusinessCard({ business, dataStore, onUpdate }: {
                           <div style={{
                             fontSize: '16px',
                             fontWeight: '700',
-                            color: ROYAL_COLORS.accent,
+                            color: tokens.colors.brand.primary,
                           }}>
                             {stakeholder.equity_percentage.toFixed(2)}%
                           </div>
-                          <div style={{ fontSize: '11px', color: ROYAL_COLORS.muted }}>
+                          <div style={{ fontSize: '11px', color: tokens.colors.text.secondary }}>
                             רווחים: {stakeholder.profit_share_percentage.toFixed(1)}%
                           </div>
                         </div>
@@ -721,9 +721,9 @@ function BusinessCard({ business, dataStore, onUpdate }: {
                         display: 'flex',
                         gap: '12px',
                         paddingTop: '8px',
-                        borderTop: `1px solid ${ROYAL_COLORS.border}`,
+                        borderTop: `1px solid ${tokens.colors.border.default}`,
                         fontSize: '12px',
-                        color: ROYAL_COLORS.muted,
+                        color: tokens.colors.text.secondary,
                       }}>
                         <span>{stakeholder.voting_rights ? '✓ זכויות הצבעה' : '✗ ללא הצבעה'}</span>
                         {stakeholder.vesting_end_date && (
@@ -746,7 +746,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
                     }}
                     disabled={availableEquity <= 0}
                     style={{
-                      ...ROYAL_STYLES.buttonPrimary,
+                      ...styles.button.primary,
                       flex: 1,
                       opacity: availableEquity <= 0 ? 0.5 : 1,
                       fontSize: '14px',
@@ -762,7 +762,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
                     }}
                     disabled={equityStakeholders.length === 0}
                     style={{
-                      ...ROYAL_STYLES.buttonSecondary,
+                      ...styles.button.secondary,
                       flex: 1,
                       opacity: equityStakeholders.length === 0 ? 0.5 : 1,
                       fontSize: '14px',
@@ -778,7 +778,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
 
                   }}
                   style={{
-                    ...ROYAL_STYLES.buttonSecondary,
+                    ...styles.button.secondary,
                     fontSize: '14px',
                   }}
                 >
@@ -789,11 +789,11 @@ function BusinessCard({ business, dataStore, onUpdate }: {
           ) : (
             <div>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '20px', color: ROYAL_COLORS.muted }}>
+            <div style={{ textAlign: 'center', padding: '20px', color: tokens.colors.text.secondary }}>
               טוען בעלים...
             </div>
           ) : owners.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '20px', color: ROYAL_COLORS.muted }}>
+            <div style={{ textAlign: 'center', padding: '20px', color: tokens.colors.text.secondary }}>
               אין בעלים רשומים במערכת הישנה
             </div>
           ) : (
@@ -804,17 +804,17 @@ function BusinessCard({ business, dataStore, onUpdate }: {
                   style={{
                     padding: '12px',
                     borderRadius: '8px',
-                    background: ROYAL_COLORS.secondary,
+                    background: tokens.colors.background.secondary,
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center'
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, fontWeight: '600' }}>
+                    <div style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600' }}>
                       {owner.owner?.name || owner.owner?.username || 'משתמש'}
                     </div>
-                    <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                    <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
                       {owner.equity_type === 'founder' ? 'מייסד' :
                        owner.equity_type === 'investor' ? 'משקיע' :
                        owner.equity_type === 'employee' ? 'עובד' : 'שותף'}
@@ -823,7 +823,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
                   <div style={{
                     fontSize: '16px',
                     fontWeight: '700',
-                    color: ROYAL_COLORS.accent
+                    color: tokens.colors.brand.primary
                   }}>
                     {owner.ownership_percentage}%
                   </div>
@@ -838,7 +838,7 @@ function BusinessCard({ business, dataStore, onUpdate }: {
 
               }}
               style={{
-                ...ROYAL_STYLES.buttonSecondary,
+                ...styles.button.secondary,
                 width: '100%',
                 marginTop: '12px'
               }}

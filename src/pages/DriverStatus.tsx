@@ -9,7 +9,7 @@ import {
 
 import { Toast } from '../components/Toast';
 import { useI18n } from '../lib/i18n';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { logger } from '../lib/logger';
 import { haptic } from '../utils/haptic';
 
@@ -80,7 +80,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
   }, [assignments, zones]);
 
   const currentStatusLabel = status ? statusLabels[status.status] : translations.driverStatusPage.notAvailable;
-  const hintColor = ROYAL_COLORS.muted;
+  const hintColor = tokens.colors.text.secondary;
 
   const ensureAssignment = useCallback(
     async (zoneId: string) => {
@@ -207,8 +207,8 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: ROYAL_COLORS.background,
-        color: ROYAL_COLORS.text,
+        backgroundColor: tokens.colors.background.primary,
+        color: tokens.colors.text.primary,
         padding: '20px',
         direction: isRTL ? 'rtl' : 'ltr'
       }}
@@ -240,7 +240,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
             style={{
               padding: '16px',
               borderRadius: '14px',
-              backgroundColor: ROYAL_COLORS.cardBg,
+              backgroundColor: tokens.colors.background.cardBg,
               border: `1px solid ${hintColor}30`
             }}
           >
@@ -271,8 +271,8 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
                 padding: '12px',
                 borderRadius: '12px',
                 border: 'none',
-                backgroundColor: status.is_online ? ROYAL_COLORS.accent + '20' : ROYAL_COLORS.accent,
-                color: ROYAL_COLORS.textBright,
+                backgroundColor: status.is_online ? tokens.colors.brand.primary + '20' : tokens.colors.brand.primary,
+                color: tokens.colors.text.primaryBright,
                 fontWeight: 600,
                 cursor: updating ? 'wait' : 'pointer'
               }}
@@ -300,7 +300,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
             style={{
               padding: '16px',
               borderRadius: '14px',
-              backgroundColor: ROYAL_COLORS.cardBg,
+              backgroundColor: tokens.colors.background.cardBg,
               border: `1px solid ${hintColor}30`
             }}
           >
@@ -316,9 +316,9 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
                     style={{
                       padding: '10px',
                       borderRadius: '10px',
-                      border: `1px solid ${status.status === value ? ROYAL_COLORS.accent : hintColor + '30'}`,
-                      backgroundColor: status.status === value ? ROYAL_COLORS.accent + '20' : 'transparent',
-                      color: ROYAL_COLORS.text,
+                      border: `1px solid ${status.status === value ? tokens.colors.brand.primary : hintColor + '30'}`,
+                      backgroundColor: status.status === value ? tokens.colors.brand.primary + '20' : 'transparent',
+                      color: tokens.colors.text.primary,
                       fontWeight: 500,
                       textAlign: 'right',
                       cursor: updating ? 'wait' : 'pointer'
@@ -334,7 +334,7 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
             style={{
               padding: '16px',
               borderRadius: '14px',
-              backgroundColor: ROYAL_COLORS.cardBg,
+              backgroundColor: tokens.colors.background.cardBg,
               border: `1px solid ${hintColor}30`
             }}
           >
@@ -348,9 +348,9 @@ export function DriverStatus({ dataStore }: DriverStatusProps) {
                   width: '100%',
                   padding: '10px',
                   borderRadius: '10px',
-                  border: `1px solid ${ROYAL_COLORS.muted}40`,
-                  backgroundColor: ROYAL_COLORS.background,
-                  color: ROYAL_COLORS.text
+                  border: `1px solid ${tokens.colors.text.secondary}40`,
+                  backgroundColor: tokens.colors.background.primary,
+                  color: tokens.colors.text.primary
                 }}
               >
                 <option value="">{translations.driverStatusPage.noActiveZone}</option>

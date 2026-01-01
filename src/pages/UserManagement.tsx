@@ -21,7 +21,7 @@ import type { FrontendDataStore } from '../lib/frontendDataStore';
 import { registerUserManagementSubscriptions } from './subscriptionHelpers';
 
 import { roleNames, roleIcons } from '../lib/i18n';
-import { ROYAL_COLORS, ROYAL_STYLES } from '../styles/royalTheme';
+import { tokens, styles } from '../styles/tokens';
 import { Toast } from '../components/Toast';
 import { AuthDiagnostics } from '../lib/diagnostics';
 import { sessionTracker } from '../lib/sessionTracker';
@@ -440,13 +440,13 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
   // Security check
   if (!hasManagementPermission) {
     return (
-      <div style={{ ...ROYAL_STYLES.pageContainer, textAlign: 'center' }}>
-        <div style={ROYAL_STYLES.emptyState}>
-          <div style={ROYAL_STYLES.emptyStateIcon}>🔒</div>
-          <h3 style={{ color: ROYAL_COLORS.text, margin: '0 0 12px 0' }}>
+      <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
+        <div style={styles.emptyState.container}>
+          <div style={styles.emptyState.containerIcon}>🔒</div>
+          <h3 style={{ color: tokens.colors.text.primary, margin: '0 0 12px 0' }}>
             אין הרשאה
           </h3>
-          <p style={ROYAL_STYLES.emptyStateText}>
+          <p style={styles.emptyState.containerText}>
             רק מנהלים ובעלים יכולים לגשת לניהול משתמשים
           </p>
         </div>
@@ -456,21 +456,21 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
 
   if (loading) {
     return (
-      <div style={{ ...ROYAL_STYLES.pageContainer, textAlign: 'center' }}>
+      <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
         <div style={{ padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-          <p style={{ color: ROYAL_COLORS.muted }}>טוען משתמשים...</p>
+          <p style={{ color: tokens.colors.text.secondary }}>טוען משתמשים...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={ROYAL_STYLES.pageContainer}>
+    <div style={styles.pageContainer}>
       {/* Header */}
-      <div style={ROYAL_STYLES.pageHeader}>
-        <h1 style={ROYAL_STYLES.pageTitle}>👥 ניהול משתמשים</h1>
-        <p style={ROYAL_STYLES.pageSubtitle}>
+      <div style={styles.pageHeader}>
+        <h1 style={styles.pageTitle}>👥 ניהול משתמשים</h1>
+        <p style={styles.pageSubtitle}>
           ניהול, אישור ושינוי תפקידים של משתמשים במערכת
         </p>
       </div>
@@ -482,34 +482,34 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
         gap: '12px',
         marginBottom: '24px'
       }}>
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={{ ...ROYAL_STYLES.statValue, fontSize: '24px' }}>
+        <div style={styles.stat.box}>
+          <div style={{ ...styles.stat.value, fontSize: '24px' }}>
             {approvedUsers.length}
           </div>
-          <div style={{ ...ROYAL_STYLES.statLabel, fontSize: '12px' }}>
+          <div style={{ ...styles.stat.label, fontSize: '12px' }}>
             משתמשים פעילים
           </div>
         </div>
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={{ ...ROYAL_STYLES.statValue, fontSize: '24px', color: ROYAL_COLORS.warning }}>
+        <div style={styles.stat.box}>
+          <div style={{ ...styles.stat.value, fontSize: '24px', color: tokens.colors.status.warning }}>
             {pendingUsers.length}
           </div>
-          <div style={{ ...ROYAL_STYLES.statLabel, fontSize: '12px' }}>
+          <div style={{ ...styles.stat.label, fontSize: '12px' }}>
             ממתינים לאישור
           </div>
         </div>
-        <div style={ROYAL_STYLES.statBox}>
-          <div style={{ ...ROYAL_STYLES.statValue, fontSize: '24px', color: ROYAL_COLORS.info }}>
+        <div style={styles.stat.box}>
+          <div style={{ ...styles.stat.value, fontSize: '24px', color: tokens.colors.status.info }}>
             {allUsers.length}
           </div>
-          <div style={{ ...ROYAL_STYLES.statLabel, fontSize: '12px' }}>
+          <div style={{ ...styles.stat.label, fontSize: '12px' }}>
             סה"כ משתמשים
           </div>
         </div>
       </div>
 
       {/* Search and Filters */}
-      <div style={ROYAL_STYLES.card}>
+      <div style={styles.card}>
         {/* Search Bar */}
         <div style={{ marginBottom: '16px' }}>
           <label style={{
@@ -517,7 +517,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
             marginBottom: '8px',
             fontSize: '14px',
             fontWeight: '600',
-            color: ROYAL_COLORS.text
+            color: tokens.colors.text.primary
           }}>
             🔍 חיפוש משתמש
           </label>
@@ -531,7 +531,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
             }}
             aria-label="Search users by name or username"
             style={{
-              ...ROYAL_STYLES.input,
+              ...styles.input,
               fontSize: '15px'
             }}
           />
@@ -550,7 +550,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
               marginBottom: '6px',
               fontSize: '13px',
               fontWeight: '600',
-              color: ROYAL_COLORS.muted
+              color: tokens.colors.text.secondary
             }}>
               סינון לפי תפקיד
             </label>
@@ -562,7 +562,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
               }}
               aria-label="Filter by role"
               style={{
-                ...ROYAL_STYLES.input,
+                ...styles.input,
                 padding: '10px 12px',
                 fontSize: '14px'
               }}
@@ -582,7 +582,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
               marginBottom: '6px',
               fontSize: '13px',
               fontWeight: '600',
-              color: ROYAL_COLORS.muted
+              color: tokens.colors.text.secondary
             }}>
               סינון לפי סטטוס
             </label>
@@ -594,7 +594,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
               }}
               aria-label="Filter by status"
               style={{
-                ...ROYAL_STYLES.input,
+                ...styles.input,
                 padding: '10px 12px',
                 fontSize: '14px'
               }}
@@ -618,7 +618,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
                 setCurrentPage(1);
               }}
               style={{
-                ...ROYAL_STYLES.buttonSecondary,
+                ...styles.button.secondary,
                 padding: '8px 16px',
                 fontSize: '13px'
               }}
@@ -631,13 +631,13 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
 
       {/* User List */}
       {sortedUsers.length === 0 ? (
-        <div style={ROYAL_STYLES.card}>
-          <div style={ROYAL_STYLES.emptyState}>
-            <div style={ROYAL_STYLES.emptyStateIcon}>🔍</div>
-            <h3 style={{ color: ROYAL_COLORS.text, margin: '0 0 8px 0' }}>
+        <div style={styles.card}>
+          <div style={styles.emptyState.container}>
+            <div style={styles.emptyState.containerIcon}>🔍</div>
+            <h3 style={{ color: tokens.colors.text.primary, margin: '0 0 8px 0' }}>
               לא נמצאו משתמשים
             </h3>
-            <p style={ROYAL_STYLES.emptyStateText}>
+            <p style={styles.emptyState.containerText}>
               נסה לשנות את קריטריוני החיפוש או הסינון
             </p>
           </div>
@@ -669,7 +669,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       {/* Pagination */}
       {totalPages > 1 && (
         <div style={{
-          ...ROYAL_STYLES.card,
+          ...styles.card,
           marginTop: '16px'
         }}>
           <div style={{
@@ -686,7 +686,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
               disabled={currentPage === 1}
               aria-label="Previous page"
               style={{
-                ...ROYAL_STYLES.buttonSecondary,
+                ...styles.button.secondary,
                 padding: '10px 16px',
                 fontSize: '14px',
                 opacity: currentPage === 1 ? 0.5 : 1,
@@ -698,7 +698,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
 
             <div style={{
               fontSize: '14px',
-              color: ROYAL_COLORS.muted,
+              color: tokens.colors.text.secondary,
               fontWeight: '600'
             }}>
               עמוד {currentPage} מתוך {totalPages}
@@ -712,7 +712,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
               disabled={currentPage === totalPages}
               aria-label="Next page"
               style={{
-                ...ROYAL_STYLES.buttonSecondary,
+                ...styles.button.secondary,
                 padding: '10px 16px',
                 fontSize: '14px',
                 opacity: currentPage === totalPages ? 0.5 : 1,
@@ -745,7 +745,7 @@ function UserTable({ users, sortField, sortDirection, onSort, onEditRole, onAppr
 
   return (
     <div style={{
-      ...ROYAL_STYLES.card,
+      ...styles.card,
       padding: '0',
       overflow: 'hidden'
     }}>
@@ -757,8 +757,8 @@ function UserTable({ users, sortField, sortDirection, onSort, onEditRole, onAppr
         }}>
           <thead>
             <tr style={{
-              background: ROYAL_COLORS.secondary,
-              borderBottom: `2px solid ${ROYAL_COLORS.cardBorder}`
+              background: tokens.colors.background.secondary,
+              borderBottom: `2px solid ${tokens.colors.background.cardBorder}`
             }}>
               <th
                 onClick={() => onSort('name')}
@@ -766,7 +766,7 @@ function UserTable({ users, sortField, sortDirection, onSort, onEditRole, onAppr
                   padding: '14px 16px',
                   textAlign: 'right',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   cursor: 'pointer',
                   userSelect: 'none'
                 }}
@@ -781,7 +781,7 @@ function UserTable({ users, sortField, sortDirection, onSort, onEditRole, onAppr
                   padding: '14px 16px',
                   textAlign: 'right',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   cursor: 'pointer',
                   userSelect: 'none'
                 }}
@@ -796,7 +796,7 @@ function UserTable({ users, sortField, sortDirection, onSort, onEditRole, onAppr
                   padding: '14px 16px',
                   textAlign: 'right',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   cursor: 'pointer',
                   userSelect: 'none'
                 }}
@@ -811,7 +811,7 @@ function UserTable({ users, sortField, sortDirection, onSort, onEditRole, onAppr
                   padding: '14px 16px',
                   textAlign: 'right',
                   fontWeight: '600',
-                  color: ROYAL_COLORS.text,
+                  color: tokens.colors.text.primary,
                   cursor: 'pointer',
                   userSelect: 'none'
                 }}
@@ -824,7 +824,7 @@ function UserTable({ users, sortField, sortDirection, onSort, onEditRole, onAppr
                 padding: '14px 16px',
                 textAlign: 'right',
                 fontWeight: '600',
-                color: ROYAL_COLORS.text
+                color: tokens.colors.text.primary
               }}>
                 פעולות
               </th>
@@ -857,17 +857,17 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
 
   return (
     <tr style={{
-      background: index % 2 === 0 ? 'transparent' : ROYAL_COLORS.secondary + '30',
-      borderBottom: `1px solid ${ROYAL_COLORS.cardBorder}`,
+      background: index % 2 === 0 ? 'transparent' : tokens.colors.background.secondary + '30',
+      borderBottom: `1px solid ${tokens.colors.background.cardBorder}`,
       transition: 'background 0.2s ease'
     }}>
-      <td style={{ padding: '14px 16px', color: ROYAL_COLORS.text }}>
+      <td style={{ padding: '14px 16px', color: tokens.colors.text.primary }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
             width: '36px',
             height: '36px',
             borderRadius: '18px',
-            background: ROYAL_COLORS.gradientPurple,
+            background: tokens.gradients.primary,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -885,7 +885,7 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
               <span style={{
                 fontSize: '10px',
                 padding: '2px 6px',
-                background: ROYAL_COLORS.gradientGold,
+                background: tokens.gradients.warning,
                 color: '#1a0a00',
                 borderRadius: '4px',
                 fontWeight: '600'
@@ -896,7 +896,7 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
           </div>
         </div>
       </td>
-      <td style={{ padding: '14px 16px', color: ROYAL_COLORS.muted }}>
+      <td style={{ padding: '14px 16px', color: tokens.colors.text.secondary }}>
         {user.username ? `@${user.username}` : '-'}
       </td>
       <td style={{ padding: '14px 16px' }}>
@@ -905,12 +905,12 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
           alignItems: 'center',
           gap: '6px',
           padding: '6px 12px',
-          background: ROYAL_COLORS.secondary,
-          border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+          background: tokens.colors.background.secondary,
+          border: `1px solid ${tokens.colors.background.cardBorder}`,
           borderRadius: '8px',
           fontSize: '13px',
           fontWeight: '600',
-          color: ROYAL_COLORS.accent
+          color: tokens.colors.brand.primary
         }}>
           {roleIcons[effectiveRole]} {roleNames[effectiveRole]}
         </span>
@@ -918,7 +918,7 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
       <td style={{ padding: '14px 16px' }}>
         {isPending ? (
           <span style={{
-            ...ROYAL_STYLES.badgeWarning,
+            ...styles.badge.baseWarning,
             padding: '6px 12px',
             fontSize: '12px'
           }}>
@@ -926,7 +926,7 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
           </span>
         ) : (
           <span style={{
-            ...ROYAL_STYLES.badgeSuccess,
+            ...styles.badge.baseSuccess,
             padding: '6px 12px',
             fontSize: '12px'
           }}>
@@ -945,7 +945,7 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
               aria-label={`Approve ${user.first_name}`}
               style={{
                 padding: '6px 12px',
-                background: ROYAL_COLORS.gradientSuccess,
+                background: tokens.gradients.success,
                 border: 'none',
                 borderRadius: '6px',
                 color: '#fff',
@@ -965,7 +965,7 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
               aria-label={`Change role for ${user.first_name}`}
               style={{
                 padding: '6px 12px',
-                background: ROYAL_COLORS.gradientPurple,
+                background: tokens.gradients.primary,
                 border: 'none',
                 borderRadius: '6px',
                 color: '#fff',
@@ -987,9 +987,9 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
             style={{
               padding: '6px 12px',
               background: 'transparent',
-              border: `1px solid ${ROYAL_COLORS.info}`,
+              border: `1px solid ${tokens.colors.status.info}`,
               borderRadius: '6px',
-              color: ROYAL_COLORS.info,
+              color: tokens.colors.status.info,
               fontSize: '12px',
               fontWeight: '600',
               cursor: 'pointer'
@@ -1008,9 +1008,9 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
               style={{
                 padding: '6px 12px',
                 background: 'transparent',
-                border: `1px solid ${ROYAL_COLORS.crimson}`,
+                border: `1px solid ${tokens.colors.status.error}`,
                 borderRadius: '6px',
-                color: ROYAL_COLORS.crimson,
+                color: tokens.colors.status.error,
                 fontSize: '12px',
                 fontWeight: '600',
                 cursor: 'pointer'
@@ -1032,15 +1032,15 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
 
   return (
     <div style={{
-      ...ROYAL_STYLES.card,
-      border: isPending ? `2px solid ${ROYAL_COLORS.warning}` : `1px solid ${ROYAL_COLORS.cardBorder}`
+      ...styles.card,
+      border: isPending ? `2px solid ${tokens.colors.status.warning}` : `1px solid ${tokens.colors.background.cardBorder}`
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
         <div style={{
           width: '56px',
           height: '56px',
           borderRadius: '28px',
-          background: ROYAL_COLORS.gradientPurple,
+          background: tokens.gradients.primary,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1057,14 +1057,14 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
               margin: 0,
               fontSize: '18px',
               fontWeight: '600',
-              color: ROYAL_COLORS.text
+              color: tokens.colors.text.primary
             }}>
               {user.first_name} {user.last_name || ''}
             </h3>
             {isFirstAdmin && (
               <span style={{
                 padding: '3px 8px',
-                background: ROYAL_COLORS.gradientGold,
+                background: tokens.gradients.warning,
                 color: '#1a0a00',
                 borderRadius: '6px',
                 fontSize: '11px',
@@ -1079,7 +1079,7 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
             <p style={{
               margin: '0 0 6px 0',
               fontSize: '14px',
-              color: ROYAL_COLORS.muted
+              color: tokens.colors.text.secondary
             }}>
               @{user.username}
             </p>
@@ -1091,22 +1091,22 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
               alignItems: 'center',
               gap: '6px',
               padding: '6px 12px',
-              background: ROYAL_COLORS.secondary,
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              background: tokens.colors.background.secondary,
+              border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '8px',
               fontSize: '13px',
               fontWeight: '600',
-              color: ROYAL_COLORS.accent
+              color: tokens.colors.brand.primary
             }}>
               {roleIcons[effectiveRole]} {roleNames[effectiveRole]}
             </span>
 
             {isPending ? (
-              <span style={ROYAL_STYLES.badgeWarning}>
+              <span style={styles.badge.baseWarning}>
                 ⏳ ממתין לאישור
               </span>
             ) : (
-              <span style={ROYAL_STYLES.badgeSuccess}>
+              <span style={styles.badge.baseSuccess}>
                 ✓ מאושר
               </span>
             )}
@@ -1116,10 +1116,10 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
 
       <div style={{
         fontSize: '13px',
-        color: ROYAL_COLORS.muted,
+        color: tokens.colors.text.secondary,
         marginBottom: '16px',
         paddingTop: '12px',
-        borderTop: `1px solid ${ROYAL_COLORS.cardBorder}`
+        borderTop: `1px solid ${tokens.colors.background.cardBorder}`
       }}>
         <p style={{ margin: '0 0 6px 0' }}>
           📅 נרשם: {new Date(user.created_at).toLocaleDateString('he-IL')}
@@ -1145,7 +1145,7 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
             }}
             style={{
               flex: 1,
-              ...ROYAL_STYLES.buttonSuccess,
+              ...styles.button.success,
               padding: '10px 16px',
               fontSize: '14px'
             }}
@@ -1160,7 +1160,7 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
             }}
             style={{
               flex: 1,
-              ...ROYAL_STYLES.buttonPrimary,
+              ...styles.button.primary,
               padding: '10px 16px',
               fontSize: '14px'
             }}
@@ -1175,7 +1175,7 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
             onViewAudit();
           }}
           style={{
-            ...ROYAL_STYLES.buttonSecondary,
+            ...styles.button.secondary,
             padding: '10px 16px',
             fontSize: '14px'
           }}
@@ -1190,7 +1190,7 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
               onDelete();
             }}
             style={{
-              ...ROYAL_STYLES.buttonDanger,
+              ...styles.button.danger,
               padding: '10px 16px',
               fontSize: '14px'
             }}
@@ -1218,10 +1218,10 @@ function RoleSelectionContent({ user, selectedRole, onRoleChange, theme }: any) 
       aria-label={`Select role ${name}`}
       style={{
         padding: '14px 16px',
-        border: `2px solid ${selectedRole === role ? ROYAL_COLORS.accent : ROYAL_COLORS.cardBorder}`,
+        border: `2px solid ${selectedRole === role ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
         borderRadius: '12px',
-        background: selectedRole === role ? ROYAL_COLORS.accent + '20' : 'transparent',
-        color: ROYAL_COLORS.text,
+        background: selectedRole === role ? tokens.colors.brand.primary + '20' : 'transparent',
+        color: tokens.colors.text.primary,
         fontSize: '16px',
         cursor: 'pointer',
         display: 'flex',
@@ -1236,7 +1236,7 @@ function RoleSelectionContent({ user, selectedRole, onRoleChange, theme }: any) 
       </span>
       <span style={{ flex: 1, textAlign: 'right' }}>{name}</span>
       {selectedRole === role && (
-        <span style={{ color: ROYAL_COLORS.accent, fontSize: '18px' }}>✓</span>
+        <span style={{ color: tokens.colors.brand.primary, fontSize: '18px' }}>✓</span>
       )}
     </button>
   );
@@ -1248,7 +1248,7 @@ function RoleSelectionContent({ user, selectedRole, onRoleChange, theme }: any) 
           width: '60px',
           height: '60px',
           borderRadius: '30px',
-          background: ROYAL_COLORS.gradientPurple,
+          background: tokens.gradients.primary,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1259,11 +1259,11 @@ function RoleSelectionContent({ user, selectedRole, onRoleChange, theme }: any) 
         }}>
           {user.first_name[0]}
         </div>
-        <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: ROYAL_COLORS.text }}>
+        <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: tokens.colors.text.primary }}>
           {user.first_name} {user.last_name}
         </h3>
         {user.username && (
-          <p style={{ margin: 0, color: ROYAL_COLORS.muted, fontSize: '14px' }}>
+          <p style={{ margin: 0, color: tokens.colors.text.secondary, fontSize: '14px' }}>
             @{user.username}
           </p>
         )}
@@ -1275,7 +1275,7 @@ function RoleSelectionContent({ user, selectedRole, onRoleChange, theme }: any) 
           marginBottom: '12px',
           fontSize: '16px',
           fontWeight: '600',
-          color: ROYAL_COLORS.text
+          color: tokens.colors.text.primary
         }}>
           בחר תפקיד:
         </label>
@@ -1285,7 +1285,7 @@ function RoleSelectionContent({ user, selectedRole, onRoleChange, theme }: any) 
           <div style={{
             fontSize: '13px',
             fontWeight: '600',
-            color: ROYAL_COLORS.muted,
+            color: tokens.colors.text.secondary,
             marginBottom: '8px',
             paddingRight: '4px'
           }}>
@@ -1304,7 +1304,7 @@ function RoleSelectionContent({ user, selectedRole, onRoleChange, theme }: any) 
           <div style={{
             fontSize: '13px',
             fontWeight: '600',
-            color: ROYAL_COLORS.muted,
+            color: tokens.colors.text.secondary,
             marginBottom: '8px',
             paddingRight: '4px'
           }}>
@@ -1333,16 +1333,16 @@ function AuditLogContent({ user, logs, loading }: any) {
     return (
       <div style={{ textAlign: 'center', padding: '40px 20px' }}>
         <div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div>
-        <p style={{ color: ROYAL_COLORS.muted }}>טוען יומן פעולות...</p>
+        <p style={{ color: tokens.colors.text.secondary }}>טוען יומן פעולות...</p>
       </div>
     );
   }
 
   if (logs.length === 0) {
     return (
-      <div style={ROYAL_STYLES.emptyState}>
-        <div style={ROYAL_STYLES.emptyStateIcon}>📋</div>
-        <p style={ROYAL_STYLES.emptyStateText}>
+      <div style={styles.emptyState.container}>
+        <div style={styles.emptyState.containerIcon}>📋</div>
+        <p style={styles.emptyState.containerText}>
           אין רישומים ביומן הפעולות עבור משתמש זה
         </p>
       </div>
@@ -1352,12 +1352,12 @@ function AuditLogContent({ user, logs, loading }: any) {
   return (
     <div>
       {user && (
-        <div style={{ marginBottom: '20px', textAlign: 'center', paddingBottom: '16px', borderBottom: `1px solid ${ROYAL_COLORS.cardBorder}` }}>
-          <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: ROYAL_COLORS.text }}>
+        <div style={{ marginBottom: '20px', textAlign: 'center', paddingBottom: '16px', borderBottom: `1px solid ${tokens.colors.background.cardBorder}` }}>
+          <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: tokens.colors.text.primary }}>
             {user.first_name} {user.last_name}
           </h3>
           {user.username && (
-            <p style={{ margin: 0, color: ROYAL_COLORS.muted, fontSize: '14px' }}>
+            <p style={{ margin: 0, color: tokens.colors.text.secondary, fontSize: '14px' }}>
               @{user.username}
             </p>
           )}
@@ -1370,40 +1370,40 @@ function AuditLogContent({ user, logs, loading }: any) {
             key={log.id}
             style={{
               padding: '14px',
-              background: ROYAL_COLORS.secondary,
-              border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+              background: tokens.colors.background.secondary,
+              border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '12px'
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontWeight: '600', color: ROYAL_COLORS.text, fontSize: '14px' }}>
+              <span style={{ fontWeight: '600', color: tokens.colors.text.primary, fontSize: '14px' }}>
                 {actionLabels[log.action] || log.action}
               </span>
-              <span style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+              <span style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
                 {new Date(log.created_at).toLocaleString('he-IL')}
               </span>
             </div>
 
             {log.previous_value && (
-              <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+              <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
                 <span style={{ opacity: 0.7 }}>מ: </span>
-                <span style={{ color: ROYAL_COLORS.crimson }}>
+                <span style={{ color: tokens.colors.status.error }}>
                   {JSON.stringify(log.previous_value)}
                 </span>
               </div>
             )}
 
             {log.new_value && (
-              <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+              <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
                 <span style={{ opacity: 0.7 }}>ל: </span>
-                <span style={{ color: ROYAL_COLORS.success }}>
+                <span style={{ color: tokens.colors.status.success }}>
                   {JSON.stringify(log.new_value)}
                 </span>
               </div>
             )}
 
             {log.performed_by_username && (
-              <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, marginTop: '8px', paddingTop: '8px', borderTop: `1px solid ${ROYAL_COLORS.cardBorder}` }}>
+              <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginTop: '8px', paddingTop: '8px', borderTop: `1px solid ${tokens.colors.background.cardBorder}` }}>
                 👤 בוצע על ידי: @{log.performed_by_username}
               </div>
             )}

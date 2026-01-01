@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ROYAL_COLORS } from '../styles/royalTheme';
+import { tokens } from '../styles/tokens';
 import { DataStore } from '../data/types';
 import { useI18n } from '../lib/i18n';
 import { haptic } from '../utils/haptic';
@@ -143,25 +143,25 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
   const statusConfig = {
     assigned: {
       label: translations.myDeliveriesPage?.readyToGo || 'Ready to Go',
-      color: ROYAL_COLORS.info,
+      color: tokens.colors.status.info,
       icon: '📋',
       nextStatus: 'in_progress' as const
     },
     ready: {
       label: 'מוכן לאיסוף',
-      color: ROYAL_COLORS.warning,
+      color: tokens.colors.status.warning,
       icon: '📦',
       nextStatus: 'in_progress' as const
     },
     in_progress: {
       label: translations.myDeliveriesPage?.onTheWay || 'On the Way',
-      color: ROYAL_COLORS.gold,
+      color: tokens.colors.status.warning,
       icon: '🚗',
       nextStatus: 'delivered' as const
     },
     delivered: {
       label: translations.myDeliveriesPage?.delivered || 'Delivered',
-      color: ROYAL_COLORS.success,
+      color: tokens.colors.status.success,
       icon: '✅',
       nextStatus: null
     }
@@ -205,8 +205,8 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: ROYAL_COLORS.background,
-        color: ROYAL_COLORS.text,
+        backgroundColor: tokens.colors.background.primary,
+        color: tokens.colors.text.primary,
         padding: '20px',
         paddingBottom: '100px',
         direction: isRTL ? 'rtl' : 'ltr'
@@ -214,10 +214,10 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
     >
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0', color: ROYAL_COLORS.text }}>
+        <h1 style={{ fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0', color: tokens.colors.text.primary }}>
           🚚 {translations.myDeliveriesPage?.title || 'My Deliveries'}
         </h1>
-        <p style={{ margin: '0', color: ROYAL_COLORS.muted, fontSize: '14px' }}>
+        <p style={{ margin: '0', color: tokens.colors.text.secondary, fontSize: '14px' }}>
           {translations.myDeliveriesPage?.subtitle || 'Manage your delivery tasks'}
         </p>
       </div>
@@ -232,20 +232,20 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
           style={{
             width: '100%',
             padding: '14px 16px',
-            background: ROYAL_COLORS.card,
-            border: `1px solid ${ROYAL_COLORS.cardBorder}`,
+            background: tokens.colors.background.card,
+            border: `1px solid ${tokens.colors.background.cardBorder}`,
             borderRadius: '14px',
-            color: ROYAL_COLORS.text,
+            color: tokens.colors.text.primary,
             fontSize: '15px',
             outline: 'none',
             transition: 'all 0.3s ease'
           }}
           onFocus={(e) => {
-            e.target.style.borderColor = ROYAL_COLORS.accent;
-            e.target.style.boxShadow = `0 0 0 3px ${ROYAL_COLORS.accent}20`;
+            e.target.style.borderColor = tokens.colors.brand.primary;
+            e.target.style.boxShadow = `0 0 0 3px ${tokens.colors.brand.primary}20`;
           }}
           onBlur={(e) => {
-            e.target.style.borderColor = ROYAL_COLORS.cardBorder;
+            e.target.style.borderColor = tokens.colors.background.cardBorder;
             e.target.style.boxShadow = 'none';
           }}
         />
@@ -267,10 +267,10 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
             }}
             style={{
               padding: '10px 18px',
-              background: filter === key ? ROYAL_COLORS.gradientPurple : ROYAL_COLORS.card,
-              border: `1px solid ${filter === key ? 'transparent' : ROYAL_COLORS.cardBorder}`,
+              background: filter === key ? tokens.gradients.primary : tokens.colors.background.card,
+              border: `1px solid ${filter === key ? 'transparent' : tokens.colors.background.cardBorder}`,
               borderRadius: '12px',
-              color: filter === key ? ROYAL_COLORS.textBright : ROYAL_COLORS.muted,
+              color: filter === key ? tokens.colors.text.primaryBright : tokens.colors.text.secondary,
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -279,12 +279,12 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              boxShadow: filter === key ? ROYAL_COLORS.glowPurpleStrong : 'none'
+              boxShadow: filter === key ? tokens.glows.primaryStrong : 'none'
             }}
           >
             {label}
             <span style={{
-              background: filter === key ? 'rgba(255,255,255,0.2)' : ROYAL_COLORS.secondary,
+              background: filter === key ? 'rgba(255,255,255,0.2)' : tokens.colors.background.secondary,
               padding: '2px 8px',
               borderRadius: '8px',
               fontSize: '12px',
@@ -302,15 +302,15 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
           <div style={{
             textAlign: 'center',
             padding: '80px 20px',
-            background: ROYAL_COLORS.card,
+            background: tokens.colors.background.card,
             borderRadius: '20px',
-            border: `1px solid ${ROYAL_COLORS.cardBorder}`
+            border: `1px solid ${tokens.colors.background.cardBorder}`
           }}>
             <div style={{ fontSize: '64px', marginBottom: '16px', opacity: 0.5 }}>📭</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '8px' }}>
+            <div style={{ fontSize: '18px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '8px' }}>
               לא נמצאו משלוחים
             </div>
-            <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+            <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
               נסה לשנות את הסינון או החיפוש
             </div>
           </div>
@@ -323,12 +323,12 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
               <div
                 key={delivery.id}
                 style={{
-                  backgroundColor: ROYAL_COLORS.card,
+                  backgroundColor: tokens.colors.background.card,
                   borderRadius: '20px',
-                  border: `2px solid ${isExpanded ? config.color : ROYAL_COLORS.cardBorder}`,
+                  border: `2px solid ${isExpanded ? config.color : tokens.colors.background.cardBorder}`,
                   overflow: 'hidden',
                   transition: 'all 0.3s ease',
-                  boxShadow: isExpanded ? `0 8px 24px ${config.color}30` : ROYAL_COLORS.shadow,
+                  boxShadow: isExpanded ? `0 8px 24px ${config.color}30` : tokens.shadows.md,
                   position: 'relative'
                 }}
               >
@@ -339,14 +339,14 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                     top: '12px',
                     left: isRTL ? 'auto' : '12px',
                     right: isRTL ? '12px' : 'auto',
-                    background: ROYAL_COLORS.gradientCrimson,
-                    color: ROYAL_COLORS.textBright,
+                    background: tokens.gradients.error,
+                    color: tokens.colors.text.primaryBright,
                     padding: '4px 12px',
                     borderRadius: '8px',
                     fontSize: '11px',
                     fontWeight: '700',
                     zIndex: 1,
-                    boxShadow: ROYAL_COLORS.glowCrimson
+                    boxShadow: tokens.glows.error
                   }}>
                     ⚡ דחוף
                   </div>
@@ -373,15 +373,15 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                     cursor: 'pointer',
                     transition: 'background 0.2s ease'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = ROYAL_COLORS.cardHover}
+                  onMouseEnter={(e) => e.currentTarget.style.background = tokens.colors.background.cardHover}
                   onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.text, marginBottom: '6px' }}>
+                      <div style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.text.primary, marginBottom: '6px' }}>
                         {delivery.customer}
                       </div>
-                      <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span>{delivery.id}</span>
                         <span>•</span>
                         <span>{delivery.distance}</span>
@@ -411,18 +411,18 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '12px',
-                    background: `${ROYAL_COLORS.accent}10`,
+                    background: `${tokens.colors.brand.primary}10`,
                     borderRadius: '12px',
                     marginBottom: '12px'
                   }}>
                     <span style={{ fontSize: '16px' }}>📍</span>
-                    <span style={{ fontSize: '15px', color: ROYAL_COLORS.text }}>{delivery.address}</span>
+                    <span style={{ fontSize: '15px', color: tokens.colors.text.primary }}>{delivery.address}</span>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{
                       fontSize: '13px',
-                      color: ROYAL_COLORS.muted,
+                      color: tokens.colors.text.secondary,
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px'
@@ -432,7 +432,7 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                     </div>
                     <div style={{
                       fontSize: '18px',
-                      color: ROYAL_COLORS.text,
+                      color: tokens.colors.text.primary,
                       transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
                       transition: 'transform 0.3s ease'
                     }}>
@@ -445,36 +445,36 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                 {isExpanded && (
                   <div style={{
                     padding: '0 20px 20px 20px',
-                    borderTop: `1px solid ${ROYAL_COLORS.cardBorder}`,
+                    borderTop: `1px solid ${tokens.colors.background.cardBorder}`,
                     paddingTop: '20px',
                     animation: 'fadeIn 0.3s ease'
                   }}>
                     {/* Customer Contact */}
                     <div style={{
-                      background: ROYAL_COLORS.secondary,
+                      background: tokens.colors.background.secondary,
                       padding: '16px',
                       borderRadius: '14px',
                       marginBottom: '16px'
                     }}>
-                      <div style={{ fontSize: '14px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '10px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '10px' }}>
                         📞 פרטי התקשרות
                       </div>
-                      <div style={{ fontSize: '16px', color: ROYAL_COLORS.text, marginBottom: '8px' }}>
+                      <div style={{ fontSize: '16px', color: tokens.colors.text.primary, marginBottom: '8px' }}>
                         {delivery.customerPhone}
                       </div>
-                      <div style={{ fontSize: '13px', color: ROYAL_COLORS.muted }}>
+                      <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>
                         {delivery.addressDetails}
                       </div>
                     </div>
 
                     {/* Items List */}
                     <div style={{
-                      background: ROYAL_COLORS.secondary,
+                      background: tokens.colors.background.secondary,
                       padding: '16px',
                       borderRadius: '14px',
                       marginBottom: '16px'
                     }}>
-                      <div style={{ fontSize: '14px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '12px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '12px' }}>
                         📦 פריטים במשלוח ({delivery.items.length})
                       </div>
                       {delivery.items.map((item, idx) => (
@@ -483,25 +483,25 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                           justifyContent: 'space-between',
                           alignItems: 'center',
                           padding: '10px 0',
-                          borderBottom: idx < delivery.items.length - 1 ? `1px solid ${ROYAL_COLORS.cardBorder}` : 'none'
+                          borderBottom: idx < delivery.items.length - 1 ? `1px solid ${tokens.colors.background.cardBorder}` : 'none'
                         }}>
                           <div>
-                            <div style={{ fontSize: '15px', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                            <div style={{ fontSize: '15px', color: tokens.colors.text.primary, marginBottom: '4px' }}>
                               {item.name}
                             </div>
                             {item.notes && (
-                              <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted, fontStyle: 'italic' }}>
+                              <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, fontStyle: 'italic' }}>
                                 💡 {item.notes}
                               </div>
                             )}
                           </div>
                           <div style={{
-                            background: `${ROYAL_COLORS.info}20`,
+                            background: `${tokens.colors.status.info}20`,
                             padding: '6px 12px',
                             borderRadius: '8px',
                             fontSize: '13px',
                             fontWeight: '600',
-                            color: ROYAL_COLORS.info
+                            color: tokens.colors.status.info
                           }}>
                             ×{item.quantity}
                           </div>
@@ -513,27 +513,27 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                         alignItems: 'center',
                         marginTop: '12px',
                         padding: '12px',
-                        background: `${ROYAL_COLORS.gold}15`,
+                        background: `${tokens.colors.status.warning}15`,
                         borderRadius: '10px'
                       }}>
-                        <span style={{ fontSize: '15px', fontWeight: '600', color: ROYAL_COLORS.text }}>סה"כ</span>
-                        <span style={{ fontSize: '20px', fontWeight: '700', color: ROYAL_COLORS.gold }}>₪{delivery.totalAmount}</span>
+                        <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text.primary }}>סה"כ</span>
+                        <span style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.status.warning }}>₪{delivery.totalAmount}</span>
                       </div>
                     </div>
 
                     {/* Special Instructions */}
                     {delivery.instructions && (
                       <div style={{
-                        background: `${ROYAL_COLORS.warning}15`,
-                        border: `1px solid ${ROYAL_COLORS.warning}30`,
+                        background: `${tokens.colors.status.warning}15`,
+                        border: `1px solid ${tokens.colors.status.warning}30`,
                         padding: '14px',
                         borderRadius: '14px',
                         marginBottom: '16px'
                       }}>
-                        <div style={{ fontSize: '14px', fontWeight: '600', color: ROYAL_COLORS.text, marginBottom: '6px' }}>
+                        <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '6px' }}>
                           ⚠️ הוראות מיוחדות
                         </div>
-                        <div style={{ fontSize: '14px', color: ROYAL_COLORS.text }}>
+                        <div style={{ fontSize: '14px', color: tokens.colors.text.primary }}>
                           {delivery.instructions}
                         </div>
                       </div>
@@ -548,10 +548,10 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                         }}
                         style={{
                           padding: '16px',
-                          background: ROYAL_COLORS.gradientSuccess,
+                          background: tokens.gradients.success,
                           border: 'none',
                           borderRadius: '14px',
-                          color: ROYAL_COLORS.textBright,
+                          color: tokens.colors.text.primaryBright,
                           fontSize: '16px',
                           fontWeight: '700',
                           cursor: 'pointer',
@@ -582,14 +582,14 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                         }}
                         style={{
                           padding: '16px',
-                          background: ROYAL_COLORS.gradientPurple,
+                          background: tokens.gradients.primary,
                           border: 'none',
                           borderRadius: '14px',
-                          color: ROYAL_COLORS.textBright,
+                          color: tokens.colors.text.primaryBright,
                           fontSize: '16px',
                           fontWeight: '700',
                           cursor: 'pointer',
-                          boxShadow: ROYAL_COLORS.glowPurpleStrong,
+                          boxShadow: tokens.glows.primaryStrong,
                           transition: 'all 0.3s ease',
                           display: 'flex',
                           alignItems: 'center',
@@ -602,7 +602,7 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = ROYAL_COLORS.glowPurpleStrong;
+                          e.currentTarget.style.boxShadow = tokens.glows.primaryStrong;
                         }}
                       >
                         <span style={{ fontSize: '18px' }}>🗺️</span>
@@ -624,7 +624,7 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                           background: `linear-gradient(135deg, ${config.color}, ${statusConfig[config.nextStatus].color})`,
                           border: 'none',
                           borderRadius: '14px',
-                          color: ROYAL_COLORS.textBright,
+                          color: tokens.colors.text.primaryBright,
                           fontSize: '18px',
                           fontWeight: '700',
                           cursor: 'pointer',

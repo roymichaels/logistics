@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ROYAL_COLORS, ROYAL_STYLES, getStatusBadgeStyle } from '../../styles/royalTheme';
+import { getStatusBadgeStyle, tokens } from '../../styles/tokens';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { ContentCard } from '../../components/layout/ContentCard';
@@ -46,10 +46,10 @@ export function RoutePlanning() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return ROYAL_COLORS.error;
-      case 'medium': return ROYAL_COLORS.warning;
-      case 'low': return ROYAL_COLORS.info;
-      default: return ROYAL_COLORS.muted;
+      case 'high': return tokens.colors.status.error;
+      case 'medium': return tokens.colors.status.warning;
+      case 'low': return tokens.colors.status.info;
+      default: return tokens.colors.text.secondary;
     }
   };
 
@@ -63,13 +63,13 @@ export function RoutePlanning() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '24px' }}>
         <div>
-          <label style={{ display: 'block', fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '8px', fontWeight: 500 }}>
+          <label style={{ display: 'block', fontSize: '14px', color: tokens.colors.text.secondary, marginBottom: '8px', fontWeight: 500 }}>
             Assign to Driver
           </label>
           <select
             value={selectedDriver}
             onChange={(e) => setSelectedDriver(e.target.value)}
-            style={ROYAL_STYLES.input}
+            style={styles.input}
           >
             {drivers.map((driver) => (
               <option key={driver.value} value={driver.value}>
@@ -79,13 +79,13 @@ export function RoutePlanning() {
           </select>
         </div>
         <div>
-          <label style={{ display: 'block', fontSize: '14px', color: ROYAL_COLORS.muted, marginBottom: '8px', fontWeight: 500 }}>
+          <label style={{ display: 'block', fontSize: '14px', color: tokens.colors.text.secondary, marginBottom: '8px', fontWeight: 500 }}>
             Filter by Zone
           </label>
           <select
             value={selectedZone}
             onChange={(e) => setSelectedZone(e.target.value)}
-            style={ROYAL_STYLES.input}
+            style={styles.input}
           >
             {zones.map((zone) => (
               <option key={zone.value} value={zone.value}>
@@ -98,7 +98,7 @@ export function RoutePlanning() {
           <button
             onClick={() => console.log('Optimize route')}
             style={{
-              ...ROYAL_STYLES.buttonPrimary,
+              ...styles.button.primary,
               width: '100%'
             }}
           >
@@ -110,12 +110,12 @@ export function RoutePlanning() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '24px' }}>
         <ContentCard>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={ROYAL_STYLES.cardTitle}>Pending Deliveries</h2>
+            <h2 style={styles.cardTitle}>Pending Deliveries</h2>
             <span
               style={{
                 padding: '6px 12px',
-                background: ROYAL_COLORS.warning + '20',
-                color: ROYAL_COLORS.warning,
+                background: tokens.colors.status.warning + '20',
+                color: tokens.colors.status.warning,
                 borderRadius: '12px',
                 fontSize: '14px',
                 fontWeight: 700,
@@ -135,19 +135,19 @@ export function RoutePlanning() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   <div>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: tokens.colors.text.secondary, marginBottom: '4px' }}>
                       {stop.orderNumber}
                     </div>
-                    <div style={{ fontSize: '16px', fontWeight: 600, color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                    <div style={{ fontSize: '16px', fontWeight: 600, color: tokens.colors.text.primary, marginBottom: '4px' }}>
                       {stop.customerName}
                     </div>
-                    <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                    <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
                       📍 {stop.address}
                     </div>
                   </div>
                   <span
                     style={{
-                      ...ROYAL_STYLES.badge,
+                      ...styles.badge.base,
                       backgroundColor: getPriorityColor(stop.priority) + '20',
                       color: getPriorityColor(stop.priority),
                       border: `1px solid ${getPriorityColor(stop.priority)}40`,
@@ -158,7 +158,7 @@ export function RoutePlanning() {
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                  <span style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
                     ETA: {stop.estimatedTime}
                   </span>
                   <button
@@ -167,7 +167,7 @@ export function RoutePlanning() {
                       console.log('Assign stop:', stop.id);
                     }}
                     style={{
-                      ...ROYAL_STYLES.buttonSuccess,
+                      ...styles.button.success,
                       padding: '6px 12px',
                       fontSize: '12px'
                     }}
@@ -180,9 +180,9 @@ export function RoutePlanning() {
           </div>
 
           {pendingStops.length === 0 && (
-            <div style={ROYAL_STYLES.emptyState}>
-              <div style={ROYAL_STYLES.emptyStateIcon}>📦</div>
-              <p style={ROYAL_STYLES.emptyStateText}>
+            <div style={styles.emptyState.container}>
+              <div style={styles.emptyState.containerIcon}>📦</div>
+              <p style={styles.emptyState.containerText}>
                 No pending deliveries at the moment.
               </p>
             </div>
@@ -191,12 +191,12 @@ export function RoutePlanning() {
 
         <ContentCard>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={ROYAL_STYLES.cardTitle}>Assigned Routes</h2>
+            <h2 style={styles.cardTitle}>Assigned Routes</h2>
             <span
               style={{
                 padding: '6px 12px',
-                background: ROYAL_COLORS.info + '20',
-                color: ROYAL_COLORS.info,
+                background: tokens.colors.status.info + '20',
+                color: tokens.colors.status.info,
                 borderRadius: '12px',
                 fontSize: '14px',
                 fontWeight: 700,
@@ -220,13 +220,13 @@ export function RoutePlanning() {
                       width: '32px',
                       height: '32px',
                       borderRadius: '50%',
-                      background: ROYAL_COLORS.gradientPurple,
+                      background: tokens.gradients.primary,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '14px',
                       fontWeight: 700,
-                      color: ROYAL_COLORS.white,
+                      color: tokens.colors.text.bright,
                       flexShrink: 0,
                     }}
                   >
@@ -235,13 +235,13 @@ export function RoutePlanning() {
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                       <div>
-                        <div style={{ fontSize: '12px', fontWeight: 600, color: ROYAL_COLORS.muted, marginBottom: '4px' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 600, color: tokens.colors.text.secondary, marginBottom: '4px' }}>
                           {stop.orderNumber}
                         </div>
-                        <div style={{ fontSize: '16px', fontWeight: 600, color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                        <div style={{ fontSize: '16px', fontWeight: 600, color: tokens.colors.text.primary, marginBottom: '4px' }}>
                           {stop.customerName}
                         </div>
-                        <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                        <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
                           📍 {stop.address}
                         </div>
                       </div>
@@ -249,7 +249,7 @@ export function RoutePlanning() {
                         {stop.status.replace('_', ' ')}
                       </span>
                     </div>
-                    <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                    <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
                       ETA: {stop.estimatedTime}
                     </div>
                   </div>
@@ -259,9 +259,9 @@ export function RoutePlanning() {
           </div>
 
           {assignedStops.length === 0 && (
-            <div style={ROYAL_STYLES.emptyState}>
-              <div style={ROYAL_STYLES.emptyStateIcon}>🚚</div>
-              <p style={ROYAL_STYLES.emptyStateText}>
+            <div style={styles.emptyState.container}>
+              <div style={styles.emptyState.containerIcon}>🚚</div>
+              <p style={styles.emptyState.containerText}>
                 No assigned routes yet. Start assigning deliveries.
               </p>
             </div>

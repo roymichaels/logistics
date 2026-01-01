@@ -1,5 +1,4 @@
 import React from 'react';
-import { ROYAL_STYLES } from '../../styles/royalTheme';
 
 interface OrdersSearchProps {
   value: string;
@@ -15,7 +14,7 @@ export function OrdersSearch({ value, onChange, placeholder = 'חיפוש לפי
       value={value}
       onChange={(e) => onChange(e.target.value)}
       style={{
-        ...ROYAL_STYLES.input,
+        ...styles.input,
         marginBottom: '20px',
         fontSize: '15px'
       }}
