@@ -20,7 +20,16 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@ui/*": ["./src/ui/*"],
+      "@modules/*": ["./src/modules/*"],
+      "@domain/*": ["./src/domain/*"],
+      "@foundation/*": ["./src/foundation/*"],
+      "@application/*": ["./src/application/*"],
+      "@lib/*": ["./src/lib/*"],
+      "@services/*": ["./src/services/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@components/*": ["./src/components/*"]
     }
   },
   "include": [
