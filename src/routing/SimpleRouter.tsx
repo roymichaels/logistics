@@ -18,7 +18,7 @@ const Chat = React.lazy(() => import('../pages/Chat').then(m => ({ default: m.Ch
 const Businesses = React.lazy(() => import('../pages/Businesses').then(m => ({ default: m.Businesses })));
 const Inventory = React.lazy(() => import('../modules/inventory/pages/UnifiedInventoryPage').then(m => ({ default: m.UnifiedInventoryPage })));
 const DispatchBoard = React.lazy(() => import('../pages/DispatchBoard').then(m => ({ default: m.DispatchBoard })));
-const DriversManagement = React.lazy(() => import('../pages/DriversManagement').then(m => ({ default: m.DriversManagement })));
+const Drivers = React.lazy(() => import('../modules/driver/pages/UnifiedDriversPage').then(m => ({ default: m.UnifiedDriversPage })));
 const Reports = React.lazy(() => import('../pages/Reports').then(m => ({ default: m.Reports })));
 const UserManagement = React.lazy(() => import('../pages/UserManagement').then(m => ({ default: m.UserManagement || m.default })));
 const TeamManagement = React.lazy(() => import('../pages/business/TeamManagement').then(m => ({ default: m.TeamManagement })));
@@ -32,8 +32,6 @@ const Notifications = React.lazy(() => import('../pages/Notifications').then(m =
 const MyStats = React.lazy(() => import('../pages/MyStats').then(m => ({ default: m.MyStats })));
 const Channels = React.lazy(() => import('../pages/Channels').then(m => ({ default: m.Channels })));
 const MyDeliveries = React.lazy(() => import('../pages/MyDeliveries').then(m => ({ default: m.MyDeliveries })));
-const DriverDashboard = React.lazy(() => import('../pages/DriverDashboard').then(m => ({ default: m.DriverDashboard })));
-const DriverEarningsPage = React.lazy(() => import('../pages/DriverEarningsPage').then(m => ({ default: m.default })));
 const CatalogPage = React.lazy(() => import('../store/CatalogPage').then(m => ({ default: m.CatalogPage })));
 const SearchPage = React.lazy(() => import('../store/SearchPage').then(m => ({ default: m.SearchPage })));
 const CartPage = React.lazy(() => import('../store/CartPage').then(m => ({ default: m.CartPage })));
@@ -147,7 +145,7 @@ export function SimpleRouter() {
           <Route path="/admin/users" element={<Suspense fallback={<PageLoadingSkeleton />}><UserManagement /></Suspense>} />
           <Route path="/admin/analytics" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminAnalytics dataStore={dataStore} /></Suspense>} />
           <Route path="/admin/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
-          <Route path="/admin/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><DriversManagement dataStore={dataStore} /></Suspense>} />
+          <Route path="/admin/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><Drivers role="admin" /></Suspense>} />
           <Route path="/admin/system-settings" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminSettings /></Suspense>} />
           <Route path="/admin/permissions" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminPermissionManagement /></Suspense>} />
           <Route path="/admin/logs" element={<Suspense fallback={<PageLoadingSkeleton />}><AuditLogs /></Suspense>} />
@@ -175,7 +173,7 @@ export function SimpleRouter() {
           <Route path="/inventory" element={<Suspense fallback={<PageLoadingSkeleton />}><Inventory onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/inventory" element={<Suspense fallback={<PageLoadingSkeleton />}><Inventory onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/dispatch" element={<Suspense fallback={<PageLoadingSkeleton />}><DispatchBoard dataStore={dataStore} /></Suspense>} />
-          <Route path="/business/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><DriversManagement dataStore={dataStore} /></Suspense>} />
+          <Route path="/business/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><Drivers role="manager" /></Suspense>} />
           <Route path="/business/reports" element={<Suspense fallback={<PageLoadingSkeleton />}><Reports dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/sales" element={<Suspense fallback={<PageLoadingSkeleton />}><SalesDashboard /></Suspense>} />
           <Route path="/business/support" element={<Suspense fallback={<PageLoadingSkeleton />}><SupportConsole /></Suspense>} />
@@ -199,8 +197,8 @@ export function SimpleRouter() {
       {isDriverRole && (
         <>
           <Route path="/driver/deliveries" element={<Suspense fallback={<PageLoadingSkeleton />}><MyDeliveries dataStore={dataStore} /></Suspense>} />
-          <Route path="/driver/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverDashboard dataStore={dataStore} /></Suspense>} />
-          <Route path="/driver/earnings" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverEarningsPage /></Suspense>} />
+          <Route path="/driver/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><Drivers role="driver" userId={userId} /></Suspense>} />
+          <Route path="/driver/earnings" element={<Suspense fallback={<PageLoadingSkeleton />}><Drivers role="driver" userId={userId} /></Suspense>} />
           <Route path="/driver/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
           <Route path="/driver/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
           <Route path="/driver/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
