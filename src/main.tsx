@@ -61,7 +61,12 @@ initializeApplicationLayer();
       'hasVisitedBefore',
       // Preserve SxT / wallet sessions so refresh does not log users out
       'sxt_session',
-      'sxt.wallet.session'
+      'sxt.wallet.session',
+      // Preserve local session manager data
+      'local-wallet-session',
+      'wallet-role-map',
+      // Preserve dev console role override
+      'dev-console:role-override'
     ];
 
     const preservedData: Record<string, string> = {};
