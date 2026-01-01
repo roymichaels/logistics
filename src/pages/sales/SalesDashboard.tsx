@@ -1,33 +1,31 @@
 import React, { useState } from 'react';
-import { ROYAL_COLORS, ROYAL_STYLES, getStatusBadgeStyle } from '../../styles/royalTheme';
+import { tokens } from '../../theme/tokens';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { ContentCard } from '../../components/layout/ContentCard';
+import { TimeRangePicker, TimeRange } from '../../components/molecules/TimeRangePicker';
+import { StatusBadge, StatusVariant } from '../../components/atoms/StatusBadge';
+import { ActivityFeed, Activity } from '../../components/organisms/ActivityFeed';
+import { MetricCard } from '../../components/dashboard/MetricCard';
+import { Button } from '../../components/atoms/Button';
 
 interface Lead {
   id: string;
   name: string;
   company: string;
-  status: 'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost';
+  status: StatusVariant;
   value: string;
   lastContact: string;
 }
 
 export function SalesDashboard() {
-  const [timeFilter, setTimeFilter] = useState('this_month');
+  const [timeFilter, setTimeFilter] = useState<TimeRange>('this_month');
 
   const salesStats = [
-    { label: 'Total Revenue', value: '$125,430', change: '+18%', icon: '💰', isPositive: true },
-    { label: 'Active Leads', value: '34', change: '+5', icon: '📈', isPositive: true },
-    { label: 'Closed Deals', value: '12', change: '+3', icon: '✅', isPositive: true },
-    { label: 'Conversion Rate', value: '35%', change: '+8%', icon: '🎯', isPositive: true },
-  ];
-
-  const timeOptions = [
-    { value: 'today', label: 'Today' },
-    { value: 'this_week', label: 'This Week' },
-    { value: 'this_month', label: 'This Month' },
-    { value: 'this_quarter', label: 'This Quarter' },
+    { label: 'Total Revenue', value: '$125,430', change: '+18%', icon: '💰', trend: 'up' as const },
+    { label: 'Active Leads', value: '34', change: '+5', icon: '📈', trend: 'up' as const },
+    { label: 'Closed Deals', value: '12', change: '+3', icon: '✅', trend: 'up' as const },
+    { label: 'Conversion Rate', value: '35%', change: '+8%', icon: '🎯', trend: 'up' as const },
   ];
 
   const leads: Lead[] = [
@@ -37,24 +35,11 @@ export function SalesDashboard() {
     { id: '4', name: 'Alice Brown', company: 'EnterpriseCo', status: 'new', value: '$50,000', lastContact: '5 days ago' },
   ];
 
-  const getStatusColor = (status: string) => {
-    const colors_map: Record<string, string> = {
-      new: ROYAL_COLORS.info,
-      contacted: '#06b6d4',
-      qualified: '#3b82f6',
-      proposal: '#f59e0b',
-      negotiation: '#0ea5e9',
-      won: ROYAL_COLORS.success,
-      lost: ROYAL_COLORS.error,
-    };
-    return colors_map[status] || ROYAL_COLORS.muted;
-  };
-
-  const recentActivities = [
-    { type: 'call', message: 'Called TechCorp - John Doe', time: '2 hours ago' },
-    { type: 'email', message: 'Sent proposal to BusinessInc', time: '1 day ago' },
-    { type: 'meeting', message: 'Meeting scheduled with StartupXYZ', time: '2 days ago' },
-    { type: 'deal', message: 'Closed deal with MegaCorp', time: '3 days ago' },
+  const activities: Activity[] = [
+    { id: '1', type: 'call', message: 'Called TechCorp - John Doe', time: '2 hours ago' },
+    { id: '2', type: 'email', message: 'Sent proposal to BusinessInc', time: '1 day ago' },
+    { id: '3', type: 'meeting', message: 'Meeting scheduled with StartupXYZ', time: '2 days ago' },
+    { id: '4', type: 'deal', message: 'Closed deal with MegaCorp', time: '3 days ago' },
   ];
 
   return (
@@ -64,17 +49,7 @@ export function SalesDashboard() {
         title="Sales Dashboard"
         subtitle="Track your sales performance and manage leads"
         actionButton={
-          <select
-            value={timeFilter}
-            onChange={(e) => setTimeFilter(e.target.value)}
-            style={{ ...ROYAL_STYLES.input, minWidth: '200px', margin: 0 }}
-          >
-            {timeOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <TimeRangePicker value={timeFilter} onChange={setTimeFilter} />
         }
       />
 
@@ -87,35 +62,34 @@ export function SalesDashboard() {
         }}
       >
         {salesStats.map((stat) => (
-          <ContentCard key={stat.label} hoverable onClick={() => console.log('View details:', stat.label)}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-              <div>
-                <div style={ROYAL_STYLES.statLabel}>{stat.label}</div>
-                <div style={ROYAL_STYLES.statValue}>{stat.value}</div>
-                <div style={{ fontSize: '14px', color: stat.isPositive ? ROYAL_COLORS.success : ROYAL_COLORS.error, fontWeight: 600 }}>
-                  {stat.change}
-                </div>
-              </div>
-              <div style={{ fontSize: '36px' }}>{stat.icon}</div>
-            </div>
-          </ContentCard>
+          <MetricCard
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            change={stat.change}
+            trend={stat.trend}
+            icon={stat.icon}
+            onClick={() => console.log('View details:', stat.label)}
+          />
         ))}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
         <ContentCard>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h2 style={ROYAL_STYLES.cardTitle}>Active Leads</h2>
-            <button
-              onClick={() => console.log('Add new lead')}
+            <h2
               style={{
-                ...ROYAL_STYLES.buttonPrimary,
-                padding: '8px 16px',
-                fontSize: '14px'
+                margin: 0,
+                fontSize: '18px',
+                fontWeight: 700,
+                color: tokens.colors.text.primary,
               }}
             >
+              Active Leads
+            </h2>
+            <Button size="sm" onClick={() => console.log('Add new lead')}>
               + New Lead
-            </button>
+            </Button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {leads.map((lead) => (
@@ -127,30 +101,20 @@ export function SalesDashboard() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   <div>
-                    <div style={{ fontSize: '16px', fontWeight: 600, color: ROYAL_COLORS.text, marginBottom: '4px' }}>
+                    <div style={{ fontSize: '16px', fontWeight: 600, color: tokens.colors.text.primary, marginBottom: '4px' }}>
                       {lead.name}
                     </div>
-                    <div style={{ fontSize: '14px', color: ROYAL_COLORS.muted }}>
+                    <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
                       {lead.company}
                     </div>
                   </div>
-                  <span
-                    style={{
-                      ...ROYAL_STYLES.badge,
-                      backgroundColor: getStatusColor(lead.status) + '20',
-                      color: getStatusColor(lead.status),
-                      border: `1px solid ${getStatusColor(lead.status)}40`,
-                      textTransform: 'capitalize',
-                    }}
-                  >
-                    {lead.status}
-                  </span>
+                  <StatusBadge variant={lead.status} size="sm" />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 700, color: ROYAL_COLORS.primary }}>
+                  <span style={{ fontSize: '16px', fontWeight: 700, color: tokens.colors.primary[600] }}>
                     {lead.value}
                   </span>
-                  <span style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>
+                  <span style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
                     Last contact: {lead.lastContact}
                   </span>
                 </div>
@@ -159,42 +123,22 @@ export function SalesDashboard() {
           </div>
         </ContentCard>
 
-        <ContentCard>
-          <h2 style={ROYAL_STYLES.cardTitle}>Recent Activity</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {recentActivities.map((activity, index) => (
-              <div key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <div
-                  style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    backgroundColor: ROYAL_COLORS.primary,
-                    marginTop: '6px',
-                    flexShrink: 0,
-                    boxShadow: `0 0 10px ${ROYAL_COLORS.primary}`,
-                  }}
-                />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', color: ROYAL_COLORS.text, marginBottom: '4px' }}>
-                    {activity.message}
-                  </div>
-                  <div style={{ fontSize: '12px', color: ROYAL_COLORS.muted }}>{activity.time}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <button
+        <div>
+          <ActivityFeed
+            activities={activities}
+            title="Recent Activity"
+            onActivityClick={(activity) => console.log('Activity clicked:', activity)}
+            maxHeight="500px"
+          />
+          <Button
+            variant="secondary"
+            fullWidth
             onClick={() => console.log('View all activities')}
-            style={{
-              ...ROYAL_STYLES.buttonSecondary,
-              marginTop: '24px',
-              width: '100%'
-            }}
+            style={{ marginTop: '16px' }}
           >
             View All Activity
-          </button>
-        </ContentCard>
+          </Button>
+        </div>
       </div>
     </PageContainer>
   );

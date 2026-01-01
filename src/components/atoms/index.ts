@@ -16,6 +16,8 @@ export * from './ResponsiveGrid';
 export * from './Section';
 export * from './Skeleton';
 export * from './Spinner';
+export * from './StatusBadge';
+export * from './StatusIndicator';
 export * from './Switch';
 export * from './Tooltip';
 export * from './Typography';
