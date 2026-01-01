@@ -44,21 +44,17 @@ const UserProfile = React.lazy(() => import('../pages/UserProfile').then(m => ({
 const PlatformCatalog = React.lazy(() => import('../pages/admin/PlatformCatalog').then(m => ({ default: m.PlatformCatalog })));
 const PlatformDashboard = React.lazy(() => import('../pages/admin/PlatformDashboard').then(m => ({ default: m.PlatformDashboard })));
 const BusinessCatalogManagement = React.lazy(() => import('../pages/business/BusinessCatalogManagement').then(m => ({ default: m.BusinessCatalogManagement })));
-const InfrastructureDashboard = React.lazy(() => import('../pages/infrastructure/InfrastructureDashboard').then(m => ({ default: m.InfrastructureDashboard })));
 const AdminBusinesses = React.lazy(() => import('../pages/admin/AdminBusinesses').then(m => ({ default: m.AdminBusinesses })));
 const AdminSettings = React.lazy(() => import('../pages/admin/AdminSettings').then(m => ({ default: m.AdminSettings })));
 const SupportConsole = React.lazy(() => import('../pages/customer-service/SupportConsole').then(m => ({ default: m.SupportConsole })));
 const AdminPermissionManagement = React.lazy(() => import('../pages/admin/PermissionManagement').then(m => ({ default: m.PermissionManagement })));
-const InfrastructurePermissionManagement = React.lazy(() => import('../pages/infrastructure/PermissionManagement').then(m => ({ default: m.InfrastructurePermissionManagement })));
 const BusinessPermissionManagement = React.lazy(() => import('../pages/business/PermissionManagement').then(m => ({ default: m.BusinessPermissionManagement })));
-const InfrastructureCatalogs = React.lazy(() => import('../pages/infrastructure/InfrastructureCatalogs').then(m => ({ default: m.InfrastructureCatalogs })));
 const UnauthorizedPage = React.lazy(() => import('../pages/Unauthorized').then(m => ({ default: m.UnauthorizedPage || m.default })));
 const Infrastructures = React.lazy(() => import('../pages/admin/Infrastructures').then(m => ({ default: m.default })));
 const Superadmins = React.lazy(() => import('../pages/admin/Superadmins').then(m => ({ default: m.default })));
 const AuditLogs = React.lazy(() => import('../pages/admin/AuditLogs').then(m => ({ default: m.default })));
 const FeatureFlags = React.lazy(() => import('../pages/admin/FeatureFlags').then(m => ({ default: m.default })));
 const BusinessSettings = React.lazy(() => import('../pages/business/Settings').then(m => ({ default: m.default })));
-const InfrastructureSettings = React.lazy(() => import('../pages/infrastructure/Settings').then(m => ({ default: m.default })));
 
 // Role-aware redirect component
 function RoleBasedRedirect() {
@@ -130,7 +126,6 @@ export function SimpleRouter() {
 
   // Role-based routes - STRICT SEPARATION
   const isAdmin = ['admin', 'superadmin'].includes(userRole || '');
-  const isInfraOwner = ['infrastructure_owner', 'accountant'].includes(userRole || '');
   const isBusinessRole = ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service'].includes(userRole || '');
   const isDriverRole = userRole === 'driver';
   const isCustomerRole = ['customer', 'user'].includes(userRole || '');
@@ -160,24 +155,6 @@ export function SimpleRouter() {
           <Route path="/admin/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/admin/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
           <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
-        </>
-      )}
-
-      {/* Infrastructure Owner routes */}
-      {isInfraOwner && (
-        <>
-          <Route path="/infrastructure/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><InfrastructureDashboard /></Suspense>} />
-          <Route path="/infrastructure/businesses" element={<Suspense fallback={<PageLoadingSkeleton />}><Businesses dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
-          <Route path="/infrastructure/business-catalogs" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessCatalogManagement /></Suspense>} />
-          <Route path="/infrastructure/catalogs" element={<Suspense fallback={<PageLoadingSkeleton />}><InfrastructureCatalogs /></Suspense>} />
-          <Route path="/infrastructure/permissions" element={<Suspense fallback={<PageLoadingSkeleton />}><InfrastructurePermissionManagement /></Suspense>} />
-          <Route path="/infrastructure/reports" element={<Suspense fallback={<PageLoadingSkeleton />}><Reports dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
-          <Route path="/infrastructure/analytics" element={<Suspense fallback={<PageLoadingSkeleton />}><MyStats dataStore={dataStore} /></Suspense>} />
-          <Route path="/infrastructure/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
-          <Route path="/infrastructure/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><DriversManagement dataStore={dataStore} /></Suspense>} />
-          <Route path="/infrastructure/team" element={<Suspense fallback={<PageLoadingSkeleton />}><TeamManagement /></Suspense>} />
-          <Route path="/infrastructure/settings" element={<Suspense fallback={<PageLoadingSkeleton />}><InfrastructureSettings /></Suspense>} />
-          <Route path="/infrastructure/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
         </>
       )}
 

@@ -33,25 +33,6 @@ export const UNIFIED_ROUTES: RouteConfig[] = [
     ]
   },
 
-  // Infrastructure routes
-  {
-    path: '/infrastructure',
-    name: 'Infrastructure',
-    roles: ['infrastructure_owner', 'accountant'],
-    isEntryPoint: true,
-    children: [
-      { path: '/infrastructure/dashboard', name: 'Infrastructure Dashboard', roles: ['infrastructure_owner', 'accountant'], isEntryPoint: true },
-      { path: '/infrastructure/businesses', name: 'My Businesses', roles: ['infrastructure_owner'] },
-      { path: '/infrastructure/reports', name: 'Consolidated Reports', roles: ['infrastructure_owner', 'accountant'] },
-      { path: '/infrastructure/analytics', name: 'Analytics', roles: ['infrastructure_owner', 'accountant'] },
-      { path: '/infrastructure/orders', name: 'All Orders', roles: ['infrastructure_owner', 'accountant'] },
-      { path: '/infrastructure/drivers', name: 'All Drivers', roles: ['infrastructure_owner'] },
-      { path: '/infrastructure/team', name: 'Team', roles: ['infrastructure_owner'] },
-      { path: '/infrastructure/business-catalogs', name: 'Business Catalogs', roles: ['infrastructure_owner'] },
-      { path: '/infrastructure/settings', name: 'Settings', roles: ['infrastructure_owner'] }
-    ]
-  },
-
   // Business routes
   {
     path: '/business',
@@ -141,8 +122,6 @@ export function getEntryPointForRole(role: UserRole | null): string {
   const entryPoints: Record<UserRole, string> = {
     superadmin: '/admin/platform-dashboard',
     admin: '/admin/platform-dashboard',
-    infrastructure_owner: '/infrastructure/dashboard',
-    accountant: '/infrastructure/dashboard',
     business_owner: '/business/dashboard',
     manager: '/business/dashboard',
     warehouse: '/business/inventory',
@@ -157,9 +136,8 @@ export function getEntryPointForRole(role: UserRole | null): string {
   return entryPoints[role] || '/store/catalog';
 }
 
-export function getShellTypeForPath(path: string): 'admin' | 'infrastructure' | 'business' | 'driver' | 'store' | 'auth' {
+export function getShellTypeForPath(path: string): 'admin' | 'business' | 'driver' | 'store' | 'auth' {
   if (path.startsWith('/admin')) return 'admin';
-  if (path.startsWith('/infrastructure')) return 'infrastructure';
   if (path.startsWith('/business')) return 'business';
   if (path.startsWith('/driver')) return 'driver';
   if (path.startsWith('/store')) return 'store';

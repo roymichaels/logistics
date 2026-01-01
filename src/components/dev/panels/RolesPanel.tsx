@@ -6,19 +6,17 @@ import { localSessionManager } from '../../../lib/localSessionManager';
 const ROLE_OVERRIDE_KEY = 'dev-console:role-override';
 
 const AVAILABLE_ROLES = [
-  { value: 'superadmin', label: 'Superadmin', category: 'Platform' },
-  { value: 'admin', label: 'Admin', category: 'Platform' },
-  { value: 'infrastructure_owner', label: 'Infrastructure Owner', category: 'Infrastructure' },
-  { value: 'accountant', label: 'Accountant', category: 'Infrastructure' },
-  { value: 'business_owner', label: 'Business Owner', category: 'Business' },
-  { value: 'manager', label: 'Manager', category: 'Business' },
-  { value: 'warehouse', label: 'Warehouse', category: 'Business' },
-  { value: 'dispatcher', label: 'Dispatcher', category: 'Business' },
-  { value: 'sales', label: 'Sales', category: 'Business' },
-  { value: 'customer_service', label: 'Customer Service', category: 'Business' },
-  { value: 'driver', label: 'Driver', category: 'Delivery' },
-  { value: 'customer', label: 'Customer', category: 'Store' },
-  { value: 'user', label: 'Guest User', category: 'Store' },
+  { value: 'superadmin', label: 'Superadmin' },
+  { value: 'admin', label: 'Admin' },
+  { value: 'business_owner', label: 'Business Owner' },
+  { value: 'manager', label: 'Manager' },
+  { value: 'warehouse', label: 'Warehouse' },
+  { value: 'dispatcher', label: 'Dispatcher' },
+  { value: 'sales', label: 'Sales' },
+  { value: 'customer_service', label: 'Customer Service' },
+  { value: 'driver', label: 'Driver' },
+  { value: 'customer', label: 'Customer' },
+  { value: 'user', label: 'Guest User' },
 ];
 
 export function RolesPanel() {
@@ -35,6 +33,8 @@ export function RolesPanel() {
     }
 
     setSwitchingRole(true);
+
+    localSessionManager.assignRoleToWallet(currentSession.wallet, newRole);
     localStorage.setItem(ROLE_OVERRIDE_KEY, newRole);
 
     const entryPoint = getEntryPointForRole(newRole as any);
@@ -60,24 +60,7 @@ export function RolesPanel() {
   const hasOverride = localStorage.getItem(ROLE_OVERRIDE_KEY) !== null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '12px' }}>
-      {/* Warning Banner */}
-      <div
-        style={{
-          padding: '10px 12px',
-          borderRadius: '8px',
-          backgroundColor: 'rgba(251, 191, 36, 0.1)',
-          border: '1px solid rgba(251, 191, 36, 0.3)',
-        }}
-      >
-        <div style={{ fontSize: '11px', fontWeight: '600', color: '#fbbf24', marginBottom: '4px' }}>
-          Dev Mode Only
-        </div>
-        <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.6)', lineHeight: '1.4' }}>
-          Role switching requires wallet authentication. Connect your wallet first at /auth/login
-        </div>
-      </div>
-
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '12px' }}>
       {/* Current Session Info */}
       <div
         style={{
@@ -146,23 +129,11 @@ export function RolesPanel() {
             opacity: currentSession ? 1 : 0.5,
           }}
         >
-          {AVAILABLE_ROLES.map((role, index, array) => {
-            const prevCategory = index > 0 ? array[index - 1].category : null;
-            const showCategory = role.category !== prevCategory;
-
-            return (
-              <React.Fragment key={role.value}>
-                {showCategory && (
-                  <option disabled style={{ fontWeight: 'bold', fontSize: '11px' }}>
-                    ──── {role.category} ────
-                  </option>
-                )}
-                <option value={role.value}>
-                  {role.label}
-                </option>
-              </React.Fragment>
-            );
-          })}
+          {AVAILABLE_ROLES.map((role) => (
+            <option key={role.value} value={role.value}>
+              {role.label}
+            </option>
+          ))}
         </select>
 
         {!currentSession && (
@@ -178,27 +149,6 @@ export function RolesPanel() {
             Connect wallet to enable role switching
           </div>
         )}
-      </div>
-
-      {/* Role-to-Shell Mapping Reference */}
-      <div
-        style={{
-          padding: '10px 12px',
-          borderRadius: '8px',
-          backgroundColor: 'rgba(255, 255, 255, 0.03)',
-          border: '1px solid rgba(255, 255, 255, 0.06)',
-        }}
-      >
-        <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)', marginBottom: '6px', fontWeight: '600' }}>
-          Shell Mapping
-        </div>
-        <div style={{ fontSize: '9px', color: 'rgba(255, 255, 255, 0.3)', lineHeight: '1.6', fontFamily: 'monospace' }}>
-          <div>Admin/Superadmin → AdminShell</div>
-          <div>Infrastructure → InfrastructureShell</div>
-          <div>Business Roles → BusinessShell</div>
-          <div>Driver → DriverShell</div>
-          <div>Customer/User → StoreShell</div>
-        </div>
       </div>
 
       {/* Action Buttons */}

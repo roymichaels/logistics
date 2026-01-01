@@ -46,9 +46,8 @@ export function ShellSelector({
     );
   }
 
-  // Business roles use BusinessShell (including infrastructure_owner)
+  // Business roles use BusinessShell
   if (
-    role === 'infrastructure_owner' ||
     role === 'business_owner' ||
     role === 'manager' ||
     role === 'warehouse' ||

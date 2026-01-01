@@ -23,7 +23,6 @@ function getRoleShellType(role: string): ShellType {
   switch (role) {
     case 'superadmin':
     case 'admin':
-    case 'infrastructure_owner':
       return 'unified';
     case 'business_owner':
     case 'manager':
@@ -31,7 +30,6 @@ function getRoleShellType(role: string): ShellType {
     case 'sales':
     case 'warehouse':
     case 'customer_service':
-    case 'accountant':
       return 'business';
     case 'driver':
       return 'driver';
@@ -44,7 +42,6 @@ function getRoleShellType(role: string): ShellType {
 
 export type AppUserRole =
   | 'user'
-  | 'infrastructure_owner'
   | 'business_owner'
   | 'owner'
   | 'manager'

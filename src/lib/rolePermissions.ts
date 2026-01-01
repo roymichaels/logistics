@@ -443,185 +443,6 @@ export const ROLE_PERMISSIONS: Record<User['role'], RolePermissions> = {
   },
 
   // ========================================
-  // INFRASTRUCTURE LEVEL ROLES
-  // These roles operate at the infrastructure level and can work across businesses within their infrastructure
-  // Includes: infrastructure_owner, manager, dispatcher, driver, warehouse, customer_service, user
-  // ========================================
-
-  infrastructure_owner: {
-    role: 'infrastructure_owner',
-    label: 'Multi-Business Owner',
-    level: 'business',
-    description: 'Owner of multiple businesses with full access across all owned businesses. Uses Business Portal with multi-business features.',
-    canSeeFinancials: true,
-    canSeeCrossBusinessData: true,
-    canSeeCrossInfrastructureData: false,
-    permissions: [
-      // Infrastructure - Own infrastructure only
-      'infrastructure:view_own',
-      'infrastructure:update_own',
-      'infrastructure:manage_settings',
-
-      // Business - Can create within infrastructure
-      'business:view_all_in_infrastructure',
-      'business:create',
-      'business:switch_context',
-
-      // Orders - Full cross-business access within infrastructure
-      'orders:view_all_infrastructure',
-      'orders:create',
-      'orders:update',
-      'orders:delete',
-      'orders:assign_driver',
-      'orders:change_status',
-
-      // Products - Full CRUD
-      'products:view',
-      'products:create',
-      'products:update',
-      'products:delete',
-      'products:set_pricing',
-
-      // Catalog - Infrastructure-wide access
-      'catalog:view_infrastructure',
-      'catalog:edit_infrastructure',
-      'catalog:view_business',
-      'catalog:edit_business',
-      'catalog:inherit_from_platform',
-      'catalog:publish_to_businesses',
-      'catalog:approve_products',
-      'catalog:create_templates',
-      'catalog:manage_categories',
-      'catalog:bulk_operations',
-      'catalog:export',
-
-      // Permissions - Infrastructure level management
-      'permissions:view_all',
-      'permissions:manage_roles',
-      'permissions:assign_roles',
-      'permissions:audit_logs',
-
-      // Inventory - Full cross-business access
-      'inventory:view_all_infrastructure',
-      'inventory:create',
-      'inventory:update',
-      'inventory:delete',
-      'inventory:transfer',
-      'inventory:request_restock',
-      'inventory:approve_restock',
-      'inventory:fulfill_restock',
-
-      // Users - Full management across all businesses
-      'users:view_all_infrastructure',
-      'users:create',
-      'users:update',
-      'users:delete',
-      'users:change_role',
-      'users:approve',
-      'users:set_ownership',
-      'users:assign_to_business',
-
-      // Financial - Complete visibility across ALL businesses
-      'financial:view_all_infrastructure',
-      'financial:view_business_revenue',
-      'financial:view_business_costs',
-      'financial:view_business_profit',
-      'financial:view_ownership_distribution',
-      'financial:manage_distributions',
-      'financial:export_reports',
-
-      // Business - Full management
-      'business:view_all',
-      'business:create',
-      'business:update',
-      'business:delete',
-      'business:manage_settings',
-      'business:manage_ownership',
-      'business:switch_context',
-
-      // System - Full control
-      'system:view_audit_logs',
-      'system:manage_config',
-      'system:manage_infrastructure',
-
-      // Zones - Full management
-      'zones:view',
-      'zones:create',
-      'zones:update',
-      'zones:assign_drivers',
-
-      // Analytics - Complete cross-business access
-      'analytics:view_all_infrastructure',
-      'analytics:export',
-
-      // Messaging & Groups - Full access
-      'messaging:send',
-      'messaging:view',
-      'groups:create',
-      'groups:view',
-      'groups:manage_own',
-      'channels:create',
-      'channels:view',
-      'channels:manage_own',
-    ],
-  },
-
-  accountant: {
-    role: 'accountant',
-    label: 'Infrastructure Accountant',
-    level: 'infrastructure',
-    description: 'Financial specialist with read-only access to all financial data and reports across infrastructure',
-    canSeeFinancials: true,
-    canSeeCrossBusinessData: true,
-    canSeeCrossInfrastructureData: false,
-    permissions: [
-      // Infrastructure - View only
-      'infrastructure:view_own',
-
-      // Business - View across infrastructure
-      'business:view_all_in_infrastructure',
-
-      // Orders - View for financial tracking
-      'orders:view_all_infrastructure',
-
-      // Products - View only
-      'products:view',
-
-      // Catalog - View only
-      'catalog:view_infrastructure',
-      'catalog:view_business',
-      'catalog:export',
-
-      // Inventory - View for financial tracking
-      'inventory:view_all_infrastructure',
-
-      // Users - View for organizational context
-      'users:view_all_infrastructure',
-
-      // Financial - Complete visibility across ALL businesses (read-only)
-      'financial:view_all_infrastructure',
-      'financial:view_business_revenue',
-      'financial:view_business_costs',
-      'financial:view_business_profit',
-      'financial:view_ownership_distribution',
-      'financial:export_reports',
-
-      // Analytics - Complete cross-business access (read-only)
-      'analytics:view_all_infrastructure',
-      'analytics:export',
-
-      // System - Audit log access
-      'system:view_audit_logs',
-
-      // Messaging & Groups - Team communication
-      'messaging:send',
-      'messaging:view',
-      'groups:view',
-      'channels:view',
-    ],
-  },
-
-  // ========================================
   // BUSINESS LEVEL ROLES
   // These roles are tied to specific businesses and cannot operate across businesses
   // Includes: business_owner, sales
@@ -1103,10 +924,9 @@ export function canViewCrossBusinessData(user: User | null): boolean {
 export function requiresBusinessContext(user: User | null): boolean {
   if (!user) return false;
 
-  // Infrastructure owners and accountants don't need business context (they can see everything in their infrastructure)
-  if (user.role === 'infrastructure_owner' || user.role === 'accountant') return false;
+  // All roles are business-scoped except platform admins
+  if (user.role === 'superadmin' || user.role === 'admin') return false;
 
-  // All other roles are business-scoped
   return true;
 }
 
@@ -1127,18 +947,8 @@ export function canChangeUserRole(
     return { allowed: false, reason: 'Cannot change your own role' };
   }
 
-  // Infrastructure owner can change any role
-  if (actor.role === 'infrastructure_owner') {
-    return { allowed: true };
-  }
-
   // Business owner can change business-level roles
   if (actor.role === 'business_owner') {
-    // Cannot promote to infrastructure_owner
-    if (targetNewRole === 'infrastructure_owner') {
-      return { allowed: false, reason: 'Only infrastructure owner can assign infrastructure roles' };
-    }
-
     // Cannot demote other business owners without ownership transfer
     if (targetCurrentRole === 'business_owner' && targetNewRole !== 'business_owner') {
       return { allowed: false, reason: 'Business owner role requires ownership transfer first' };
@@ -1152,13 +962,13 @@ export function canChangeUserRole(
 
   // Manager can change non-owner business roles
   if (actor.role === 'manager') {
-    // Cannot promote to any owner role
-    if (targetNewRole === 'infrastructure_owner' || targetNewRole === 'business_owner') {
+    // Cannot promote to business_owner role
+    if (targetNewRole === 'business_owner') {
       return { allowed: false, reason: 'Only owners can assign ownership roles' };
     }
 
     // Cannot change current owners
-    if (targetCurrentRole === 'infrastructure_owner' || targetCurrentRole === 'business_owner') {
+    if (targetCurrentRole === 'business_owner') {
       return { allowed: false, reason: 'Cannot change owner roles' };
     }
 
@@ -1174,14 +984,11 @@ export function canChangeUserRole(
 /**
  * Get data access scope for a role
  */
-export function getDataAccessScope(role: User['role']): 'platform' | 'infrastructure' | 'business' | 'own' | 'assigned' {
+export function getDataAccessScope(role: User['role']): 'platform' | 'business' | 'own' | 'assigned' {
   switch (role) {
     case 'superadmin':
     case 'admin':
-      return 'platform'; // All infrastructures and businesses
-    case 'infrastructure_owner':
-    case 'accountant':
-      return 'infrastructure'; // All businesses within infrastructure
+      return 'platform'; // All businesses
     case 'business_owner':
     case 'manager':
     case 'dispatcher':
