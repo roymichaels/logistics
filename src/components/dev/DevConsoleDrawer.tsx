@@ -7,7 +7,7 @@ interface DevConsoleDrawerProps {
   onClose: () => void;
 }
 
-export type DevTab = 'flags' | 'routes' | 'roles' | 'shells' | 'wireframes' | 'pages' | 'mocks' | 'diagnostics' | 'themes';
+export type DevTab = 'flags' | 'routes' | 'roles' | 'shells' | 'diagnostics';
 
 export function DevConsoleDrawer({ isOpen, onClose }: DevConsoleDrawerProps) {
   const [activeTab, setActiveTab] = React.useState<DevTab>('flags');

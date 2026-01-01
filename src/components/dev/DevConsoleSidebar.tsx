@@ -18,11 +18,7 @@ const tabs: TabConfig[] = [
   { id: 'routes', label: 'נתיבים', icon: '🗺️' },
   { id: 'roles', label: 'תפקידים', icon: '👤' },
   { id: 'shells', label: 'מעטפות', icon: '🐚' },
-  { id: 'wireframes', label: 'שלד', icon: '📐' },
-  { id: 'pages', label: 'דפים', icon: '📄' },
-  { id: 'mocks', label: 'בדיקה', icon: '🎭' },
   { id: 'diagnostics', label: 'אבחון', icon: '🧪' },
-  { id: 'themes', label: 'נושא', icon: '🎨' },
 ];
 
 export function DevConsoleSidebar({ activeTab, onTabChange, onClose }: DevConsoleSidebarProps) {

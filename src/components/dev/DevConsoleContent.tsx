@@ -4,11 +4,7 @@ import { FlagsPanel } from './panels/FlagsPanel';
 import { RoutesPanel } from './panels/RoutesPanel';
 import { RolesPanel } from './panels/RolesPanel';
 import { ShellsPanel } from './panels/ShellsPanel';
-import { WireframesPanel } from './panels/WireframesPanel';
-import { PagesPanel } from './panels/PagesPanel';
-import { MocksPanel } from './panels/MocksPanel';
 import { DiagnosticsPanel } from './panels/DiagnosticsPanel';
-import { ThemePanel } from './panels/ThemePanel';
 
 interface DevConsoleContentProps {
   activeTab: DevTab;
@@ -65,11 +61,7 @@ export function DevConsoleContent({ activeTab }: DevConsoleContentProps) {
         {activeTab === 'routes' && <RoutesPanel />}
         {activeTab === 'roles' && <RolesPanel />}
         {activeTab === 'shells' && <ShellsPanel />}
-        {activeTab === 'wireframes' && <WireframesPanel />}
-        {activeTab === 'pages' && <PagesPanel />}
-        {activeTab === 'mocks' && <MocksPanel />}
         {activeTab === 'diagnostics' && <DiagnosticsPanel />}
-        {activeTab === 'themes' && <ThemePanel />}
       </div>
     </div>
   );
@@ -81,11 +73,7 @@ function getTitleForTab(tab: DevTab): string {
     routes: 'מפקח נתיבים',
     roles: 'מנהל תפקידים',
     shells: 'עקיפת מעטפת',
-    wireframes: 'שלדות',
-    pages: 'מפקח דפים',
-    mocks: 'נתוני בדיקה',
     diagnostics: 'אבחון',
-    themes: 'מנהל ערכות נושא',
   };
   return titles[tab];
 }
@@ -96,11 +84,7 @@ function getDescriptionForTab(tab: DevTab): string {
     routes: 'בדוק ונווט בנתיבים זמינים',
     roles: 'צפה ובדוק הרשאות תפקידים',
     shells: 'עקוף תצורת מעטפת',
-    wireframes: 'צפה בשלדות רכיבים',
-    pages: 'בדוק מבנה דפים',
-    mocks: 'נהל נתוני בדיקה',
     diagnostics: 'צפה באבחון מערכת ואירועים',
-    themes: 'החלף בין ערכות נושא זמינות',
   };
   return descriptions[tab];
 }
