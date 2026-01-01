@@ -213,7 +213,25 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src')
+        '@': path.resolve(__dirname, './src'),
+        '@ui': path.resolve(__dirname, './src/ui'),
+        '@modules': path.resolve(__dirname, './src/modules'),
+        '@domain': path.resolve(__dirname, './src/domain'),
+        '@foundation': path.resolve(__dirname, './src/foundation'),
+        '@application': path.resolve(__dirname, './src/application'),
+        '@lib': path.resolve(__dirname, './src/lib'),
+        '@services': path.resolve(__dirname, './src/services'),
+        '@hooks': path.resolve(__dirname, './src/hooks'),
+        '@components': path.resolve(__dirname, './src/components'),
+        '@utils': path.resolve(__dirname, './src/utils'),
+        '@types': path.resolve(__dirname, './src/types'),
+        '@config': path.resolve(__dirname, './src/config'),
+        '@styles': path.resolve(__dirname, './src/styles'),
+        '@layouts': path.resolve(__dirname, './src/layouts'),
+        '@pages': path.resolve(__dirname, './src/pages'),
+        '@routing': path.resolve(__dirname, './src/routing'),
+        '@context': path.resolve(__dirname, './src/context'),
+        '@shells': path.resolve(__dirname, './src/shells')
       }
     },
     server: {
