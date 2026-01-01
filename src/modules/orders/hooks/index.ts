@@ -3,3 +3,4 @@ export type { UseOrdersOptions, UseOrdersResult } from '@application/hooks/useOr
 
 export * from './useOrderStats';
 export * from './useOrderFilters';
+export * from './useOrderMutations';
