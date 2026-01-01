@@ -1,5 +1,21 @@
 import React from 'react';
+import { UnifiedDriversPage } from '../pages';
 
-export default function driverRoutes() {
+export const driverRoutes = [
+  {
+    path: '/drivers',
+    element: <UnifiedDriversPage />,
+    label: 'Drivers',
+    icon: '🚗'
+  },
+  {
+    path: '/drivers/:id',
+    element: <UnifiedDriversPage />,
+    label: 'Driver Details',
+    icon: '👤'
+  }
+];
+
+export default function DriverRoutes() {
   return <></>;
 }
