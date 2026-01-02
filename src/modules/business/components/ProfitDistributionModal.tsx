@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { tokens, styles } from '../styles/tokens';
+import { tokens, styles } from '../../../styles/tokens';
 
 import {
   calculateProfitDistribution,
@@ -7,9 +7,9 @@ import {
   listProfitDistributions,
   updateDistributionPaymentStatus,
   type ProfitDistribution,
-} from '../services/equity';
-import { Toast } from './Toast';
-import { logger } from '../lib/logger';
+} from '../../../services/equity';
+import { Toast } from '../../../components/Toast';
+import { logger } from '../../../lib/logger';
 
 interface ProfitDistributionModalProps {
   businessId: string;

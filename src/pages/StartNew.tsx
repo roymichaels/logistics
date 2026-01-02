@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { OnboardingHub } from '../components/OnboardingHub';
 import { BusinessOwnerOnboarding } from '../components/BusinessOwnerOnboarding';
-import { BecomeDriverModal } from '../components/BecomeDriverModal';
+import { BecomeDriverModal } from '../modules/driver/components';
 
 interface StartNewProps {
   onNavigate: (page: string) => void;

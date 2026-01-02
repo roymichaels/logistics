@@ -3,10 +3,7 @@ import { DataStore, User } from '../data/types';
 import { hebrew } from '../lib/i18n';
 import { tokens, styles } from '../styles/tokens';
 
-import { CreateBusinessModal } from '../components/CreateBusinessModal';
-import { AddEquityStakeholderModal } from '../components/AddEquityStakeholderModal';
-import { ProfitDistributionModal } from '../components/ProfitDistributionModal';
-import { BusinessSettingsModal } from '../components/BusinessSettingsModal';
+import { CreateBusinessModal, AddEquityStakeholderModal, ProfitDistributionModal, BusinessSettingsModal } from '../modules/business/components';
 import { getBusinessEquityBreakdown, getAvailableEquity, type EquityStakeholder } from '../services/equity';
 import { RoleDiagnostics } from '../lib/diagnostics';
 import { logger } from '../lib/logger';

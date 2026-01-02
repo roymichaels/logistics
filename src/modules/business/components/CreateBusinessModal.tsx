@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { DataStore, User } from '../data/types';
+import { DataStore, User } from '../../../data/types';
 
-import { tokens, styles } from '../styles/tokens';
-import { logger } from '../lib/logger';
-import { localBusinessDataService } from '../services/localBusinessDataService';
-import { useAppServices } from '../context/AppServicesContext';
+import { tokens, styles } from '../../../styles/tokens';
+import { logger } from '../../../lib/logger';
+import { localBusinessDataService } from '../../../services/localBusinessDataService';
+import { useAppServices } from '../../../context/AppServicesContext';
 
 interface CreateBusinessModalProps {
   dataStore: DataStore;

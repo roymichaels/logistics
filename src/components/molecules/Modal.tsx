@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { colors, spacing, borderRadius, zIndex, shadows, typography, transitions } from '../../styles/design-system';
 
 export interface ModalProps {
@@ -10,6 +11,7 @@ export interface ModalProps {
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   closeOnOverlayClick?: boolean;
   showCloseButton?: boolean;
+  className?: string;
 }
 
 export function Modal({
@@ -21,6 +23,7 @@ export function Modal({
   size = 'md',
   closeOnOverlayClick = true,
   showCloseButton = true,
+  className,
 }: ModalProps) {
   useEffect(() => {
     if (isOpen) {
@@ -134,7 +137,7 @@ export function Modal({
     WebkitTapHighlightColor: 'transparent',
   };
 
-  return (
+  const content = (
     <>
       <style>{`
         @keyframes fadeIn {
@@ -176,7 +179,7 @@ export function Modal({
         }
       `}</style>
       <div style={overlayStyles} onClick={closeOnOverlayClick ? onClose : undefined}>
-        <div style={modalStyles} onClick={(e) => e.stopPropagation()}>
+        <div style={modalStyles} className={className} onClick={(e) => e.stopPropagation()}>
           {(title || showCloseButton) && (
             <div style={headerStyles}>
               {title && (
@@ -218,5 +221,117 @@ export function Modal({
         </div>
       </div>
     </>
+  );
+
+  return ReactDOM.createPortal(content, document.body);
+}
+
+export interface ModalHeaderProps {
+  title: string;
+  subtitle?: string;
+  onClose?: () => void;
+}
+
+export function ModalHeader({ title, subtitle, onClose }: ModalHeaderProps) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: subtitle ? 'flex-start' : 'center',
+        justifyContent: 'space-between',
+        padding: spacing['2xl'],
+        borderBottom: `1px solid ${colors.border.primary}`,
+      }}
+    >
+      <div style={{ flex: 1 }}>
+        <h2
+          style={{
+            margin: 0,
+            fontSize: typography.fontSize.xl,
+            fontWeight: typography.fontWeight.bold,
+            color: colors.text.primary,
+            lineHeight: typography.lineHeight.tight,
+            marginBottom: subtitle ? spacing.xs : 0,
+          }}
+        >
+          {title}
+        </h2>
+        {subtitle && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: typography.fontSize.sm,
+              color: colors.text.secondary,
+              lineHeight: typography.lineHeight.normal,
+            }}
+          >
+            {subtitle}
+          </p>
+        )}
+      </div>
+      {onClose && (
+        <button
+          onClick={onClose}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: colors.text.secondary,
+            cursor: 'pointer',
+            padding: spacing.sm,
+            borderRadius: borderRadius.full,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: transitions.fast,
+            marginLeft: spacing.md,
+          }}
+          aria-label="Close"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}
+
+export interface ModalBodyProps {
+  children: React.ReactNode;
+  noPadding?: boolean;
+}
+
+export function ModalBody({ children, noPadding = false }: ModalBodyProps) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        padding: noPadding ? 0 : spacing['2xl'],
+        overflowY: 'auto',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+export interface ModalFooterProps {
+  children: React.ReactNode;
+  align?: 'start' | 'center' | 'end';
+}
+
+export function ModalFooter({ children, align = 'end' }: ModalFooterProps) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: spacing.md,
+        padding: spacing['2xl'],
+        borderTop: `1px solid ${colors.border.primary}`,
+        justifyContent: align === 'start' ? 'flex-start' : align === 'center' ? 'center' : 'flex-end',
+      }}
+    >
+      {children}
+    </div>
   );
 }

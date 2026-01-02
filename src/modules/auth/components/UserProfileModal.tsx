@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
-import { tokens } from '../styles/tokens';
-import { roleNames, roleIcons } from '../lib/i18n';
-import type { User } from '../data/types';
-import { haptic } from '../utils/haptic';
+import { tokens } from '../../../styles/tokens';
+import { roleNames, roleIcons } from '../../../lib/i18n';
+import type { User } from '../../../data/types';
+import { haptic } from '../../../utils/haptic';
 
 interface UserProfileModalProps {
   isOpen: boolean;

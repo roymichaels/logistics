@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { tokens } from '../styles/tokens';
-import { Toast } from './Toast';
-import { logger } from '../lib/logger';
-import { getUnifiedDataStore } from '../lib/storage/UnifiedDataStore';
+import { tokens } from '../../../styles/tokens';
+import { Toast } from '../../../components/Toast';
+import { logger } from '../../../lib/logger';
+import { getUnifiedDataStore } from '../../../lib/storage/UnifiedDataStore';
 
 interface BecomeDriverModalProps {
   onClose: () => void;

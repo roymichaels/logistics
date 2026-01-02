@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { tokens, styles } from '../styles/tokens';
+import { tokens, styles } from '../../../styles/tokens';
 
-import { DataStore } from '../data/types';
-import { Toast } from './Toast';
-import { logger } from '../lib/logger';
+import { DataStore } from '../../../data/types';
+import { Toast } from '../../../components/Toast';
+import { logger } from '../../../lib/logger';
 
 interface BusinessSettingsModalProps {
   businessId: string;

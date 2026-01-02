@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { tokens } from '../styles/tokens';
 import { roleNames, roleIcons } from '../lib/i18n';
 import type { User } from '../data/types';
-import { UserProfileModal } from './UserProfileModal';
+import { UserProfileModal } from '../modules/auth/components';
 import { haptic } from '../utils/haptic';
 
 interface UserListViewProps {

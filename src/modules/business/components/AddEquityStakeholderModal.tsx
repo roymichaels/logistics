@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { tokens, styles } from '../styles/tokens';
+import { tokens, styles } from '../../../styles/tokens';
 
-import { getAvailableEquity, createEquityStake, type CreateEquityInput } from '../services/equity';
-import { DataStore } from '../data/types';
-import { Toast } from './Toast';
-import { logger } from '../lib/logger';
+import { getAvailableEquity, createEquityStake, type CreateEquityInput } from '../../../services/equity';
+import { DataStore } from '../../../data/types';
+import { Toast } from '../../../components/Toast';
+import { logger } from '../../../lib/logger';
 
 interface AddEquityStakeholderModalProps {
   businessId: string;

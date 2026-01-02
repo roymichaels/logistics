@@ -7,7 +7,7 @@ import { EncryptedChatComponent } from '../components/EncryptedChat';
 import { initializeEncryptedChatService } from '../utils/security/encryptedChatService';
 import { tokens, styles } from '../styles/tokens';
 import { UserListView } from '../components/UserListView';
-import { UserProfileModal } from '../components/UserProfileModal';
+import { UserProfileModal } from '../modules/auth/components';
 import { GroupChannelCreateModal } from '../components/GroupChannelCreateModal';
 import { hasPermission } from '../lib/rolePermissions';
 import { useConversations, useMessages, useSendMessage, useMarkAsRead } from '../application/use-cases/useMessaging';

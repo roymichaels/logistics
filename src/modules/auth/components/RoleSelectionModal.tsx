@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { User } from '../data/types';
-import { tokens } from '../styles/tokens';
-import { hebrew } from '../lib/i18n';
+import { User } from '../../../data/types';
+import { tokens } from '../../../styles/tokens';
+import { hebrew } from '../../../lib/i18n';
 
 interface RoleSelectionModalProps {
   onRoleSelect: (role: User['role']) => void;
