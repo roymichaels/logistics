@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { useApp } from '../services/useApp';
+import { useApp } from '../hooks/useApp';
 import { InventoryQueries, InventoryCommands } from '../';
 import type { InventoryItem } from '../queries/inventory.queries';
 import type { RestockInput, AdjustStockInput } from '../commands/inventory.commands';

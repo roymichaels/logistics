@@ -7,7 +7,7 @@ import {
   useUpdateProduct,
   useDeleteProduct
 } from '../application/use-cases';
-import { useApp } from '../application/services/useApp';
+import { useApp } from '../application/hooks/useApp';
 import { useAuth } from '../context/AuthContext';
 import { useAppServices } from '../context/AppServicesContext';
 import { Diagnostics } from '../foundation/diagnostics/DiagnosticsStore';

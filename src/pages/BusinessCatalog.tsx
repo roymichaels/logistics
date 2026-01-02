@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCatalog, useUpdateProduct } from '../application/use-cases';
-import { useApp } from '../application/services/useApp';
+import { useApp } from '../application/hooks/useApp';
 import { useAuth } from '../context/AuthContext';
 import { useAppServices } from '../context/AppServicesContext';
 import { useLanguage } from '../context/LanguageContext';

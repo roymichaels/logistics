@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useDataStore } from '../../application/services/useDataStore';
-import { useAuth } from '../../application/services/useAuth';
+import { useDataStore } from '../../application/hooks/useDataStore';
+import { useAuth } from '../../application/hooks/useAuth';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { Card } from '../../components/molecules/Card';

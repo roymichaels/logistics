@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useApp } from '../services/useApp';
+import { useApp } from '../hooks/useApp';
 import { MessagingQueries, MessagingCommands } from '../';
 import type { Message, Conversation } from '../queries/messaging.queries';
 import type { SendMessageInput, CreateRoomInput } from '../commands/messaging.commands';

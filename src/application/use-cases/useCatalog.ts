@@ -1,4 +1,4 @@
-import { useApp } from '../services/useApp';
+import { useApp } from '../hooks/useApp';
 import { useQuery } from '../hooks/useQuery';
 import { useMutation } from '../hooks/useMutation';
 import { usePaginatedQuery } from '../hooks/usePaginatedQuery';

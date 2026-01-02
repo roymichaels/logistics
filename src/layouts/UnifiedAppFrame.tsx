@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UnifiedMenuPanel, MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
 import { BottomNavigation } from '../components/BottomNavigation';
-import { FloatingActionMenu } from '../components/FloatingActionButton';
+import { FloatingActionMenu } from '../components/FloatingActionMenu';
 import { useAuth } from '../context/AuthContext';
 import { shellEngine, ShellConfig } from '../foundation/engine/ShellEngine';
 import { logger } from '../lib/logger';

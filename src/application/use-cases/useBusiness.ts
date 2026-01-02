@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useApp } from '../services/useApp';
+import { useApp } from '../hooks/useApp';
 import { BusinessQueries, BusinessCommands } from '../';
 import type { Business } from '../queries/business.queries';
 import type { CreateBusinessInput, SwitchBusinessInput } from '../commands/business.commands';

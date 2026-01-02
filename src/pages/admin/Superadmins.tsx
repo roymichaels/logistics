@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useDataStore } from '../../application/services/useDataStore';
+import { useDataStore } from '../../application/hooks/useDataStore';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { Card } from '../../components/molecules/Card';

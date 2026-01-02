@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { useInventory, useLowStockItems, useAdjustStock } from '../../../application/use-cases';
 import { useCatalog } from '../../../application/use-cases';
-import { useApp } from '../../../application/services/useApp';
+import { useApp } from '../../../application/hooks/useApp';
 import { useAppServices } from '../../../context/AppServicesContext';
 import { useInventoryFilters } from '../hooks/useInventoryFilters';
 import { useInventoryStats } from '../hooks/useInventoryStats';

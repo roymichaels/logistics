@@ -3,7 +3,7 @@ import { Outlet, Navigate } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { RightSidebarMenu } from '../components/RightSidebarMenu';
-import { FloatingActionMenu } from '../components/FloatingActionButton';
+import { FloatingActionMenu } from '../components/FloatingActionMenu';
 import { useAppServices } from '../context/AppServicesContext';
 import { useShell } from '../context/ShellContext';
 import { useAuth } from '../context/AuthContext';
