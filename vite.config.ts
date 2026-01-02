@@ -34,47 +34,9 @@ const cacheBustPlugin = () => ({
 });
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-
-  const useSXT =
-    process.env.VITE_USE_SXT === '1' ||
-    env.VITE_USE_SXT === '1';
-
-  // Support both VITE_ prefixed (local dev) and non-prefixed (Netlify/Supabase) variables
-  // Check process.env first for Netlify/CI environments
-  const supabaseUrl = useSXT
-    ? ''
-    : (process.env.SUPABASE_URL ||
-      process.env.VITE_SUPABASE_URL ||
-      env.SUPABASE_URL ||
-      env.VITE_SUPABASE_URL ||
-      '');
-
-  const supabaseAnonKey = useSXT
-    ? ''
-    : (process.env.SUPABASE_ANON_KEY ||
-      process.env.VITE_SUPABASE_ANON_KEY ||
-      env.SUPABASE_ANON_KEY ||
-      env.VITE_SUPABASE_ANON_KEY ||
-      '');
-
-  if (useSXT) {
-    console.log('\n🔍 SxT mode enabled — skipping Supabase env check\n');
-  } else {
-    // Log what we found (for debugging)
-    console.log('\n🔍 Environment variable check:');
-    console.log(`   Mode: ${mode}`);
-    console.log(`   process.env.SUPABASE_URL: ${process.env.SUPABASE_URL ? '✅ Found' : '❌ Not found'}`);
-    console.log(`   process.env.VITE_SUPABASE_URL: ${process.env.VITE_SUPABASE_URL ? '✅ Found' : '❌ Not found'}`);
-    console.log(`   Final supabaseUrl: ${supabaseUrl ? '✅ ' + supabaseUrl.substring(0, 30) + '...' : '❌ Missing'}`);
-    console.log(`   Final supabaseAnonKey: ${supabaseAnonKey ? '✅ ' + supabaseAnonKey.substring(0, 20) + '...' : '❌ Missing'}\n`);
-
-    if (supabaseUrl && supabaseAnonKey) {
-      console.log('✅ Environment variables found - will be used for local development\n');
-    } else {
-      console.log('ℹ️  No environment variables at build time - app will use runtime configuration\n');
-    }
-  }
+  console.log('\n🔍 Build configuration:');
+  console.log(`   Mode: ${mode}`);
+  console.log(`   Frontend-only: ✅ All data stored locally\n`);
 
   return {
     build: {
@@ -96,19 +58,9 @@ export default defineConfig(({ mode }) => {
               return 'react-vendor';
             }
 
-            // Supabase client in separate chunk
-            if (id.includes('node_modules/@supabase/')) {
-              return 'supabase';
-            }
-
             // All other node_modules in vendor chunk
             if (id.includes('node_modules/')) {
               return 'vendor';
-            }
-
-            // Data store (large file) in separate chunk
-            if (id.includes('/src/lib/supabaseDataStore')) {
-              return 'data-store';
             }
 
             // New service modules - separate chunk for new architecture
@@ -255,10 +207,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     define: {
-      __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
-      // Only inject env vars if they exist (for local dev), otherwise use runtime config
-      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(supabaseUrl || undefined),
-      'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(supabaseAnonKey || undefined)
+      __DEV__: JSON.stringify(process.env.NODE_ENV === 'development')
     }
   };
 });

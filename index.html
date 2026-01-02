@@ -90,16 +90,15 @@
 
       // Define authentication storage keys to preserve
       const AUTH_STORAGE_KEYS = [
-        'twa-undergroundlab',           // Supabase auth token
+        'twa-undergroundlab',           // Auth token
         'twa-undergroundlab-session-backup', // Session backup
         'twa-user-context',              // User context
-        'sb-' + 'ncuyyjvvzeaqqjganbzz' + '-auth-token', // Supabase auth token (formatted)
-        'supabase.auth.token',           // Default Supabase token key
         'active_business_role',          // Business role cache
         'business_onboarding_draft',     // Business creation draft
         'local-wallet-session',          // Wallet session data
         'wallet-role-map',               // Wallet role assignments
-        'dev-console:role-override'      // Dev console role override
+        'dev-console:role-override',     // Dev console role override
+        'frontend-data-store'            // Frontend-only data store
       ];
 
       // Preserve authentication data before clearing
@@ -135,7 +134,7 @@
           const cacheNames = await caches.keys();
           for (const cacheName of cacheNames) {
             // Skip auth-related caches
-            if (cacheName.includes('auth') || cacheName.includes('supabase')) {
+            if (cacheName.includes('auth')) {
               console.log('💾 Preserved cache:', cacheName);
               continue;
             }

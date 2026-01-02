@@ -5,7 +5,7 @@
 // Database Row Types for Query Results
 export type DatabaseRow = Record<string, unknown>;
 
-// Specific Database Row Types (for Supabase query results)
+// Specific Database Row Types (for query results)
 export interface DriverInventoryRow {
   driver_id: string;
   product_id: string;
@@ -741,8 +741,7 @@ export interface Route {
 }
 
 export interface DataStore {
-  // Supabase client access (for direct database operations)
-  supabase?: SupabaseClient;
+  // Direct database operations (frontend-only mode)
 
   // Auth & Profile
   getProfile(): Promise<User>;
