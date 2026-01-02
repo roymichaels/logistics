@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ContentCard } from '../../../components/layout/ContentCard';
+import { Card } from '../../../components/molecules/Card';
 import { tokens, styles } from '../../../styles/tokens';
 import type { AggregatedInventory, StockAdjustment } from '../types';
 

@@ -4,7 +4,7 @@ import { Toast } from '../components/Toast';
 import { ZoneManager } from '../components/ZoneManager';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
-import { ContentCard } from '../components/layout/ContentCard';
+import { Card } from '../components/molecules/Card';
 import { tokens, styles } from '../styles/tokens';
 import { logger } from '../lib/logger';
 import { useI18n } from '../lib/i18n';

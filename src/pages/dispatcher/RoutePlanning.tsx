@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { getStatusBadgeStyle, tokens } from '../../styles/tokens';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
-import { ContentCard } from '../../components/layout/ContentCard';
+import { Card } from '../../components/molecules/Card';
 
 interface DeliveryStop {
   id: string;

@@ -4,7 +4,7 @@ import { Toast } from './Toast';
 import { telegram } from '../utils/telegram';
 import { PageContainer } from './layout/PageContainer';
 import { PageHeader } from './layout/PageHeader';
-import { ContentCard } from './layout/ContentCard';
+import { Card } from './molecules/Card';
 import { tokens, styles } from '../styles/tokens';
 import { logger } from '../lib/logger';
 

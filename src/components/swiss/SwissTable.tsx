@@ -1,6 +1,6 @@
 import React from 'react';
 import { SwissMode } from './SwissContainer';
-import SwissCard from './SwissCard';
+import { Card } from '../molecules/Card';
 
 type Props = {
   headers?: string[];
@@ -23,14 +23,16 @@ export const SwissTable: React.FC<Props> = ({
     return (
       <div data-swiss-table data-mode={mode} data-density={density} style={{ display: 'grid', gap: 10 }}>
         {rows.map((row, idx) => (
-          <SwissCard key={idx} mode="card" density={density}>
-            {row.map((cell, cIdx) => (
-              <div key={cIdx} style={{ marginBottom: 4 }}>
-                {headers[cIdx] && <span style={{ fontSize: 12, opacity: 0.65, marginRight: 6 }}>{headers[cIdx]}:</span>}
-                {cell}
-              </div>
-            ))}
-          </SwissCard>
+          <Card key={idx} noPadding={density === 'compact'} variant="default">
+            <div style={{ padding: density === 'compact' ? 10 : 14 }}>
+              {row.map((cell, cIdx) => (
+                <div key={cIdx} style={{ marginBottom: 4 }}>
+                  {headers[cIdx] && <span style={{ fontSize: 12, opacity: 0.65, marginRight: 6 }}>{headers[cIdx]}:</span>}
+                  {cell}
+                </div>
+              ))}
+            </div>
+          </Card>
         ))}
       </div>
     );

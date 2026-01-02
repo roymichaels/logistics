@@ -11,7 +11,7 @@ import { Toast } from '../components/Toast';
 import { DispatchOrchestrator, ZoneCoverageResult } from '../lib/dispatchOrchestrator';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
-import { ContentCard } from '../components/layout/ContentCard';
+import { Card } from '../components/molecules/Card';
 import { tokens, styles } from '../styles/tokens';
 
 import { logger } from '../lib/logger';

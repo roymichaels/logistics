@@ -1,5 +1,5 @@
 import React from 'react';
-import { ContentCard } from '../../../components/layout/ContentCard';
+import { Card } from '../../../components/molecules/Card';
 import { tokens } from '../../../styles/tokens';
 import type { InventoryStats } from '../types';
 

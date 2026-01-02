@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { tokens } from '../../theme/tokens';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
-import { ContentCard } from '../../components/layout/ContentCard';
+import { Card } from '../../components/molecules/Card';
 import { TimeRangePicker, TimeRange } from '../../components/molecules/TimeRangePicker';
 import { StatusBadge, StatusVariant } from '../../components/atoms/StatusBadge';
 import { ActivityFeed, Activity } from '../../components/organisms/ActivityFeed';

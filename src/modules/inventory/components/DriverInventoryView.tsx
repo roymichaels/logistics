@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { tokens } from '../../../styles/tokens';
-import { ContentCard } from '../../../components/layout/ContentCard';
+import { Card } from '../../../components/molecules/Card';
 import type { Product } from '../../../data/types';
 
 interface EditableInventoryItem {

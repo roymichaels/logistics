@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageContainer } from '../../../components/layout/PageContainer';
 import { PageHeader } from '../../../components/layout/PageHeader';
-import { ContentCard } from '../../../components/layout/ContentCard';
+import { Card } from '../../../components/molecules/Card';
 import { Spinner } from '../../../components/atoms/Spinner';
 import { Button } from '../../../components/atoms/Button';
 import { tokens } from '../../../styles/tokens';
