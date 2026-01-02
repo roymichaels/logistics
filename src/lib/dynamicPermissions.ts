@@ -36,23 +36,31 @@ export async function resolveUserPermissions(
     return cached.data;
   }
 
-  // Call Edge Function to resolve permissions
-  const { data, error } = await supabase.functions.invoke('resolve-permissions', {
-    body: { user_id: userId, business_id: businessId },
-  });
+  logger.warn('[FRONTEND-ONLY] Permission resolution is using mock data - no backend available');
 
-  if (error) {
-    logger.error('Failed to resolve permissions:', error);
-    throw new Error(`Permission resolution failed: ${error.message}`);
-  }
+  const mockPermissions: ResolvedPermissions = {
+    userId,
+    businessId: businessId || null,
+    roles: ['customer'],
+    permissions: [
+      'view:catalog',
+      'view:products',
+      'create:orders',
+      'view:orders',
+      'edit:profile',
+    ],
+    metadata: {
+      isSuperadmin: false,
+      isBusinessOwner: false,
+    },
+  };
 
-  // Cache the result
   permissionsCache.set(cacheKey, {
-    data,
+    data: mockPermissions,
     timestamp: Date.now(),
   });
 
-  return data;
+  return mockPermissions;
 }
 
 /**

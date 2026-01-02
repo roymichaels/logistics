@@ -34,35 +34,28 @@ export function BusinessPage({ dataStore, businessId, slug, onNavigate }: Busine
       setLoading(true);
       setError(null);
 
-      if (!dataStore.supabase) {
-        throw new Error('Supabase client not initialized');
-      }
+      logger.warn('[FRONTEND-ONLY] BusinessPage is using mock data - no backend available');
 
-      const params = new URLSearchParams();
-      if (slug) params.append('slug', slug);
-      if (businessId) params.append('business_id', businessId);
-
-      const { data: session } = await dataStore.supabase.auth.getSession();
-      const headers: any = {
-        'Content-Type': 'application/json'
+      const mockData: BusinessPageData = {
+        page: {
+          business_id: businessId || 'mock-business',
+          slug: slug || 'mock-slug',
+          title: 'Sample Business',
+          description: 'This is a sample business page in frontend-only mode.',
+          whatsapp_number: null,
+          display_phone: null,
+          latitude: null,
+          longitude: null,
+        },
+        sections: [],
+        gallery: [],
+        operating_hours: [],
+        amenities: [],
+        special_hours: [],
+        is_open_now: false,
       };
 
-      if (session?.session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.session.access_token}`;
-      }
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/business-page-get?${params}`,
-        { headers }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to load business page');
-      }
-
-      const data = await response.json();
-      setPageData(data);
+      setPageData(mockData);
     } catch (err) {
       logger.error('Failed to load business page:', err);
       setError(err instanceof Error ? err.message : 'Failed to load business page');

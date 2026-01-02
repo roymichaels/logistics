@@ -42,32 +42,19 @@ export function KycVerificationFlow({ dataStore, onComplete, onCancel }: KycVeri
 
   const loadKycStatus = async () => {
     try {
-      if (!dataStore.supabase) return;
+      logger.warn('[FRONTEND-ONLY] KYC status is using mock data - no backend available');
 
-      const { data: { user } } = await dataStore.supabase.auth.getUser();
-      if (!user) return;
+      const mockStatus: KycStatus = {
+        verification_status: 'pending',
+        document_uploaded: false,
+        identity_confirmed: false,
+        liveness_passed: false,
+        address_verified: false,
+        contact_verified: false,
+        completeness_percentage: 0,
+      };
 
-      const { data, error } = await dataStore.supabase
-        .from('kyc_verifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (data) {
-        setKycStatus({
-          verification_status: data.verification_status,
-          document_uploaded: data.document_uploaded,
-          identity_confirmed: data.identity_confirmed,
-          liveness_passed: data.liveness_passed,
-          address_verified: data.address_verified,
-          contact_verified: data.contact_verified,
-          completeness_percentage: calculateCompleteness(data)
-        });
-
-        if (data.verification_status === 'approved') {
-          setCurrentStep('complete');
-        }
-      }
+      setKycStatus(mockStatus);
     } catch (err) {
       logger.error('Failed to load KYC status:', err);
     }
