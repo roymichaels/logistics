@@ -3,7 +3,7 @@ import { colors, spacing } from '../styles/theme';
 import { DataStore, User } from '../data/types';
 import { logger } from '../lib/logger';
 import { getUserDisplayName } from '../utils/userIdentifier';
-import { MetricCardWithProgress } from '../components/organisms/MetricCardWithProgress';
+import { MetricCard } from '../components/dashboard/MetricCard';
 import { LeaderboardCard, LeaderboardEntry } from '../components/organisms/LeaderboardCard';
 
 interface MyStatsProps {

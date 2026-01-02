@@ -1,5 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { DashboardMetric } from '@components/dashboard-v2/types';
+interface DashboardMetric {
+  label: string;
+  value: string | number;
+  icon?: string;
+  trend?: {
+    value: number;
+    direction: 'up' | 'down' | 'neutral';
+  };
+}
 
 interface UseDashboardDataOptions<T> {
   fetcher: () => Promise<T>;

@@ -1,4 +1,20 @@
-import { DashboardConfig, DashboardMetric } from '@components/dashboard-v2/types';
+// Dashboard configuration types
+export interface DashboardMetric {
+  label: string;
+  value: string | number;
+  icon?: string;
+  trend?: {
+    value: number;
+    direction: 'up' | 'down' | 'neutral';
+  };
+}
+
+export interface DashboardConfig {
+  role: string;
+  title: string;
+  subtitle?: string;
+  metrics: DashboardMetric[];
+}
 
 export type DashboardRole =
   | 'infrastructure_owner'

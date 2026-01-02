@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useSkeleton } from '../hooks/useSkeleton';
 import { Toast } from '../components/Toast';
-import { UnifiedDashboard } from '../components/dashboard-v2';
+import { MetricCard } from '../components/dashboard/MetricCard';
 import { RoleDiagnostics } from '../lib/diagnostics';
 import type { FrontendDataStore } from '../lib/frontendDataStore';
 import { registerDashboardSubscriptions } from './subscriptionHelpers';
@@ -314,34 +314,17 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
   if (isBusinessOwner) {
     const businessId = currentBusinessId || user.business_id || (user as any).active_business_id || '';
 
-    return (
-      <UnifiedDashboard
-        role="business_owner"
-        dataFetcher={async () => ({
-          revenueToday: 0,
-          ordersToday: 0,
-          profitMargin: 0,
-          avgOrderValue: 0
-        })}
-        onNavigate={onNavigate}
-      />
-    );
+    // Business owners get redirected to their business management dashboard
+    logger.info('[Dashboard] Redirecting business owner to business page');
+    onNavigate('/businesses');
+    return null;
   }
 
   if (user?.role === 'manager' || (user as any)?.global_role === 'manager') {
-    return (
-      <UnifiedDashboard
-        role="manager"
-        dataFetcher={async () => ({
-          totalMembers: 0,
-          activeMembers: 0,
-          ordersToday: 0,
-          pendingApprovals: 0,
-          teamRevenue: 0
-        })}
-        onNavigate={onNavigate}
-      />
-    );
+    // Managers get redirected to business management
+    logger.info('[Dashboard] Redirecting manager to business page');
+    onNavigate('/businesses');
+    return null;
   }
 
   // Redirect operational roles to their specific entry points

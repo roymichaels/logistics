@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { DashboardLayout, MetricsGrid, Section } from '@components/dashboard-v2';
+import { MetricCard } from '@components/dashboard/MetricCard';
 import { useOrders, useOrderStats, useOrderFilters, useOrderMutations } from '../hooks';
 import { OrderCard } from '../components/OrderCard';
 import { Order, OrderStatus, OrderFilters } from '../types';
