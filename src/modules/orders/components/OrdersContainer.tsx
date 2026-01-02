@@ -1,5 +1,5 @@
 import React from 'react';
-import { useOrders } from '../hooks';
+import { useOrders } from '@/application/use-cases';
 import { useOrderStats } from '../hooks/useOrderStats';
 import { useOrderFilters } from '../hooks/useOrderFilters';
 import { OrdersView } from './OrdersView';

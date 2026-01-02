@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { MetricCard } from '@components/dashboard/MetricCard';
-import { useOrders, useOrderStats, useOrderFilters, useOrderMutations } from '../hooks';
+import { useOrders } from '@/application/use-cases';
+import { useOrderStats, useOrderFilters, useOrderMutations } from '../hooks';
 import { OrderCard } from '../components/OrderCard';
 import { Order, OrderStatus, OrderFilters } from '../types';
 import { orderWorkflowService } from '../services';
