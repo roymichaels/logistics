@@ -24,7 +24,8 @@ export interface UseInventoryResult {
 
 export function useInventory(options: UseInventoryOptions = {}): UseInventoryResult {
   const { businessId, category, lowStockOnly, autoLoad = true } = options;
-  const { dataStore } = useServices();
+  const services = useServices();
+  const dataStore = services?.dataStore || null;
 
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(false);

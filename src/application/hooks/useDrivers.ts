@@ -25,7 +25,8 @@ export interface UseDriversResult {
 
 export function useDrivers(options: UseDriversOptions = {}): UseDriversResult {
   const { status, zoneId, available, autoLoad = true } = options;
-  const { dataStore } = useServices();
+  const services = useServices();
+  const dataStore = services?.dataStore || null;
 
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(false);

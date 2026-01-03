@@ -24,7 +24,8 @@ export interface UseZonesResult {
 
 export function useZones(options: UseZonesOptions = {}): UseZonesResult {
   const { businessId, active, autoLoad = true } = options;
-  const { dataStore } = useServices();
+  const services = useServices();
+  const dataStore = services?.dataStore || null;
 
   const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState(false);

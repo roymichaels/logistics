@@ -10,7 +10,7 @@ import { logger } from '../../lib/logger';
 const ServiceContext = createContext<ServiceContainer | null>(null);
 
 interface ServiceProviderProps {
-  dataStore: FrontendDataStore;
+  dataStore: FrontendDataStore | null;
   children: React.ReactNode;
 }
 
@@ -21,7 +21,9 @@ export function ServiceProvider({ dataStore, children }: ServiceProviderProps) {
   useEffect(() => {
     try {
       if (!dataStore) {
-        throw new Error('DataStore is required');
+        logger.warn('ServiceProvider: dataStore is null, services unavailable');
+        setContainer(null);
+        return;
       }
 
       const serviceContainer = createServiceContainer(dataStore);
@@ -44,30 +46,17 @@ export function ServiceProvider({ dataStore, children }: ServiceProviderProps) {
     );
   }
 
-  if (!container) {
-    return (
-      <div style={{ padding: '20px' }}>
-        <p>Initializing services...</p>
-      </div>
-    );
-  }
-
   return (
     <ServiceContext.Provider value={container}>{children}</ServiceContext.Provider>
   );
 }
 
-export function useServices(): ServiceContainer {
+export function useServices(): ServiceContainer | null {
   const context = useContext(ServiceContext);
-
-  if (!context) {
-    throw new Error('useServices must be used within ServiceProvider');
-  }
-
   return context;
 }
 
 export function useOrderRepository() {
-  const { orderRepository } = useServices();
-  return orderRepository;
+  const services = useServices();
+  return services?.orderRepository || null;
 }

@@ -23,7 +23,8 @@ export interface UseOrderMutationsResult {
 }
 
 export function useOrderMutations(): UseOrderMutationsResult {
-  const { dataStore } = useServices();
+  const services = useServices();
+  const dataStore = services?.dataStore || null;
 
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState(false);

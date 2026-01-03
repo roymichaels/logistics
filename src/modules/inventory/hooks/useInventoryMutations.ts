@@ -24,7 +24,8 @@ export interface UseInventoryMutationsResult {
 }
 
 export function useInventoryMutations(): UseInventoryMutationsResult {
-  const { dataStore } = useServices();
+  const services = useServices();
+  const dataStore = services?.dataStore || null;
 
   const [adjusting, setAdjusting] = useState(false);
   const [requesting, setRequesting] = useState(false);

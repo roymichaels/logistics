@@ -37,7 +37,8 @@ export interface UseProductsResult {
 
 export function useProducts(options: UseProductsOptions = {}): UseProductsResult {
   const { businessId, category, active, autoLoad = true } = options;
-  const { dataStore } = useServices();
+  const services = useServices();
+  const dataStore = services?.dataStore || null;
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
