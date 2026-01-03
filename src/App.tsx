@@ -45,6 +45,7 @@ import { PermissionProvider } from './lib/permissions/PermissionContext';
 import { UserRole } from './shells/types';
 import { OfflineSyncIndicator } from './components/OfflineSyncIndicator';
 import { ServiceProvider } from './foundation/container/ServiceProvider';
+import { DiagnosticsButton } from './components/dev/DiagnosticsButton';
 
 // All page components are now lazy-loaded in MigrationRouter
 
@@ -976,6 +977,7 @@ export default function App() {
       }}
     >
       {appShell}
+      <DiagnosticsButton />
     </SecurityGate>
   );
 }

@@ -3,7 +3,18 @@
 ## Overview
 The observability framework is now exposed globally via `window.__RUNTIME__` for browser console access.
 
-## Initialization
+**NEW:** A floating diagnostics button (🔍) appears in the bottom-right corner in DEV mode. Click it to run all diagnostics reports automatically!
+
+## Quick Access Methods
+
+### 1. Floating Button (Easiest)
+In DEV mode, look for the blue 🔍 button in the bottom-right corner:
+- Click to run full diagnostics suite automatically
+- All reports output to console
+- Button turns green ✓ when complete
+- Hover for tooltip info
+
+### 2. Console Commands (Manual)
 On app startup in DEV mode, you'll see:
 ```
 [RuntimeDiagnostics] initialized
@@ -133,14 +144,33 @@ console.log('AuthContext renders:', authContext?.renderCount)
 - **No timeouts**: All commands execute immediately
 - **No side effects**: Reading diagnostics doesn't modify application state
 
+## Full Diagnostics Suite (Floating Button)
+
+When you click the floating 🔍 button, it runs all diagnostics in sequence:
+
+1. **Runtime Registry Report** - Component and route statistics
+2. **Registered Components** - Table of all tracked components
+3. **Route History** - Navigation paths and results
+4. **Diagnostics Events** - Last 20 system events
+5. **Raw Data Dump** - Complete data structure
+6. **Auth Diagnostics** - Session and authentication state
+7. **Init Diagnostics** - Initialization status
+
+All output appears in the browser console with color-coded sections.
+
 ## Troubleshooting
 
-If `__RUNTIME__` is undefined:
+### Button not visible?
+- Only appears in DEV mode (`import.meta.env.DEV`)
+- Check bottom-right corner of screen
+- Ensure app has loaded completely
+
+### `__RUNTIME__` is undefined?
 1. Check that the app has initialized (`__INIT_COMPLETE__` should be true)
 2. Refresh the page
 3. Check console for initialization errors
 
-If data appears empty:
+### Data appears empty?
 - Components/routes are registered during app usage
 - Navigate through the app to populate the registry
 - Some data is collected only after user interactions
