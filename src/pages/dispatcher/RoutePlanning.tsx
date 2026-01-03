@@ -49,7 +49,7 @@ export function RoutePlanning() {
       case 'high': return tokens.colors.status.error;
       case 'medium': return tokens.colors.status.warning;
       case 'low': return tokens.colors.status.info;
-      default: return tokens.colors.text.secondary;
+      default: return tokens.colors.subtle;
     }
   };
 
@@ -63,7 +63,7 @@ export function RoutePlanning() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '24px' }}>
         <div>
-          <label style={{ display: 'block', fontSize: '14px', color: tokens.colors.text.secondary, marginBottom: '8px', fontWeight: 500 }}>
+          <label style={{ display: 'block', fontSize: '14px', color: tokens.colors.subtle, marginBottom: '8px', fontWeight: 500 }}>
             Assign to Driver
           </label>
           <select
@@ -79,7 +79,7 @@ export function RoutePlanning() {
           </select>
         </div>
         <div>
-          <label style={{ display: 'block', fontSize: '14px', color: tokens.colors.text.secondary, marginBottom: '8px', fontWeight: 500 }}>
+          <label style={{ display: 'block', fontSize: '14px', color: tokens.colors.subtle, marginBottom: '8px', fontWeight: 500 }}>
             Filter by Zone
           </label>
           <select
@@ -135,13 +135,13 @@ export function RoutePlanning() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   <div>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: tokens.colors.text.secondary, marginBottom: '4px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: tokens.colors.subtle, marginBottom: '4px' }}>
                       {stop.orderNumber}
                     </div>
-                    <div style={{ fontSize: '16px', fontWeight: 600, color: tokens.colors.text.primary, marginBottom: '4px' }}>
+                    <div style={{ fontSize: '16px', fontWeight: 600, color: tokens.colors.text, marginBottom: '4px' }}>
                       {stop.customerName}
                     </div>
-                    <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
+                    <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
                       📍 {stop.address}
                     </div>
                   </div>
@@ -158,7 +158,7 @@ export function RoutePlanning() {
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
+                  <span style={{ fontSize: '14px', color: tokens.colors.subtle }}>
                     ETA: {stop.estimatedTime}
                   </span>
                   <button
@@ -235,13 +235,13 @@ export function RoutePlanning() {
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                       <div>
-                        <div style={{ fontSize: '12px', fontWeight: 600, color: tokens.colors.text.secondary, marginBottom: '4px' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 600, color: tokens.colors.subtle, marginBottom: '4px' }}>
                           {stop.orderNumber}
                         </div>
-                        <div style={{ fontSize: '16px', fontWeight: 600, color: tokens.colors.text.primary, marginBottom: '4px' }}>
+                        <div style={{ fontSize: '16px', fontWeight: 600, color: tokens.colors.text, marginBottom: '4px' }}>
                           {stop.customerName}
                         </div>
-                        <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
+                        <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
                           📍 {stop.address}
                         </div>
                       </div>
@@ -249,7 +249,7 @@ export function RoutePlanning() {
                         {stop.status.replace('_', ' ')}
                       </span>
                     </div>
-                    <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
+                    <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
                       ETA: {stop.estimatedTime}
                     </div>
                   </div>

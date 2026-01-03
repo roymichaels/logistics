@@ -22,7 +22,7 @@ export function ChatHeader({ title, canCreateGroup, showCreateMenu, onCreateMenu
         margin: '0',
         fontSize: '28px',
         fontWeight: '700',
-        color: tokens.colors.text.primary,
+        color: tokens.colors.text,
         textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
       }}>
         {title}

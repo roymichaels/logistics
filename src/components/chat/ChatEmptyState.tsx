@@ -20,7 +20,7 @@ export function ChatEmptyState({ icon, title, message, action }: ChatEmptyStateP
       background: tokens.colors.background.card
     }}>
       <div style={{ fontSize: '64px', marginBottom: '16px' }}>{icon}</div>
-      <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text.primary, fontSize: '20px' }}>
+      <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text, fontSize: '20px' }}>
         {title}
       </h3>
       <div style={{ ...styles.emptyState.containerText, fontSize: '15px', marginBottom: action ? '24px' : '0' }}>

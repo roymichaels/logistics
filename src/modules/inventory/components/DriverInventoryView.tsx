@@ -52,8 +52,8 @@ export function DriverInventoryView({
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: tokens.colors.background.primary,
-      color: tokens.colors.text.primary,
+      backgroundColor: tokens.colors.panel,
+      color: tokens.colors.text,
       padding: '20px',
     }}>
       <h1 style={{ fontSize: '24px', margin: '0 0 8px' }}>המלאי שלי</h1>
@@ -76,7 +76,7 @@ export function DriverInventoryView({
             borderRadius: '12px',
             border: 'none',
             backgroundColor: tokens.colors.brand.primary,
-            color: tokens.colors.text.primaryBright,
+            color: tokens.colors.textBright,
             fontWeight: 600,
             cursor: syncing ? 'wait' : 'pointer',
             opacity: syncing ? 0.7 : 1
@@ -138,9 +138,9 @@ export function DriverInventoryView({
                     width: '100%',
                     padding: '10px',
                     borderRadius: '10px',
-                    border: `1px solid ${tokens.colors.text.secondary}40`,
-                    backgroundColor: tokens.colors.background.primary,
-                    color: tokens.colors.text.primary
+                    border: `1px solid ${tokens.colors.subtle}40`,
+                    backgroundColor: tokens.colors.panel,
+                    color: tokens.colors.text
                   }}
                 />
               </div>
@@ -168,9 +168,9 @@ export function DriverInventoryView({
               flex: 1,
               padding: '10px',
               borderRadius: '10px',
-              border: `1px solid ${tokens.colors.text.secondary}40`,
-              backgroundColor: tokens.colors.background.primary,
-              color: tokens.colors.text.primary
+              border: `1px solid ${tokens.colors.subtle}40`,
+              backgroundColor: tokens.colors.panel,
+              color: tokens.colors.text
             }}
           >
             <option value="">בחר מוצר מהרשימה</option>
@@ -188,7 +188,7 @@ export function DriverInventoryView({
               borderRadius: '10px',
               border: 'none',
               backgroundColor: tokens.colors.brand.primary,
-              color: tokens.colors.text.primaryBright,
+              color: tokens.colors.textBright,
               fontWeight: 600,
               cursor: selectedProductId ? 'pointer' : 'not-allowed',
               opacity: selectedProductId ? 1 : 0.6

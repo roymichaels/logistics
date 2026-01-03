@@ -18,10 +18,10 @@ export function PageContainer({
     <div
       style={{
         minHeight: '100vh',
-        background: tokens.colors.background.primary,
+        background: tokens.colors.panel,
         padding: '20px',
         paddingBottom: '100px',
-        color: tokens.colors.text.primary,
+        color: tokens.colors.text,
         position: 'relative',
         overflow: 'hidden',
         ...style

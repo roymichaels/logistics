@@ -15,7 +15,7 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
       case 'enroute': return tokens.colors.brand.primary;
       case 'delivered': return tokens.colors.status.success;
       case 'failed': return tokens.colors.status.error;
-      default: return tokens.colors.text.secondary;
+      default: return tokens.colors.subtle;
     }
   };
 
@@ -53,14 +53,14 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
             margin: '0 0 6px 0',
             fontSize: '18px',
             fontWeight: '700',
-            color: tokens.colors.text.primary
+            color: tokens.colors.text
           }}>
             {order.customer_name}
           </h3>
           <p style={{
             margin: '0 0 4px 0',
             fontSize: '14px',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             lineHeight: '1.5'
           }}>
             📞 {order.customer_phone}
@@ -68,7 +68,7 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
           <p style={{
             margin: 0,
             fontSize: '14px',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             lineHeight: '1.5'
           }}>
             📍 {order.customer_address}
@@ -91,7 +91,7 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '12px', borderTop: `1px solid ${tokens.colors.background.cardBorder}` }}>
-        <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>
+        <div style={{ fontSize: '13px', color: tokens.colors.subtle }}>
           🕒 {new Date(order.created_at).toLocaleString('he-IL')}
         </div>
         {order.total_amount && (

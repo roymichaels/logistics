@@ -221,13 +221,13 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
         border: `1px solid ${tokens.colors.background.cardBorder}`
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h2 style={{ color: tokens.colors.text.primary, margin: 0 }}>📝 Create Order</h2>
+          <h2 style={{ color: tokens.colors.text, margin: 0 }}>📝 Create Order</h2>
           <button
             onClick={onCancel}
             style={{
               background: 'transparent',
               border: 'none',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               fontSize: '24px',
               cursor: 'pointer',
               padding: '0',
@@ -248,7 +248,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
               background: mode === 'text' ? tokens.colors.brand.primary : 'transparent',
               border: `2px solid ${mode === 'text' ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
               borderRadius: '12px',
-              color: mode === 'text' ? '#fff' : tokens.colors.text.primary,
+              color: mode === 'text' ? '#fff' : tokens.colors.text,
               fontWeight: '600',
               cursor: 'pointer'
             }}
@@ -263,7 +263,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
               background: mode === 'storefront' ? tokens.colors.brand.primary : 'transparent',
               border: `2px solid ${mode === 'storefront' ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
               borderRadius: '12px',
-              color: mode === 'storefront' ? '#fff' : tokens.colors.text.primary,
+              color: mode === 'storefront' ? '#fff' : tokens.colors.text,
               fontWeight: '600',
               cursor: 'pointer'
             }}
@@ -286,7 +286,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
                 background: 'rgba(0,0,0,0.3)',
                 border: `1px solid ${tokens.colors.background.cardBorder}`,
                 borderRadius: '8px',
-                color: tokens.colors.text.primary,
+                color: tokens.colors.text,
                 fontSize: '14px',
                 fontFamily: 'inherit',
                 resize: 'vertical'
@@ -324,7 +324,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
                 background: 'rgba(0,0,0,0.3)',
                 border: `1px solid ${tokens.colors.background.cardBorder}`,
                 borderRadius: '8px',
-                color: tokens.colors.text.primary,
+                color: tokens.colors.text,
                 fontSize: '14px',
                 marginBottom: '12px'
               }}
@@ -344,7 +344,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
                   }}
                 >
                   <div>
-                    <div style={{ color: tokens.colors.text.primary, fontWeight: '600' }}>{product.name}</div>
+                    <div style={{ color: tokens.colors.text, fontWeight: '600' }}>{product.name}</div>
                     <div style={{ color: tokens.colors.status.warning, fontSize: '14px' }}>${product.price}</div>
                   </div>
                   <button
@@ -369,7 +369,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
         {/* Cart */}
         {cart.length > 0 && (
           <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ color: tokens.colors.text.primary, marginBottom: '12px' }}>Cart</h3>
+            <h3 style={{ color: tokens.colors.text, marginBottom: '12px' }}>Cart</h3>
             {cart.map(item => (
               <div
                 key={item.product.id}
@@ -384,7 +384,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
                 }}
               >
                 <div style={{ flex: 1 }}>
-                  <div style={{ color: tokens.colors.text.primary }}>{item.product.name}</div>
+                  <div style={{ color: tokens.colors.text }}>{item.product.name}</div>
                   <div style={{ color: tokens.colors.status.warning, fontSize: '14px' }}>
                     ${item.product.price} × {item.quantity} = ${(item.product.price * item.quantity).toFixed(2)}
                   </div>
@@ -397,13 +397,13 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
                       background: tokens.colors.background.cardBorder,
                       border: 'none',
                       borderRadius: '4px',
-                      color: tokens.colors.text.primary,
+                      color: tokens.colors.text,
                       cursor: 'pointer'
                     }}
                   >
                     -
                   </button>
-                  <span style={{ color: tokens.colors.text.primary, minWidth: '30px', textAlign: 'center' }}>
+                  <span style={{ color: tokens.colors.text, minWidth: '30px', textAlign: 'center' }}>
                     {item.quantity}
                   </span>
                   <button
@@ -413,7 +413,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
                       background: tokens.colors.background.cardBorder,
                       border: 'none',
                       borderRadius: '4px',
-                      color: tokens.colors.text.primary,
+                      color: tokens.colors.text,
                       cursor: 'pointer'
                     }}
                   >
@@ -451,7 +451,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
 
         {/* Customer Info */}
         <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ color: tokens.colors.text.primary, marginBottom: '12px' }}>Customer Information</h3>
+          <h3 style={{ color: tokens.colors.text, marginBottom: '12px' }}>Customer Information</h3>
           <input
             type="text"
             value={customerName}
@@ -463,7 +463,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
               background: 'rgba(0,0,0,0.3)',
               border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '8px',
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               fontSize: '14px',
               marginBottom: '12px'
             }}
@@ -479,7 +479,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
               background: 'rgba(0,0,0,0.3)',
               border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '8px',
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               fontSize: '14px',
               marginBottom: '12px'
             }}
@@ -495,7 +495,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
               background: 'rgba(0,0,0,0.3)',
               border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '8px',
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               fontSize: '14px',
               marginBottom: '12px',
               resize: 'vertical'
@@ -512,7 +512,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
               background: 'rgba(0,0,0,0.3)',
               border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '8px',
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               fontSize: '14px',
               resize: 'vertical'
             }}
@@ -529,7 +529,7 @@ export function DualModeOrderEntry({ dataStore, onOrderCreated, onCancel }: Dual
               background: 'transparent',
               border: `2px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '12px',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               fontWeight: '600',
               cursor: 'pointer'
             }}

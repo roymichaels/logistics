@@ -189,7 +189,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   margin: 0,
                   fontSize: '24px',
                   fontWeight: '700',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}
               >
                 הצטרף כנהג
@@ -198,7 +198,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                 style={{
                   margin: 0,
                   fontSize: '14px',
-                  color: tokens.colors.text.secondary,
+                  color: tokens.colors.subtle,
                   marginTop: '4px'
                 }}
               >
@@ -213,16 +213,16 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
               border: 'none',
               fontSize: '28px',
               cursor: 'pointer',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               padding: '4px',
               lineHeight: 1,
               transition: 'color 0.2s ease'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = tokens.colors.text.primary;
+              e.currentTarget.style.color = tokens.colors.text;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.color = tokens.colors.text.secondary;
+              e.currentTarget.style.color = tokens.colors.subtle;
             }}
           >
             ×
@@ -246,7 +246,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}
               >
                 סוג הרכב <span style={{ color: '#ff6b8a' }}>*</span>
@@ -269,7 +269,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                         padding: '14px',
                         background: isSelected
                           ? 'linear-gradient(135deg, rgba(77, 208, 225, 0.3), rgba(77, 208, 225, 0.1))'
-                          : tokens.colors.background.secondary,
+                          : tokens.colors.bg,
                         border: isSelected
                           ? '2px solid #4dd0e1'
                           : `1px solid ${tokens.colors.background.cardBorder}`,
@@ -288,7 +288,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                         style={{
                           fontSize: '14px',
                           fontWeight: '600',
-                          color: tokens.colors.text.primary
+                          color: tokens.colors.text
                         }}
                       >
                         {vehicle.label}
@@ -307,7 +307,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}
               >
                 מספר רישיון נהיגה <span style={{ color: '#ff6b8a' }}>*</span>
@@ -320,10 +320,10 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                 style={{
                   width: '100%',
                   padding: '12px 16px',
-                  background: tokens.colors.background.secondary,
+                  background: tokens.colors.bg,
                   border: `1px solid ${tokens.colors.background.cardBorder}`,
                   borderRadius: '12px',
-                  color: tokens.colors.text.primary,
+                  color: tokens.colors.text,
                   fontSize: '15px',
                   fontFamily: 'inherit',
                   outline: 'none',
@@ -346,7 +346,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}
               >
                 מספר טלפון <span style={{ color: '#ff6b8a' }}>*</span>
@@ -359,10 +359,10 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                 style={{
                   width: '100%',
                   padding: '12px 16px',
-                  background: tokens.colors.background.secondary,
+                  background: tokens.colors.bg,
                   border: `1px solid ${tokens.colors.background.cardBorder}`,
                   borderRadius: '12px',
-                  color: tokens.colors.text.primary,
+                  color: tokens.colors.text,
                   fontSize: '15px',
                   fontFamily: 'inherit',
                   outline: 'none',
@@ -385,7 +385,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}
               >
                 זמינות <span style={{ color: '#ff6b8a' }}>*</span>
@@ -402,7 +402,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                         padding: '12px 16px',
                         background: isSelected
                           ? 'linear-gradient(135deg, rgba(77, 208, 225, 0.3), rgba(77, 208, 225, 0.1))'
-                          : tokens.colors.background.secondary,
+                          : tokens.colors.bg,
                         border: isSelected
                           ? '2px solid #4dd0e1'
                           : `1px solid ${tokens.colors.background.cardBorder}`,
@@ -411,7 +411,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                         textAlign: 'right',
                         fontSize: '15px',
                         fontWeight: '600',
-                        color: tokens.colors.text.primary,
+                        color: tokens.colors.text,
                         transition: 'all 0.2s ease',
                         fontFamily: 'inherit'
                       }}
@@ -431,7 +431,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}
               >
                 הערות נוספות (אופציונלי)
@@ -444,10 +444,10 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                 style={{
                   width: '100%',
                   padding: '12px 16px',
-                  background: tokens.colors.background.secondary,
+                  background: tokens.colors.bg,
                   border: `1px solid ${tokens.colors.background.cardBorder}`,
                   borderRadius: '12px',
-                  color: tokens.colors.text.primary,
+                  color: tokens.colors.text,
                   fontSize: '15px',
                   fontFamily: 'inherit',
                   outline: 'none',
@@ -481,7 +481,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   style={{
                     margin: 0,
                     fontSize: '13px',
-                    color: tokens.colors.text.primary,
+                    color: tokens.colors.text,
                     lineHeight: '1.6'
                   }}
                 >
@@ -508,7 +508,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
               flex: 1,
               padding: '14px',
               background: submitting
-                ? tokens.colors.background.secondary
+                ? tokens.colors.bg
                 : 'linear-gradient(135deg, #4dd0e1, #00acc1)',
               border: 'none',
               borderRadius: '12px',
@@ -543,7 +543,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
               background: 'transparent',
               border: `1px solid ${tokens.colors.border.default}`,
               borderRadius: '12px',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               fontSize: '16px',
               fontWeight: '600',
               cursor: submitting ? 'not-allowed' : 'pointer',
@@ -554,13 +554,13 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
             onMouseEnter={(e) => {
               if (!submitting) {
                 e.currentTarget.style.borderColor = tokens.colors.background.cardBorderHover;
-                e.currentTarget.style.color = tokens.colors.text.primary;
+                e.currentTarget.style.color = tokens.colors.text;
               }
             }}
             onMouseLeave={(e) => {
               if (!submitting) {
                 e.currentTarget.style.borderColor = tokens.colors.border.default;
-                e.currentTarget.style.color = tokens.colors.text.secondary;
+                e.currentTarget.style.color = tokens.colors.subtle;
               }
             }}
           >

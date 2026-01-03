@@ -57,7 +57,7 @@ const variantStyles: Record<StatusVariant, { bg: string; color: string; border: 
   pending: {
     bg: tokens.colors.neutral[100],
     color: tokens.colors.neutral[700],
-    border: tokens.colors.neutral[300],
+    border: tokens.colors.border,
   },
   active: {
     bg: tokens.colors.semantic.success + '15',
@@ -67,7 +67,7 @@ const variantStyles: Record<StatusVariant, { bg: string; color: string; border: 
   inactive: {
     bg: tokens.colors.neutral[100],
     color: tokens.colors.neutral[500],
-    border: tokens.colors.neutral[300],
+    border: tokens.colors.border,
   },
   completed: {
     bg: tokens.colors.semantic.success + '15',
@@ -77,7 +77,7 @@ const variantStyles: Record<StatusVariant, { bg: string; color: string; border: 
   cancelled: {
     bg: tokens.colors.neutral[100],
     color: tokens.colors.neutral[600],
-    border: tokens.colors.neutral[300],
+    border: tokens.colors.border,
   },
   new: {
     bg: tokens.colors.primary[50],

@@ -177,7 +177,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
       <PageContainer>
         <div style={{ textAlign: 'center', paddingTop: '80px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📡</div>
-          <div style={{ color: tokens.colors.text.secondary }}>{translations.dispatchBoardPage.loadingDispatchBoard}</div>
+          <div style={{ color: tokens.colors.subtle }}>{translations.dispatchBoardPage.loadingDispatchBoard}</div>
         </div>
       </PageContainer>
     );
@@ -282,7 +282,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           {/* Pending Column */}
           <ContentCard style={{ minHeight: '400px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text.primary }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text }}>
                 {translations.dispatchBoardPage.waitingForAssignment}
               </h3>
               <div style={{
@@ -291,7 +291,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 borderRadius: '12px',
                 fontSize: '14px',
                 fontWeight: '700',
-                color: tokens.colors.text.primaryBright
+                color: tokens.colors.textBright
               }}>
                 {getOrdersByStatus('pending').length}
               </div>
@@ -308,7 +308,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 />
               ))}
               {getOrdersByStatus('pending').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.text.secondary }}>
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.subtle }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>✅</div>
                   <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noWaitingOrders}</div>
                 </div>
@@ -319,7 +319,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           {/* Assigned Column */}
           <ContentCard style={{ minHeight: '400px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text.primary }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text }}>
                 {translations.dispatchBoardPage.assigned}
               </h3>
               <div style={{
@@ -328,7 +328,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 borderRadius: '12px',
                 fontSize: '14px',
                 fontWeight: '700',
-                color: tokens.colors.text.primaryBright
+                color: tokens.colors.textBright
               }}>
                 {getOrdersByStatus('assigned').length}
               </div>
@@ -338,7 +338,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 <OrderCard key={order.id} order={order} />
               ))}
               {getOrdersByStatus('assigned').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.text.secondary }}>
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.subtle }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>📎</div>
                   <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noAssignedOrders}</div>
                 </div>
@@ -349,7 +349,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           {/* In Progress Column */}
           <ContentCard style={{ minHeight: '400px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text.primary }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text }}>
                 {translations.dispatchBoardPage.inProgress}
               </h3>
               <div style={{
@@ -358,7 +358,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 borderRadius: '12px',
                 fontSize: '14px',
                 fontWeight: '700',
-                color: tokens.colors.text.primaryBright
+                color: tokens.colors.textBright
               }}>
                 {getOrdersByStatus('in_progress').length}
               </div>
@@ -368,7 +368,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 <OrderCard key={order.id} order={order} />
               ))}
               {getOrdersByStatus('in_progress').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.text.secondary }}>
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.subtle }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>🚦</div>
                   <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noDeliveriesInProgress}</div>
                 </div>
@@ -379,7 +379,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           {/* Completed Column */}
           <ContentCard style={{ minHeight: '400px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text.primary }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text }}>
                 {translations.dispatchBoardPage.completed}
               </h3>
               <div style={{
@@ -388,7 +388,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 borderRadius: '12px',
                 fontSize: '14px',
                 fontWeight: '700',
-                color: tokens.colors.text.primaryBright
+                color: tokens.colors.textBright
               }}>
                 {getOrdersByStatus('completed').length}
               </div>
@@ -398,7 +398,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 <OrderCard key={order.id} order={order} />
               ))}
               {getOrdersByStatus('completed').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.text.secondary }}>
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.subtle }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>🎯</div>
                   <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noCompletedOrders}</div>
                 </div>
@@ -443,7 +443,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
             overflow: 'auto'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: tokens.colors.text.primary }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: tokens.colors.text }}>
                 {translations.dispatchBoardPage.assignDriverToOrder}
               </h3>
               <button
@@ -454,7 +454,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: tokens.colors.text.secondary,
+                  color: tokens.colors.subtle,
                   fontSize: '24px',
                   cursor: 'pointer'
                 }}
@@ -466,15 +466,15 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
             {/* Order Info */}
             <div style={{
               padding: '16px',
-              background: tokens.colors.background.secondary,
+              background: tokens.colors.bg,
               borderRadius: '12px',
               marginBottom: '20px',
               border: `1px solid ${tokens.colors.background.cardBorder}`
             }}>
-              <div style={{ fontSize: '16px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '8px' }}>
+              <div style={{ fontSize: '16px', fontWeight: '600', color: tokens.colors.text, marginBottom: '8px' }}>
                 {selectedOrder.customer_name}
               </div>
-              <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
+              <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
                 📍 {selectedOrder.customer_address}
               </div>
             </div>
@@ -488,7 +488,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                   onClick={() => handleAssignDriver(selectedOrder.id, driver.driver_id)}
                   style={{ textAlign: isRTL ? 'right' : 'left' }}
                 >
-                  <div style={{ fontSize: '16px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '4px' }}>
+                  <div style={{ fontSize: '16px', fontWeight: '600', color: tokens.colors.text, marginBottom: '4px' }}>
                     {translations.dispatchBoardPage.driver} #{driver.driver_id}
                   </div>
                   <div style={{ fontSize: '13px', color: tokens.colors.status.success }}>
@@ -497,7 +497,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 </ContentCard>
               ))}
               {zones.flatMap(z => z.onlineDrivers).filter(d => d.status === 'available').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.text.secondary }}>
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.subtle }}>
                   <div style={{ fontSize: '48px', marginBottom: '12px' }}>🚫</div>
                   <div>{translations.dispatchBoardPage.noAvailableDrivers}</div>
                 </div>
@@ -520,20 +520,20 @@ function OrderCard({ order, onAssign }: {
   return (
     <div style={{
       padding: '16px',
-      background: tokens.colors.background.secondary,
+      background: tokens.colors.bg,
       border: `1px solid ${tokens.colors.background.cardBorder}`,
       borderRadius: '12px',
       transition: 'all 0.3s ease'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '16px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '4px' }}>
+          <div style={{ fontSize: '16px', fontWeight: '600', color: tokens.colors.text, marginBottom: '4px' }}>
             {order.customer_name}
           </div>
-          <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '8px' }}>
+          <div style={{ fontSize: '13px', color: tokens.colors.subtle, marginBottom: '8px' }}>
             📍 {order.customer_address}
           </div>
-          <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>
+          <div style={{ fontSize: '13px', color: tokens.colors.subtle }}>
             📞 {order.customer_phone}
           </div>
         </div>

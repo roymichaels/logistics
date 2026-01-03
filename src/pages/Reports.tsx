@@ -179,14 +179,14 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
       delivered: tokens.colors.status.success,
       cancelled: tokens.colors.status.error
     };
-    return colors[status] || tokens.colors.text.secondary;
+    return colors[status] || tokens.colors.subtle;
   };
 
   if (loading) {
     return (
       <div style={{
         minHeight: '100vh',
-        background: tokens.colors.background.primary,
+        background: tokens.colors.panel,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -194,7 +194,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-          <div style={{ color: tokens.colors.text.primary, fontSize: '18px' }}>טוען דוחות...</div>
+          <div style={{ color: tokens.colors.text, fontSize: '18px' }}>טוען דוחות...</div>
         </div>
       </div>
     );
@@ -203,7 +203,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: tokens.colors.background.primary,
+      background: tokens.colors.panel,
       paddingTop: '16px',
       paddingBottom: '80px',
       direction: 'rtl'
@@ -219,7 +219,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
             margin: 0,
             fontSize: '28px',
             fontWeight: '700',
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
             textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
           }}>
             📊 דוחות
@@ -247,7 +247,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                 background: selectedReport === type.id
                   ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
                   : tokens.colors.background.card,
-                color: selectedReport === type.id ? '#fff' : tokens.colors.text.primary,
+                color: selectedReport === type.id ? '#fff' : tokens.colors.text,
                 fontSize: '14px',
                 fontWeight: '600',
                 cursor: 'pointer',
@@ -283,7 +283,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                 borderRadius: '8px',
                 border: `1px solid ${dateRange === range.id ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
                 background: dateRange === range.id ? `${tokens.colors.brand.primary}20` : tokens.colors.background.card,
-                color: dateRange === range.id ? tokens.colors.brand.primary : tokens.colors.text.primary,
+                color: dateRange === range.id ? tokens.colors.brand.primary : tokens.colors.text,
                 fontSize: '13px',
                 fontWeight: '600',
                 cursor: 'pointer',
@@ -304,16 +304,16 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
               marginBottom: '24px'
             }}>
               <div style={{ ...styles.card, padding: '16px' }}>
-                <div style={{ color: tokens.colors.text.secondary, fontSize: '14px', marginBottom: '8px' }}>
+                <div style={{ color: tokens.colors.subtle, fontSize: '14px', marginBottom: '8px' }}>
                   סה"כ הזמנות
                 </div>
-                <div style={{ color: tokens.colors.text.primary, fontSize: '28px', fontWeight: '700' }}>
+                <div style={{ color: tokens.colors.text, fontSize: '28px', fontWeight: '700' }}>
                   {reportData.totalOrders}
                 </div>
               </div>
 
               <div style={{ ...styles.card, padding: '16px' }}>
-                <div style={{ color: tokens.colors.text.secondary, fontSize: '14px', marginBottom: '8px' }}>
+                <div style={{ color: tokens.colors.subtle, fontSize: '14px', marginBottom: '8px' }}>
                   הזמנות הושלמו
                 </div>
                 <div style={{ color: tokens.colors.status.success, fontSize: '28px', fontWeight: '700' }}>
@@ -322,7 +322,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
               </div>
 
               <div style={{ ...styles.card, padding: '16px' }}>
-                <div style={{ color: tokens.colors.text.secondary, fontSize: '14px', marginBottom: '8px' }}>
+                <div style={{ color: tokens.colors.subtle, fontSize: '14px', marginBottom: '8px' }}>
                   הכנסות
                 </div>
                 <div style={{ color: tokens.colors.status.warning, fontSize: '24px', fontWeight: '700' }}>
@@ -331,7 +331,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
               </div>
 
               <div style={{ ...styles.card, padding: '16px' }}>
-                <div style={{ color: tokens.colors.text.secondary, fontSize: '14px', marginBottom: '8px' }}>
+                <div style={{ color: tokens.colors.subtle, fontSize: '14px', marginBottom: '8px' }}>
                   ממוצע הזמנה
                 </div>
                 <div style={{ color: tokens.colors.brand.primary, fontSize: '24px', fontWeight: '700' }}>
@@ -346,7 +346,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                   margin: '0 0 16px 0',
                   fontSize: '18px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}>
                   התפלגות לפי סטטוס
                 </h3>
@@ -361,7 +361,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                       background: `${getStatusColor(item.status)}10`,
                       border: `1px solid ${getStatusColor(item.status)}30`
                     }}>
-                      <span style={{ color: tokens.colors.text.primary, fontWeight: '600' }}>
+                      <span style={{ color: tokens.colors.text, fontWeight: '600' }}>
                         {getStatusLabel(item.status)}
                       </span>
                       <span style={{
@@ -383,7 +383,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                   margin: '0 0 16px 0',
                   fontSize: '18px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}>
                   מוצרים מובילים
                 </h3>
@@ -402,7 +402,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                         marginBottom: '8px'
                       }}>
                         <span style={{
-                          color: tokens.colors.text.primary,
+                          color: tokens.colors.text,
                           fontWeight: '600',
                           fontSize: '15px'
                         }}>
@@ -417,7 +417,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                         </span>
                       </div>
                       <div style={{
-                        color: tokens.colors.text.secondary,
+                        color: tokens.colors.subtle,
                         fontSize: '13px'
                       }}>
                         {product.sales} מכירות
@@ -434,7 +434,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                   margin: '0 0 16px 0',
                   fontSize: '18px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}>
                   מגמת הכנסות
                 </h3>
@@ -446,7 +446,7 @@ export function Reports({ dataStore, onNavigate }: ReportsProps) {
                       alignItems: 'center',
                       padding: '8px 0'
                     }}>
-                      <span style={{ color: tokens.colors.text.secondary, fontSize: '14px' }}>
+                      <span style={{ color: tokens.colors.subtle, fontSize: '14px' }}>
                         {new Date(item.date).toLocaleDateString('he-IL', {
                           month: 'short',
                           day: 'numeric'

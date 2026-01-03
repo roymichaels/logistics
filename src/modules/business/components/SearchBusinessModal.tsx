@@ -144,7 +144,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                   margin: 0,
                   fontSize: '24px',
                   fontWeight: '700',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}
               >
                 חפש עסק
@@ -153,7 +153,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                 style={{
                   margin: 0,
                   fontSize: '14px',
-                  color: tokens.colors.text.secondary,
+                  color: tokens.colors.subtle,
                   marginTop: '4px'
                 }}
               >
@@ -168,16 +168,16 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
               border: 'none',
               fontSize: '28px',
               cursor: 'pointer',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               padding: '4px',
               lineHeight: 1,
               transition: 'color 0.2s ease'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = tokens.colors.text.primary;
+              e.currentTarget.style.color = tokens.colors.text;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.color = tokens.colors.text.secondary;
+              e.currentTarget.style.color = tokens.colors.subtle;
             }}
           >
             ×
@@ -212,10 +212,10 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
               style={{
                 width: '100%',
                 padding: '14px 48px 14px 16px',
-                background: tokens.colors.background.secondary,
+                background: tokens.colors.bg,
                 border: `1px solid ${tokens.colors.background.cardBorder}`,
                 borderRadius: '12px',
-                color: tokens.colors.text.primary,
+                color: tokens.colors.text,
                 fontSize: '15px',
                 fontFamily: 'inherit',
                 outline: 'none',
@@ -246,7 +246,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '40px',
-                color: tokens.colors.text.secondary
+                color: tokens.colors.subtle
               }}
             >
               טוען...
@@ -256,7 +256,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
               style={{
                 textAlign: 'center',
                 padding: '40px',
-                color: tokens.colors.text.secondary
+                color: tokens.colors.subtle
               }}
             >
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
@@ -276,7 +276,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                       padding: '16px',
                       background: isSelected
                         ? 'linear-gradient(135deg, rgba(29, 155, 240, 0.2), rgba(29, 155, 240, 0.1))'
-                        : tokens.colors.background.secondary,
+                        : tokens.colors.bg,
                       border: isSelected
                         ? `2px solid ${tokens.colors.brand.primary}`
                         : `1px solid ${tokens.colors.background.cardBorder}`,
@@ -342,7 +342,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                             margin: 0,
                             fontSize: '18px',
                             fontWeight: '600',
-                            color: tokens.colors.text.primary,
+                            color: tokens.colors.text,
                             marginBottom: '4px'
                           }}
                         >
@@ -354,7 +354,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
                             alignItems: 'center',
                             gap: '8px',
                             fontSize: '13px',
-                            color: tokens.colors.text.secondary
+                            color: tokens.colors.subtle
                           }}
                         >
                           {business.business_type && (
@@ -397,7 +397,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
               padding: '14px',
               background: selectedBusiness
                 ? 'linear-gradient(120deg, #1D9BF0, #f6c945)'
-                : tokens.colors.background.secondary,
+                : tokens.colors.bg,
               border: 'none',
               borderRadius: '12px',
               color: selectedBusiness ? '#ffffff' : tokens.colors.text.hint,
@@ -430,7 +430,7 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
               background: 'transparent',
               border: `1px solid ${tokens.colors.border.default}`,
               borderRadius: '12px',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               fontSize: '16px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -439,11 +439,11 @@ export function SearchBusinessModal({ onClose, onBusinessSelected }: SearchBusin
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = tokens.colors.background.cardBorderHover;
-              e.currentTarget.style.color = tokens.colors.text.primary;
+              e.currentTarget.style.color = tokens.colors.text;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = tokens.colors.border.default;
-              e.currentTarget.style.color = tokens.colors.text.secondary;
+              e.currentTarget.style.color = tokens.colors.subtle;
             }}
           >
             ביטול

@@ -186,7 +186,7 @@ export function UserProfileModal({
               margin: '0 0 8px 0',
               fontSize: '26px',
               fontWeight: '700',
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               textShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
             }}
           >
@@ -319,21 +319,21 @@ function InfoRow({ icon, label, value }: { icon: string; label: string; value: s
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: '14px 16px',
-        background: tokens.colors.background.secondary,
+        background: tokens.colors.bg,
         borderRadius: '12px',
         border: `1px solid ${tokens.colors.background.cardBorder}`
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <span style={{ fontSize: '18px' }}>{icon}</span>
-        <span style={{ fontSize: '14px', color: tokens.colors.text.secondary, fontWeight: '500' }}>
+        <span style={{ fontSize: '14px', color: tokens.colors.subtle, fontWeight: '500' }}>
           {label}
         </span>
       </div>
       <span
         style={{
           fontSize: '14px',
-          color: tokens.colors.text.primary,
+          color: tokens.colors.text,
           fontWeight: '600',
           textAlign: 'left',
           maxWidth: '60%',
@@ -366,7 +366,7 @@ function ActionButton({
         alignItems: 'center',
         gap: '12px',
         padding: '14px 20px',
-        background: primary ? tokens.gradients.primary : tokens.colors.background.secondary,
+        background: primary ? tokens.gradients.primary : tokens.colors.bg,
         border: primary ? 'none' : `1px solid ${tokens.colors.background.cardBorder}`,
         borderRadius: '12px',
         cursor: 'pointer',
@@ -405,7 +405,7 @@ function ActionButton({
           flex: 1,
           fontSize: '16px',
           fontWeight: '600',
-          color: primary ? '#fff' : tokens.colors.text.primary
+          color: primary ? '#fff' : tokens.colors.text
         }}
       >
         {label}

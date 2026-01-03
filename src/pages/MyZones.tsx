@@ -133,15 +133,15 @@ export function MyZones({ dataStore }: MyZonesProps) {
 
   const isLoadingZone = (zoneId: string) => savingZoneId === zoneId;
 
-  const hintColor = tokens.colors.text.secondary;
+  const hintColor = tokens.colors.subtle;
   const activeZoneId = status?.current_zone_id || null;
 
   return (
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: tokens.colors.background.primary,
-        color: tokens.colors.text.primary,
+        backgroundColor: tokens.colors.panel,
+        color: tokens.colors.text,
         padding: '20px',
         direction: isRTL ? 'rtl' : 'ltr'
       }}
@@ -179,7 +179,7 @@ export function MyZones({ dataStore }: MyZonesProps) {
             borderRadius: '12px',
             border: 'none',
             backgroundColor: tokens.colors.brand.primary,
-            color: tokens.colors.text.primaryBright,
+            color: tokens.colors.textBright,
             fontWeight: 600,
             cursor: 'pointer'
           }}
@@ -225,7 +225,7 @@ export function MyZones({ dataStore }: MyZonesProps) {
                       borderRadius: '10px',
                       border: 'none',
                       backgroundColor: isAssigned ? '#ff3b3020' : tokens.colors.brand.primary,
-                      color: isAssigned ? '#ff3b30' : tokens.colors.text.primaryBright,
+                      color: isAssigned ? '#ff3b30' : tokens.colors.textBright,
                       fontWeight: 600,
                       cursor: 'pointer',
                       opacity: isLoadingZone(zone.id) ? 0.7 : 1
@@ -240,9 +240,9 @@ export function MyZones({ dataStore }: MyZonesProps) {
                       flex: 1,
                       padding: '10px',
                       borderRadius: '10px',
-                      border: `1px solid ${tokens.colors.text.secondary}40`,
+                      border: `1px solid ${tokens.colors.subtle}40`,
                       backgroundColor: isActive ? tokens.colors.brand.primary + '20' : 'transparent',
-                      color: tokens.colors.text.primary,
+                      color: tokens.colors.text,
                       fontWeight: 600,
                       cursor: 'pointer',
                       opacity: isLoadingZone(zone.id) ? 0.7 : 1

@@ -132,7 +132,7 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
       <div style={styles.pageContainer}>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
-          <p style={{ color: tokens.colors.text.secondary }}>טוען משימות...</p>
+          <p style={{ color: tokens.colors.subtle }}>טוען משימות...</p>
         </div>
       </div>
     );
@@ -273,8 +273,8 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
   };
 
   const priorityColors = {
-    low: tokens.colors.text.secondary,
-    normal: tokens.colors.text.primary,
+    low: tokens.colors.subtle,
+    normal: tokens.colors.text,
     high: '#FFC107',
     urgent: '#F44336'
   };
@@ -303,11 +303,11 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
       <div onClick={() => setExpanded(!expanded)}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
           <div style={{ flex: 1 }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: tokens.colors.text.primary, fontWeight: '600' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: tokens.colors.text, fontWeight: '600' }}>
               {task.title}
             </h3>
             {task.description && (
-              <p style={{ margin: 0, fontSize: '14px', color: tokens.colors.text.secondary }}>
+              <p style={{ margin: 0, fontSize: '14px', color: tokens.colors.subtle }}>
                 {task.description}
               </p>
             )}
@@ -351,7 +351,7 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
               background: 'rgba(255, 255, 255, 0.1)',
               border: `1px solid rgba(255, 255, 255, 0.2)`,
               fontSize: '12px',
-              color: tokens.colors.text.secondary
+              color: tokens.colors.subtle
             }}>
               📅 {new Date(task.due_date).toLocaleDateString('he-IL')}
             </div>
@@ -363,8 +363,8 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
         <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: `1px solid ${tokens.colors.border.default}` }}>
           {task.notes && (
             <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>הערות</div>
-              <div style={{ fontSize: '14px', color: tokens.colors.text.primary }}>{task.notes}</div>
+              <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '4px' }}>הערות</div>
+              <div style={{ fontSize: '14px', color: tokens.colors.text }}>{task.notes}</div>
             </div>
           )}
 
@@ -506,7 +506,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
             margin: 0,
             fontSize: '24px',
             fontWeight: '700',
-            color: tokens.colors.text.primary
+            color: tokens.colors.text
           }}>
             {task ? 'ערוך משימה' : 'צור משימה חדשה'}
           </h2>
@@ -520,7 +520,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text.primary
+                color: tokens.colors.text
               }}>
                 כותרת *
               </label>
@@ -539,7 +539,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text.primary
+                color: tokens.colors.text
               }}>
                 תיאור
               </label>
@@ -562,7 +562,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}>
                   סטטוס
                 </label>
@@ -584,7 +584,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}>
                   עדיפות
                 </label>
@@ -608,7 +608,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}>
                   הקצה למשתמש
                 </label>
@@ -633,7 +633,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text.primary
+                color: tokens.colors.text
               }}>
                 תאריך יעד
               </label>
@@ -651,7 +651,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text.primary
+                color: tokens.colors.text
               }}>
                 הערות
               </label>

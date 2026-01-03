@@ -179,10 +179,10 @@ export function AddEquityStakeholderModal({
           }}
         >
           <div>
-            <h2 style={{ margin: '0 0 4px 0', fontSize: '20px', color: tokens.colors.text.primary }}>
+            <h2 style={{ margin: '0 0 4px 0', fontSize: '20px', color: tokens.colors.text }}>
               הוסף בעל מניות
             </h2>
-            <p style={{ margin: 0, fontSize: '14px', color: tokens.colors.text.secondary }}>
+            <p style={{ margin: 0, fontSize: '14px', color: tokens.colors.subtle }}>
               {businessName}
             </p>
           </div>
@@ -192,7 +192,7 @@ export function AddEquityStakeholderModal({
               backgroundColor: 'transparent',
               border: 'none',
               fontSize: '28px',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               cursor: 'pointer',
               padding: '4px',
               lineHeight: 1,
@@ -222,7 +222,7 @@ export function AddEquityStakeholderModal({
             }`,
           }}
         >
-          <div style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600' }}>
+          <div style={{ fontSize: '14px', color: tokens.colors.text, fontWeight: '600' }}>
             💰 הון זמין להקצאה: {availableEquity.toFixed(2)}%
           </div>
         </div>
@@ -231,7 +231,7 @@ export function AddEquityStakeholderModal({
         <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* User Selection */}
           <div>
-            <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+            <label style={{ fontSize: '14px', color: tokens.colors.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
               בחר בעל מניות *
             </label>
             <input
@@ -242,11 +242,11 @@ export function AddEquityStakeholderModal({
               style={{
                 width: '100%',
                 padding: '12px',
-                backgroundColor: tokens.colors.background.secondary,
+                backgroundColor: tokens.colors.bg,
                 border: `1px solid ${tokens.colors.border.default}`,
                 borderRadius: '8px',
                 fontSize: '14px',
-                color: tokens.colors.text.primary,
+                color: tokens.colors.text,
                 marginBottom: '8px',
               }}
             />
@@ -257,11 +257,11 @@ export function AddEquityStakeholderModal({
                   overflowY: 'auto',
                   border: `1px solid ${tokens.colors.border.default}`,
                   borderRadius: '8px',
-                  backgroundColor: tokens.colors.background.secondary,
+                  backgroundColor: tokens.colors.bg,
                 }}
               >
                 {filteredUsers.length === 0 ? (
-                  <div style={{ padding: '16px', textAlign: 'center', color: tokens.colors.text.secondary }}>
+                  <div style={{ padding: '16px', textAlign: 'center', color: tokens.colors.subtle }}>
                     לא נמצאו משתמשים
                   </div>
                 ) : (
@@ -286,11 +286,11 @@ export function AddEquityStakeholderModal({
                         e.currentTarget.style.backgroundColor = 'transparent';
                       }}
                     >
-                      <div style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600' }}>
+                      <div style={{ fontSize: '14px', color: tokens.colors.text, fontWeight: '600' }}>
                         {user.name}
                       </div>
                       {user.email && (
-                        <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
+                        <div style={{ fontSize: '12px', color: tokens.colors.subtle }}>
                           {user.email}
                         </div>
                       )}
@@ -309,11 +309,11 @@ export function AddEquityStakeholderModal({
                   marginTop: '8px',
                 }}
               >
-                <div style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600' }}>
+                <div style={{ fontSize: '14px', color: tokens.colors.text, fontWeight: '600' }}>
                   ✓ {selectedUser.name}
                 </div>
                 {selectedUser.email && (
-                  <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
+                  <div style={{ fontSize: '12px', color: tokens.colors.subtle }}>
                     {selectedUser.email}
                   </div>
                 )}
@@ -323,7 +323,7 @@ export function AddEquityStakeholderModal({
 
           {/* Equity Percentage */}
           <div>
-            <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+            <label style={{ fontSize: '14px', color: tokens.colors.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
               אחוז בעלות * (מקסימום: {availableEquity.toFixed(2)}%)
             </label>
             <input
@@ -336,18 +336,18 @@ export function AddEquityStakeholderModal({
               style={{
                 width: '100%',
                 padding: '12px',
-                backgroundColor: tokens.colors.background.secondary,
+                backgroundColor: tokens.colors.bg,
                 border: `1px solid ${tokens.colors.border.default}`,
                 borderRadius: '8px',
                 fontSize: '14px',
-                color: tokens.colors.text.primary,
+                color: tokens.colors.text,
               }}
             />
           </div>
 
           {/* Equity Type */}
           <div>
-            <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+            <label style={{ fontSize: '14px', color: tokens.colors.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
               סוג מניות
             </label>
             <select
@@ -356,11 +356,11 @@ export function AddEquityStakeholderModal({
               style={{
                 width: '100%',
                 padding: '12px',
-                backgroundColor: tokens.colors.background.secondary,
+                backgroundColor: tokens.colors.bg,
                 border: `1px solid ${tokens.colors.border.default}`,
                 borderRadius: '8px',
                 fontSize: '14px',
-                color: tokens.colors.text.primary,
+                color: tokens.colors.text,
               }}
             >
               <option value="common">מניות רגילות (Common)</option>
@@ -372,7 +372,7 @@ export function AddEquityStakeholderModal({
 
           {/* Profit Share Percentage */}
           <div>
-            <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+            <label style={{ fontSize: '14px', color: tokens.colors.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
               אחוז חלוקת רווחים (%)
             </label>
             <input
@@ -385,11 +385,11 @@ export function AddEquityStakeholderModal({
               style={{
                 width: '100%',
                 padding: '12px',
-                backgroundColor: tokens.colors.background.secondary,
+                backgroundColor: tokens.colors.bg,
                 border: `1px solid ${tokens.colors.border.default}`,
                 borderRadius: '8px',
                 fontSize: '14px',
-                color: tokens.colors.text.primary,
+                color: tokens.colors.text,
               }}
             />
           </div>
@@ -401,7 +401,7 @@ export function AddEquityStakeholderModal({
               alignItems: 'center',
               gap: '12px',
               padding: '12px',
-              backgroundColor: tokens.colors.background.secondary,
+              backgroundColor: tokens.colors.bg,
               borderRadius: '8px',
             }}
           >
@@ -412,14 +412,14 @@ export function AddEquityStakeholderModal({
               onChange={(e) => setFormData({ ...formData, voting_rights: e.target.checked })}
               style={{ width: '20px', height: '20px', cursor: 'pointer' }}
             />
-            <label htmlFor="voting_rights" style={{ fontSize: '14px', color: tokens.colors.text.primary, fontWeight: '600', cursor: 'pointer' }}>
+            <label htmlFor="voting_rights" style={{ fontSize: '14px', color: tokens.colors.text, fontWeight: '600', cursor: 'pointer' }}>
               זכויות הצבעה
             </label>
           </div>
 
           {/* Vesting */}
           <div>
-            <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+            <label style={{ fontSize: '14px', color: tokens.colors.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
               אחוז הבשלה (%)
             </label>
             <input
@@ -432,18 +432,18 @@ export function AddEquityStakeholderModal({
               style={{
                 width: '100%',
                 padding: '12px',
-                backgroundColor: tokens.colors.background.secondary,
+                backgroundColor: tokens.colors.bg,
                 border: `1px solid ${tokens.colors.border.default}`,
                 borderRadius: '8px',
                 fontSize: '14px',
-                color: tokens.colors.text.primary,
+                color: tokens.colors.text,
               }}
             />
           </div>
 
           {/* Notes */}
           <div>
-            <label style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+            <label style={{ fontSize: '14px', color: tokens.colors.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>
               הערות
             </label>
             <textarea
@@ -453,11 +453,11 @@ export function AddEquityStakeholderModal({
               style={{
                 width: '100%',
                 padding: '12px',
-                backgroundColor: tokens.colors.background.secondary,
+                backgroundColor: tokens.colors.bg,
                 border: `1px solid ${tokens.colors.border.default}`,
                 borderRadius: '8px',
                 fontSize: '14px',
-                color: tokens.colors.text.primary,
+                color: tokens.colors.text,
                 resize: 'vertical',
               }}
             />

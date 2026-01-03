@@ -40,11 +40,11 @@ export function PageHeader({ icon, title, subtitle, actionButton, style }: PageH
             {icon}
           </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700', color: tokens.colors.text.primary }}>
+            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700', color: tokens.colors.text }}>
               {title}
             </h1>
             {subtitle && (
-              <p style={{ margin: '4px 0 0', color: tokens.colors.text.secondary, fontSize: '14px' }}>
+              <p style={{ margin: '4px 0 0', color: tokens.colors.subtle, fontSize: '14px' }}>
                 {subtitle}
               </p>
             )}

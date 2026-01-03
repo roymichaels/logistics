@@ -443,7 +443,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
         <div style={styles.emptyState.container}>
           <div style={styles.emptyState.containerIcon}>🔒</div>
-          <h3 style={{ color: tokens.colors.text.primary, margin: '0 0 12px 0' }}>
+          <h3 style={{ color: tokens.colors.text, margin: '0 0 12px 0' }}>
             אין הרשאה
           </h3>
           <p style={styles.emptyState.containerText}>
@@ -459,7 +459,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
       <div style={{ ...styles.pageContainer, textAlign: 'center' }}>
         <div style={{ padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-          <p style={{ color: tokens.colors.text.secondary }}>טוען משתמשים...</p>
+          <p style={{ color: tokens.colors.subtle }}>טוען משתמשים...</p>
         </div>
       </div>
     );
@@ -517,7 +517,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
             marginBottom: '8px',
             fontSize: '14px',
             fontWeight: '600',
-            color: tokens.colors.text.primary
+            color: tokens.colors.text
           }}>
             🔍 חיפוש משתמש
           </label>
@@ -550,7 +550,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
               marginBottom: '6px',
               fontSize: '13px',
               fontWeight: '600',
-              color: tokens.colors.text.secondary
+              color: tokens.colors.subtle
             }}>
               סינון לפי תפקיד
             </label>
@@ -582,7 +582,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
               marginBottom: '6px',
               fontSize: '13px',
               fontWeight: '600',
-              color: tokens.colors.text.secondary
+              color: tokens.colors.subtle
             }}>
               סינון לפי סטטוס
             </label>
@@ -634,7 +634,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
         <div style={styles.card}>
           <div style={styles.emptyState.container}>
             <div style={styles.emptyState.containerIcon}>🔍</div>
-            <h3 style={{ color: tokens.colors.text.primary, margin: '0 0 8px 0' }}>
+            <h3 style={{ color: tokens.colors.text, margin: '0 0 8px 0' }}>
               לא נמצאו משתמשים
             </h3>
             <p style={styles.emptyState.containerText}>
@@ -698,7 +698,7 @@ export function UserManagement({ onNavigate, currentUser, dataStore }: UserManag
 
             <div style={{
               fontSize: '14px',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               fontWeight: '600'
             }}>
               עמוד {currentPage} מתוך {totalPages}
@@ -757,7 +757,7 @@ function UserTable({ users, sortField, sortDirection, onSort, onEditRole, onAppr
         }}>
           <thead>
             <tr style={{
-              background: tokens.colors.background.secondary,
+              background: tokens.colors.bg,
               borderBottom: `2px solid ${tokens.colors.background.cardBorder}`
             }}>
               <th
@@ -766,7 +766,7 @@ function UserTable({ users, sortField, sortDirection, onSort, onEditRole, onAppr
                   padding: '14px 16px',
                   textAlign: 'right',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary,
+                  color: tokens.colors.text,
                   cursor: 'pointer',
                   userSelect: 'none'
                 }}
@@ -781,7 +781,7 @@ function UserTable({ users, sortField, sortDirection, onSort, onEditRole, onAppr
                   padding: '14px 16px',
                   textAlign: 'right',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary,
+                  color: tokens.colors.text,
                   cursor: 'pointer',
                   userSelect: 'none'
                 }}
@@ -796,7 +796,7 @@ function UserTable({ users, sortField, sortDirection, onSort, onEditRole, onAppr
                   padding: '14px 16px',
                   textAlign: 'right',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary,
+                  color: tokens.colors.text,
                   cursor: 'pointer',
                   userSelect: 'none'
                 }}
@@ -811,7 +811,7 @@ function UserTable({ users, sortField, sortDirection, onSort, onEditRole, onAppr
                   padding: '14px 16px',
                   textAlign: 'right',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary,
+                  color: tokens.colors.text,
                   cursor: 'pointer',
                   userSelect: 'none'
                 }}
@@ -824,7 +824,7 @@ function UserTable({ users, sortField, sortDirection, onSort, onEditRole, onAppr
                 padding: '14px 16px',
                 textAlign: 'right',
                 fontWeight: '600',
-                color: tokens.colors.text.primary
+                color: tokens.colors.text
               }}>
                 פעולות
               </th>
@@ -857,11 +857,11 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
 
   return (
     <tr style={{
-      background: index % 2 === 0 ? 'transparent' : tokens.colors.background.secondary + '30',
+      background: index % 2 === 0 ? 'transparent' : tokens.colors.bg + '30',
       borderBottom: `1px solid ${tokens.colors.background.cardBorder}`,
       transition: 'background 0.2s ease'
     }}>
-      <td style={{ padding: '14px 16px', color: tokens.colors.text.primary }}>
+      <td style={{ padding: '14px 16px', color: tokens.colors.text }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
             width: '36px',
@@ -896,7 +896,7 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
           </div>
         </div>
       </td>
-      <td style={{ padding: '14px 16px', color: tokens.colors.text.secondary }}>
+      <td style={{ padding: '14px 16px', color: tokens.colors.subtle }}>
         {user.username ? `@${user.username}` : '-'}
       </td>
       <td style={{ padding: '14px 16px' }}>
@@ -905,7 +905,7 @@ function UserTableRow({ user, index, onEditRole, onApprove, onDelete, onViewAudi
           alignItems: 'center',
           gap: '6px',
           padding: '6px 12px',
-          background: tokens.colors.background.secondary,
+          background: tokens.colors.bg,
           border: `1px solid ${tokens.colors.background.cardBorder}`,
           borderRadius: '8px',
           fontSize: '13px',
@@ -1057,7 +1057,7 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
               margin: 0,
               fontSize: '18px',
               fontWeight: '600',
-              color: tokens.colors.text.primary
+              color: tokens.colors.text
             }}>
               {user.first_name} {user.last_name || ''}
             </h3>
@@ -1079,7 +1079,7 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
             <p style={{
               margin: '0 0 6px 0',
               fontSize: '14px',
-              color: tokens.colors.text.secondary
+              color: tokens.colors.subtle
             }}>
               @{user.username}
             </p>
@@ -1091,7 +1091,7 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
               alignItems: 'center',
               gap: '6px',
               padding: '6px 12px',
-              background: tokens.colors.background.secondary,
+              background: tokens.colors.bg,
               border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '8px',
               fontSize: '13px',
@@ -1116,7 +1116,7 @@ function UserCard({ user, onEditRole, onApprove, onDelete, onViewAudit, currentU
 
       <div style={{
         fontSize: '13px',
-        color: tokens.colors.text.secondary,
+        color: tokens.colors.subtle,
         marginBottom: '16px',
         paddingTop: '12px',
         borderTop: `1px solid ${tokens.colors.background.cardBorder}`
@@ -1221,7 +1221,7 @@ function RoleSelectionContent({ user, selectedRole, onRoleChange, theme }: any) 
         border: `2px solid ${selectedRole === role ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
         borderRadius: '12px',
         background: selectedRole === role ? tokens.colors.brand.primary + '20' : 'transparent',
-        color: tokens.colors.text.primary,
+        color: tokens.colors.text,
         fontSize: '16px',
         cursor: 'pointer',
         display: 'flex',
@@ -1259,11 +1259,11 @@ function RoleSelectionContent({ user, selectedRole, onRoleChange, theme }: any) 
         }}>
           {user.first_name[0]}
         </div>
-        <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: tokens.colors.text.primary }}>
+        <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: tokens.colors.text }}>
           {user.first_name} {user.last_name}
         </h3>
         {user.username && (
-          <p style={{ margin: 0, color: tokens.colors.text.secondary, fontSize: '14px' }}>
+          <p style={{ margin: 0, color: tokens.colors.subtle, fontSize: '14px' }}>
             @{user.username}
           </p>
         )}
@@ -1275,7 +1275,7 @@ function RoleSelectionContent({ user, selectedRole, onRoleChange, theme }: any) 
           marginBottom: '12px',
           fontSize: '16px',
           fontWeight: '600',
-          color: tokens.colors.text.primary
+          color: tokens.colors.text
         }}>
           בחר תפקיד:
         </label>
@@ -1285,7 +1285,7 @@ function RoleSelectionContent({ user, selectedRole, onRoleChange, theme }: any) 
           <div style={{
             fontSize: '13px',
             fontWeight: '600',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             marginBottom: '8px',
             paddingRight: '4px'
           }}>
@@ -1304,7 +1304,7 @@ function RoleSelectionContent({ user, selectedRole, onRoleChange, theme }: any) 
           <div style={{
             fontSize: '13px',
             fontWeight: '600',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             marginBottom: '8px',
             paddingRight: '4px'
           }}>
@@ -1333,7 +1333,7 @@ function AuditLogContent({ user, logs, loading }: any) {
     return (
       <div style={{ textAlign: 'center', padding: '40px 20px' }}>
         <div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div>
-        <p style={{ color: tokens.colors.text.secondary }}>טוען יומן פעולות...</p>
+        <p style={{ color: tokens.colors.subtle }}>טוען יומן פעולות...</p>
       </div>
     );
   }
@@ -1353,11 +1353,11 @@ function AuditLogContent({ user, logs, loading }: any) {
     <div>
       {user && (
         <div style={{ marginBottom: '20px', textAlign: 'center', paddingBottom: '16px', borderBottom: `1px solid ${tokens.colors.background.cardBorder}` }}>
-          <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: tokens.colors.text.primary }}>
+          <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: tokens.colors.text }}>
             {user.first_name} {user.last_name}
           </h3>
           {user.username && (
-            <p style={{ margin: 0, color: tokens.colors.text.secondary, fontSize: '14px' }}>
+            <p style={{ margin: 0, color: tokens.colors.subtle, fontSize: '14px' }}>
               @{user.username}
             </p>
           )}
@@ -1370,22 +1370,22 @@ function AuditLogContent({ user, logs, loading }: any) {
             key={log.id}
             style={{
               padding: '14px',
-              background: tokens.colors.background.secondary,
+              background: tokens.colors.bg,
               border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '12px'
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontWeight: '600', color: tokens.colors.text.primary, fontSize: '14px' }}>
+              <span style={{ fontWeight: '600', color: tokens.colors.text, fontSize: '14px' }}>
                 {actionLabels[log.action] || log.action}
               </span>
-              <span style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
+              <span style={{ fontSize: '12px', color: tokens.colors.subtle }}>
                 {new Date(log.created_at).toLocaleString('he-IL')}
               </span>
             </div>
 
             {log.previous_value && (
-              <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
+              <div style={{ fontSize: '13px', color: tokens.colors.subtle, marginBottom: '4px' }}>
                 <span style={{ opacity: 0.7 }}>מ: </span>
                 <span style={{ color: tokens.colors.status.error }}>
                   {JSON.stringify(log.previous_value)}
@@ -1394,7 +1394,7 @@ function AuditLogContent({ user, logs, loading }: any) {
             )}
 
             {log.new_value && (
-              <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
+              <div style={{ fontSize: '13px', color: tokens.colors.subtle, marginBottom: '4px' }}>
                 <span style={{ opacity: 0.7 }}>ל: </span>
                 <span style={{ color: tokens.colors.status.success }}>
                   {JSON.stringify(log.new_value)}
@@ -1403,7 +1403,7 @@ function AuditLogContent({ user, logs, loading }: any) {
             )}
 
             {log.performed_by_username && (
-              <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginTop: '8px', paddingTop: '8px', borderTop: `1px solid ${tokens.colors.background.cardBorder}` }}>
+              <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginTop: '8px', paddingTop: '8px', borderTop: `1px solid ${tokens.colors.background.cardBorder}` }}>
                 👤 בוצע על ידי: @{log.performed_by_username}
               </div>
             )}

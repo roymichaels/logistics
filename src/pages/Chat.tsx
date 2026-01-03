@@ -327,8 +327,8 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
       <div style={{
         padding: '20px',
         textAlign: 'center',
-        color: tokens.colors.text.primary,
-        backgroundColor: tokens.colors.background.primary,
+        color: tokens.colors.text,
+        backgroundColor: tokens.colors.panel,
         minHeight: '100vh'
       }}>
         טוען צ'אטים...
@@ -392,7 +392,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
             margin: '0',
             fontSize: '28px',
             fontWeight: '700',
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
             textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
           }}>
             💬 הודעות
@@ -455,7 +455,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                       padding: '14px 16px',
                       border: 'none',
                       background: 'transparent',
-                      color: tokens.colors.text.primary,
+                      color: tokens.colors.text,
                       fontSize: '16px',
                       textAlign: 'right',
                       cursor: 'pointer',
@@ -487,7 +487,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                       padding: '14px 16px',
                       border: 'none',
                       background: 'transparent',
-                      color: tokens.colors.text.primary,
+                      color: tokens.colors.text,
                       fontSize: '16px',
                       textAlign: 'right',
                       cursor: 'pointer',
@@ -563,7 +563,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
               border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '12px',
               background: tokens.colors.background.card,
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               fontSize: '16px',
               marginBottom: '20px'
             }}
@@ -655,10 +655,10 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                 marginBottom: '16px'
               }}
             >
-              <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '4px' }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text, marginBottom: '4px' }}>
                 🌐 היקף גישה: {userScope === 'all' ? 'כל התשתית' : 'העסק שלך'}
               </div>
-              <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>
+              <div style={{ fontSize: '13px', color: tokens.colors.subtle }}>
                 {users.length} משתמשים זמינים ({onlineUsersCount} מחוברים, {offlineUsersCount} לא מחוברים)
               </div>
             </div>
@@ -709,7 +709,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
               borderRadius: '10px',
               marginBottom: '16px',
               fontSize: '13px',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               display: 'flex',
               alignItems: 'center',
               gap: '8px'
@@ -788,7 +788,7 @@ function TabButton({
         background: active ? tokens.gradients.primary : 'transparent',
         border: 'none',
         borderRadius: '12px',
-        color: active ? '#fff' : tokens.colors.text.secondary,
+        color: active ? '#fff' : tokens.colors.subtle,
         fontSize: '15px',
         fontWeight: '600',
         cursor: 'pointer',
@@ -837,7 +837,7 @@ function ConversationsList({
         background: tokens.colors.background.card
       }}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>💬</div>
-        <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text.primary, fontSize: '20px' }}>
+        <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text, fontSize: '20px' }}>
           אין שיחות פעילות
         </h3>
         <div style={{ ...styles.emptyState.containerText, fontSize: '15px' }}>
@@ -932,7 +932,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
               margin: 0,
               fontSize: '17px',
               fontWeight: hasUnread ? '700' : '600',
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
@@ -941,7 +941,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
             {userName}
           </h3>
           {conversation.room?.last_message_at && (
-            <span style={{ fontSize: '13px', color: tokens.colors.text.secondary, flexShrink: 0, marginLeft: '8px' }}>
+            <span style={{ fontSize: '13px', color: tokens.colors.subtle, flexShrink: 0, marginLeft: '8px' }}>
               {formatTime(conversation.room.last_message_at)}
             </span>
           )}
@@ -952,7 +952,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
             style={{
               margin: 0,
               fontSize: '14px',
-              color: hasUnread ? tokens.colors.text.primary : tokens.colors.text.secondary,
+              color: hasUnread ? tokens.colors.text : tokens.colors.subtle,
               fontWeight: hasUnread ? '500' : '400',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -1009,7 +1009,7 @@ function GroupsList({
         background: tokens.colors.background.card
       }}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>👥</div>
-        <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text.primary, fontSize: '20px' }}>
+        <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text, fontSize: '20px' }}>
           אין קבוצות זמינות
         </h3>
         <div style={{ ...styles.emptyState.containerText, fontSize: '15px', marginBottom: '24px' }}>
@@ -1114,21 +1114,21 @@ function ChatCard({ chat, onClick }: { chat: GroupChat; onClick: () => void }) {
             margin: '0 0 6px 0',
             fontSize: '17px',
             fontWeight: '700',
-            color: tokens.colors.text.primary
+            color: tokens.colors.text
           }}>
             {chat.name}
           </h3>
           <p style={{
             margin: '0 0 6px 0',
             fontSize: '14px',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             lineHeight: '1.5'
           }}>
             {chat.description}
           </p>
           <div style={{
             fontSize: '13px',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             fontWeight: '500'
           }}>
             {chat.members.length} חברים
@@ -1228,7 +1228,7 @@ function ChatView({
             margin: 0,
             fontSize: '18px',
             fontWeight: '700',
-            color: tokens.colors.text.primary
+            color: tokens.colors.text
           }}>
             {chatName}
           </h2>
@@ -1236,7 +1236,7 @@ function ChatView({
             <p style={{
               margin: '4px 0 0 0',
               fontSize: '13px',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               fontWeight: '500'
             }}>
               {chat.members?.length || 0} חברים פעילים
@@ -1301,8 +1301,8 @@ function ChatView({
               padding: '14px 18px',
               border: `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '24px',
-              background: tokens.colors.background.primary,
-              color: tokens.colors.text.primary,
+              background: tokens.colors.panel,
+              color: tokens.colors.text,
               fontSize: '16px'
             }}
           />
@@ -1389,7 +1389,7 @@ function MessageBubble({ message, isMe }: { message: any; isMe: boolean }) {
         <div style={{
           fontSize: '15px',
           lineHeight: '1.5',
-          color: isMe ? '#fff' : tokens.colors.text.primary
+          color: isMe ? '#fff' : tokens.colors.text
         }}>
           {message.message}
         </div>
@@ -1398,7 +1398,7 @@ function MessageBubble({ message, isMe }: { message: any; isMe: boolean }) {
           marginTop: '6px',
           opacity: 0.8,
           textAlign: isMe ? 'left' : 'right',
-          color: isMe ? '#fff' : tokens.colors.text.secondary
+          color: isMe ? '#fff' : tokens.colors.subtle
         }}>
           {formatTime(message.timestamp)}
         </div>
@@ -1445,7 +1445,7 @@ function FilterButton({
         borderRadius: '20px',
         border: `2px solid ${active ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
         background: active ? tokens.gradients.primary : tokens.colors.background.card,
-        color: active ? '#fff' : tokens.colors.text.primary,
+        color: active ? '#fff' : tokens.colors.text,
         fontSize: '14px',
         fontWeight: '600',
         cursor: 'pointer',

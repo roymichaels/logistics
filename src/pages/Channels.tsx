@@ -119,14 +119,14 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
           margin: '0 0 20px 0',
           fontSize: '28px',
           fontWeight: '700',
-          color: tokens.colors.text.primary,
+          color: tokens.colors.text,
           textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
         }}>
           📢 ערוצי עדכונים
         </h1>
         <p style={{
           margin: '0 0 24px 0',
-          color: tokens.colors.text.secondary,
+          color: tokens.colors.subtle,
           fontSize: '15px'
         }}>
           הודעות חשובות ועדכוני מערכת
@@ -142,7 +142,7 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
             textAlign: 'center'
           }}>
             <div style={{ fontSize: '64px', marginBottom: '16px' }}>📢</div>
-            <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text.primary, fontSize: '20px' }}>
+            <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text, fontSize: '20px' }}>
               אין ערוצים זמינים
             </h3>
             <div style={{ ...styles.emptyState.containerText, fontSize: '15px', marginBottom: '24px' }}>
@@ -281,7 +281,7 @@ function ChannelCard({ channel, onClick, theme }: {
       case 'announcements': return '#007aff';
       case 'updates': return '#34c759';
       case 'alerts': return '#ff3b30';
-      default: return tokens.colors.text.secondary;
+      default: return tokens.colors.subtle;
     }
   };
 
@@ -327,21 +327,21 @@ function ChannelCard({ channel, onClick, theme }: {
             margin: '0 0 6px 0',
             fontSize: '17px',
             fontWeight: '700',
-            color: tokens.colors.text.primary
+            color: tokens.colors.text
           }}>
             {channel.name}
           </h3>
           <p style={{
             margin: '0 0 6px 0',
             fontSize: '14px',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             lineHeight: '1.5'
           }}>
             {channel.description}
           </p>
           <div style={{
             fontSize: '13px',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             fontWeight: '500'
           }}>
             {channel.subscribers.length} מנויים

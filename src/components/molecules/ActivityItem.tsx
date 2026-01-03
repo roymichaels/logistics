@@ -29,11 +29,11 @@ const typeIcons: Record<ActivityType, string> = {
 };
 
 const typeColors: Record<ActivityType, string> = {
-  call: tokens.colors.primary[500],
+  call: tokens.colors.primary[200],
   email: tokens.colors.semantic.info,
   meeting: '#8b5cf6',
   deal: tokens.colors.semantic.success,
-  order: tokens.colors.primary[600],
+  order: tokens.colors.primary[200],
   alert: tokens.colors.semantic.warning,
   user: '#06b6d4',
   business: '#f59e0b',
@@ -72,7 +72,7 @@ export function ActivityItem({
       }}
       onMouseEnter={(e) => {
         if (onClick) {
-          e.currentTarget.style.backgroundColor = tokens.colors.background.secondary;
+          e.currentTarget.style.backgroundColor = tokens.colors.bg;
         }
       }}
       onMouseLeave={(e) => {
@@ -103,7 +103,7 @@ export function ActivityItem({
             margin: 0,
             fontSize: '14px',
             fontWeight: isRead ? 400 : 600,
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
             lineHeight: '1.5',
           }}
         >
@@ -113,7 +113,7 @@ export function ActivityItem({
           style={{
             margin: '4px 0 0',
             fontSize: '12px',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
           }}
         >
           {time}
@@ -146,7 +146,7 @@ export function ActivityItem({
                 height: '28px',
                 padding: 0,
                 fontSize: '14px',
-                color: tokens.colors.text.secondary,
+                color: tokens.colors.subtle,
                 backgroundColor: 'transparent',
                 border: 'none',
                 borderRadius: '6px',
@@ -159,7 +159,7 @@ export function ActivityItem({
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = tokens.colors.text.secondary;
+                e.currentTarget.style.color = tokens.colors.subtle;
               }}
               aria-label="Delete activity"
             >

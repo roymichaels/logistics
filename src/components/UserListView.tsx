@@ -104,7 +104,7 @@ export function UserListView({
             margin: '0 0 20px 0',
             fontSize: '28px',
             fontWeight: '700',
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
             textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
           }}
         >
@@ -123,7 +123,7 @@ export function UserListView({
             border: `1px solid ${tokens.colors.background.cardBorder}`,
             borderRadius: '12px',
             background: tokens.colors.background.card,
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
             fontSize: '16px',
             marginBottom: '16px'
           }}
@@ -177,10 +177,10 @@ export function UserListView({
             }}
           >
             <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔍</div>
-            <h3 style={{ margin: '0 0 8px 0', color: tokens.colors.text.primary, fontSize: '18px' }}>
+            <h3 style={{ margin: '0 0 8px 0', color: tokens.colors.text, fontSize: '18px' }}>
               לא נמצאו משתמשים
             </h3>
-            <p style={{ margin: 0, color: tokens.colors.text.secondary, fontSize: '14px' }}>
+            <p style={{ margin: 0, color: tokens.colors.subtle, fontSize: '14px' }}>
               נסה לשנות את החיפוש או הסינון
             </p>
           </div>
@@ -284,7 +284,7 @@ function RoleFilterChip({
         borderRadius: '20px',
         border: `1px solid ${selected ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
         background: selected ? tokens.gradients.primary : tokens.colors.background.card,
-        color: selected ? '#fff' : tokens.colors.text.primary,
+        color: selected ? '#fff' : tokens.colors.text,
         fontSize: '14px',
         fontWeight: '600',
         cursor: 'pointer',
@@ -409,7 +409,7 @@ function UserCard({
               margin: 0,
               fontSize: '17px',
               fontWeight: '700',
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
@@ -454,7 +454,7 @@ function UserCard({
             alignItems: 'center',
             gap: '6px',
             fontSize: '13px',
-            color: tokens.colors.text.secondary
+            color: tokens.colors.subtle
           }}
         >
           <span style={{ fontSize: '14px' }}>

@@ -85,11 +85,11 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
     return (
       <div style={{
         minHeight: '100vh',
-        background: tokens.colors.background.primary,
+        background: tokens.colors.panel,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: tokens.colors.text.primary
+        color: tokens.colors.text
       }}>
         <div>טוען...</div>
       </div>
@@ -99,7 +99,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: tokens.colors.background.primary,
+      background: tokens.colors.panel,
       padding: '20px',
       paddingBottom: '100px',
       direction: 'rtl',
@@ -131,7 +131,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
             margin: 0,
             fontSize: '32px',
             fontWeight: '700',
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
             marginBottom: '12px'
           }}>
             ברוכים הבאים, {user?.name || 'משתמש'}!
@@ -139,7 +139,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
           <p style={{
             margin: 0,
             fontSize: '16px',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             lineHeight: '1.6',
             maxWidth: '500px',
             marginLeft: 'auto',
@@ -183,7 +183,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
                 margin: 0,
                 fontSize: '20px',
                 fontWeight: '700',
-                color: tokens.colors.text.primary,
+                color: tokens.colors.text,
                 marginBottom: '6px'
               }}>
                 הפרופיל שלך
@@ -191,7 +191,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
               <p style={{
                 margin: 0,
                 fontSize: '14px',
-                color: tokens.colors.text.secondary
+                color: tokens.colors.subtle
               }}>
                 פרטי המשתמש והסטטוס שלך במערכת
               </p>
@@ -207,8 +207,8 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
               background: 'rgba(29, 155, 240, 0.1)',
               borderRadius: '12px'
             }}>
-              <span style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>שם מלא</span>
-              <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text.primary }}>
+              <span style={{ fontSize: '14px', color: tokens.colors.subtle }}>שם מלא</span>
+              <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text }}>
                 {user?.name || 'לא זמין'}
               </span>
             </div>
@@ -221,7 +221,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
               background: 'rgba(29, 155, 240, 0.1)',
               borderRadius: '12px'
             }}>
-              <span style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>שם משתמש</span>
+              <span style={{ fontSize: '14px', color: tokens.colors.subtle }}>שם משתמש</span>
               <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.brand.primary }}>
                 @{user?.username || user?.telegram_id || 'לא זמין'}
               </span>
@@ -235,7 +235,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
               background: 'rgba(29, 155, 240, 0.1)',
               borderRadius: '12px'
             }}>
-              <span style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>סטטוס</span>
+              <span style={{ fontSize: '14px', color: tokens.colors.subtle }}>סטטוס</span>
               <span style={{
                 display: 'inline-block',
                 padding: '6px 12px',
@@ -271,7 +271,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
               margin: 0,
               fontSize: '20px',
               fontWeight: '700',
-              color: tokens.colors.text.primary
+              color: tokens.colors.text
             }}>
               שלבים הבאים
             </h3>
@@ -280,7 +280,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
           <p style={{
             margin: '0 0 20px',
             fontSize: '15px',
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
             lineHeight: '1.6'
           }}>
             כדי לקבל גישה למערכת הלוגיסטיקה, עליך לבקש הקצאת תפקיד.
@@ -346,7 +346,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
                 margin: 0,
                 padding: '0 0 0 20px',
                 fontSize: '14px',
-                color: tokens.colors.text.primary,
+                color: tokens.colors.text,
                 lineHeight: '1.8'
               }}>
                 <li><strong>מנהל</strong> - ניהול מלא של המערכת והצוות</li>
@@ -370,7 +370,7 @@ export function UserHomepage({ dataStore, onNavigate }: UserHomepageProps) {
           <p style={{
             margin: 0,
             fontSize: '13px',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             lineHeight: '1.6'
           }}>
             צריך עזרה? פנה למנהל הארגון שלך או לתמיכה הטכנית

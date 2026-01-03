@@ -201,7 +201,7 @@ export function GroupChannelCreateModal({
               margin: 0,
               fontSize: '22px',
               fontWeight: '700',
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               display: 'flex',
               alignItems: 'center',
               gap: '10px'
@@ -219,7 +219,7 @@ export function GroupChannelCreateModal({
               border: 'none',
               fontSize: '24px',
               cursor: 'pointer',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               padding: '4px',
               lineHeight: 1
             }}
@@ -238,7 +238,7 @@ export function GroupChannelCreateModal({
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text.primary
+                color: tokens.colors.text
               }}
             >
               שם {mode === 'group' ? 'הקבוצה' : 'הערוץ'}
@@ -255,8 +255,8 @@ export function GroupChannelCreateModal({
                 padding: '12px 16px',
                 border: `1px solid ${tokens.colors.background.cardBorder}`,
                 borderRadius: '12px',
-                background: tokens.colors.background.primary,
-                color: tokens.colors.text.primary,
+                background: tokens.colors.panel,
+                color: tokens.colors.text,
                 fontSize: '16px',
                 outline: 'none'
               }}
@@ -271,7 +271,7 @@ export function GroupChannelCreateModal({
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text.primary
+                color: tokens.colors.text
               }}
             >
               תיאור (אופציונלי)
@@ -286,8 +286,8 @@ export function GroupChannelCreateModal({
                 padding: '12px 16px',
                 border: `1px solid ${tokens.colors.background.cardBorder}`,
                 borderRadius: '12px',
-                background: tokens.colors.background.primary,
-                color: tokens.colors.text.primary,
+                background: tokens.colors.panel,
+                color: tokens.colors.text,
                 fontSize: '16px',
                 resize: 'vertical',
                 outline: 'none',
@@ -304,7 +304,7 @@ export function GroupChannelCreateModal({
                 marginBottom: '12px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text.primary
+                color: tokens.colors.text
               }}
             >
               סוג
@@ -328,8 +328,8 @@ export function GroupChannelCreateModal({
                     background:
                       type === typeOption.value
                         ? `${tokens.colors.brand.primary}20`
-                        : tokens.colors.background.primary,
-                    color: tokens.colors.text.primary,
+                        : tokens.colors.panel,
+                    color: tokens.colors.text,
                     cursor: 'pointer',
                     textAlign: 'right',
                     transition: 'all 0.2s ease'
@@ -347,7 +347,7 @@ export function GroupChannelCreateModal({
                         {typeOption.label}
                       </div>
                       <div
-                        style={{ fontSize: '13px', color: tokens.colors.text.secondary }}
+                        style={{ fontSize: '13px', color: tokens.colors.subtle }}
                       >
                         {typeOption.description}
                       </div>
@@ -369,7 +369,7 @@ export function GroupChannelCreateModal({
                 marginBottom: '12px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text.primary
+                color: tokens.colors.text
               }}
             >
               {mode === 'group'
@@ -388,8 +388,8 @@ export function GroupChannelCreateModal({
                 padding: '12px 16px',
                 border: `1px solid ${tokens.colors.background.cardBorder}`,
                 borderRadius: '12px',
-                background: tokens.colors.background.primary,
-                color: tokens.colors.text.primary,
+                background: tokens.colors.panel,
+                color: tokens.colors.text,
                 fontSize: '16px',
                 marginBottom: '12px',
                 outline: 'none'
@@ -403,7 +403,7 @@ export function GroupChannelCreateModal({
                 overflow: 'auto',
                 border: `1px solid ${tokens.colors.background.cardBorder}`,
                 borderRadius: '12px',
-                background: tokens.colors.background.primary
+                background: tokens.colors.panel
               }}
             >
               {filteredUsers.length === 0 ? (
@@ -411,7 +411,7 @@ export function GroupChannelCreateModal({
                   style={{
                     padding: '20px',
                     textAlign: 'center',
-                    color: tokens.colors.text.secondary
+                    color: tokens.colors.subtle
                   }}
                 >
                   לא נמצאו משתמשים
@@ -435,7 +435,7 @@ export function GroupChannelCreateModal({
                         background: isSelected
                           ? `${tokens.colors.brand.primary}15`
                           : 'transparent',
-                        color: tokens.colors.text.primary,
+                        color: tokens.colors.text,
                         cursor:
                           isCurrentUser && mode === 'group'
                             ? 'not-allowed'
@@ -478,7 +478,7 @@ export function GroupChannelCreateModal({
                             <div
                               style={{
                                 fontSize: '13px',
-                                color: tokens.colors.text.secondary
+                                color: tokens.colors.subtle
                               }}
                             >
                               @{user.username}
@@ -528,7 +528,7 @@ export function GroupChannelCreateModal({
                 borderRadius: '12px',
                 border: `1px solid ${tokens.colors.background.cardBorder}`,
                 background: 'transparent',
-                color: tokens.colors.text.primary,
+                color: tokens.colors.text,
                 fontSize: '16px',
                 fontWeight: '600',
                 cursor: loading ? 'not-allowed' : 'pointer',

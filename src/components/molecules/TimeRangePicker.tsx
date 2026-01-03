@@ -71,9 +71,9 @@ export function TimeRangePicker({
         padding: '8px 32px 8px 12px',
         fontSize: '14px',
         fontWeight: 500,
-        color: tokens.colors.text.primary,
-        backgroundColor: tokens.colors.background.primary,
-        border: `1px solid ${tokens.colors.neutral[300]}`,
+        color: tokens.colors.text,
+        backgroundColor: tokens.colors.panel,
+        border: `1px solid ${tokens.colors.border}`,
         borderRadius: '8px',
         outline: 'none',
         cursor: 'pointer',
@@ -85,17 +85,17 @@ export function TimeRangePicker({
         ...style,
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = tokens.colors.primary[500];
+        e.currentTarget.style.borderColor = tokens.colors.primary[200];
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = tokens.colors.neutral[300];
+        e.currentTarget.style.borderColor = tokens.colors.border;
       }}
       onFocus={(e) => {
-        e.currentTarget.style.borderColor = tokens.colors.primary[500];
-        e.currentTarget.style.boxShadow = `0 0 0 3px ${tokens.colors.primary[100]}`;
+        e.currentTarget.style.borderColor = tokens.colors.primary[200];
+        e.currentTarget.style.boxShadow = `0 0 0 3px ${tokens.colors.primary[50]}`;
       }}
       onBlur={(e) => {
-        e.currentTarget.style.borderColor = tokens.colors.neutral[300];
+        e.currentTarget.style.borderColor = tokens.colors.border;
         e.currentTarget.style.boxShadow = 'none';
       }}
     >

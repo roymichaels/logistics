@@ -42,7 +42,7 @@ export function ModeSelectorModal({ isOpen, onClose, onSelectMode }: ModeSelecto
           margin: '0 0 8px 0',
           fontSize: '24px',
           fontWeight: '700',
-          color: tokens.colors.text.primary,
+          color: tokens.colors.text,
           textAlign: 'center'
         }}>
           🎯 בחר סוג הזמנה
@@ -50,7 +50,7 @@ export function ModeSelectorModal({ isOpen, onClose, onSelectMode }: ModeSelecto
         <p style={{
           margin: '0 0 24px 0',
           fontSize: '14px',
-          color: tokens.colors.text.secondary,
+          color: tokens.colors.subtle,
           textAlign: 'center'
         }}>
           איך תרצה ליצור את ההזמנה?
@@ -68,7 +68,7 @@ export function ModeSelectorModal({ isOpen, onClose, onSelectMode }: ModeSelecto
               background: tokens.gradients.primary,
               border: 'none',
               borderRadius: '16px',
-              color: tokens.colors.text.primaryBright,
+              color: tokens.colors.textBright,
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               boxShadow: tokens.glows.primary
@@ -99,10 +99,10 @@ export function ModeSelectorModal({ isOpen, onClose, onSelectMode }: ModeSelecto
             }}
             style={{
               padding: '20px',
-              background: tokens.colors.background.secondary,
+              background: tokens.colors.bg,
               border: `2px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '16px',
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               cursor: 'pointer',
               transition: 'all 0.3s ease'
             }}
@@ -119,7 +119,7 @@ export function ModeSelectorModal({ isOpen, onClose, onSelectMode }: ModeSelecto
             <div style={{ fontSize: '18px', fontWeight: '700', marginBottom: '4px' }}>
               בחירת מוצרים
             </div>
-            <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>
+            <div style={{ fontSize: '13px', color: tokens.colors.subtle }}>
               בנה הזמנה עם ממשק מוצרים
             </div>
           </button>
@@ -134,7 +134,7 @@ export function ModeSelectorModal({ isOpen, onClose, onSelectMode }: ModeSelecto
               background: 'transparent',
               border: 'none',
               borderRadius: '12px',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               cursor: 'pointer',
               fontSize: '14px',
               marginTop: '8px'

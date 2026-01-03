@@ -60,9 +60,9 @@ export function FilterBar({
               padding: '8px 32px 8px 12px',
               fontSize: '14px',
               fontWeight: 500,
-              color: tokens.colors.text.primary,
-              backgroundColor: tokens.colors.background.primary,
-              border: `1px solid ${tokens.colors.neutral[300]}`,
+              color: tokens.colors.text,
+              backgroundColor: tokens.colors.panel,
+              border: `1px solid ${tokens.colors.border}`,
               borderRadius: '8px',
               outline: 'none',
               cursor: 'pointer',
@@ -93,9 +93,9 @@ export function FilterBar({
               padding: '8px 12px',
               fontSize: '14px',
               fontWeight: 500,
-              color: tokens.colors.text.primary,
-              backgroundColor: tokens.colors.background.primary,
-              border: `1px solid ${tokens.colors.neutral[300]}`,
+              color: tokens.colors.text,
+              backgroundColor: tokens.colors.panel,
+              border: `1px solid ${tokens.colors.border}`,
               borderRadius: '8px',
               outline: 'none',
               cursor: 'pointer',
@@ -114,9 +114,9 @@ export function FilterBar({
                   padding: '6px 12px',
                   fontSize: '13px',
                   fontWeight: 600,
-                  color: value === opt.value ? tokens.colors.primary[700] : tokens.colors.text.secondary,
-                  backgroundColor: value === opt.value ? tokens.colors.primary[100] : tokens.colors.background.secondary,
-                  border: `1px solid ${value === opt.value ? tokens.colors.primary[300] : tokens.colors.neutral[300]}`,
+                  color: value === opt.value ? tokens.colors.primary[700] : tokens.colors.subtle,
+                  backgroundColor: value === opt.value ? tokens.colors.primary[50] : tokens.colors.bg,
+                  border: `1px solid ${value === opt.value ? tokens.colors.primary[300] : tokens.colors.border}`,
                   borderRadius: '6px',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
@@ -138,8 +138,8 @@ export function FilterBar({
       className={className}
       style={{
         padding: '16px',
-        backgroundColor: tokens.colors.background.primary,
-        border: `1px solid ${tokens.colors.neutral[200]}`,
+        backgroundColor: tokens.colors.panel,
+        border: `1px solid ${tokens.colors.border}`,
         borderRadius: '12px',
         ...style,
       }}
@@ -158,7 +158,7 @@ export function FilterBar({
               margin: 0,
               fontSize: '14px',
               fontWeight: 600,
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
             }}
           >
             Filters
@@ -174,8 +174,8 @@ export function FilterBar({
                 padding: '0 6px',
                 fontSize: '11px',
                 fontWeight: 700,
-                color: tokens.colors.background.primary,
-                backgroundColor: tokens.colors.primary[600],
+                color: tokens.colors.panel,
+                backgroundColor: tokens.colors.primary[200],
                 borderRadius: '10px',
               }}
             >
@@ -194,7 +194,7 @@ export function FilterBar({
             style={{
               padding: '4px 8px',
               fontSize: '12px',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               backgroundColor: 'transparent',
               border: 'none',
               cursor: 'pointer',
@@ -226,7 +226,7 @@ export function FilterBar({
             gap: '8px',
             marginTop: '12px',
             paddingTop: '12px',
-            borderTop: `1px solid ${tokens.colors.neutral[200]}`,
+            borderTop: `1px solid ${tokens.colors.border}`,
           }}
         >
           {Object.entries(activeFilters).map(([key, value]) => {
@@ -249,13 +249,13 @@ export function FilterBar({
                   padding: '4px 8px 4px 12px',
                   fontSize: '12px',
                   fontWeight: 500,
-                  color: tokens.colors.text.primary,
+                  color: tokens.colors.text,
                   backgroundColor: tokens.colors.primary[50],
                   border: `1px solid ${tokens.colors.primary[200]}`,
                   borderRadius: '16px',
                 }}
               >
-                <span style={{ color: tokens.colors.text.secondary }}>{filter.label}:</span>
+                <span style={{ color: tokens.colors.subtle }}>{filter.label}:</span>
                 <span>{displayValue}</span>
                 <button
                   onClick={() => onFilterChange(key, '')}
@@ -267,7 +267,7 @@ export function FilterBar({
                     height: '16px',
                     padding: 0,
                     fontSize: '10px',
-                    color: tokens.colors.text.secondary,
+                    color: tokens.colors.subtle,
                     backgroundColor: 'transparent',
                     border: 'none',
                     borderRadius: '50%',

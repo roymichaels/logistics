@@ -63,7 +63,7 @@ function TabButton({
         background: active ? tokens.gradients.primary : 'transparent',
         border: 'none',
         borderRadius: '12px',
-        color: active ? '#fff' : tokens.colors.text.secondary,
+        color: active ? '#fff' : tokens.colors.subtle,
         fontSize: '15px',
         fontWeight: '600',
         cursor: 'pointer',

@@ -54,7 +54,7 @@ export function SupportDashboard() {
       case 'high': return tokens.colors.status.error;
       case 'medium': return tokens.colors.status.warning;
       case 'low': return tokens.colors.status.info;
-      default: return tokens.colors.text.secondary;
+      default: return tokens.colors.subtle;
     }
   };
 
@@ -132,7 +132,7 @@ export function SupportDashboard() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '12px', fontWeight: 600, color: tokens.colors.text.secondary }}>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: tokens.colors.subtle }}>
                           {ticket.id}
                         </span>
                         <span
@@ -151,16 +151,16 @@ export function SupportDashboard() {
                           {ticket.status}
                         </span>
                       </div>
-                      <div style={{ fontSize: '16px', fontWeight: 600, color: tokens.colors.text.primary, marginBottom: '4px' }}>
+                      <div style={{ fontSize: '16px', fontWeight: 600, color: tokens.colors.text, marginBottom: '4px' }}>
                         {ticket.subject}
                       </div>
-                      <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
+                      <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
                         {ticket.customer} • {ticket.category}
                       </div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
+                    <span style={{ fontSize: '12px', color: tokens.colors.subtle }}>
                       {ticket.createdAt}
                     </span>
                     <button
@@ -205,19 +205,19 @@ export function SupportDashboard() {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '12px',
-                    background: tokens.colors.background.secondary,
+                    background: tokens.colors.bg,
                     border: `1px solid ${tokens.colors.background.cardBorder}`,
                     borderRadius: '12px',
                     cursor: 'pointer',
                     transition: 'all 0.3s ease',
-                    color: tokens.colors.text.primary,
+                    color: tokens.colors.text,
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = tokens.colors.background.secondaryHover;
+                    e.currentTarget.style.background = tokens.colors.bgHover;
                     e.currentTarget.style.borderColor = tokens.colors.background.cardBorderHover;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = tokens.colors.background.secondary;
+                    e.currentTarget.style.background = tokens.colors.bg;
                     e.currentTarget.style.borderColor = tokens.colors.background.cardBorder;
                   }}
                 >

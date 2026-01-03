@@ -108,7 +108,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
             margin: 0,
             fontSize: '36px',
             fontWeight: '700',
-            color: tokens.colors.text.primaryBright,
+            color: tokens.colors.textBright,
             marginBottom: '12px',
             animation: 'fadeInUp 0.8s ease-out 0.1s backwards'
           }}>
@@ -117,7 +117,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
           <p style={{
             margin: 0,
             fontSize: '18px',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             lineHeight: '1.6',
             maxWidth: '600px',
             marginLeft: 'auto',
@@ -209,7 +209,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
                   margin: 0,
                   fontSize: '24px',
                   fontWeight: '700',
-                  color: tokens.colors.text.primaryBright,
+                  color: tokens.colors.textBright,
                   marginBottom: '8px',
                   textAlign: 'center'
                 }}>
@@ -232,7 +232,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
                 <p style={{
                   margin: 0,
                   fontSize: '15px',
-                  color: tokens.colors.text.primary,
+                  color: tokens.colors.text,
                   lineHeight: '1.6',
                   marginBottom: isExpanded ? '20px' : '0'
                 }}>
@@ -251,7 +251,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
                       margin: '0 0 12px 0',
                       fontSize: '16px',
                       fontWeight: '600',
-                      color: tokens.colors.text.primaryBright
+                      color: tokens.colors.textBright
                     }}>
                       מה מקבלים:
                     </h4>
@@ -259,7 +259,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
                       margin: 0,
                       padding: '0 0 0 20px',
                       fontSize: '14px',
-                      color: tokens.colors.text.primary,
+                      color: tokens.colors.text,
                       lineHeight: '1.8'
                     }}>
                       {pathway.benefits.map((benefit, i) => (
@@ -276,7 +276,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
                   textAlign: 'center',
                   marginTop: '16px',
                   fontSize: '12px',
-                  color: tokens.colors.text.secondary,
+                  color: tokens.colors.subtle,
                   fontWeight: '600'
                 }}>
                   {isExpanded ? '▲ לחץ להסתרת פרטים' : '▼ לחץ לפרטים נוספים'}
@@ -301,7 +301,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
               padding: '18px',
               background: selectedPathway
                 ? 'linear-gradient(120deg, #1D9BF0, #f6c945)'
-                : tokens.colors.background.secondary,
+                : tokens.colors.bg,
               border: 'none',
               borderRadius: '16px',
               color: selectedPathway ? '#ffffff' : tokens.colors.text.hint,
@@ -337,7 +337,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
                 background: 'transparent',
                 border: `1px solid ${tokens.colors.border.default}`,
                 borderRadius: '14px',
-                color: tokens.colors.text.secondary,
+                color: tokens.colors.subtle,
                 fontSize: '15px',
                 fontWeight: '600',
                 cursor: 'pointer',
@@ -345,11 +345,11 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = tokens.colors.background.cardBorderHover;
-                e.currentTarget.style.color = tokens.colors.text.primary;
+                e.currentTarget.style.color = tokens.colors.text;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = tokens.colors.border.default;
-                e.currentTarget.style.color = tokens.colors.text.secondary;
+                e.currentTarget.style.color = tokens.colors.subtle;
               }}
             >
               דלג לעכשיו
@@ -376,7 +376,7 @@ export function OnboardingHub({ onSelectPathway, onSkip }: OnboardingHubProps) {
           <p style={{
             margin: 0,
             fontSize: '14px',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             lineHeight: '1.6'
           }}>
             תוכל תמיד לשנות את ההגדרות והתפקיד שלך מדף ההגדרות

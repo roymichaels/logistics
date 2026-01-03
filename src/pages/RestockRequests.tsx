@@ -147,7 +147,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
       case 'rejected':
         return tokens.colors.status.error;
       default:
-        return tokens.colors.text.secondary;
+        return tokens.colors.subtle;
     }
   };
 
@@ -193,7 +193,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
       <div style={styles.pageContainer}>
         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔄</div>
-          <p style={{ color: tokens.colors.text.secondary }}>{hebrew.loading}</p>
+          <p style={{ color: tokens.colors.subtle }}>{hebrew.loading}</p>
         </div>
       </div>
     );
@@ -216,14 +216,14 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
               borderRadius: '8px',
               border: `1px solid ${tokens.colors.background.cardBorder}`,
               background: tokens.colors.background.card,
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               fontSize: '16px',
               cursor: 'pointer'
             }}
           >
             ← חזרה
           </button>
-          <h2 style={{ margin: 0, fontSize: '20px', color: tokens.colors.text.primary }}>
+          <h2 style={{ margin: 0, fontSize: '20px', color: tokens.colors.text }}>
             פרטי בקשה
           </h2>
         </div>
@@ -250,13 +250,13 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
               margin: '0 0 8px 0',
               fontSize: '22px',
               fontWeight: '700',
-              color: tokens.colors.text.primary
+              color: tokens.colors.text
             }}>
               {selectedRequest.product?.name || 'מוצר לא ידוע'}
             </h3>
             <div style={{
               fontSize: '14px',
-              color: tokens.colors.text.secondary
+              color: tokens.colors.subtle
             }}>
               SKU: {selectedRequest.product?.sku || 'N/A'}
             </div>
@@ -275,7 +275,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
               background: 'rgba(29, 155, 240, 0.1)',
               border: `1px solid ${tokens.colors.background.cardBorder}`
             }}>
-              <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
+              <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '4px' }}>
                 כמות מבוקשת
               </div>
               <div style={{ fontSize: '24px', fontWeight: '700', color: tokens.colors.brand.primary }}>
@@ -289,7 +289,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
                 background: 'rgba(77, 208, 225, 0.1)',
                 border: `1px solid ${tokens.colors.background.cardBorder}`
               }}>
-                <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
+                <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '4px' }}>
                   כמות מאושרת
                 </div>
                 <div style={{ fontSize: '24px', fontWeight: '700', color: tokens.colors.brand.primary }}>
@@ -302,19 +302,19 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
           {/* Locations */}
           {selectedRequest.from_location && (
             <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
+              <div style={{ fontSize: '13px', color: tokens.colors.subtle, marginBottom: '4px' }}>
                 ממיקום
               </div>
-              <div style={{ fontSize: '16px', color: tokens.colors.text.primary }}>
+              <div style={{ fontSize: '16px', color: tokens.colors.text }}>
                 {selectedRequest.from_location.name}
               </div>
             </div>
           )}
           <div style={{ marginBottom: '20px' }}>
-            <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
+            <div style={{ fontSize: '13px', color: tokens.colors.subtle, marginBottom: '4px' }}>
               למיקום
             </div>
-            <div style={{ fontSize: '16px', color: tokens.colors.text.primary }}>
+            <div style={{ fontSize: '16px', color: tokens.colors.text }}>
               {selectedRequest.to_location?.name || 'מיקום לא ידוע'}
             </div>
           </div>
@@ -328,15 +328,15 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
             marginBottom: '20px'
           }}>
             <div style={{ marginBottom: '8px' }}>
-              <span style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>נוצר: </span>
-              <span style={{ fontSize: '14px', color: tokens.colors.text.primary }}>
+              <span style={{ fontSize: '13px', color: tokens.colors.subtle }}>נוצר: </span>
+              <span style={{ fontSize: '14px', color: tokens.colors.text }}>
                 {formatDate(selectedRequest.created_at)} • {formatTime(selectedRequest.created_at)}
               </span>
             </div>
             {selectedRequest.approved_at && (
               <div style={{ marginBottom: '8px' }}>
-                <span style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>אושר: </span>
-                <span style={{ fontSize: '14px', color: tokens.colors.text.primary }}>
+                <span style={{ fontSize: '13px', color: tokens.colors.subtle }}>אושר: </span>
+                <span style={{ fontSize: '14px', color: tokens.colors.text }}>
                   {formatDate(selectedRequest.approved_at)} • {formatTime(selectedRequest.approved_at)}
                 </span>
               </div>
@@ -352,10 +352,10 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
               border: `1px solid ${tokens.colors.background.cardBorder}`,
               marginBottom: '20px'
             }}>
-              <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '8px' }}>
+              <div style={{ fontSize: '13px', color: tokens.colors.subtle, marginBottom: '8px' }}>
                 הערות
               </div>
-              <div style={{ fontSize: '14px', color: tokens.colors.text.primary }}>
+              <div style={{ fontSize: '14px', color: tokens.colors.text }}>
                 {selectedRequest.notes}
               </div>
             </div>
@@ -464,7 +464,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
               background: filter === tab.key
                 ? 'rgba(29, 155, 240, 0.15)'
                 : tokens.colors.background.card,
-              color: filter === tab.key ? tokens.colors.brand.primary : tokens.colors.text.primary,
+              color: filter === tab.key ? tokens.colors.brand.primary : tokens.colors.text,
               fontSize: '13px',
               fontWeight: filter === tab.key ? '600' : '500',
               cursor: 'pointer',
@@ -510,7 +510,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
         <div style={styles.card}>
           <div style={styles.emptyState.container}>
             <div style={styles.emptyState.containerIcon}>📭</div>
-            <h3 style={{ margin: '0 0 8px 0', color: tokens.colors.text.primary }}>
+            <h3 style={{ margin: '0 0 8px 0', color: tokens.colors.text }}>
               אין בקשות {filter !== 'all' ? 'בסטטוס זה' : ''}
             </h3>
             <div style={styles.emptyState.containerText}>
@@ -557,7 +557,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
                   <div style={{
                     fontSize: '16px',
                     fontWeight: '600',
-                    color: tokens.colors.text.primary,
+                    color: tokens.colors.text,
                     marginBottom: '4px'
                   }}>
                     {request.product?.name || 'מוצר לא ידוע'}
@@ -580,7 +580,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
                   {/* Location Info */}
                   <div style={{
                     fontSize: '13px',
-                    color: tokens.colors.text.secondary,
+                    color: tokens.colors.subtle,
                     marginBottom: '8px'
                   }}>
                     → {request.to_location?.name || 'מיקום לא ידוע'}
@@ -601,7 +601,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
                     </div>
                     <div style={{
                       fontSize: '12px',
-                      color: tokens.colors.text.secondary
+                      color: tokens.colors.subtle
                     }}>
                       {formatDate(request.created_at)}
                     </div>
@@ -611,7 +611,7 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
                 {/* Arrow */}
                 <div style={{
                   fontSize: '20px',
-                  color: tokens.colors.text.secondary,
+                  color: tokens.colors.subtle,
                   marginTop: '12px'
                 }}>
                   ←

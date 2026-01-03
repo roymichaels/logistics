@@ -20,7 +20,7 @@ export function ChatSearch({ value, onChange, placeholder }: ChatSearchProps) {
         border: `1px solid ${tokens.colors.background.cardBorder}`,
         borderRadius: '12px',
         background: tokens.colors.background.card,
-        color: tokens.colors.text.primary,
+        color: tokens.colors.text,
         fontSize: '16px',
         marginBottom: '20px'
       }}

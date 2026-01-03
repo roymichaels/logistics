@@ -48,7 +48,7 @@ export function TeamManagement() {
       case 'active': return tokens.colors.status.success;
       case 'pending': return tokens.colors.status.warning;
       case 'inactive': return tokens.colors.status.error;
-      default: return tokens.colors.text.secondary;
+      default: return tokens.colors.subtle;
     }
   };
 
@@ -137,10 +137,10 @@ export function TeamManagement() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ marginBottom: '12px' }}>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: tokens.colors.text.primary, marginBottom: '4px' }}>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: tokens.colors.text, marginBottom: '4px' }}>
                     {member.name}
                   </h3>
-                  <p style={{ margin: 0, fontSize: '14px', color: tokens.colors.text.secondary }}>
+                  <p style={{ margin: 0, fontSize: '14px', color: tokens.colors.subtle }}>
                     {member.email}
                   </p>
                 </div>
@@ -170,7 +170,7 @@ export function TeamManagement() {
                   </span>
                 </div>
 
-                <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '16px' }}>
+                <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '16px' }}>
                   Joined {new Date(member.joinedDate).toLocaleDateString()}
                 </div>
 

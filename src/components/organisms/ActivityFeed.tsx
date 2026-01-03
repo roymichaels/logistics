@@ -93,8 +93,8 @@ export function ActivityFeed({
         style={{
           padding: '32px',
           textAlign: 'center',
-          color: tokens.colors.text.secondary,
-          backgroundColor: tokens.colors.background.secondary,
+          color: tokens.colors.subtle,
+          backgroundColor: tokens.colors.bg,
           borderRadius: '12px',
           ...style,
         }}
@@ -111,9 +111,9 @@ export function ActivityFeed({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: tokens.colors.background.primary,
+        backgroundColor: tokens.colors.panel,
         borderRadius: '12px',
-        border: `1px solid ${tokens.colors.neutral[200]}`,
+        border: `1px solid ${tokens.colors.border}`,
         overflow: 'hidden',
         ...style,
       }}
@@ -122,7 +122,7 @@ export function ActivityFeed({
         <div
           style={{
             padding: '16px',
-            borderBottom: `1px solid ${tokens.colors.neutral[200]}`,
+            borderBottom: `1px solid ${tokens.colors.border}`,
           }}
         >
           <h3
@@ -130,7 +130,7 @@ export function ActivityFeed({
               margin: 0,
               fontSize: '16px',
               fontWeight: 700,
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
             }}
           >
             {title}

@@ -203,14 +203,14 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
               margin: 0,
               fontSize: '20px',
               fontWeight: '700',
-              color: tokens.colors.text.primary
+              color: tokens.colors.text
             }}>
               {i18n.getTranslations().header.menu}
             </h2>
             <p style={{
               margin: '4px 0 0 0',
               fontSize: '13px',
-              color: tokens.colors.text.secondary
+              color: tokens.colors.subtle
             }}>
               {getRoleLabel()}
             </p>
@@ -223,7 +223,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
               borderRadius: '50%',
               border: 'none',
               background: 'rgba(255, 255, 255, 0.1)',
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               fontSize: '20px',
               cursor: 'pointer',
               display: 'flex',
@@ -263,7 +263,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
                   background: isActive
                     ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
                     : 'transparent',
-                  color: tokens.colors.text.primary,
+                  color: tokens.colors.text,
                   fontSize: '15px',
                   fontWeight: isActive ? '600' : '500',
                   cursor: 'pointer',
@@ -308,7 +308,7 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
         }}>
           <div style={{
             fontSize: '11px',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             textAlign: 'center'
           }}>
             {i18n.isRTL() ? 'גרסה 1.0.0' : 'Version 1.0.0'}

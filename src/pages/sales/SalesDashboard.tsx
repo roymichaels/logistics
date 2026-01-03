@@ -82,7 +82,7 @@ export function SalesDashboard() {
                 margin: 0,
                 fontSize: '18px',
                 fontWeight: 700,
-                color: tokens.colors.text.primary,
+                color: tokens.colors.text,
               }}
             >
               Active Leads
@@ -101,20 +101,20 @@ export function SalesDashboard() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   <div>
-                    <div style={{ fontSize: '16px', fontWeight: 600, color: tokens.colors.text.primary, marginBottom: '4px' }}>
+                    <div style={{ fontSize: '16px', fontWeight: 600, color: tokens.colors.text, marginBottom: '4px' }}>
                       {lead.name}
                     </div>
-                    <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
+                    <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
                       {lead.company}
                     </div>
                   </div>
                   <StatusBadge variant={lead.status} size="sm" />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 700, color: tokens.colors.primary[600] }}>
+                  <span style={{ fontSize: '16px', fontWeight: 700, color: tokens.colors.primary[200] }}>
                     {lead.value}
                   </span>
-                  <span style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
+                  <span style={{ fontSize: '12px', color: tokens.colors.subtle }}>
                     Last contact: {lead.lastContact}
                   </span>
                 </div>

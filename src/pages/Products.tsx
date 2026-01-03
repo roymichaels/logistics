@@ -171,7 +171,7 @@ export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
               background: tokens.gradients.primary,
               border: 'none',
               borderRadius: '12px',
-              color: tokens.colors.text.primaryBright,
+              color: tokens.colors.textBright,
               fontSize: '16px',
               fontWeight: '600',
               cursor: 'pointer'
@@ -345,7 +345,7 @@ function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
           <h3 style={{
             margin: '0 0 8px 0',
             fontSize: '18px',
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
             fontWeight: '600'
           }}>
             {product.name}
@@ -355,7 +355,7 @@ function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
             <p style={{
               margin: '0 0 12px 0',
               fontSize: '14px',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               lineHeight: '1.4'
             }}>
               {product.description}
@@ -394,7 +394,7 @@ function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
           {product.sku && (
             <div style={{
               fontSize: '12px',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               marginTop: '4px'
             }}>
               SKU: {product.sku}
@@ -411,15 +411,15 @@ function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
         }}>
           {product.barcode && (
             <div style={{ marginBottom: '8px' }}>
-              <span style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>ברקוד: </span>
-              <span style={{ fontSize: '14px', color: tokens.colors.text.primary }}>{product.barcode}</span>
+              <span style={{ fontSize: '12px', color: tokens.colors.subtle }}>ברקוד: </span>
+              <span style={{ fontSize: '14px', color: tokens.colors.text }}>{product.barcode}</span>
             </div>
           )}
 
           {product.unit && (
             <div style={{ marginBottom: '8px' }}>
-              <span style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>יחידת מידה: </span>
-              <span style={{ fontSize: '14px', color: tokens.colors.text.primary }}>{product.unit}</span>
+              <span style={{ fontSize: '12px', color: tokens.colors.subtle }}>יחידת מידה: </span>
+              <span style={{ fontSize: '14px', color: tokens.colors.text }}>{product.unit}</span>
             </div>
           )}
 
@@ -538,7 +538,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
             margin: 0,
             fontSize: '24px',
             fontWeight: '700',
-            color: tokens.colors.text.primary
+            color: tokens.colors.text
           }}>
             {product ? 'ערוך מוצר' : 'הוסף מוצר חדש'}
           </h2>
@@ -552,7 +552,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text.primary
+                color: tokens.colors.text
               }}>
                 שם המוצר *
               </label>
@@ -572,7 +572,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text.primary
+                color: tokens.colors.text
               }}>
                 תיאור
               </label>
@@ -596,7 +596,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}>
                   מחיר *
                 </label>
@@ -617,7 +617,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}>
                   קטגוריה
                 </label>
@@ -639,7 +639,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}>
                   SKU
                 </label>
@@ -659,7 +659,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary
+                  color: tokens.colors.text
                 }}>
                   ברקוד
                 </label>
@@ -680,7 +680,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text.primary
+                color: tokens.colors.text
               }}>
                 יחידת מידה
               </label>
@@ -704,7 +704,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text.primary
+                color: tokens.colors.text
               }}>
                 כתובת תמונה (URL)
               </label>
@@ -735,7 +735,7 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
                 htmlFor="active"
                 style={{
                   fontSize: '14px',
-                  color: tokens.colors.text.primary,
+                  color: tokens.colors.text,
                   cursor: 'pointer'
                 }}
               >

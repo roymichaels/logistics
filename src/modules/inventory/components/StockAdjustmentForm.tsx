@@ -27,7 +27,7 @@ export function StockAdjustmentForm({ product, onSubmit, onCancel, loading }: St
   return (
     <ContentCard>
       <h2 style={{
-        color: tokens.colors.text.primary,
+        color: tokens.colors.text,
         marginBottom: '20px',
         fontSize: '20px',
         fontWeight: '600',
@@ -39,7 +39,7 @@ export function StockAdjustmentForm({ product, onSubmit, onCancel, loading }: St
         <label style={{
           display: 'block',
           marginBottom: '8px',
-          color: tokens.colors.text.primary,
+          color: tokens.colors.text,
           fontSize: '14px',
         }}>
           כמות (שינוי)
@@ -56,7 +56,7 @@ export function StockAdjustmentForm({ product, onSubmit, onCancel, loading }: St
         <label style={{
           display: 'block',
           marginBottom: '8px',
-          color: tokens.colors.text.primary,
+          color: tokens.colors.text,
           fontSize: '14px',
         }}>
           סיבה

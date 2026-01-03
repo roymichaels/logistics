@@ -103,7 +103,7 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
             margin: 0,
             fontSize: '24px',
             fontWeight: '700',
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
             textAlign: 'center',
             marginBottom: '8px'
           }}>
@@ -112,7 +112,7 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
           <p style={{
             margin: 0,
             fontSize: '14px',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             textAlign: 'center',
             lineHeight: '1.5'
           }}>
@@ -139,7 +139,7 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
                   : `1px solid ${tokens.colors.border.default}`,
                 backgroundColor: selectedRole === role.value
                   ? 'rgba(29, 155, 240, 0.1)'
-                  : tokens.colors.background.secondary,
+                  : tokens.colors.bg,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 display: 'flex',
@@ -148,13 +148,13 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
               }}
               onMouseEnter={(e) => {
                 if (selectedRole !== role.value) {
-                  e.currentTarget.style.backgroundColor = tokens.colors.background.secondaryHover;
+                  e.currentTarget.style.backgroundColor = tokens.colors.bgHover;
                   e.currentTarget.style.borderColor = tokens.colors.background.cardBorderHover;
                 }
               }}
               onMouseLeave={(e) => {
                 if (selectedRole !== role.value) {
-                  e.currentTarget.style.backgroundColor = tokens.colors.background.secondary;
+                  e.currentTarget.style.backgroundColor = tokens.colors.bg;
                   e.currentTarget.style.borderColor = tokens.colors.border.default;
                 }
               }}
@@ -169,14 +169,14 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
                 <div style={{
                   fontSize: '16px',
                   fontWeight: '600',
-                  color: tokens.colors.text.primary,
+                  color: tokens.colors.text,
                   marginBottom: '4px'
                 }}>
                   {role.label}
                 </div>
                 <div style={{
                   fontSize: '13px',
-                  color: tokens.colors.text.secondary,
+                  color: tokens.colors.subtle,
                   lineHeight: '1.4'
                 }}>
                   {role.description}
@@ -211,7 +211,7 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
                 borderRadius: '12px',
                 border: `1px solid ${tokens.colors.border.default}`,
                 backgroundColor: 'transparent',
-                color: tokens.colors.text.secondary,
+                color: tokens.colors.subtle,
                 fontSize: '16px',
                 fontWeight: '600',
                 cursor: 'pointer',
@@ -231,8 +231,8 @@ export function RoleSelectionModal({ onRoleSelect, onCancel }: RoleSelectionModa
               border: 'none',
               background: selectedRole
                 ? tokens.gradients.primary
-                : tokens.colors.background.secondary,
-              color: selectedRole ? tokens.colors.text.primaryBright : tokens.colors.text.hint,
+                : tokens.colors.bg,
+              color: selectedRole ? tokens.colors.textBright : tokens.colors.text.hint,
               fontSize: '16px',
               fontWeight: '600',
               cursor: selectedRole ? 'pointer' : 'not-allowed',

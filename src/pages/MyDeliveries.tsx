@@ -205,8 +205,8 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: tokens.colors.background.primary,
-        color: tokens.colors.text.primary,
+        backgroundColor: tokens.colors.panel,
+        color: tokens.colors.text,
         padding: '20px',
         paddingBottom: '100px',
         direction: isRTL ? 'rtl' : 'ltr'
@@ -214,10 +214,10 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
     >
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0', color: tokens.colors.text.primary }}>
+        <h1 style={{ fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0', color: tokens.colors.text }}>
           🚚 {translations.myDeliveriesPage?.title || 'My Deliveries'}
         </h1>
-        <p style={{ margin: '0', color: tokens.colors.text.secondary, fontSize: '14px' }}>
+        <p style={{ margin: '0', color: tokens.colors.subtle, fontSize: '14px' }}>
           {translations.myDeliveriesPage?.subtitle || 'Manage your delivery tasks'}
         </p>
       </div>
@@ -235,7 +235,7 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
             background: tokens.colors.background.card,
             border: `1px solid ${tokens.colors.background.cardBorder}`,
             borderRadius: '14px',
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
             fontSize: '15px',
             outline: 'none',
             transition: 'all 0.3s ease'
@@ -270,7 +270,7 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
               background: filter === key ? tokens.gradients.primary : tokens.colors.background.card,
               border: `1px solid ${filter === key ? 'transparent' : tokens.colors.background.cardBorder}`,
               borderRadius: '12px',
-              color: filter === key ? tokens.colors.text.primaryBright : tokens.colors.text.secondary,
+              color: filter === key ? tokens.colors.textBright : tokens.colors.subtle,
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -284,7 +284,7 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
           >
             {label}
             <span style={{
-              background: filter === key ? 'rgba(255,255,255,0.2)' : tokens.colors.background.secondary,
+              background: filter === key ? 'rgba(255,255,255,0.2)' : tokens.colors.bg,
               padding: '2px 8px',
               borderRadius: '8px',
               fontSize: '12px',
@@ -307,10 +307,10 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
             border: `1px solid ${tokens.colors.background.cardBorder}`
           }}>
             <div style={{ fontSize: '64px', marginBottom: '16px', opacity: 0.5 }}>📭</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '8px' }}>
+            <div style={{ fontSize: '18px', fontWeight: '600', color: tokens.colors.text, marginBottom: '8px' }}>
               לא נמצאו משלוחים
             </div>
-            <div style={{ fontSize: '14px', color: tokens.colors.text.secondary }}>
+            <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
               נסה לשנות את הסינון או החיפוש
             </div>
           </div>
@@ -340,7 +340,7 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                     left: isRTL ? 'auto' : '12px',
                     right: isRTL ? '12px' : 'auto',
                     background: tokens.gradients.error,
-                    color: tokens.colors.text.primaryBright,
+                    color: tokens.colors.textBright,
                     padding: '4px 12px',
                     borderRadius: '8px',
                     fontSize: '11px',
@@ -378,10 +378,10 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.text.primary, marginBottom: '6px' }}>
+                      <div style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.text, marginBottom: '6px' }}>
                         {delivery.customer}
                       </div>
-                      <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ fontSize: '13px', color: tokens.colors.subtle, display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span>{delivery.id}</span>
                         <span>•</span>
                         <span>{delivery.distance}</span>
@@ -416,13 +416,13 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                     marginBottom: '12px'
                   }}>
                     <span style={{ fontSize: '16px' }}>📍</span>
-                    <span style={{ fontSize: '15px', color: tokens.colors.text.primary }}>{delivery.address}</span>
+                    <span style={{ fontSize: '15px', color: tokens.colors.text }}>{delivery.address}</span>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{
                       fontSize: '13px',
-                      color: tokens.colors.text.secondary,
+                      color: tokens.colors.subtle,
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px'
@@ -432,7 +432,7 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                     </div>
                     <div style={{
                       fontSize: '18px',
-                      color: tokens.colors.text.primary,
+                      color: tokens.colors.text,
                       transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
                       transition: 'transform 0.3s ease'
                     }}>
@@ -451,30 +451,30 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                   }}>
                     {/* Customer Contact */}
                     <div style={{
-                      background: tokens.colors.background.secondary,
+                      background: tokens.colors.bg,
                       padding: '16px',
                       borderRadius: '14px',
                       marginBottom: '16px'
                     }}>
-                      <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '10px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text, marginBottom: '10px' }}>
                         📞 פרטי התקשרות
                       </div>
-                      <div style={{ fontSize: '16px', color: tokens.colors.text.primary, marginBottom: '8px' }}>
+                      <div style={{ fontSize: '16px', color: tokens.colors.text, marginBottom: '8px' }}>
                         {delivery.customerPhone}
                       </div>
-                      <div style={{ fontSize: '13px', color: tokens.colors.text.secondary }}>
+                      <div style={{ fontSize: '13px', color: tokens.colors.subtle }}>
                         {delivery.addressDetails}
                       </div>
                     </div>
 
                     {/* Items List */}
                     <div style={{
-                      background: tokens.colors.background.secondary,
+                      background: tokens.colors.bg,
                       padding: '16px',
                       borderRadius: '14px',
                       marginBottom: '16px'
                     }}>
-                      <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '12px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text, marginBottom: '12px' }}>
                         📦 פריטים במשלוח ({delivery.items.length})
                       </div>
                       {delivery.items.map((item, idx) => (
@@ -486,11 +486,11 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                           borderBottom: idx < delivery.items.length - 1 ? `1px solid ${tokens.colors.background.cardBorder}` : 'none'
                         }}>
                           <div>
-                            <div style={{ fontSize: '15px', color: tokens.colors.text.primary, marginBottom: '4px' }}>
+                            <div style={{ fontSize: '15px', color: tokens.colors.text, marginBottom: '4px' }}>
                               {item.name}
                             </div>
                             {item.notes && (
-                              <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, fontStyle: 'italic' }}>
+                              <div style={{ fontSize: '12px', color: tokens.colors.subtle, fontStyle: 'italic' }}>
                                 💡 {item.notes}
                               </div>
                             )}
@@ -516,7 +516,7 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                         background: `${tokens.colors.status.warning}15`,
                         borderRadius: '10px'
                       }}>
-                        <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text.primary }}>סה"כ</span>
+                        <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text }}>סה"כ</span>
                         <span style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.status.warning }}>₪{delivery.totalAmount}</span>
                       </div>
                     </div>
@@ -530,10 +530,10 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                         borderRadius: '14px',
                         marginBottom: '16px'
                       }}>
-                        <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text.primary, marginBottom: '6px' }}>
+                        <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text, marginBottom: '6px' }}>
                           ⚠️ הוראות מיוחדות
                         </div>
-                        <div style={{ fontSize: '14px', color: tokens.colors.text.primary }}>
+                        <div style={{ fontSize: '14px', color: tokens.colors.text }}>
                           {delivery.instructions}
                         </div>
                       </div>
@@ -551,7 +551,7 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                           background: tokens.gradients.success,
                           border: 'none',
                           borderRadius: '14px',
-                          color: tokens.colors.text.primaryBright,
+                          color: tokens.colors.textBright,
                           fontSize: '16px',
                           fontWeight: '700',
                           cursor: 'pointer',
@@ -585,7 +585,7 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                           background: tokens.gradients.primary,
                           border: 'none',
                           borderRadius: '14px',
-                          color: tokens.colors.text.primaryBright,
+                          color: tokens.colors.textBright,
                           fontSize: '16px',
                           fontWeight: '700',
                           cursor: 'pointer',
@@ -624,7 +624,7 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
                           background: `linear-gradient(135deg, ${config.color}, ${statusConfig[config.nextStatus].color})`,
                           border: 'none',
                           borderRadius: '14px',
-                          color: tokens.colors.text.primaryBright,
+                          color: tokens.colors.textBright,
                           fontSize: '18px',
                           fontWeight: '700',
                           cursor: 'pointer',

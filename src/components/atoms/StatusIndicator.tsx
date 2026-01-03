@@ -17,7 +17,7 @@ export interface StatusIndicatorProps {
 
 const statusColors: Record<IndicatorStatus, string> = {
   online: tokens.colors.semantic.success,
-  offline: tokens.colors.neutral[400],
+  offline: tokens.colors.neutral[500],
   busy: tokens.colors.semantic.error,
   away: tokens.colors.semantic.warning,
   idle: tokens.colors.neutral[500],
@@ -70,7 +70,7 @@ export function StatusIndicator({
             height: '100%',
             borderRadius: '50%',
             backgroundColor: color,
-            border: `2px solid ${tokens.colors.background.primary}`,
+            border: `2px solid ${tokens.colors.panel}`,
           }}
         />
         {pulsing && status === 'online' && (
@@ -93,7 +93,7 @@ export function StatusIndicator({
         <span
           style={{
             fontSize: size === 'sm' ? '12px' : size === 'md' ? '13px' : '14px',
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
             fontWeight: 500,
           }}
         >

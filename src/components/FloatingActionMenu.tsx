@@ -374,7 +374,7 @@ export function FloatingActionMenu({
           margin: '0 0 8px 0',
           fontSize: tokens.typography.fontSize.lg,
           fontWeight: tokens.typography.fontWeight.bold,
-          color: tokens.colors.text.primary,
+          color: tokens.colors.text,
           textAlign: 'center'
         }}>
           ⚡ פעולות מהירות
@@ -382,7 +382,7 @@ export function FloatingActionMenu({
         <p style={{
           margin: '0 0 20px 0',
           fontSize: tokens.typography.fontSize.sm,
-          color: tokens.colors.text.secondary,
+          color: tokens.colors.subtle,
           textAlign: 'center'
         }}>
           {getRoleLabel()}
@@ -439,7 +439,7 @@ export function FloatingActionMenu({
             background: 'transparent',
             border: 'none',
             borderRadius: tokens.radius.md,
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             cursor: 'pointer',
             fontSize: tokens.typography.fontSize.sm,
             marginTop: '16px',

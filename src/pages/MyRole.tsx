@@ -104,11 +104,11 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
     return (
       <div style={{
         minHeight: '100vh',
-        background: tokens.colors.background.primary,
+        background: tokens.colors.panel,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: tokens.colors.text.primary
+        color: tokens.colors.text
       }}>
         <div>טוען...</div>
       </div>
@@ -118,7 +118,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: tokens.colors.background.primary,
+      background: tokens.colors.panel,
       padding: '20px',
       paddingBottom: '100px',
       direction: 'rtl'
@@ -133,7 +133,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
           margin: 0,
           fontSize: '28px',
           fontWeight: '700',
-          color: tokens.colors.text.primary,
+          color: tokens.colors.text,
           marginBottom: '8px'
         }}>
           התפקיד שלי
@@ -141,7 +141,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
         <p style={{
           margin: 0,
           fontSize: '14px',
-          color: tokens.colors.text.secondary
+          color: tokens.colors.subtle
         }}>
           מצב משתמש ונתוני גישה
         </p>
@@ -188,7 +188,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
             <p style={{
               margin: 0,
               fontSize: '13px',
-              color: tokens.colors.text.secondary
+              color: tokens.colors.subtle
             }}>
               אין לך תפקיד מוקצה במערכת
             </p>
@@ -205,7 +205,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
           <p style={{
             margin: 0,
             fontSize: '14px',
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
             lineHeight: '1.6'
           }}>
             אתה כרגע לא משוייך לתפקיד במערכת זו.
@@ -249,7 +249,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
           margin: '0 0 20px',
           fontSize: '18px',
           fontWeight: '700',
-          color: tokens.colors.text.primary
+          color: tokens.colors.text
         }}>
           הפרופיל שלך
         </h3>
@@ -258,7 +258,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
           <div>
             <div style={{
               fontSize: '12px',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               marginBottom: '4px',
               fontWeight: '600'
             }}>
@@ -266,7 +266,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
             </div>
             <div style={{
               fontSize: '15px',
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               fontWeight: '500'
             }}>
               {user?.name || 'לא זמין'}
@@ -276,7 +276,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
           <div>
             <div style={{
               fontSize: '12px',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               marginBottom: '4px',
               fontWeight: '600'
             }}>
@@ -295,7 +295,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
             <div>
               <div style={{
                 fontSize: '12px',
-                color: tokens.colors.text.secondary,
+                color: tokens.colors.subtle,
                 marginBottom: '4px',
                 fontWeight: '600'
               }}>
@@ -303,7 +303,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
               </div>
               <div style={{
                 fontSize: '15px',
-                color: tokens.colors.text.primary,
+                color: tokens.colors.text,
                 fontWeight: '500'
               }}>
                 {user.phone}
@@ -314,7 +314,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
           <div>
             <div style={{
               fontSize: '12px',
-              color: tokens.colors.text.secondary,
+              color: tokens.colors.subtle,
               marginBottom: '4px',
               fontWeight: '600'
             }}>
@@ -362,7 +362,7 @@ export function MyRole({ dataStore, onNavigate }: MyRoleProps) {
             <p style={{
               margin: 0,
               fontSize: '13px',
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               lineHeight: '1.5'
             }}>
               פנה למנהל הארגון שלך על מנת לקבל הקצאת תפקיד.

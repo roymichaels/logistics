@@ -131,7 +131,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       backdropFilter: 'blur(4px)'
     }}>
       <div style={{
-        backgroundColor: tokens.colors.background.primarySolid,
+        backgroundColor: tokens.colors.panelSolid,
         border: `1px solid ${tokens.colors.background.cardBorder}`,
         borderRadius: '16px',
         maxWidth: '500px',
@@ -149,7 +149,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
             justifyContent: 'space-between',
             alignItems: 'center'
           }}>
-            <h2 style={{ margin: 0, color: tokens.colors.text.primary, fontSize: '20px', fontWeight: '700' }}>
+            <h2 style={{ margin: 0, color: tokens.colors.text, fontSize: '20px', fontWeight: '700' }}>
               🏢 צור עסק פרטי
             </h2>
             <button
@@ -158,7 +158,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
                 backgroundColor: 'transparent',
                 border: 'none',
                 fontSize: '28px',
-                color: tokens.colors.text.secondary,
+                color: tokens.colors.subtle,
                 cursor: 'pointer',
                 padding: '0',
                 lineHeight: '1'
@@ -179,12 +179,12 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
           }}>
             <div style={{
               fontSize: '13px',
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               lineHeight: '1.6',
               textAlign: 'center'
             }}>
               <div style={{ fontWeight: '600', marginBottom: '4px' }}>מעבדה תת-קרקעית מאובטחת</div>
-              <div style={{ color: tokens.colors.text.secondary, fontSize: '12px' }}>
+              <div style={{ color: tokens.colors.subtle, fontSize: '12px' }}>
                 עסק פרטי עם סחר מקוון, לוגיסטיקה, צוות ועוד
               </div>
             </div>
@@ -196,7 +196,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text.primary
+                color: tokens.colors.text
               }}>
                 שם העסק בעברית *
               </label>
@@ -220,7 +220,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text.primary
+                color: tokens.colors.text
               }}>
                 Business Name (English) *
               </label>
@@ -239,10 +239,10 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
                 <div style={{
                   marginTop: '8px',
                   padding: '8px 12px',
-                  background: tokens.colors.background.secondary,
+                  background: tokens.colors.bg,
                   borderRadius: '8px',
                   fontSize: '12px',
-                  color: tokens.colors.text.secondary
+                  color: tokens.colors.subtle
                 }}>
                   <span style={{ fontWeight: '600' }}>קידומת הזמנה:</span> {formData.name.substring(0, 3).toUpperCase() || 'BUS'}-0001
                 </div>

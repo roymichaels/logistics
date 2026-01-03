@@ -107,7 +107,7 @@ export const tokens = {
 export const styles = {
   pageContainer: {
     minHeight: '100vh',
-    background: tokens.colors.background.primary,
+    background: tokens.colors.panel,
     padding: tokens.spacing.lg,
     paddingBottom: '100px',
     direction: 'rtl' as const,
@@ -122,7 +122,7 @@ export const styles = {
     margin: 0,
     fontSize: tokens.typography.fontSize.xxl,
     fontWeight: tokens.typography.fontWeight.bold,
-    color: tokens.colors.text.primary,
+    color: tokens.colors.text,
     marginBottom: '8px',
     textShadow: tokens.glows.primary,
   },
@@ -130,7 +130,7 @@ export const styles = {
   pageSubtitle: {
     margin: 0,
     fontSize: tokens.typography.fontSize.sm,
-    color: tokens.colors.text.secondary,
+    color: tokens.colors.subtle,
     fontWeight: tokens.typography.fontWeight.medium,
   },
 
@@ -250,10 +250,10 @@ export const styles = {
   input: {
     width: '100%',
     padding: '12px 16px',
-    background: tokens.colors.background.secondary,
+    background: tokens.colors.bg,
     border: `1px solid ${tokens.colors.border.default}`,
     borderRadius: tokens.radius.md,
-    color: tokens.colors.text.primary,
+    color: tokens.colors.text,
     fontSize: tokens.typography.fontSize.base,
     outline: 'none',
     transition: 'all 0.3s ease',
@@ -261,7 +261,7 @@ export const styles = {
 
   stat: {
     box: {
-      background: tokens.colors.background.secondary,
+      background: tokens.colors.bg,
       border: `1px solid ${tokens.colors.border.default}`,
       borderRadius: tokens.radius.lg,
       padding: tokens.spacing.lg,
@@ -276,7 +276,7 @@ export const styles = {
     },
     label: {
       fontSize: tokens.typography.fontSize.sm,
-      color: tokens.colors.text.secondary,
+      color: tokens.colors.subtle,
       fontWeight: tokens.typography.fontWeight.medium,
       textTransform: 'uppercase' as const,
       letterSpacing: '0.5px',
@@ -287,7 +287,7 @@ export const styles = {
     container: {
       textAlign: 'center' as const,
       padding: '60px 20px',
-      color: tokens.colors.text.secondary,
+      color: tokens.colors.subtle,
     },
     icon: {
       fontSize: '64px',
@@ -313,7 +313,7 @@ export function getStatusColor(status: string): string {
     info: tokens.colors.status.info,
   };
 
-  return statusMap[status.toLowerCase()] || tokens.colors.text.secondary;
+  return statusMap[status.toLowerCase()] || tokens.colors.subtle;
 }
 
 export function getStatusBadgeStyle(status: string) {

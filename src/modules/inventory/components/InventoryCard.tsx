@@ -14,7 +14,7 @@ export function InventoryCard({ item, onClick }: InventoryCardProps) {
       case 'in_stock': return tokens.colors.status.success;
       case 'low': return tokens.colors.status.warning;
       case 'out': return tokens.colors.status.error;
-      default: return tokens.colors.text.secondary;
+      default: return tokens.colors.subtle;
     }
   };
 
@@ -48,7 +48,7 @@ export function InventoryCard({ item, onClick }: InventoryCardProps) {
           <h3 style={{
             fontSize: '16px',
             fontWeight: '600',
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
             marginBottom: '4px',
           }}>
             {item.product_name}
@@ -82,7 +82,7 @@ export function InventoryCard({ item, onClick }: InventoryCardProps) {
         <div>
           <div style={{
             fontSize: '12px',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             marginBottom: '4px',
           }}>
             במלאי
@@ -90,7 +90,7 @@ export function InventoryCard({ item, onClick }: InventoryCardProps) {
           <div style={{
             fontSize: '20px',
             fontWeight: '700',
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
           }}>
             {item.totalOnHand}
           </div>
@@ -98,7 +98,7 @@ export function InventoryCard({ item, onClick }: InventoryCardProps) {
         <div>
           <div style={{
             fontSize: '12px',
-            color: tokens.colors.text.secondary,
+            color: tokens.colors.subtle,
             marginBottom: '4px',
           }}>
             שמור
@@ -106,7 +106,7 @@ export function InventoryCard({ item, onClick }: InventoryCardProps) {
           <div style={{
             fontSize: '20px',
             fontWeight: '700',
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
           }}>
             {item.totalReserved}
           </div>

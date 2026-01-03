@@ -125,7 +125,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
       <PageContainer>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-          <p style={{ color: tokens.colors.text.secondary }}>{translations.zoneManagementPage.loading}</p>
+          <p style={{ color: tokens.colors.subtle }}>{translations.zoneManagementPage.loading}</p>
         </div>
       </PageContainer>
     );
@@ -152,10 +152,10 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
             style={{
               flex: 1,
               padding: '12px',
-              background: viewMode === 'manager' ? tokens.gradients.primary : tokens.colors.background.secondary,
+              background: viewMode === 'manager' ? tokens.gradients.primary : tokens.colors.bg,
               border: viewMode === 'manager' ? 'none' : `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '12px',
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -172,10 +172,10 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
             style={{
               flex: 1,
               padding: '12px',
-              background: viewMode === 'assignments' ? tokens.gradients.primary : tokens.colors.background.secondary,
+              background: viewMode === 'assignments' ? tokens.gradients.primary : tokens.colors.bg,
               border: viewMode === 'assignments' ? 'none' : `1px solid ${tokens.colors.background.cardBorder}`,
               borderRadius: '12px',
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -199,7 +199,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
               >
                 <div>
                   <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '700' }}>{zone.name}</h2>
-                  <p style={{ margin: '4px 0 0', color: tokens.colors.text.secondary, fontSize: '14px' }}>
+                  <p style={{ margin: '4px 0 0', color: tokens.colors.subtle, fontSize: '14px' }}>
                     {zone.city} • {zone.assigned_drivers.length} {translations.zoneManagementPage.assignedDrivers}
                   </p>
                 </div>
@@ -220,8 +220,8 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                   style={{
                     padding: '24px',
                     textAlign: 'center',
-                    color: tokens.colors.text.secondary,
-                    background: tokens.colors.background.secondary,
+                    color: tokens.colors.subtle,
+                    background: tokens.colors.bg,
                     borderRadius: '16px',
                     border: `1px dashed ${tokens.colors.background.cardBorder}`
                   }}
@@ -261,7 +261,7 @@ export function ZoneManagement({ dataStore, onNavigate }: ZoneManagementProps) {
                         </div>
                         <div>
                           <div style={{ fontWeight: '600' }}>{driver.name}</div>
-                          <div style={{ fontSize: '12px', color: tokens.colors.text.secondary }}>
+                          <div style={{ fontSize: '12px', color: tokens.colors.subtle }}>
                             ID: {driver.telegram_id}
                           </div>
                         </div>

@@ -87,7 +87,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
       <div style={styles.pageContainer}>
         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚚</div>
-          <p style={{ color: tokens.colors.text.secondary }}>{translations.common.loading}</p>
+          <p style={{ color: tokens.colors.subtle }}>{translations.common.loading}</p>
         </div>
       </div>
     );
@@ -129,7 +129,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
               background: filter === tab.key
                 ? 'rgba(29, 155, 240, 0.15)'
                 : tokens.colors.background.card,
-              color: filter === tab.key ? tokens.colors.brand.primary : tokens.colors.text.primary,
+              color: filter === tab.key ? tokens.colors.brand.primary : tokens.colors.text,
               fontSize: '14px',
               fontWeight: filter === tab.key ? '600' : '500',
               cursor: 'pointer',
@@ -176,7 +176,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
         <div style={styles.card}>
           <div style={styles.emptyState.container}>
             <div style={styles.emptyState.containerIcon}>📭</div>
-            <h3 style={{ margin: '0 0 8px 0', color: tokens.colors.text.primary }}>
+            <h3 style={{ margin: '0 0 8px 0', color: tokens.colors.text }}>
               {translations.incomingPage.noIncoming} {filter !== 'all' ? translations.incomingPage.noIncomingOfType : ''}
             </h3>
             <div style={styles.emptyState.containerText}>
@@ -219,7 +219,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
                   <div style={{
                     fontSize: '16px',
                     fontWeight: '600',
-                    color: tokens.colors.text.primary,
+                    color: tokens.colors.text,
                     marginBottom: '4px'
                   }}>
                     {log.product?.name || translations.incomingPage.unknownProduct}
@@ -246,7 +246,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
                   {/* Location Info */}
                   <div style={{
                     fontSize: '14px',
-                    color: tokens.colors.text.secondary,
+                    color: tokens.colors.subtle,
                     marginBottom: '4px'
                   }}>
                     {log.from_location ? (
@@ -271,7 +271,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
                     </div>
                     <div style={{
                       fontSize: '13px',
-                      color: tokens.colors.text.secondary
+                      color: tokens.colors.subtle
                     }}>
                       {formatDate(log.created_at)} • {formatTime(log.created_at)}
                     </div>
@@ -286,7 +286,7 @@ export function Incoming({ dataStore, onNavigate }: IncomingProps) {
                   paddingTop: '12px',
                   borderTop: `1px solid ${tokens.colors.background.cardBorder}`,
                   fontSize: '12px',
-                  color: tokens.colors.text.secondary
+                  color: tokens.colors.subtle
                 }}>
                   {translations.incomingPage.id}: {log.reference_id}
                 </div>

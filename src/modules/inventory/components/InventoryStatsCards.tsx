@@ -16,16 +16,16 @@ export function InventoryStatsCards({ stats }: InventoryStatsCardsProps) {
       marginBottom: '20px',
     }}>
       <ContentCard>
-        <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
+        <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '4px' }}>
           סה"כ פריטים
         </div>
-        <div style={{ fontSize: '24px', fontWeight: '700', color: tokens.colors.text.primary }}>
+        <div style={{ fontSize: '24px', fontWeight: '700', color: tokens.colors.text }}>
           {stats.totalItems}
         </div>
       </ContentCard>
 
       <ContentCard>
-        <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
+        <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '4px' }}>
           מלאי נמוך
         </div>
         <div style={{ fontSize: '24px', fontWeight: '700', color: tokens.colors.status.warning }}>
@@ -34,7 +34,7 @@ export function InventoryStatsCards({ stats }: InventoryStatsCardsProps) {
       </ContentCard>
 
       <ContentCard>
-        <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
+        <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '4px' }}>
           אזל מהמלאי
         </div>
         <div style={{ fontSize: '24px', fontWeight: '700', color: tokens.colors.status.error }}>
@@ -43,7 +43,7 @@ export function InventoryStatsCards({ stats }: InventoryStatsCardsProps) {
       </ContentCard>
 
       <ContentCard>
-        <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
+        <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '4px' }}>
           זמין
         </div>
         <div style={{ fontSize: '24px', fontWeight: '700', color: tokens.colors.status.success }}>

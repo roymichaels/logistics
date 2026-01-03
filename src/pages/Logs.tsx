@@ -129,14 +129,14 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
       case 'sale':
         return tokens.colors.status.warning;
       default:
-        return tokens.colors.text.secondary;
+        return tokens.colors.subtle;
     }
   };
 
   const getQuantityColor = (quantity: number) => {
     if (quantity > 0) return tokens.colors.status.success;
     if (quantity < 0) return tokens.colors.status.error;
-    return tokens.colors.text.secondary;
+    return tokens.colors.subtle;
   };
 
   if (loading) {
@@ -144,7 +144,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
       <div style={styles.pageContainer}>
         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📝</div>
-          <p style={{ color: tokens.colors.text.secondary }}>{hebrew.loading}</p>
+          <p style={{ color: tokens.colors.subtle }}>{hebrew.loading}</p>
         </div>
       </div>
     );
@@ -173,7 +173,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
               borderRadius: '12px',
               border: `1px solid ${tokens.colors.background.cardBorder}`,
               background: tokens.colors.background.card,
-              color: tokens.colors.text.primary,
+              color: tokens.colors.text,
               fontSize: '14px',
               fontWeight: '500',
               cursor: 'pointer',
@@ -218,7 +218,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
               background: filter === tab.key
                 ? 'rgba(29, 155, 240, 0.15)'
                 : tokens.colors.background.card,
-              color: filter === tab.key ? tokens.colors.brand.primary : tokens.colors.text.primary,
+              color: filter === tab.key ? tokens.colors.brand.primary : tokens.colors.text,
               fontSize: '13px',
               fontWeight: filter === tab.key ? '600' : '500',
               cursor: 'pointer',
@@ -270,7 +270,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
         <div style={styles.card}>
           <div style={styles.emptyState.container}>
             <div style={styles.emptyState.containerIcon}>📭</div>
-            <h3 style={{ margin: '0 0 8px 0', color: tokens.colors.text.primary }}>
+            <h3 style={{ margin: '0 0 8px 0', color: tokens.colors.text }}>
               אין רשומות {filter !== 'all' ? 'מסוג זה' : ''}
             </h3>
             <div style={styles.emptyState.containerText}>
@@ -309,7 +309,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
                   <div style={{
                     fontSize: '16px',
                     fontWeight: '600',
-                    color: tokens.colors.text.primary,
+                    color: tokens.colors.text,
                     marginBottom: '4px'
                   }}>
                     {log.product?.name || 'מוצר לא ידוע'}
@@ -332,7 +332,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
                   {/* Location Info */}
                   <div style={{
                     fontSize: '13px',
-                    color: tokens.colors.text.secondary,
+                    color: tokens.colors.subtle,
                     marginBottom: '8px'
                   }}>
                     {log.from_location && log.to_location ? (
@@ -363,7 +363,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
                     </div>
                     <div style={{
                       fontSize: '12px',
-                      color: tokens.colors.text.secondary
+                      color: tokens.colors.subtle
                     }}>
                       {formatDate(log.created_at)} • {formatTime(log.created_at)}
                     </div>
@@ -378,7 +378,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
                       background: 'rgba(24, 10, 45, 0.5)',
                       border: `1px solid ${tokens.colors.background.cardBorder}`,
                       fontSize: '12px',
-                      color: tokens.colors.text.secondary
+                      color: tokens.colors.subtle
                     }}>
                       {Object.entries(log.metadata).map(([key, value]) => (
                         <div key={key}>
@@ -393,7 +393,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
                     <div style={{
                       marginTop: '8px',
                       fontSize: '11px',
-                      color: tokens.colors.text.secondary,
+                      color: tokens.colors.subtle,
                       fontFamily: 'monospace'
                     }}>
                       ID: {log.reference_id}
@@ -412,7 +412,7 @@ export function Logs({ dataStore, onNavigate }: LogsProps) {
           marginTop: '24px',
           padding: '16px',
           textAlign: 'center',
-          color: tokens.colors.text.secondary,
+          color: tokens.colors.subtle,
           fontSize: '14px'
         }}>
           מוצגות {limit} רשומות אחרונות

@@ -56,7 +56,7 @@ export function InventoryView({
         }}>
           <div style={{ textAlign: 'center' }}>
             <Spinner />
-            <p style={{ marginTop: '16px', color: tokens.colors.text.secondary }}>טוען מלאי...</p>
+            <p style={{ marginTop: '16px', color: tokens.colors.subtle }}>טוען מלאי...</p>
           </div>
         </div>
       </PageContainer>
@@ -74,7 +74,7 @@ export function InventoryView({
         }}>
           <div style={{ textAlign: 'center', padding: '20px' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
-            <p style={{ color: tokens.colors.text.primary, marginBottom: '20px' }}>
+            <p style={{ color: tokens.colors.text, marginBottom: '20px' }}>
               {error.message || 'שגיאה בטעינת מלאי'}
             </p>
             <Button onClick={onRefresh}>נסה שוב</Button>
@@ -150,7 +150,7 @@ export function InventoryView({
             padding: '40px 20px',
           }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
-            <p style={{ color: tokens.colors.text.secondary }}>
+            <p style={{ color: tokens.colors.subtle }}>
               {filters.status === 'all' ? 'אין פריטי מלאי' : `אין פריטים ב${filters.status === 'low' ? 'מלאי נמוך' : 'מלאי אזל'}`}
             </p>
           </div>

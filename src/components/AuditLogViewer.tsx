@@ -126,7 +126,7 @@ export function AuditLogViewer({ dataStore, targetUserId, limitRecords = 50 }: A
       <div style={styles.card}>
         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
-          <p style={{ color: tokens.colors.text.secondary }}>טוען יומן פעולות...</p>
+          <p style={{ color: tokens.colors.subtle }}>טוען יומן פעולות...</p>
         </div>
       </div>
     );
@@ -135,7 +135,7 @@ export function AuditLogViewer({ dataStore, targetUserId, limitRecords = 50 }: A
   return (
     <div style={styles.card}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h3 style={{ margin: 0, fontSize: '18px', color: tokens.colors.text.primary }}>
+        <h3 style={{ margin: 0, fontSize: '18px', color: tokens.colors.text }}>
           יומן פעולות ({filteredLogs.length})
         </h3>
         <select
@@ -146,7 +146,7 @@ export function AuditLogViewer({ dataStore, targetUserId, limitRecords = 50 }: A
             borderRadius: '8px',
             border: `1px solid ${tokens.colors.background.cardBorder}`,
             background: tokens.colors.background.card,
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
             fontSize: '12px',
             cursor: 'pointer'
           }}
@@ -161,7 +161,7 @@ export function AuditLogViewer({ dataStore, targetUserId, limitRecords = 50 }: A
       {filteredLogs.length === 0 ? (
         <div style={styles.emptyState.container}>
           <div style={styles.emptyState.containerIcon}>📋</div>
-          <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text.primary }}>
+          <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text }}>
             אין רשומות
           </h3>
           <div style={styles.emptyState.containerText}>
@@ -208,7 +208,7 @@ export function AuditLogViewer({ dataStore, targetUserId, limitRecords = 50 }: A
                   }}>
                     {getActionLabel(log.action_type)}
                   </div>
-                  <div style={{ fontSize: '14px', color: tokens.colors.text.primary, marginBottom: '4px' }}>
+                  <div style={{ fontSize: '14px', color: tokens.colors.text, marginBottom: '4px' }}>
                     <strong>{log.actor_name || log.actor_id}</strong>
                     {log.target_user_name && (
                       <>
@@ -218,17 +218,17 @@ export function AuditLogViewer({ dataStore, targetUserId, limitRecords = 50 }: A
                     )}
                   </div>
                   {(log.old_role || log.new_role) && (
-                    <div style={{ fontSize: '13px', color: tokens.colors.text.secondary, marginBottom: '4px' }}>
+                    <div style={{ fontSize: '13px', color: tokens.colors.subtle, marginBottom: '4px' }}>
                       {log.old_role && `מ-${log.old_role} `}
                       {log.new_role && `ל-${log.new_role}`}
                     </div>
                   )}
                   {log.notes && (
-                    <div style={{ fontSize: '12px', color: tokens.colors.text.secondary, marginTop: '8px', fontStyle: 'italic' }}>
+                    <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginTop: '8px', fontStyle: 'italic' }}>
                       {log.notes}
                     </div>
                   )}
-                  <div style={{ fontSize: '11px', color: tokens.colors.text.secondary, marginTop: '8px' }}>
+                  <div style={{ fontSize: '11px', color: tokens.colors.subtle, marginTop: '8px' }}>
                     {new Date(log.created_at).toLocaleString('he-IL', {
                       year: 'numeric',
                       month: '2-digit',
