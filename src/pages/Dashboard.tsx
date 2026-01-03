@@ -31,6 +31,7 @@ const numberFormatter = new Intl.NumberFormat('he-IL');
 import { colors, shadows } from '../styles/design-system';
 import { logger } from '../lib/logger';
 import { TWITTER_COLORS } from '../styles/twitterTheme';
+import { useTracer } from '../lib/component-tracer';
 
 // Dashboard colors based on authentic Twitter/X dark theme
 const DASHBOARD_COLORS = {
@@ -48,6 +49,8 @@ const DASHBOARD_COLORS = {
 };
 
 export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate }: DashboardProps = {}) {
+  useTracer({ componentName: 'Dashboard' });
+
   const navigate = useNavigate();
 
   // Get dataStore, navigation, and currentBusinessId from context if not provided as props
