@@ -18,6 +18,10 @@ import { debugLog } from './components/DebugPanel';
 import { hebrew } from './lib/i18n';
 import './lib/diagnostics';
 import { logger } from './lib/logger';
+import { DiagnosticErrorBoundary } from './lib/diagnostic-error-boundary';
+import { DiagnosticDashboard } from './components/DiagnosticDashboard';
+import { runtimeRegistry } from './lib/runtime-registry';
+import { useTracer } from './lib/component-tracer';
 import { useSafeAppServices } from './context/AppServicesContext';
 import { useAuth } from './context/AuthContext';
 import { offlineStore } from './utils/offlineStore';
@@ -125,6 +129,10 @@ export default function App() {
   const [showBecomeDriver, setShowBecomeDriver] = useState(false);
   const [showCreateBusiness, setShowCreateBusiness] = useState(false);
   const [showWorkWithUs, setShowWorkWithUs] = useState(false);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
+
+  // Enable component tracing for App
+  useTracer({ componentName: 'App' });
 
   // Derived state for login status
   const isLoggedIn = user !== null;
@@ -260,6 +268,33 @@ export default function App() {
     document.body.style.WebkitFontSmoothing = 'antialiased';
     document.body.style.MozOsxFontSmoothing = 'grayscale';
   }, []);
+
+  // Diagnostic system: startup report and keyboard shortcuts
+  useEffect(() => {
+    const isDev = import.meta.env.DEV;
+
+    if (isDev) {
+      setTimeout(() => {
+        runtimeRegistry.printStartupReport();
+      }, 3000);
+    }
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'D') {
+        e.preventDefault();
+        setShowDiagnostics(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
+  // Register route visits with the runtime registry
+  useEffect(() => {
+    const path = location.pathname;
+    runtimeRegistry.registerRouteVisit(path, undefined, true);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!dataStore) {
@@ -763,7 +798,10 @@ export default function App() {
 
   // Unified shell routing - single source of truth
   const appShell = (
-    <>
+    <DiagnosticErrorBoundary
+      showDetails={import.meta.env.DEV}
+      boundaryName="App"
+    >
       <Suspense fallback={<PageLoadingSkeleton />}>
         <LanguageProvider>
           <PermissionProvider role={userRole as UserRole}>
@@ -912,7 +950,11 @@ export default function App() {
 
       <ToastContainer />
       <OfflineSyncIndicator />
-    </>
+      <DiagnosticDashboard
+        isOpen={showDiagnostics}
+        onClose={() => setShowDiagnostics(false)}
+      />
+    </DiagnosticErrorBoundary>
   );
 
   // For unauthenticated users, bypass SecurityGate
