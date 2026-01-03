@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { MetricCard } from '@components/dashboard/MetricCard';
+import { DashboardLayout, Section } from '@/components/templates/DashboardLayout';
 import { useOrders } from '@/application/use-cases';
 import { useOrderStats, useOrderFilters, useOrderMutations } from '../hooks';
 import { OrderCard } from '../components/OrderCard';
@@ -23,10 +23,9 @@ export function UnifiedOrdersPage({
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const { orders, loading, error, refresh } = useOrders({
-    businessId,
-    autoLoad: true
-  });
+  const { orders, loading, error, refetch: refresh } = useOrders(
+    businessId ? { business_id: businessId } : undefined
+  );
 
   const { filters, setFilters, filteredOrders } = useOrderFilters(orders);
 
@@ -187,7 +186,7 @@ export function UnifiedOrdersPage({
   };
 
   return (
-    <DashboardLayout config={dashboardConfig} loading={loading} error={error ? new Error(error) : null}>
+    <DashboardLayout config={dashboardConfig} loading={loading} error={error ? (error instanceof Error ? error : new Error(String(error))) : null}>
       <Section
         section={{
           id: 'filters',

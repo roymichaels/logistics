@@ -6,10 +6,16 @@ export function useOrderStats(orders: Order[]) {
     const stats = {
       total: orders.length,
       pending: 0,
-      inProgress: 0,
-      completed: 0,
+      confirmed: 0,
+      preparing: 0,
+      assigned: 0,
+      pickedUp: 0,
+      inTransit: 0,
+      delivered: 0,
       cancelled: 0,
+      failed: 0,
       totalRevenue: 0,
+      averageOrderValue: 0,
     };
 
     orders.forEach(order => {
@@ -17,18 +23,39 @@ export function useOrderStats(orders: Order[]) {
         case 'pending':
           stats.pending++;
           break;
-        case 'in_progress':
-          stats.inProgress++;
+        case 'confirmed':
+          stats.confirmed++;
           break;
-        case 'completed':
-          stats.completed++;
+        case 'preparing':
+        case 'ready_for_pickup':
+          stats.preparing++;
+          break;
+        case 'assigned':
+          stats.assigned++;
+          break;
+        case 'picked_up':
+          stats.pickedUp++;
+          break;
+        case 'in_transit':
+          stats.inTransit++;
+          break;
+        case 'delivered':
+          stats.delivered++;
           stats.totalRevenue += order.total || 0;
           break;
         case 'cancelled':
           stats.cancelled++;
           break;
+        case 'failed':
+          stats.failed++;
+          break;
       }
     });
+
+    // Calculate average order value
+    if (stats.delivered > 0) {
+      stats.averageOrderValue = stats.totalRevenue / stats.delivered;
+    }
 
     return stats;
   }, [orders]);

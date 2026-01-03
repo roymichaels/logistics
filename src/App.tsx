@@ -40,6 +40,7 @@ import { telegram } from './utils/telegram';
 import { PermissionProvider } from './lib/permissions/PermissionContext';
 import { UserRole } from './shells/types';
 import { OfflineSyncIndicator } from './components/OfflineSyncIndicator';
+import { ServiceProvider } from './foundation/container/ServiceProvider';
 
 // All page components are now lazy-loaded in MigrationRouter
 
@@ -767,59 +768,115 @@ export default function App() {
         <LanguageProvider>
           <PermissionProvider role={userRole as UserRole}>
             <PageTitleProvider>
-              <NavControllerProvider>
-              <UIControllerProvider>
-                <DrawerControllerProvider>
-                  <DataSandboxProvider>
-                    <ShellProvider
-                      value={{
-                        currentPage,
-                        handleNavigate,
-                        showSidebar,
-                        setShowSidebar,
-                        showActionMenu,
-                        setShowActionMenu,
-                        showOrderWizard,
-                        openOrderWizard: handleShowCreateOrder,
-                        closeOrderWizard: () => setShowOrderWizard(false),
-                        showBusinessManager,
-                        openBusinessManager: handleShowBusinessManager,
-                        closeBusinessManager: () => setShowBusinessManager(false),
-                        showSearchBusiness,
-                        openSearchBusiness: handleShowSearchBusiness,
-                        closeSearchBusiness: () => setShowSearchBusiness(false),
-                        showBecomeDriver,
-                        openBecomeDriver: handleShowBecomeDriver,
-                        closeBecomeDriver: () => setShowBecomeDriver(false),
-                        showCreateBusiness,
-                        openCreateBusiness: handleShowCreateBusiness,
-                        closeCreateBusiness: () => setShowCreateBusiness(false),
-                        showWorkWithUs,
-                        openWorkWithUs: handleShowWorkWithUs,
-                        closeWorkWithUs: () => setShowWorkWithUs(false),
-                        startBusinessOnboarding: handleStartBusinessOnboarding,
-                        startDriverOnboarding: handleStartDriverOnboarding,
-                        handleLogout,
-                        handleShowCreateTask,
-                        handleShowScanBarcode,
-                        handleShowContactCustomer,
-                        handleShowCheckInventory,
-                        handleShowCreateRoute,
-                        handleShowCreateUser,
-                        handleShowCreateProduct
-                      }}
-                    >
-                      <UnifiedAppShell>
-                        <SimpleRouter />
-                      </UnifiedAppShell>
-                      <UIControllerRenderer />
-                    </ShellProvider>
-                  </DataSandboxProvider>
-                </DrawerControllerProvider>
-              </UIControllerProvider>
-            </NavControllerProvider>
-          </PageTitleProvider>
-        </PermissionProvider>
+              {dataStore ? (
+                <ServiceProvider dataStore={dataStore}>
+                  <NavControllerProvider>
+                  <UIControllerProvider>
+                    <DrawerControllerProvider>
+                      <DataSandboxProvider>
+                        <ShellProvider
+                          value={{
+                            currentPage,
+                            handleNavigate,
+                            showSidebar,
+                            setShowSidebar,
+                            showActionMenu,
+                            setShowActionMenu,
+                            showOrderWizard,
+                            openOrderWizard: handleShowCreateOrder,
+                            closeOrderWizard: () => setShowOrderWizard(false),
+                            showBusinessManager,
+                            openBusinessManager: handleShowBusinessManager,
+                            closeBusinessManager: () => setShowBusinessManager(false),
+                            showSearchBusiness,
+                            openSearchBusiness: handleShowSearchBusiness,
+                            closeSearchBusiness: () => setShowSearchBusiness(false),
+                            showBecomeDriver,
+                            openBecomeDriver: handleShowBecomeDriver,
+                            closeBecomeDriver: () => setShowBecomeDriver(false),
+                            showCreateBusiness,
+                            openCreateBusiness: handleShowCreateBusiness,
+                            closeCreateBusiness: () => setShowCreateBusiness(false),
+                            showWorkWithUs,
+                            openWorkWithUs: handleShowWorkWithUs,
+                            closeWorkWithUs: () => setShowWorkWithUs(false),
+                            startBusinessOnboarding: handleStartBusinessOnboarding,
+                            startDriverOnboarding: handleStartDriverOnboarding,
+                            handleLogout,
+                            handleShowCreateTask,
+                            handleShowScanBarcode,
+                            handleShowContactCustomer,
+                            handleShowCheckInventory,
+                            handleShowCreateRoute,
+                            handleShowCreateUser,
+                            handleShowCreateProduct
+                          }}
+                        >
+                          <UnifiedAppShell>
+                            <SimpleRouter />
+                          </UnifiedAppShell>
+                          <UIControllerRenderer />
+                        </ShellProvider>
+                      </DataSandboxProvider>
+                    </DrawerControllerProvider>
+                  </UIControllerProvider>
+                </NavControllerProvider>
+                </ServiceProvider>
+              ) : (
+                <NavControllerProvider>
+                <UIControllerProvider>
+                  <DrawerControllerProvider>
+                    <DataSandboxProvider>
+                      <ShellProvider
+                        value={{
+                          currentPage,
+                          handleNavigate,
+                          showSidebar,
+                          setShowSidebar,
+                          showActionMenu,
+                          setShowActionMenu,
+                          showOrderWizard,
+                          openOrderWizard: handleShowCreateOrder,
+                          closeOrderWizard: () => setShowOrderWizard(false),
+                          showBusinessManager,
+                          openBusinessManager: handleShowBusinessManager,
+                          closeBusinessManager: () => setShowBusinessManager(false),
+                          showSearchBusiness,
+                          openSearchBusiness: handleShowSearchBusiness,
+                          closeSearchBusiness: () => setShowSearchBusiness(false),
+                          showBecomeDriver,
+                          openBecomeDriver: handleShowBecomeDriver,
+                          closeBecomeDriver: () => setShowBecomeDriver(false),
+                          showCreateBusiness,
+                          openCreateBusiness: handleShowCreateBusiness,
+                          closeCreateBusiness: () => setShowCreateBusiness(false),
+                          showWorkWithUs,
+                          openWorkWithUs: handleShowWorkWithUs,
+                          closeWorkWithUs: () => setShowWorkWithUs(false),
+                          startBusinessOnboarding: handleStartBusinessOnboarding,
+                          startDriverOnboarding: handleStartDriverOnboarding,
+                          handleLogout,
+                          handleShowCreateTask,
+                          handleShowScanBarcode,
+                          handleShowContactCustomer,
+                          handleShowCheckInventory,
+                          handleShowCreateRoute,
+                          handleShowCreateUser,
+                          handleShowCreateProduct
+                        }}
+                      >
+                        <UnifiedAppShell>
+                          <SimpleRouter />
+                        </UnifiedAppShell>
+                        <UIControllerRenderer />
+                      </ShellProvider>
+                    </DataSandboxProvider>
+                  </DrawerControllerProvider>
+                </UIControllerProvider>
+              </NavControllerProvider>
+              )}
+            </PageTitleProvider>
+          </PermissionProvider>
         </LanguageProvider>
       </Suspense>
 
