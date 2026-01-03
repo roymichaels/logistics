@@ -1534,23 +1534,22 @@ export async function createFrontendDataStore(
   mode: 'real',
   user?: any
 ): Promise<FrontendDataStore> {
-  // Use Supabase for real mode if configured, otherwise fallback to mock
-  if ((cfg.adapters.data === 'supabase' || cfg.adapters.data === 'postgres') && import.meta.env.VITE_SUPABASE_URL) {
-    const { createSupabaseDataStore } = await import('./supabaseDataStore');
+  // Frontend-only mode: Always use local data store
+  const useFrontendOnly = import.meta.env.VITE_USE_FRONTEND_ONLY === 'true';
 
-    // For wallet auth, we use the UUID. For telegram auth, we use telegram_id
-    // The parameter name is legacy but accepts both UUID and telegram_id
-    const userId = user?.id || user?.telegram_id;
-    if (!userId) {
-      logger.error('Cannot create datastore: missing user ID', new Error('Missing user ID'), { user });
-      throw new Error('Cannot create datastore without user ID');
-    }
-
-    const store = await createSupabaseDataStore(userId, user?.auth_session, user);
-    return attachSubscriptionHelpers(store);
+  if (useFrontendOnly) {
+    logger.info('[FrontendDataStore] Using frontend-only mode with local data storage');
+    return attachSubscriptionHelpers(new HebrewLogisticsDataStore(user));
   }
 
-  // Fallback to mock data store for development/demo
+  // Legacy Supabase mode (disabled in this build)
+  if ((cfg.adapters.data === 'supabase' || cfg.adapters.data === 'postgres') && import.meta.env.VITE_SUPABASE_URL) {
+    logger.warn('[FrontendDataStore] Supabase mode requested but not recommended. Falling back to local storage.');
+    // Don't actually try to import Supabase - just use local storage
+    return attachSubscriptionHelpers(new HebrewLogisticsDataStore(user));
+  }
+
+  // Default: Use local data store
   return attachSubscriptionHelpers(new HebrewLogisticsDataStore(user));
 }
 
