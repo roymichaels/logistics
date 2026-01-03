@@ -12,6 +12,7 @@ import { ThemeProvider } from './foundation/theme/ThemeProvider';
 import './lib/diagnostics';
 import './lib/errorHandler';
 import { initializeApplicationLayer } from './application/bootstrap';
+import { initializeRuntimeDiagnostics } from './lib/runtime-diagnostics-global';
 import './design-system/variables.css';
 import './styles/containment.css';
 import './styles/canonical-tokens.css';
@@ -28,6 +29,9 @@ console.log('🌍 Environment:', runtimeEnvironment.env.type);
 
 // Initialize Application Layer (Domain Events, etc.)
 initializeApplicationLayer();
+
+// Initialize Runtime Diagnostics (Dev only)
+initializeRuntimeDiagnostics();
 
 // FORCE CLEAR ALL CACHES AND UNREGISTER SERVICE WORKERS
 (async () => {
