@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
+import { autoTracerPlugin } from './vite-plugin-auto-tracer';
 import fs from 'fs';
 import path from 'path';
 
@@ -156,6 +157,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       react(),
+      autoTracerPlugin(),
       visualizer({
         filename: 'dist/bundle-analysis.html',
         open: false,

@@ -22,6 +22,8 @@ import { DiagnosticErrorBoundary } from './lib/diagnostic-error-boundary';
 import { DiagnosticDashboard } from './components/DiagnosticDashboard';
 import { runtimeRegistry } from './lib/runtime-registry';
 import { useTracer } from './lib/component-tracer';
+import { hookTracker } from './lib/hook-tracker';
+import { sessionStorageAdapter } from './lib/session-storage-adapter';
 import { useSafeAppServices } from './context/AppServicesContext';
 import { useAuth } from './context/AuthContext';
 import { offlineStore } from './utils/offlineStore';
@@ -274,6 +276,18 @@ export default function App() {
     const isDev = import.meta.env.DEV;
 
     if (isDev) {
+      runtimeRegistry.loadFromSession();
+
+      hookTracker.wrapHooks();
+
+      runtimeRegistry.enableAutoSave();
+
+      const wasVisible = sessionStorageAdapter.getDashboardVisibility();
+      if (wasVisible) {
+        setShowDiagnostics(false);
+        sessionStorageAdapter.saveDashboardVisibility(false);
+      }
+
       setTimeout(() => {
         runtimeRegistry.printStartupReport();
       }, 3000);
@@ -282,13 +296,22 @@ export default function App() {
     const handleKeyPress = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'D') {
         e.preventDefault();
-        setShowDiagnostics(prev => !prev);
+        const newState = !showDiagnostics;
+        setShowDiagnostics(newState);
+        if (isDev) {
+          sessionStorageAdapter.saveDashboardVisibility(newState);
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, []);
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+      if (isDev) {
+        runtimeRegistry.disableAutoSave();
+      }
+    };
+  }, [showDiagnostics]);
 
   // Register route visits with the runtime registry
   useEffect(() => {
