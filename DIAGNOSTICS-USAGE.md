@@ -3,16 +3,17 @@
 ## Overview
 The observability framework is now exposed globally via `window.__RUNTIME__` for browser console access.
 
-**NEW:** A floating diagnostics button (🔍) appears in the bottom-right corner in DEV mode. Click it to run all diagnostics reports automatically!
+**NEW:** A "Run All Reports" button is available in the Dev Panel's Diagnostics tab. Click it to run all diagnostics reports automatically!
 
 ## Quick Access Methods
 
-### 1. Floating Button (Easiest)
-In DEV mode, look for the blue 🔍 button in the bottom-right corner:
-- Click to run full diagnostics suite automatically
-- All reports output to console
-- Button turns green ✓ when complete
-- Hover for tooltip info
+### 1. Dev Panel Button (Easiest)
+In DEV mode, open the Dev Panel and go to the Diagnostics tab:
+- Open Dev Panel: Click the 🛠️ button in the bottom-right corner
+- Navigate to "אבחון" (Diagnostics) tab
+- Click "🔍 Run All Reports" button in the header
+- All reports output to console automatically
+- Button shows "✓ Running..." while executing
 
 ### 2. Console Commands (Manual)
 On app startup in DEV mode, you'll see:
@@ -144,9 +145,9 @@ console.log('AuthContext renders:', authContext?.renderCount)
 - **No timeouts**: All commands execute immediately
 - **No side effects**: Reading diagnostics doesn't modify application state
 
-## Full Diagnostics Suite (Floating Button)
+## Full Diagnostics Suite (Dev Panel Button)
 
-When you click the floating 🔍 button, it runs all diagnostics in sequence:
+When you click "🔍 Run All Reports" in the Dev Panel Diagnostics tab, it runs all diagnostics in sequence:
 
 1. **Runtime Registry Report** - Component and route statistics
 2. **Registered Components** - Table of all tracked components
@@ -161,9 +162,10 @@ All output appears in the browser console with color-coded sections.
 ## Troubleshooting
 
 ### Button not visible?
-- Only appears in DEV mode (`import.meta.env.DEV`)
-- Check bottom-right corner of screen
-- Ensure app has loaded completely
+- Make sure you're in DEV mode (`import.meta.env.DEV`)
+- Open the Dev Panel (🛠️ button in bottom-right corner)
+- Switch to the "אבחון" (Diagnostics) tab
+- The "🔍 Run All Reports" button is in the tab header next to "נקה" button
 
 ### `__RUNTIME__` is undefined?
 1. Check that the app has initialized (`__INIT_COMPLETE__` should be true)
