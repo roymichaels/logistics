@@ -316,14 +316,14 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
 
     // Business owners get redirected to their business management dashboard
     logger.info('[Dashboard] Redirecting business owner to business page');
-    onNavigate('/businesses');
+    onNavigate('/business/businesses');
     return null;
   }
 
   if (user?.role === 'manager' || (user as any)?.global_role === 'manager') {
     // Managers get redirected to business management
     logger.info('[Dashboard] Redirecting manager to business page');
-    onNavigate('/businesses');
+    onNavigate('/business/businesses');
     return null;
   }
 
@@ -396,7 +396,7 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
                   } else {
                     // No business found, navigate to create business
                     // No business found, navigating to businesses page
-                    onNavigate('businesses');
+                    onNavigate('/business/businesses');
                   }
                 } catch (err) {
                   logger.error('Failed to refresh profile:', err);
@@ -428,10 +428,10 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
       );
   }
 
-  // Redirect users with 'user' role to UserHomepage
+  // Redirect users with 'user' role to store catalog
   if (user?.role === 'user') {
-    // Redirecting to user homepage
-    onNavigate('user-homepage');
+    // Redirecting to store catalog
+    onNavigate('/store/catalog');
     return null;
   }
 
@@ -577,7 +577,7 @@ function RoyalHeader({ user, metrics, onNavigate }: { user: User | null; metrics
             </div>
           </div>
           <button
-            onClick={() => onNavigate('orders')}
+            onClick={() => onNavigate('/orders')}
             style={{
               border: `1px solid ${TWITTER_COLORS.buttonSecondaryBorder}`,
               background: TWITTER_COLORS.buttonSecondary,
