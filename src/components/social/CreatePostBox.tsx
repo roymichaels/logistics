@@ -61,6 +61,9 @@ export function CreatePostBox({ onSubmit, placeholder, replyToPostId }: CreatePo
       let uploadedMedia: Array<{ media_type: MediaType; media_url: string; thumbnail_url?: string }> = [];
 
       if (mediaFiles.length > 0) {
+        if (!dataStore?.supabase) {
+          throw new Error('Media upload service not available');
+        }
         const mediaService = new MediaUploadService(dataStore.supabase);
         const results = await mediaService.uploadMultiple(mediaFiles.map((m) => m.file));
         uploadedMedia = results.map((result) => ({

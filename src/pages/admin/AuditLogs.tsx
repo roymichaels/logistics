@@ -38,6 +38,13 @@ export default function AuditLogs() {
   const loadLogs = async () => {
     try {
       setLoading(true);
+
+      if (!dataStore?.query) {
+        setLogs([]);
+        setLoading(false);
+        return;
+      }
+
       const allLogs = await dataStore.query('audit_logs', {
         orderBy: { field: 'timestamp', direction: 'desc' },
         limit: 100

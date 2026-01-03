@@ -37,6 +37,13 @@ export default function Superadmins() {
   const loadSuperadmins = async () => {
     try {
       setLoading(true);
+
+      if (!dataStore?.query) {
+        setSuperadmins([]);
+        setLoading(false);
+        return;
+      }
+
       const users = await dataStore.query('users', {
         where: { role: 'superadmin' }
       });
@@ -50,6 +57,11 @@ export default function Superadmins() {
 
   const handleAddSuperadmin = async () => {
     if (!newSuperadmin.wallet_address || !newSuperadmin.name) {
+      return;
+    }
+
+    if (!dataStore?.insert) {
+      logger.error('Data store not available');
       return;
     }
 
@@ -73,6 +85,11 @@ export default function Superadmins() {
   };
 
   const toggleStatus = async (id: string, currentStatus: string) => {
+    if (!dataStore?.update) {
+      logger.error('Data store not available');
+      return;
+    }
+
     try {
       await dataStore.update('users', id, {
         status: currentStatus === 'active' ? 'suspended' : 'active'
@@ -85,6 +102,11 @@ export default function Superadmins() {
 
   const removeSuperadmin = async (id: string) => {
     if (!confirm('האם אתה בטוח שברצונך להסיר מנהל על זה?')) {
+      return;
+    }
+
+    if (!dataStore?.delete) {
+      logger.error('Data store not available');
       return;
     }
 

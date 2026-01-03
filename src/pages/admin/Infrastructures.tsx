@@ -34,6 +34,13 @@ export default function Infrastructures() {
   const loadInfrastructures = async () => {
     try {
       setLoading(true);
+
+      if (!dataStore?.query) {
+        setInfrastructures([]);
+        setLoading(false);
+        return;
+      }
+
       const data = await dataStore.query('infrastructures', {});
       setInfrastructures(data || []);
     } catch (error) {
@@ -45,6 +52,11 @@ export default function Infrastructures() {
 
   const handleCreateInfrastructure = async () => {
     if (!newInfrastructure.name || !newInfrastructure.owner_wallet) {
+      return;
+    }
+
+    if (!dataStore?.insert) {
+      logger.error('Data store not available');
       return;
     }
 
@@ -67,6 +79,11 @@ export default function Infrastructures() {
   };
 
   const toggleStatus = async (id: string, currentStatus: string) => {
+    if (!dataStore?.update) {
+      logger.error('Data store not available');
+      return;
+    }
+
     try {
       await dataStore.update('infrastructures', id, {
         status: currentStatus === 'active' ? 'inactive' : 'active'

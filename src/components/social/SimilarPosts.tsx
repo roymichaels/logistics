@@ -41,6 +41,12 @@ export function SimilarPosts({ postId, limit = 5, onPostClick }: SimilarPostsPro
       setLoading(true);
       setError(null);
 
+      if (!dataStore?.supabase) {
+        setSimilarPosts([]);
+        setLoading(false);
+        return;
+      }
+
       // Call database function to get similar posts
       const { data: similarPostIds, error: similarError } = await dataStore.supabase
         .rpc('get_similar_posts', {

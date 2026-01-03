@@ -8,7 +8,7 @@ export function useRealtimeFeed() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!dataStore.supabase) return;
+    if (!dataStore?.supabase) return;
 
     const channel = dataStore.supabase
       .channel('posts-feed')
@@ -56,11 +56,22 @@ export function useRealtimeFeed() {
       .subscribe();
 
     return () => {
-      dataStore.supabase.removeChannel(channel);
+      dataStore?.supabase?.removeChannel(channel);
     };
-  }, [dataStore.supabase]);
+  }, [dataStore?.supabase]);
 
   const enrichPostData = async (postData: any): Promise<Post> => {
+    if (!dataStore?.supabase) {
+      return {
+        ...postData,
+        user: null,
+        media: [],
+        is_liked: false,
+        is_reposted: false,
+        is_bookmarked: false
+      };
+    }
+
     const { data: userData } = await dataStore.supabase
       .from('users')
       .select('id, name, username, photo_url')

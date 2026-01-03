@@ -28,14 +28,21 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
   const loadData = async () => {
     setLoading(true);
     try {
+      if (!dataStore?.getProfile) {
+        setLoading(false);
+        return;
+      }
+
       const profile = await dataStore.getProfile();
       setCurrentUser(profile);
 
       let tasksList: Task[] = [];
       if (profile.role === 'infrastructure_owner' || profile.role === 'business_owner' || profile.role === 'manager' || profile.role === 'dispatcher') {
-        const result = await dataStore.from('tasks').select('*').order('created_at', { ascending: false });
-        if (result.success && result.data) {
-          tasksList = result.data;
+        if (dataStore?.from) {
+          const result = await dataStore.from('tasks').select('*').order('created_at', { ascending: false });
+          if (result.success && result.data) {
+            tasksList = result.data;
+          }
         }
       } else {
         tasksList = await dataStore.listMyTasks?.() || [];
@@ -44,9 +51,11 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
       setTasks(tasksList);
 
       if (profile.role === 'infrastructure_owner' || profile.role === 'business_owner' || profile.role === 'manager' || profile.role === 'dispatcher') {
-        const usersResult = await dataStore.from('users').select('*').eq('active', true).order('name');
-        if (usersResult.success && usersResult.data) {
-          setUsers(usersResult.data);
+        if (dataStore?.from) {
+          const usersResult = await dataStore.from('users').select('*').eq('active', true).order('name');
+          if (usersResult.success && usersResult.data) {
+            setUsers(usersResult.data);
+          }
         }
       }
     } catch (error) {

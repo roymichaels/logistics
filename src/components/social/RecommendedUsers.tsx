@@ -35,6 +35,12 @@ export function RecommendedUsers({ limit = 5, onFollow, onDismiss }: Recommended
       setLoading(true);
       setError(null);
 
+      if (!dataStore?.supabase) {
+        setRecommendedUsers([]);
+        setLoading(false);
+        return;
+      }
+
       // Call database function to get personalized recommendations
       const { data, error: queryError } = await dataStore.supabase
         .rpc('get_user_recommendations', {
@@ -64,6 +70,11 @@ export function RecommendedUsers({ limit = 5, onFollow, onDismiss }: Recommended
 
   const handleDismiss = async (userId: string) => {
     try {
+      if (!dataStore?.supabase) {
+        logger.warn('Cannot dismiss recommendation: dataStore not available');
+        return;
+      }
+
       // Mark as dismissed in the database
       await dataStore.supabase
         .from('user_recommendations')

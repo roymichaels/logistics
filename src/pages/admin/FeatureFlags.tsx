@@ -44,6 +44,13 @@ export default function FeatureFlags() {
   const loadFlags = async () => {
     try {
       setLoading(true);
+
+      if (!dataStore?.query) {
+        setFlags([]);
+        setLoading(false);
+        return;
+      }
+
       const data = await dataStore.query('feature_flags', {
         orderBy: { field: 'created_at', direction: 'desc' }
       });
@@ -57,6 +64,11 @@ export default function FeatureFlags() {
 
   const handleCreateFlag = async () => {
     if (!newFlag.name || !newFlag.key) {
+      return;
+    }
+
+    if (!dataStore?.insert) {
+      logger.error('Data store not available');
       return;
     }
 
@@ -83,6 +95,11 @@ export default function FeatureFlags() {
   };
 
   const toggleFlag = async (id: string, currentEnabled: boolean) => {
+    if (!dataStore?.update) {
+      logger.error('Data store not available');
+      return;
+    }
+
     try {
       await dataStore.update('feature_flags', id, {
         enabled: !currentEnabled,
@@ -95,6 +112,11 @@ export default function FeatureFlags() {
   };
 
   const updateRollout = async (id: string, percentage: number) => {
+    if (!dataStore?.update) {
+      logger.error('Data store not available');
+      return;
+    }
+
     try {
       await dataStore.update('feature_flags', id, {
         rollout_percentage: percentage,
@@ -108,6 +130,11 @@ export default function FeatureFlags() {
 
   const deleteFlag = async (id: string) => {
     if (!confirm('האם אתה בטוח שברצונך למחוק דגל זה?')) {
+      return;
+    }
+
+    if (!dataStore?.delete) {
+      logger.error('Data store not available');
       return;
     }
 
