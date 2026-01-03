@@ -45,7 +45,7 @@ export function QuickActionGrid({
             margin: '0 0 16px',
             fontSize: '16px',
             fontWeight: 700,
-            color: tokens.colors.text.primary,
+            color: tokens.colors.text,
           }}
         >
           {title}
@@ -72,8 +72,8 @@ export function QuickActionGrid({
               justifyContent: 'center',
               gap: compact ? '8px' : '12px',
               padding: compact ? '16px' : '24px',
-              backgroundColor: tokens.colors.background.primary,
-              border: `1px solid ${tokens.colors.neutral[200]}`,
+              backgroundColor: tokens.colors.panel,
+              border: `1px solid ${tokens.colors.border}`,
               borderRadius: '12px',
               cursor: action.disabled ? 'not-allowed' : 'pointer',
               opacity: action.disabled ? 0.5 : 1,
@@ -83,15 +83,15 @@ export function QuickActionGrid({
             onMouseEnter={(e) => {
               if (!action.disabled) {
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = `0 8px 24px ${tokens.colors.neutral[900]}10`;
-                e.currentTarget.style.borderColor = tokens.colors.primary[300];
+                e.currentTarget.style.boxShadow = tokens.shadows.md;
+                e.currentTarget.style.borderColor = tokens.colors.primary[200];
               }
             }}
             onMouseLeave={(e) => {
               if (!action.disabled) {
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = 'none';
-                e.currentTarget.style.borderColor = tokens.colors.neutral[200];
+                e.currentTarget.style.borderColor = tokens.colors.border;
               }
             }}
           >
@@ -109,7 +109,7 @@ export function QuickActionGrid({
                   padding: '0 6px',
                   fontSize: '11px',
                   fontWeight: 700,
-                  color: tokens.colors.background.primary,
+                  color: tokens.colors.text,
                   backgroundColor: tokens.colors.semantic.error,
                   borderRadius: '10px',
                 }}
@@ -132,7 +132,7 @@ export function QuickActionGrid({
                 style={{
                   fontSize: compact ? '13px' : '14px',
                   fontWeight: 600,
-                  color: tokens.colors.text.primary,
+                  color: tokens.colors.text,
                   marginBottom: action.description ? '4px' : 0,
                 }}
               >
@@ -143,7 +143,7 @@ export function QuickActionGrid({
                 <div
                   style={{
                     fontSize: '12px',
-                    color: tokens.colors.text.secondary,
+                    color: tokens.colors.subtle,
                     lineHeight: '1.4',
                   }}
                 >
