@@ -841,3 +841,9 @@ if (typeof window !== 'undefined') {
   logger.info('  - window.getInitStatus()');
   logger.info('  - window.__profileDebugger');
 }
+
+// ============================================================================
+// Re-export new diagnostic utilities
+// ============================================================================
+
+export * from './diagnostics/index';

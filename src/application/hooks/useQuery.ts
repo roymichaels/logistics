@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { queryCache } from '../cache/QueryCache';
 import { persistentCache } from '../cache/PersistentCache';
 import { DiagnosticsStore } from '@/foundation/diagnostics/DiagnosticsStore';
+import { tracedQueryV2 } from '@/lib/diagnostics';
 import { logger } from '@/lib/logger';
 import type { ClassifiedError } from '@/foundation/error/ErrorTypes';
 import { Err } from '@/foundation/types/Result';
@@ -95,7 +96,12 @@ export function useQuery<T = any>(
           data: { key: cacheKey, isBackground },
         });
 
-        const result = await fetcherRef.current();
+        const tracedFetcher = tracedQueryV2(fetcherRef.current, {
+          queryName: `useQuery:${cacheKey}`,
+          queryKey: cacheKey,
+        });
+
+        const result = await tracedFetcher();
 
         if (!mountedRef.current) return;
 

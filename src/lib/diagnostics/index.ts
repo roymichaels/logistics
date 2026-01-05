@@ -25,3 +25,18 @@ export {
   tracedAsync,
   Traced
 } from './wrappers';
+
+export {
+  tracedQueryV2,
+  tracedMutation,
+  withQueryTracking,
+  withMutationTracking,
+  batchQueries
+} from './queryWrappers';
+
+export type {
+  QueryOptions,
+  MutationOptions,
+  QueryResult,
+  MutationResult
+} from './queryWrappers';

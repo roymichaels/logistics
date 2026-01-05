@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { queryCache } from '../cache/QueryCache';
 import { DiagnosticsStore } from '@/foundation/diagnostics/DiagnosticsStore';
+import { runtimeRegistry } from '@/lib/runtime-registry';
 import { logger } from '@/lib/logger';
 import { eventBus } from '@/foundation/events/EventBus';
 import type { AsyncResult } from '@/foundation/types/Result';
@@ -46,6 +47,7 @@ export function useMutation<TInput = any, TOutput = any>(
   const [data, setData] = useState<TOutput | null>(null);
 
   const mountedRef = useRef(true);
+  const mutationName = useRef(`useMutation:${mutationFn.name || 'anonymous'}:${Date.now()}`).current;
 
   const invalidateCache = useCallback(() => {
     invalidateKeys.forEach(key => {
@@ -122,7 +124,20 @@ export function useMutation<TInput = any, TOutput = any>(
           data: { input },
         });
 
+        const startTime = performance.now();
         const result = await mutationFn(input);
+        const duration = performance.now() - startTime;
+
+        runtimeRegistry.trackFunctionCall({
+          functionName: mutationName,
+          category: 'mutation',
+          duration,
+          timestamp: Date.now(),
+          metadata: {
+            success: result.success,
+            inputSize: JSON.stringify(input).length,
+          },
+        });
 
         if (!mountedRef.current) {
           return result;
@@ -196,6 +211,18 @@ export function useMutation<TInput = any, TOutput = any>(
               code: err.code,
               details: err,
             };
+
+        runtimeRegistry.trackFunctionCall({
+          functionName: mutationName,
+          category: 'mutation',
+          duration: 0,
+          timestamp: Date.now(),
+          error: classifiedError as Error,
+          metadata: {
+            success: false,
+            errorType: classifiedError.type,
+          },
+        });
 
         setError(classifiedError);
 
