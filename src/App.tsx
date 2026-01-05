@@ -20,6 +20,7 @@ import './lib/diagnostics';
 import { logger } from './lib/logger';
 import { DiagnosticErrorBoundary } from './lib/diagnostic-error-boundary';
 import { DiagnosticDashboard } from './components/DiagnosticDashboard';
+import { UnifiedDevConsole } from './components/dev/UnifiedDevConsole';
 import { runtimeRegistry } from './lib/runtime-registry';
 import { useTracer } from './lib/component-tracer';
 import { hookTracker } from './lib/hook-tracker';
@@ -973,7 +974,7 @@ export default function App() {
 
       <ToastContainer />
       <OfflineSyncIndicator />
-      <DiagnosticDashboard
+      <UnifiedDevConsole
         isOpen={showDiagnostics}
         onClose={() => setShowDiagnostics(false)}
       />

@@ -6,6 +6,7 @@ export * from './useCompactMode';
 export * from './useDashboardData';
 export * from './useDataFetch';
 export * from './useDataLoader';
+export * from './useDevConsole';
 export * from './useDrawerController';
 export * from './useFormHandler';
 export * from './useModalController';
