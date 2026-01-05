@@ -62,11 +62,8 @@ export function autoTracerPlugin(): Plugin {
         return null;
       }
 
-      // Skip if already instrumented
-      if (code.includes('useTracer')) {
-        stats.filesSkipped++;
-        return null;
-      }
+      // Don't skip if only has import but not used
+      // Allow re-instrumentation to ensure all components are tracked
 
       try {
         // Parse with Babel

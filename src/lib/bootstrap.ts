@@ -1,6 +1,7 @@
 import { BootstrapConfig } from '../data/types';
 
 import { logger } from './logger';
+import { initializeComponentRegistry } from './component-registry';
 
 interface BootstrapResult {
   config: BootstrapConfig;
@@ -29,6 +30,8 @@ export async function bootstrap(userData?: any): Promise<BootstrapResult> {
   debugLog.info('🔧 Bootstrap: Starting...', {
     hasUserData: !!userData
   });
+
+  initializeComponentRegistry();
 
   // Clear all caches on startup to force fresh data
   try {

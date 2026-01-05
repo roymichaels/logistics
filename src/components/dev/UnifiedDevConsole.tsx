@@ -146,6 +146,7 @@ function OverviewTab() {
   const hooks = functionCalls.filter((f) => f.category === 'hook');
 
   const mountedComponents = components.filter((c) => c.mounted).length;
+  const totalComponents = components.length;
   const totalQueries = queries.reduce((sum, q) => sum + q.calls, 0);
   const totalMutations = mutations.reduce((sum, m) => sum + m.calls, 0);
   const errorRate =
@@ -167,8 +168,20 @@ function OverviewTab() {
     <div style={styles.tabContent}>
       <h3 style={styles.sectionTitle}>System Overview</h3>
 
+      {totalComponents < 50 && (
+        <div style={styles.infoBox}>
+          <span style={styles.infoIcon}>💡</span>
+          <div>
+            <strong>Tracking {totalComponents} components</strong> that have mounted so far.
+            Navigate to more pages to see more components tracked automatically.
+            The app has 350+ trackable components total.
+          </div>
+        </div>
+      )}
+
       <div style={styles.statsGrid}>
-        <StatCard label="Components Mounted" value={mountedComponents} icon="🧩" />
+        <StatCard label="Components Tracked" value={totalComponents} icon="🧩" />
+        <StatCard label="Components Mounted" value={mountedComponents} icon="✅" color="#10b981" />
         <StatCard label="Total Queries" value={totalQueries} icon="🔍" />
         <StatCard label="Total Mutations" value={totalMutations} icon="✏️" />
         <StatCard label="Hooks Called" value={hooks.length} icon="🪝" />
@@ -985,5 +998,19 @@ const styles: Record<string, React.CSSProperties> = {
     margin: 0,
     fontSize: '13px',
     color: '#999',
+  },
+  infoBox: {
+    backgroundColor: '#1e3a5f',
+    border: '1px solid #2563eb',
+    borderRadius: '8px',
+    padding: '16px',
+    marginBottom: '24px',
+    display: 'flex',
+    gap: '12px',
+    alignItems: 'flex-start',
+  },
+  infoIcon: {
+    fontSize: '20px',
+    flexShrink: 0,
   },
 };
