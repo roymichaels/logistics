@@ -8,7 +8,7 @@
  */
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { logger } from '../lib/logger';
+import { runtimeRegistry } from '../lib/runtime-registry';
 import { errorCollector } from '../foundation/diagnostics';
 
 interface ErrorBoundaryProps {
@@ -16,6 +16,7 @@ interface ErrorBoundaryProps {
   fallback?: ReactNode | ((error: Error, errorInfo: ErrorInfo) => ReactNode);
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
   resetKeys?: Array<string | number>;
+  componentName?: string;
 }
 
 interface ErrorBoundaryState {
@@ -28,11 +29,14 @@ interface ErrorBoundaryState {
  * Base Error Boundary Component
  */
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  private componentName: string;
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
       hasError: false,
     };
+    this.componentName = props.componentName || 'ErrorBoundary';
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
@@ -43,12 +47,20 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    logger.error('ErrorBoundary caught an error:', error, errorInfo);
-
     this.setState({
       error,
       errorInfo,
     });
+
+    runtimeRegistry.registerComponentError(
+      this.componentName,
+      error,
+      true,
+      {
+        componentStack: errorInfo.componentStack,
+        props: this.props,
+      }
+    );
 
     errorCollector.collectError(
       error,
@@ -59,10 +71,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       ['react', 'boundary']
     );
 
-    // Call custom error handler
     this.props.onError?.(error, errorInfo);
 
-    // Send to error reporting service (if available)
     if (typeof window !== 'undefined' && (window as any).Sentry) {
       (window as any).Sentry.captureException(error, {
         contexts: {
@@ -240,10 +250,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
  */
 export function GlobalErrorBoundary({ children }: { children: ReactNode }): JSX.Element {
   const handleError = (error: Error, errorInfo: ErrorInfo) => {
-    logger.error('🚨 Global Error:', error);
-    logger.error('Component Stack:', errorInfo.componentStack);
-
-    // Log to analytics or error tracking service
     if (typeof window !== 'undefined') {
       const errorData = {
         message: error.message,
@@ -254,7 +260,12 @@ export function GlobalErrorBoundary({ children }: { children: ReactNode }): JSX.
         url: window.location.href,
       };
 
-      logger.info('Error Data:', errorData);
+      runtimeRegistry.registerComponentError(
+        'GlobalApp',
+        error,
+        false,
+        errorData
+      );
     }
   };
 

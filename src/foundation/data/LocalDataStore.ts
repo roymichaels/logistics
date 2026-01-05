@@ -1,4 +1,5 @@
 import { logger } from '@/lib/logger';
+import { runtimeRegistry } from '@/lib/runtime-registry';
 
 interface QueryResult<T = any> {
   success: boolean;
@@ -17,10 +18,12 @@ class QueryBuilder {
   private operation: 'select' | 'insert' | 'update' | 'delete' = 'select';
   private insertData?: any;
   private updateData?: any;
+  private queryStartTime?: number;
 
   constructor(store: LocalDataStore, tableName: string) {
     this.store = store;
     this.tableName = tableName;
+    this.queryStartTime = Date.now();
   }
 
   select(columns: string = '*'): this {
@@ -136,25 +139,42 @@ class QueryBuilder {
   }
 
   private async execute(): Promise<QueryResult> {
+    const startTime = Date.now();
+    const querySignature = `${this.operation}:${this.tableName}`;
+
     try {
+      let result: QueryResult;
+
       switch (this.operation) {
         case 'select':
-          return this.executeSelect();
+          result = this.executeSelect();
+          break;
         case 'insert':
-          return this.executeInsert();
+          result = this.executeInsert();
+          break;
         case 'update':
-          return this.executeUpdate();
+          result = this.executeUpdate();
+          break;
         case 'delete':
-          return this.executeDelete();
+          result = this.executeDelete();
+          break;
         default:
-          return {
+          result = {
             success: false,
             data: null,
             error: { message: 'Unknown operation' },
           };
       }
+
+      const duration = Date.now() - startTime;
+      runtimeRegistry.registerFunctionCall(querySignature, duration, !result.success);
+
+      return result;
     } catch (error: any) {
+      const duration = Date.now() - startTime;
+      runtimeRegistry.registerFunctionCall(querySignature, duration, true);
       logger.error('[QueryBuilder] Query execution error', error);
+
       return {
         success: false,
         data: null,
@@ -315,6 +335,8 @@ class QueryBuilder {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }
+
+export { QueryBuilder };
 
 export class LocalDataStore {
   private tables: Map<string, any[]> = new Map();

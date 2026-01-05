@@ -6,239 +6,115 @@
  */
 
 import { frontendOnlyDataStore } from '../../lib/frontendOnlyDataStore';
-import { logger } from '../../lib/logger';
+import { runtimeRegistry } from '../../lib/runtime-registry';
 
-class SupabaseQueryBuilder {
-  private tableName: string;
-  private filters: Array<{ field: string; op: string; value: any }> = [];
-  private orderField?: string;
-  private orderAsc?: boolean;
-  private limitValue?: number;
-  private selectFields: string = '*';
-  private operation?: 'select' | 'insert' | 'update' | 'delete';
-  private operationData?: any;
+class QueryBuilderAdapter {
+  private builder: any;
 
-  constructor(tableName: string) {
-    this.tableName = tableName;
-    this.operation = 'select';
+  constructor(builder: any) {
+    this.builder = builder;
   }
 
-  select(fields: string = '*') {
-    this.selectFields = fields;
-    this.operation = 'select';
+  select(fields?: string) {
+    this.builder.select(fields);
     return this;
   }
 
-  insert(data: any | any[]) {
-    this.operation = 'insert';
-    this.operationData = data;
+  insert(data: any) {
+    this.builder.insert(data);
     return this;
   }
 
   update(data: any) {
-    this.operation = 'update';
-    this.operationData = data;
+    this.builder.update(data);
     return this;
   }
 
   delete() {
-    this.operation = 'delete';
+    this.builder.delete();
     return this;
   }
 
   eq(field: string, value: any) {
-    this.filters.push({ field, op: 'eq', value });
+    this.builder.eq(field, value);
     return this;
   }
 
   neq(field: string, value: any) {
-    this.filters.push({ field, op: 'neq', value });
+    this.builder.neq(field, value);
     return this;
   }
 
   gt(field: string, value: any) {
-    this.filters.push({ field, op: 'gt', value });
+    this.builder.gt(field, value);
     return this;
   }
 
   gte(field: string, value: any) {
-    this.filters.push({ field, op: 'gte', value });
+    this.builder.gte(field, value);
     return this;
   }
 
   lt(field: string, value: any) {
-    this.filters.push({ field, op: 'lt', value });
+    this.builder.lt(field, value);
     return this;
   }
 
   lte(field: string, value: any) {
-    this.filters.push({ field, op: 'lte', value });
+    this.builder.lte(field, value);
     return this;
   }
 
   ilike(field: string, pattern: string) {
-    this.filters.push({ field, op: 'ilike', value: pattern });
+    this.builder.ilike(field, pattern);
     return this;
   }
 
   like(field: string, pattern: string) {
-    this.filters.push({ field, op: 'like', value: pattern });
+    this.builder.like(field, pattern);
     return this;
   }
 
   in(field: string, values: any[]) {
-    this.filters.push({ field, op: 'in', value: values });
-    return this;
-  }
-
-  or(conditions: string) {
-    this.filters.push({ field: '__or__', op: 'or', value: conditions });
+    this.builder.in(field, values);
     return this;
   }
 
   order(field: string, options?: { ascending?: boolean }) {
-    this.orderField = field;
-    this.orderAsc = options?.ascending ?? true;
+    this.builder.order(field, options);
     return this;
   }
 
   limit(count: number) {
-    this.limitValue = count;
+    this.builder.limit(count);
     return this;
   }
 
   async single() {
-    const result = await this.execute();
-    if (result.error) return result;
-    if (!result.data || result.data.length === 0) {
-      return { data: null, error: new Error('No rows found') };
-    }
-    return { data: result.data[0], error: null };
+    const result = await this.builder.single();
+    return { data: result.success ? result.data : null, error: result.error || null };
   }
 
   async maybeSingle() {
-    const result = await this.execute();
-    if (result.error) return result;
-    return { data: result.data?.[0] || null, error: null };
-  }
-
-  private applyFilters(rows: any[]): any[] {
-    return rows.filter(row => {
-      for (const filter of this.filters) {
-        if (filter.op === 'or') {
-          const orConditions = filter.value.split(',').map((c: string) => c.trim());
-          const anyMatch = orConditions.some((condition: string) => {
-            const match = condition.match(/(\w+)\.(ilike|eq|neq|gt|gte|lt|lte)\.(.+)/);
-            if (!match) return false;
-            const [, field, op, value] = match;
-            return this.matchFilter(row, field, op, value.replace(/%/g, ''));
-          });
-          if (!anyMatch) return false;
-        } else {
-          if (!this.matchFilter(row, filter.field, filter.op, filter.value)) {
-            return false;
-          }
-        }
-      }
-      return true;
-    });
-  }
-
-  private matchFilter(row: any, field: string, op: string, value: any): boolean {
-    const fieldValue = row[field];
-
-    switch (op) {
-      case 'eq':
-        return fieldValue === value;
-      case 'neq':
-        return fieldValue !== value;
-      case 'gt':
-        return fieldValue > value;
-      case 'gte':
-        return fieldValue >= value;
-      case 'lt':
-        return fieldValue < value;
-      case 'lte':
-        return fieldValue <= value;
-      case 'ilike':
-      case 'like':
-        if (typeof fieldValue !== 'string') return false;
-        const pattern = value.replace(/%/g, '');
-        return fieldValue.toLowerCase().includes(pattern.toLowerCase());
-      case 'in':
-        return Array.isArray(value) && value.includes(fieldValue);
-      default:
-        return false;
-    }
-  }
-
-  private async execute() {
-    try {
-      if (this.operation === 'insert') {
-        return await frontendOnlyDataStore.insert(this.tableName, this.operationData);
-      }
-
-      if (this.operation === 'update') {
-        const rows = await frontendOnlyDataStore.query(this.tableName);
-        const filtered = this.applyFilters(rows);
-
-        if (filtered.length === 0) {
-          return { data: null, error: new Error('No rows to update') };
-        }
-
-        const updatePromises = filtered.map(row =>
-          frontendOnlyDataStore.update(this.tableName, row.id, this.operationData)
-        );
-        await Promise.all(updatePromises);
-        return { data: null, error: null };
-      }
-
-      if (this.operation === 'delete') {
-        const rows = await frontendOnlyDataStore.query(this.tableName);
-        const filtered = this.applyFilters(rows);
-
-        if (filtered.length === 0) {
-          return { data: null, error: new Error('No rows to delete') };
-        }
-
-        const deletePromises = filtered.map(row =>
-          frontendOnlyDataStore.delete(this.tableName, row.id)
-        );
-        await Promise.all(deletePromises);
-        return { data: null, error: null };
-      }
-
-      let rows = await frontendOnlyDataStore.query(this.tableName);
-      rows = this.applyFilters(rows);
-
-      if (this.orderField) {
-        rows.sort((a, b) => {
-          const aVal = a[this.orderField!];
-          const bVal = b[this.orderField!];
-          const comparison = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-          return this.orderAsc ? comparison : -comparison;
-        });
-      }
-
-      if (this.limitValue) {
-        rows = rows.slice(0, this.limitValue);
-      }
-
-      return { data: rows, error: null };
-    } catch (error) {
-      return { data: null, error };
-    }
+    const result = await this.builder.maybeSingle();
+    return { data: result.success ? result.data : null, error: result.error || null };
   }
 
   async then(resolve: (value: any) => any) {
-    const result = await this.execute();
-    return resolve(result);
+    const result = await this.builder.then((r: any) => r);
+    return resolve({ data: result.success ? result.data : null, error: result.error || null });
   }
 }
 
-class SupabaseCompatibleClient {
+class DataStoreClient {
+  private dataStore: any;
+
+  constructor(dataStore: any) {
+    this.dataStore = dataStore;
+  }
+
   from(table: string) {
-    return new SupabaseQueryBuilder(table);
+    return new QueryBuilderAdapter(this.dataStore.from(table));
   }
 }
 
@@ -246,30 +122,37 @@ export abstract class BaseService {
   protected userId: string;
   protected userTelegramId: string;
   protected dataStore = frontendOnlyDataStore;
-  protected supabase = new SupabaseCompatibleClient();
+  protected supabase = new DataStoreClient(frontendOnlyDataStore);
 
   constructor(userId: string) {
     this.userId = userId;
     this.userTelegramId = userId;
-    logger.debug(`[FRONTEND-ONLY] BaseService initialized for user ${userId}`);
   }
 
   /**
-   * Execute a query with error logging
+   * Execute a query with error tracking via runtime registry
    */
   protected async executeQuery<T>(
     queryFn: () => Promise<{ data: T | null; error: any }>,
     errorMessage: string
   ): Promise<T | null> {
+    const startTime = Date.now();
+    const serviceName = this.constructor.name;
+
     try {
       const { data, error } = await queryFn();
+      const duration = Date.now() - startTime;
+
       if (error) {
-        logger.error(errorMessage, error);
+        runtimeRegistry.registerFunctionCall(`${serviceName}.executeQuery`, duration, true);
         throw error;
       }
+
+      runtimeRegistry.registerFunctionCall(`${serviceName}.executeQuery`, duration, false);
       return data;
     } catch (error) {
-      logger.error(errorMessage, error as Error);
+      const duration = Date.now() - startTime;
+      runtimeRegistry.registerFunctionCall(`${serviceName}.executeQuery`, duration, true);
       throw error;
     }
   }
