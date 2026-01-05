@@ -16,6 +16,7 @@ export * from './usePopoverController';
 export * from './useRealtimeFeed';
 export * from './useResponsiveHeader';
 export * from './useRoleTheme';
+export * from './useService';
 export * from './useSheet';
 export * from './useSwissMode';
 export * from './useTableState';
