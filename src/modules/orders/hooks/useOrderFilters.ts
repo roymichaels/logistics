@@ -5,6 +5,10 @@ export function useOrderFilters(orders: Order[]) {
   const [filters, setFilters] = useState<OrderFilters>({});
 
   const filteredOrders = useMemo(() => {
+    if (!orders || !Array.isArray(orders)) {
+      return [];
+    }
+
     return orders.filter(order => {
       if (filters.status && order.status !== filters.status) return false;
       if (filters.customerId && order.customerId !== filters.customerId) return false;

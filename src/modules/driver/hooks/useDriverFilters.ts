@@ -19,9 +19,14 @@ const defaultFilters: DriverFilters = {
 
 export function useDriverFilters(drivers: Driver[]): UseDriverFiltersResult {
   const [filters, setFilters] = useState<DriverFilters>(defaultFilters);
-  const [filteredDrivers, setFilteredDrivers] = useState<Driver[]>(drivers);
+  const [filteredDrivers, setFilteredDrivers] = useState<Driver[]>(drivers || []);
 
   useEffect(() => {
+    if (!drivers || !Array.isArray(drivers)) {
+      setFilteredDrivers([]);
+      return;
+    }
+
     let result = [...drivers];
 
     if (filters.status) {

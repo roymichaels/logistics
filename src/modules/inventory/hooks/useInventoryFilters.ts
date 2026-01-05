@@ -8,6 +8,10 @@ export function useInventoryFilters(inventory: AggregatedInventory[]) {
   });
 
   const filteredInventory = useMemo(() => {
+    if (!inventory || !Array.isArray(inventory)) {
+      return [];
+    }
+
     return inventory.filter(item => {
       if (filters.status !== 'all' && item.status !== filters.status) {
         return false;
