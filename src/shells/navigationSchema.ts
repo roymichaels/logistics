@@ -307,7 +307,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   {
     id: 'business-reports',
     label: 'דוחות',
-    path: '/business/reports',
+    path: '/business/business-reports',
     icon: '📈',
     visible: true,
     requiredRoles: ['business_owner', 'manager']

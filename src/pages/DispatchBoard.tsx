@@ -235,7 +235,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
       </style>
 
       {error && (
-        <ContentCard style={{ marginBottom: '20px' }}>
+        <Card style={{ marginBottom: '20px' }}>
           <div style={{
             padding: '4px 0',
             color: tokens.colors.status.error,
@@ -244,31 +244,31 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           }}>
             ⚠️ {error}
           </div>
-        </ContentCard>
+        </Card>
       )}
 
       {/* Dashboard Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        <ContentCard hoverable onClick={() => console.log('Show available drivers')} style={{ textAlign: 'center' }}>
+        <Card hoverable onClick={() => console.log('Show available drivers')} style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>🚗</div>
           <div style={{ ...styles.stat.value, fontSize: '28px', color: tokens.colors.status.success }}>{totalOnline}</div>
           <div style={styles.stat.label}>{translations.dispatchBoardPage.availableDrivers}</div>
-        </ContentCard>
-        <ContentCard hoverable onClick={() => console.log('Show zone details')} style={{ textAlign: 'center' }}>
+        </Card>
+        <Card hoverable onClick={() => console.log('Show zone details')} style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>🗺️</div>
           <div style={{ ...styles.stat.value, fontSize: '28px', color: tokens.colors.status.info }}>{zones.length}</div>
           <div style={styles.stat.label}>{translations.dispatchBoardPage.coverageZones}</div>
-        </ContentCard>
-        <ContentCard hoverable onClick={() => console.log('Filter to active deliveries')} style={{ textAlign: 'center' }}>
+        </Card>
+        <Card hoverable onClick={() => console.log('Filter to active deliveries')} style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>🚚</div>
           <div style={{ ...styles.stat.value, fontSize: '28px', color: tokens.colors.brand.primary }}>{activeDeliveries}</div>
           <div style={styles.stat.label}>{translations.dispatchBoardPage.inDelivery}</div>
-        </ContentCard>
-        <ContentCard hoverable onClick={() => console.log('Filter to pending assignments')} style={{ textAlign: 'center' }}>
+        </Card>
+        <Card hoverable onClick={() => console.log('Filter to pending assignments')} style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '36px', marginBottom: '8px' }}>⏱️</div>
           <div style={{ ...styles.stat.value, fontSize: '28px', color: tokens.colors.status.warning }}>{pendingAssignments}</div>
           <div style={styles.stat.label}>{translations.dispatchBoardPage.waiting}</div>
-        </ContentCard>
+        </Card>
       </div>
 
       {/* Kanban Board or List View */}
@@ -280,7 +280,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           marginBottom: '24px'
         }}>
           {/* Pending Column */}
-          <ContentCard style={{ minHeight: '400px' }}>
+          <Card style={{ minHeight: '400px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text }}>
                 {translations.dispatchBoardPage.waitingForAssignment}
@@ -314,10 +314,10 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 </div>
               )}
             </div>
-          </ContentCard>
+          </Card>
 
           {/* Assigned Column */}
-          <ContentCard style={{ minHeight: '400px' }}>
+          <Card style={{ minHeight: '400px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text }}>
                 {translations.dispatchBoardPage.assigned}
@@ -344,10 +344,10 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 </div>
               )}
             </div>
-          </ContentCard>
+          </Card>
 
           {/* In Progress Column */}
-          <ContentCard style={{ minHeight: '400px' }}>
+          <Card style={{ minHeight: '400px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text }}>
                 {translations.dispatchBoardPage.inProgress}
@@ -374,10 +374,10 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 </div>
               )}
             </div>
-          </ContentCard>
+          </Card>
 
           {/* Completed Column */}
-          <ContentCard style={{ minHeight: '400px' }}>
+          <Card style={{ minHeight: '400px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text }}>
                 {translations.dispatchBoardPage.completed}
@@ -404,7 +404,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 </div>
               )}
             </div>
-          </ContentCard>
+          </Card>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -436,7 +436,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           justifyContent: 'center',
           padding: '20px'
         }}>
-          <ContentCard style={{
+          <Card style={{
             maxWidth: '500px',
             width: '100%',
             maxHeight: '80vh',
@@ -482,7 +482,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
             {/* Available Drivers */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {zones.flatMap(z => z.onlineDrivers).filter(d => d.status === 'available').map(driver => (
-                <ContentCard
+                <Card
                   key={driver.driver_id}
                   hoverable
                   onClick={() => handleAssignDriver(selectedOrder.id, driver.driver_id)}
@@ -494,7 +494,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                   <div style={{ fontSize: '13px', color: tokens.colors.status.success }}>
                     {translations.dispatchBoardPage.available}
                   </div>
-                </ContentCard>
+                </Card>
               ))}
               {zones.flatMap(z => z.onlineDrivers).filter(d => d.status === 'available').length === 0 && (
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.subtle }}>
@@ -503,7 +503,7 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 </div>
               )}
             </div>
-          </ContentCard>
+          </Card>
         </div>
       )}
     </PageContainer>

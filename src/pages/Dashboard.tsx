@@ -305,54 +305,56 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
   //   };
   // }, [snapshot, handleSendSummary, mainButton]);
 
+  // Handle role-based redirects in useEffect to avoid setState-in-render
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+  const [redirectPath, setRedirectPath] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user || !onNavigate) return;
+
+    const isBusinessOwner = user?.role === 'business_owner' || (user as any)?.global_role === 'business_owner';
+    const isManager = user?.role === 'manager' || (user as any)?.global_role === 'manager';
+    const isDispatcher = user?.role === 'dispatcher' || (user as any)?.global_role === 'dispatcher';
+    const isWarehouse = user?.role === 'warehouse' || (user as any)?.global_role === 'warehouse';
+    const isSales = user?.role === 'sales' || (user as any)?.global_role === 'sales';
+    const isCustomerService = user?.role === 'customer_service' || (user as any)?.global_role === 'customer_service';
+
+    let targetPath: string | null = null;
+
+    if (isBusinessOwner) {
+      logger.info('[Dashboard] Redirecting business owner to business page');
+      targetPath = '/business/businesses';
+    } else if (isManager) {
+      logger.info('[Dashboard] Redirecting manager to business page');
+      targetPath = '/business/businesses';
+    } else if (isDispatcher) {
+      logger.info('[Dashboard] Redirecting dispatcher to dispatch board');
+      targetPath = '/business/dispatch';
+    } else if (isWarehouse) {
+      logger.info('[Dashboard] Redirecting warehouse to inventory');
+      targetPath = '/business/inventory';
+    } else if (isSales) {
+      logger.info('[Dashboard] Redirecting sales to orders');
+      targetPath = '/business/orders';
+    } else if (isCustomerService) {
+      logger.info('[Dashboard] Redirecting customer service to support console');
+      targetPath = '/business/support';
+    }
+
+    if (targetPath) {
+      setRedirectPath(targetPath);
+      setShouldRedirect(true);
+      onNavigate(targetPath);
+    }
+  }, [user, onNavigate]);
+
   // Additional check for skeleton screen timing
   if (showSkeleton) {
     return <RoyalSkeleton />;
   }
 
-  // Business Owner gets business-specific financial dashboard
-  // Check both role and global_role fields
-  const isBusinessOwner = user?.role === 'business_owner' || (user as any)?.global_role === 'business_owner';
-
-  if (isBusinessOwner) {
-    const businessId = currentBusinessId || user.business_id || (user as any).active_business_id || '';
-
-    // Business owners get redirected to their business management dashboard
-    logger.info('[Dashboard] Redirecting business owner to business page');
-    onNavigate('/business/businesses');
-    return null;
-  }
-
-  if (user?.role === 'manager' || (user as any)?.global_role === 'manager') {
-    // Managers get redirected to business management
-    logger.info('[Dashboard] Redirecting manager to business page');
-    onNavigate('/business/businesses');
-    return null;
-  }
-
-  // Redirect operational roles to their specific entry points
-  // These roles don't have a generic dashboard - they have specialized interfaces
-  if (user?.role === 'dispatcher' || (user as any)?.global_role === 'dispatcher') {
-    logger.info('[Dashboard] Redirecting dispatcher to dispatch board');
-    onNavigate('/business/dispatch');
-    return null;
-  }
-
-  if (user?.role === 'warehouse' || (user as any)?.global_role === 'warehouse') {
-    logger.info('[Dashboard] Redirecting warehouse to inventory');
-    onNavigate('/business/inventory');
-    return null;
-  }
-
-  if (user?.role === 'sales' || (user as any)?.global_role === 'sales') {
-    logger.info('[Dashboard] Redirecting sales to orders');
-    onNavigate('/business/orders');
-    return null;
-  }
-
-  if (user?.role === 'customer_service' || (user as any)?.global_role === 'customer_service') {
-    logger.info('[Dashboard] Redirecting customer service to support console');
-    onNavigate('/business/support');
+  // If we're redirecting, show nothing
+  if (shouldRedirect && redirectPath) {
     return null;
   }
 
