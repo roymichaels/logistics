@@ -33,7 +33,9 @@ export function Channels({ dataStore, onNavigate, currentUser }: ChannelsProps) 
     try {
       if (dataStore.listAllUsersForMessaging) {
         const usersList = await dataStore.listAllUsersForMessaging();
-        setUsers(usersList.filter(u => u.telegram_id !== currentUser?.telegram_id));
+        if (Array.isArray(usersList)) {
+          setUsers(usersList.filter(u => u.telegram_id !== currentUser?.telegram_id));
+        }
       }
     } catch (error) {
       logger.error('Failed to load users:', error);

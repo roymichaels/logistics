@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { DashboardLayout, Section } from '@/components/templates/DashboardLayout';
 import { MetricCard } from '@components/dashboard/MetricCard';
 import { useInventory } from '@application/hooks/useInventory';
 import { useInventoryStats, useInventoryFilters, useInventoryMutations } from '../hooks';

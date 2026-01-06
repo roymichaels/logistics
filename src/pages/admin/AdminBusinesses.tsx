@@ -54,7 +54,7 @@ export function AdminBusinesses() {
       const table = dataStore?.getTable?.('businesses') || [];
       const businessesWithStats = await Promise.all(
         table.map(async (business: any) => {
-          const orders = dataStore?.getTable?.('orders').filter((o: any) => o.business_id === business.id) || [];
+          const orders = (dataStore?.getTable?.('orders') || []).filter((o: any) => o.business_id === business.id);
           const completedOrders = orders.filter((o: any) => o.status === 'delivered');
           const totalRevenue = completedOrders.reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0);
 
