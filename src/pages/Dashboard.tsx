@@ -247,6 +247,50 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
     return cleanup;
   }, [dataStore, loadDashboard, handleInventoryAlert]);
 
+  // Handle role-based redirects in useEffect to avoid setState-in-render
+  useEffect(() => {
+    if (!user || !onNavigate) return;
+
+    const isBusinessOwner = user?.role === 'business_owner' || (user as any)?.global_role === 'business_owner';
+    const isManager = user?.role === 'manager' || (user as any)?.global_role === 'manager';
+    const isDispatcher = user?.role === 'dispatcher' || (user as any)?.global_role === 'dispatcher';
+    const isWarehouse = user?.role === 'warehouse' || (user as any)?.global_role === 'warehouse';
+    const isSales = user?.role === 'sales' || (user as any)?.global_role === 'sales';
+    const isCustomerService = user?.role === 'customer_service' || (user as any)?.global_role === 'customer_service';
+    const isUserRole = user?.role === 'user';
+
+    let targetPath: string | null = null;
+
+    if (isBusinessOwner) {
+      logger.info('[Dashboard] Redirecting business owner to business page');
+      targetPath = '/business/businesses';
+    } else if (isManager) {
+      logger.info('[Dashboard] Redirecting manager to business page');
+      targetPath = '/business/businesses';
+    } else if (isDispatcher) {
+      logger.info('[Dashboard] Redirecting dispatcher to dispatch board');
+      targetPath = '/business/dispatch';
+    } else if (isWarehouse) {
+      logger.info('[Dashboard] Redirecting warehouse to inventory');
+      targetPath = '/business/inventory';
+    } else if (isSales) {
+      logger.info('[Dashboard] Redirecting sales to orders');
+      targetPath = '/business/orders';
+    } else if (isCustomerService) {
+      logger.info('[Dashboard] Redirecting customer service to support console');
+      targetPath = '/business/support';
+    } else if (isUserRole) {
+      logger.info('[Dashboard] Redirecting user role to store catalog');
+      targetPath = '/store/catalog';
+    }
+
+    if (targetPath) {
+      setRedirectPath(targetPath);
+      setShouldRedirect(true);
+      onNavigate(targetPath);
+    }
+  }, [user, onNavigate]);
+
   // Show error state if there's an error
   if (error && !loading) {
     return (
@@ -306,46 +350,6 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
   //     mainButton.hide();
   //   };
   // }, [snapshot, handleSendSummary, mainButton]);
-
-  // Handle role-based redirects in useEffect to avoid setState-in-render
-  useEffect(() => {
-    if (!user || !onNavigate) return;
-
-    const isBusinessOwner = user?.role === 'business_owner' || (user as any)?.global_role === 'business_owner';
-    const isManager = user?.role === 'manager' || (user as any)?.global_role === 'manager';
-    const isDispatcher = user?.role === 'dispatcher' || (user as any)?.global_role === 'dispatcher';
-    const isWarehouse = user?.role === 'warehouse' || (user as any)?.global_role === 'warehouse';
-    const isSales = user?.role === 'sales' || (user as any)?.global_role === 'sales';
-    const isCustomerService = user?.role === 'customer_service' || (user as any)?.global_role === 'customer_service';
-
-    let targetPath: string | null = null;
-
-    if (isBusinessOwner) {
-      logger.info('[Dashboard] Redirecting business owner to business page');
-      targetPath = '/business/businesses';
-    } else if (isManager) {
-      logger.info('[Dashboard] Redirecting manager to business page');
-      targetPath = '/business/businesses';
-    } else if (isDispatcher) {
-      logger.info('[Dashboard] Redirecting dispatcher to dispatch board');
-      targetPath = '/business/dispatch';
-    } else if (isWarehouse) {
-      logger.info('[Dashboard] Redirecting warehouse to inventory');
-      targetPath = '/business/inventory';
-    } else if (isSales) {
-      logger.info('[Dashboard] Redirecting sales to orders');
-      targetPath = '/business/orders';
-    } else if (isCustomerService) {
-      logger.info('[Dashboard] Redirecting customer service to support console');
-      targetPath = '/business/support';
-    }
-
-    if (targetPath) {
-      setRedirectPath(targetPath);
-      setShouldRedirect(true);
-      onNavigate(targetPath);
-    }
-  }, [user, onNavigate]);
 
   // Additional check for skeleton screen timing
   if (showSkeleton) {
@@ -430,13 +434,6 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
           </div>
         </div>
       );
-  }
-
-  // Redirect users with 'user' role to store catalog
-  if (user?.role === 'user') {
-    // Redirecting to store catalog
-    onNavigate('/store/catalog');
-    return null;
   }
 
   if (!snapshot) {
