@@ -1,5 +1,5 @@
 import { logger } from '../lib/logger';
-import { frontendOnlyDataStore } from '../lib/frontendOnlyDataStore';
+import { supabase } from '../lib/supabase';
 
 export interface BusinessRecord {
   id: string;
@@ -40,38 +40,81 @@ export interface CreateBusinessInput {
 }
 
 export async function listBusinesses(options: { activeOnly?: boolean } = {}): Promise<BusinessRecord[]> {
-  logger.debug('[FRONTEND-ONLY] Listing businesses from local store');
+  logger.debug('[BusinessService] Listing businesses from Supabase');
 
-  const businesses = await frontendOnlyDataStore.query('businesses');
+  let query = supabase.from('businesses').select('*');
 
   if (options.activeOnly) {
-    return businesses.filter((b: BusinessRecord) => b.active);
+    query = query.eq('active', true);
   }
 
-  return businesses.sort((a: BusinessRecord, b: BusinessRecord) =>
-    a.name.localeCompare(b.name)
-  );
+  const { data, error } = await query.order('name', { ascending: true });
+
+  if (error) {
+    logger.error('[BusinessService] Failed to list businesses', error);
+    throw error;
+  }
+
+  return (data || []) as BusinessRecord[];
 }
 
 export async function getBusiness(id: string): Promise<BusinessRecord | null> {
-  logger.debug(`[FRONTEND-ONLY] Getting business ${id} from local store`);
+  logger.debug(`[BusinessService] Getting business ${id} from Supabase`);
 
-  const businesses = await frontendOnlyDataStore.query('businesses', { id });
-  return businesses[0] || null;
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) {
+    logger.error('[BusinessService] Failed to get business', error);
+    throw error;
+  }
+
+  return data as BusinessRecord | null;
 }
 
 export async function fetchBusinessContexts(userId?: string): Promise<BusinessContextSummary[]> {
-  logger.debug('[FRONTEND-ONLY] Fetching business contexts from local store');
+  logger.debug('[BusinessService] Fetching business contexts from Supabase');
 
-  const memberships = await frontendOnlyDataStore.query('business_memberships',
-    userId ? { user_id: userId } : {}
-  );
+  if (!userId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id;
+  }
 
-  return memberships
+  if (!userId) {
+    logger.warn('[BusinessService] No user ID available');
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('business_memberships')
+    .select(`
+      id,
+      business_id,
+      user_id,
+      role_key,
+      is_primary,
+      ownership_percentage,
+      businesses:business_id (
+        id,
+        name
+      )
+    `)
+    .eq('user_id', userId)
+    .eq('active', true);
+
+  if (error) {
+    logger.error('[BusinessService] Failed to fetch business contexts', error);
+    throw error;
+  }
+
+  return (data || [])
     .map((row: any) => ({
       business_id: row.business_id,
-      business_name: row.business_name,
-      role_key: row.display_role_key,
+      business_name: row.businesses?.name || 'Unknown Business',
+      role_key: row.role_key || 'user',
       is_primary: Boolean(row.is_primary),
       ownership_percentage: Number(row.ownership_percentage ?? 0),
     }))
@@ -82,71 +125,109 @@ export async function fetchBusinessContexts(userId?: string): Promise<BusinessCo
 }
 
 export async function createBusiness(input: CreateBusinessInput): Promise<BusinessRecord> {
-  logger.info('[FRONTEND-ONLY] Creating business in local store');
+  logger.info('[BusinessService] Creating business in Supabase');
 
-  // Get current user ID
-  const userId = input.ownerUserId || localStorage.getItem('user_id');
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = input.ownerUserId || user?.id;
+
   if (!userId) {
     throw new Error('User ID not found - cannot create business');
   }
 
-  const newBusiness: BusinessRecord = {
-    id: `business_${Date.now()}`,
+  const newBusiness = {
     name: input.name,
     name_hebrew: input.nameHebrew || input.name,
     business_type: input.businessType || 'retail',
     order_number_prefix: input.orderNumberPrefix || 'ORD',
     order_number_sequence: 1,
     default_currency: input.defaultCurrency || 'USD',
-    primary_color: input.primaryColor || '#3b82f6',
-    secondary_color: input.secondaryColor || '#10b981',
+    primary_color: input.primaryColor || '#1e40af',
+    secondary_color: input.secondaryColor || '#3b82f6',
     active: true,
-    infrastructure_id: input.infrastructureId || 'default',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    infrastructure_id: input.infrastructureId || null,
   };
 
-  const { data, error } = await frontendOnlyDataStore.insert('businesses', newBusiness);
+  const { data: business, error: businessError } = await supabase
+    .from('businesses')
+    .insert(newBusiness)
+    .select()
+    .single();
 
-  if (error || !data) {
-    throw new Error('Business creation failed');
+  if (businessError) {
+    logger.error('[BusinessService] Failed to create business', businessError);
+    throw businessError;
   }
 
-  logger.info(`[FRONTEND-ONLY] Business created: ${data.id}`);
-
-  // Create user_business_roles record to link user as business_owner
-  const userBusinessRole = {
-    id: `ubr_${Date.now()}`,
+  const membership = {
+    business_id: business.id,
     user_id: userId,
-    business_id: data.id,
-    role_code: 'business_owner',
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    role_key: input.ownerRoleKey || 'business_owner',
+    is_primary: true,
+    ownership_percentage: 100,
+    active: true,
   };
 
-  const { error: roleError } = await frontendOnlyDataStore.insert('user_business_roles', userBusinessRole);
+  const { error: membershipError } = await supabase
+    .from('business_memberships')
+    .insert(membership);
 
-  if (roleError) {
-    logger.error('[FRONTEND-ONLY] Failed to create user_business_roles record:', roleError);
-    throw new Error('Failed to link user to business');
+  if (membershipError) {
+    logger.error('[BusinessService] Failed to create membership', membershipError);
+    await supabase.from('businesses').delete().eq('id', business.id);
+    throw membershipError;
   }
 
-  logger.info(`[FRONTEND-ONLY] User linked to business as business_owner: ${data.id}`);
-
-  return data;
+  logger.info('[BusinessService] Business created successfully', { businessId: business.id });
+  return business as BusinessRecord;
 }
 
 export async function switchBusinessContext(
   businessId: string | null,
   _options: any = {}
 ): Promise<void> {
-  logger.info(`[FRONTEND-ONLY] Switching business context to: ${businessId}`);
+  logger.info(`[BusinessService] Switching business context to: ${businessId}`);
 
-  // Store context in localStorage
   if (businessId) {
     localStorage.setItem('current-business-id', businessId);
   } else {
     localStorage.removeItem('current-business-id');
   }
+}
+
+export async function updateBusiness(
+  id: string,
+  updates: Partial<Omit<BusinessRecord, 'id' | 'created_at' | 'updated_at'>>
+): Promise<void> {
+  logger.debug(`[BusinessService] Updating business ${id} in Supabase`);
+
+  const { error } = await supabase
+    .from('businesses')
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id);
+
+  if (error) {
+    logger.error('[BusinessService] Failed to update business', error);
+    throw error;
+  }
+
+  logger.info('[BusinessService] Business updated successfully', { businessId: id });
+}
+
+export async function deleteBusiness(id: string): Promise<void> {
+  logger.debug(`[BusinessService] Deleting business ${id} from Supabase`);
+
+  const { error } = await supabase
+    .from('businesses')
+    .update({ active: false, updated_at: new Date().toISOString() })
+    .eq('id', id);
+
+  if (error) {
+    logger.error('[BusinessService] Failed to delete business', error);
+    throw error;
+  }
+
+  logger.info('[BusinessService] Business soft-deleted successfully', { businessId: id });
 }

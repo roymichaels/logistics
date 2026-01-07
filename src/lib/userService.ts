@@ -1,4 +1,5 @@
 import { logger } from './logger';
+import { supabase } from './supabase';
 import { AuthUser } from './authService';
 import { CANONICAL_TO_LEGACY_ROLE } from './roleMappings';
 
@@ -10,25 +11,6 @@ export interface UserProfile extends AuthUser {
 class UserService {
   private profileCache: Map<string, { profile: UserProfile; timestamp: number }> = new Map();
   private readonly CACHE_TTL = 5 * 60 * 1000;
-  private readonly LOCAL_USERS_KEY = 'local-users';
-
-  private getLocalUsers(): Record<string, UserProfile> {
-    try {
-      const stored = localStorage.getItem(this.LOCAL_USERS_KEY);
-      return stored ? JSON.parse(stored) : {};
-    } catch (error) {
-      logger.error('Failed to load local users', error);
-      return {};
-    }
-  }
-
-  private saveLocalUsers(users: Record<string, UserProfile>): void {
-    try {
-      localStorage.setItem(this.LOCAL_USERS_KEY, JSON.stringify(users));
-    } catch (error) {
-      logger.error('Failed to save local users', error);
-    }
-  }
 
   async getUserProfile(userId: string, forceRefresh = false): Promise<UserProfile> {
     if (userId && (userId.startsWith('0x') || userId.length > 40)) {
@@ -43,30 +25,35 @@ class UserService {
       }
     }
 
-    const users = this.getLocalUsers();
-    const profile = users[userId];
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
 
-    if (!profile) {
-      const mockProfile: UserProfile = {
-        id: userId,
-        username: `user_${userId.substring(0, 8)}`,
-        name: `User ${userId.substring(0, 8)}`,
-        role: 'user',
-        global_role: 'user',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      users[userId] = mockProfile;
-      this.saveLocalUsers(users);
-
-      this.profileCache.set(userId, {
-        profile: mockProfile,
-        timestamp: Date.now(),
-      });
-
-      return mockProfile;
+    if (error) {
+      logger.error('[UserService] Failed to fetch profile from Supabase', error);
+      throw error;
     }
+
+    if (!data) {
+      logger.warn('[UserService] Profile not found in Supabase', { userId });
+      throw new Error('Profile not found');
+    }
+
+    const profile: UserProfile = {
+      id: data.id,
+      username: data.username,
+      name: data.name,
+      role: data.role || 'user',
+      global_role: data.role || 'user',
+      wallet_address_eth: data.wallet_address_eth,
+      wallet_address_sol: data.wallet_address_sol,
+      phone: data.phone,
+      avatar_url: data.avatar_url,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+    };
 
     this.profileCache.set(userId, {
       profile,
@@ -77,78 +64,37 @@ class UserService {
   }
 
   async getUserProfileByWallet(walletAddress: string, forceRefresh = false): Promise<UserProfile> {
-    const users = this.getLocalUsers();
     const lowerWallet = walletAddress.toLowerCase();
 
-    const profile = Object.values(users).find(
-      (u) =>
-        u.wallet_address_eth?.toLowerCase() === lowerWallet ||
-        u.wallet_address_sol?.toLowerCase() === lowerWallet
-    );
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .or(`wallet_address_eth.eq.${walletAddress},wallet_address_sol.eq.${walletAddress}`)
+      .maybeSingle();
 
-    if (!profile) {
-      let roleFromSession = 'customer';
-      try {
-        const session = localStorage.getItem('wallet-session');
-        if (session) {
-          const sessionData = JSON.parse(session);
-          roleFromSession = sessionData.role || 'customer';
-        }
-      } catch (error) {
-        logger.error('Failed to parse wallet session in getUserProfileByWallet', error);
-      }
-
-      const devRole = localStorage.getItem('dev-console:role-override');
-      const effectiveRole = devRole || roleFromSession;
-
-      const mockProfile: UserProfile = {
-        id: `user_${lowerWallet.substring(0, 12)}`,
-        username: `wallet_${lowerWallet.substring(0, 8)}`,
-        name: `Wallet User ${lowerWallet.substring(0, 8)}`,
-        wallet_address_eth: walletAddress.startsWith('0x') ? walletAddress : undefined,
-        wallet_address_sol: !walletAddress.startsWith('0x') ? walletAddress : undefined,
-        role: effectiveRole,
-        global_role: effectiveRole,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      users[mockProfile.id] = mockProfile;
-      this.saveLocalUsers(users);
-
-      this.profileCache.set(mockProfile.id, {
-        profile: mockProfile,
-        timestamp: Date.now(),
-      });
-
-      return mockProfile;
+    if (error) {
+      logger.error('[UserService] Failed to fetch profile by wallet from Supabase', error);
+      throw error;
     }
 
-    let roleFromSession = profile.role;
-    try {
-      const session = localStorage.getItem('wallet-session');
-      if (session) {
-        const sessionData = JSON.parse(session);
-        roleFromSession = sessionData.role || profile.role;
-      }
-    } catch (error) {
-      logger.error('Failed to parse wallet session for existing profile', error);
+    if (!data) {
+      logger.warn('[UserService] No profile found for wallet', { walletAddress });
+      throw new Error('Profile not found for wallet');
     }
 
-    const devRole = localStorage.getItem('dev-console:role-override');
-    const effectiveRole = devRole || roleFromSession;
-
-    if (profile.role !== effectiveRole || profile.global_role !== effectiveRole) {
-      profile.role = effectiveRole;
-      profile.global_role = effectiveRole;
-      profile.updated_at = new Date().toISOString();
-      users[profile.id] = profile;
-      this.saveLocalUsers(users);
-      logger.debug('[userService] Updated existing profile role', {
-        walletAddress,
-        newRole: effectiveRole
-      });
-    }
+    const profile: UserProfile = {
+      id: data.id,
+      username: data.username,
+      name: data.name,
+      role: data.role || 'user',
+      global_role: data.role || 'user',
+      wallet_address_eth: data.wallet_address_eth,
+      wallet_address_sol: data.wallet_address_sol,
+      phone: data.phone,
+      avatar_url: data.avatar_url,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+    };
 
     this.profileCache.set(profile.id, {
       profile,
@@ -158,60 +104,110 @@ class UserService {
     return profile;
   }
 
-  async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<UserProfile> {
-    const users = this.getLocalUsers();
-    const profile = users[userId];
+  async createUserProfile(data: {
+    username: string;
+    name?: string;
+    role?: string;
+    wallet_address_eth?: string;
+    wallet_address_sol?: string;
+    phone?: string;
+  }): Promise<UserProfile> {
+    const { data: user } = await supabase.auth.getUser();
 
-    if (!profile) {
-      throw new Error('User profile not found');
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .insert({
+        id: user?.user?.id,
+        username: data.username,
+        name: data.name || data.username,
+        role: data.role || 'user',
+        wallet_address_eth: data.wallet_address_eth,
+        wallet_address_sol: data.wallet_address_sol,
+        phone: data.phone,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      logger.error('[UserService] Failed to create profile in Supabase', error);
+      throw error;
     }
 
-    const allowedFields = ['username', 'name', 'photo_url'];
-    const filteredUpdates = Object.keys(updates)
-      .filter((key) => allowedFields.includes(key))
-      .reduce((obj, key) => {
-        obj[key] = updates[key as keyof UserProfile];
-        return obj;
-      }, {} as any);
-
-    const updatedProfile: UserProfile = {
-      ...profile,
-      ...filteredUpdates,
-      updated_at: new Date().toISOString(),
+    return {
+      id: profile.id,
+      username: profile.username,
+      name: profile.name,
+      role: profile.role,
+      global_role: profile.role,
+      wallet_address_eth: profile.wallet_address_eth,
+      wallet_address_sol: profile.wallet_address_sol,
+      phone: profile.phone,
+      avatar_url: profile.avatar_url,
+      created_at: profile.created_at,
+      updated_at: profile.updated_at,
     };
-
-    users[userId] = updatedProfile;
-    this.saveLocalUsers(users);
-
-    this.profileCache.set(userId, {
-      profile: updatedProfile,
-      timestamp: Date.now(),
-    });
-
-    return updatedProfile;
   }
 
-  async getUserRole(userId: string): Promise<string> {
-    const profile = await this.getUserProfile(userId);
-    return profile.role;
-  }
+  async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<void> {
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        username: updates.username,
+        name: updates.name,
+        role: updates.role,
+        wallet_address_eth: updates.wallet_address_eth,
+        wallet_address_sol: updates.wallet_address_sol,
+        phone: updates.phone,
+        avatar_url: updates.avatar_url,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', userId);
 
-  clearCache(userId?: string) {
-    if (userId) {
-      this.profileCache.delete(userId);
-    } else {
-      this.profileCache.clear();
+    if (error) {
+      logger.error('[UserService] Failed to update profile in Supabase', error);
+      throw error;
     }
+
+    this.profileCache.delete(userId);
+    logger.info('[UserService] Profile updated successfully', { userId });
   }
 
-  async getBusinessMemberships(userId: string): Promise<any[]> {
-    logger.info('[LOCAL] getBusinessMemberships - returning empty array (local mode)');
-    return [];
+  async listUsers(filters?: { role?: string; businessId?: string }): Promise<UserProfile[]> {
+    let query = supabase.from('profiles').select('*');
+
+    if (filters?.role) {
+      query = query.eq('role', filters.role);
+    }
+
+    if (filters?.businessId) {
+      query = query.eq('business_id', filters.businessId);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+
+    if (error) {
+      logger.error('[UserService] Failed to list users from Supabase', error);
+      throw error;
+    }
+
+    return (data || []).map((profile) => ({
+      id: profile.id,
+      username: profile.username,
+      name: profile.name,
+      role: profile.role || 'user',
+      global_role: profile.role || 'user',
+      wallet_address_eth: profile.wallet_address_eth,
+      wallet_address_sol: profile.wallet_address_sol,
+      phone: profile.phone,
+      avatar_url: profile.avatar_url,
+      created_at: profile.created_at,
+      updated_at: profile.updated_at,
+    }));
   }
 
-  async getPrimaryBusiness(userId: string): Promise<any | null> {
-    logger.info('[LOCAL] getPrimaryBusiness - returning null (local mode)');
-    return null;
+  clearCache(): void {
+    this.profileCache.clear();
+    logger.debug('[UserService] Profile cache cleared');
   }
 }
 
