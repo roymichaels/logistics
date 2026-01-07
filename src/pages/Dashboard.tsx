@@ -66,6 +66,8 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
   const [snapshot, setSnapshot] = useState<RoyalDashboardSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+  const [redirectPath, setRedirectPath] = useState<string | null>(null);
 
   const showSkeleton = useSkeleton(220);
   const { translations } = useI18n();
@@ -306,9 +308,6 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
   // }, [snapshot, handleSendSummary, mainButton]);
 
   // Handle role-based redirects in useEffect to avoid setState-in-render
-  const [shouldRedirect, setShouldRedirect] = useState(false);
-  const [redirectPath, setRedirectPath] = useState<string | null>(null);
-
   useEffect(() => {
     if (!user || !onNavigate) return;
 
