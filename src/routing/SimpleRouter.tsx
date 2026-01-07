@@ -37,6 +37,7 @@ const EnhancedDeliveries = React.lazy(() => import('../pages/driver/EnhancedDeli
 const DriverStats = React.lazy(() => import('../pages/driver/DriverStats').then(m => ({ default: m.DriverStats })));
 const DriverFreelance = React.lazy(() => import('../pages/driver/DriverFreelance').then(m => ({ default: m.DriverFreelance })));
 const DriverCollab = React.lazy(() => import('../pages/driver/DriverCollab').then(m => ({ default: m.DriverCollab })));
+const UnifiedDriverDashboard = React.lazy(() => import('../pages/driver/UnifiedDriverDashboard').then(m => ({ default: m.UnifiedDriverDashboard })));
 const CatalogPage = React.lazy(() => import('../store/CatalogPage').then(m => ({ default: m.CatalogPage })));
 const SearchPage = React.lazy(() => import('../store/SearchPage').then(m => ({ default: m.SearchPage })));
 const CartPage = React.lazy(() => import('../store/CartPage').then(m => ({ default: m.CartPage })));
@@ -202,11 +203,11 @@ export function SimpleRouter() {
       {/* Driver routes */}
       {isDriverRole && (
         <>
-          <Route path="/driver/freelance" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverFreelance /></Suspense>} />
-          <Route path="/driver/collab" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverCollab /></Suspense>} />
+          <Route path="/driver/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedDriverDashboard /></Suspense>} />
+          <Route path="/driver/freelance" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedDriverDashboard mode="freelance" /></Suspense>} />
+          <Route path="/driver/collab" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedDriverDashboard mode="collab" /></Suspense>} />
           <Route path="/driver/home" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverHome /></Suspense>} />
-          <Route path="/driver/deliveries" element={<Suspense fallback={<PageLoadingSkeleton />}><EnhancedDeliveries /></Suspense>} />
-          <Route path="/driver/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverFreelance /></Suspense>} />
+          <Route path="/driver/deliveries" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedDriverDashboard /></Suspense>} />
           <Route path="/driver/earnings" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverStats /></Suspense>} />
           <Route path="/driver/stats" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverStats /></Suspense>} />
           <Route path="/driver/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />

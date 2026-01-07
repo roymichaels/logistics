@@ -167,10 +167,10 @@ export function UnifiedDriverDashboard({ mode: initialMode = 'freelance' }: Unif
       monthlyEarnings,
       totalDeliveries: profile?.total_deliveries || 0,
       averageRating: profile?.rating || 5.0,
-      acceptanceRate: profile?.acceptance_rate || 100,
-      completionRate: profile?.completion_rate || 100,
-      onTimeRate: profile?.on_time_rate || 100,
-      totalDistance: profile?.total_distance || 0
+      acceptanceRate: (profile?.metadata?.acceptance_rate as number) || 100,
+      completionRate: (profile?.metadata?.completion_rate as number) || 100,
+      onTimeRate: (profile?.metadata?.on_time_rate as number) || 100,
+      totalDistance: (profile?.metadata?.total_distance as number) || 0
     });
   };
 
