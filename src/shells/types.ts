@@ -1,8 +1,6 @@
 import React from 'react';
 
 export type UserRole =
-  | 'superadmin'
-  | 'admin'
   | 'business_owner'
   | 'manager'
   | 'warehouse'
@@ -11,9 +9,9 @@ export type UserRole =
   | 'customer_service'
   | 'driver'
   | 'customer'
-  | 'user';
+  | 'guest';
 
-export type ShellType = 'admin' | 'business' | 'driver' | 'store';
+export type ShellType = 'business' | 'driver' | 'store';
 
 export interface ShellConfig {
   type: ShellType;

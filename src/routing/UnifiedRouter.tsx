@@ -11,28 +11,6 @@ export interface RouteConfig {
 }
 
 export const UNIFIED_ROUTES: RouteConfig[] = [
-  // Platform Admin routes (superadmin & admin)
-  {
-    path: '/admin',
-    name: 'Platform Admin',
-    roles: ['superadmin', 'admin'],
-    isEntryPoint: true,
-    children: [
-      { path: '/admin/platform-dashboard', name: 'Platform Dashboard', roles: ['superadmin', 'admin'], isEntryPoint: true },
-      { path: '/admin/infrastructures', name: 'Infrastructures', roles: ['superadmin', 'admin'] },
-      { path: '/admin/businesses', name: 'All Businesses', roles: ['superadmin', 'admin'] },
-      { path: '/admin/users', name: 'All Users', roles: ['superadmin', 'admin'] },
-      { path: '/admin/analytics', name: 'Platform Analytics', roles: ['superadmin', 'admin'] },
-      { path: '/admin/orders', name: 'All Orders', roles: ['superadmin', 'admin'] },
-      { path: '/admin/drivers', name: 'All Drivers', roles: ['superadmin', 'admin'] },
-      { path: '/admin/system-settings', name: 'System Settings', roles: ['superadmin', 'admin'] },
-      { path: '/admin/logs', name: 'Audit Logs', roles: ['superadmin', 'admin'] },
-      { path: '/admin/feature-flags', name: 'Feature Flags', roles: ['superadmin', 'admin'] },
-      { path: '/admin/platform-catalog', name: 'Platform Catalog', roles: ['superadmin', 'admin'] },
-      { path: '/admin/superadmins', name: 'Superadmins', roles: ['superadmin'] }
-    ]
-  },
-
   // Business routes
   {
     path: '/business',
@@ -71,13 +49,13 @@ export const UNIFIED_ROUTES: RouteConfig[] = [
   {
     path: '/store',
     name: 'Store',
-    roles: ['customer', 'user'],
+    roles: ['customer', 'guest'],
     isEntryPoint: true,
     children: [
-      { path: '/store/catalog', name: 'Catalog', roles: ['customer', 'user'], isEntryPoint: true },
-      { path: '/store/cart', name: 'Cart', roles: ['customer', 'user'] },
+      { path: '/store/catalog', name: 'Catalog', roles: ['customer', 'guest'], isEntryPoint: true },
+      { path: '/store/cart', name: 'Cart', roles: ['customer', 'guest'] },
       { path: '/store/orders', name: 'Orders', roles: ['customer'] },
-      { path: '/store/profile', name: 'Profile', roles: ['customer', 'user'] }
+      { path: '/store/profile', name: 'Profile', roles: ['customer', 'guest'] }
     ]
   },
 
@@ -85,10 +63,10 @@ export const UNIFIED_ROUTES: RouteConfig[] = [
   {
     path: '/auth',
     name: 'Authentication',
-    roles: ['superadmin', 'admin', 'infrastructure_owner', 'accountant', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'user'],
+    roles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'guest'],
     children: [
-      { path: '/auth/login', name: 'Login', roles: ['superadmin', 'admin', 'infrastructure_owner', 'accountant', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'user'] },
-      { path: '/auth/kyc', name: 'KYC', roles: ['superadmin', 'admin', 'infrastructure_owner', 'accountant', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'user'] }
+      { path: '/auth/login', name: 'Login', roles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'guest'] },
+      { path: '/auth/kyc', name: 'KYC', roles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'guest'] }
     ]
   }
 ];
@@ -120,8 +98,6 @@ export function getEntryPointForRole(role: UserRole | null): string {
   if (!role) return '/store/catalog';
 
   const entryPoints: Record<UserRole, string> = {
-    superadmin: '/admin/platform-dashboard',
-    admin: '/admin/platform-dashboard',
     business_owner: '/business/dashboard',
     manager: '/business/dashboard',
     warehouse: '/business/inventory',
@@ -130,14 +106,13 @@ export function getEntryPointForRole(role: UserRole | null): string {
     customer_service: '/business/orders',
     driver: '/driver/deliveries',
     customer: '/store/catalog',
-    user: '/store/catalog'
+    guest: '/store/catalog'
   };
 
   return entryPoints[role] || '/store/catalog';
 }
 
-export function getShellTypeForPath(path: string): 'admin' | 'business' | 'driver' | 'store' | 'auth' {
-  if (path.startsWith('/admin')) return 'admin';
+export function getShellTypeForPath(path: string): 'business' | 'driver' | 'store' | 'auth' {
   if (path.startsWith('/business')) return 'business';
   if (path.startsWith('/driver')) return 'driver';
   if (path.startsWith('/store')) return 'store';

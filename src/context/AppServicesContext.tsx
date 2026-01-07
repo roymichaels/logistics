@@ -52,6 +52,12 @@ export type AppUserRole =
   | 'customer_service'
   | null;
 
+export interface OwnedBusiness {
+  id: string;
+  name: string;
+  created_at?: string;
+}
+
 export interface AppServicesContextValue {
   user: User | null;
   userRole: AppUserRole;
@@ -64,6 +70,9 @@ export interface AppServicesContextValue {
   logout: () => void;
   currentBusinessId: string | null;
   setBusinessId: (businessId: string | null) => void;
+  ownedBusinesses: OwnedBusiness[];
+  isMultiBusinessOwner: boolean;
+  refreshOwnedBusinesses: () => Promise<void>;
 }
 
 export const AppServicesContext = createContext<AppServicesContextValue | undefined>(undefined);
@@ -84,11 +93,16 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null);
+  const [ownedBusinesses, setOwnedBusinesses] = useState<OwnedBusiness[]>([]);
   const [roleRefreshPending, setRoleRefreshPending] = useState(false);
   const [devRoleOverride, setDevRoleOverride] = useState<string | null>(() =>
     localStorage.getItem(DEV_ROLE_OVERRIDE_KEY)
   );
   const roleChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const isMultiBusinessOwner = useMemo(() => {
+    return userRole === 'business_owner' && ownedBusinesses.length >= 2;
+  }, [userRole, ownedBusinesses.length]);
 
   // Always call useAuth to comply with React hooks rules
   // We'll just not use it if 'value' is provided
@@ -120,7 +134,48 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     setUserRole(null);
     setDataStore(null);
     setCurrentBusinessId(null);
+    setOwnedBusinesses([]);
   }, [auth]);
+
+  const refreshOwnedBusinesses = useCallback(async () => {
+    if (!user?.id || userRole !== 'business_owner') {
+      setOwnedBusinesses([]);
+      return;
+    }
+
+    try {
+      logger.info('🏢 Fetching owned businesses for user:', user.id);
+
+      if (useSXT || runtimeEnvironment.isFrontendOnlyMode()) {
+        const myBusinesses = localBusinessDataService.getMyBusinesses(user.id);
+        const formatted = myBusinesses.map(b => ({
+          id: b.business_id,
+          name: b.business_name || `Business ${b.business_id}`,
+          created_at: undefined
+        }));
+        setOwnedBusinesses(formatted);
+        logger.info(`✅ Found ${formatted.length} owned business(es) (frontend-only mode)`);
+      } else if (dataStore) {
+        // Query businesses from database
+        const { data: businesses, error: businessError } = await (dataStore as any).supabase
+          .from('businesses')
+          .select('id, name, created_at')
+          .eq('owner_id', user.id)
+          .order('created_at', { ascending: true });
+
+        if (businessError) {
+          logger.error('❌ Failed to fetch owned businesses:', businessError);
+          setOwnedBusinesses([]);
+        } else {
+          setOwnedBusinesses(businesses || []);
+          logger.info(`✅ Found ${businesses?.length || 0} owned business(es)`);
+        }
+      }
+    } catch (err) {
+      logger.error('❌ Error fetching owned businesses:', err);
+      setOwnedBusinesses([]);
+    }
+  }, [user?.id, userRole, dataStore, useSXT]);
 
   const refreshUserRole = useCallback(
     async ({ forceRefresh = true }: { forceRefresh?: boolean } = {}) => {
@@ -537,6 +592,19 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     };
   }, [value, dataStore, loading]);
 
+  // Refresh owned businesses when user role changes to business_owner
+  useEffect(() => {
+    if (value || loading || !user?.id) {
+      return;
+    }
+
+    if (userRole === 'business_owner') {
+      refreshOwnedBusinesses();
+    } else {
+      setOwnedBusinesses([]);
+    }
+  }, [value, loading, user?.id, userRole, refreshOwnedBusinesses]);
+
   const contextValue = useMemo<AppServicesContextValue>(() => {
     if (value) {
       return value;
@@ -553,7 +621,10 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       refreshUserRole,
       logout,
       currentBusinessId,
-      setBusinessId
+      setBusinessId,
+      ownedBusinesses,
+      isMultiBusinessOwner,
+      refreshOwnedBusinesses
     };
   }, [
     value,
@@ -567,7 +638,10 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     refreshUserRole,
     logout,
     currentBusinessId,
-    setBusinessId
+    setBusinessId,
+    ownedBusinesses,
+    isMultiBusinessOwner,
+    refreshOwnedBusinesses
   ]);
 
   return <AppServicesContext.Provider value={contextValue}>{children}</AppServicesContext.Provider>;

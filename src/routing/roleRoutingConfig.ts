@@ -1,5 +1,4 @@
 export type UserRole =
-  | 'infrastructure_owner'
   | 'business_owner'
   | 'manager'
   | 'warehouse'
@@ -8,9 +7,9 @@ export type UserRole =
   | 'customer_service'
   | 'driver'
   | 'customer'
-  | 'user';
+  | 'guest';
 
-export type ShellType = 'AdminShell' | 'BusinessShell' | 'DriverShell' | 'StoreShell';
+export type ShellType = 'BusinessShell' | 'DriverShell' | 'StoreShell';
 
 export interface RoleRouteConfig {
   role: UserRole;
@@ -21,13 +20,6 @@ export interface RoleRouteConfig {
 }
 
 export const ROLE_ROUTING_MAP: Record<UserRole, RoleRouteConfig> = {
-  infrastructure_owner: {
-    role: 'infrastructure_owner',
-    shell: 'AdminShell',
-    homePath: '/admin/infrastructure',
-    homePageName: 'Infrastructure Dashboard',
-    description: 'Platform admin - manages all businesses, users, and system health',
-  },
   business_owner: {
     role: 'business_owner',
     shell: 'BusinessShell',
@@ -84,8 +76,8 @@ export const ROLE_ROUTING_MAP: Record<UserRole, RoleRouteConfig> = {
     homePageName: 'Catalog',
     description: 'Shopping and order tracking',
   },
-  user: {
-    role: 'user',
+  guest: {
+    role: 'guest',
     shell: 'StoreShell',
     homePath: '/store/catalog',
     homePageName: 'Catalog',
@@ -94,7 +86,7 @@ export const ROLE_ROUTING_MAP: Record<UserRole, RoleRouteConfig> = {
 };
 
 export function getRoleConfig(role: UserRole): RoleRouteConfig {
-  return ROLE_ROUTING_MAP[role] || ROLE_ROUTING_MAP.user;
+  return ROLE_ROUTING_MAP[role] || ROLE_ROUTING_MAP.guest;
 }
 
 export function getShellForRole(role: UserRole): ShellType {
@@ -109,16 +101,12 @@ export function isBusinessRole(role: UserRole): boolean {
   return ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service'].includes(role);
 }
 
-export function isAdminRole(role: UserRole): boolean {
-  return role === 'infrastructure_owner';
-}
-
 export function isDriverRole(role: UserRole): boolean {
   return role === 'driver';
 }
 
 export function isCustomerRole(role: UserRole): boolean {
-  return ['customer', 'user'].includes(role);
+  return ['customer', 'guest'].includes(role);
 }
 
 export const BUSINESS_ROLES: UserRole[] = [
@@ -131,7 +119,6 @@ export const BUSINESS_ROLES: UserRole[] = [
 ];
 
 export const ALL_ROLES: UserRole[] = [
-  'infrastructure_owner',
   'business_owner',
   'manager',
   'warehouse',
@@ -140,5 +127,5 @@ export const ALL_ROLES: UserRole[] = [
   'customer_service',
   'driver',
   'customer',
-  'user',
+  'guest',
 ];

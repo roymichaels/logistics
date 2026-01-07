@@ -1,217 +1,5 @@
 import { NavigationItem, UserRole } from './types';
 
-export const ADMIN_SHELL_NAV: NavigationItem[] = [
-  {
-    id: 'platform-dashboard',
-    label: 'לוח בקרה פלטפורמה',
-    path: '/admin/platform-dashboard',
-    icon: '🌐',
-    description: 'מדדים וסקירה כללית של הפלטפורמה',
-    visible: true,
-    requiredRoles: ['superadmin', 'admin']
-  },
-  {
-    id: 'infrastructures',
-    label: 'תשתיות',
-    path: '/admin/infrastructures',
-    icon: '🏗️',
-    description: 'ניהול כל התשתיות',
-    visible: true,
-    requiredRoles: ['superadmin', 'admin']
-  },
-  {
-    id: 'all-businesses',
-    label: 'כל העסקים',
-    path: '/admin/businesses',
-    icon: '🏢',
-    description: 'צפייה וניהול של כל העסקים',
-    visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
-  },
-  {
-    id: 'all-users',
-    label: 'כל המשתמשים',
-    path: '/admin/users',
-    icon: '👥',
-    description: 'ניהול משתמשים בכל הפלטפורמה',
-    visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
-  },
-  {
-    id: 'platform-analytics',
-    label: 'אנליטיקה פלטפורמה',
-    path: '/admin/analytics',
-    icon: '📊',
-    description: 'אנליטיקה ודוחות של כל הפלטפורמה',
-    visible: true,
-    requiredRoles: ['superadmin', 'admin']
-  },
-  {
-    id: 'platform-orders',
-    label: 'כל ההזמנות',
-    path: '/admin/orders',
-    icon: '📋',
-    description: 'צפייה בכל ההזמנות בפלטפורמה',
-    visible: true,
-    requiredRoles: ['superadmin', 'admin']
-  },
-  {
-    id: 'platform-drivers',
-    label: 'כל הנהגים',
-    path: '/admin/drivers',
-    icon: '🚗',
-    description: 'צפייה בכל הנהגים בפלטפורמה',
-    visible: true,
-    requiredRoles: ['superadmin', 'admin']
-  },
-  {
-    id: 'platform-catalog',
-    label: 'קטלוג פלטפורמה',
-    path: '/admin/platform-catalog',
-    icon: '📦',
-    description: 'ניהול קטלוג מוצרים ברמת הפלטפורמה',
-    visible: true,
-    requiredRoles: ['superadmin', 'admin']
-  },
-  {
-    id: 'permission-management',
-    label: 'ניהול הרשאות',
-    path: '/admin/permissions',
-    icon: '🔐',
-    description: 'ניהול תפקידים והרשאות',
-    visible: true,
-    requiredRoles: ['superadmin', 'admin']
-  },
-  {
-    id: 'system-settings',
-    label: 'הגדרות מערכת',
-    path: '/admin/system-settings',
-    icon: '⚙️',
-    description: 'תצורה כללית של המערכת',
-    visible: true,
-    requiredRoles: ['superadmin', 'admin']
-  },
-  {
-    id: 'audit-logs',
-    label: 'יומני ביקורת',
-    path: '/admin/logs',
-    icon: '📜',
-    description: 'יומני ביקורת ושגיאות מערכת',
-    visible: true,
-    requiredRoles: ['superadmin', 'admin']
-  },
-  {
-    id: 'feature-flags',
-    label: 'דגלי תכונות',
-    path: '/admin/feature-flags',
-    icon: '🚩',
-    description: 'ניהול דגלי תכונות',
-    visible: true,
-    requiredRoles: ['superadmin', 'admin']
-  },
-  {
-    id: 'superadmin-management',
-    label: 'מנהלי על',
-    path: '/admin/superadmins',
-    icon: '👑',
-    description: 'ניהול חשבונות מנהלי על',
-    visible: true,
-    requiredRoles: ['superadmin']
-  }
-];
-
-export const INFRASTRUCTURE_SHELL_NAV: NavigationItem[] = [
-  {
-    id: 'infrastructure-dashboard',
-    label: 'לוח בקרה תשתית',
-    path: '/infrastructure/dashboard',
-    icon: '🏗️',
-    description: 'תצוגה מצטברת של כל העסקים',
-    visible: true,
-    requiredRoles: ['infrastructure_owner', 'accountant']
-  },
-  {
-    id: 'my-businesses',
-    label: 'העסקים שלי',
-    path: '/infrastructure/businesses',
-    icon: '🏢',
-    description: 'רשימה וניהול של עסקים בתשתית',
-    visible: true,
-    requiredRoles: ['infrastructure_owner']
-  },
-  {
-    id: 'consolidated-reports',
-    label: 'דוחות מאוחדים',
-    path: '/infrastructure/reports',
-    icon: '📊',
-    description: 'דוחות פיננסיים של כל העסקים',
-    visible: true,
-    requiredRoles: ['infrastructure_owner', 'accountant']
-  },
-  {
-    id: 'cross-business-analytics',
-    label: 'אנליטיקה',
-    path: '/infrastructure/analytics',
-    icon: '📈',
-    description: 'ניתוח ביצועים בכל התשתית',
-    visible: true,
-    requiredRoles: ['infrastructure_owner', 'accountant']
-  },
-  {
-    id: 'infrastructure-orders',
-    label: 'כל ההזמנות',
-    path: '/infrastructure/orders',
-    icon: '📋',
-    description: 'הזמנות מכל העסקים',
-    visible: true,
-    requiredRoles: ['infrastructure_owner', 'accountant']
-  },
-  {
-    id: 'infrastructure-drivers',
-    label: 'כל הנהגים',
-    path: '/infrastructure/drivers',
-    icon: '🚗',
-    description: 'נהגים מכל העסקים',
-    visible: true,
-    requiredRoles: ['infrastructure_owner']
-  },
-  {
-    id: 'infrastructure-catalogs',
-    label: 'קטלוגים',
-    path: '/infrastructure/catalogs',
-    icon: '📦',
-    description: 'ניהול קטלוגים של כל העסקים',
-    visible: true,
-    requiredRoles: ['infrastructure_owner']
-  },
-  {
-    id: 'infrastructure-permissions',
-    label: 'הרשאות',
-    path: '/infrastructure/permissions',
-    icon: '🔐',
-    description: 'ניהול תפקידים והרשאות',
-    visible: true,
-    requiredRoles: ['infrastructure_owner']
-  },
-  {
-    id: 'infrastructure-team',
-    label: 'צוות',
-    path: '/infrastructure/team',
-    icon: '👥',
-    description: 'ניהול צוות בכל העסקים',
-    visible: true,
-    requiredRoles: ['infrastructure_owner']
-  },
-  {
-    id: 'infrastructure-settings',
-    label: 'הגדרות',
-    path: '/infrastructure/settings',
-    icon: '⚙️',
-    description: 'הגדרות תשתית',
-    visible: true,
-    requiredRoles: ['infrastructure_owner']
-  }
-];
 
 export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   {
@@ -220,7 +8,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/dashboard',
     icon: '📊',
     visible: true,
-    requiredRoles: ['infrastructure_owner', 'business_owner', 'manager']
+    requiredRoles: ['business_owner', 'manager']
   },
   {
     id: 'business-businesses',
@@ -228,25 +16,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/businesses',
     icon: '🏢',
     visible: true,
-    requiredRoles: ['infrastructure_owner', 'business_owner']
-  },
-  {
-    id: 'consolidated-reports',
-    label: 'דוחות מאוחדים',
-    path: '/business/reports',
-    icon: '📊',
-    description: 'דוחות פיננסיים של כל העסקים',
-    visible: true,
-    requiredRoles: ['infrastructure_owner', 'accountant']
-  },
-  {
-    id: 'cross-business-analytics',
-    label: 'אנליטיקה מתקדמת',
-    path: '/business/analytics',
-    icon: '📈',
-    description: 'ניתוח ביצועים בכל העסקים',
-    visible: true,
-    requiredRoles: ['infrastructure_owner', 'accountant']
+    requiredRoles: ['business_owner']
   },
   {
     id: 'business-orders',
@@ -438,14 +208,6 @@ export function getNavigationForRole(role: UserRole | null): NavigationItem[] {
   let navItems: NavigationItem[] = [];
 
   switch (role) {
-    case 'superadmin':
-    case 'admin':
-      navItems = ADMIN_SHELL_NAV;
-      break;
-    case 'infrastructure_owner':
-    case 'accountant':
-      navItems = INFRASTRUCTURE_SHELL_NAV;
-      break;
     case 'business_owner':
     case 'manager':
     case 'warehouse':
@@ -458,7 +220,7 @@ export function getNavigationForRole(role: UserRole | null): NavigationItem[] {
       navItems = DRIVER_SHELL_NAV;
       break;
     case 'customer':
-    case 'user':
+    case 'guest':
     default:
       navItems = STORE_SHELL_NAV;
       break;
@@ -473,15 +235,10 @@ export function getNavigationForRole(role: UserRole | null): NavigationItem[] {
   });
 }
 
-export function getShellTypeForRole(role: UserRole | null): 'admin' | 'infrastructure' | 'business' | 'driver' | 'store' {
+export function getShellTypeForRole(role: UserRole | null): 'business' | 'driver' | 'store' {
   if (!role) return 'store';
 
   switch (role) {
-    case 'superadmin':
-    case 'admin':
-      return 'admin';
-    case 'infrastructure_owner':
-    case 'accountant':
     case 'business_owner':
     case 'manager':
     case 'warehouse':
@@ -492,7 +249,7 @@ export function getShellTypeForRole(role: UserRole | null): 'admin' | 'infrastru
     case 'driver':
       return 'driver';
     case 'customer':
-    case 'user':
+    case 'guest':
     default:
       return 'store';
   }

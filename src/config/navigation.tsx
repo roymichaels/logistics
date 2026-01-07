@@ -16,8 +16,6 @@ export function getNavigationConfig(
 
   switch (role) {
     case 'business_owner':
-    case 'infrastructure_owner':
-    case 'owner':
       return {
         headerTitle: 'Business Portal',
         sidebar: (
@@ -110,7 +108,6 @@ export function getNavigationConfig(
       };
 
     case 'warehouse':
-    case 'infrastructure_warehouse':
       return {
         headerTitle: 'Warehouse Dashboard',
         sidebar: (
@@ -185,7 +182,6 @@ export function getNavigationConfig(
       };
 
     case 'dispatcher':
-    case 'infrastructure_dispatcher':
       return {
         headerTitle: 'Dispatch Center',
         sidebar: (
@@ -281,100 +277,8 @@ export function getNavigationConfig(
         bottomNav: null,
       };
 
-    case 'admin':
-    case 'superadmin':
-      return {
-        headerTitle: 'Admin Portal',
-        sidebar: (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <NavItem
-              icon="🌐"
-              label="Platform Dashboard"
-              active={isActive('/admin/platform-dashboard')}
-              onClick={() => onNavigate('/admin/platform-dashboard')}
-            />
-            <NavItem
-              icon="🏗️"
-              label="Infrastructures"
-              active={isActive('/admin/infrastructures')}
-              onClick={() => onNavigate('/admin/infrastructures')}
-            />
-            <NavItem
-              icon="🏢"
-              label="Businesses"
-              active={isActive('/admin/businesses')}
-              onClick={() => onNavigate('/admin/businesses')}
-            />
-            <NavItem
-              icon="👥"
-              label="Users"
-              active={isActive('/admin/users')}
-              onClick={() => onNavigate('/admin/users')}
-            />
-            <NavItem
-              icon="📊"
-              label="Analytics"
-              active={isActive('/admin/analytics')}
-              onClick={() => onNavigate('/admin/analytics')}
-            />
-            <NavItem
-              icon="📋"
-              label="Orders"
-              active={isActive('/admin/orders')}
-              onClick={() => onNavigate('/admin/orders')}
-            />
-            <NavItem
-              icon="🚗"
-              label="Drivers"
-              active={isActive('/admin/drivers')}
-              onClick={() => onNavigate('/admin/drivers')}
-            />
-            <NavItem
-              icon="📦"
-              label="Platform Catalog"
-              active={isActive('/admin/platform-catalog')}
-              onClick={() => onNavigate('/admin/platform-catalog')}
-            />
-            <NavItem
-              icon="🔐"
-              label="Permissions"
-              active={isActive('/admin/permissions')}
-              onClick={() => onNavigate('/admin/permissions')}
-            />
-            <NavItem
-              icon="⚙️"
-              label="Settings"
-              active={isActive('/admin/system-settings')}
-              onClick={() => onNavigate('/admin/system-settings')}
-            />
-            <NavItem
-              icon="📜"
-              label="Audit Logs"
-              active={isActive('/admin/logs')}
-              onClick={() => onNavigate('/admin/logs')}
-            />
-            <NavItem
-              icon="🚩"
-              label="Feature Flags"
-              active={isActive('/admin/feature-flags')}
-              onClick={() => onNavigate('/admin/feature-flags')}
-            />
-            {role === 'superadmin' && (
-              <NavItem
-                icon="👑"
-                label="Super Admins"
-                active={isActive('/admin/superadmins')}
-                onClick={() => onNavigate('/admin/superadmins')}
-              />
-            )}
-          </div>
-        ),
-        bottomNav: null,
-      };
-
-    case 'client':
-    case 'user':
     case 'customer':
+    case 'guest':
     default:
       return {
         headerTitle: 'Store',

@@ -1,8 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  ADMIN_SHELL_NAV,
-  INFRASTRUCTURE_SHELL_NAV,
   BUSINESS_SHELL_NAV,
   DRIVER_SHELL_NAV,
   STORE_SHELL_NAV,
@@ -14,19 +12,11 @@ import type { UserRole, NavigationItem } from '../../../shells/types';
 const ROLE_OVERRIDE_KEY = 'dev-console:role-override';
 
 interface RouteInfo extends NavigationItem {
-  shellType: 'Admin' | 'Infrastructure' | 'Business' | 'Driver' | 'Store' | 'System';
+  shellType: 'Business' | 'Driver' | 'Store' | 'System';
 }
 
 function getAllRoutes(): RouteInfo[] {
   const routes: RouteInfo[] = [];
-
-  ADMIN_SHELL_NAV.forEach(item => {
-    routes.push({ ...item, shellType: 'Admin' });
-  });
-
-  INFRASTRUCTURE_SHELL_NAV.forEach(item => {
-    routes.push({ ...item, shellType: 'Infrastructure' });
-  });
 
   BUSINESS_SHELL_NAV.forEach(item => {
     routes.push({ ...item, shellType: 'Business' });
@@ -107,7 +97,7 @@ export function RoutesPanel() {
     return groups;
   }, [filteredRoutes]);
 
-  const shellOrder = ['Admin', 'Infrastructure', 'Business', 'Driver', 'Store', 'System'];
+  const shellOrder = ['Business', 'Driver', 'Store', 'System'];
 
   const isRouteAccessible = (route: RouteInfo) => {
     return accessibleRoutes.has(route.path);
@@ -344,8 +334,6 @@ export function RoutesPanel() {
 
 function getShellIcon(shellType: string): string {
   const icons: Record<string, string> = {
-    Admin: '👑',
-    Infrastructure: '🏗️',
     Business: '🏢',
     Driver: '🚗',
     Store: '🛒',
