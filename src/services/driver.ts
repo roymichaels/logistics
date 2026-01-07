@@ -125,7 +125,7 @@ export async function getDriverProfile(
       .from('driver_profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       logger.error('[DriverService] Failed to get driver profile', error);
@@ -300,7 +300,7 @@ export async function getDriverStatus(
       .from('driver_status')
       .select('*')
       .eq('driver_id', driverId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       logger.error('[DriverService] Failed to get driver status', error);
@@ -409,14 +409,14 @@ export async function getDriverApplication(
       .eq('user_id', userId)
       .order('submitted_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       logger.error('[DriverService] Failed to get driver application', error);
       return { data: null, error };
     }
 
-    return { data: data || null, error: null };
+    return { data, error: null };
   } catch (error) {
     logger.error('[DriverService] Exception getting driver application', error);
     return { data: null, error: error as Error };
