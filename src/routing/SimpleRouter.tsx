@@ -62,6 +62,8 @@ const DriverApplications = React.lazy(() => import('../pages/admin/DriverApplica
 const AdminAnalytics = React.lazy(() => import('../pages/admin/AdminAnalytics').then(m => ({ default: m.AdminAnalytics })));
 const BusinessSettings = React.lazy(() => import('../pages/business/Settings').then(m => ({ default: m.default })));
 const DriversPage = React.lazy(() => import('../pages/unified/DriversPage').then(m => ({ default: m.DriversPage })));
+const AdminUsers = React.lazy(() => import('../pages/admin/AdminUsers').then(m => ({ default: m.AdminUsers })));
+const AdminOrders = React.lazy(() => import('../pages/admin/AdminOrders').then(m => ({ default: m.AdminOrders })));
 
 // Role-aware redirect component
 function RoleBasedRedirect() {
@@ -151,9 +153,9 @@ export function SimpleRouter() {
           <Route path="/admin/superadmins" element={<Suspense fallback={<PageLoadingSkeleton />}><Superadmins /></Suspense>} />
           <Route path="/admin/platform-catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><PlatformCatalog /></Suspense>} />
           <Route path="/admin/businesses" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminBusinesses /></Suspense>} />
-          <Route path="/admin/users" element={<Suspense fallback={<PageLoadingSkeleton />}><UserManagement /></Suspense>} />
+          <Route path="/admin/users" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminUsers /></Suspense>} />
           <Route path="/admin/analytics" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminAnalytics dataStore={dataStore} /></Suspense>} />
-          <Route path="/admin/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
+          <Route path="/admin/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminOrders /></Suspense>} />
           <Route path="/admin/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><Drivers role="superadmin" onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/admin/driver-applications" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverApplications /></Suspense>} />
           <Route path="/admin/system-settings" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminSettings /></Suspense>} />
