@@ -153,7 +153,7 @@ export function SimpleRouter() {
           <Route path="/admin/users" element={<Suspense fallback={<PageLoadingSkeleton />}><UserManagement /></Suspense>} />
           <Route path="/admin/analytics" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminAnalytics dataStore={dataStore} /></Suspense>} />
           <Route path="/admin/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
-          <Route path="/admin/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><Drivers role="admin" /></Suspense>} />
+          <Route path="/admin/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><Drivers role="superadmin" onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/admin/driver-applications" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverApplications /></Suspense>} />
           <Route path="/admin/system-settings" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminSettings /></Suspense>} />
           <Route path="/admin/permissions" element={<Suspense fallback={<PageLoadingSkeleton />}><AdminPermissionManagement /></Suspense>} />
@@ -182,7 +182,7 @@ export function SimpleRouter() {
           <Route path="/inventory" element={<Suspense fallback={<PageLoadingSkeleton />}><Inventory onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/inventory" element={<Suspense fallback={<PageLoadingSkeleton />}><Inventory onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/dispatch" element={<Suspense fallback={<PageLoadingSkeleton />}><DispatchBoard dataStore={dataStore} /></Suspense>} />
-          <Route path="/business/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><Drivers role="manager" /></Suspense>} />
+          <Route path="/business/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><Drivers role="manager" onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/reports" element={<Suspense fallback={<PageLoadingSkeleton />}><Reports dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/sales" element={<Suspense fallback={<PageLoadingSkeleton />}><SalesDashboard /></Suspense>} />
           <Route path="/business/support" element={<Suspense fallback={<PageLoadingSkeleton />}><SupportConsole /></Suspense>} />

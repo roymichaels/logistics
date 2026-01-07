@@ -154,13 +154,48 @@ export function UnifiedDriversPage({
 
   return (
     <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>
-          Drivers Management
-        </h1>
-        <p style={{ color: '#6b7280' }}>
-          Manage your delivery drivers and monitor their status
-        </p>
+      <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '24px', flexWrap: 'wrap' }}>
+        <div>
+          <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>
+            Drivers Management
+          </h1>
+          <p style={{ color: '#6b7280' }}>
+            Manage your delivery drivers and monitor their status
+          </p>
+        </div>
+        {(role === 'superadmin' || role === 'admin') && (
+          <button
+            onClick={() => onNavigate?.('/admin/driver-applications')}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#2563eb';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#3b82f6';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 4px rgba(59, 130, 246, 0.3)';
+            }}
+          >
+            <span style={{ fontSize: '18px' }}>📋</span>
+            Driver Applications
+          </button>
+        )}
       </div>
 
       <div style={{
