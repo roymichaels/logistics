@@ -33,6 +33,8 @@ const MyStats = React.lazy(() => import('../pages/MyStats').then(m => ({ default
 const Channels = React.lazy(() => import('../pages/Channels').then(m => ({ default: m.Channels })));
 const MyDeliveries = React.lazy(() => import('../pages/MyDeliveries').then(m => ({ default: m.MyDeliveries })));
 const DriverHome = React.lazy(() => import('../pages/driver/DriverHome').then(m => ({ default: m.DriverHome })));
+const EnhancedDeliveries = React.lazy(() => import('../pages/driver/EnhancedDeliveries').then(m => ({ default: m.EnhancedDeliveries })));
+const DriverStats = React.lazy(() => import('../pages/driver/DriverStats').then(m => ({ default: m.DriverStats })));
 const CatalogPage = React.lazy(() => import('../store/CatalogPage').then(m => ({ default: m.CatalogPage })));
 const SearchPage = React.lazy(() => import('../store/SearchPage').then(m => ({ default: m.SearchPage })));
 const CartPage = React.lazy(() => import('../store/CartPage').then(m => ({ default: m.CartPage })));
@@ -199,10 +201,10 @@ export function SimpleRouter() {
       {isDriverRole && (
         <>
           <Route path="/driver/home" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverHome /></Suspense>} />
-          <Route path="/driver/deliveries" element={<Suspense fallback={<PageLoadingSkeleton />}><MyDeliveries dataStore={dataStore} /></Suspense>} />
+          <Route path="/driver/deliveries" element={<Suspense fallback={<PageLoadingSkeleton />}><EnhancedDeliveries /></Suspense>} />
           <Route path="/driver/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverHome /></Suspense>} />
-          <Route path="/driver/earnings" element={<Suspense fallback={<PageLoadingSkeleton />}><MyStats /></Suspense>} />
-          <Route path="/driver/stats" element={<Suspense fallback={<PageLoadingSkeleton />}><MyStats /></Suspense>} />
+          <Route path="/driver/earnings" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverStats /></Suspense>} />
+          <Route path="/driver/stats" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverStats /></Suspense>} />
           <Route path="/driver/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
           <Route path="/driver/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
           <Route path="/driver/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />

@@ -285,6 +285,19 @@ export async function markOrderDelivered(
       })
       .eq('id', data.order_id);
 
+    // Insert photo record if provided
+    if (proofOfDeliveryUrl && data.driver_id) {
+      await supabase
+        .from('delivery_photos')
+        .insert({
+          assignment_id: assignmentId,
+          driver_id: data.driver_id,
+          order_id: data.order_id,
+          photo_url: proofOfDeliveryUrl,
+          photo_type: 'proof_of_delivery'
+        });
+    }
+
     logger.info('[AssignmentService] Order marked as delivered successfully');
     return { data, error: null };
   } catch (error) {
