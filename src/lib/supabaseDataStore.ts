@@ -32,10 +32,15 @@ export class SupabaseDataStore implements Partial<DataStore> {
       id: data.id,
       role: data.role,
       name: data.name,
+      username: data.username,
+      bio: data.bio,
+      location: data.location,
+      website: data.website,
       phone: data.phone,
       wallet_address: data.wallet_address,
       wallet_type: data.wallet_type,
-      photo_url: data.avatar_url,
+      photo_url: data.photo_url || data.avatar_url,
+      avatar_url: data.avatar_url,
     } as User;
   }
 
@@ -45,20 +50,37 @@ export class SupabaseDataStore implements Partial<DataStore> {
   }
 
   async updateProfile(updates: Partial<User>): Promise<void> {
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    // Only include fields that are provided
+    if (updates.name !== undefined) updateData.name = updates.name;
+    if (updates.username !== undefined) updateData.username = updates.username;
+    if (updates.bio !== undefined) updateData.bio = updates.bio;
+    if (updates.location !== undefined) updateData.location = updates.location;
+    if (updates.website !== undefined) updateData.website = updates.website;
+    if (updates.phone !== undefined) updateData.phone = updates.phone;
+    if (updates.photo_url !== undefined) {
+      updateData.photo_url = updates.photo_url;
+      updateData.avatar_url = updates.photo_url; // Keep in sync
+    }
+    if (updates.avatar_url !== undefined) {
+      updateData.avatar_url = updates.avatar_url;
+      updateData.photo_url = updates.avatar_url; // Keep in sync
+    }
+
     const { error } = await supabase
       .from('profiles')
-      .update({
-        name: updates.name,
-        phone: updates.phone,
-        avatar_url: updates.photo_url,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', this.userId);
+      .update(updateData)
+      .eq('id', (updates as any).id || this.userId);
 
     if (error) {
       logger.error('[SupabaseDataStore] Failed to update profile', error);
       throw error;
     }
+
+    logger.info('[SupabaseDataStore] Profile updated successfully');
   }
 
   async listProducts(filters?: { category?: string; q?: string }): Promise<Product[]> {

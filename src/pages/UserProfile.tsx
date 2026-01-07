@@ -163,16 +163,20 @@ export function UserProfilePage({ userId }: UserProfileProps) {
     photo_url?: string;
   }) => {
     try {
+      // Update all profile fields in the profiles table
       await dataStore.updateProfile?.({
-        ...currentUser,
-        ...updatedProfile,
-      });
-      await dataStore.updateUserProfile?.(targetUserId!, {
+        id: targetUserId,
+        name: updatedProfile.name,
+        username: updatedProfile.username,
         bio: updatedProfile.bio,
         location: updatedProfile.location,
         website: updatedProfile.website,
+        photo_url: updatedProfile.photo_url,
+        avatar_url: updatedProfile.photo_url, // Keep avatar_url in sync
       });
+
       await loadProfile();
+      logger.info('[UserProfile] Profile updated successfully');
     } catch (error) {
       logger.error('Failed to save profile:', error);
       throw error;

@@ -182,7 +182,11 @@ export interface User {
   role: 'superadmin' | 'admin' | 'business_owner' | 'manager' | 'dispatcher' | 'driver' | 'warehouse' | 'sales' | 'customer_service' | 'customer' | 'user';
   name?: string;
   username?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
   photo_url?: string;
+  avatar_url?: string;
   department?: string;
   phone?: string;
   business_id?: string;
@@ -191,6 +195,7 @@ export interface User {
   wallet_address?: string;
   wallet_type?: 'ethereum' | 'solana' | 'ton';
   telegram_id?: string; // Legacy field, prefer wallet_address
+  created_at?: string;
 }
 
 export type UserRegistrationStatus = 'pending' | 'approved' | 'rejected';
