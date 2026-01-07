@@ -45,19 +45,25 @@ export default function AuditLogs() {
         return;
       }
 
-      const allLogs = await dataStore.query('audit_logs', {
-        orderBy: { field: 'timestamp', direction: 'desc' },
+      const result = await dataStore.query('audit_logs', [], {
+        orderBy: { column: 'timestamp', ascending: false },
         limit: 100
       });
 
-      let filtered = allLogs || [];
-      if (filter !== 'all') {
-        filtered = filtered.filter((log: AuditLog) => log.level === filter);
+      let filtered: AuditLog[] = [];
+      if (result.success) {
+        filtered = result.data || [];
+        if (filter !== 'all') {
+          filtered = filtered.filter((log: AuditLog) => log.level === filter);
+        }
+      } else {
+        logger.error('Failed to load audit logs', { error: result.error });
       }
 
       setLogs(filtered);
     } catch (error) {
       logger.error('Failed to load audit logs', { error });
+      setLogs([]);
     } finally {
       setLoading(false);
     }

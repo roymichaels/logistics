@@ -41,10 +41,16 @@ export default function Infrastructures() {
         return;
       }
 
-      const data = await dataStore.query('infrastructures', {});
-      setInfrastructures(data || []);
+      const result = await dataStore.query('infrastructures', []);
+      if (result.success) {
+        setInfrastructures(result.data || []);
+      } else {
+        logger.error('Failed to load infrastructures', { error: result.error });
+        setInfrastructures([]);
+      }
     } catch (error) {
       logger.error('Failed to load infrastructures', { error });
+      setInfrastructures([]);
     } finally {
       setLoading(false);
     }

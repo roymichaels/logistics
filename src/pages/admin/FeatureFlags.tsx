@@ -51,12 +51,18 @@ export default function FeatureFlags() {
         return;
       }
 
-      const data = await dataStore.query('feature_flags', {
-        orderBy: { field: 'created_at', direction: 'desc' }
+      const result = await dataStore.query('feature_flags', [], {
+        orderBy: { column: 'created_at', ascending: false }
       });
-      setFlags(data || []);
+      if (result.success) {
+        setFlags(result.data || []);
+      } else {
+        logger.error('Failed to load feature flags', { error: result.error });
+        setFlags([]);
+      }
     } catch (error) {
       logger.error('Failed to load feature flags', { error });
+      setFlags([]);
     } finally {
       setLoading(false);
     }

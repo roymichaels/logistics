@@ -1374,7 +1374,129 @@ export class LocalDataStore implements IDataStore {
     this.tables.set('platform_products', []);
     this.tables.set('business_products', []);
 
-    logger.debug('[LocalDataStore] Seeded comprehensive data: 10 products, 5 orders, 4 drivers, 3 businesses, 10 users, 3 zones');
+    this.tables.set('infrastructures', [
+      {
+        id: 'infra-1',
+        name: 'Main Infrastructure',
+        owner_wallet: '0xSUPERADMIN',
+        business_count: 3,
+        status: 'active',
+        created_at: lastWeek,
+        updated_at: now,
+      },
+      {
+        id: 'infra-2',
+        name: 'Regional Infrastructure - North',
+        owner_wallet: '0xADMIN',
+        business_count: 0,
+        status: 'active',
+        created_at: lastWeek,
+        updated_at: now,
+      },
+    ]);
+
+    this.tables.set('feature_flags', [
+      {
+        id: 'flag-1',
+        name: 'Crypto Payment Support',
+        key: 'crypto_payment_enabled',
+        description: 'Enable cryptocurrency payment options for customers',
+        enabled: true,
+        rollout_percentage: 100,
+        created_at: lastWeek,
+        updated_at: now,
+      },
+      {
+        id: 'flag-2',
+        name: 'Driver Chat',
+        key: 'driver_chat_enabled',
+        description: 'Enable real-time chat between drivers and customers',
+        enabled: false,
+        rollout_percentage: 50,
+        created_at: lastWeek,
+        updated_at: now,
+      },
+      {
+        id: 'flag-3',
+        name: 'AI Order Routing',
+        key: 'ai_routing_enabled',
+        description: 'Use AI to optimize driver assignments and delivery routes',
+        enabled: true,
+        rollout_percentage: 75,
+        created_at: yesterday,
+        updated_at: now,
+      },
+    ]);
+
+    this.tables.set('audit_logs', [
+      {
+        id: 'audit-1',
+        user_id: 'user-superadmin-1',
+        user_name: 'Platform Super Admin',
+        action: 'User Login',
+        entity_type: 'authentication',
+        entity_id: null,
+        changes: { method: 'wallet' },
+        ip_address: '127.0.0.1',
+        timestamp: now,
+        level: 'info',
+        created_at: now,
+      },
+      {
+        id: 'audit-2',
+        user_id: 'user-admin-1',
+        user_name: 'Platform Admin',
+        action: 'Business Created',
+        entity_type: 'business',
+        entity_id: 'biz-1',
+        changes: { name: 'TechMart', status: 'active' },
+        ip_address: '127.0.0.1',
+        timestamp: lastWeek,
+        level: 'info',
+        created_at: lastWeek,
+      },
+      {
+        id: 'audit-3',
+        user_id: 'user-superadmin-1',
+        user_name: 'Platform Super Admin',
+        action: 'Infrastructure Created',
+        entity_type: 'infrastructure',
+        entity_id: 'infra-1',
+        changes: { name: 'Main Infrastructure' },
+        ip_address: '127.0.0.1',
+        timestamp: lastWeek,
+        level: 'info',
+        created_at: lastWeek,
+      },
+      {
+        id: 'audit-4',
+        user_id: 'user-owner-1',
+        user_name: 'TechMart Owner',
+        action: 'Order Status Updated',
+        entity_type: 'order',
+        entity_id: 'order-1',
+        changes: { from: 'pending', to: 'delivered' },
+        ip_address: '192.168.1.100',
+        timestamp: yesterday,
+        level: 'info',
+        created_at: yesterday,
+      },
+      {
+        id: 'audit-5',
+        user_id: 'user-manager-1',
+        user_name: 'Store Manager - TechMart',
+        action: 'Price Change Warning',
+        entity_type: 'product',
+        entity_id: 'prod-1',
+        changes: { old_price: 299.99, new_price: 249.99, discount: '16.7%' },
+        ip_address: '192.168.1.50',
+        timestamp: yesterday,
+        level: 'warning',
+        created_at: yesterday,
+      },
+    ]);
+
+    logger.debug('[LocalDataStore] Seeded comprehensive data: 10 products, 5 orders, 4 drivers, 3 businesses, 10 users, 3 zones, 2 infrastructures, 3 feature flags');
     this.saveToStorage();
   }
 

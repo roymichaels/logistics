@@ -44,12 +44,18 @@ export default function Superadmins() {
         return;
       }
 
-      const users = await dataStore.query('users', {
-        where: { role: 'superadmin' }
-      });
-      setSuperadmins(users || []);
+      const result = await dataStore.query('users', [
+        { column: 'role', operator: 'eq', value: 'superadmin' }
+      ]);
+      if (result.success) {
+        setSuperadmins(result.data || []);
+      } else {
+        logger.error('Failed to load superadmins', { error: result.error });
+        setSuperadmins([]);
+      }
     } catch (error) {
       logger.error('Failed to load superadmins', { error });
+      setSuperadmins([]);
     } finally {
       setLoading(false);
     }
