@@ -920,6 +920,26 @@ export class LocalDataStore implements IDataStore {
         created_at: lastWeek,
         updated_at: now,
       },
+      {
+        id: 'user-pending-driver-1',
+        wallet_address: '0xPENDINGDRIVER1',
+        role: 'customer',
+        name: 'David Cohen',
+        business_id: null,
+        auth_method: 'eth',
+        created_at: yesterday,
+        updated_at: yesterday,
+      },
+      {
+        id: 'user-pending-driver-2',
+        wallet_address: '0xPENDINGDRIVER2',
+        role: 'customer',
+        name: 'Sarah Levi',
+        business_id: null,
+        auth_method: 'eth',
+        created_at: yesterday,
+        updated_at: yesterday,
+      },
     ]);
 
     this.tables.set('products', [
@@ -1496,7 +1516,42 @@ export class LocalDataStore implements IDataStore {
       },
     ]);
 
-    logger.debug('[LocalDataStore] Seeded comprehensive data: 10 products, 5 orders, 4 drivers, 3 businesses, 10 users, 3 zones, 2 infrastructures, 3 feature flags');
+    this.tables.set('driver_applications', [
+      {
+        id: 'app-1',
+        user_id: 'user-pending-driver-1',
+        vehicle_type: 'car',
+        vehicle_plate: '12-345-67',
+        license_number: 'DL8765432',
+        phone: '054-5555555',
+        availability: 'fulltime',
+        notes: 'Experienced driver with 5 years in delivery services. Available immediately.',
+        status: 'pending',
+        submitted_at: yesterday,
+        reviewed_at: null,
+        reviewed_by: null,
+        review_notes: null,
+        created_at: yesterday,
+      },
+      {
+        id: 'app-2',
+        user_id: 'user-pending-driver-2',
+        vehicle_type: 'motorcycle',
+        vehicle_plate: '98-765-43',
+        license_number: 'DL1234567',
+        phone: '052-4444444',
+        availability: 'parttime',
+        notes: 'Looking for evening shifts only.',
+        status: 'pending',
+        submitted_at: yesterday,
+        reviewed_at: null,
+        reviewed_by: null,
+        review_notes: null,
+        created_at: yesterday,
+      },
+    ]);
+
+    logger.debug('[LocalDataStore] Seeded comprehensive data: 10 products, 5 orders, 4 drivers, 3 businesses, 10 users, 3 zones, 2 infrastructures, 3 feature flags, 2 pending driver applications');
     this.saveToStorage();
   }
 
