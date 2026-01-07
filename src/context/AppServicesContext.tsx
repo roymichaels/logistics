@@ -21,9 +21,6 @@ const DEV_ROLE_OVERRIDE_KEY = 'dev-console:role-override';
 
 function getRoleShellType(role: string): ShellType {
   switch (role) {
-    case 'superadmin':
-    case 'admin':
-      return 'unified';
     case 'business_owner':
     case 'manager':
     case 'dispatcher':
@@ -34,22 +31,22 @@ function getRoleShellType(role: string): ShellType {
     case 'driver':
       return 'driver';
     case 'customer':
-    case 'user':
+    case 'guest':
     default:
       return 'store';
   }
 }
 
 export type AppUserRole =
-  | 'user'
   | 'business_owner'
-  | 'owner'
   | 'manager'
   | 'driver'
   | 'warehouse'
   | 'sales'
   | 'dispatcher'
   | 'customer_service'
+  | 'customer'
+  | 'guest'
   | null;
 
 export interface OwnedBusiness {
