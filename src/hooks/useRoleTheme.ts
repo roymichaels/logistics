@@ -35,6 +35,8 @@ export function useRoleTheme(): UseRoleThemeReturn {
 
   const roleName = useMemo(() => {
     const roleNames: Record<string, string> = {
+      superadmin: 'Super Admin',
+      admin: 'Admin',
       infrastructure_owner: 'Infrastructure Owner',
       business_owner: 'Business Owner',
       manager: 'Manager',
@@ -44,6 +46,8 @@ export function useRoleTheme(): UseRoleThemeReturn {
       sales: 'Sales',
       customer_service: 'Customer Service',
       user: 'User',
+      customer: 'Customer',
+      guest: 'Guest',
     };
     return roleNames[userRole] || 'User';
   }, [userRole]);

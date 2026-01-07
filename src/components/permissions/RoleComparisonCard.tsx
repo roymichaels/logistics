@@ -18,6 +18,8 @@ const levelColors = {
   platform: { bg: '#1E3A8A', text: '#60A5FA' },
   infrastructure: { bg: '#14532D', text: '#4ADE80' },
   business: { bg: '#7C2D12', text: '#FB923C' },
+  operational: { bg: '#581C87', text: '#C084FC' },
+  customer: { bg: '#064E3B', text: '#34D399' },
 };
 
 export function RoleComparisonCard({
