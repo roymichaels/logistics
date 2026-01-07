@@ -173,8 +173,8 @@ export function ModernChat({ currentUser: propCurrentUser }: ModernChatProps = {
           alignItems: 'center',
           justifyContent: 'center',
           height: '100vh',
-          background: tokens.colors.panel,
-          color: tokens.colors.text
+          background: '#15202B',
+          color: '#E7E9EA'
         }}
       >
         טוען...
@@ -229,13 +229,13 @@ export function ModernChat({ currentUser: propCurrentUser }: ModernChatProps = {
         padding: '40px'
       }}
     >
-      <div style={{ fontSize: '80px' }}>💬</div>
+      <div style={{ fontSize: '80px', opacity: 0.5 }}>💬</div>
       <h2
         style={{
           margin: 0,
           fontSize: '24px',
           fontWeight: '700',
-          color: tokens.colors.text,
+          color: '#E7E9EA',
           textAlign: 'center'
         }}
       >
@@ -245,9 +245,10 @@ export function ModernChat({ currentUser: propCurrentUser }: ModernChatProps = {
         style={{
           margin: 0,
           fontSize: '16px',
-          color: tokens.colors.subtle,
+          color: '#8899A6',
           textAlign: 'center',
-          maxWidth: '400px'
+          maxWidth: '400px',
+          lineHeight: '1.6'
         }}
       >
         בחר שיחה מהרשימה כדי להתחיל לשלוח ולקבל הודעות

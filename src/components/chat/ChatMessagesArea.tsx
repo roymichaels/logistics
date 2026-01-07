@@ -44,7 +44,7 @@ export function ChatMessagesArea({
           flexDirection: 'column',
           gap: '16px',
           padding: '40px',
-          background: tokens.colors.background.primary
+          background: 'transparent'
         }}
       >
         <div style={{ fontSize: '72px', opacity: 0.5 }}>💬</div>
@@ -52,7 +52,7 @@ export function ChatMessagesArea({
           style={{
             fontSize: '18px',
             fontWeight: '600',
-            color: tokens.colors.text.primary,
+            color: '#E7E9EA',
             textAlign: 'center'
           }}
         >
@@ -61,7 +61,7 @@ export function ChatMessagesArea({
         <div
           style={{
             fontSize: '14px',
-            color: tokens.colors.text.secondary,
+            color: '#8899A6',
             textAlign: 'center',
             maxWidth: '300px',
             lineHeight: '1.5'
@@ -79,8 +79,8 @@ export function ChatMessagesArea({
       style={{
         flex: 1,
         overflowY: 'auto',
-        padding: '20px',
-        background: tokens.colors.background.primary,
+        padding: '24px',
+        background: 'transparent',
         display: 'flex',
         flexDirection: 'column'
       }}
