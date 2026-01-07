@@ -1,452 +1,456 @@
-Your app is actually a **multi-role logistics + commerce + operations platform**, and right now the architecture is a bit chaotic because:
+📘 MASTER KNOWLEDGEBASE
+Multi-Role Logistics + Commerce Platform
 
-* Roles exist, but navigation isn’t unified
-* Pages exist, but the flow isn’t documented
-* Components exist, but responsibilities overlap
-* Responsibilities are duplicated across shells
-* Some flows are still Supabase-oriented
-* Some flows are SxT + wallet oriented
-* Some flows don’t know where they belong
+Canonical Version – Current Architecture
 
-So we’ll fix ALL that right now.
+1. SYSTEM IDENTITY
 
-Below is a **clean, unified, end-to-end workflow map** for your entire system — for every role.
-This is *NOT* generic.
-This is tailored to **your app’s actual screens, actual components, and actual intended behavior**.
+What this app is:
 
-This is the document you’ve been missing.
+A multi-business, multi-role logistics and commerce platform that supports:
 
----
+Multiple independent businesses
 
-# 🌍 **MASTER WORKFLOW MAP — FULL SYSTEM (ALL ROLES)**
+Operational roles per business
 
-Structured for your new FRONTEND-ONLY + Wallet Auth + IndexedDB architecture.
+Storefront customers
 
-This can be turned into:
+Delivery drivers
 
-* Navigation schema
-* Role-based shell configuration
-* Authorization guards
-* Onboarding flow
-* UI wireframes
-* Migration plan from old architecture
+Offline tolerance
 
----
+Scalable authority without centralized “admin” roles
 
-# 🧩 **ROLES THE SYSTEM MUST SUPPORT**
+What this app is NOT:
 
-Your app currently supports 10 distinct roles:
+Not a frontend-only toy
 
-### **BUSINESS SIDE (B2B)**
+Not a decentralized-from-day-one experiment
 
-1. **infrastructure_owner**
-2. **business_owner**
-3. **manager**
-4. **warehouse**
-5. **dispatcher**
-6. **sales**
-7. **customer_service**
+Not a platform with a god-mode admin
 
-### **DELIVERY SIDE (B2C)**
+2. CORE PRINCIPLES
 
-8. **driver**
+Ownership > Roles
 
-### **CONSUMER SIDE (Storefront)**
+Capabilities are computed, not assigned
 
-9. **customer**
-10. **generic user** (unauthenticated)
+Supabase is the source of truth (launch phase)
 
----
+Offline = cache + outbox, never the authority
 
-# 🧬 **GLOBAL WORKFLOW SHARED BY ALL ROLES**
+UI never talks directly to infrastructure
 
-Every user → same entry point.
+Decentralization is a future data backend swap, not a rewrite
 
-### **1️⃣ Splash / Startup**
+3. AUTHENTICATION & IDENTITY
+Primary Auth (Launch)
 
-* Detect device
-* Detect wallet availability
-* Attempt local session restore
-* If wallet session exists → continue
-* If no session → go to login
+Supabase Auth
 
-### **2️⃣ Login Page**
+Email / OTP / passwordless
 
-* ETH login
-* SOL login
-* TON login (soon)
-* LocalStorage session created
-* Role loaded from IndexedDB (or fallback = “customer”)
+Wallets
 
-### **3️⃣ Role Router**
+Wallets are linked identities, not primary auth (yet)
 
-After login, user is routed to:
+Stored on profile:
 
-| Role                 | Shell         | Home Page                |
-| -------------------- | ------------- | ------------------------ |
-| infrastructure_owner | AdminShell    | Infrastructure Dashboard |
-| business_owner       | BusinessShell | Business Dashboard       |
-| manager              | BusinessShell | Manager Dashboard        |
-| warehouse            | BusinessShell | Warehouse Page           |
-| dispatcher           | BusinessShell | Dispatch Console         |
-| sales                | BusinessShell | Sales CRM                |
-| customer_service     | BusinessShell | Support Console          |
-| driver               | DriverShell   | Driver Home              |
-| customer             | StoreShell    | Catalog                  |
-| user (guest)         | StoreShell    | Catalog                  |
+wallet_address
 
-This routing becomes your **UnifiedShellRouter v3**.
+wallet_type (ETH / SOL / TON later)
 
----
+Wallet-first auth can replace Supabase later without touching UI
 
-# 🧱 **FULL WORKFLOW — ROLE BY ROLE**
+4. ROLE MODEL (FINAL)
+Base Roles (Stored on Profile)
 
-Here is the *complete* operational path for each user.
+business_owner
 
----
+manager
 
-# 🛠 **1. infrastructure_owner (Platform Admin)**
+warehouse
 
-This role manages EVERYTHING across all businesses.
+dispatcher
 
-### **Home → Infrastructure Dashboard**
+sales
 
-Views:
+customer_service
 
-* Total businesses
-* Total drivers
-* Total orders across platform
-* System health
-* Logs (local only now)
+driver
 
-### **Navigate → Businesses**
+customer
 
-* Create business
-* Activate / deactivate business
-* Assign business_owner wallets
+guest
 
-### **Navigate → Users**
+❌ Removed Role
 
-* Create new operational roles
-* Assign driver wallets
-* Override roles (role management screen)
+infrastructure_owner does not exist
 
-### **Navigate → Settings**
+5. DERIVED AUTHORITY (CRITICAL)
+Multi-Business Owner (Computed Capability)
 
-* Platform config
-* Themes
-* Navigation rules
-* Feature flags (your dev panel hooks into this)
+A business_owner who owns 2 or more businesses automatically gains multi-business capabilities.
 
-**Their workflow is mostly structural → behind-the-scenes authority.**
+This is:
 
----
+NOT a stored role
 
-# 🏢 **2. business_owner (Owns a Single Business)**
+NOT a flag
 
-Their job = everything inside ONE business.
+NOT manually assigned
 
-### **Home → Business Dashboard**
+It is derived from data.
 
-Shows:
+isMultiBusinessOwner = ownedBusinesses.length >= 2
 
-* Sales
-* Inventory summary
-* Driver activity
-* Alerts
-* Low stock
-* Orders in-progress
+6. SHELLS & ROUTING
+UnifiedShellRouter (Canonical)
+Condition	Shell	Home
+business_owner (1 business)	BusinessShell	Business Dashboard
+business_owner (≥2 businesses)	MultiBusinessShell	Portfolio Dashboard
+manager	BusinessShell	Manager Dashboard
+warehouse	BusinessShell	Warehouse Dashboard
+dispatcher	BusinessShell	Dispatch Console
+sales	BusinessShell	Sales CRM
+customer_service	BusinessShell	Support Console
+driver	DriverShell	Driver Home
+customer	StoreShell	Catalog
+guest	StoreShell	Catalog
 
-### **Navigate → Inventory**
+No AdminShell.
+No platform god view.
 
-* Add item
-* Edit item
-* Update stock
-* Categories
+7. BUSINESS CONTEXT MODEL
 
-### **Navigate → Orders**
+Every operational action happens inside a business context.
 
-* All orders
-* Assign driver
-* Change status
-* View timeline
+User logs in
 
-### **Navigate → Drivers**
+System determines:
 
-* Driver list
-* Driver location
-* Assign deliveries
-* Performance view
+role
 
-### **Navigate → Zones**
+owned businesses
 
-* Delivery zones
-* Pricing rules
-* Activation toggles
+Active business is selected:
 
-### **Navigate → Reports**
+automatically (single business)
 
-* Revenue
-* Profit
-* Expenses
-* Order analytics
+or manually (multi-business owner)
 
----
+All queries are scoped by:
 
-# 👔 **3. manager**
+business_id
 
-Almost identical to business_owner but with some restrictions.
+8. ROLE WORKFLOWS (AUTHORITATIVE)
+business_owner
 
-### Permissions Manager Lacks:
+Full control over owned businesses
 
-* Cannot manage admins
-* Cannot create new managers
-* Cannot delete business
+Inventory
 
-Everything else same workflow.
+Orders
 
----
+Drivers
 
-# 📦 **4. warehouse**
+Zones
 
-Warehouse role focuses on receiving, storing, and fulfilling inventory.
+Pricing
 
-### **Home → Warehouse Dashboard**
+Reports
 
-* Incoming shipments
-* Low-stock alerts
-* Items to restock
+Staff (within business)
 
-### **Workflow: Incoming Inventory**
+Cannot:
 
-1. Receive shipment
-2. Scan item (or select)
-3. Update stock
-4. Confirm receipt
+See or affect other owners’ businesses
 
-### **Workflow: Packing Orders**
+multi-business owner (capability)
 
-1. Go to Orders → “Ready to Pack”
-2. Print or view pick-list
-3. Mark items as packed
-4. Move order to “Ready for Driver”
+Additional abilities:
 
-Warehouse does NOT interact with:
+Portfolio dashboard
 
-* Customers
-* Pricing
-* Dispatch rules
+Cross-business KPIs
 
----
+Switch active business
 
-# 🚦 **5. dispatcher**
+Create new businesses
 
-Dispatcher role manages live movement.
+Duplicate configs between owned businesses
 
-### **Home → Dispatch Console**
+Cannot:
 
-Real-time (or pseudo real-time offline-ready):
+Access platform-wide data
 
-* Drivers list
-* Driver statuses
-* Delivery queue
-* Map view (if online)
-* Assignment panel
+Override RLS
 
-### **Workflows**
+See businesses they don’t own
 
-#### **1. Assign order**
+manager
 
-* Select order
-* Select available driver
-* Confirm assignment
+Same operational scope as owner
 
-#### **2. Reassign order**
+Restricted permissions:
 
-* Drag from driver → another driver
+cannot delete business
 
-#### **3. Monitor delivery**
+cannot assign owners
 
-* Status timeline
-* ETA
-* Notifications
+cannot create managers
 
----
+warehouse
 
-# 🧾 **6. sales**
+Receive inventory
 
-Sales role deals with customers.
+Update stock
 
-### **Home → CRM / Sales Screen**
+Pack orders
 
-* Customer list
-* Orders per customer
-* Call notes
-* Follow-ups
+Move orders to “Ready for Driver”
 
-### **Workflow**
+No access to:
 
-1. View customer profile
-2. Create manual order
-3. Apply discounts
-4. Track order status
+Pricing
 
----
+Customers
 
-# 🎧 **7. customer_service**
+Dispatch rules
 
-Customer support workflow.
+dispatcher
 
-### **Home → Support Console**
+Assign orders to drivers
 
-* Ticket list
-* Chat (local mock for now)
-* Order lookup
+Monitor delivery status
 
-### **Workflow**
+Reassign when needed
 
-1. Customer complains
-2. Look up order
-3. Modify order
-4. Escalate to dispatch or manager
+View live driver states
 
----
+Some actions require online mode.
 
-# 🚚 **8. driver**
+sales
 
-Driver workflow = most important mobile-centric path.
+Customer list
 
-### **Home → Driver Dashboard**
+Manual orders
 
-* Active delivery
-* Assigned tasks
-* Earnings
-* Status toggle (Online / Busy / Offline)
+Discounts (policy-limited)
 
-### **Workflow: Delivery**
+Notes and follow-ups
 
-1. Accept delivery
-2. View customer details
-3. Navigate to pickup
-4. Confirm pickup
-5. Navigate to drop-off
-6. Confirm drop-off
-7. Mark as completed
-8. Auto-earnings update
+customer_service
 
-### Offline mode:
+Tickets
 
-* Location logged locally
-* Tasks cached
-* Sync later if online
+Order lookup
 
----
+Limited order edits
 
-# 🛒 **9. customer (Storefront User)**
+Escalation flows
 
-Customer sees the shopping UI.
+driver
 
-### **Home → Catalog**
+Mobile-first
 
-* Advanced product cards
-* Search
-* Filters
-* Promotions
+Accept assignments
 
-### **Workflow: Shopping**
+Pickup / drop-off confirmations
 
-1. Browse catalog
-2. View product
-3. Add to cart
-4. Checkout
-5. Wallet-based identity
-6. Order confirmation
-7. Track order
+Proof uploads
 
----
+Earnings tracking
 
-# 👤 **10. user (Guest)**
+Offline:
 
-Identical to customer but with:
+Tasks cached
 
-* No order history
-* Must login (wallet) to checkout
+Actions queued
 
----
+Sync when online
 
-# 🚀 **THE UNIFIED SYSTEM VIEW (SUMMARY)**
+customer
 
-| Role                 | Primary Shell | Core Workflow             |
-| -------------------- | ------------- | ------------------------- |
-| infrastructure_owner | AdminShell    | Platform control          |
-| business_owner       | BusinessShell | Full business ops         |
-| manager              | BusinessShell | Business ops (restricted) |
-| warehouse            | BusinessShell | Inventory + packing       |
-| dispatcher           | BusinessShell | Live delivery routing     |
-| sales                | BusinessShell | Customer interactions     |
-| customer_service     | BusinessShell | Support + order edits     |
-| driver               | DriverShell   | Delivery lifecycle        |
-| customer             | StoreShell    | Shopping                  |
-| user                 | StoreShell    | Browsing                  |
+Browse catalog
 
----
+Add to cart
 
-# 🌈 If You Want — I Can Now Generate:
+Checkout
 
-### ✔ A full Wireframe Flow (screen-by-screen)
+Track orders
 
-### ✔ Navigation schema (sidebars, bottom-tabs, actions)
+Checkout requires online.
 
-### ✔ A JSON structure for Bolt to auto-generate pages
+guest
 
-### ✔ A clean new folder structure (no supabase)
+Browse only
 
-### ✔ Unified routing tree for ALL roles
+Must authenticate to order
 
-### ✔ UX flow diagrams
+9. DATA AUTHORITY MODEL
+Source of Truth
 
-### ✔ Role-permission matrix
+Supabase Postgres
 
+Supporting Systems
 
+Supabase Realtime (dispatch, driver status)
 
-You are building a 100% frontend-only application with no backend dependencies. Your task is to safely disable Supabase without breaking the existing codebase by creating temporary no-op shims.
+Supabase Storage (images, proofs)
 
-## Architecture Context:
-This project is a FRONTEND-ONLY architecture with:
-- No backend, no Supabase, no BoltDB, no remote authentication
-- Local Storage and IndexedDB for data persistence
-- Wallet-based authentication (Ethereum, Solana)
-- Optional Space & Time (SxT) blockchain querying
-- Must remain fully functional offline
+Local Storage
 
-## Your Task:
-Create temporary mock modules that replace all Supabase functionality with no-op implementations that return empty/default data. This will prevent runtime errors while preserving the existing code structure.
+IndexedDB:
 
-## Requirements:
-1. **DO NOT DELETE ANY FILES** - only create shim/mock replacements
-2. Replace all Supabase imports with temporary mock modules
-3. Ensure all existing function signatures remain intact
-4. Return appropriate empty data structures (arrays, objects, null values)
-5. Prevent any actual Supabase API calls
-6. Maintain TypeScript compatibility
+read cache
 
-## Implementation Steps:
-1. Identify all files importing from Supabase
-2. Create mock implementations for:
-   - supabaseClient.ts
-   - Authentication functions
-   - Database query functions
-   - Real-time subscriptions
-   - Storage functions
-3. Ensure mocks return the expected data types but with empty/default values
-4. Update imports to use the mock modules
-5. Verify the application runs without Supabase errors
+offline outbox
 
-## Success Criteria:
-- Application starts without Supabase connection errors
-- All existing pages and components render correctly
-- No runtime exceptions related to Supabase calls
-- TypeScript compilation succeeds
-- Existing code structure remains unchanged
+Never authoritative
 
-Focus on creating a stable, non-breaking transition that eliminates Supabase dependencies while maintaining full application functionality.
+10. OFFLINE MODEL (NON-NEGOTIABLE)
+IndexedDB Stores
+
+cache_* (products, orders, assignments)
+
+outbox:
+
+{
+  id
+  type
+  payload
+  createdAt
+  status
+}
+
+Rules
+
+Offline actions → outbox
+
+Online reconnect → sync
+
+Server timestamps win
+
+High-risk actions blocked offline (config, reassignment)
+
+11. DATA CLIENT ABSTRACTION (MANDATORY)
+
+UI never calls Supabase directly.
+
+All access goes through:
+
+DataClient.orders.create()
+DataClient.inventory.adjust()
+DataClient.dispatch.assign()
+
+Implementations
+
+SupabaseDataClient (now)
+
+SxTDataClient (future)
+
+HybridDataClient (later)
+
+This is how decentralization happens without rewriting the app.
+
+12. MINIMAL REQUIRED DATA MODEL
+Core Tables
+
+profiles
+
+businesses
+
+products
+
+inventory
+
+orders
+
+order_items
+
+order_events
+
+drivers
+
+driver_status
+
+assignments
+
+tickets
+
+zones
+
+feature_flags
+
+Authority Anchor
+
+businesses.owner_id
+
+Everything flows from ownership.
+
+13. SECURITY MODEL
+Row Level Security (RLS)
+
+All tables scoped by business_id
+
+Ownership enforced by owner_id = auth.uid()
+
+Managers and staff limited by role
+
+No global bypass roles
+
+14. FEATURE FLAGS & CONFIG
+
+Stored per business or per owner
+
+Used for:
+
+UI toggles
+
+rollout control
+
+experimentation
+
+No hardcoded behavior
+
+15. MIGRATION STRATEGY (FINAL)
+Phase 1 – Ship
+
+Supabase fully enabled
+
+DataClient abstraction in place
+
+IndexedDB as cache + outbox
+
+Phase 2 – Harden
+
+Realtime tuning
+
+Conflict rules
+
+Analytics views
+
+Phase 3 – Decentralize
+
+Replicate event logs
+
+Swap DataClient backend
+
+Wallet-first auth
+
+No UI rewrite
+
+16. CANONICAL TRUTHS (DO NOT DRIFT)
+
+There is no infrastructure owner
+
+Power comes from ownership
+
+Multi-business authority is computed
+
+Supabase is temporary but real
+
+Offline is supportive, never dominant
+
+UI is insulated from backend choice
