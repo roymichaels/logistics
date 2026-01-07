@@ -1,5 +1,8 @@
 import { logger } from '@/lib/logger';
 import { runtimeRegistry } from '@/lib/runtime-registry';
+import type { IDataStore, FilterCondition, QueryOptions } from '@/foundation/abstractions/IDataStore';
+import type { AsyncResult } from '@/foundation/types/Result';
+import { Ok, Err } from '@/foundation/types/Result';
 
 interface QueryResult<T = any> {
   success: boolean;
@@ -338,7 +341,7 @@ class QueryBuilder {
 
 export { QueryBuilder };
 
-export class LocalDataStore {
+export class LocalDataStore implements IDataStore {
   private tables: Map<string, any[]> = new Map();
   private readonly STORAGE_KEY = 'app-local-datastore';
   private subscriptions: Map<string, Set<(payload: any) => void>> = new Map();
@@ -355,44 +358,211 @@ export class LocalDataStore {
     return new QueryBuilder(this, tableName);
   }
 
-  async query(tableName: string, options?: { where?: Record<string, any> }): Promise<any[]> {
-    if (!this.tables.has(tableName)) {
-      this.tables.set(tableName, []);
-    }
+  async query<T>(
+    tableName: string,
+    filters?: FilterCondition[],
+    options?: QueryOptions
+  ): AsyncResult<T[], Error> {
+    try {
+      if (!this.tables.has(tableName)) {
+        this.tables.set(tableName, []);
+      }
 
-    let data = this.getTable(tableName);
+      let data = this.getTable(tableName);
 
-    if (options?.where) {
-      data = data.filter(record => {
-        return Object.entries(options.where!).every(([key, value]) => {
-          return record[key] === value;
+      if (filters && filters.length > 0) {
+        data = data.filter(record => {
+          return filters.every(filter => {
+            const value = record[filter.column];
+            switch (filter.operator) {
+              case 'eq':
+                return value === filter.value;
+              case 'neq':
+                return value !== filter.value;
+              case 'gt':
+                return value > filter.value;
+              case 'gte':
+                return value >= filter.value;
+              case 'lt':
+                return value < filter.value;
+              case 'lte':
+                return value <= filter.value;
+              case 'like':
+                return String(value).includes(String(filter.value).replace(/%/g, ''));
+              case 'ilike':
+                return String(value).toLowerCase().includes(String(filter.value).replace(/%/g, '').toLowerCase());
+              case 'in':
+                return Array.isArray(filter.value) && filter.value.includes(value);
+              case 'is':
+                return value === filter.value;
+              default:
+                return true;
+            }
+          });
         });
+      }
+
+      if (options?.orderBy) {
+        data = [...data].sort((a, b) => {
+          const aVal = a[options.orderBy!.column];
+          const bVal = b[options.orderBy!.column];
+          if (aVal === bVal) return 0;
+          const comparison = aVal > bVal ? 1 : -1;
+          return options.orderBy!.ascending ? comparison : -comparison;
+        });
+      }
+
+      if (options?.offset) {
+        data = data.slice(options.offset);
+      }
+
+      if (options?.limit) {
+        data = data.slice(0, options.limit);
+      }
+
+      return Ok(data as T[]);
+    } catch (error: any) {
+      logger.error('[LocalDataStore] Query error', error);
+      return Err(new Error(error.message || 'Query failed'));
+    }
+  }
+
+  async queryOne<T>(
+    tableName: string,
+    filters: FilterCondition[]
+  ): AsyncResult<T | null, Error> {
+    try {
+      const result = await this.query<T>(tableName, filters, { limit: 1 });
+      if (result.success && result.data.length > 0) {
+        return Ok(result.data[0]);
+      }
+      return Ok(null);
+    } catch (error: any) {
+      logger.error('[LocalDataStore] QueryOne error', error);
+      return Err(new Error(error.message || 'QueryOne failed'));
+    }
+  }
+
+  async insert<T>(
+    tableName: string,
+    data: Partial<T> | Partial<T>[]
+  ): AsyncResult<T[], Error> {
+    try {
+      const table = this.getTable(tableName);
+      const dataArray = Array.isArray(data) ? data : [data];
+
+      const inserted = dataArray.map((item: any) => {
+        const record = {
+          id: item.id || this.generateId(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          ...item,
+        };
+        table.push(record);
+        return record;
       });
-    }
 
-    return data;
+      this.saveToStorage();
+      this.notifySubscribers(tableName, {
+        eventType: 'INSERT',
+        new: inserted[0],
+        old: {},
+      });
+
+      return Ok(inserted as T[]);
+    } catch (error: any) {
+      logger.error('[LocalDataStore] Insert error', error);
+      return Err(new Error(error.message || 'Insert failed'));
+    }
   }
 
-  async update(tableName: string, id: string, updates: Record<string, any>): Promise<void> {
-    if (!this.tables.has(tableName)) {
-      throw new Error(`Table ${tableName} does not exist`);
+  async update<T>(
+    tableName: string,
+    filters: FilterCondition[],
+    data: Partial<T>
+  ): AsyncResult<T[], Error> {
+    try {
+      const queryResult = await this.query<T>(tableName, filters);
+      if (!queryResult.success) {
+        return Err(new Error('Failed to find records to update'));
+      }
+
+      const table = this.getTable(tableName);
+      const recordsToUpdate = queryResult.data;
+      const updated: T[] = [];
+
+      recordsToUpdate.forEach((record: any) => {
+        const index = table.findIndex((r: any) => r.id === record.id);
+        if (index !== -1) {
+          const oldRecord = { ...table[index] };
+          table[index] = {
+            ...table[index],
+            ...data,
+            updated_at: new Date().toISOString(),
+          };
+          this.notifySubscribers(tableName, {
+            eventType: 'UPDATE',
+            old: oldRecord,
+            new: table[index],
+          });
+          updated.push(table[index] as T);
+        }
+      });
+
+      this.saveToStorage();
+      return Ok(updated);
+    } catch (error: any) {
+      logger.error('[LocalDataStore] Update error', error);
+      return Err(new Error(error.message || 'Update failed'));
     }
-
-    const data = this.getTable(tableName);
-    const index = data.findIndex(record => record.id === id);
-
-    if (index === -1) {
-      throw new Error(`Record with id ${id} not found in ${tableName}`);
-    }
-
-    data[index] = {
-      ...data[index],
-      ...updates,
-      updated_at: new Date().toISOString()
-    };
-
-    this.saveToStorage();
   }
+
+  async delete(
+    tableName: string,
+    filters: FilterCondition[]
+  ): AsyncResult<void, Error> {
+    try {
+      const queryResult = await this.query(tableName, filters);
+      if (!queryResult.success) {
+        return Err(new Error('Failed to find records to delete'));
+      }
+
+      const table = this.getTable(tableName);
+      const recordsToDelete = queryResult.data;
+
+      recordsToDelete.forEach((record: any) => {
+        const index = table.findIndex((r: any) => r.id === record.id);
+        if (index !== -1) {
+          const deletedRecord = { ...table[index] };
+          table.splice(index, 1);
+          this.notifySubscribers(tableName, {
+            eventType: 'DELETE',
+            old: deletedRecord,
+            new: {},
+          });
+        }
+      });
+
+      this.saveToStorage();
+      return Ok(undefined);
+    } catch (error: any) {
+      logger.error('[LocalDataStore] Delete error', error);
+      return Err(new Error(error.message || 'Delete failed'));
+    }
+  }
+
+  async rpc<T = unknown>(
+    functionName: string,
+    params?: Record<string, unknown>
+  ): AsyncResult<T, Error> {
+    try {
+      logger.warn('[LocalDataStore] RPC not implemented in local mode', { functionName, params });
+      return Err(new Error('RPC functions not available in frontend-only mode'));
+    } catch (error: any) {
+      return Err(new Error(error.message || 'RPC failed'));
+    }
+  }
+
 
   async getProfile(): Promise<any> {
     try {
@@ -452,18 +622,43 @@ export class LocalDataStore {
     }
   }
 
-  subscribe(table: string, callback: (payload: any) => void): () => void {
+  subscribe<T>(
+    table: string,
+    callback: (payload: T) => void,
+    filters?: FilterCondition[]
+  ): () => void {
     if (!this.subscriptions.has(table)) {
       this.subscriptions.set(table, new Set());
     }
 
     const handlers = this.subscriptions.get(table)!;
-    handlers.add(callback);
+    const wrappedCallback = (payload: any) => {
+      if (filters && filters.length > 0) {
+        const record = payload.new || payload.old;
+        if (record) {
+          const matches = filters.every(filter => {
+            const value = record[filter.column];
+            switch (filter.operator) {
+              case 'eq':
+                return value === filter.value;
+              case 'neq':
+                return value !== filter.value;
+              default:
+                return true;
+            }
+          });
+          if (!matches) return;
+        }
+      }
+      callback(payload as T);
+    };
+
+    handlers.add(wrappedCallback);
 
     logger.debug('[LocalDataStore] Subscribed to table', { table, handlerCount: handlers.size });
 
     return () => {
-      handlers.delete(callback);
+      handlers.delete(wrappedCallback);
       logger.debug('[LocalDataStore] Unsubscribed from table', { table, handlerCount: handlers.size });
     };
   }
