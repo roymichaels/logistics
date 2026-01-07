@@ -1,212 +1,205 @@
 import React, { useEffect, useState } from 'react';
 import { tokens } from '../styles/tokens';
-import { DataStore } from '../data/types';
 import { useI18n } from '../lib/i18n';
 import { haptic } from '../utils/haptic';
+import { assignmentService, AssignmentWithOrder } from '../services/assignments';
+import { useAuth } from '../context/AuthContext';
+import { logger } from '../lib/logger';
+import { Toast } from '../components/Toast';
 
 interface MyDeliveriesProps {
-  dataStore: DataStore;
-  onNavigate: (page: string) => void;
+  dataStore?: any;
+  onNavigate?: (page: string) => void;
 }
 
-interface DeliveryItem {
-  name: string;
-  quantity: number;
-  notes?: string;
-}
-
-interface Delivery {
-  id: string;
-  customer: string;
-  customerPhone: string;
-  address: string;
-  addressDetails: string;
-  window: string;
-  status: 'assigned' | 'in_progress' | 'delivered' | 'ready';
-  items: DeliveryItem[];
-  totalAmount: number;
-  distance: string;
-  estimatedTime: string;
-  instructions?: string;
-  priority: 'normal' | 'urgent';
-}
-
-export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
+export function MyDeliveries({}: MyDeliveriesProps) {
+  const { user } = useAuth();
   const { translations, isRTL } = useI18n();
-  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+  const [deliveries, setDeliveries] = useState<AssignmentWithOrder[]>([]);
   const [expandedDelivery, setExpandedDelivery] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'upcoming' | 'completed'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    dataStore.getProfile().catch(() => undefined);
-  }, [dataStore]);
+    if (user?.id) {
+      loadDeliveries();
 
-  useEffect(() => {
-    setDeliveries([
-      {
-        id: 'DL-78201',
-        customer: 'מאפיית השדרה',
-        customerPhone: '052-1234567',
-        address: 'בן יהודה 128, תל אביב',
-        addressDetails: 'קומה 2, דלת שמאל',
-        window: '10:00 - 12:00',
-        status: 'assigned',
-        items: [
-          { name: 'לחם מחמצת', quantity: 5 },
-          { name: 'חלות שבת', quantity: 3, notes: 'קלועות' }
-        ],
-        totalAmount: 245,
-        distance: '2.5 ק"מ',
-        estimatedTime: '15 דקות',
-        instructions: 'להתקשר כשמגיעים למטה',
-        priority: 'normal'
-      },
-      {
-        id: 'DL-78195',
-        customer: 'מרכז טבעי',
-        customerPhone: '054-9876543',
-        address: 'שדרות ההסתדרות 45, חיפה',
-        addressDetails: 'מתחם עסקים, בניין B',
-        window: '12:00 - 14:00',
-        status: 'in_progress',
-        items: [
-          { name: 'ירקות אורגניים', quantity: 2 },
-          { name: 'פירות יבשים', quantity: 4 }
-        ],
-        totalAmount: 380,
-        distance: '5.8 ק"מ',
-        estimatedTime: '25 דקות',
-        priority: 'urgent'
-      },
-      {
-        id: 'DL-78188',
-        customer: 'קפה הצפון',
-        customerPhone: '053-5551234',
-        address: 'אלנבי 45, תל אביב',
-        addressDetails: 'קפה בקומת הקרקע',
-        window: '14:00 - 16:00',
-        status: 'ready',
-        items: [
-          { name: 'פולי קפה', quantity: 10 },
-          { name: 'חלב שקדים', quantity: 6 }
-        ],
-        totalAmount: 520,
-        distance: '3.2 ק"מ',
-        estimatedTime: '18 דקות',
-        instructions: 'כניסה מהצד',
-        priority: 'normal'
-      },
-      {
-        id: 'DL-78177',
-        customer: 'סופרמרקט עדן',
-        customerPhone: '050-7778899',
-        address: 'דרך מנחם בגין 52, תל אביב',
-        addressDetails: 'קומת מרתף, מחסן',
-        window: '08:00 - 10:00',
-        status: 'delivered',
-        items: [
-          { name: 'תבלינים', quantity: 15 },
-          { name: 'שמנים', quantity: 8 }
-        ],
-        totalAmount: 680,
-        distance: '4.1 ק"מ',
-        estimatedTime: '20 דקות',
-        priority: 'normal'
-      }
-    ]);
-  }, []);
-
-  const handleStatusChange = (id: string, status: Delivery['status']) => {
-    setDeliveries((prev) =>
-      prev.map((delivery) => (delivery.id === id ? { ...delivery, status } : delivery))
-    );
-    haptic('light');
-  };
-
-  const toggleExpand = (id: string) => {
-    setExpandedDelivery(expandedDelivery === id ? null : id);
-    haptic('light');
-  };
-
-  const handleCall = (phone: string) => {
-    window.open(`tel:${phone.replace(/[^0-9]/g, '')}`, '_self');
-    haptic('medium');
-  };
-
-  const handleNavigate = (address: string) => {
-    const encodedAddress = encodeURIComponent(address);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank');
-    haptic('medium');
-  };
-
-  const statusConfig = {
-    assigned: {
-      label: translations.myDeliveriesPage?.readyToGo || 'Ready to Go',
-      color: tokens.colors.status.info,
-      icon: '📋',
-      nextStatus: 'in_progress' as const
-    },
-    ready: {
-      label: 'מוכן לאיסוף',
-      color: tokens.colors.status.warning,
-      icon: '📦',
-      nextStatus: 'in_progress' as const
-    },
-    in_progress: {
-      label: translations.myDeliveriesPage?.onTheWay || 'On the Way',
-      color: tokens.colors.status.warning,
-      icon: '🚗',
-      nextStatus: 'delivered' as const
-    },
-    delivered: {
-      label: translations.myDeliveriesPage?.delivered || 'Delivered',
-      color: tokens.colors.status.success,
-      icon: '✅',
-      nextStatus: null
-    }
-  };
-
-  const getFilteredDeliveries = () => {
-    let filtered = deliveries;
-
-    if (filter === 'active') {
-      filtered = filtered.filter(d => d.status === 'in_progress' || d.status === 'ready');
-    } else if (filter === 'upcoming') {
-      filtered = filtered.filter(d => d.status === 'assigned');
-    } else if (filter === 'completed') {
-      filtered = filtered.filter(d => d.status === 'delivered');
-    }
-
-    if (searchQuery) {
-      filtered = filtered.filter(d =>
-        d.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.address.toLowerCase().includes(searchQuery.toLowerCase())
+      // Subscribe to real-time updates
+      const unsubscribe = assignmentService.subscribeToDriverAssignments(
+        user.id,
+        handleNewAssignment,
+        handleAssignmentUpdate
       );
+
+      return () => unsubscribe();
     }
+  }, [user]);
 
-    return filtered.sort((a, b) => {
-      if (a.priority === 'urgent' && b.priority !== 'urgent') return -1;
-      if (b.priority === 'urgent' && a.priority !== 'urgent') return 1;
-      return 0;
-    });
+  const loadDeliveries = async () => {
+    if (!user?.id) return;
+
+    try {
+      setLoading(true);
+      const { data, error } = await assignmentService.getDriverActiveAssignments(user.id);
+
+      if (error) {
+        logger.error('[MyDeliveries] Failed to load deliveries', error);
+        Toast.error('Failed to load deliveries');
+        return;
+      }
+
+      setDeliveries(data);
+    } catch (error) {
+      logger.error('[MyDeliveries] Exception loading deliveries', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const filteredDeliveries = getFilteredDeliveries();
-
-  const countByStatus = {
-    active: deliveries.filter(d => d.status === 'in_progress' || d.status === 'ready').length,
-    upcoming: deliveries.filter(d => d.status === 'assigned').length,
-    completed: deliveries.filter(d => d.status === 'delivered').length
+  const handleNewAssignment = (assignment: any) => {
+    logger.info('[MyDeliveries] New assignment received', assignment);
+    Toast.success('משימה חדשה התקבלה!');
+    haptic('success');
+    loadDeliveries();
   };
+
+  const handleAssignmentUpdate = (assignment: any) => {
+    logger.info('[MyDeliveries] Assignment updated', assignment);
+    loadDeliveries();
+  };
+
+  const handleAcceptDelivery = async (assignmentId: string) => {
+    try {
+      setActionLoading(assignmentId);
+      haptic('medium');
+
+      const { error } = await assignmentService.acceptAssignment(assignmentId);
+
+      if (error) {
+        logger.error('[MyDeliveries] Failed to accept assignment', error);
+        Toast.error('Failed to accept delivery');
+        return;
+      }
+
+      Toast.success('משימה התקבלה בהצלחה!');
+      haptic('success');
+      loadDeliveries();
+    } catch (error) {
+      logger.error('[MyDeliveries] Exception accepting assignment', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handlePickup = async (assignmentId: string) => {
+    try {
+      setActionLoading(assignmentId);
+      haptic('medium');
+
+      const { error } = await assignmentService.markOrderPickedUp(assignmentId);
+
+      if (error) {
+        logger.error('[MyDeliveries] Failed to mark as picked up', error);
+        Toast.error('Failed to mark as picked up');
+        return;
+      }
+
+      Toast.success('סומן כנאסף!');
+      haptic('success');
+      loadDeliveries();
+    } catch (error) {
+      logger.error('[MyDeliveries] Exception marking picked up', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleComplete = async (assignmentId: string) => {
+    try {
+      setActionLoading(assignmentId);
+      haptic('medium');
+
+      const { error } = await assignmentService.markOrderDelivered(assignmentId);
+
+      if (error) {
+        logger.error('[MyDeliveries] Failed to mark as delivered', error);
+        Toast.error('Failed to complete delivery');
+        return;
+      }
+
+      Toast.success('משלוח הושלם בהצלחה!');
+      haptic('success');
+      loadDeliveries();
+    } catch (error) {
+      logger.error('[MyDeliveries] Exception completing delivery', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'assigned':
+        return tokens.colors.brand.primary;
+      case 'accepted':
+        return tokens.colors.status.warning;
+      case 'picked_up':
+        return tokens.colors.status.info;
+      case 'delivered':
+        return tokens.colors.status.success;
+      default:
+        return tokens.colors.subtle;
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'assigned':
+        return 'משימה חדשה';
+      case 'accepted':
+        return 'התקבל';
+      case 'picked_up':
+        return 'נאסף';
+      case 'delivered':
+        return 'הושלם';
+      default:
+        return status;
+    }
+  };
+
+  const filteredDeliveries = deliveries.filter((delivery) => {
+    if (filter === 'all') return true;
+    if (filter === 'active') return ['accepted', 'picked_up'].includes(delivery.status);
+    if (filter === 'upcoming') return delivery.status === 'assigned';
+    if (filter === 'completed') return delivery.status === 'delivered';
+    return true;
+  });
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        background: tokens.colors.panel
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
+          <div style={{ color: tokens.colors.text, fontSize: '18px', fontWeight: '600' }}>
+            טוען משלוחים...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: tokens.colors.panel,
-        color: tokens.colors.text,
+        background: tokens.colors.panel,
         padding: '20px',
         paddingBottom: '100px',
         direction: isRTL ? 'rtl' : 'ltr'
@@ -214,456 +207,330 @@ export function MyDeliveries({ dataStore }: MyDeliveriesProps) {
     >
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0', color: tokens.colors.text }}>
-          🚚 {translations.myDeliveriesPage?.title || 'My Deliveries'}
+        <h1 style={{
+          fontSize: '32px',
+          fontWeight: '700',
+          margin: '0 0 8px 0',
+          color: tokens.colors.text
+        }}>
+          📦 המשלוחים שלי
         </h1>
-        <p style={{ margin: '0', color: tokens.colors.subtle, fontSize: '14px' }}>
-          {translations.myDeliveriesPage?.subtitle || 'Manage your delivery tasks'}
+        <p style={{ margin: '0', color: tokens.colors.subtle, fontSize: '16px' }}>
+          {filteredDeliveries.length} משימות פעילות
         </p>
       </div>
 
-      {/* Search Bar */}
-      <div style={{ marginBottom: '16px' }}>
-        <input
-          type="text"
-          placeholder="🔍 חיפוש לפי לקוח, כתובת או מספר הזמנה..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '14px 16px',
-            background: tokens.colors.background.card,
-            border: `1px solid ${tokens.colors.background.cardBorder}`,
-            borderRadius: '14px',
-            color: tokens.colors.text,
-            fontSize: '15px',
-            outline: 'none',
-            transition: 'all 0.3s ease'
-          }}
-          onFocus={(e) => {
-            e.target.style.borderColor = tokens.colors.brand.primary;
-            e.target.style.boxShadow = `0 0 0 3px ${tokens.colors.brand.primary}20`;
-          }}
-          onBlur={(e) => {
-            e.target.style.borderColor = tokens.colors.background.cardBorder;
-            e.target.style.boxShadow = 'none';
-          }}
-        />
-      </div>
-
-      {/* Filter Tabs */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '4px' }}>
+      {/* Filters */}
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        marginBottom: '24px',
+        overflowX: 'auto',
+        paddingBottom: '8px'
+      }}>
         {[
-          { key: 'all', label: 'הכל', count: deliveries.length },
-          { key: 'active', label: 'פעילות', count: countByStatus.active },
-          { key: 'upcoming', label: 'ממתינות', count: countByStatus.upcoming },
-          { key: 'completed', label: 'הושלמו', count: countByStatus.completed }
-        ].map(({ key, label, count }) => (
-          <button
-            key={key}
-            onClick={() => {
-              setFilter(key as typeof filter);
-              haptic('light');
-            }}
-            style={{
-              padding: '10px 18px',
-              background: filter === key ? tokens.gradients.primary : tokens.colors.background.card,
-              border: `1px solid ${filter === key ? 'transparent' : tokens.colors.background.cardBorder}`,
-              borderRadius: '12px',
-              color: filter === key ? tokens.colors.textBright : tokens.colors.subtle,
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              whiteSpace: 'nowrap',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: filter === key ? tokens.glows.primaryStrong : 'none'
-            }}
-          >
-            {label}
-            <span style={{
-              background: filter === key ? 'rgba(255,255,255,0.2)' : tokens.colors.bg,
-              padding: '2px 8px',
-              borderRadius: '8px',
-              fontSize: '12px',
-              fontWeight: '700'
-            }}>
-              {count}
-            </span>
-          </button>
-        ))}
+          { value: 'all', label: 'הכל', count: deliveries.length },
+          { value: 'upcoming', label: 'ממתין', count: deliveries.filter(d => d.status === 'assigned').length },
+          { value: 'active', label: 'פעיל', count: deliveries.filter(d => ['accepted', 'picked_up'].includes(d.status)).length },
+        ].map((filterOption) => {
+          const isActive = filter === filterOption.value;
+          return (
+            <button
+              key={filterOption.value}
+              onClick={() => {
+                setFilter(filterOption.value as any);
+                haptic('light');
+              }}
+              style={{
+                padding: '10px 20px',
+                background: isActive
+                  ? tokens.gradients.primary
+                  : tokens.colors.bg,
+                border: isActive
+                  ? 'none'
+                  : `1px solid ${tokens.colors.background.cardBorder}`,
+                borderRadius: '12px',
+                color: isActive ? '#ffffff' : tokens.colors.text,
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap',
+                boxShadow: isActive ? tokens.glows.primaryStrong : 'none'
+              }}
+            >
+              {filterOption.label} ({filterOption.count})
+            </button>
+          );
+        })}
       </div>
 
       {/* Deliveries List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {filteredDeliveries.length === 0 ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '80px 20px',
-            background: tokens.colors.background.card,
-            borderRadius: '20px',
-            border: `1px solid ${tokens.colors.background.cardBorder}`
+      {filteredDeliveries.length === 0 ? (
+        <div style={{
+          textAlign: 'center',
+          padding: '60px 20px',
+          background: tokens.colors.background.card,
+          borderRadius: '20px',
+          border: `1px solid ${tokens.colors.background.cardBorder}`
+        }}>
+          <div style={{ fontSize: '64px', marginBottom: '16px' }}>📭</div>
+          <h3 style={{
+            fontSize: '20px',
+            fontWeight: '600',
+            color: tokens.colors.text,
+            marginBottom: '8px'
           }}>
-            <div style={{ fontSize: '64px', marginBottom: '16px', opacity: 0.5 }}>📭</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: tokens.colors.text, marginBottom: '8px' }}>
-              לא נמצאו משלוחים
-            </div>
-            <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
-              נסה לשנות את הסינון או החיפוש
-            </div>
-          </div>
-        ) : (
-          filteredDeliveries.map((delivery) => {
+            אין משימות
+          </h3>
+          <p style={{ color: tokens.colors.subtle, fontSize: '14px' }}>
+            כשיהיו משימות חדשות, הן יופיעו כאן
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {filteredDeliveries.map((delivery) => {
             const isExpanded = expandedDelivery === delivery.id;
-            const config = statusConfig[delivery.status];
+            const isLoading = actionLoading === delivery.id;
 
             return (
               <div
                 key={delivery.id}
                 style={{
-                  backgroundColor: tokens.colors.background.card,
-                  borderRadius: '20px',
-                  border: `2px solid ${isExpanded ? config.color : tokens.colors.background.cardBorder}`,
+                  background: tokens.colors.background.card,
+                  borderRadius: '16px',
+                  border: `1px solid ${tokens.colors.background.cardBorder}`,
                   overflow: 'hidden',
                   transition: 'all 0.3s ease',
-                  boxShadow: isExpanded ? `0 8px 24px ${config.color}30` : tokens.shadows.md,
-                  position: 'relative'
+                  boxShadow: tokens.shadows.md
                 }}
               >
-                {/* Priority Badge */}
-                {delivery.priority === 'urgent' && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '12px',
-                    left: isRTL ? 'auto' : '12px',
-                    right: isRTL ? '12px' : 'auto',
-                    background: tokens.gradients.error,
-                    color: tokens.colors.textBright,
-                    padding: '4px 12px',
-                    borderRadius: '8px',
-                    fontSize: '11px',
-                    fontWeight: '700',
-                    zIndex: 1,
-                    boxShadow: tokens.glows.error
-                  }}>
-                    ⚡ דחוף
-                  </div>
-                )}
-
-                {/* Status Border Indicator */}
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: isRTL ? 'auto' : 0,
-                  right: isRTL ? 0 : 'auto',
-                  width: '6px',
-                  height: '100%',
-                  background: `linear-gradient(180deg, ${config.color}, ${config.color}80)`,
-                  boxShadow: `0 0 12px ${config.color}60`
-                }} />
-
-                {/* Card Header - Clickable */}
+                {/* Delivery Header */}
                 <div
-                  onClick={() => toggleExpand(delivery.id)}
+                  onClick={() => {
+                    setExpandedDelivery(isExpanded ? null : delivery.id);
+                    haptic('light');
+                  }}
                   style={{
                     padding: '20px',
-                    paddingLeft: '26px',
                     cursor: 'pointer',
-                    transition: 'background 0.2s ease'
+                    borderBottom: isExpanded ? `1px solid ${tokens.colors.background.cardBorder}` : 'none'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = tokens.colors.background.cardHover}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.text, marginBottom: '6px' }}>
-                        {delivery.customer}
-                      </div>
-                      <div style={{ fontSize: '13px', color: tokens.colors.subtle, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span>{delivery.id}</span>
-                        <span>•</span>
-                        <span>{delivery.distance}</span>
-                        <span>•</span>
-                        <span>{delivery.estimatedTime}</span>
-                      </div>
-                    </div>
-                    <div style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '8px 14px',
-                      background: `${config.color}20`,
-                      border: `1px solid ${config.color}50`,
-                      borderRadius: '12px',
-                      fontSize: '13px',
-                      fontWeight: '700',
-                      color: config.color
-                    }}>
-                      <span>{config.icon}</span>
-                      <span>{config.label}</span>
-                    </div>
-                  </div>
-
                   <div style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '12px',
-                    background: `${tokens.colors.brand.primary}10`,
-                    borderRadius: '12px',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
                     marginBottom: '12px'
                   }}>
-                    <span style={{ fontSize: '16px' }}>📍</span>
-                    <span style={{ fontSize: '15px', color: tokens.colors.text }}>{delivery.address}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontSize: '18px',
+                        fontWeight: '700',
+                        color: tokens.colors.text,
+                        marginBottom: '4px'
+                      }}>
+                        {delivery.order.order_number}
+                      </div>
+                      <div style={{
+                        fontSize: '14px',
+                        color: tokens.colors.subtle
+                      }}>
+                        {delivery.order.customer_name || 'לקוח'}
+                      </div>
+                    </div>
+
+                    {/* Status Badge */}
+                    <div style={{
+                      padding: '6px 14px',
+                      background: `${getStatusColor(delivery.status)}20`,
+                      border: `1px solid ${getStatusColor(delivery.status)}50`,
+                      borderRadius: '20px',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      color: getStatusColor(delivery.status)
+                    }}>
+                      {getStatusText(delivery.status)}
+                    </div>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{
-                      fontSize: '13px',
-                      color: tokens.colors.subtle,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}>
-                      <span>🕐</span>
-                      <span>{translations.myDeliveriesPage?.deliveryWindow || 'Delivery Window'}: {delivery.window}</span>
-                    </div>
-                    <div style={{
-                      fontSize: '18px',
-                      color: tokens.colors.text,
-                      transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.3s ease'
-                    }}>
-                      ▼
+                  {/* Address */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '8px',
+                    marginTop: '12px'
+                  }}>
+                    <div style={{ fontSize: '18px' }}>📍</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontSize: '14px',
+                        color: tokens.colors.text,
+                        fontWeight: '500',
+                        marginBottom: '4px'
+                      }}>
+                        {delivery.order.delivery_address || 'כתובת לא צוינה'}
+                      </div>
+                      {delivery.order.delivery_instructions && (
+                        <div style={{
+                          fontSize: '13px',
+                          color: tokens.colors.subtle
+                        }}>
+                          {delivery.order.delivery_instructions}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
                 {/* Expanded Details */}
                 {isExpanded && (
-                  <div style={{
-                    padding: '0 20px 20px 20px',
-                    borderTop: `1px solid ${tokens.colors.background.cardBorder}`,
-                    paddingTop: '20px',
-                    animation: 'fadeIn 0.3s ease'
-                  }}>
-                    {/* Customer Contact */}
-                    <div style={{
-                      background: tokens.colors.bg,
-                      padding: '16px',
-                      borderRadius: '14px',
-                      marginBottom: '16px'
-                    }}>
-                      <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text, marginBottom: '10px' }}>
-                        📞 פרטי התקשרות
-                      </div>
-                      <div style={{ fontSize: '16px', color: tokens.colors.text, marginBottom: '8px' }}>
-                        {delivery.customerPhone}
-                      </div>
-                      <div style={{ fontSize: '13px', color: tokens.colors.subtle }}>
-                        {delivery.addressDetails}
-                      </div>
-                    </div>
-
-                    {/* Items List */}
-                    <div style={{
-                      background: tokens.colors.bg,
-                      padding: '16px',
-                      borderRadius: '14px',
-                      marginBottom: '16px'
-                    }}>
-                      <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text, marginBottom: '12px' }}>
-                        📦 פריטים במשלוח ({delivery.items.length})
-                      </div>
-                      {delivery.items.map((item, idx) => (
-                        <div key={idx} style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '10px 0',
-                          borderBottom: idx < delivery.items.length - 1 ? `1px solid ${tokens.colors.background.cardBorder}` : 'none'
+                  <div style={{ padding: '20px', paddingTop: '16px' }}>
+                    {/* Items */}
+                    {delivery.order.items && delivery.order.items.length > 0 && (
+                      <div style={{ marginBottom: '16px' }}>
+                        <div style={{
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          color: tokens.colors.text,
+                          marginBottom: '8px'
                         }}>
-                          <div>
-                            <div style={{ fontSize: '15px', color: tokens.colors.text, marginBottom: '4px' }}>
-                              {item.name}
-                            </div>
-                            {item.notes && (
-                              <div style={{ fontSize: '12px', color: tokens.colors.subtle, fontStyle: 'italic' }}>
-                                💡 {item.notes}
-                              </div>
-                            )}
+                          פריטים:
+                        </div>
+                        {delivery.order.items.map((item, idx) => (
+                          <div
+                            key={idx}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              padding: '8px',
+                              background: tokens.colors.bg,
+                              borderRadius: '8px',
+                              marginBottom: '4px'
+                            }}
+                          >
+                            <span style={{ fontSize: '14px', color: tokens.colors.text }}>
+                              {item.quantity}x {item.product_name}
+                            </span>
+                            <span style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text }}>
+                              ₪{item.price}
+                            </span>
                           </div>
-                          <div style={{
-                            background: `${tokens.colors.status.info}20`,
-                            padding: '6px 12px',
-                            borderRadius: '8px',
-                            fontSize: '13px',
-                            fontWeight: '600',
-                            color: tokens.colors.status.info
-                          }}>
-                            ×{item.quantity}
-                          </div>
-                        </div>
-                      ))}
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginTop: '12px',
-                        padding: '12px',
-                        background: `${tokens.colors.status.warning}15`,
-                        borderRadius: '10px'
-                      }}>
-                        <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text }}>סה"כ</span>
-                        <span style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.status.warning }}>₪{delivery.totalAmount}</span>
-                      </div>
-                    </div>
-
-                    {/* Special Instructions */}
-                    {delivery.instructions && (
-                      <div style={{
-                        background: `${tokens.colors.status.warning}15`,
-                        border: `1px solid ${tokens.colors.status.warning}30`,
-                        padding: '14px',
-                        borderRadius: '14px',
-                        marginBottom: '16px'
-                      }}>
-                        <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text, marginBottom: '6px' }}>
-                          ⚠️ הוראות מיוחדות
-                        </div>
-                        <div style={{ fontSize: '14px', color: tokens.colors.text }}>
-                          {delivery.instructions}
-                        </div>
+                        ))}
                       </div>
                     )}
+
+                    {/* Total */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      padding: '12px',
+                      background: 'linear-gradient(135deg, rgba(77, 208, 225, 0.15), rgba(77, 208, 225, 0.05))',
+                      borderRadius: '12px',
+                      marginBottom: '16px'
+                    }}>
+                      <span style={{ fontSize: '16px', fontWeight: '600', color: tokens.colors.text }}>
+                        סה"כ:
+                      </span>
+                      <span style={{ fontSize: '18px', fontWeight: '700', color: tokens.colors.brand.primary }}>
+                        ₪{delivery.order.total_amount}
+                      </span>
+                    </div>
 
                     {/* Action Buttons */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCall(delivery.customerPhone);
-                        }}
-                        style={{
-                          padding: '16px',
-                          background: tokens.gradients.success,
-                          border: 'none',
-                          borderRadius: '14px',
-                          color: tokens.colors.textBright,
-                          fontSize: '16px',
-                          fontWeight: '700',
-                          cursor: 'pointer',
-                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
-                          transition: 'all 0.3s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '8px'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.5)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
-                        }}
-                      >
-                        <span style={{ fontSize: '18px' }}>📞</span>
-                        התקשר
-                      </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {delivery.status === 'assigned' && (
+                        <button
+                          onClick={() => handleAcceptDelivery(delivery.id)}
+                          disabled={isLoading}
+                          style={{
+                            flex: 1,
+                            padding: '14px',
+                            background: tokens.gradients.primary,
+                            border: 'none',
+                            borderRadius: '12px',
+                            color: '#ffffff',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            cursor: isLoading ? 'not-allowed' : 'pointer',
+                            opacity: isLoading ? 0.6 : 1,
+                            boxShadow: tokens.glows.primaryStrong
+                          }}
+                        >
+                          {isLoading ? 'מעבד...' : 'קבל משימה'}
+                        </button>
+                      )}
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleNavigate(delivery.address);
-                        }}
-                        style={{
-                          padding: '16px',
-                          background: tokens.gradients.primary,
-                          border: 'none',
-                          borderRadius: '14px',
-                          color: tokens.colors.textBright,
-                          fontSize: '16px',
-                          fontWeight: '700',
-                          cursor: 'pointer',
-                          boxShadow: tokens.glows.primaryStrong,
-                          transition: 'all 0.3s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '8px'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = '0 6px 20px rgba(29, 155, 240, 0.6)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = tokens.glows.primaryStrong;
-                        }}
-                      >
-                        <span style={{ fontSize: '18px' }}>🗺️</span>
-                        ניווט
-                      </button>
+                      {delivery.status === 'accepted' && (
+                        <button
+                          onClick={() => handlePickup(delivery.id)}
+                          disabled={isLoading}
+                          style={{
+                            flex: 1,
+                            padding: '14px',
+                            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                            border: 'none',
+                            borderRadius: '12px',
+                            color: '#ffffff',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            cursor: isLoading ? 'not-allowed' : 'pointer',
+                            opacity: isLoading ? 0.6 : 1,
+                            boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)'
+                          }}
+                        >
+                          {isLoading ? 'מעבד...' : 'סמן כנאסף'}
+                        </button>
+                      )}
+
+                      {delivery.status === 'picked_up' && (
+                        <button
+                          onClick={() => handleComplete(delivery.id)}
+                          disabled={isLoading}
+                          style={{
+                            flex: 1,
+                            padding: '14px',
+                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            border: 'none',
+                            borderRadius: '12px',
+                            color: '#ffffff',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            cursor: isLoading ? 'not-allowed' : 'pointer',
+                            opacity: isLoading ? 0.6 : 1,
+                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)'
+                          }}
+                        >
+                          {isLoading ? 'מעבד...' : 'השלם משלוח'}
+                        </button>
+                      )}
+
+                      {delivery.order.customer_phone && (
+                        <button
+                          onClick={() => {
+                            window.location.href = `tel:${delivery.order.customer_phone}`;
+                            haptic('light');
+                          }}
+                          style={{
+                            padding: '14px 20px',
+                            background: tokens.colors.bg,
+                            border: `1px solid ${tokens.colors.background.cardBorder}`,
+                            borderRadius: '12px',
+                            fontSize: '20px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          📞
+                        </button>
+                      )}
                     </div>
-
-                    {/* Status Change Button */}
-                    {config.nextStatus && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStatusChange(delivery.id, config.nextStatus!);
-                        }}
-                        style={{
-                          width: '100%',
-                          marginTop: '12px',
-                          padding: '18px',
-                          background: `linear-gradient(135deg, ${config.color}, ${statusConfig[config.nextStatus].color})`,
-                          border: 'none',
-                          borderRadius: '14px',
-                          color: tokens.colors.textBright,
-                          fontSize: '18px',
-                          fontWeight: '700',
-                          cursor: 'pointer',
-                          boxShadow: `0 4px 16px ${config.color}40`,
-                          transition: 'all 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'scale(1.02)';
-                          e.currentTarget.style.boxShadow = `0 6px 20px ${config.color}50`;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                          e.currentTarget.style.boxShadow = `0 4px 16px ${config.color}40`;
-                        }}
-                      >
-                        {statusConfig[config.nextStatus].icon} {statusConfig[config.nextStatus].label}
-                      </button>
-                    )}
                   </div>
                 )}
               </div>
             );
-          })
-        )}
-      </div>
-
-      {/* Add fade-in animation */}
-      <style>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
+          })}
+        </div>
+      )}
     </div>
   );
 }
