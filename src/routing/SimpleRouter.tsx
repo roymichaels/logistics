@@ -131,7 +131,7 @@ export function SimpleRouter() {
   }
 
   // Role-based routes - STRICT SEPARATION
-  const isAdmin = ['admin', 'superadmin'].includes(userRole || '');
+  const isAdmin = ['admin', 'superadmin', 'infrastructure_owner'].includes(userRole || '');
   const isBusinessRole = ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service'].includes(userRole || '');
   const isDriverRole = userRole === 'driver';
   const isCustomerRole = ['customer', 'user'].includes(userRole || '');

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Avatar, Text, Divider } from '../atoms';
 import { colors, spacing, borderRadius, shadows, zIndex } from '../../styles/design-system';
+import { getDisplayName, formatUsername } from '../../lib/usernames';
 
 export interface UserMenuProps {
   user?: {
@@ -15,7 +16,9 @@ export interface UserMenuProps {
 }
 
 const roleDisplayMap: Record<string, string> = {
-  infrastructure_owner: 'בעל תשתית 👑',
+  superadmin: 'Super Admin 👑',
+  admin: 'Admin 👑',
+  infrastructure_owner: 'Infrastructure Owner 👑',
   business_owner: 'בעלים 👑',
   manager: 'מנהל',
   dispatcher: 'מוקדן',
@@ -42,17 +45,18 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
     }
   }, [dropdownOpen]);
 
-  const userName = user?.name || user?.first_name || 'משתמש';
+  const userName = user ? getDisplayName(user) : 'משתמש';
   const userInitial = userName[0]?.toUpperCase() || 'U';
+  const userHandle = formatUsername(user?.username);
   const roleDisplay = user?.role ? roleDisplayMap[user.role] || user.role : '';
 
   const getProfilePath = (role?: string): string => {
     if (!role) return '/store/profile';
 
     switch (role) {
-      case 'infrastructure_owner':
-        return '/infrastructure/profile';
       case 'superadmin':
+      case 'admin':
+      case 'infrastructure_owner':
         return '/admin/profile';
       case 'business_owner':
       case 'manager':
@@ -158,9 +162,9 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
             <Text variant="body" weight="semibold" style={{ marginBottom: spacing.xs, color: 'rgba(255, 255, 255, 0.95)' }}>
               {userName}
             </Text>
-            {user?.username && (
+            {userHandle && (
               <Text variant="small" style={{ marginBottom: spacing.xs, color: 'rgba(255, 255, 255, 0.6)' }}>
-                @{user.username}
+                {userHandle}
               </Text>
             )}
             {roleDisplay && (

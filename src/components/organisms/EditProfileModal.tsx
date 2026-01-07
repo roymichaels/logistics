@@ -4,6 +4,7 @@ import { Button } from '../atoms/Button';
 import { Text } from '../atoms/Typography';
 import { colors, spacing, borderRadius, shadows, typography } from '../../styles/design-system';
 import { logger } from '../../lib/logger';
+import { isValidUsername, isWalletAddress, extractUsername } from '../../lib/usernames';
 
 export interface EditProfileModalProps {
   isOpen: boolean;
@@ -70,12 +71,16 @@ export function EditProfileModal({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (username && (username.length < 3 || username.length > 20)) {
-      newErrors.username = 'Username must be 3-20 characters';
-    }
+    if (username) {
+      const cleanUsername = extractUsername(username);
 
-    if (username && !/^[a-zA-Z0-9_]+$/.test(username)) {
-      newErrors.username = 'Username can only contain letters, numbers, and underscores';
+      if (isWalletAddress(cleanUsername)) {
+        newErrors.username = 'Wallet addresses cannot be used as usernames';
+      } else if (cleanUsername.length < 3 || cleanUsername.length > 20) {
+        newErrors.username = 'Username must be 3-20 characters';
+      } else if (!/^[a-zA-Z0-9_]+$/.test(cleanUsername)) {
+        newErrors.username = 'Username can only contain letters, numbers, and underscores';
+      }
     }
 
     if (bio && bio.length > 160) {
@@ -106,9 +111,11 @@ export function EditProfileModal({
 
     setSaving(true);
     try {
+      const cleanUsername = username.trim() ? extractUsername(username.trim()) : undefined;
+
       await onSave({
         name: name.trim() || undefined,
-        username: username.trim() || undefined,
+        username: cleanUsername,
         bio: bio.trim() || undefined,
         location: location.trim() || undefined,
         website: website.trim() || undefined,
@@ -252,13 +259,26 @@ export function EditProfileModal({
 
           <div style={fieldStyle}>
             <label style={labelStyle}>Username</label>
-            <Input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
-              disabled={saving}
-            />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <span style={{
+                position: 'absolute',
+                left: spacing.md,
+                color: colors.text.secondary,
+                fontSize: typography.fontSize.base,
+                pointerEvents: 'none',
+                zIndex: 1
+              }}>
+                @
+              </span>
+              <Input
+                type="text"
+                value={username.startsWith('@') ? username.slice(1) : username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="username"
+                disabled={saving}
+                style={{ paddingLeft: '32px' }}
+              />
+            </div>
             {errors.username && <div style={errorStyle}>{errors.username}</div>}
           </div>
 

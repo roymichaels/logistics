@@ -4,6 +4,7 @@
  */
 
 import type { User } from '../data/types';
+import { getDisplayName, shortenWalletAddress } from '../lib/usernames';
 
 /**
  * Gets the primary identifier for a user
@@ -28,22 +29,13 @@ export function getUserIdentifier(user: User | null | undefined): string {
 
 /**
  * Gets the display identifier for a user
- * Priority: username > name > wallet_address (shortened) > telegram_id > id
+ * Priority: name > first_name > @username > 'User'
+ * NEVER uses wallet address as display name
  */
 export function getUserDisplayName(user: User | null | undefined): string {
   if (!user) return 'Unknown';
 
-  if (user.username) return user.username;
-  if (user.name) return user.name;
-
-  // Shorten wallet address for display
-  if (user.wallet_address) {
-    return `${user.wallet_address.slice(0, 6)}...${user.wallet_address.slice(-4)}`;
-  }
-
-  if (user.telegram_id) return user.telegram_id;
-
-  return user.id.slice(0, 8);
+  return getDisplayName(user);
 }
 
 /**

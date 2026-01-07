@@ -1,5 +1,111 @@
 import { NavigationItem, UserRole } from './types';
 
+export const ADMIN_SHELL_NAV: NavigationItem[] = [
+  {
+    id: 'admin-platform-dashboard',
+    label: 'Platform Dashboard',
+    path: '/admin/platform-dashboard',
+    icon: '🏗️',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+  },
+  {
+    id: 'admin-infrastructures',
+    label: 'Infrastructures',
+    path: '/admin/infrastructures',
+    icon: '🏭',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+  },
+  {
+    id: 'admin-superadmins',
+    label: 'Superadmins',
+    path: '/admin/superadmins',
+    icon: '👑',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+  },
+  {
+    id: 'admin-businesses',
+    label: 'Businesses',
+    path: '/admin/businesses',
+    icon: '🏢',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+  },
+  {
+    id: 'admin-users',
+    label: 'Users',
+    path: '/admin/users',
+    icon: '👥',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+  },
+  {
+    id: 'admin-catalog',
+    label: 'Platform Catalog',
+    path: '/admin/platform-catalog',
+    icon: '📦',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+  },
+  {
+    id: 'admin-analytics',
+    label: 'Analytics',
+    path: '/admin/analytics',
+    icon: '📊',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+  },
+  {
+    id: 'admin-orders',
+    label: 'Orders',
+    path: '/admin/orders',
+    icon: '📋',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+  },
+  {
+    id: 'admin-drivers',
+    label: 'Drivers',
+    path: '/admin/drivers',
+    icon: '🚗',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+  },
+  {
+    id: 'admin-logs',
+    label: 'Audit Logs',
+    path: '/admin/logs',
+    icon: '📋',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+  },
+  {
+    id: 'admin-feature-flags',
+    label: 'Feature Flags',
+    path: '/admin/feature-flags',
+    icon: '🚩',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+  },
+  {
+    id: 'admin-permissions',
+    label: 'Permissions',
+    path: '/admin/permissions',
+    icon: '🔐',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+  },
+  {
+    id: 'admin-settings',
+    label: 'System Settings',
+    path: '/admin/system-settings',
+    icon: '⚙️',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+  }
+];
 
 export const BUSINESS_SHELL_NAV: NavigationItem[] = [
   {
@@ -208,6 +314,11 @@ export function getNavigationForRole(role: UserRole | null): NavigationItem[] {
   let navItems: NavigationItem[] = [];
 
   switch (role) {
+    case 'superadmin':
+    case 'admin':
+    case 'infrastructure_owner':
+      navItems = ADMIN_SHELL_NAV;
+      break;
     case 'business_owner':
     case 'manager':
     case 'warehouse':
@@ -235,10 +346,14 @@ export function getNavigationForRole(role: UserRole | null): NavigationItem[] {
   });
 }
 
-export function getShellTypeForRole(role: UserRole | null): 'business' | 'driver' | 'store' {
+export function getShellTypeForRole(role: UserRole | null): 'admin' | 'business' | 'driver' | 'store' {
   if (!role) return 'store';
 
   switch (role) {
+    case 'superadmin':
+    case 'admin':
+    case 'infrastructure_owner':
+      return 'admin';
     case 'business_owner':
     case 'manager':
     case 'warehouse':
