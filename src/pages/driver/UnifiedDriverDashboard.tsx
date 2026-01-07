@@ -13,6 +13,7 @@ import { OrderPreviewModal } from '../../components/driver/OrderPreviewModal';
 import { CustomerContact } from '../../components/driver/CustomerContact';
 import { EarningsCounter } from '../../components/driver/EarningsCounter';
 import { Button } from '../../components/atoms/Button';
+import { DriverProfileCheck } from '../../components/driver/DriverProfileCheck';
 
 type DriverMode = 'freelance' | 'collab';
 
@@ -21,6 +22,7 @@ interface UnifiedDriverDashboardProps {
 }
 
 export function UnifiedDriverDashboard({ mode: initialMode = 'freelance' }: UnifiedDriverDashboardProps) {
+  const [profileReady, setProfileReady] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<DriverMode>(initialMode);
@@ -66,7 +68,13 @@ export function UnifiedDriverDashboard({ mode: initialMode = 'freelance' }: Unif
 
       return () => unsubscribe();
     }
-  }, [user, mode]);
+  }, [user]);
+
+  useEffect(() => {
+    if (user?.id && profile) {
+      loadDeliveries();
+    }
+  }, [mode, profile]);
 
   const loadAllData = async () => {
     if (!user?.id) return;
@@ -107,7 +115,12 @@ export function UnifiedDriverDashboard({ mode: initialMode = 'freelance' }: Unif
   const loadDeliveries = async () => {
     if (!user?.id) return;
 
-    const { data, error } = await assignmentService.getDriverActiveAssignments(user.id);
+    const businessIdFilter = mode === 'collab' ? profile?.business_id : undefined;
+
+    const { data, error } = await assignmentService.getDriverActiveAssignments(
+      user.id,
+      businessIdFilter
+    );
 
     if (error) {
       logger.error('[UnifiedDriverDashboard] Failed to load deliveries', error);
@@ -207,14 +220,20 @@ export function UnifiedDriverDashboard({ mode: initialMode = 'freelance' }: Unif
       const { error } = await assignmentService.acceptAssignment(pendingAssignment.id);
 
       if (error) {
-        Toast.error('Failed to accept order');
+        logger.error('[UnifiedDriverDashboard] Failed to accept assignment', error);
+        Toast.error('Failed to accept order. Please try again.');
         return;
       }
+
+      await driverService.updateDriverStatus(user!.id, 'busy');
 
       Toast.success('Order accepted!');
       haptic('success');
       setPendingAssignment(null);
       loadDeliveries();
+    } catch (error) {
+      logger.error('[UnifiedDriverDashboard] Exception accepting order', error);
+      Toast.error('An error occurred. Please try again.');
     } finally {
       setActionLoading(null);
     }
@@ -234,13 +253,17 @@ export function UnifiedDriverDashboard({ mode: initialMode = 'freelance' }: Unif
       const { error } = await assignmentService.markOrderPickedUp(assignmentId);
 
       if (error) {
-        Toast.error('Failed to mark as picked up');
+        logger.error('[UnifiedDriverDashboard] Failed to mark as picked up', error);
+        Toast.error('Failed to mark as picked up. Please try again.');
         return;
       }
 
       Toast.success('Marked as picked up!');
       haptic('success');
       loadDeliveries();
+    } catch (error) {
+      logger.error('[UnifiedDriverDashboard] Exception marking pickup', error);
+      Toast.error('An error occurred. Please try again.');
     } finally {
       setActionLoading(null);
     }
@@ -253,17 +276,23 @@ export function UnifiedDriverDashboard({ mode: initialMode = 'freelance' }: Unif
       const { error } = await assignmentService.markOrderDelivered(showPhotoCapture, photoUrl);
 
       if (error) {
-        Toast.error('Failed to complete delivery');
+        logger.error('[UnifiedDriverDashboard] Failed to complete delivery', error);
+        Toast.error('Failed to complete delivery. Please try again.');
         return;
+      }
+
+      const hasMoreDeliveries = activeDeliveries.length > 1;
+      if (!hasMoreDeliveries && user?.id) {
+        await driverService.updateDriverStatus(user.id, 'online');
       }
 
       Toast.success('Delivery completed!');
       haptic('success');
       setShowPhotoCapture(null);
-      loadDeliveries();
-      loadTodayStats();
+      await Promise.all([loadDeliveries(), loadTodayStats(), loadPerformanceStats()]);
     } catch (error) {
       logger.error('[UnifiedDriverDashboard] Exception completing delivery', error);
+      Toast.error('An error occurred. Please try again.');
     }
   };
 
@@ -275,10 +304,37 @@ export function UnifiedDriverDashboard({ mode: initialMode = 'freelance' }: Unif
 
   const handleLocationUpdate = async (lat: number, lng: number) => {
     setDriverLocation({ lat, lng });
-    if (user?.id) {
-      await driverService.updateDriverStatus(user.id, 'online', lat, lng);
+    if (user?.id && isOnline) {
+      await driverService.updateDriverStatus(
+        user.id,
+        activeDeliveries.length > 0 ? 'busy' : 'online',
+        { latitude: lat, longitude: lng }
+      );
     }
   };
+
+  useEffect(() => {
+    if (!isOnline || !user?.id) return;
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        handleLocationUpdate(latitude, longitude);
+      },
+      (error) => {
+        logger.error('[UnifiedDriverDashboard] Location tracking error', error);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 30000,
+        timeout: 27000
+      }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, [isOnline, user?.id, activeDeliveries.length]);
 
   const activeDeliveries = deliveries.filter((d) =>
     ['assigned', 'accepted', 'picked_up'].includes(d.status)
@@ -296,6 +352,10 @@ export function UnifiedDriverDashboard({ mode: initialMode = 'freelance' }: Unif
       orderNumber: d.order.order_number,
       status: d.status
     }));
+
+  if (!profileReady) {
+    return <DriverProfileCheck onProfileReady={() => setProfileReady(true)} />;
+  }
 
   if (loading) {
     return (
@@ -416,6 +476,21 @@ export function UnifiedDriverDashboard({ mode: initialMode = 'freelance' }: Unif
               : '🏢 מצב שותף: משלוחים רק מהעסק המחובר אליו'}
           </div>
         </div>
+
+        {/* Warning for collab mode without business */}
+        {mode === 'collab' && !profile?.business_id && (
+          <div style={{
+            padding: '12px 16px',
+            background: 'rgba(251, 191, 36, 0.2)',
+            border: '1px solid rgba(251, 191, 36, 0.5)',
+            borderRadius: '12px',
+            marginBottom: '16px'
+          }}>
+            <div style={{ fontSize: '13px', color: '#fff', lineHeight: '1.5' }}>
+              ⚠️ אתה לא משויך לעסק. עבור למצב פרילנס או פנה למנהל לשיוך לעסק
+            </div>
+          </div>
+        )}
 
         {/* Online Toggle */}
         <div style={{

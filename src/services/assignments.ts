@@ -43,10 +43,11 @@ export interface AssignmentWithOrder extends Assignment {
  * Get active assignments for a driver
  */
 export async function getDriverActiveAssignments(
-  driverId: string
+  driverId: string,
+  businessId?: string | null
 ): Promise<{ data: AssignmentWithOrder[]; error: Error | null }> {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('order_assignments')
       .select(`
         *,
@@ -61,9 +62,17 @@ export async function getDriverActiveAssignments(
         )
       `)
       .eq('driver_id', driverId)
-      .in('status', ['assigned', 'accepted', 'picked_up'])
+      .in('status', ['assigned', 'accepted', 'picked_up']);
+
+    if (businessId) {
+      query = query.eq('business_id', businessId);
+    }
+
+    query = query
       .order('priority', { ascending: false })
       .order('assigned_at', { ascending: true });
+
+    const { data, error } = await query;
 
     if (error) {
       logger.error('[AssignmentService] Failed to get active assignments', error);
