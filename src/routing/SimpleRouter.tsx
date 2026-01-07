@@ -32,6 +32,7 @@ const Notifications = React.lazy(() => import('../pages/Notifications').then(m =
 const MyStats = React.lazy(() => import('../pages/MyStats').then(m => ({ default: m.MyStats })));
 const Channels = React.lazy(() => import('../pages/Channels').then(m => ({ default: m.Channels })));
 const MyDeliveries = React.lazy(() => import('../pages/MyDeliveries').then(m => ({ default: m.MyDeliveries })));
+const DriverHome = React.lazy(() => import('../pages/driver/DriverHome').then(m => ({ default: m.DriverHome })));
 const CatalogPage = React.lazy(() => import('../store/CatalogPage').then(m => ({ default: m.CatalogPage })));
 const SearchPage = React.lazy(() => import('../store/SearchPage').then(m => ({ default: m.SearchPage })));
 const CartPage = React.lazy(() => import('../store/CartPage').then(m => ({ default: m.CartPage })));
@@ -90,6 +91,7 @@ export function SimpleRouter() {
   const isAuthenticated = appServices?.isAuthenticated ?? false;
   const userRole = appServices?.userRole ?? 'user';
   const dataStore = appServices?.dataStore ?? null;
+  const userId = appServices?.user?.id ?? null;
   const { authenticateWithEthereum, authenticateWithSolana, authenticateWithTon, authenticate: authenticateWithTelegram } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -196,9 +198,11 @@ export function SimpleRouter() {
       {/* Driver routes */}
       {isDriverRole && (
         <>
+          <Route path="/driver/home" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverHome /></Suspense>} />
           <Route path="/driver/deliveries" element={<Suspense fallback={<PageLoadingSkeleton />}><MyDeliveries dataStore={dataStore} /></Suspense>} />
-          <Route path="/driver/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><Drivers role="driver" userId={userId} /></Suspense>} />
-          <Route path="/driver/earnings" element={<Suspense fallback={<PageLoadingSkeleton />}><Drivers role="driver" userId={userId} /></Suspense>} />
+          <Route path="/driver/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverHome /></Suspense>} />
+          <Route path="/driver/earnings" element={<Suspense fallback={<PageLoadingSkeleton />}><MyStats /></Suspense>} />
+          <Route path="/driver/stats" element={<Suspense fallback={<PageLoadingSkeleton />}><MyStats /></Suspense>} />
           <Route path="/driver/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
           <Route path="/driver/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
           <Route path="/driver/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />

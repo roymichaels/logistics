@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { tokens } from '../../../styles/tokens';
 import { Toast } from '../../../components/Toast';
 import { logger } from '../../../lib/logger';
-import { getUnifiedDataStore } from '../../../lib/storage/UnifiedDataStore';
+import { driverService } from '../../../services/driver';
+import { useAuth } from '../../../context/AuthContext';
 
 interface BecomeDriverModalProps {
   onClose: () => void;
@@ -31,6 +32,7 @@ const AVAILABILITY_OPTIONS = [
 ];
 
 export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState<DriverRegistrationForm>({
     vehicleType: '',
     licenseNumber: '',
@@ -38,6 +40,7 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
     availability: '',
     notes: ''
   });
+  const [vehiclePlate, setVehiclePlate] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const handleInputChange = (field: keyof DriverRegistrationForm, value: string) => {
@@ -50,6 +53,10 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
   const validateForm = (): boolean => {
     if (!formData.vehicleType) {
       Toast.error('נא לבחור סוג רכב');
+      return false;
+    }
+    if (!vehiclePlate.trim()) {
+      Toast.error('נא להזין מספר רכב');
       return false;
     }
     if (!formData.licenseNumber.trim()) {
@@ -72,34 +79,32 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
       return;
     }
 
+    if (!user?.id) {
+      Toast.error('משתמש לא מחובר');
+      return;
+    }
+
     try {
       setSubmitting(true);
 
-      const store = getUnifiedDataStore();
-      const currentUserId = localStorage.getItem('currentUserId') || `user_${Date.now()}`;
+      logger.info('🔄 Submitting driver application for user:', user.id);
 
-      logger.info('🔄 Submitting driver application for user:', currentUserId);
-
-      const applicationData = {
+      const { data, error } = await driverService.submitDriverApplication(user.id, {
         vehicle_type: formData.vehicleType,
+        vehicle_plate: vehiclePlate,
         license_number: formData.licenseNumber,
         phone: formData.phone,
         availability: formData.availability,
-        notes: formData.notes
-      };
+        notes: formData.notes || undefined
+      });
 
-      const newApplication = {
-        id: `app_${Date.now()}`,
-        user_id: currentUserId,
-        application_data: applicationData,
-        status: 'pending',
-        submitted_at: new Date().toISOString()
-      };
+      if (error) {
+        logger.error('Failed to submit driver application:', error);
+        Toast.error('שגיאה בשליחת הבקשה');
+        return;
+      }
 
-      const existingApps = await store.get<any[]>('driver_applications') || [];
-      await store.set('driver_applications', [...existingApps, newApplication]);
-
-      logger.info('✅ Driver application created:', newApplication);
+      logger.info('✅ Driver application submitted successfully', data);
 
       Toast.success('הבקשה נשלחה בהצלחה! נציג יצור איתך קשר בקרוב');
 
@@ -297,6 +302,45 @@ export function BecomeDriverModal({ onClose, onSuccess }: BecomeDriverModalProps
                   );
                 })}
               </div>
+            </div>
+
+            {/* Vehicle Plate */}
+            <div>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: tokens.colors.text
+                }}
+              >
+                מספר רכב <span style={{ color: '#ff6b8a' }}>*</span>
+              </label>
+              <input
+                type="text"
+                value={vehiclePlate}
+                onChange={(e) => setVehiclePlate(e.target.value)}
+                placeholder="הזן מספר רכב"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  background: tokens.colors.bg,
+                  border: `1px solid ${tokens.colors.background.cardBorder}`,
+                  borderRadius: '12px',
+                  color: tokens.colors.text,
+                  fontSize: '15px',
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  transition: 'border-color 0.2s ease'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = tokens.colors.brand.primary;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = tokens.colors.background.cardBorder;
+                }}
+              />
             </div>
 
             {/* License Number */}
