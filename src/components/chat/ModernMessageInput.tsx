@@ -27,10 +27,10 @@ export function ModernMessageInput({
   onTyping
 }: ModernMessageInputProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
 
     if (onTyping) {
@@ -133,7 +133,7 @@ export function ModernMessageInput({
       <div
         style={{
           display: 'flex',
-          gap: '8px',
+          gap: '10px',
           alignItems: 'flex-end'
         }}
       >
@@ -141,14 +141,14 @@ export function ModernMessageInput({
           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
           style={{
             padding: '10px',
-            background: 'transparent',
-            border: `1px solid ${tokens.colors.background.cardBorder}`,
+            background: showEmojiPicker ? `${tokens.colors.brand.primary}20` : 'transparent',
+            border: 'none',
             borderRadius: '50%',
-            color: tokens.colors.text,
-            fontSize: '20px',
+            color: tokens.colors.text.primary,
+            fontSize: '22px',
             cursor: 'pointer',
-            width: '42px',
-            height: '42px',
+            width: '44px',
+            height: '44px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -156,45 +156,84 @@ export function ModernMessageInput({
             flexShrink: 0
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = `${tokens.colors.brand.primary}15`;
-            e.currentTarget.style.borderColor = tokens.colors.brand.primary;
+            e.currentTarget.style.background = `${tokens.colors.brand.primary}25`;
+            e.currentTarget.style.transform = 'scale(1.05)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.borderColor = tokens.colors.background.cardBorder;
+            e.currentTarget.style.background = showEmojiPicker ? `${tokens.colors.brand.primary}20` : 'transparent';
+            e.currentTarget.style.transform = 'scale(1)';
           }}
           title="הוסף אימוג'י"
         >
           😊
         </button>
 
-        <input
+        <button
+          style={{
+            padding: '10px',
+            background: 'transparent',
+            border: 'none',
+            borderRadius: '50%',
+            color: tokens.colors.text.primary,
+            fontSize: '20px',
+            cursor: 'pointer',
+            width: '44px',
+            height: '44px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s ease',
+            flexShrink: 0
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = `${tokens.colors.brand.primary}25`;
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+          title="צרף קובץ"
+        >
+          📎
+        </button>
+
+        <textarea
           ref={inputRef}
-          type="text"
           placeholder={placeholder}
           value={value}
           onChange={handleChange}
           onKeyPress={handleKeyPress}
           disabled={disabled}
+          rows={1}
           style={{
             flex: 1,
             padding: '12px 16px',
-            border: `1px solid ${tokens.colors.background.cardBorder}`,
+            border: `1px solid ${tokens.colors.border.default}`,
             borderRadius: '24px',
-            background: tokens.colors.panel,
-            color: tokens.colors.text,
+            background: tokens.colors.background.secondary,
+            color: tokens.colors.text.primary,
             fontSize: '15px',
             outline: 'none',
-            transition: 'border-color 0.2s ease',
-            minHeight: '42px',
+            transition: 'all 0.2s ease',
+            minHeight: '44px',
             maxHeight: '120px',
-            resize: 'none'
+            resize: 'none',
+            fontFamily: 'inherit',
+            lineHeight: '1.5',
+            overflowY: 'auto'
           }}
           onFocus={(e) => {
             e.currentTarget.style.borderColor = tokens.colors.brand.primary;
+            e.currentTarget.style.boxShadow = `0 0 0 3px ${tokens.colors.brand.primary}20`;
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = tokens.colors.background.cardBorder;
+            e.currentTarget.style.borderColor = tokens.colors.border.default;
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+          onInput={(e: any) => {
+            e.target.style.height = 'auto';
+            e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
           }}
         />
 
@@ -205,41 +244,43 @@ export function ModernMessageInput({
             padding: '0',
             background:
               value.trim() && !disabled
-                ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
-                : tokens.colors.background.cardBorder,
-            color: '#fff',
+                ? 'linear-gradient(135deg, #0084FF 0%, #0073E6 100%)'
+                : tokens.colors.background.secondary,
+            color: value.trim() && !disabled ? '#fff' : tokens.colors.text.secondary,
             border: 'none',
             borderRadius: '50%',
-            fontSize: '20px',
+            fontSize: '22px',
+            fontWeight: '600',
             cursor: value.trim() && !disabled ? 'pointer' : 'not-allowed',
-            width: '42px',
-            height: '42px',
+            width: '44px',
+            height: '44px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow:
               value.trim() && !disabled
-                ? '0 4px 12px rgba(29, 155, 240, 0.4)'
+                ? '0 4px 16px rgba(0, 132, 255, 0.4)'
                 : 'none',
-            transition: 'all 0.3s ease',
-            flexShrink: 0
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            flexShrink: 0,
+            opacity: value.trim() && !disabled ? 1 : 0.5
           }}
           onMouseEnter={(e) => {
             if (value.trim() && !disabled) {
-              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.transform = 'scale(1.1)';
               e.currentTarget.style.boxShadow =
-                '0 6px 16px rgba(29, 155, 240, 0.6)';
+                '0 6px 20px rgba(0, 132, 255, 0.6)';
             }
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'scale(1)';
             if (value.trim() && !disabled) {
               e.currentTarget.style.boxShadow =
-                '0 4px 12px rgba(29, 155, 240, 0.4)';
+                '0 4px 16px rgba(0, 132, 255, 0.4)';
             }
           }}
         >
-          ↵
+          ➤
         </button>
       </div>
     </div>

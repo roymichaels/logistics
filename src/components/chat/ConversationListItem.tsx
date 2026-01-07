@@ -33,21 +33,21 @@ export function ConversationListItem({
     <div
       onClick={onClick}
       style={{
-        padding: '12px 16px',
+        padding: '14px 16px',
         cursor: 'pointer',
-        borderBottom: `1px solid ${tokens.colors.background.cardBorder}`,
+        borderBottom: `1px solid ${tokens.colors.border.muted}`,
         background: isSelected
-          ? `${tokens.colors.brand.primary}15`
+          ? `${tokens.colors.brand.primary}18`
           : 'transparent',
-        transition: 'all 0.2s ease',
+        transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
         display: 'flex',
         alignItems: 'center',
-        gap: '12px',
+        gap: '14px',
         position: 'relative'
       }}
       onMouseEnter={(e) => {
         if (!isSelected) {
-          e.currentTarget.style.background = `${tokens.colors.brand.primary}08`;
+          e.currentTarget.style.background = `${tokens.colors.brand.primary}10`;
         }
       }}
       onMouseLeave={(e) => {
@@ -59,21 +59,25 @@ export function ConversationListItem({
       <div style={{ position: 'relative', flexShrink: 0 }}>
         <div
           style={{
-            width: '52px',
-            height: '52px',
+            width: '56px',
+            height: '56px',
             borderRadius: '50%',
             background: avatar
               ? `url(${avatar}) center/cover`
-              : 'linear-gradient(135deg, rgba(29, 155, 240, 0.8), rgba(123, 63, 242, 0.8))',
+              : 'linear-gradient(135deg, #1D9BF0, #7B3FF2)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '20px',
+            fontSize: '22px',
             fontWeight: '700',
             color: '#fff',
-            border: `2px solid ${
-              hasUnread ? tokens.colors.brand.primary : 'transparent'
-            }`
+            border: hasUnread
+              ? `3px solid ${tokens.colors.brand.primary}`
+              : '2px solid rgba(255, 255, 255, 0.05)',
+            boxShadow: hasUnread
+              ? `0 0 0 4px ${tokens.colors.brand.primary}20`
+              : '0 2px 8px rgba(0, 0, 0, 0.2)',
+            transition: 'all 0.2s ease'
           }}
         >
           {!avatar && userInitial}
@@ -82,16 +86,36 @@ export function ConversationListItem({
           <div
             style={{
               position: 'absolute',
-              bottom: '2px',
-              right: '2px',
-              width: '14px',
-              height: '14px',
+              bottom: '0',
+              right: '0',
+              width: '16px',
+              height: '16px',
               borderRadius: '50%',
               backgroundColor: '#34c759',
               border: `3px solid ${tokens.colors.background.card}`,
-              boxShadow: '0 2px 4px rgba(52, 199, 89, 0.4)'
+              boxShadow: '0 2px 6px rgba(52, 199, 89, 0.5)'
             }}
           />
+        )}
+        {isTyping && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '-2px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: tokens.colors.brand.primary,
+              borderRadius: '12px',
+              padding: '2px 6px',
+              fontSize: '10px',
+              fontWeight: '600',
+              color: '#fff',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 2px 6px rgba(0, 132, 255, 0.4)'
+            }}
+          >
+            ...
+          </div>
         )}
       </div>
 
@@ -101,7 +125,7 @@ export function ConversationListItem({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '4px'
+            marginBottom: '6px'
           }}
         >
           <h3
@@ -109,10 +133,11 @@ export function ConversationListItem({
               margin: 0,
               fontSize: '16px',
               fontWeight: hasUnread ? '700' : '600',
-              color: tokens.colors.text,
+              color: tokens.colors.text.primary,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              letterSpacing: '0.2px'
             }}
           >
             {name}
@@ -123,10 +148,10 @@ export function ConversationListItem({
                 fontSize: '12px',
                 color: hasUnread
                   ? tokens.colors.brand.primary
-                  : tokens.colors.subtle,
+                  : tokens.colors.text.secondary,
                 flexShrink: 0,
-                marginLeft: '8px',
-                fontWeight: hasUnread ? '600' : '400'
+                marginLeft: '10px',
+                fontWeight: hasUnread ? '600' : '500'
               }}
             >
               {formatTime(lastMessageTime)}
@@ -138,7 +163,8 @@ export function ConversationListItem({
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: 'center',
+            gap: '8px'
           }}
         >
           <p
@@ -148,27 +174,28 @@ export function ConversationListItem({
               color: isTyping
                 ? tokens.colors.brand.primary
                 : hasUnread
-                ? tokens.colors.text
-                : tokens.colors.subtle,
+                ? tokens.colors.text.primary
+                : tokens.colors.text.secondary,
               fontWeight: hasUnread ? '500' : '400',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
               flex: 1,
-              fontStyle: isTyping ? 'italic' : 'normal'
+              fontStyle: isTyping ? 'italic' : 'normal',
+              lineHeight: '1.4'
             }}
           >
-            {isTyping ? 'מקליד...' : lastMessage || 'אין הודעות'}
+            {isTyping ? '⌨️ מקליד...' : lastMessage || 'אין הודעות'}
           </p>
 
           {hasUnread && (
             <div
               style={{
-                minWidth: '20px',
-                height: '20px',
-                padding: '0 6px',
-                borderRadius: '10px',
-                background: tokens.colors.brand.primary,
+                minWidth: '22px',
+                height: '22px',
+                padding: '0 7px',
+                borderRadius: '11px',
+                background: 'linear-gradient(135deg, #0084FF 0%, #0073E6 100%)',
                 color: '#fff',
                 fontSize: '12px',
                 fontWeight: '700',
@@ -176,7 +203,9 @@ export function ConversationListItem({
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginLeft: '8px',
-                flexShrink: 0
+                flexShrink: 0,
+                boxShadow: '0 2px 8px rgba(0, 132, 255, 0.4)',
+                animation: hasUnread ? 'pulse-badge 2s ease-in-out infinite' : 'none'
               }}
             >
               {unreadCount > 99 ? '99+' : unreadCount}
@@ -184,6 +213,19 @@ export function ConversationListItem({
           )}
         </div>
       </div>
+
+      <style>{`
+        @keyframes pulse-badge {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.05);
+            opacity: 0.95;
+          }
+        }
+      `}</style>
     </div>
   );
 }

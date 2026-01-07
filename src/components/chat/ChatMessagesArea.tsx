@@ -44,14 +44,15 @@ export function ChatMessagesArea({
           flexDirection: 'column',
           gap: '16px',
           padding: '40px',
-          background: 'linear-gradient(135deg, #1a0033 0%, #0a001a 100%)'
+          background: tokens.colors.background.primary
         }}
       >
-        <div style={{ fontSize: '64px' }}>💬</div>
+        <div style={{ fontSize: '72px', opacity: 0.5 }}>💬</div>
         <div
           style={{
             fontSize: '18px',
-            color: tokens.colors.subtle,
+            fontWeight: '600',
+            color: tokens.colors.text.primary,
             textAlign: 'center'
           }}
         >
@@ -60,8 +61,10 @@ export function ChatMessagesArea({
         <div
           style={{
             fontSize: '14px',
-            color: tokens.colors.subtle,
-            textAlign: 'center'
+            color: tokens.colors.text.secondary,
+            textAlign: 'center',
+            maxWidth: '300px',
+            lineHeight: '1.5'
           }}
         >
           התחל שיחה על ידי שליחת הודעה
@@ -77,7 +80,7 @@ export function ChatMessagesArea({
         flex: 1,
         overflowY: 'auto',
         padding: '20px',
-        background: 'linear-gradient(135deg, #1a0033 0%, #0a001a 100%)',
+        background: tokens.colors.background.primary,
         display: 'flex',
         flexDirection: 'column'
       }}

@@ -25,61 +25,68 @@ export function ModernChatHeader({
   return (
     <div
       style={{
-        padding: '16px',
-        borderBottom: `1px solid ${tokens.colors.background.cardBorder}`,
+        padding: '14px 16px',
+        borderBottom: `1px solid ${tokens.colors.border.default}`,
         background: tokens.colors.background.card,
-        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.3)',
+        boxShadow: '0 2px 16px rgba(0, 0, 0, 0.4)',
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
         position: 'sticky',
         top: 0,
-        zIndex: 10
+        zIndex: 10,
+        backdropFilter: 'blur(10px)'
       }}
     >
       {onBack && (
         <button
           onClick={onBack}
           style={{
-            padding: '8px',
+            padding: '10px',
             background: 'transparent',
             border: 'none',
-            color: tokens.colors.text,
-            fontSize: '24px',
+            color: tokens.colors.text.primary,
+            fontSize: '20px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: '8px',
-            transition: 'background 0.2s ease'
+            borderRadius: '50%',
+            transition: 'all 0.2s ease',
+            width: '40px',
+            height: '40px'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = `${tokens.colors.brand.primary}15`;
+            e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
+            e.currentTarget.style.transform = 'scale(1.05)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.transform = 'scale(1)';
           }}
+          title="חזור"
         >
-          →
+          ←
         </button>
       )}
 
       <div style={{ position: 'relative', flexShrink: 0 }}>
         <div
           style={{
-            width: '44px',
-            height: '44px',
+            width: '48px',
+            height: '48px',
             borderRadius: '50%',
             background: avatar
               ? `url(${avatar}) center/cover`
-              : 'linear-gradient(135deg, rgba(29, 155, 240, 0.8), rgba(123, 63, 242, 0.8))',
+              : 'linear-gradient(135deg, #1D9BF0, #7B3FF2)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '18px',
+            fontSize: '20px',
             fontWeight: '700',
             color: '#fff',
-            border: `2px solid ${tokens.colors.background.cardBorder}`
+            border: '2px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
           }}
         >
           {!avatar && userInitial}
@@ -90,12 +97,12 @@ export function ModernChatHeader({
               position: 'absolute',
               bottom: '0',
               right: '0',
-              width: '12px',
-              height: '12px',
+              width: '14px',
+              height: '14px',
               borderRadius: '50%',
               backgroundColor: '#34c759',
-              border: `2px solid ${tokens.colors.background.card}`,
-              boxShadow: '0 2px 4px rgba(52, 199, 89, 0.4)'
+              border: `3px solid ${tokens.colors.background.card}`,
+              boxShadow: '0 2px 6px rgba(52, 199, 89, 0.5)'
             }}
           />
         )}
@@ -107,27 +114,32 @@ export function ModernChatHeader({
             margin: 0,
             fontSize: '17px',
             fontWeight: '700',
-            color: tokens.colors.text,
+            color: tokens.colors.text.primary,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            letterSpacing: '0.3px'
           }}
         >
           {name}
         </h2>
         <p
           style={{
-            margin: '2px 0 0 0',
+            margin: '4px 0 0 0',
             fontSize: '13px',
             color: isTyping
               ? tokens.colors.brand.primary
               : isOnline
               ? '#34c759'
-              : tokens.colors.subtle,
+              : tokens.colors.text.secondary,
             fontWeight: '500',
-            fontStyle: isTyping ? 'italic' : 'normal'
+            fontStyle: isTyping ? 'italic' : 'normal',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px'
           }}
         >
+          {isTyping && <span style={{ fontSize: '14px' }}>⌨️</span>}
           {isTyping
             ? 'מקליד...'
             : memberCount
@@ -138,33 +150,126 @@ export function ModernChatHeader({
         </p>
       </div>
 
-      {onInfo && (
+      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
         <button
-          onClick={onInfo}
           style={{
-            padding: '8px',
+            padding: '10px',
             background: 'transparent',
             border: 'none',
-            color: tokens.colors.text,
+            color: tokens.colors.text.primary,
             fontSize: '20px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: '8px',
-            transition: 'background 0.2s ease'
+            borderRadius: '50%',
+            transition: 'all 0.2s ease',
+            width: '40px',
+            height: '40px'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = `${tokens.colors.brand.primary}15`;
+            e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
+            e.currentTarget.style.transform = 'scale(1.05)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.transform = 'scale(1)';
           }}
-          title="מידע"
+          title="חיפוש"
         >
-          ⓘ
+          🔍
         </button>
-      )}
+
+        <button
+          style={{
+            padding: '10px',
+            background: 'transparent',
+            border: 'none',
+            color: tokens.colors.text.primary,
+            fontSize: '20px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '50%',
+            transition: 'all 0.2s ease',
+            width: '40px',
+            height: '40px'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+          title="שיחת קול"
+        >
+          📞
+        </button>
+
+        <button
+          style={{
+            padding: '10px',
+            background: 'transparent',
+            border: 'none',
+            color: tokens.colors.text.primary,
+            fontSize: '20px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '50%',
+            transition: 'all 0.2s ease',
+            width: '40px',
+            height: '40px'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+          title="שיחת וידאו"
+        >
+          📹
+        </button>
+
+        {onInfo && (
+          <button
+            onClick={onInfo}
+            style={{
+              padding: '10px',
+              background: 'transparent',
+              border: 'none',
+              color: tokens.colors.text.primary,
+              fontSize: '18px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '50%',
+              transition: 'all 0.2s ease',
+              width: '40px',
+              height: '40px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
+              e.currentTarget.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+            title="מידע"
+          >
+            ⋮
+          </button>
+        )}
+      </div>
     </div>
   );
 }

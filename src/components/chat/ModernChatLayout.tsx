@@ -49,7 +49,7 @@ export function ModernChatLayout({
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          background: 'linear-gradient(135deg, #1a0033 0%, #0a001a 100%)',
+          background: tokens.colors.background.primary,
           position: 'relative'
         }}
         className="chat-main"
