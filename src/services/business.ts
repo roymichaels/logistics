@@ -3,49 +3,85 @@ import { supabase } from '../lib/supabase';
 
 export interface BusinessRecord {
   id: string;
+  owner_id: string;
   name: string;
-  name_hebrew: string;
+  name_hebrew?: string;
+  slug: string;
+  description?: string;
   business_type: string;
-  order_number_prefix: string;
-  order_number_sequence: number;
-  default_currency: 'ILS' | 'USD' | 'EUR';
+  status: 'active' | 'inactive' | 'suspended';
+  logo_url?: string;
   primary_color: string;
   secondary_color: string;
-  active: boolean;
-  infrastructure_id: string;
+  order_number_prefix?: string;
+  default_currency: string;
+  settings: Record<string, any>;
   created_at: string;
   updated_at: string;
-  [key: string]: unknown;
-}
-
-export interface BusinessContextSummary {
-  business_id: string;
-  business_name: string;
-  role_key: string;
-  is_primary: boolean;
-  ownership_percentage: number;
 }
 
 export interface CreateBusinessInput {
   name: string;
   nameHebrew?: string;
+  description?: string;
   businessType?: string;
   orderNumberPrefix?: string;
   defaultCurrency?: 'ILS' | 'USD' | 'EUR';
   primaryColor?: string;
   secondaryColor?: string;
-  infrastructureId?: string;
-  ownerUserId?: string;
-  ownerRoleKey?: string;
 }
 
+/**
+ * Generate a URL-safe slug from a business name
+ */
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .substring(0, 50) + '-' + Math.random().toString(36).substring(2, 9);
+}
+
+/**
+ * Get businesses owned by the current user
+ */
+export async function getOwnedBusinesses(userId?: string): Promise<BusinessRecord[]> {
+  logger.debug('[BusinessService] Getting owned businesses from Supabase');
+
+  if (!userId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id;
+  }
+
+  if (!userId) {
+    logger.warn('[BusinessService] No user ID available');
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('*')
+    .eq('owner_id', userId)
+    .order('name', { ascending: true });
+
+  if (error) {
+    logger.error('[BusinessService] Failed to get owned businesses', error);
+    throw error;
+  }
+
+  return (data || []) as BusinessRecord[];
+}
+
+/**
+ * List all businesses (for browsing as customer)
+ */
 export async function listBusinesses(options: { activeOnly?: boolean } = {}): Promise<BusinessRecord[]> {
   logger.debug('[BusinessService] Listing businesses from Supabase');
 
   let query = supabase.from('businesses').select('*');
 
   if (options.activeOnly) {
-    query = query.eq('active', true);
+    query = query.eq('status', 'active');
   }
 
   const { data, error } = await query.order('name', { ascending: true });
@@ -58,6 +94,9 @@ export async function listBusinesses(options: { activeOnly?: boolean } = {}): Pr
   return (data || []) as BusinessRecord[];
 }
 
+/**
+ * Get a single business by ID
+ */
 export async function getBusiness(id: string): Promise<BusinessRecord | null> {
   logger.debug(`[BusinessService] Getting business ${id} from Supabase`);
 
@@ -75,76 +114,33 @@ export async function getBusiness(id: string): Promise<BusinessRecord | null> {
   return data as BusinessRecord | null;
 }
 
-export async function fetchBusinessContexts(userId?: string): Promise<BusinessContextSummary[]> {
-  logger.debug('[BusinessService] Fetching business contexts from Supabase');
-
-  if (!userId) {
-    const { data: { user } } = await supabase.auth.getUser();
-    userId = user?.id;
-  }
-
-  if (!userId) {
-    logger.warn('[BusinessService] No user ID available');
-    return [];
-  }
-
-  const { data, error } = await supabase
-    .from('business_memberships')
-    .select(`
-      id,
-      business_id,
-      user_id,
-      role_key,
-      is_primary,
-      ownership_percentage,
-      businesses:business_id (
-        id,
-        name
-      )
-    `)
-    .eq('user_id', userId)
-    .eq('active', true);
-
-  if (error) {
-    logger.error('[BusinessService] Failed to fetch business contexts', error);
-    throw error;
-  }
-
-  return (data || [])
-    .map((row: any) => ({
-      business_id: row.business_id,
-      business_name: row.businesses?.name || 'Unknown Business',
-      role_key: row.role_key || 'user',
-      is_primary: Boolean(row.is_primary),
-      ownership_percentage: Number(row.ownership_percentage ?? 0),
-    }))
-    .sort((a: BusinessContextSummary, b: BusinessContextSummary) => {
-      if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
-      return a.business_name.localeCompare(b.business_name);
-    });
-}
-
+/**
+ * Create a new business owned by the current user
+ */
 export async function createBusiness(input: CreateBusinessInput): Promise<BusinessRecord> {
   logger.info('[BusinessService] Creating business in Supabase');
 
   const { data: { user } } = await supabase.auth.getUser();
-  const userId = input.ownerUserId || user?.id;
 
-  if (!userId) {
-    throw new Error('User ID not found - cannot create business');
+  if (!user?.id) {
+    throw new Error('User must be authenticated to create a business');
   }
 
+  const slug = generateSlug(input.name);
+
   const newBusiness = {
+    owner_id: user.id,
     name: input.name,
-    name_hebrew: input.nameHebrew || input.name,
+    name_hebrew: input.nameHebrew,
+    slug,
+    description: input.description,
     business_type: input.businessType || 'retail',
+    status: 'active' as const,
     order_number_prefix: input.orderNumberPrefix || 'ORD',
-    order_number_sequence: 1,
     default_currency: input.defaultCurrency || 'USD',
     primary_color: input.primaryColor || '#1e40af',
     secondary_color: input.secondaryColor || '#3b82f6',
-    active: true,
-    infrastructure_id: input.infrastructureId || null,
+    settings: {},
   };
 
   const { data: business, error: businessError } = await supabase
@@ -158,32 +154,73 @@ export async function createBusiness(input: CreateBusinessInput): Promise<Busine
     throw businessError;
   }
 
-  const membership = {
-    business_id: business.id,
-    user_id: userId,
-    role_key: input.ownerRoleKey || 'business_owner',
-    is_primary: true,
-    ownership_percentage: 100,
-    active: true,
-  };
+  logger.info('[BusinessService] Business created successfully', { businessId: business.id, name: business.name });
 
-  const { error: membershipError } = await supabase
-    .from('business_memberships')
-    .insert(membership);
+  // Update user profile role to business_owner if not already
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ role: 'business_owner' })
+    .eq('id', user.id)
+    .eq('role', 'customer');
 
-  if (membershipError) {
-    logger.error('[BusinessService] Failed to create membership', membershipError);
-    await supabase.from('businesses').delete().eq('id', business.id);
-    throw membershipError;
+  if (profileError) {
+    logger.warn('[BusinessService] Failed to update user role', profileError);
   }
 
-  logger.info('[BusinessService] Business created successfully', { businessId: business.id });
   return business as BusinessRecord;
 }
 
+/**
+ * Update a business (owner only)
+ */
+export async function updateBusiness(
+  id: string,
+  updates: Partial<Omit<BusinessRecord, 'id' | 'owner_id' | 'created_at' | 'updated_at'>>
+): Promise<BusinessRecord> {
+  logger.info('[BusinessService] Updating business in Supabase', { businessId: id });
+
+  const { data, error } = await supabase
+    .from('businesses')
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    logger.error('[BusinessService] Failed to update business', error);
+    throw error;
+  }
+
+  return data as BusinessRecord;
+}
+
+/**
+ * Delete a business (owner only)
+ */
+export async function deleteBusiness(id: string): Promise<void> {
+  logger.info('[BusinessService] Deleting business from Supabase', { businessId: id });
+
+  const { error } = await supabase
+    .from('businesses')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    logger.error('[BusinessService] Failed to delete business', error);
+    throw error;
+  }
+
+  logger.info('[BusinessService] Business deleted successfully', { businessId: id });
+}
+
+/**
+ * Switch the active business context (stored in localStorage)
+ */
 export async function switchBusinessContext(
-  businessId: string | null,
-  _options: any = {}
+  businessId: string | null
 ): Promise<void> {
   logger.info(`[BusinessService] Switching business context to: ${businessId}`);
 
@@ -194,40 +231,37 @@ export async function switchBusinessContext(
   }
 }
 
-export async function updateBusiness(
-  id: string,
-  updates: Partial<Omit<BusinessRecord, 'id' | 'created_at' | 'updated_at'>>
-): Promise<void> {
-  logger.debug(`[BusinessService] Updating business ${id} in Supabase`);
-
-  const { error } = await supabase
-    .from('businesses')
-    .update({
-      ...updates,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', id);
-
-  if (error) {
-    logger.error('[BusinessService] Failed to update business', error);
-    throw error;
-  }
-
-  logger.info('[BusinessService] Business updated successfully', { businessId: id });
+/**
+ * Get the current business context from localStorage
+ */
+export function getCurrentBusinessId(): string | null {
+  return localStorage.getItem('current-business-id');
 }
 
-export async function deleteBusiness(id: string): Promise<void> {
-  logger.debug(`[BusinessService] Deleting business ${id} from Supabase`);
-
-  const { error } = await supabase
-    .from('businesses')
-    .update({ active: false, updated_at: new Date().toISOString() })
-    .eq('id', id);
-
-  if (error) {
-    logger.error('[BusinessService] Failed to delete business', error);
-    throw error;
+/**
+ * Check if user is owner of a specific business
+ */
+export async function isBusinessOwner(businessId: string, userId?: string): Promise<boolean> {
+  if (!userId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id;
   }
 
-  logger.info('[BusinessService] Business soft-deleted successfully', { businessId: id });
+  if (!userId) {
+    return false;
+  }
+
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('owner_id')
+    .eq('id', businessId)
+    .eq('owner_id', userId)
+    .maybeSingle();
+
+  if (error) {
+    logger.error('[BusinessService] Failed to check ownership', error);
+    return false;
+  }
+
+  return data !== null;
 }

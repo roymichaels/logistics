@@ -152,27 +152,25 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         }));
         setOwnedBusinesses(formatted);
         logger.info(`✅ Found ${formatted.length} owned business(es) (frontend-only mode)`);
-      } else if (dataStore) {
-        // Query businesses from database
-        const { data: businesses, error: businessError } = await (dataStore as any).supabase
-          .from('businesses')
-          .select('id, name, created_at')
-          .eq('owner_id', user.id)
-          .order('created_at', { ascending: true });
+      } else {
+        // Use business service to fetch owned businesses from Supabase
+        const { getOwnedBusinesses } = await import('../services/business');
+        const businesses = await getOwnedBusinesses(user.id);
 
-        if (businessError) {
-          logger.error('❌ Failed to fetch owned businesses:', businessError);
-          setOwnedBusinesses([]);
-        } else {
-          setOwnedBusinesses(businesses || []);
-          logger.info(`✅ Found ${businesses?.length || 0} owned business(es)`);
-        }
+        const formatted = businesses.map(b => ({
+          id: b.id,
+          name: b.name,
+          created_at: b.created_at
+        }));
+
+        setOwnedBusinesses(formatted);
+        logger.info(`✅ Found ${businesses.length} owned business(es) from Supabase`);
       }
     } catch (err) {
       logger.error('❌ Error fetching owned businesses:', err);
       setOwnedBusinesses([]);
     }
-  }, [user?.id, userRole, dataStore, useSXT]);
+  }, [user?.id, userRole, useSXT]);
 
   const refreshUserRole = useCallback(
     async ({ forceRefresh = true }: { forceRefresh?: boolean } = {}) => {
