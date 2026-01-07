@@ -446,17 +446,24 @@ export async function approveDriverApplication(
       return { data: null, error: fetchError };
     }
 
-    // Create driver profile
-    const { error: profileError } = await createDriverProfile(application.user_id, {
-      vehicle_type: application.vehicle_type,
-      vehicle_plate: application.vehicle_plate,
-      license_number: application.license_number,
-      phone: application.phone
-    });
+    // Check if driver profile already exists
+    const { data: existingProfile } = await getDriverProfile(application.user_id);
 
-    if (profileError) {
-      logger.error('[DriverService] Failed to create driver profile', profileError);
-      return { data: null, error: profileError };
+    if (!existingProfile) {
+      // Create driver profile only if it doesn't exist
+      const { error: profileError } = await createDriverProfile(application.user_id, {
+        vehicle_type: application.vehicle_type,
+        vehicle_plate: application.vehicle_plate,
+        license_number: application.license_number,
+        phone: application.phone
+      });
+
+      if (profileError) {
+        logger.error('[DriverService] Failed to create driver profile', profileError);
+        return { data: null, error: profileError };
+      }
+    } else {
+      logger.info('[DriverService] Driver profile already exists, skipping creation');
     }
 
     // Update application status
