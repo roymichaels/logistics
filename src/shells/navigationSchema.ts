@@ -240,18 +240,10 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
 
 export const DRIVER_SHELL_NAV: NavigationItem[] = [
   {
-    id: 'driver-deliveries',
-    label: 'משלוחים',
-    path: '/driver/deliveries',
-    icon: '🚚',
-    visible: true,
-    requiredRoles: ['driver']
-  },
-  {
-    id: 'driver-dashboard',
-    label: 'לוח בקרה',
-    path: '/driver/dashboard',
-    icon: '📊',
+    id: 'driver-drivers',
+    label: 'נהגים',
+    path: '/driver/drivers',
+    icon: '🚗',
     visible: true,
     requiredRoles: ['driver']
   },

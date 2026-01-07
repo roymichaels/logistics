@@ -61,6 +61,7 @@ const FeatureFlags = React.lazy(() => import('../pages/admin/FeatureFlags').then
 const DriverApplications = React.lazy(() => import('../pages/admin/DriverApplications').then(m => ({ default: m.default })));
 const AdminAnalytics = React.lazy(() => import('../pages/admin/AdminAnalytics').then(m => ({ default: m.AdminAnalytics })));
 const BusinessSettings = React.lazy(() => import('../pages/business/Settings').then(m => ({ default: m.default })));
+const DriversPage = React.lazy(() => import('../pages/unified/DriversPage').then(m => ({ default: m.DriversPage })));
 
 // Role-aware redirect component
 function RoleBasedRedirect() {
@@ -205,11 +206,7 @@ export function SimpleRouter() {
       {/* Driver routes */}
       {isDriverRole && (
         <>
-          <Route path="/driver/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedDriverDashboard /></Suspense>} />
-          <Route path="/driver/freelance" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedDriverDashboard mode="freelance" /></Suspense>} />
-          <Route path="/driver/collab" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedDriverDashboard mode="collab" /></Suspense>} />
-          <Route path="/driver/home" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverHome /></Suspense>} />
-          <Route path="/driver/deliveries" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedDriverDashboard /></Suspense>} />
+          <Route path="/driver/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><DriversPage role="driver" /></Suspense>} />
           <Route path="/driver/earnings" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverStats /></Suspense>} />
           <Route path="/driver/stats" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverStats /></Suspense>} />
           <Route path="/driver/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
@@ -217,6 +214,10 @@ export function SimpleRouter() {
           <Route path="/driver/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/store/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
+          {/* Legacy routes - redirect to new unified page */}
+          <Route path="/driver/dashboard" element={<Navigate to="/driver/drivers" replace />} />
+          <Route path="/driver/deliveries" element={<Navigate to="/driver/drivers" replace />} />
+          <Route path="/driver/home" element={<Navigate to="/driver/drivers" replace />} />
         </>
       )}
 

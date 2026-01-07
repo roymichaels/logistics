@@ -65,8 +65,8 @@ export const ROLE_ROUTING_MAP: Record<UserRole, RoleRouteConfig> = {
   driver: {
     role: 'driver',
     shell: 'DriverShell',
-    homePath: '/driver/deliveries',
-    homePageName: 'Driver Dashboard',
+    homePath: '/driver/drivers',
+    homePageName: 'Drivers',
     description: 'Delivery lifecycle management',
   },
   customer: {

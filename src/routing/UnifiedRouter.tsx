@@ -39,7 +39,7 @@ export const UNIFIED_ROUTES: RouteConfig[] = [
     roles: ['driver'],
     isEntryPoint: true,
     children: [
-      { path: '/driver/deliveries', name: 'Deliveries', roles: ['driver'], isEntryPoint: true },
+      { path: '/driver/drivers', name: 'Drivers', roles: ['driver'], isEntryPoint: true },
       { path: '/driver/earnings', name: 'Earnings', roles: ['driver'] },
       { path: '/driver/profile', name: 'Profile', roles: ['driver'] }
     ]
@@ -104,7 +104,7 @@ export function getEntryPointForRole(role: UserRole | null): string {
     dispatcher: '/business/dispatch',
     sales: '/business/orders',
     customer_service: '/business/orders',
-    driver: '/driver/deliveries',
+    driver: '/driver/drivers',
     customer: '/store/catalog',
     guest: '/store/catalog'
   };
