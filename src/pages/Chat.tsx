@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-
 import { DataStore, GroupChat, User } from '../data/types';
 import { hebrew } from '../lib/i18n';
 import { logger } from '../lib/logger';
@@ -16,6 +15,13 @@ import { haptic } from '../utils/haptic';
 import { getUserIdentifier } from '../utils/userIdentifier';
 import { useAppServices } from '../context/AppServicesContext';
 import { useNavigate } from 'react-router-dom';
+import {
+  ModernChatLayout,
+  ConversationsSidebar,
+  ModernChatHeader,
+  ChatMessagesArea,
+  ModernMessageInput
+} from '../components/chat';
 
 interface ChatProps {
   dataStore?: DataStore;
@@ -346,17 +352,46 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
   }
 
   if (selectedChat) {
+    const isDirectMessage = selectedChat.type === 'direct';
+    const chatName = isDirectMessage
+      ? (selectedChat.otherUser?.name || selectedChat.otherUser?.username || 'משתמש')
+      : selectedChat.name;
+    const chatPartner = isDirectMessage ? {
+      name: chatName,
+      avatar: selectedChat.otherUser?.photo_url,
+      isOnline: selectedChat.otherUser?.online_status === 'online'
+    } : undefined;
+
     return (
-      <ChatView
-        chat={selectedChat}
-        messages={messages}
-        newMessage={newMessage}
-        setNewMessage={setNewMessage}
-        onSendMessage={sendMessage}
-        currentUser={currentUser}
-        haptic={haptic}
-        messagesEndRef={messagesEndRef}
-      />
+      <div style={{
+        background: 'linear-gradient(135deg, #1a0033 0%, #0a001a 100%)',
+        minHeight: '100vh',
+        direction: 'rtl',
+        display: 'flex',
+        flexDirection: 'column',
+        paddingBottom: '80px'
+      }}>
+        <ModernChatHeader
+          name={chatName}
+          avatar={chatPartner?.avatar}
+          isOnline={chatPartner?.isOnline}
+          memberCount={!isDirectMessage ? selectedChat.members?.length : undefined}
+          onBack={() => setSelectedChat(null)}
+        />
+
+        <ChatMessagesArea
+          messages={roomMessages}
+          currentUserId={userId}
+          chatPartner={chatPartner}
+          isGroup={!isDirectMessage}
+        />
+
+        <ModernMessageInput
+          value={newMessage}
+          onChange={setNewMessage}
+          onSend={sendMessage}
+        />
+      </div>
     );
   }
 
@@ -848,7 +883,7 @@ function ConversationsList({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
       {conversations.map((dm) => (
         <ConversationCard key={dm.room_id} conversation={dm} onClick={() => onSelect(dm)} />
       ))}
