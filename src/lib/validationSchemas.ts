@@ -164,7 +164,7 @@ export const orderSchema = z.object({
   status: orderStatusSchema,
   items: z.array(orderItemSchema),
   total_amount: z.number().positive(),
-  assigned_driver_id: z.string().uuid().nullable().optional(),
+  assigned_driver_id: z.string().nullable().optional(),
   scheduled_delivery: z.string().datetime().optional(),
   delivered_at: z.string().datetime().nullable().optional(),
   created_by: z.string().uuid(),
@@ -263,7 +263,7 @@ export const driverAvailabilityStatusSchema = z.enum([
 
 export const driverStatusRecordSchema = z.object({
   id: z.string().uuid(),
-  driver_id: z.string().uuid(),
+  driver_id: z.string(),
   status: driverAvailabilityStatusSchema,
   current_zone_id: z.string().uuid().nullable().optional(),
   latitude: z.number().nullable().optional(),
