@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { tokens } from '../../styles/tokens';
 import { logger } from '../../lib/logger';
 import { driverService, DriverStatus, DriverProfile } from '../../services/driver';
@@ -55,6 +55,29 @@ export function UnifiedDriverDashboard({ mode: initialMode = 'freelance' }: Unif
     onTimeRate: 100,
     totalDistance: 0
   });
+
+  const activeDeliveries = useMemo(() =>
+    deliveries.filter((d) =>
+      ['assigned', 'accepted', 'picked_up'].includes(d.status)
+    ),
+    [deliveries]
+  );
+
+  const deliveryLocations: DeliveryLocation[] = useMemo(() =>
+    activeDeliveries
+      .filter((d) => d.order.delivery_address)
+      .map((d) => ({
+        id: d.id,
+        type: d.status === 'accepted' ? 'pickup' : 'dropoff',
+        lat: 32.0853 + (Math.random() - 0.5) * 0.1,
+        lng: 34.7818 + (Math.random() - 0.5) * 0.1,
+        address: d.order.delivery_address!,
+        name: d.order.customer_name || undefined,
+        orderNumber: d.order.order_number,
+        status: d.status
+      })),
+    [activeDeliveries]
+  );
 
   useEffect(() => {
     if (user?.id) {
@@ -302,7 +325,7 @@ export function UnifiedDriverDashboard({ mode: initialMode = 'freelance' }: Unif
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`, '_blank');
   };
 
-  const handleLocationUpdate = async (lat: number, lng: number) => {
+  const handleLocationUpdate = useCallback(async (lat: number, lng: number) => {
     setDriverLocation({ lat, lng });
     if (user?.id && isOnline) {
       await driverService.updateDriverStatus(
@@ -311,7 +334,7 @@ export function UnifiedDriverDashboard({ mode: initialMode = 'freelance' }: Unif
         { latitude: lat, longitude: lng }
       );
     }
-  };
+  }, [user?.id, isOnline, activeDeliveries.length]);
 
   useEffect(() => {
     if (!isOnline || !user?.id) return;
@@ -334,24 +357,7 @@ export function UnifiedDriverDashboard({ mode: initialMode = 'freelance' }: Unif
     return () => {
       navigator.geolocation.clearWatch(watchId);
     };
-  }, [isOnline, user?.id, activeDeliveries.length]);
-
-  const activeDeliveries = deliveries.filter((d) =>
-    ['assigned', 'accepted', 'picked_up'].includes(d.status)
-  );
-
-  const deliveryLocations: DeliveryLocation[] = activeDeliveries
-    .filter((d) => d.order.delivery_address)
-    .map((d) => ({
-      id: d.id,
-      type: d.status === 'accepted' ? 'pickup' : 'dropoff',
-      lat: 32.0853 + (Math.random() - 0.5) * 0.1,
-      lng: 34.7818 + (Math.random() - 0.5) * 0.1,
-      address: d.order.delivery_address!,
-      name: d.order.customer_name || undefined,
-      orderNumber: d.order.order_number,
-      status: d.status
-    }));
+  }, [isOnline, user?.id, handleLocationUpdate]);
 
   if (!profileReady) {
     return <DriverProfileCheck onProfileReady={() => setProfileReady(true)} />;
