@@ -48,6 +48,9 @@ export function Modal({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
+  const [closeButtonHovered, setCloseButtonHovered] = React.useState(false);
+  const [closeButtonPressed, setCloseButtonPressed] = React.useState(false);
+
   if (!isOpen) return null;
 
   const sizeStyles: Record<string, React.CSSProperties> = {
@@ -113,9 +116,6 @@ export function Modal({
     gap: spacing.md,
     alignItems: 'center',
   };
-
-  const [closeButtonHovered, setCloseButtonHovered] = React.useState(false);
-  const [closeButtonPressed, setCloseButtonPressed] = React.useState(false);
 
   const closeButtonStyles: React.CSSProperties = {
     background: closeButtonHovered ? colors.ui.cardHover : 'transparent',
