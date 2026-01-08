@@ -73,9 +73,38 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       onSuccess();
       onClose();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'שגיאה ביצירת עסק';
-      logger.error('[CreateBusinessModal] Business creation error:', error);
-      Toast.error(errorMessage);
+      let errorMessage = 'שגיאה לא צפויה בעת יצירת העסק';
+      let actionHint = '';
+
+      if (error instanceof Error) {
+        const errMsg = error.message.toLowerCase();
+
+        if (errMsg.includes('authentication') || errMsg.includes('jwt') || errMsg.includes('reconnect')) {
+          errorMessage = 'שגיאת אימות - נדרש חיבור מחדש';
+          actionHint = 'אנא התנתק והתחבר מחדש עם הארנק שלך';
+        } else if (errMsg.includes('permission') || errMsg.includes('denied')) {
+          errorMessage = 'אין הרשאה ליצירת עסק';
+          actionHint = 'אנא ודא שיש לך את ההרשאות הנדרשות';
+        } else if (errMsg.includes('network') || errMsg.includes('fetch')) {
+          errorMessage = 'שגיאת תקשורת';
+          actionHint = 'אנא בדוק את חיבור האינטרנט ונסה שוב';
+        } else if (errMsg.includes('profile')) {
+          errorMessage = 'לא ניתן לאמת את פרופיל המשתמש';
+          actionHint = 'אנא התנתק והתחבר מחדש';
+        } else {
+          errorMessage = error.message;
+          actionHint = 'אם הבעיה נמשכת, אנא פנה לתמיכה';
+        }
+      }
+
+      logger.error('[CreateBusinessModal] Business creation error:', {
+        error,
+        errorMessage,
+        actionHint,
+        userId: user?.id
+      });
+
+      Toast.error(`${errorMessage}. ${actionHint}`);
     } finally {
       setLoading(false);
     }

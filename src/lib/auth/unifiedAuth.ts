@@ -1,6 +1,7 @@
 import { supabase } from '../supabase';
 import { logger } from '../logger';
 import { localSessionManager } from '../localSessionManager';
+import { checkSessionVersion } from '../sessionMigration';
 
 export interface UnifiedAuthSession {
   userId: string;
@@ -70,6 +71,23 @@ export async function getCurrentUserSession(): Promise<UnifiedAuthSession | null
     logger.error('[UnifiedAuth] Error getting current session:', error);
     return null;
   }
+}
+
+export function validateSession(): { isValid: boolean; needsMigration: boolean } {
+  const sessionCheck = checkSessionVersion();
+
+  if (!sessionCheck.isCompatible) {
+    logger.warn('[UnifiedAuth] Session is not compatible with current version', sessionCheck);
+    return {
+      isValid: false,
+      needsMigration: true
+    };
+  }
+
+  return {
+    isValid: true,
+    needsMigration: false
+  };
 }
 
 export async function ensureUserProfile(userId: string, walletType?: string): Promise<boolean> {
