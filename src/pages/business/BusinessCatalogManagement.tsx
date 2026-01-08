@@ -40,7 +40,7 @@ export function BusinessCatalogManagement({
   onNavigate
 }: BusinessCatalogManagementProps) {
   const { user } = useAuth();
-  const { dataStore, currentBusinessId } = useAppServices();
+  const { dataStore, currentBusinessId, ownedBusinesses } = useAppServices();
   const businessId = propBusinessId || currentBusinessId;
 
   const [products, setProducts] = useState<BusinessProduct[]>([]);
@@ -70,9 +70,15 @@ export function BusinessCatalogManagement({
       return hasPermission(user.role, 'catalog:view_business');
     }
 
-    // Business-level roles can only view their assigned business
+    // Business owner can view their owned businesses
+    if (user.role === 'business_owner') {
+      const ownsThisBusiness = ownedBusinesses.some(b => b.id === businessId);
+      const hasViewPermission = hasPermission(user.role, 'catalog:view_business');
+      return ownsThisBusiness && hasViewPermission;
+    }
+
+    // Other business-level roles can only view their assigned business
     const businessLevelRoles = [
-      'business_owner',
       'manager',
       'warehouse',
       'sales',
@@ -82,15 +88,16 @@ export function BusinessCatalogManagement({
     ];
 
     if (businessLevelRoles.includes(user.role)) {
-      // Must be assigned to this specific business
-      const isAssignedToBusiness = user.business_id === businessId;
+      // Must be assigned to this specific business (via user_business_roles table)
+      // For now, check if currentBusinessId matches
+      const isAssignedToBusiness = currentBusinessId === businessId;
       const hasViewPermission = hasPermission(user.role, 'catalog:view_business');
 
       return isAssignedToBusiness && hasViewPermission;
     }
 
     return false;
-  }, [user, businessId]);
+  }, [user, businessId, ownedBusinesses, currentBusinessId]);
 
   // Check edit permissions - can user edit this catalog?
   const canEdit = useMemo(() => {
@@ -103,7 +110,7 @@ export function BusinessCatalogManagement({
 
     // Business owner can only edit THEIR OWN business
     if (user.role === 'business_owner') {
-      const ownsThisBusiness = user.business_id === businessId;
+      const ownsThisBusiness = ownedBusinesses.some(b => b.id === businessId);
       const hasEditPermission = hasPermission(user.role, 'catalog:edit_business');
 
       return ownsThisBusiness && hasEditPermission;
@@ -111,7 +118,7 @@ export function BusinessCatalogManagement({
 
     // Manager can edit assigned business
     if (user.role === 'manager') {
-      const isAssignedToBusiness = user.business_id === businessId;
+      const isAssignedToBusiness = currentBusinessId === businessId;
       const hasEditPermission = hasPermission(user.role, 'catalog:edit_business');
 
       return isAssignedToBusiness && hasEditPermission;
@@ -119,7 +126,7 @@ export function BusinessCatalogManagement({
 
     // All other roles cannot edit
     return false;
-  }, [user, businessId]);
+  }, [user, businessId, ownedBusinesses, currentBusinessId]);
 
   // Determine if this is read-only mode
   const isReadOnly = propReadOnly || !canEdit;
@@ -130,8 +137,8 @@ export function BusinessCatalogManagement({
       logger.info('[BusinessCatalog] Access attempt', {
         userId: user.id,
         userRole: user.role,
-        userBusinessId: user.business_id,
         requestedBusinessId: businessId,
+        ownsThisBusiness: user.role === 'business_owner' ? ownedBusinesses.some(b => b.id === businessId) : null,
         canView,
         canEdit,
         isReadOnly,
@@ -141,9 +148,9 @@ export function BusinessCatalogManagement({
         logger.warn('[BusinessCatalog] Access denied', {
           userId: user.id,
           userRole: user.role,
-          userBusinessId: user.business_id,
           requestedBusinessId: businessId,
-          reason: 'Insufficient permissions or not assigned to business',
+          ownedBusinessIds: user.role === 'business_owner' ? ownedBusinesses.map(b => b.id) : [],
+          reason: 'Insufficient permissions or not authorized for this business',
         });
       }
     }
@@ -326,7 +333,7 @@ export function BusinessCatalogManagement({
             You do not have permission to view this business catalog.
           </p>
 
-          {user?.role === 'business_owner' && user.business_id !== businessId && (
+          {user?.role === 'business_owner' && !ownedBusinesses.some(b => b.id === businessId) && (
             <p style={{
               color: colors.text.secondary,
               marginTop: spacing.md,
@@ -334,15 +341,13 @@ export function BusinessCatalogManagement({
               background: colors.status.warningFaded,
               borderRadius: '8px'
             }}>
-              As a business owner, you can only manage the catalog for your own business.
+              As a business owner, you can only manage catalogs for businesses you own.
               <br />
-              Your business ID: {user.business_id}
-              <br />
-              Requested business ID: {businessId}
+              Your businesses: {ownedBusinesses.map(b => b.name).join(', ') || 'None'}
             </p>
           )}
 
-          {user?.role === 'manager' && user.business_id !== businessId && (
+          {user?.role === 'manager' && currentBusinessId !== businessId && (
             <p style={{
               color: colors.text.secondary,
               marginTop: spacing.md,
