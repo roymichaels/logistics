@@ -167,7 +167,13 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         logger.info(`✅ Found ${businesses.length} owned business(es) from Supabase`);
       }
     } catch (err) {
-      logger.error('❌ Error fetching owned businesses:', err);
+      logger.error('❌ Error fetching owned businesses:', {
+        error: err,
+        errorType: typeof err,
+        errorMessage: err instanceof Error ? err.message : String(err),
+        errorStack: err instanceof Error ? err.stack : undefined,
+        userId: user.id
+      });
       setOwnedBusinesses([]);
     }
   }, [user?.id, userRole, useSXT]);

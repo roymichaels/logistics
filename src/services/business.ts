@@ -68,25 +68,40 @@ export async function getOwnedBusinesses(userId?: string): Promise<BusinessRecor
 
   logger.info('[BusinessService] Fetching businesses for user:', userId);
 
-  const { data, error } = await supabase
-    .rpc('get_user_businesses', { user_id: userId });
+  try {
+    const { data, error } = await supabase
+      .rpc('get_user_businesses', { user_id: userId });
 
-  if (error) {
-    logger.error('[BusinessService] Failed to get owned businesses', {
-      error,
-      userId,
-      code: error.code,
-      message: error.message
+    if (error) {
+      logger.error('[BusinessService] RPC call failed', {
+        error,
+        errorDetails: {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        },
+        userId,
+        rpcParams: { user_id: userId }
+      });
+      throw error;
+    }
+
+    logger.info('[BusinessService] Successfully fetched businesses:', {
+      count: data?.length || 0,
+      userId
     });
-    throw error;
+
+    return (data || []) as BusinessRecord[];
+  } catch (err) {
+    logger.error('[BusinessService] Exception in getOwnedBusinesses:', {
+      error: err,
+      errorType: typeof err,
+      errorString: String(err),
+      userId
+    });
+    throw err;
   }
-
-  logger.info('[BusinessService] Successfully fetched businesses:', {
-    count: data?.length || 0,
-    userId
-  });
-
-  return (data || []) as BusinessRecord[];
 }
 
 /**

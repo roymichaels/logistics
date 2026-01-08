@@ -8,6 +8,8 @@ import { getBusinessEquityBreakdown, getAvailableEquity, type EquityStakeholder 
 import { RoleDiagnostics } from '../lib/diagnostics';
 import { logger } from '../lib/logger';
 import { localBusinessDataService, type Business as LocalBusiness, type BusinessOwnership as LocalOwnership } from '../services/localBusinessDataService';
+import { useAppServices } from '../context/AppServicesContext';
+import { runtimeEnvironment } from '../lib/runtimeEnvironment';
 
 interface BusinessesProps {
   dataStore: DataStore;
@@ -36,6 +38,7 @@ interface BusinessOwnership {
 }
 
 export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
+  const appServices = useAppServices();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [myOwnerships, setMyOwnerships] = useState<BusinessOwnership[]>([]);
   const [user, setUser] = useState<User | null>(null);
@@ -108,21 +111,56 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
       setInitStage('loading_businesses');
       logger.info('🏢 Businesses: Loading business data...');
 
-      // Load all businesses (for infrastructure owners)
-      if (profile.role === 'infrastructure_owner' || profile.global_role === 'infrastructure_owner') {
-        const allBusinesses = localBusinessDataService.getBusinesses();
-        setBusinesses(allBusinesses);
-        logger.info('✅ Loaded all businesses:', allBusinesses);
-      }
+      // Check if we're using Supabase or frontend-only mode
+      const useFrontendOnly = runtimeEnvironment.isFrontendOnlyMode();
 
-      // Load user's ownerships from local storage
-      const ownerships = localBusinessDataService.getMyBusinesses(profile.id);
+      if (useFrontendOnly) {
+        // Frontend-only mode: Use local storage
+        logger.info('Using local storage (frontend-only mode)');
 
-      if (ownerships.length > 0) {
-        setMyOwnerships(ownerships);
-        logger.info('✅ Loaded user ownerships:', ownerships);
+        // Load all businesses (for infrastructure owners)
+        if (profile.role === 'infrastructure_owner' || profile.global_role === 'infrastructure_owner') {
+          const allBusinesses = localBusinessDataService.getBusinesses();
+          setBusinesses(allBusinesses);
+          logger.info('✅ Loaded all businesses:', allBusinesses);
+        }
+
+        // Load user's ownerships from local storage
+        const ownerships = localBusinessDataService.getMyBusinesses(profile.id);
+
+        if (ownerships.length > 0) {
+          setMyOwnerships(ownerships);
+          logger.info('✅ Loaded user ownerships:', ownerships);
+        } else {
+          logger.info('ℹ️ No business ownerships found for user (local storage)');
+        }
       } else {
-        logger.info('ℹ️ No business ownerships found for user');
+        // Supabase mode: Use data from AppServicesContext
+        logger.info('Using Supabase data from AppServicesContext');
+
+        if (appServices.ownedBusinesses && appServices.ownedBusinesses.length > 0) {
+          // Convert AppServices format to local format for compatibility
+          const ownerships = appServices.ownedBusinesses.map(b => ({
+            id: b.id,
+            business_id: b.id,
+            owner_user_id: profile.id,
+            ownership_percentage: 100, // Owner has 100% by default
+            equity_type: 'founder' as const,
+            profit_share_percentage: 100,
+            voting_rights: true,
+            active: true,
+            business: {
+              id: b.id,
+              name: b.name,
+              active: true,
+              created_at: b.created_at || new Date().toISOString()
+            }
+          }));
+          setMyOwnerships(ownerships);
+          logger.info('✅ Loaded user ownerships from Supabase:', ownerships);
+        } else {
+          logger.info('ℹ️ No business ownerships found for user (Supabase)');
+        }
       }
 
       setInitStage('ready');
@@ -136,7 +174,15 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
       }
       setLoading(false);
     }
-  }, [dataStore]);
+  }, [dataStore, appServices.ownedBusinesses]);
+
+  // Reload data when ownedBusinesses changes in Supabase mode
+  useEffect(() => {
+    if (!runtimeEnvironment.isFrontendOnlyMode() && user && appServices.ownedBusinesses) {
+      logger.info('🔄 Businesses: Owned businesses updated, reloading...');
+      loadData();
+    }
+  }, [appServices.ownedBusinesses, user, loadData]);
 
   const totalOwnershipPercentage = myOwnerships.reduce((sum, o) => sum + o.ownership_percentage, 0);
   const businessesIOwn = myOwnerships.filter(o => o.ownership_percentage > 0).length;
