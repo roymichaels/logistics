@@ -245,12 +245,31 @@ function SxtShimProvider({ children }: { children: React.ReactNode }) {
   // Use centralized runtime environment to check SXT mode
   const useSXT = runtimeEnvironment.isSxtModeEnabled();
 
-  const [user, setUser] = useState<{ walletType: string; walletAddress: string } | null>(() => {
+  const [user, setUser] = useState<{ walletType: string; walletAddress: string; supabaseUserId?: string } | null>(() => {
     if (sxtUser) {
-      return { walletType: sxtUser.walletType, walletAddress: sxtUser.walletAddress };
+      logger.info('[SxtShimProvider] Initializing with sxtUser', {
+        walletAddress: sxtUser.walletAddress,
+        supabaseUserId: sxtUser.supabaseUserId
+      });
+      return {
+        walletType: sxtUser.walletType,
+        walletAddress: sxtUser.walletAddress,
+        supabaseUserId: sxtUser.supabaseUserId
+      };
     }
     const stored = getLocalSession();
-    return stored && stored.walletAddress ? { walletType: stored.walletType, walletAddress: stored.walletAddress } : null;
+    if (stored && stored.walletAddress) {
+      logger.info('[SxtShimProvider] Initializing with stored session', {
+        walletAddress: stored.walletAddress,
+        supabaseUserId: stored.supabaseUserId
+      });
+      return {
+        walletType: stored.walletType,
+        walletAddress: stored.walletAddress,
+        supabaseUserId: stored.supabaseUserId
+      };
+    }
+    return null;
   });
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     if (sxtUser) return true;
@@ -267,7 +286,15 @@ function SxtShimProvider({ children }: { children: React.ReactNode }) {
 
     // Prefer the session managed by SxtAuthProvider; fall back to walletAuth local session
     if (sxtUser) {
-      setUser({ walletType: sxtUser.walletType, walletAddress: sxtUser.walletAddress });
+      logger.info('[SxtShimProvider] Updating user from sxtUser', {
+        walletAddress: sxtUser.walletAddress,
+        supabaseUserId: sxtUser.supabaseUserId
+      });
+      setUser({
+        walletType: sxtUser.walletType,
+        walletAddress: sxtUser.walletAddress,
+        supabaseUserId: sxtUser.supabaseUserId
+      });
       setIsAuthenticated(true);
       setIsLoading(false);
       return;
@@ -275,7 +302,15 @@ function SxtShimProvider({ children }: { children: React.ReactNode }) {
 
     const stored = getLocalSession();
     if (stored && stored.walletAddress) {
-      setUser({ walletType: stored.walletType, walletAddress: stored.walletAddress });
+      logger.info('[SxtShimProvider] Updating user from stored session', {
+        walletAddress: stored.walletAddress,
+        supabaseUserId: stored.supabaseUserId
+      });
+      setUser({
+        walletType: stored.walletType,
+        walletAddress: stored.walletAddress,
+        supabaseUserId: stored.supabaseUserId
+      });
       setIsAuthenticated(true);
     }
     setIsLoading(false);
@@ -285,14 +320,23 @@ function SxtShimProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       const session = await connectEthereumWallet();
+      logger.info('[SxtShimProvider] Ethereum wallet connected', {
+        address: session.address,
+        supabaseUserId: session.supabaseUserId
+      });
       const stored = createLocalSession({
         walletType: 'ethereum',
         walletAddress: session.address,
         issuedAt: Date.now(),
       });
-      setUser({ walletType: stored.walletType, walletAddress: stored.walletAddress });
+      setUser({
+        walletType: stored.walletType,
+        walletAddress: stored.walletAddress,
+        supabaseUserId: session.supabaseUserId
+      });
       setIsAuthenticated(true);
     } catch (err) {
+      logger.error('[SxtShimProvider] Ethereum login failed', err);
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setIsLoading(false);
@@ -303,14 +347,23 @@ function SxtShimProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       const session = await connectSolanaWallet(adapter);
+      logger.info('[SxtShimProvider] Solana wallet connected', {
+        address: session.address,
+        supabaseUserId: session.supabaseUserId
+      });
       const stored = createLocalSession({
         walletType: 'solana',
         walletAddress: session.address,
         issuedAt: Date.now(),
       });
-      setUser({ walletType: stored.walletType, walletAddress: stored.walletAddress });
+      setUser({
+        walletType: stored.walletType,
+        walletAddress: stored.walletAddress,
+        supabaseUserId: session.supabaseUserId
+      });
       setIsAuthenticated(true);
     } catch (err) {
+      logger.error('[SxtShimProvider] Solana login failed', err);
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setIsLoading(false);
@@ -321,14 +374,23 @@ function SxtShimProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       const session = await connectTonWallet();
+      logger.info('[SxtShimProvider] TON wallet connected', {
+        address: session.address,
+        supabaseUserId: session.supabaseUserId
+      });
       const stored = createLocalSession({
         walletType: 'ton',
         walletAddress: session.address,
         issuedAt: Date.now(),
       });
-      setUser({ walletType: stored.walletType, walletAddress: stored.walletAddress });
+      setUser({
+        walletType: stored.walletType,
+        walletAddress: stored.walletAddress,
+        supabaseUserId: session.supabaseUserId
+      });
       setIsAuthenticated(true);
     } catch (err) {
+      logger.error('[SxtShimProvider] TON login failed', err);
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setIsLoading(false);
@@ -343,21 +405,41 @@ function SxtShimProvider({ children }: { children: React.ReactNode }) {
   };
 
   const ctx = useMemo<AuthContextValue>(() => {
+    // CRITICAL: Use Supabase user ID (UUID) as the primary user ID, NOT wallet address
+    // This ensures consistency across all database operations
+    const userId = user?.supabaseUserId || user?.walletAddress;
+
+    if (user && !user.supabaseUserId) {
+      logger.warn('[SxtShimProvider] User has no supabaseUserId, falling back to wallet address', {
+        walletAddress: user.walletAddress,
+        walletType: user.walletType
+      });
+    }
+
+    logger.info('[SxtShimProvider] Creating auth context', {
+      userId,
+      walletAddress: user?.walletAddress,
+      supabaseUserId: user?.supabaseUserId,
+      hasSupabaseUserId: !!user?.supabaseUserId,
+      role
+    });
+
     const displayName = user ? getUserDisplayName({
-      id: user.walletAddress,
+      id: userId,
       wallet_address: user.walletAddress,
       role: role || 'customer',
     } as any) : null;
 
     return {
       user: user ? {
-        id: user.walletAddress,
+        id: userId,
         username: displayName,
         name: displayName,
         photo_url: null,
         role,
         auth_method: user.walletType,
         kycStatus,
+        wallet_address: user.walletAddress,
       } as any : null,
       session: user,
       isAuthenticated,

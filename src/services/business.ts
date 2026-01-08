@@ -47,7 +47,7 @@ function generateSlug(name: string): string {
  * Get businesses owned by the current user
  */
 export async function getOwnedBusinesses(userId?: string): Promise<BusinessRecord[]> {
-  logger.debug('[BusinessService] Getting owned businesses from Supabase');
+  logger.info('[BusinessService] Getting owned businesses from Supabase');
 
   if (!userId) {
     userId = await getCurrentUserId() || undefined;
@@ -58,13 +58,33 @@ export async function getOwnedBusinesses(userId?: string): Promise<BusinessRecor
     return [];
   }
 
+  // Validate that userId is a UUID, not a wallet address
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(userId)) {
+    logger.error('[BusinessService] Invalid user ID format - expected UUID, got:', userId);
+    logger.error('[BusinessService] This suggests wallet address is being used instead of Supabase user ID');
+    return [];
+  }
+
+  logger.info('[BusinessService] Fetching businesses for user:', userId);
+
   const { data, error } = await supabase
     .rpc('get_user_businesses', { user_id: userId });
 
   if (error) {
-    logger.error('[BusinessService] Failed to get owned businesses', error);
+    logger.error('[BusinessService] Failed to get owned businesses', {
+      error,
+      userId,
+      code: error.code,
+      message: error.message
+    });
     throw error;
   }
+
+  logger.info('[BusinessService] Successfully fetched businesses:', {
+    count: data?.length || 0,
+    userId
+  });
 
   return (data || []) as BusinessRecord[];
 }
@@ -123,6 +143,14 @@ export async function createBusiness(input: CreateBusinessInput, userId?: string
 
   if (!userId) {
     const errorMsg = 'User must be authenticated to create a business. Please reconnect your wallet or sign in.';
+    logger.error('[BusinessService]', errorMsg);
+    throw new Error(errorMsg);
+  }
+
+  // Validate that userId is a UUID, not a wallet address
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(userId)) {
+    const errorMsg = `Invalid user ID format - expected UUID, got: ${userId}. Wallet address cannot be used for business creation.`;
     logger.error('[BusinessService]', errorMsg);
     throw new Error(errorMsg);
   }
