@@ -119,6 +119,11 @@ export async function ensureUserProfile(userId: string, walletType?: string): Pr
       });
 
     if (error) {
+      // 409 conflict means profile already exists, which is fine
+      if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('already exists')) {
+        logger.info('[UnifiedAuth] Profile already exists (conflict on insert)');
+        return true;
+      }
       logger.error('[UnifiedAuth] Failed to create profile:', error);
       return false;
     }
