@@ -2,6 +2,7 @@ import { logger } from './logger';
 import { localSessionManager } from './localSessionManager';
 import { roleAssignmentManager } from './roleAssignment';
 import { getUserDisplayName } from '../utils/userIdentifier';
+import { supabase } from './supabase';
 
 export interface AuthUser {
   id: string;
@@ -144,11 +145,13 @@ class AuthService {
 
         const role = localSession.role;
         const displayName = formatWalletForDisplay(localSession.wallet);
+        const userId = localSession.authUserId || localSession.wallet;
+
         this.updateState({
           isAuthenticated: true,
           isLoading: false,
           user: {
-            id: localSession.wallet,
+            id: userId,
             username: displayName,
             name: displayName,
             photo_url: null,
@@ -241,6 +244,68 @@ class AuthService {
     }
   }
 
+  private async getOrCreateAuthUserForWallet(
+    walletAddress: string,
+    walletType: 'ethereum' | 'solana' | 'ton',
+    role: string
+  ): Promise<string> {
+    try {
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('wallet_address', walletAddress.toLowerCase())
+        .maybeSingle();
+
+      if (existingProfile) {
+        logger.info(`[AUTH] Found existing profile for wallet: ${walletAddress}`);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.id === existingProfile.id) {
+          return existingProfile.id;
+        }
+        await supabase.auth.signInAnonymously();
+        const { data: { user: anonUser } } = await supabase.auth.getUser();
+        if (anonUser) {
+          return anonUser.id;
+        }
+      }
+
+      logger.info(`[AUTH] Creating anonymous auth user for wallet: ${walletAddress}`);
+      const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
+
+      if (authError || !authData.user) {
+        logger.error('[AUTH] Failed to create anonymous user:', authError);
+        throw new Error('Failed to create authentication session');
+      }
+
+      const authUserId = authData.user.id;
+      logger.info(`[AUTH] Anonymous user created with ID: ${authUserId}`);
+
+      const walletTypeDb = walletType === 'ethereum' ? 'eth' : walletType === 'solana' ? 'sol' : 'ton';
+      const displayName = formatWalletForDisplay(walletAddress);
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: authUserId,
+          wallet_address: walletAddress.toLowerCase(),
+          wallet_type: walletTypeDb,
+          role: role,
+          name: displayName,
+        });
+
+      if (profileError) {
+        logger.error('[AUTH] Failed to create profile:', profileError);
+        throw new Error('Failed to create user profile');
+      }
+
+      logger.info(`[AUTH] Profile created successfully for ${walletAddress}`);
+      return authUserId;
+    } catch (error) {
+      logger.error('[AUTH] Error in getOrCreateAuthUserForWallet:', error);
+      throw error;
+    }
+  }
+
   public async authenticateWithEthereum(
     walletAddress: string,
     signature: string,
@@ -252,16 +317,19 @@ class AuthService {
       logger.info('[AUTH] Ethereum wallet authentication initiated');
 
       const role = roleAssignmentManager.getRoleForWallet(walletAddress) || 'customer';
-      const session = localSessionManager.createSession(walletAddress, 'ethereum', signature, message, role);
 
-      logger.info(`[AUTH] Wallet session created for ${walletAddress} with role: ${role}`);
+      const authUserId = await this.getOrCreateAuthUserForWallet(walletAddress, 'ethereum', role);
+
+      const session = localSessionManager.createSession(walletAddress, 'ethereum', signature, message, role, authUserId);
+
+      logger.info(`[AUTH] Wallet session created for ${walletAddress} with auth ID: ${authUserId}`);
 
       const displayName = formatWalletForDisplay(walletAddress);
       this.updateState({
         isAuthenticated: true,
         isLoading: false,
         user: {
-          id: walletAddress,
+          id: authUserId,
           wallet_address_eth: walletAddress,
           username: displayName,
           name: displayName,
@@ -272,7 +340,8 @@ class AuthService {
         session: {
           wallet: walletAddress,
           walletType: 'ethereum',
-          role
+          role,
+          authUserId
         },
         error: null
       });
@@ -283,7 +352,8 @@ class AuthService {
           session: {
             wallet: walletAddress,
             walletType: 'ethereum',
-            role
+            role,
+            authUserId
           }
         });
       }
@@ -321,16 +391,19 @@ class AuthService {
       logger.info('[AUTH] Solana wallet authentication initiated');
 
       const role = roleAssignmentManager.getRoleForWallet(walletAddress) || 'customer';
-      const session = localSessionManager.createSession(walletAddress, 'solana', signature, message, role);
 
-      logger.info(`[AUTH] Wallet session created for ${walletAddress} with role: ${role}`);
+      const authUserId = await this.getOrCreateAuthUserForWallet(walletAddress, 'solana', role);
+
+      const session = localSessionManager.createSession(walletAddress, 'solana', signature, message, role, authUserId);
+
+      logger.info(`[AUTH] Wallet session created for ${walletAddress} with auth ID: ${authUserId}`);
 
       const displayName = formatWalletForDisplay(walletAddress);
       this.updateState({
         isAuthenticated: true,
         isLoading: false,
         user: {
-          id: walletAddress,
+          id: authUserId,
           wallet_address_sol: walletAddress,
           username: displayName,
           name: displayName,
@@ -341,7 +414,8 @@ class AuthService {
         session: {
           wallet: walletAddress,
           walletType: 'solana',
-          role
+          role,
+          authUserId
         },
         error: null
       });
@@ -352,7 +426,8 @@ class AuthService {
           session: {
             wallet: walletAddress,
             walletType: 'solana',
-            role
+            role,
+            authUserId
           }
         });
       }
@@ -390,16 +465,19 @@ class AuthService {
       logger.info('[AUTH] TON wallet authentication initiated');
 
       const role = roleAssignmentManager.getRoleForWallet(walletAddress) || 'customer';
-      const session = localSessionManager.createSession(walletAddress, 'ton', signature, message, role);
 
-      logger.info(`[AUTH] Wallet session created for ${walletAddress} with role: ${role}`);
+      const authUserId = await this.getOrCreateAuthUserForWallet(walletAddress, 'ton', role);
+
+      const session = localSessionManager.createSession(walletAddress, 'ton', signature, message, role, authUserId);
+
+      logger.info(`[AUTH] Wallet session created for ${walletAddress} with auth ID: ${authUserId}`);
 
       const displayName = formatWalletForDisplay(walletAddress);
       this.updateState({
         isAuthenticated: true,
         isLoading: false,
         user: {
-          id: walletAddress,
+          id: authUserId,
           wallet_address_ton: walletAddress,
           username: displayName,
           name: displayName,
@@ -410,7 +488,8 @@ class AuthService {
         session: {
           wallet: walletAddress,
           walletType: 'ton',
-          role
+          role,
+          authUserId
         },
         error: null
       });
@@ -421,7 +500,8 @@ class AuthService {
           session: {
             wallet: walletAddress,
             walletType: 'ton',
-            role
+            role,
+            authUserId
           }
         });
       }

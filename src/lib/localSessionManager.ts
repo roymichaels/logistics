@@ -8,6 +8,7 @@ export interface LocalSession {
   createdAt: number;
   expiresAt: number;
   role: string;
+  authUserId?: string;
 }
 
 const SESSION_STORAGE_KEY = 'local-wallet-session';
@@ -19,7 +20,8 @@ export class LocalSessionManager {
     walletType: 'ethereum' | 'solana' | 'ton',
     signature: string,
     message?: string,
-    roleOverride?: string
+    roleOverride?: string,
+    authUserId?: string
   ): LocalSession {
     const now = Date.now();
     const session: LocalSession = {
@@ -30,10 +32,11 @@ export class LocalSessionManager {
       createdAt: now,
       expiresAt: now + 1000 * 60 * 60 * 24 * 7,
       role: roleOverride || this.loadRoleForWallet(walletAddress) || 'customer',
+      authUserId,
     };
 
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
-    logger.info(`[SESSION] Created local session for ${walletAddress} with role: ${session.role}`);
+    logger.info(`[SESSION] Created local session for ${walletAddress} with role: ${session.role}${authUserId ? ` and auth ID: ${authUserId}` : ''}`);
     return session;
   }
 

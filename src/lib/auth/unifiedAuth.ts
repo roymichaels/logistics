@@ -21,8 +21,13 @@ export async function getCurrentUserId(): Promise<string | null> {
     }
 
     const localSession = localSessionManager.getSession();
+    if (localSession?.authUserId) {
+      logger.debug('[UnifiedAuth] Using auth user ID from session:', localSession.authUserId);
+      return localSession.authUserId;
+    }
+
     if (localSession?.wallet) {
-      logger.debug('[UnifiedAuth] Using wallet address as user ID:', localSession.wallet);
+      logger.debug('[UnifiedAuth] Using wallet address as fallback user ID:', localSession.wallet);
       return localSession.wallet;
     }
 
@@ -48,14 +53,14 @@ export async function getCurrentUserSession(): Promise<UnifiedAuthSession | null
     }
 
     const localSession = localSessionManager.getSession();
-    if (localSession?.wallet) {
+    if (localSession) {
       return {
-        userId: localSession.wallet,
+        userId: localSession.authUserId || localSession.wallet,
         walletAddress: localSession.wallet,
         walletType: localSession.walletType,
         role: localSession.role,
         isWalletAuth: true,
-        isSupabaseAuth: false,
+        isSupabaseAuth: !!localSession.authUserId,
       };
     }
 
