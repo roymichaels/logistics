@@ -59,42 +59,42 @@ export function UnifiedInventoryPage({
     return [
       {
         id: 'total',
-        label: 'Total Items',
+        label: 'סה״כ פריטים',
         value: stats.totalItems,
         icon: '📦',
         color: '#3b82f6'
       },
       {
         id: 'in-stock',
-        label: 'In Stock',
+        label: 'במלאי',
         value: stats.inStockCount,
         icon: '✅',
         color: '#10b981'
       },
       {
         id: 'low-stock',
-        label: 'Low Stock',
+        label: 'מלאי נמוך',
         value: stats.lowStockCount,
         icon: '⚠️',
         color: '#f59e0b'
       },
       {
         id: 'out-of-stock',
-        label: 'Out of Stock',
+        label: 'אזל מהמלאי',
         value: stats.outOfStockCount,
         icon: '❌',
         color: '#ef4444'
       },
       {
         id: 'reserved',
-        label: 'Reserved',
+        label: 'שמורים',
         value: stats.reservedQuantity,
         icon: '🔒',
         color: '#8b5cf6'
       },
       {
         id: 'available',
-        label: 'Available',
+        label: 'זמינים',
         value: stats.availableQuantity,
         icon: '📊',
         color: '#06b6d4'
@@ -106,7 +106,7 @@ export function UnifiedInventoryPage({
     const actions = [
       {
         id: 'refresh',
-        label: 'Refresh',
+        label: 'רענן',
         icon: '🔄',
         onClick: refresh,
         variant: 'secondary' as const
@@ -116,7 +116,7 @@ export function UnifiedInventoryPage({
     if (role === 'warehouse' || role === 'manager' || role === 'business_owner') {
       actions.unshift({
         id: 'restock',
-        label: 'Request Restock',
+        label: 'בקשת אספקה',
         icon: '📥',
         onClick: () => onNavigate?.('/inventory/restock'),
         variant: 'primary' as const
@@ -167,8 +167,8 @@ export function UnifiedInventoryPage({
   };
 
   const dashboardConfig = {
-    title: 'Inventory',
-    subtitle: businessId ? `Business Inventory` : 'All Inventory',
+    title: 'מלאי',
+    subtitle: businessId ? `מלאי העסק` : 'כל המלאי',
     metrics,
     quickActions,
     refreshInterval: 60000,
@@ -180,12 +180,12 @@ export function UnifiedInventoryPage({
       <Section
         section={{
           id: 'filters',
-          title: 'Filters',
+          title: 'מסננים',
           children: (
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <input
                 type="text"
-                placeholder="Search inventory..."
+                placeholder="חיפוש במלאי..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{
@@ -194,7 +194,8 @@ export function UnifiedInventoryPage({
                   padding: '8px 12px',
                   borderRadius: '6px',
                   border: '1px solid #e5e7eb',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  direction: 'rtl'
                 }}
               />
 
@@ -206,13 +207,14 @@ export function UnifiedInventoryPage({
                   borderRadius: '6px',
                   border: '1px solid #e5e7eb',
                   fontSize: '14px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  direction: 'rtl'
                 }}
               >
-                <option value="all">All Status</option>
-                <option value="in_stock">In Stock</option>
-                <option value="low">Low Stock</option>
-                <option value="out">Out of Stock</option>
+                <option value="all">כל הסטטוסים</option>
+                <option value="in_stock">במלאי</option>
+                <option value="low">מלאי נמוך</option>
+                <option value="out">אזל מהמלאי</option>
               </select>
             </div>
           )
@@ -223,8 +225,8 @@ export function UnifiedInventoryPage({
       <Section
         section={{
           id: 'inventory-list',
-          title: `Inventory Items (${displayedInventory.length})`,
-          subtitle: statusFilter !== 'all' ? `Filtered by: ${statusFilter}` : undefined,
+          title: `פריטי מלאי (${displayedInventory.length})`,
+          subtitle: statusFilter !== 'all' ? `סינון לפי: ${statusFilter}` : undefined,
           children: (
             <div>
               {displayedInventory.length === 0 ? (
@@ -235,12 +237,12 @@ export function UnifiedInventoryPage({
                 }}>
                   <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
                   <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>
-                    No inventory items found
+                    לא נמצאו פריטי מלאי
                   </h3>
                   <p style={{ fontSize: '14px' }}>
                     {searchTerm || statusFilter !== 'all'
-                      ? 'Try adjusting your filters'
-                      : 'Add your first inventory item to get started'}
+                      ? 'נסה לשנות את המסננים'
+                      : 'הוסף את פריט המלאי הראשון שלך כדי להתחיל'}
                   </p>
                 </div>
               ) : (
@@ -249,7 +251,7 @@ export function UnifiedInventoryPage({
                     const isLowStock = item.reorder_level && item.quantity <= item.reorder_level;
                     const isOutOfStock = item.quantity === 0;
                     const statusColor = isOutOfStock ? '#ef4444' : isLowStock ? '#f59e0b' : '#10b981';
-                    const statusLabel = isOutOfStock ? 'Out of Stock' : isLowStock ? 'Low Stock' : 'In Stock';
+                    const statusLabel = isOutOfStock ? 'אזל מהמלאי' : isLowStock ? 'מלאי נמוך' : 'במלאי';
 
                     return (
                       <div
@@ -267,14 +269,14 @@ export function UnifiedInventoryPage({
                       >
                         <div>
                           <div style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>
-                            Product ID: {item.product_id}
+                            קוד מוצר: {item.product_id}
                           </div>
                           <div style={{ fontSize: '14px', color: '#6b7280' }}>
-                            Location: {item.warehouse_location || 'Not specified'}
+                            מיקום: {item.warehouse_location || 'לא צוין'}
                           </div>
                           {item.reorder_level && (
                             <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
-                              Reorder Level: {item.reorder_level}
+                              רמת הזמנה מחדש: {item.reorder_level}
                             </div>
                           )}
                         </div>
@@ -303,7 +305,7 @@ export function UnifiedInventoryPage({
                           {isLowStock && !isOutOfStock && (
                             <button
                               onClick={() => {
-                                const qty = prompt('Enter restock quantity:');
+                                const qty = prompt('הכנס כמות לאספקה:');
                                 if (qty) handleRestockRequest(item.id, parseInt(qty));
                               }}
                               disabled={requesting}
@@ -318,15 +320,15 @@ export function UnifiedInventoryPage({
                                 color: '#fff'
                               }}
                             >
-                              Request Restock
+                              בקש אספקה
                             </button>
                           )}
 
                           {role === 'warehouse' && (
                             <button
                               onClick={() => {
-                                const delta = prompt('Enter adjustment (+/-):');
-                                const reason = prompt('Reason for adjustment:');
+                                const delta = prompt('הכנס תיקון (+/-):');
+                                const reason = prompt('סיבה לתיקון:');
                                 if (delta && reason) {
                                   handleStockAdjustment(item.id, parseInt(delta), reason);
                                 }
@@ -343,7 +345,7 @@ export function UnifiedInventoryPage({
                                 color: '#374151'
                               }}
                             >
-                              Adjust
+                              תקן
                             </button>
                           )}
                         </div>

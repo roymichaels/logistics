@@ -263,7 +263,7 @@ export function PlatformDashboard() {
             { label: 'תשתיות', path: '/admin/infrastructures', icon: '🏭' },
             { label: 'קטלוג פלטפורמה', path: '/admin/platform-catalog', icon: '📦' },
             { label: 'בקשות נהגים', path: '/admin/driver-applications', icon: '🚗' },
-            { label: 'Feature Flags', path: '/admin/feature-flags', icon: '🚩' },
+            { label: 'דגלי תכונות', path: '/admin/feature-flags', icon: '🚩' },
             { label: 'הרשאות', path: '/admin/permissions', icon: '🔐' },
           ].map((link) => (
             <button

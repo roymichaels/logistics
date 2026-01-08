@@ -43,10 +43,10 @@ export function AdminShell({
 
   // Determine title based on role
   const shellTitle = role === 'superadmin'
-    ? 'Super Administrator'
+    ? 'מנהל על'
     : role === 'admin'
-      ? 'Platform Administrator'
-      : 'Infrastructure Admin';
+      ? 'מנהל פלטפורמה'
+      : 'מנהל תשתיות';
 
   const handleShowCreateUser = () => {
     logger.info('[AdminShell] Navigate to user management');
@@ -71,7 +71,7 @@ export function AdminShell({
           menuItems={menuItems}
           currentPath={currentPath}
           onNavigate={onNavigate}
-          title={`${shellTitle} Menu`}
+          title={`תפריט ${shellTitle}`}
           onShowCreateUser={handleShowCreateUser}
           onShowCreateTask={handleShowCreateTask}
         >

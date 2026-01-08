@@ -3,7 +3,7 @@ import { NavigationItem, UserRole } from './types';
 export const ADMIN_SHELL_NAV: NavigationItem[] = [
   {
     id: 'admin-platform-dashboard',
-    label: 'Platform Dashboard',
+    label: 'לוח בקרה פלטפורמה',
     path: '/admin/platform-dashboard',
     icon: '🏗️',
     visible: true,
@@ -11,7 +11,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'admin-infrastructures',
-    label: 'Infrastructures',
+    label: 'תשתיות',
     path: '/admin/infrastructures',
     icon: '🏭',
     visible: true,
@@ -19,7 +19,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'admin-superadmins',
-    label: 'Superadmins',
+    label: 'מנהלי על',
     path: '/admin/superadmins',
     icon: '👑',
     visible: true,
@@ -27,7 +27,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'admin-businesses',
-    label: 'Businesses',
+    label: 'עסקים',
     path: '/admin/businesses',
     icon: '🏢',
     visible: true,
@@ -35,7 +35,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'admin-users',
-    label: 'Users',
+    label: 'משתמשים',
     path: '/admin/users',
     icon: '👥',
     visible: true,
@@ -43,7 +43,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'admin-catalog',
-    label: 'Platform Catalog',
+    label: 'קטלוג פלטפורמה',
     path: '/admin/platform-catalog',
     icon: '📦',
     visible: true,
@@ -51,7 +51,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'admin-analytics',
-    label: 'Analytics',
+    label: 'אנליטיקה',
     path: '/admin/analytics',
     icon: '📊',
     visible: true,
@@ -59,7 +59,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'admin-orders',
-    label: 'Orders',
+    label: 'הזמנות',
     path: '/admin/orders',
     icon: '📋',
     visible: true,
@@ -67,7 +67,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'admin-drivers',
-    label: 'Drivers',
+    label: 'נהגים',
     path: '/admin/drivers',
     icon: '🚗',
     visible: true,
@@ -75,7 +75,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'admin-logs',
-    label: 'Audit Logs',
+    label: 'יומני ביקורת',
     path: '/admin/logs',
     icon: '📋',
     visible: true,
@@ -83,7 +83,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'admin-feature-flags',
-    label: 'Feature Flags',
+    label: 'דגלי תכונות',
     path: '/admin/feature-flags',
     icon: '🚩',
     visible: true,
@@ -91,7 +91,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'admin-permissions',
-    label: 'Permissions',
+    label: 'הרשאות',
     path: '/admin/permissions',
     icon: '🔐',
     visible: true,
@@ -99,7 +99,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
   },
   {
     id: 'admin-settings',
-    label: 'System Settings',
+    label: 'הגדרות מערכת',
     path: '/admin/system-settings',
     icon: '⚙️',
     visible: true,
