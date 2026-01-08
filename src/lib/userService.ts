@@ -180,14 +180,35 @@ class UserService {
   }
 
   async listUsers(filters?: { role?: string; businessId?: string }): Promise<UserProfile[]> {
+    let userIds: string[] | null = null;
+
+    if (filters?.businessId) {
+      const { data: roles, error: rolesError } = await supabase
+        .from('user_business_roles')
+        .select('user_id')
+        .eq('business_id', filters.businessId)
+        .eq('active', true);
+
+      if (rolesError) {
+        logger.error('[UserService] Failed to fetch business roles', rolesError);
+        throw rolesError;
+      }
+
+      userIds = (roles || []).map(r => r.user_id);
+
+      if (userIds.length === 0) {
+        return [];
+      }
+    }
+
     let query = supabase.from('profiles').select('*');
 
     if (filters?.role) {
       query = query.eq('role', filters.role);
     }
 
-    if (filters?.businessId) {
-      query = query.eq('business_id', filters.businessId);
+    if (userIds && userIds.length > 0) {
+      query = query.in('id', userIds);
     }
 
     const { data, error } = await query.order('created_at', { ascending: false });

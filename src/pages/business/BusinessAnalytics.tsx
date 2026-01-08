@@ -64,7 +64,7 @@ export function BusinessAnalytics() {
           .select('id, name')
           .eq('business_id', currentBusinessId),
         supabase
-          .from('drivers')
+          .from('driver_profiles')
           .select('id, user_id, status')
           .eq('business_id', currentBusinessId)
       ]);

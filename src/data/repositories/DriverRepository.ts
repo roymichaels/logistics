@@ -24,7 +24,7 @@ export class DriverRepository implements IDriverRepository {
     try {
       logger.info('[DriverRepository] Fetching drivers', { filters });
 
-      let query = this.dataStore.from('drivers').select('*');
+      let query = this.dataStore.from('driver_profiles').select('*');
 
       if (filters?.business_id) {
         query = query.eq('business_id', filters.business_id);
@@ -64,7 +64,7 @@ export class DriverRepository implements IDriverRepository {
       logger.info('[DriverRepository] Fetching driver by ID', { id });
 
       const result = await this.dataStore
-        .from('drivers')
+        .from('driver_profiles')
         .select('*')
         .eq('id', id)
         .maybeSingle();
@@ -98,7 +98,7 @@ export class DriverRepository implements IDriverRepository {
       logger.info('[DriverRepository] Fetching driver by user ID', { userId });
 
       const result = await this.dataStore
-        .from('drivers')
+        .from('driver_profiles')
         .select('*')
         .eq('user_id', userId)
         .maybeSingle();
@@ -134,7 +134,7 @@ export class DriverRepository implements IDriverRepository {
       logger.info('[DriverRepository] Creating driver', { driver });
 
       const result = await this.dataStore
-        .from('drivers')
+        .from('driver_profiles')
         .insert(driver)
         .select()
         .single();
@@ -178,7 +178,7 @@ export class DriverRepository implements IDriverRepository {
       logger.info('[DriverRepository] Updating driver status', { id, status });
 
       const result = await this.dataStore
-        .from('drivers')
+        .from('driver_profiles')
         .update({ status, updated_at: new Date().toISOString() })
         .eq('id', id);
 
@@ -219,7 +219,7 @@ export class DriverRepository implements IDriverRepository {
       logger.info('[DriverRepository] Updating driver location', { id, location });
 
       const result = await this.dataStore
-        .from('drivers')
+        .from('driver_profiles')
         .update({ current_location: location, updated_at: new Date().toISOString() })
         .eq('id', id);
 
