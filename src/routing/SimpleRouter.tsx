@@ -10,7 +10,7 @@ import { UserRole } from '../shells/types';
 import { PageGuard } from '../components/guards/PageGuard';
 
 const LandingPage = React.lazy(() => import('../pages/LandingPage').then(m => ({ default: m.LandingPage || m.default })));
-const Dashboard = React.lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard || m.default })));
+const UnifiedDashboard = React.lazy(() => import('../pages/unified/UnifiedDashboardPage').then(m => ({ default: m.UnifiedDashboardPage })));
 const Orders = React.lazy(() => import('../modules/orders/pages/UnifiedOrdersPage').then(m => ({ default: m.UnifiedOrdersPage })));
 const Products = React.lazy(() => import('../pages/Products').then(m => ({ default: m.Products || m.default })));
 const BusinessCatalog = React.lazy(() => import('../pages/BusinessCatalog').then(m => ({ default: m.BusinessCatalog || m.default })));
@@ -172,8 +172,8 @@ export function SimpleRouter() {
       {/* Business routes */}
       {isBusinessRole && (
         <>
-          <Route path="/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><Dashboard /></Suspense>} />
-          <Route path="/business/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><Dashboard /></Suspense>} />
+          <Route path="/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedDashboard role={userRole} /></Suspense>} />
+          <Route path="/business/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedDashboard role={userRole} /></Suspense>} />
           <Route path="/business/businesses" element={<Suspense fallback={<PageLoadingSkeleton />}><Businesses dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
           <Route path="/business/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
@@ -184,7 +184,7 @@ export function SimpleRouter() {
           <Route path="/business/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
           <Route path="/inventory" element={<Suspense fallback={<PageLoadingSkeleton />}><Inventory onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/inventory" element={<Suspense fallback={<PageLoadingSkeleton />}><Inventory onNavigate={(path) => navigate(path)} /></Suspense>} />
-          <Route path="/business/dispatch" element={<Suspense fallback={<PageLoadingSkeleton />}><DispatchBoard dataStore={dataStore} /></Suspense>} />
+          <Route path="/business/dispatch" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedDashboard role={userRole} /></Suspense>} />
           <Route path="/business/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><Drivers role="manager" onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/reports" element={<Suspense fallback={<PageLoadingSkeleton />}><Reports dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/sales" element={<Suspense fallback={<PageLoadingSkeleton />}><SalesDashboard /></Suspense>} />
@@ -192,7 +192,7 @@ export function SimpleRouter() {
           <Route path="/business/team" element={<Suspense fallback={<PageLoadingSkeleton />}><TeamManagement /></Suspense>} />
           <Route path="/business/permissions" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessPermissionManagement /></Suspense>} />
           <Route path="/business/zones" element={<Suspense fallback={<PageLoadingSkeleton />}><ZoneManagement dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
-          <Route path="/business/warehouse" element={<Suspense fallback={<PageLoadingSkeleton />}><WarehouseDashboard dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
+          <Route path="/business/warehouse" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedDashboard role={userRole} /></Suspense>} />
           <Route path="/business/incoming" element={<Suspense fallback={<PageLoadingSkeleton />}><Incoming dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/restock" element={<Suspense fallback={<PageLoadingSkeleton />}><RestockRequests dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />

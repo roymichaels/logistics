@@ -1,4 +1,7 @@
 export type UserRole =
+  | 'superadmin'
+  | 'admin'
+  | 'infrastructure_owner'
   | 'business_owner'
   | 'manager'
   | 'warehouse'
@@ -9,7 +12,7 @@ export type UserRole =
   | 'customer'
   | 'guest';
 
-export type ShellType = 'BusinessShell' | 'DriverShell' | 'StoreShell';
+export type ShellType = 'AdminShell' | 'BusinessShell' | 'DriverShell' | 'StoreShell';
 
 export interface RoleRouteConfig {
   role: UserRole;
@@ -20,6 +23,27 @@ export interface RoleRouteConfig {
 }
 
 export const ROLE_ROUTING_MAP: Record<UserRole, RoleRouteConfig> = {
+  superadmin: {
+    role: 'superadmin',
+    shell: 'AdminShell',
+    homePath: '/admin/platform-dashboard',
+    homePageName: 'Platform Dashboard',
+    description: 'Full platform administration',
+  },
+  admin: {
+    role: 'admin',
+    shell: 'AdminShell',
+    homePath: '/admin/platform-dashboard',
+    homePageName: 'Platform Dashboard',
+    description: 'Platform administration',
+  },
+  infrastructure_owner: {
+    role: 'infrastructure_owner',
+    shell: 'AdminShell',
+    homePath: '/admin/platform-dashboard',
+    homePageName: 'Platform Dashboard',
+    description: 'Infrastructure management',
+  },
   business_owner: {
     role: 'business_owner',
     shell: 'BusinessShell',
@@ -109,6 +133,16 @@ export function isCustomerRole(role: UserRole): boolean {
   return ['customer', 'guest'].includes(role);
 }
 
+export function isAdminRole(role: UserRole): boolean {
+  return ['superadmin', 'admin', 'infrastructure_owner'].includes(role);
+}
+
+export const ADMIN_ROLES: UserRole[] = [
+  'superadmin',
+  'admin',
+  'infrastructure_owner',
+];
+
 export const BUSINESS_ROLES: UserRole[] = [
   'business_owner',
   'manager',
@@ -119,6 +153,9 @@ export const BUSINESS_ROLES: UserRole[] = [
 ];
 
 export const ALL_ROLES: UserRole[] = [
+  'superadmin',
+  'admin',
+  'infrastructure_owner',
   'business_owner',
   'manager',
   'warehouse',

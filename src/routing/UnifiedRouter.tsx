@@ -98,12 +98,15 @@ export function getEntryPointForRole(role: UserRole | null): string {
   if (!role) return '/store/catalog';
 
   const entryPoints: Record<UserRole, string> = {
+    superadmin: '/admin/platform-dashboard',
+    admin: '/admin/platform-dashboard',
+    infrastructure_owner: '/admin/platform-dashboard',
     business_owner: '/business/dashboard',
     manager: '/business/dashboard',
-    warehouse: '/business/inventory',
+    warehouse: '/business/warehouse',
     dispatcher: '/business/dispatch',
-    sales: '/business/orders',
-    customer_service: '/business/orders',
+    sales: '/business/sales',
+    customer_service: '/business/support',
     driver: '/driver/drivers',
     customer: '/store/catalog',
     guest: '/store/catalog'
@@ -112,7 +115,8 @@ export function getEntryPointForRole(role: UserRole | null): string {
   return entryPoints[role] || '/store/catalog';
 }
 
-export function getShellTypeForPath(path: string): 'business' | 'driver' | 'store' | 'auth' {
+export function getShellTypeForPath(path: string): 'admin' | 'business' | 'driver' | 'store' | 'auth' {
+  if (path.startsWith('/admin')) return 'admin';
   if (path.startsWith('/business')) return 'business';
   if (path.startsWith('/driver')) return 'driver';
   if (path.startsWith('/store')) return 'store';
