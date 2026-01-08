@@ -115,7 +115,7 @@ export async function ensureUserProfile(userId: string, walletType?: string): Pr
         role: 'customer',
         wallet_address: walletAddress,
         wallet_type: walletType || 'ethereum',
-        display_name: walletAddress ? `User ${walletAddress.substring(0, 8)}...` : `User ${userId.substring(0, 8)}...`,
+        name: walletAddress ? `User ${walletAddress.substring(0, 8)}...` : `User ${userId.substring(0, 8)}...`,
       });
 
     if (error) {
