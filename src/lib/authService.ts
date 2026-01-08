@@ -3,6 +3,7 @@ import { localSessionManager } from './localSessionManager';
 import { roleAssignmentManager } from './roleAssignment';
 import { getUserDisplayName } from '../utils/userIdentifier';
 import { supabase } from './supabase';
+import { walletUuidManager } from './walletUuidManager';
 
 export interface AuthUser {
   id: string;
@@ -250,35 +251,21 @@ class AuthService {
     role: string
   ): Promise<string> {
     try {
+      const normalizedAddress = walletAddress.toLowerCase();
+
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('id')
-        .eq('wallet_address', walletAddress.toLowerCase())
+        .eq('wallet_address', normalizedAddress)
         .maybeSingle();
 
       if (existingProfile) {
         logger.info(`[AUTH] Found existing profile for wallet: ${walletAddress}`);
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user?.id === existingProfile.id) {
-          return existingProfile.id;
-        }
-        await supabase.auth.signInAnonymously();
-        const { data: { user: anonUser } } = await supabase.auth.getUser();
-        if (anonUser) {
-          return anonUser.id;
-        }
+        return existingProfile.id;
       }
 
-      logger.info(`[AUTH] Creating anonymous auth user for wallet: ${walletAddress}`);
-      const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
-
-      if (authError || !authData.user) {
-        logger.error('[AUTH] Failed to create anonymous user:', authError);
-        throw new Error('Failed to create authentication session');
-      }
-
-      const authUserId = authData.user.id;
-      logger.info(`[AUTH] Anonymous user created with ID: ${authUserId}`);
+      const userId = walletUuidManager.getOrCreateUuid(walletAddress, walletType);
+      logger.info(`[AUTH] Using client-generated UUID for wallet: ${walletAddress} -> ${userId}`);
 
       const walletTypeDb = walletType === 'ethereum' ? 'eth' : walletType === 'solana' ? 'sol' : 'ton';
       const displayName = formatWalletForDisplay(walletAddress);
@@ -286,20 +273,24 @@ class AuthService {
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
-          id: authUserId,
-          wallet_address: walletAddress.toLowerCase(),
+          id: userId,
+          wallet_address: normalizedAddress,
           wallet_type: walletTypeDb,
           role: role,
           name: displayName,
         });
 
       if (profileError) {
+        if (profileError.code === '23505') {
+          logger.warn('[AUTH] Profile already exists, continuing with existing UUID');
+          return userId;
+        }
         logger.error('[AUTH] Failed to create profile:', profileError);
         throw new Error('Failed to create user profile');
       }
 
       logger.info(`[AUTH] Profile created successfully for ${walletAddress}`);
-      return authUserId;
+      return userId;
     } catch (error) {
       logger.error('[AUTH] Error in getOrCreateAuthUserForWallet:', error);
       throw error;
