@@ -23,7 +23,7 @@ export class DriverCommands {
       logger.info('[DriverCommands] Starting shift', { input });
 
       const result = await this.dataStore
-        .from('drivers')
+        .from('driver_profiles')
         .update({
           status: 'available',
           current_location: input.location,
@@ -67,7 +67,7 @@ export class DriverCommands {
       logger.info('[DriverCommands] Ending shift', { driverId });
 
       const result = await this.dataStore
-        .from('drivers')
+        .from('driver_profiles')
         .update({
           status: 'offline',
         })
@@ -110,7 +110,7 @@ export class DriverCommands {
       logger.info('[DriverCommands] Updating location', { input });
 
       const result = await this.dataStore
-        .from('drivers')
+        .from('driver_profiles')
         .update({
           current_location: input.location,
         })
@@ -151,7 +151,7 @@ export class DriverCommands {
       logger.info('[DriverCommands] Accepting delivery', { driverId, orderId });
 
       const updateDriverResult = await this.dataStore
-        .from('drivers')
+        .from('driver_profiles')
         .update({ status: 'busy' })
         .eq('id', driverId);
 
@@ -204,7 +204,7 @@ export class DriverCommands {
       logger.info('[DriverCommands] Completing delivery', { driverId, orderId });
 
       const updateDriverResult = await this.dataStore
-        .from('drivers')
+        .from('driver_profiles')
         .update({ status: 'available' })
         .eq('id', driverId);
 

@@ -26,7 +26,7 @@ export class DriverQueries {
     try {
       logger.info('[DriverQueries] Fetching drivers', { filters });
 
-      let query = this.dataStore.from('drivers').select('*');
+      let query = this.dataStore.from('driver_profiles').select('*');
 
       if (filters?.status) {
         query = query.eq('status', filters.status);
@@ -66,7 +66,7 @@ export class DriverQueries {
       logger.info('[DriverQueries] Fetching driver by ID', { driverId });
 
       const result = await this.dataStore
-        .from('drivers')
+        .from('driver_profiles')
         .select('*')
         .eq('id', driverId)
         .maybeSingle();
@@ -100,7 +100,7 @@ export class DriverQueries {
       logger.info('[DriverQueries] Fetching nearby drivers', { location, radiusKm });
 
       const result = await this.dataStore
-        .from('drivers')
+        .from('driver_profiles')
         .select('*')
         .eq('status', 'available');
 
