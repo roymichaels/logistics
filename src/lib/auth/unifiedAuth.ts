@@ -1,0 +1,106 @@
+import { supabase } from '../supabase';
+import { logger } from '../logger';
+import { localSessionManager } from '../localSessionManager';
+
+export interface UnifiedAuthSession {
+  userId: string;
+  walletAddress?: string;
+  walletType?: string;
+  role?: string;
+  isWalletAuth: boolean;
+  isSupabaseAuth: boolean;
+}
+
+export async function getCurrentUserId(): Promise<string | null> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user?.id) {
+      logger.debug('[UnifiedAuth] Using Supabase auth user ID:', user.id);
+      return user.id;
+    }
+
+    const localSession = localSessionManager.getSession();
+    if (localSession?.wallet) {
+      logger.debug('[UnifiedAuth] Using wallet address as user ID:', localSession.wallet);
+      return localSession.wallet;
+    }
+
+    logger.warn('[UnifiedAuth] No user ID found in Supabase or wallet session');
+    return null;
+  } catch (error) {
+    logger.error('[UnifiedAuth] Error getting current user ID:', error);
+    return null;
+  }
+}
+
+export async function getCurrentUserSession(): Promise<UnifiedAuthSession | null> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user?.id) {
+      return {
+        userId: user.id,
+        role: user.app_metadata?.role || user.user_metadata?.role,
+        isWalletAuth: false,
+        isSupabaseAuth: true,
+      };
+    }
+
+    const localSession = localSessionManager.getSession();
+    if (localSession?.wallet) {
+      return {
+        userId: localSession.wallet,
+        walletAddress: localSession.wallet,
+        walletType: localSession.walletType,
+        role: localSession.role,
+        isWalletAuth: true,
+        isSupabaseAuth: false,
+      };
+    }
+
+    logger.warn('[UnifiedAuth] No active session found');
+    return null;
+  } catch (error) {
+    logger.error('[UnifiedAuth] Error getting current session:', error);
+    return null;
+  }
+}
+
+export async function ensureUserProfile(userId: string, walletType?: string): Promise<boolean> {
+  try {
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (existingProfile) {
+      logger.debug('[UnifiedAuth] Profile already exists for user:', userId);
+      return true;
+    }
+
+    logger.info('[UnifiedAuth] Creating profile for wallet user:', userId);
+
+    const { error } = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        role: 'customer',
+        wallet_address: userId,
+        wallet_type: walletType || 'ethereum',
+        display_name: `User ${userId.substring(0, 8)}...`,
+      });
+
+    if (error) {
+      logger.error('[UnifiedAuth] Failed to create profile:', error);
+      return false;
+    }
+
+    logger.info('[UnifiedAuth] Profile created successfully for user:', userId);
+    return true;
+  } catch (error) {
+    logger.error('[UnifiedAuth] Error ensuring user profile:', error);
+    return false;
+  }
+}

@@ -1,5 +1,6 @@
 import { logger } from '../lib/logger';
 import { supabase } from '../lib/supabase';
+import { getCurrentUserId, getCurrentUserSession, ensureUserProfile } from '../lib/auth/unifiedAuth';
 
 export interface BusinessRecord {
   id: string;
@@ -49,8 +50,7 @@ export async function getOwnedBusinesses(userId?: string): Promise<BusinessRecor
   logger.debug('[BusinessService] Getting owned businesses from Supabase');
 
   if (!userId) {
-    const { data: { user } } = await supabase.auth.getUser();
-    userId = user?.id;
+    userId = await getCurrentUserId() || undefined;
   }
 
   if (!userId) {
@@ -117,19 +117,34 @@ export async function getBusiness(id: string): Promise<BusinessRecord | null> {
 /**
  * Create a new business owned by the current user
  */
-export async function createBusiness(input: CreateBusinessInput): Promise<BusinessRecord> {
+export async function createBusiness(input: CreateBusinessInput, userId?: string): Promise<BusinessRecord> {
   logger.info('[BusinessService] Creating business in Supabase');
 
-  const { data: { user } } = await supabase.auth.getUser();
+  if (!userId) {
+    userId = await getCurrentUserId() || undefined;
+  }
 
-  if (!user?.id) {
-    throw new Error('User must be authenticated to create a business');
+  if (!userId) {
+    const errorMsg = 'User must be authenticated to create a business. Please reconnect your wallet or sign in.';
+    logger.error('[BusinessService]', errorMsg);
+    throw new Error(errorMsg);
+  }
+
+  logger.info('[BusinessService] Using user ID for business creation:', userId);
+
+  const session = await getCurrentUserSession();
+
+  const profileExists = await ensureUserProfile(userId, session?.walletType);
+  if (!profileExists) {
+    const errorMsg = 'Failed to create or verify user profile. Please try again.';
+    logger.error('[BusinessService]', errorMsg);
+    throw new Error(errorMsg);
   }
 
   const slug = generateSlug(input.name);
 
   const newBusiness = {
-    owner_id: user.id,
+    owner_id: userId,
     name: input.name,
     name_hebrew: input.nameHebrew,
     slug,
@@ -143,6 +158,8 @@ export async function createBusiness(input: CreateBusinessInput): Promise<Busine
     settings: {},
   };
 
+  logger.debug('[BusinessService] Inserting business:', { name: newBusiness.name, owner_id: newBusiness.owner_id });
+
   const { data: business, error: businessError } = await supabase
     .from('businesses')
     .insert(newBusiness)
@@ -150,21 +167,33 @@ export async function createBusiness(input: CreateBusinessInput): Promise<Busine
     .single();
 
   if (businessError) {
-    logger.error('[BusinessService] Failed to create business', businessError);
-    throw businessError;
+    logger.error('[BusinessService] Failed to create business:', {
+      error: businessError,
+      message: businessError.message,
+      code: businessError.code,
+      details: businessError.details,
+      hint: businessError.hint
+    });
+
+    if (businessError.code === 'PGRST301' || businessError.message?.includes('JWT')) {
+      throw new Error('Authentication error. Please reconnect your wallet and try again.');
+    } else if (businessError.code === '42501' || businessError.message?.includes('permission')) {
+      throw new Error('Permission denied. Please ensure you have the necessary permissions to create a business.');
+    } else {
+      throw new Error(`Failed to create business: ${businessError.message || 'Unknown error'}`);
+    }
   }
 
   logger.info('[BusinessService] Business created successfully', { businessId: business.id, name: business.name });
 
-  // Update user profile role to business_owner if not already
   const { error: profileError } = await supabase
     .from('profiles')
     .update({ role: 'business_owner' })
-    .eq('id', user.id)
+    .eq('id', userId)
     .eq('role', 'customer');
 
   if (profileError) {
-    logger.warn('[BusinessService] Failed to update user role', profileError);
+    logger.warn('[BusinessService] Failed to update user role (non-critical):', profileError);
   }
 
   return business as BusinessRecord;
@@ -243,8 +272,7 @@ export function getCurrentBusinessId(): string | null {
  */
 export async function isBusinessOwner(businessId: string, userId?: string): Promise<boolean> {
   if (!userId) {
-    const { data: { user } } = await supabase.auth.getUser();
-    userId = user?.id;
+    userId = await getCurrentUserId() || undefined;
   }
 
   if (!userId) {

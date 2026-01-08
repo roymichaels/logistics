@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { logger } from './logger';
 import type { DataStore, User, Product, InventoryRecord, Zone } from '../data/types';
+import { ensureUserProfile } from './auth/unifiedAuth';
 
 export class SupabaseDataStore implements Partial<DataStore> {
   private userId: string;
@@ -323,6 +324,19 @@ export class SupabaseDataStore implements Partial<DataStore> {
   async createBusiness(input: any): Promise<any> {
     logger.info('[SupabaseDataStore] Creating business', { input });
 
+    if (!this.userId) {
+      const errorMsg = 'User ID is required to create a business';
+      logger.error('[SupabaseDataStore]', errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    const profileExists = await ensureUserProfile(this.userId, input.wallet_type);
+    if (!profileExists) {
+      const errorMsg = 'Failed to create or verify user profile';
+      logger.error('[SupabaseDataStore]', errorMsg);
+      throw new Error(errorMsg);
+    }
+
     const slug = input.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
@@ -344,6 +358,8 @@ export class SupabaseDataStore implements Partial<DataStore> {
       settings: {},
     };
 
+    logger.debug('[SupabaseDataStore] Inserting business:', { name: newBusiness.name, owner_id: newBusiness.owner_id });
+
     const { data: business, error: businessError } = await supabase
       .from('businesses')
       .insert(newBusiness)
@@ -351,13 +367,24 @@ export class SupabaseDataStore implements Partial<DataStore> {
       .single();
 
     if (businessError) {
-      logger.error('[SupabaseDataStore] Failed to create business', businessError);
-      throw businessError;
+      logger.error('[SupabaseDataStore] Failed to create business:', {
+        error: businessError,
+        message: businessError.message,
+        code: businessError.code,
+        details: businessError.details
+      });
+
+      if (businessError.code === 'PGRST301' || businessError.message?.includes('JWT')) {
+        throw new Error('Authentication error. Please reconnect your wallet and try again.');
+      } else if (businessError.code === '42501' || businessError.message?.includes('permission')) {
+        throw new Error('Permission denied. Please ensure you have the necessary permissions to create a business.');
+      } else {
+        throw new Error(`Failed to create business: ${businessError.message || 'Unknown error'}`);
+      }
     }
 
     logger.info('[SupabaseDataStore] Business created successfully', { businessId: business.id });
 
-    // Update user profile role to business_owner if not already
     const { error: profileError } = await supabase
       .from('profiles')
       .update({ role: 'business_owner' })
@@ -365,7 +392,7 @@ export class SupabaseDataStore implements Partial<DataStore> {
       .eq('role', 'customer');
 
     if (profileError) {
-      logger.warn('[SupabaseDataStore] Failed to update user role', profileError);
+      logger.warn('[SupabaseDataStore] Failed to update user role (non-critical):', profileError);
     }
 
     return business;

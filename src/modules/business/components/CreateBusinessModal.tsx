@@ -54,7 +54,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         secondaryColor: formData.secondary_color,
         businessType: 'logistics',
         defaultCurrency: 'ILS'
-      });
+      }, user.id);
 
       logger.info('✅ Business created successfully:', newBusiness);
       Toast.success(`העסק "${formData.name_hebrew}" נוצר בהצלחה!`);
