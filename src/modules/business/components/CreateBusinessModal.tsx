@@ -6,6 +6,7 @@ import { logger } from '../../../lib/logger';
 import { useAppServices } from '../../../context/AppServicesContext';
 import { createBusiness } from '../../../services/business';
 import { Toast } from '../../../components/Toast';
+import { getCurrentUserId } from '../../../lib/auth/unifiedAuth';
 
 interface CreateBusinessModalProps {
   dataStore: DataStore;
@@ -32,18 +33,21 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       return;
     }
 
-    if (!user?.id) {
-      Toast.error('אין מזהה משתמש. אנא התחבר מחדש.');
-      return;
-    }
-
     setLoading(true);
     try {
+      const userId = await getCurrentUserId();
+
+      if (!userId) {
+        Toast.error('אין מזהה משתמש. אנא התחבר מחדש.');
+        setLoading(false);
+        return;
+      }
+
       const orderPrefix = formData.name.substring(0, 3).toUpperCase() || 'BUS';
 
       logger.info('[CreateBusinessModal] Creating business via Supabase', {
         name: formData.name,
-        userId: user.id
+        userId
       });
 
       const newBusiness = await createBusiness({
@@ -54,7 +58,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         secondaryColor: formData.secondary_color,
         businessType: 'logistics',
         defaultCurrency: 'ILS'
-      }, user.id);
+      }, userId);
 
       logger.info('✅ Business created successfully:', newBusiness);
       Toast.success(`העסק "${formData.name_hebrew}" נוצר בהצלחה!`);
@@ -100,8 +104,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       logger.error('[CreateBusinessModal] Business creation error:', {
         error,
         errorMessage,
-        actionHint,
-        userId: user?.id
+        actionHint
       });
 
       Toast.error(`${errorMessage}. ${actionHint}`);
@@ -251,12 +254,12 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
             }}>
               <button
                 type="submit"
-                disabled={loading || !user?.id}
+                disabled={loading}
                 style={{
                   ...styles.button.primary,
                   flex: 1,
-                  opacity: (loading || !user?.id) ? 0.6 : 1,
-                  cursor: (loading || !user?.id) ? 'not-allowed' : 'pointer'
+                  opacity: loading ? 0.6 : 1,
+                  cursor: loading ? 'not-allowed' : 'pointer'
                 }}
               >
                 {loading ? 'יוצר עסק...' : 'צור עסק'}

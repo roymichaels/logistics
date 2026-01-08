@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useSafeAppServices } from '../../context/AppServicesContext';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { NoActiveBusiness } from '../../components/NoActiveBusiness';
 import { tokens } from '../../styles/tokens';
 import { useBusinessStats } from '../../hooks/useBusinessStats';
 import { BusinessMetrics, BusinessQuickActions, BusinessActivityFeed } from '../../components/business';
@@ -33,6 +34,17 @@ export function BusinessOwnerDashboard() {
     loadBusinessName();
     loadAuditLogs();
   }, [currentBusinessId]);
+
+  if (!currentBusinessId) {
+    return (
+      <PageContainer>
+        <NoActiveBusiness
+          onNavigateToBusinesses={() => navigate('/businesses')}
+          message="לוח הבקרה של בעל העסק דורש עסק פעיל. אנא בחר עסק או צור עסק חדש."
+        />
+      </PageContainer>
+    );
+  }
 
   const loadBusinessName = async () => {
     if (!currentBusinessId) return;

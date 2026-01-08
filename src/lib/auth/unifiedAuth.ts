@@ -105,14 +105,17 @@ export async function ensureUserProfile(userId: string, walletType?: string): Pr
 
     logger.info('[UnifiedAuth] Creating profile for wallet user:', userId);
 
+    const localSession = localSessionManager.getSession();
+    const walletAddress = localSession?.wallet || null;
+
     const { error } = await supabase
       .from('profiles')
       .insert({
         id: userId,
         role: 'customer',
-        wallet_address: userId,
+        wallet_address: walletAddress,
         wallet_type: walletType || 'ethereum',
-        display_name: `User ${userId.substring(0, 8)}...`,
+        display_name: walletAddress ? `User ${walletAddress.substring(0, 8)}...` : `User ${userId.substring(0, 8)}...`,
       });
 
     if (error) {

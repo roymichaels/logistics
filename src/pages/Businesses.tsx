@@ -327,6 +327,25 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
           <div style={styles.emptyState.containerText}>
             אין עסקים להצגה
           </div>
+          <p style={{
+            color: tokens.colors.subtle,
+            fontSize: '14px',
+            marginTop: '8px',
+            marginBottom: '24px',
+            textAlign: 'center'
+          }}>
+            צור עסק פרטי חדש כדי להתחיל
+          </p>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            style={{
+              ...styles.button.primary,
+              padding: '12px 24px',
+              fontSize: '15px'
+            }}
+          >
+            + צור עסק חדש
+          </button>
         </div>
       )}
 
