@@ -320,6 +320,57 @@ export class SupabaseDataStore implements Partial<DataStore> {
     } as Zone;
   }
 
+  async createBusiness(input: any): Promise<any> {
+    logger.info('[SupabaseDataStore] Creating business', { input });
+
+    const slug = input.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 50) + '-' + Math.random().toString(36).substring(2, 9);
+
+    const newBusiness = {
+      owner_id: this.userId,
+      name: input.name,
+      name_hebrew: input.name_hebrew,
+      slug,
+      description: input.description,
+      business_type: input.business_type || 'retail',
+      status: 'active',
+      order_number_prefix: input.order_number_prefix || 'ORD',
+      default_currency: input.default_currency || 'USD',
+      primary_color: input.primary_color || '#1e40af',
+      secondary_color: input.secondary_color || '#3b82f6',
+      settings: {},
+    };
+
+    const { data: business, error: businessError } = await supabase
+      .from('businesses')
+      .insert(newBusiness)
+      .select()
+      .single();
+
+    if (businessError) {
+      logger.error('[SupabaseDataStore] Failed to create business', businessError);
+      throw businessError;
+    }
+
+    logger.info('[SupabaseDataStore] Business created successfully', { businessId: business.id });
+
+    // Update user profile role to business_owner if not already
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ role: 'business_owner' })
+      .eq('id', this.userId)
+      .eq('role', 'customer');
+
+    if (profileError) {
+      logger.warn('[SupabaseDataStore] Failed to update user role', profileError);
+    }
+
+    return business;
+  }
+
   clearUserCache(): void {
     logger.debug('[SupabaseDataStore] Cache cleared');
   }

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { DataStore, User } from '../../../data/types';
 
 import { tokens, styles } from '../../../styles/tokens';
 import { logger } from '../../../lib/logger';
-import { localBusinessDataService } from '../../../services/localBusinessDataService';
 import { useAppServices } from '../../../context/AppServicesContext';
+import { createBusiness } from '../../../services/business';
+import { Toast } from '../../../components/Toast';
 
 interface CreateBusinessModalProps {
   dataStore: DataStore;
@@ -14,7 +15,7 @@ interface CreateBusinessModalProps {
 }
 
 export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: CreateBusinessModalProps) {
-  const { setBusinessId, refreshUserRole } = useAppServices();
+  const { setBusinessId, refreshUserRole, refreshOwnedBusinesses } = useAppServices();
   const [formData, setFormData] = useState({
     name: '',
     name_hebrew: '',
@@ -22,79 +23,44 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
     secondary_color: '#764ba2'
   });
   const [loading, setLoading] = useState(false);
-  const [isReady, setIsReady] = useState(false);
-  const [actualUserId, setActualUserId] = useState<string | null>(null);
-  const [initError, setInitError] = useState<string | null>(null);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
-
-  useEffect(() => {
-    let mounted = true;
-
-    function initializeModal() {
-      if (!mounted) return;
-
-      logger.info('✅ CreateBusinessModal: Starting initialization (frontend-only mode)', {
-        hasUser: !!user,
-        userId: user?.id
-      });
-
-      if (!user) {
-        setIsInitializing(false);
-        logger.info('⚠️ CreateBusinessModal: No user provided');
-        return;
-      }
-
-      if (user.id) {
-        setActualUserId(user.id);
-        setIsReady(true);
-        setIsInitializing(false);
-        logger.info('✅ CreateBusinessModal: User ID available', { userId: user.id });
-        return;
-      }
-
-      logger.info('⚠️ CreateBusinessModal: User has no ID yet, will use wallet address');
-      setActualUserId(user.wallet_address || null);
-      setIsReady(true);
-      setIsInitializing(false);
-    }
-
-    initializeModal();
-
-    return () => {
-      mounted = false;
-    };
-  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name || !formData.name_hebrew) {
+      Toast.error('אנא מלא את כל השדות הנדרשים');
+      return;
+    }
 
+    if (!user?.id) {
+      Toast.error('אין מזהה משתמש. אנא התחבר מחדש.');
       return;
     }
 
     setLoading(true);
     try {
-      if (!actualUserId) {
-        throw new Error('שגיאה: לא נמצא מזהה משתמש. אנא רענן את הדף ונסה שוב.');
-      }
-
       const orderPrefix = formData.name.substring(0, 3).toUpperCase() || 'BUS';
 
-      const newBusiness = localBusinessDataService.createBusiness(
-        {
-          name: formData.name,
-          name_hebrew: formData.name_hebrew,
-          order_prefix: orderPrefix,
-          primary_color: formData.primary_color,
-          secondary_color: formData.secondary_color,
-          business_type: 'logistics'
-        },
-        actualUserId
-      );
+      logger.info('[CreateBusinessModal] Creating business via Supabase', {
+        name: formData.name,
+        userId: user.id
+      });
+
+      const newBusiness = await createBusiness({
+        name: formData.name,
+        nameHebrew: formData.name_hebrew,
+        orderNumberPrefix: orderPrefix,
+        primaryColor: formData.primary_color,
+        secondaryColor: formData.secondary_color,
+        businessType: 'logistics',
+        defaultCurrency: 'ILS'
+      });
 
       logger.info('✅ Business created successfully:', newBusiness);
+      Toast.success(`העסק "${formData.name_hebrew}" נוצר בהצלחה!`);
+
+      // Refresh owned businesses list
+      await refreshOwnedBusinesses();
 
       // Set the new business as the active context
       setBusinessId(newBusiness.id);
@@ -108,8 +74,8 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       onClose();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'שגיאה ביצירת עסק';
-      logger.error('Business creation error:', error);
-
+      logger.error('[CreateBusinessModal] Business creation error:', error);
+      Toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -249,47 +215,6 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
               )}
             </div>
 
-            {initError && (
-              <div style={{
-                padding: '16px',
-                backgroundColor: 'rgba(255, 59, 48, 0.1)',
-                border: '1px solid rgba(255, 59, 48, 0.3)',
-                borderRadius: '8px',
-                marginBottom: '16px'
-              }}>
-                <p style={{
-                  margin: '0 0 12px 0',
-                  color: '#ff3b30',
-                  fontSize: '14px',
-                  textAlign: 'center',
-                  fontWeight: '500'
-                }}>
-                  {initError}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setInitError(null);
-                    setIsInitializing(true);
-                    setRetryCount(prev => prev + 1);
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '8px 16px',
-                    backgroundColor: 'rgba(255, 59, 48, 0.2)',
-                    border: '1px solid rgba(255, 59, 48, 0.5)',
-                    borderRadius: '6px',
-                    color: '#ff3b30',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: 'pointer'
-                  }}
-                >
-                  🔄 נסה שוב
-                </button>
-              </div>
-            )}
-
             <div style={{
               display: 'flex',
               gap: '12px',
@@ -297,15 +222,15 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
             }}>
               <button
                 type="submit"
-                disabled={loading || !isReady || isInitializing || !!initError}
+                disabled={loading || !user?.id}
                 style={{
                   ...styles.button.primary,
                   flex: 1,
-                  opacity: (loading || !isReady || isInitializing || !!initError) ? 0.6 : 1,
-                  cursor: (loading || !isReady || isInitializing || !!initError) ? 'not-allowed' : 'pointer'
+                  opacity: (loading || !user?.id) ? 0.6 : 1,
+                  cursor: (loading || !user?.id) ? 'not-allowed' : 'pointer'
                 }}
               >
-                {isInitializing ? 'מאתחל מערכת...' : !isReady ? 'טוען...' : loading ? 'יוצר...' : 'צור עסק'}
+                {loading ? 'יוצר עסק...' : 'צור עסק'}
               </button>
               <button
                 type="button"
