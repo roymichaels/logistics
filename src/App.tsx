@@ -13,6 +13,7 @@ import { SearchBusinessModal } from './modules/business/components';
 import { BecomeDriverModal } from './modules/driver/components';
 import { WorkWithUsModal } from './modules/auth/components';
 import { ToastContainer } from './components/EnhancedToast';
+import { SessionMigrationNotice } from './components/SessionMigrationNotice';
 import { PageLoadingSkeleton } from './components/LoadingSkeleton';
 import { debugLog } from './components/DebugPanel';
 import { hebrew } from './lib/i18n';
@@ -887,6 +888,16 @@ export default function App() {
           </PermissionProvider>
         </LanguageProvider>
       </Suspense>
+
+      {/* Session migration notice */}
+      <SessionMigrationNotice
+        onReconnect={() => {
+          setIsLoggedIn(false);
+          setIsAuthenticated(false);
+          setUser(null);
+          setCurrentPage('dashboard');
+        }}
+      />
 
       {/* Legacy modals - TODO: migrate to unified modal controller in Phase 2 */}
       {showOrderWizard && dataStore && (
