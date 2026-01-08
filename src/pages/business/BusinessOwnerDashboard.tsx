@@ -39,7 +39,7 @@ export function BusinessOwnerDashboard() {
     return (
       <PageContainer>
         <NoActiveBusiness
-          onNavigateToBusinesses={() => navigate('/businesses')}
+          onNavigateToBusinesses={() => navigate('/business/businesses')}
           message="לוח הבקרה של בעל העסק דורש עסק פעיל. אנא בחר עסק או צור עסק חדש."
         />
       </PageContainer>
