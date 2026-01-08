@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Dashboard } from '../Dashboard';
+import { BusinessOwnerDashboard } from '../business/BusinessOwnerDashboard';
 import { WarehouseDashboard } from '../WarehouseDashboard';
 import { DispatchBoard } from '../DispatchBoard';
 import { SalesDashboard } from '../sales/SalesDashboard';
@@ -35,7 +36,11 @@ export function UnifiedDashboardPage({ businessId, role: propsRole }: UnifiedDas
     return <PlatformDashboard />;
   }
 
-  if (role === 'business_owner' || role === 'manager') {
+  if (role === 'business_owner') {
+    return <BusinessOwnerDashboard />;
+  }
+
+  if (role === 'manager') {
     return <Dashboard />;
   }
 

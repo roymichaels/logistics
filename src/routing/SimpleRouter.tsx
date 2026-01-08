@@ -61,6 +61,11 @@ const FeatureFlags = React.lazy(() => import('../pages/admin/FeatureFlags').then
 const DriverApplications = React.lazy(() => import('../pages/admin/DriverApplications').then(m => ({ default: m.default })));
 const AdminAnalytics = React.lazy(() => import('../pages/admin/AdminAnalytics').then(m => ({ default: m.AdminAnalytics })));
 const BusinessSettings = React.lazy(() => import('../pages/business/Settings').then(m => ({ default: m.default })));
+const BusinessOwnerDashboard = React.lazy(() => import('../pages/business/BusinessOwnerDashboard').then(m => ({ default: m.BusinessOwnerDashboard })));
+const BusinessAnalytics = React.lazy(() => import('../pages/business/BusinessAnalytics').then(m => ({ default: m.BusinessAnalytics })));
+const BusinessAuditLogs = React.lazy(() => import('../pages/business/BusinessAuditLogs').then(m => ({ default: m.BusinessAuditLogs })));
+const BusinessFeatureFlags = React.lazy(() => import('../pages/business/BusinessFeatureFlags').then(m => ({ default: m.BusinessFeatureFlags })));
+const BusinessCustomers = React.lazy(() => import('../pages/business/BusinessCustomers').then(m => ({ default: m.BusinessCustomers })));
 const DriversPage = React.lazy(() => import('../pages/unified/DriversPage').then(m => ({ default: m.DriversPage })));
 const AdminUsers = React.lazy(() => import('../pages/admin/AdminUsers').then(m => ({ default: m.AdminUsers })));
 const AdminOrders = React.lazy(() => import('../pages/admin/AdminOrders').then(m => ({ default: m.AdminOrders })));
@@ -197,7 +202,10 @@ export function SimpleRouter() {
           <Route path="/business/restock" element={<Suspense fallback={<PageLoadingSkeleton />}><RestockRequests dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
-          <Route path="/business/analytics" element={<Suspense fallback={<PageLoadingSkeleton />}><MyStats dataStore={dataStore} /></Suspense>} />
+          <Route path="/business/analytics" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessAnalytics /></Suspense>} />
+          <Route path="/business/customers" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessCustomers /></Suspense>} />
+          <Route path="/business/audit-logs" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessAuditLogs /></Suspense>} />
+          <Route path="/business/feature-flags" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessFeatureFlags /></Suspense>} />
           <Route path="/business/channels" element={<Suspense fallback={<PageLoadingSkeleton />}><Channels dataStore={dataStore} onNavigate={(path) => navigate(path)} currentUser={null} /></Suspense>} />
           <Route path="/business/settings" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessSettings /></Suspense>} />
           <Route path="/business/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />

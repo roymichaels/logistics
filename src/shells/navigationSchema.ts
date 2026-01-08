@@ -181,12 +181,44 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     requiredRoles: ['business_owner', 'manager']
   },
   {
+    id: 'business-analytics',
+    label: 'אנליטיקה',
+    path: '/business/analytics',
+    icon: '📊',
+    visible: true,
+    requiredRoles: ['business_owner']
+  },
+  {
+    id: 'business-customers',
+    label: 'לקוחות',
+    path: '/business/customers',
+    icon: '👥',
+    visible: true,
+    requiredRoles: ['business_owner']
+  },
+  {
     id: 'business-reports',
     label: 'דוחות',
     path: '/business/business-reports',
     icon: '📈',
     visible: true,
     requiredRoles: ['business_owner', 'manager']
+  },
+  {
+    id: 'business-audit-logs',
+    label: 'יומני ביקורת',
+    path: '/business/audit-logs',
+    icon: '📋',
+    visible: true,
+    requiredRoles: ['business_owner']
+  },
+  {
+    id: 'business-feature-flags',
+    label: 'תכונות',
+    path: '/business/feature-flags',
+    icon: '🚩',
+    visible: true,
+    requiredRoles: ['business_owner']
   },
   {
     id: 'business-tasks',
