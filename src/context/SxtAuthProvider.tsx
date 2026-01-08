@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { connectEthereumWallet, connectSolanaWallet, connectTonWallet, clearLocalSession } from '../lib/auth/walletAuth';
+import { supabase } from '../lib/supabase';
 
 type SxtRole = 'client' | 'business_owner' | 'driver' | 'manager' | 'dispatcher' | 'warehouse' | 'sales' | 'customer_service' | 'infrastructure_owner' | 'admin' | 'user';
 
@@ -8,6 +9,7 @@ interface SxtSession {
   walletAddress: string;
   role: SxtRole;
   businesses?: string[];
+  supabaseUserId?: string;
 }
 
 interface SxtAuthContextValue {
@@ -74,32 +76,51 @@ export function SxtAuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithEthereum = async () => {
     setError(null);
-    const { address } = await connectEthereumWallet();
+    const { address, supabaseUserId } = await connectEthereumWallet();
     const defaultRole = (roleOverride as SxtRole) || 'client';
-    const s: SxtSession = { walletType: 'ethereum', walletAddress: address, role: defaultRole, businesses: [] };
+    const s: SxtSession = {
+      walletType: 'ethereum',
+      walletAddress: address,
+      role: defaultRole,
+      businesses: [],
+      supabaseUserId
+    };
     setSession(s);
     persistSession(s);
   };
 
   const loginWithSolana = async (adapter: any) => {
     setError(null);
-    const { address } = await connectSolanaWallet(adapter);
+    const { address, supabaseUserId } = await connectSolanaWallet(adapter);
     const defaultRole = (roleOverride as SxtRole) || 'client';
-    const s: SxtSession = { walletType: 'solana', walletAddress: address, role: defaultRole, businesses: [] };
+    const s: SxtSession = {
+      walletType: 'solana',
+      walletAddress: address,
+      role: defaultRole,
+      businesses: [],
+      supabaseUserId
+    };
     setSession(s);
     persistSession(s);
   };
 
   const loginWithTon = async () => {
     setError(null);
-    const { address } = await connectTonWallet();
+    const { address, supabaseUserId } = await connectTonWallet();
     const defaultRole = (roleOverride as SxtRole) || 'client';
-    const s: SxtSession = { walletType: 'ton', walletAddress: address, role: defaultRole, businesses: [] };
+    const s: SxtSession = {
+      walletType: 'ton',
+      walletAddress: address,
+      role: defaultRole,
+      businesses: [],
+      supabaseUserId
+    };
     setSession(s);
     persistSession(s);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setSession(null);
     clearLocalSession();
   };
