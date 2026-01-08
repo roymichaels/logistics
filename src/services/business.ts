@@ -143,28 +143,21 @@ export async function createBusiness(input: CreateBusinessInput, userId?: string
 
   const slug = generateSlug(input.name);
 
-  const newBusiness = {
-    owner_id: userId,
-    name: input.name,
-    name_hebrew: input.nameHebrew,
-    slug,
-    description: input.description,
-    business_type: input.businessType || 'retail',
-    status: 'active' as const,
-    order_number_prefix: input.orderNumberPrefix || 'ORD',
-    default_currency: input.defaultCurrency || 'USD',
-    primary_color: input.primaryColor || '#1e40af',
-    secondary_color: input.secondaryColor || '#3b82f6',
-    settings: {},
-  };
+  logger.debug('[BusinessService] Creating business via RPC function:', { name: input.name, owner_id: userId });
 
-  logger.debug('[BusinessService] Inserting business:', { name: newBusiness.name, owner_id: newBusiness.owner_id });
-
-  const { data: business, error: businessError } = await supabase
-    .from('businesses')
-    .insert(newBusiness)
-    .select()
-    .single();
+  const { data: businessJson, error: businessError } = await supabase
+    .rpc('create_business_for_user', {
+      p_owner_id: userId,
+      p_name: input.name,
+      p_slug: slug,
+      p_name_hebrew: input.nameHebrew || null,
+      p_description: input.description || null,
+      p_business_type: input.businessType || 'retail',
+      p_order_number_prefix: input.orderNumberPrefix || 'ORD',
+      p_default_currency: input.defaultCurrency || 'USD',
+      p_primary_color: input.primaryColor || '#1e40af',
+      p_secondary_color: input.secondaryColor || '#3b82f6'
+    });
 
   if (businessError) {
     logger.error('[BusinessService] Failed to create business:', {
@@ -184,17 +177,8 @@ export async function createBusiness(input: CreateBusinessInput, userId?: string
     }
   }
 
+  const business = businessJson as any;
   logger.info('[BusinessService] Business created successfully', { businessId: business.id, name: business.name });
-
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update({ role: 'business_owner' })
-    .eq('id', userId)
-    .eq('role', 'customer');
-
-  if (profileError) {
-    logger.warn('[BusinessService] Failed to update user role (non-critical):', profileError);
-  }
 
   return business as BusinessRecord;
 }
