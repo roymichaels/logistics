@@ -1,4 +1,5 @@
 import { logger } from './logger';
+import { walletUserMapping } from './walletUserMapping';
 
 export interface LocalSession {
   wallet: string;
@@ -24,19 +25,33 @@ export class LocalSessionManager {
     authUserId?: string
   ): LocalSession {
     const now = Date.now();
+    const normalizedAddress = walletAddress.toLowerCase();
+
+    let finalAuthUserId = authUserId;
+    if (!finalAuthUserId) {
+      const mappedUserId = walletUserMapping.getUserIdForWallet(normalizedAddress);
+      if (mappedUserId) {
+        finalAuthUserId = mappedUserId;
+        logger.debug('[SESSION] Using mapped user ID from wallet mapping:', mappedUserId);
+      }
+    } else {
+      walletUserMapping.setUserIdForWallet(normalizedAddress, finalAuthUserId, walletType);
+      logger.debug('[SESSION] Updated wallet mapping with provided auth user ID');
+    }
+
     const session: LocalSession = {
-      wallet: walletAddress.toLowerCase(),
+      wallet: normalizedAddress,
       walletType,
       signature,
       message,
       createdAt: now,
       expiresAt: now + 1000 * 60 * 60 * 24 * 7,
       role: roleOverride || this.loadRoleForWallet(walletAddress) || 'customer',
-      authUserId,
+      authUserId: finalAuthUserId,
     };
 
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
-    logger.info(`[SESSION] Created local session for ${walletAddress} with role: ${session.role}${authUserId ? ` and auth ID: ${authUserId}` : ''}`);
+    logger.info(`[SESSION] Created local session for ${normalizedAddress} with role: ${session.role}${finalAuthUserId ? ` and auth ID: ${finalAuthUserId}` : ''}`);
     return session;
   }
 
@@ -113,6 +128,18 @@ export class LocalSessionManager {
     if (session) {
       session.expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 7;
       localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+    }
+  }
+
+  updateAuthUserId(authUserId: string): void {
+    const session = this.getSession();
+    if (session) {
+      session.authUserId = authUserId;
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+
+      walletUserMapping.setUserIdForWallet(session.wallet, authUserId, session.walletType);
+
+      logger.info(`[SESSION] Updated auth user ID for ${session.wallet}: ${authUserId}`);
     }
   }
 }

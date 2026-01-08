@@ -2,6 +2,7 @@ import { supabase } from '../supabase';
 import { logger } from '../logger';
 import { localSessionManager } from '../localSessionManager';
 import { checkSessionVersion } from '../sessionMigration';
+import { walletUserMapping } from '../walletUserMapping';
 
 export interface UnifiedAuthSession {
   userId: string;
@@ -14,14 +15,37 @@ export interface UnifiedAuthSession {
 
 export async function getCurrentUserId(): Promise<string | null> {
   try {
+    const localSession = localSessionManager.getSession();
+
+    if (localSession?.wallet) {
+      const mappedUserId = walletUserMapping.getUserIdForWallet(localSession.wallet);
+      if (mappedUserId) {
+        logger.debug('[UnifiedAuth] Using mapped user ID for wallet:', {
+          wallet: localSession.wallet,
+          userId: mappedUserId,
+        });
+        return mappedUserId;
+      }
+      logger.debug('[UnifiedAuth] No mapping found for wallet, checking other sources');
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user?.id) {
       logger.debug('[UnifiedAuth] Using Supabase auth user ID:', user.id);
+
+      if (localSession?.wallet) {
+        walletUserMapping.setUserIdForWallet(
+          localSession.wallet,
+          user.id,
+          localSession.walletType
+        );
+        logger.debug('[UnifiedAuth] Created mapping for current Supabase session');
+      }
+
       return user.id;
     }
 
-    const localSession = localSessionManager.getSession();
     if (localSession?.authUserId) {
       logger.debug('[UnifiedAuth] Using auth user ID from session:', localSession.authUserId);
       return localSession.authUserId;

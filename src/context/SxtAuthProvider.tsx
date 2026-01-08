@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { connectEthereumWallet, connectSolanaWallet, connectTonWallet, clearLocalSession } from '../lib/auth/walletAuth';
 import { supabase } from '../lib/supabase';
+import { localSessionManager } from '../lib/localSessionManager';
 
 type SxtRole = 'client' | 'business_owner' | 'driver' | 'manager' | 'dispatcher' | 'warehouse' | 'sales' | 'customer_service' | 'infrastructure_owner' | 'admin' | 'user';
 
@@ -87,6 +88,17 @@ export function SxtAuthProvider({ children }: { children: React.ReactNode }) {
     };
     setSession(s);
     persistSession(s);
+
+    if (supabaseUserId) {
+      localSessionManager.createSession(
+        address,
+        'ethereum',
+        '',
+        undefined,
+        defaultRole,
+        supabaseUserId
+      );
+    }
   };
 
   const loginWithSolana = async (adapter: any) => {
@@ -102,6 +114,17 @@ export function SxtAuthProvider({ children }: { children: React.ReactNode }) {
     };
     setSession(s);
     persistSession(s);
+
+    if (supabaseUserId) {
+      localSessionManager.createSession(
+        address,
+        'solana',
+        '',
+        undefined,
+        defaultRole,
+        supabaseUserId
+      );
+    }
   };
 
   const loginWithTon = async () => {
@@ -117,6 +140,17 @@ export function SxtAuthProvider({ children }: { children: React.ReactNode }) {
     };
     setSession(s);
     persistSession(s);
+
+    if (supabaseUserId) {
+      localSessionManager.createSession(
+        address,
+        'ton',
+        '',
+        undefined,
+        defaultRole,
+        supabaseUserId
+      );
+    }
   };
 
   const logout = async () => {
