@@ -42,6 +42,13 @@ export function useBusinessStats(options: UseBusinessStatsOptions = {}) {
     try {
       setError(null);
 
+      // Get current user session
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+
+      // For wallet users (anon role), pass user_id parameter
+      const rpcParams = userId ? { p_business_id: businessId, p_user_id: userId } : { p_business_id: businessId };
+
       const [
         orderStatsResult,
         teamCountResult,
@@ -50,10 +57,10 @@ export function useBusinessStats(options: UseBusinessStatsOptions = {}) {
         productsResult,
         driversResult
       ] = await Promise.all([
-        supabase.rpc('get_business_order_stats', { p_business_id: businessId }).then(r => ({ data: r.data, error: r.error })),
-        supabase.rpc('get_business_team_count', { p_business_id: businessId }).then(r => ({ data: r.data, error: r.error })),
-        supabase.rpc('get_business_driver_count', { p_business_id: businessId }).then(r => ({ data: r.data, error: r.error })),
-        supabase.rpc('get_business_inventory_stats', { p_business_id: businessId }).then(r => ({ data: r.data, error: r.error })),
+        supabase.rpc('get_business_order_stats', rpcParams).then(r => ({ data: r.data, error: r.error })),
+        supabase.rpc('get_business_team_count', rpcParams).then(r => ({ data: r.data, error: r.error })),
+        supabase.rpc('get_business_driver_count', rpcParams).then(r => ({ data: r.data, error: r.error })),
+        supabase.rpc('get_business_inventory_stats', rpcParams).then(r => ({ data: r.data, error: r.error })),
         supabase
           .from('products')
           .select('id')
