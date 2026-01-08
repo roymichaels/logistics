@@ -43,59 +43,62 @@ export function useBusinessStats(options: UseBusinessStatsOptions = {}) {
       setError(null);
 
       const [
-        { data: orders },
-        { data: teamMembers },
-        { data: drivers },
-        { data: inventory },
-        { data: products }
+        orderStatsResult,
+        teamCountResult,
+        driverCountResult,
+        inventoryStatsResult,
+        productsResult,
+        driversResult
       ] = await Promise.all([
-        supabase
-          .from('orders')
-          .select('id, total, status, created_at')
-          .eq('business_id', businessId),
-        supabase
-          .from('profiles')
-          .select('id, role')
-          .eq('business_id', businessId),
-        supabase
-          .from('drivers')
-          .select('id, status')
-          .eq('business_id', businessId),
-        supabase
-          .from('inventory')
-          .select('id, quantity, reorder_point')
-          .eq('business_id', businessId),
+        supabase.rpc('get_business_order_stats', { p_business_id: businessId }).then(r => ({ data: r.data, error: r.error })),
+        supabase.rpc('get_business_team_count', { p_business_id: businessId }).then(r => ({ data: r.data, error: r.error })),
+        supabase.rpc('get_business_driver_count', { p_business_id: businessId }).then(r => ({ data: r.data, error: r.error })),
+        supabase.rpc('get_business_inventory_stats', { p_business_id: businessId }).then(r => ({ data: r.data, error: r.error })),
         supabase
           .from('products')
           .select('id')
           .eq('business_id', businessId)
+          .then(r => ({ data: r.data, error: r.error })),
+        supabase
+          .from('driver_profiles')
+          .select('id, active')
+          .eq('business_id', businessId)
+          .eq('active', true)
+          .then(r => ({ data: r.data, error: r.error }))
       ]);
 
-      const totalOrders = orders?.length || 0;
-      const pendingOrders = orders?.filter(o => o.status === 'pending' || o.status === 'confirmed').length || 0;
-      const completedOrders = orders?.filter(o => o.status === 'delivered').length || 0;
-      const cancelledOrders = orders?.filter(o => o.status === 'cancelled').length || 0;
-      const totalRevenue = orders?.reduce((sum, o) => sum + (Number(o.total) || 0), 0) || 0;
+      const orderStats = orderStatsResult.data || {
+        total_orders: 0,
+        pending_orders: 0,
+        active_orders: 0,
+        completed_orders: 0,
+        total_revenue: 0
+      };
+
+      const totalOrders = Number(orderStats.total_orders) || 0;
+      const pendingOrders = Number(orderStats.pending_orders) || 0;
+      const completedOrders = Number(orderStats.completed_orders) || 0;
+      const totalRevenue = Number(orderStats.total_revenue) || 0;
+      const cancelledOrders = 0;
       const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-      const activeTeamMembers = teamMembers?.filter(m =>
-        m.role !== 'customer' && m.role !== 'guest'
-      ).length || 0;
+      const activeTeamMembers = teamCountResult.data || 0;
+      const totalDrivers = driverCountResult.data || 0;
 
-      const totalDrivers = drivers?.length || 0;
-      const availableDrivers = drivers?.filter(d => d.status === 'available').length || 0;
-      const activeDrivers = drivers?.filter(d => d.status === 'active').length || 0;
+      const availableDrivers = driversResult.data?.length || 0;
+      const activeDrivers = driversResult.data?.length || 0;
 
-      const lowStockItems = inventory?.filter(i =>
-        i.quantity > 0 && i.quantity <= i.reorder_point
-      ).length || 0;
-      const outOfStockItems = inventory?.filter(i => i.quantity === 0).length || 0;
+      const inventoryStats = inventoryStatsResult.data || {
+        total_products: 0,
+        total_quantity: 0,
+        low_stock_count: 0
+      };
 
-      const totalProducts = products?.length || 0;
+      const lowStockItems = Number(inventoryStats.low_stock_count) || 0;
+      const outOfStockItems = 0;
+      const totalProducts = productsResult.data?.length || 0;
 
-      const now = new Date();
-      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      const recentOrders = orders?.filter(o => new Date(o.created_at) > oneDayAgo).length || 0;
+      const recentOrders = Number(orderStats.pending_orders) || 0;
 
       const newStats: BusinessStats = {
         totalOrders,
