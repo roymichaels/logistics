@@ -52,7 +52,7 @@ export function ChatMessagesArea({
           style={{
             fontSize: '18px',
             fontWeight: '600',
-            color: '#E7E9EA',
+            color: tokens.colors.text,
             textAlign: 'center'
           }}
         >
@@ -61,7 +61,7 @@ export function ChatMessagesArea({
         <div
           style={{
             fontSize: '14px',
-            color: '#8899A6',
+            color: tokens.colors.subtle,
             textAlign: 'center',
             maxWidth: '300px',
             lineHeight: '1.5'

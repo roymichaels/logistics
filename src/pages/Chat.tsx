@@ -364,7 +364,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
 
     return (
       <div style={{
-        background: 'linear-gradient(135deg, #1a0033 0%, #0a001a 100%)',
+        background: tokens.colors.panel,
         minHeight: '100vh',
         direction: 'rtl',
         display: 'flex',
@@ -408,7 +408,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
         }
       `}</style>
       <div style={{
-        background: 'linear-gradient(135deg, #1a0033 0%, #0a001a 100%)',
+        background: tokens.colors.panel,
         minHeight: '100vh',
         paddingTop: '16px',
         paddingBottom: '80px',

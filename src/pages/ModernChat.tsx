@@ -173,8 +173,8 @@ export function ModernChat({ currentUser: propCurrentUser }: ModernChatProps = {
           alignItems: 'center',
           justifyContent: 'center',
           height: '100vh',
-          background: '#15202B',
-          color: '#E7E9EA'
+          background: tokens.colors.panel,
+          color: tokens.colors.text
         }}
       >
         טוען...

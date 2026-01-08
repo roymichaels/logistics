@@ -18,7 +18,7 @@ export function ModernChatLayout({
     <div
       style={{
         minHeight: '100vh',
-        background: '#15202B',
+        background: tokens.colors.panel,
         padding: '28px clamp(16px, 5vw, 40px)',
         direction: 'rtl',
         position: 'relative',
@@ -40,8 +40,8 @@ export function ModernChatLayout({
             width: showSidebar ? '100%' : '380px',
             maxWidth: '380px',
             minWidth: '320px',
-            background: '#192734',
-            border: `1px solid #38444D`,
+            background: tokens.colors.background.card,
+            border: `1px solid ${tokens.colors.background.cardBorder}`,
             borderRadius: '16px',
             boxShadow: '0 2px 12px rgba(0, 0, 0, 0.3)',
             display: 'flex',
@@ -62,8 +62,8 @@ export function ModernChatLayout({
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            background: '#192734',
-            border: `1px solid #38444D`,
+            background: tokens.colors.background.card,
+            border: `1px solid ${tokens.colors.background.cardBorder}`,
             borderRadius: '16px',
             boxShadow: '0 2px 12px rgba(0, 0, 0, 0.3)',
             position: 'relative'
