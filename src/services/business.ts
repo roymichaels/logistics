@@ -59,10 +59,7 @@ export async function getOwnedBusinesses(userId?: string): Promise<BusinessRecor
   }
 
   const { data, error } = await supabase
-    .from('businesses')
-    .select('*')
-    .eq('owner_id', userId)
-    .order('name', { ascending: true });
+    .rpc('get_user_businesses', { user_id: userId });
 
   if (error) {
     logger.error('[BusinessService] Failed to get owned businesses', error);

@@ -26,33 +26,32 @@ class UserService {
     }
 
     const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
+      .rpc('get_user_profile_by_id', { user_id: userId });
 
     if (error) {
       logger.error('[UserService] Failed to fetch profile from Supabase', error);
       throw error;
     }
 
-    if (!data) {
+    if (!data || data.length === 0) {
       logger.warn('[UserService] Profile not found in Supabase', { userId });
       throw new Error('Profile not found');
     }
 
+    const profileData = Array.isArray(data) ? data[0] : data;
+
     const profile: UserProfile = {
-      id: data.id,
-      username: data.username,
-      name: data.name,
-      role: data.role || 'user',
-      global_role: data.role || 'user',
-      wallet_address_eth: data.wallet_address_eth,
-      wallet_address_sol: data.wallet_address_sol,
-      phone: data.phone,
-      avatar_url: data.avatar_url,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
+      id: profileData.id,
+      username: profileData.username,
+      name: profileData.name,
+      role: profileData.role || 'user',
+      global_role: profileData.role || 'user',
+      wallet_address_eth: profileData.wallet_type === 'eth' || profileData.wallet_type === 'ethereum' ? profileData.wallet_address : undefined,
+      wallet_address_sol: profileData.wallet_type === 'sol' || profileData.wallet_type === 'solana' ? profileData.wallet_address : undefined,
+      phone: profileData.phone,
+      avatar_url: profileData.avatar_url,
+      created_at: profileData.created_at,
+      updated_at: profileData.updated_at,
     };
 
     this.profileCache.set(userId, {
@@ -67,33 +66,32 @@ class UserService {
     const lowerWallet = walletAddress.toLowerCase();
 
     const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .or(`wallet_address_eth.eq.${walletAddress},wallet_address_sol.eq.${walletAddress}`)
-      .maybeSingle();
+      .rpc('get_profile_by_wallet', { wallet_addr: walletAddress });
 
     if (error) {
       logger.error('[UserService] Failed to fetch profile by wallet from Supabase', error);
       throw error;
     }
 
-    if (!data) {
+    if (!data || data.length === 0) {
       logger.warn('[UserService] No profile found for wallet', { walletAddress });
       throw new Error('Profile not found for wallet');
     }
 
+    const profileData = Array.isArray(data) ? data[0] : data;
+
     const profile: UserProfile = {
-      id: data.id,
-      username: data.username,
-      name: data.name,
-      role: data.role || 'user',
-      global_role: data.role || 'user',
-      wallet_address_eth: data.wallet_address_eth,
-      wallet_address_sol: data.wallet_address_sol,
-      phone: data.phone,
-      avatar_url: data.avatar_url,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
+      id: profileData.id,
+      username: profileData.username,
+      name: profileData.name,
+      role: profileData.role || 'user',
+      global_role: profileData.role || 'user',
+      wallet_address_eth: profileData.wallet_type === 'eth' || profileData.wallet_type === 'ethereum' ? profileData.wallet_address : undefined,
+      wallet_address_sol: profileData.wallet_type === 'sol' || profileData.wallet_type === 'solana' ? profileData.wallet_address : undefined,
+      phone: profileData.phone,
+      avatar_url: profileData.avatar_url,
+      created_at: profileData.created_at,
+      updated_at: profileData.updated_at,
     };
 
     this.profileCache.set(profile.id, {
@@ -108,8 +106,8 @@ class UserService {
     username: string;
     name?: string;
     role?: string;
-    wallet_address_eth?: string;
-    wallet_address_sol?: string;
+    wallet_address?: string;
+    wallet_type?: string;
     phone?: string;
   }): Promise<UserProfile> {
     const { data: user } = await supabase.auth.getUser();
@@ -121,8 +119,8 @@ class UserService {
         username: data.username,
         name: data.name || data.username,
         role: data.role || 'user',
-        wallet_address_eth: data.wallet_address_eth,
-        wallet_address_sol: data.wallet_address_sol,
+        wallet_address: data.wallet_address,
+        wallet_type: data.wallet_type,
         phone: data.phone,
       })
       .select()
@@ -139,8 +137,8 @@ class UserService {
       name: profile.name,
       role: profile.role,
       global_role: profile.role,
-      wallet_address_eth: profile.wallet_address_eth,
-      wallet_address_sol: profile.wallet_address_sol,
+      wallet_address_eth: profile.wallet_type === 'eth' || profile.wallet_type === 'ethereum' ? profile.wallet_address : undefined,
+      wallet_address_sol: profile.wallet_type === 'sol' || profile.wallet_type === 'solana' ? profile.wallet_address : undefined,
       phone: profile.phone,
       avatar_url: profile.avatar_url,
       created_at: profile.created_at,
@@ -149,18 +147,27 @@ class UserService {
   }
 
   async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<void> {
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (updates.username !== undefined) updateData.username = updates.username;
+    if (updates.name !== undefined) updateData.name = updates.name;
+    if (updates.role !== undefined) updateData.role = updates.role;
+    if (updates.phone !== undefined) updateData.phone = updates.phone;
+    if (updates.avatar_url !== undefined) updateData.avatar_url = updates.avatar_url;
+
+    if (updates.wallet_address_eth) {
+      updateData.wallet_address = updates.wallet_address_eth;
+      updateData.wallet_type = 'ethereum';
+    } else if (updates.wallet_address_sol) {
+      updateData.wallet_address = updates.wallet_address_sol;
+      updateData.wallet_type = 'solana';
+    }
+
     const { error } = await supabase
       .from('profiles')
-      .update({
-        username: updates.username,
-        name: updates.name,
-        role: updates.role,
-        wallet_address_eth: updates.wallet_address_eth,
-        wallet_address_sol: updates.wallet_address_sol,
-        phone: updates.phone,
-        avatar_url: updates.avatar_url,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', userId);
 
     if (error) {
@@ -196,8 +203,8 @@ class UserService {
       name: profile.name,
       role: profile.role || 'user',
       global_role: profile.role || 'user',
-      wallet_address_eth: profile.wallet_address_eth,
-      wallet_address_sol: profile.wallet_address_sol,
+      wallet_address_eth: profile.wallet_type === 'eth' || profile.wallet_type === 'ethereum' ? profile.wallet_address : undefined,
+      wallet_address_sol: profile.wallet_type === 'sol' || profile.wallet_type === 'solana' ? profile.wallet_address : undefined,
       phone: profile.phone,
       avatar_url: profile.avatar_url,
       created_at: profile.created_at,
