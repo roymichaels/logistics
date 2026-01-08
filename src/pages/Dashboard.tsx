@@ -20,6 +20,7 @@ import { formatCurrency, useI18n } from '../lib/i18n';
 import { haptic } from '../utils/haptic';
 import { AppServicesContext } from '../context/AppServicesContext';
 import { useNavigate } from 'react-router-dom';
+import { NoActiveBusiness } from '../components/NoActiveBusiness';
 
 interface DashboardProps {
   dataStore?: FrontendDataStore;
@@ -57,6 +58,8 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
   // Make this optional to handle cases where Dashboard is used outside the context
   const contextDataStore = React.useContext(AppServicesContext)?.dataStore || null;
   const currentBusinessId = React.useContext(AppServicesContext)?.currentBusinessId || null;
+  const userRole = React.useContext(AppServicesContext)?.userRole || null;
+  const ownedBusinesses = React.useContext(AppServicesContext)?.ownedBusinesses || [];
 
   // Use prop if provided, otherwise use context
   const dataStore = propDataStore || contextDataStore;
@@ -434,6 +437,23 @@ export function Dashboard({ dataStore: propDataStore, onNavigate: propOnNavigate
           </div>
         </div>
       );
+  }
+
+  // Show NoActiveBusiness for business owners without an active business
+  if (!loading && userRole === 'business_owner' && ownedBusinesses.length > 0 && !currentBusinessId) {
+    logger.info('[Dashboard] Business owner has businesses but no active business set');
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: DASHBOARD_COLORS.background,
+        padding: '20px'
+      }}>
+        <NoActiveBusiness
+          onNavigateToBusinesses={() => navigate('/businesses')}
+          message="יש לך עסקים אך אף אחד לא מסומן כעסק פעיל. אנא בחר עסק מרשימת העסקים שלך."
+        />
+      </div>
+    );
   }
 
   if (!snapshot) {

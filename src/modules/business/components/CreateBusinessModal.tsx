@@ -24,6 +24,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
     secondary_color: '#764ba2'
   });
   const [loading, setLoading] = useState(false);
+  const [nameError, setNameError] = useState<string>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +34,7 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       return;
     }
 
+    setNameError('');
     setLoading(true);
     try {
       const userId = await getCurrentUserId();
@@ -83,7 +85,11 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
       if (error instanceof Error) {
         const errMsg = error.message.toLowerCase();
 
-        if (errMsg.includes('authentication') || errMsg.includes('jwt') || errMsg.includes('reconnect')) {
+        if (errMsg.includes('already exists') || errMsg.includes('duplicate')) {
+          errorMessage = 'שם העסק כבר קיים';
+          actionHint = 'אנא בחר שם אחר לעסק';
+          setNameError('עסק עם שם זה כבר קיים במערכת שלך');
+        } else if (errMsg.includes('authentication') || errMsg.includes('jwt') || errMsg.includes('reconnect')) {
           errorMessage = 'שגיאת אימות - נדרש חיבור מחדש';
           actionHint = 'אנא התנתק והתחבר מחדש עם הארנק שלך';
         } else if (errMsg.includes('permission') || errMsg.includes('denied')) {
@@ -225,15 +231,33 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, name: e.target.value });
+                  if (nameError) setNameError('');
+                }}
                 disabled={loading}
                 style={{
                   ...styles.input,
-                  fontSize: '16px'
+                  fontSize: '16px',
+                  borderColor: nameError ? '#ef4444' : undefined
                 }}
                 placeholder="Secret Gadgets Shop"
               />
-              {formData.name && (
+              {nameError && (
+                <div style={{
+                  marginTop: '8px',
+                  padding: '8px 12px',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  color: '#ef4444',
+                  fontWeight: '600'
+                }}>
+                  ⚠️ {nameError}
+                </div>
+              )}
+              {!nameError && formData.name && (
                 <div style={{
                   marginTop: '8px',
                   padding: '8px 12px',

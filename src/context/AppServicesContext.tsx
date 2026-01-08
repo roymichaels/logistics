@@ -154,7 +154,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         logger.info(`✅ Found ${formatted.length} owned business(es) (frontend-only mode)`);
       } else {
         // Use business service to fetch owned businesses from Supabase
-        const { getOwnedBusinesses } = await import('../services/business');
+        const { getOwnedBusinesses, getActiveBusinessId } = await import('../services/business');
         const businesses = await getOwnedBusinesses(user.id);
 
         const formatted = businesses.map(b => ({
@@ -165,6 +165,20 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
 
         setOwnedBusinesses(formatted);
         logger.info(`✅ Found ${businesses.length} owned business(es) from Supabase`);
+
+        // Load active business if not already set
+        if (!currentBusinessId && businesses.length > 0) {
+          try {
+            const activeBusinessId = await getActiveBusinessId(user.id);
+            if (activeBusinessId) {
+              logger.info('🏢 Loaded active business from database:', activeBusinessId);
+              setCurrentBusinessId(activeBusinessId);
+              localStorage.setItem('current-business-id', activeBusinessId);
+            }
+          } catch (error) {
+            logger.warn('⚠️ Could not load active business:', error);
+          }
+        }
       }
     } catch (err) {
       logger.error('❌ Error fetching owned businesses:', {
@@ -176,7 +190,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
       });
       setOwnedBusinesses([]);
     }
-  }, [user?.id, userRole, useSXT]);
+  }, [user?.id, userRole, useSXT, currentBusinessId]);
 
   const refreshUserRole = useCallback(
     async ({ forceRefresh = true }: { forceRefresh?: boolean } = {}) => {

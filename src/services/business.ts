@@ -212,6 +212,8 @@ export async function createBusiness(input: CreateBusinessInput, userId?: string
       throw new Error('Authentication error. Please reconnect your wallet and try again.');
     } else if (businessError.code === '42501' || businessError.message?.includes('permission')) {
       throw new Error('Permission denied. Please ensure you have the necessary permissions to create a business.');
+    } else if (businessError.message?.includes('already exists')) {
+      throw new Error(`A business with the name "${input.name}" already exists. Please choose a different name.`);
     } else {
       throw new Error(`Failed to create business: ${businessError.message || 'Unknown error'}`);
     }
@@ -219,6 +221,17 @@ export async function createBusiness(input: CreateBusinessInput, userId?: string
 
   const business = businessJson as any;
   logger.info('[BusinessService] Business created successfully', { businessId: business.id, name: business.name });
+
+  // Automatically set as active business using the new function
+  try {
+    await supabase.rpc('set_active_business', {
+      p_user_id: userId,
+      p_business_id: business.id
+    });
+    logger.info('[BusinessService] Set new business as active:', business.id);
+  } catch (error) {
+    logger.warn('[BusinessService] Failed to set active business, but creation succeeded:', error);
+  }
 
   return business as BusinessRecord;
 }
@@ -316,4 +329,75 @@ export async function isBusinessOwner(businessId: string, userId?: string): Prom
   }
 
   return data !== null;
+}
+
+/**
+ * Get active business context for current user
+ */
+export async function getActiveBusinessId(userId?: string): Promise<string | null> {
+  if (!userId) {
+    userId = await getCurrentUserId() || undefined;
+  }
+
+  if (!userId) {
+    logger.warn('[BusinessService] Cannot get active business - no user ID');
+    return null;
+  }
+
+  try {
+    const { data, error } = await supabase.rpc('get_active_business', {
+      p_user_id: userId
+    });
+
+    if (error) {
+      logger.error('[BusinessService] Failed to get active business:', error);
+      return null;
+    }
+
+    return data as string | null;
+  } catch (error) {
+    logger.error('[BusinessService] Exception getting active business:', error);
+    return null;
+  }
+}
+
+/**
+ * Set active business context for current user
+ */
+export async function setActiveBusinessId(businessId: string, userId?: string): Promise<boolean> {
+  if (!userId) {
+    userId = await getCurrentUserId() || undefined;
+  }
+
+  if (!userId) {
+    logger.error('[BusinessService] Cannot set active business - no user ID');
+    return false;
+  }
+
+  try {
+    const { data, error } = await supabase.rpc('set_active_business', {
+      p_user_id: userId,
+      p_business_id: businessId
+    });
+
+    if (error) {
+      logger.error('[BusinessService] Failed to set active business:', error);
+      return false;
+    }
+
+    logger.info('[BusinessService] Active business set successfully:', businessId);
+
+    // Update localStorage for immediate access
+    localStorage.setItem('current-business-id', businessId);
+
+    // Emit event for listeners
+    window.dispatchEvent(new CustomEvent('business-context-changed', {
+      detail: { currentBusinessId: businessId }
+    }));
+
+    return data === true;
+  } catch (error) {
+    logger.error('[BusinessService] Exception setting active business:', error);
+    return false;
+  }
 }
