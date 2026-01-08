@@ -1,5 +1,6 @@
 import React from 'react';
 import { UserRole } from './types';
+import { AdminShell } from './AdminShell';
 import { BusinessShell } from './BusinessShell';
 import { DriverShell } from './DriverShell';
 import { StoreShell } from './StoreShell';
@@ -30,6 +31,24 @@ export function ShellSelector({
   metadata = {}
 }: ShellSelectorProps) {
   // Route to appropriate shell based on role
+
+  // Admin roles use AdminShell
+  if (
+    role === 'superadmin' ||
+    role === 'admin' ||
+    role === 'infrastructure_owner'
+  ) {
+    return (
+      <AdminShell
+        role={role}
+        onNavigate={onNavigate}
+        onLogout={onLogout}
+        currentPath={currentPath}
+      >
+        {children}
+      </AdminShell>
+    );
+  }
 
   // Business roles use BusinessShell
   if (

@@ -11,6 +11,30 @@ export interface RouteConfig {
 }
 
 export const UNIFIED_ROUTES: RouteConfig[] = [
+  // Admin routes
+  {
+    path: '/admin',
+    name: 'Admin',
+    roles: ['superadmin', 'admin', 'infrastructure_owner'],
+    isEntryPoint: true,
+    children: [
+      { path: '/admin/platform-dashboard', name: 'Platform Dashboard', roles: ['superadmin', 'admin', 'infrastructure_owner'], isEntryPoint: true },
+      { path: '/admin/infrastructures', name: 'Infrastructures', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
+      { path: '/admin/superadmins', name: 'Superadmins', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
+      { path: '/admin/businesses', name: 'Businesses', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
+      { path: '/admin/users', name: 'Users', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
+      { path: '/admin/platform-catalog', name: 'Platform Catalog', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
+      { path: '/admin/analytics', name: 'Analytics', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
+      { path: '/admin/orders', name: 'Orders', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
+      { path: '/admin/drivers', name: 'Drivers', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
+      { path: '/admin/driver-applications', name: 'Driver Applications', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
+      { path: '/admin/logs', name: 'Audit Logs', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
+      { path: '/admin/feature-flags', name: 'Feature Flags', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
+      { path: '/admin/permissions', name: 'Permissions', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
+      { path: '/admin/system-settings', name: 'System Settings', roles: ['superadmin', 'admin', 'infrastructure_owner'] }
+    ]
+  },
+
   // Business routes
   {
     path: '/business',
@@ -63,10 +87,10 @@ export const UNIFIED_ROUTES: RouteConfig[] = [
   {
     path: '/auth',
     name: 'Authentication',
-    roles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'guest'],
+    roles: ['superadmin', 'admin', 'infrastructure_owner', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'guest'],
     children: [
-      { path: '/auth/login', name: 'Login', roles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'guest'] },
-      { path: '/auth/kyc', name: 'KYC', roles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'guest'] }
+      { path: '/auth/login', name: 'Login', roles: ['superadmin', 'admin', 'infrastructure_owner', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'guest'] },
+      { path: '/auth/kyc', name: 'KYC', roles: ['superadmin', 'admin', 'infrastructure_owner', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'guest'] }
     ]
   }
 ];
@@ -75,6 +99,11 @@ export function canAccessRoute(userRole: UserRole | null, routePath: string): bo
   if (!userRole) {
     // Non-authenticated users can access public routes
     return routePath.startsWith('/auth') || routePath.startsWith('/store');
+  }
+
+  // Admin roles can access all admin routes
+  if ((userRole === 'superadmin' || userRole === 'admin' || userRole === 'infrastructure_owner') && routePath.startsWith('/admin')) {
+    return true;
   }
 
   function findRoute(routes: RouteConfig[], path: string): RouteConfig | null {
