@@ -220,6 +220,14 @@ class RuntimeEnvironmentService {
   }
 
   /**
+   * Check if running in frontend-only mode (no Supabase backend)
+   * @returns true if no Supabase URL is configured
+   */
+  isFrontendOnlyMode(): boolean {
+    return !import.meta.env.VITE_SUPABASE_URL;
+  }
+
+  /**
    * Display environment info to console
    */
   displayInfo(): void {
