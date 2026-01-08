@@ -6,6 +6,7 @@ import { OrderCard } from '../components/OrderCard';
 import { Order, OrderStatus, OrderFilters } from '../types';
 import { orderWorkflowService } from '../services';
 import { logger } from '@lib/logger';
+import { BusinessContextGuard } from '@/components/guards';
 
 interface UnifiedOrdersPageProps {
   businessId?: string;
@@ -186,99 +187,101 @@ export function UnifiedOrdersPage({
   };
 
   return (
-    <DashboardLayout config={dashboardConfig} loading={loading} error={error ? (error instanceof Error ? error : new Error(String(error))) : null}>
-      <Section
-        section={{
-          id: 'filters',
-          title: 'מסננים',
-          children: (
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <input
-                type="text"
-                placeholder="חיפוש הזמנות..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  flex: '1',
-                  minWidth: '200px',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  border: '1px solid #e5e7eb',
-                  fontSize: '14px',
-                  direction: 'rtl'
-                }}
-              />
+    <BusinessContextGuard>
+      <DashboardLayout config={dashboardConfig} loading={loading} error={error ? (error instanceof Error ? error : new Error(String(error))) : null}>
+        <Section
+          section={{
+            id: 'filters',
+            title: 'מסננים',
+            children: (
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  placeholder="חיפוש הזמנות..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    flex: '1',
+                    minWidth: '200px',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #e5e7eb',
+                    fontSize: '14px',
+                    direction: 'rtl'
+                  }}
+                />
 
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value as OrderStatus | 'all')}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  border: '1px solid #e5e7eb',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  direction: 'rtl'
-                }}
-              >
-                <option value="all">כל הסטטוסים</option>
-                <option value="pending">ממתינה</option>
-                <option value="confirmed">מאושרת</option>
-                <option value="preparing">בהכנה</option>
-                <option value="ready_for_pickup">מוכנה לאיסוף</option>
-                <option value="assigned">שובצה</option>
-                <option value="picked_up">נאספה</option>
-                <option value="in_transit">בדרך</option>
-                <option value="delivered">נמסרה</option>
-                <option value="cancelled">בוטלה</option>
-                <option value="failed">נכשלה</option>
-              </select>
-            </div>
-          )
-        }}
-        collapsible={true}
-      />
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value as OrderStatus | 'all')}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #e5e7eb',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    direction: 'rtl'
+                  }}
+                >
+                  <option value="all">כל הסטטוסים</option>
+                  <option value="pending">ממתינה</option>
+                  <option value="confirmed">מאושרת</option>
+                  <option value="preparing">בהכנה</option>
+                  <option value="ready_for_pickup">מוכנה לאיסוף</option>
+                  <option value="assigned">שובצה</option>
+                  <option value="picked_up">נאספה</option>
+                  <option value="in_transit">בדרך</option>
+                  <option value="delivered">נמסרה</option>
+                  <option value="cancelled">בוטלה</option>
+                  <option value="failed">נכשלה</option>
+                </select>
+              </div>
+            )
+          }}
+          collapsible={true}
+        />
 
-      <Section
-        section={{
-          id: 'orders-list',
-          title: `הזמנות (${displayedOrders.length})`,
-          subtitle: selectedStatus !== 'all' ? `סינון לפי: ${orderWorkflowService.getStatusLabel(selectedStatus as OrderStatus)}` : undefined,
-          children: (
-            <div>
-              {displayedOrders.length === 0 ? (
-                <div style={{
-                  textAlign: 'center',
-                  padding: '60px 20px',
-                  color: '#6b7280'
-                }}>
-                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
-                  <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>
-                    לא נמצאו הזמנות
-                  </h3>
-                  <p style={{ fontSize: '14px' }}>
-                    {searchTerm || selectedStatus !== 'all'
-                      ? 'נסה לשנות את המסננים'
-                      : 'צור את ההזמנה הראשונה שלך כדי להתחיל'}
-                  </p>
-                </div>
-              ) : (
-                displayedOrders.map((order) => (
-                  <OrderCard
-                    key={order.id}
-                    order={order}
-                    onView={() => onNavigate?.(`/orders/${order.id}`)}
-                    onStatusChange={handleStatusChange}
-                    onAssignDriver={handleAssignDriver}
-                    onCancel={handleCancelOrder}
-                    showActions={order.status !== 'delivered' && order.status !== 'cancelled'}
-                  />
-                ))
-              )}
-            </div>
-          )
-        }}
-      />
-    </DashboardLayout>
+        <Section
+          section={{
+            id: 'orders-list',
+            title: `הזמנות (${displayedOrders.length})`,
+            subtitle: selectedStatus !== 'all' ? `סינון לפי: ${orderWorkflowService.getStatusLabel(selectedStatus as OrderStatus)}` : undefined,
+            children: (
+              <div>
+                {displayedOrders.length === 0 ? (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '60px 20px',
+                    color: '#6b7280'
+                  }}>
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
+                    <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>
+                      לא נמצאו הזמנות
+                    </h3>
+                    <p style={{ fontSize: '14px' }}>
+                      {searchTerm || selectedStatus !== 'all'
+                        ? 'נסה לשנות את המסננים'
+                        : 'צור את ההזמנה הראשונה שלך כדי להתחיל'}
+                    </p>
+                  </div>
+                ) : (
+                  displayedOrders.map((order) => (
+                    <OrderCard
+                      key={order.id}
+                      order={order}
+                      onView={() => onNavigate?.(`/orders/${order.id}`)}
+                      onStatusChange={handleStatusChange}
+                      onAssignDriver={handleAssignDriver}
+                      onCancel={handleCancelOrder}
+                      showActions={order.status !== 'delivered' && order.status !== 'cancelled'}
+                    />
+                  ))
+                )}
+              </div>
+            )
+          }}
+        />
+      </DashboardLayout>
+    </BusinessContextGuard>
   );
 }

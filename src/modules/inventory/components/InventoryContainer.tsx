@@ -8,6 +8,7 @@ import { useInventoryStats } from '../hooks/useInventoryStats';
 import { InventoryView } from './InventoryView';
 import { Toast } from '../../../components/Toast';
 import { logger } from '../../../lib/logger';
+import { BusinessContextGuard } from '../../../components/guards';
 import type { AggregatedInventory, StockAdjustment } from '../types';
 import type { InventoryItem } from '../../../application/queries/inventory.queries';
 
@@ -120,17 +121,19 @@ export function InventoryContainer({ businessId }: InventoryContainerProps) {
   };
 
   return (
-    <InventoryView
-      inventory={filteredInventory}
-      stats={stats}
-      loading={loading}
-      error={error}
-      filters={filters}
-      lowStockCount={lowStockItems?.length || 0}
-      onFilterChange={setFilters}
-      onAdjustStock={handleAdjustStock}
-      onRefresh={refetch}
-      adjusting={adjusting}
-    />
+    <BusinessContextGuard>
+      <InventoryView
+        inventory={filteredInventory}
+        stats={stats}
+        loading={loading}
+        error={error}
+        filters={filters}
+        lowStockCount={lowStockItems?.length || 0}
+        onFilterChange={setFilters}
+        onAdjustStock={handleAdjustStock}
+        onRefresh={refetch}
+        adjusting={adjusting}
+      />
+    </BusinessContextGuard>
   );
 }

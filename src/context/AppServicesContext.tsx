@@ -152,10 +152,41 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         }));
         setOwnedBusinesses(formatted);
         logger.info(`✅ Found ${formatted.length} owned business(es) (frontend-only mode)`);
+
+        if (formatted.length > 0 && !currentBusinessId) {
+          const firstBusinessId = formatted[0].id;
+          logger.info('🏢 Auto-setting first business as active:', firstBusinessId);
+          setCurrentBusinessId(firstBusinessId);
+          localStorage.setItem('current-business-id', firstBusinessId);
+        }
       } else {
-        // Use business service to fetch owned businesses from Supabase
         const { getOwnedBusinesses, getActiveBusinessId } = await import('../services/business');
-        const businesses = await getOwnedBusinesses(user.id);
+        const { supabase } = await import('../lib/supabase');
+
+        let businesses = [];
+        let useDirectQuery = false;
+
+        try {
+          businesses = await getOwnedBusinesses(user.id);
+        } catch (rpcError) {
+          logger.warn('⚠️ RPC call failed, trying direct table query as fallback:', rpcError);
+          useDirectQuery = true;
+
+          try {
+            const { data: directBusinesses, error: directError } = await supabase
+              .from('businesses')
+              .select('*')
+              .eq('owner_id', user.id)
+              .order('created_at', { ascending: false });
+
+            if (directError) throw directError;
+            businesses = directBusinesses || [];
+            logger.info(`✅ Fallback query succeeded, found ${businesses.length} business(es)`);
+          } catch (fallbackError) {
+            logger.error('❌ Both RPC and direct query failed:', fallbackError);
+            throw fallbackError;
+          }
+        }
 
         const formatted = businesses.map(b => ({
           id: b.id,
@@ -166,17 +197,28 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         setOwnedBusinesses(formatted);
         logger.info(`✅ Found ${businesses.length} owned business(es) from Supabase`);
 
-        // Load active business if not already set
         if (!currentBusinessId && businesses.length > 0) {
           try {
-            const activeBusinessId = await getActiveBusinessId(user.id);
-            if (activeBusinessId) {
-              logger.info('🏢 Loaded active business from database:', activeBusinessId);
-              setCurrentBusinessId(activeBusinessId);
-              localStorage.setItem('current-business-id', activeBusinessId);
+            let activeBusinessId = null;
+
+            if (!useDirectQuery) {
+              activeBusinessId = await getActiveBusinessId(user.id);
             }
+
+            if (!activeBusinessId) {
+              activeBusinessId = businesses[0].id;
+              logger.info('🏢 No active business set, using first business:', activeBusinessId);
+            } else {
+              logger.info('🏢 Loaded active business from database:', activeBusinessId);
+            }
+
+            setCurrentBusinessId(activeBusinessId);
+            localStorage.setItem('current-business-id', activeBusinessId);
           } catch (error) {
-            logger.warn('⚠️ Could not load active business:', error);
+            logger.warn('⚠️ Could not load active business, using first:', error);
+            const firstBusinessId = businesses[0].id;
+            setCurrentBusinessId(firstBusinessId);
+            localStorage.setItem('current-business-id', firstBusinessId);
           }
         }
       }
@@ -188,6 +230,15 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         errorStack: err instanceof Error ? err.stack : undefined,
         userId: user.id
       });
+
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load businesses';
+      if (typeof window !== 'undefined' && (window as any).showToast) {
+        (window as any).showToast({
+          type: 'error',
+          message: `Failed to load businesses: ${errorMessage}. Please refresh the page.`
+        });
+      }
+
       setOwnedBusinesses([]);
     }
   }, [user?.id, userRole, useSXT, currentBusinessId]);
