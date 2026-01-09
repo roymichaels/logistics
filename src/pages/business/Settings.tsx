@@ -1,32 +1,41 @@
 import { useState, useEffect } from 'react';
-import { useDataStore } from '../../application/hooks/useDataStore';
-import { useAuth } from '../../application/hooks/useAuth';
+import { supabase } from '../../lib/supabase';
+import { logger } from '../../lib/logger';
+import { useSafeAppServices } from '../../context/AppServicesContext';
+import { useNavigate } from 'react-router-dom';
+import { tokens } from '../../styles/tokens';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { Card } from '../../components/molecules/Card';
 import { Button } from '../../components/atoms/Button';
 import { Input } from '../../components/atoms/Input';
 import { Switch } from '../../components/atoms/Switch';
-import { logger } from '../../lib/logger';
+import { NoActiveBusiness } from '../../components/NoActiveBusiness';
 
 interface BusinessSettings {
   id: string;
   name: string;
+  name_hebrew?: string;
   description?: string;
-  address?: string;
-  phone?: string;
-  email?: string;
+  slug: string;
   logo_url?: string;
-  business_hours?: {
-    [key: string]: { open: string; close: string; closed: boolean };
+  primary_color: string;
+  secondary_color: string;
+  default_currency: string;
+  settings: {
+    address?: string;
+    phone?: string;
+    email?: string;
+    business_hours?: {
+      [key: string]: { open: string; close: string; closed: boolean };
+    };
+    delivery_enabled?: boolean;
+    pickup_enabled?: boolean;
+    minimum_order?: number;
+    delivery_fee?: number;
+    tax_rate?: number;
+    timezone?: string;
   };
-  delivery_enabled: boolean;
-  pickup_enabled: boolean;
-  minimum_order?: number;
-  delivery_fee?: number;
-  tax_rate?: number;
-  currency: string;
-  timezone: string;
 }
 
 const DAYS_OF_WEEK = [
@@ -40,59 +49,107 @@ const DAYS_OF_WEEK = [
 ];
 
 export default function Settings() {
-  const dataStore = useDataStore();
-  const { user } = useAuth();
+  const appServices = useSafeAppServices();
+  const currentBusinessId = appServices?.currentBusinessId;
+  const navigate = useNavigate();
+
   const [settings, setSettings] = useState<BusinessSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    loadSettings();
-  }, []);
+    if (currentBusinessId) {
+      loadSettings();
+    } else {
+      setLoading(false);
+    }
+  }, [currentBusinessId]);
 
   const loadSettings = async () => {
     try {
       setLoading(true);
-      const businesses = await dataStore.query('businesses', {
-        where: { owner_id: user?.id }
-      });
 
-      if (businesses && businesses.length > 0) {
-        const business = businesses[0];
+      if (!currentBusinessId) {
+        logger.warn('[Settings] No business context');
+        return;
+      }
+
+      const { data: business, error } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('id', currentBusinessId)
+        .single();
+
+      if (error) {
+        logger.error('[Settings] Error loading business:', error);
+        return;
+      }
+
+      if (business) {
         setSettings({
           id: business.id,
           name: business.name || '',
+          name_hebrew: business.name_hebrew || '',
           description: business.description || '',
-          address: business.address || '',
-          phone: business.phone || '',
-          email: business.email || '',
+          slug: business.slug || '',
           logo_url: business.logo_url || '',
-          business_hours: business.business_hours || {},
-          delivery_enabled: business.delivery_enabled ?? true,
-          pickup_enabled: business.pickup_enabled ?? true,
-          minimum_order: business.minimum_order || 0,
-          delivery_fee: business.delivery_fee || 0,
-          tax_rate: business.tax_rate || 0,
-          currency: business.currency || 'ILS',
-          timezone: business.timezone || 'Asia/Jerusalem'
+          primary_color: business.primary_color || '#3b82f6',
+          secondary_color: business.secondary_color || '#60a5fa',
+          default_currency: business.default_currency || 'ILS',
+          settings: {
+            address: business.settings?.address || '',
+            phone: business.settings?.phone || '',
+            email: business.settings?.email || '',
+            business_hours: business.settings?.business_hours || {},
+            delivery_enabled: business.settings?.delivery_enabled ?? true,
+            pickup_enabled: business.settings?.pickup_enabled ?? true,
+            minimum_order: business.settings?.minimum_order || 0,
+            delivery_fee: business.settings?.delivery_fee || 0,
+            tax_rate: business.settings?.tax_rate || 17,
+            timezone: business.settings?.timezone || 'Asia/Jerusalem'
+          }
         });
+
+        logger.info('[Settings] Business settings loaded');
       }
     } catch (error) {
-      logger.error('Failed to load business settings', { error });
+      logger.error('[Settings] Failed to load business settings:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleSave = async () => {
-    if (!settings) return;
+    if (!settings || !currentBusinessId) return;
 
     try {
       setSaving(true);
-      await dataStore.update('businesses', settings.id, settings);
+
+      const { error } = await supabase
+        .from('businesses')
+        .update({
+          name: settings.name,
+          name_hebrew: settings.name_hebrew,
+          description: settings.description,
+          logo_url: settings.logo_url,
+          primary_color: settings.primary_color,
+          secondary_color: settings.secondary_color,
+          default_currency: settings.default_currency,
+          settings: settings.settings,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', currentBusinessId);
+
+      if (error) {
+        logger.error('[Settings] Error saving settings:', error);
+        alert('שגיאה בשמירת ההגדרות');
+        return;
+      }
+
+      logger.info('[Settings] Settings saved successfully');
       alert('ההגדרות נשמרו בהצלחה');
     } catch (error) {
-      logger.error('Failed to save settings', { error });
+      logger.error('[Settings] Failed to save settings:', error);
       alert('שגיאה בשמירת ההגדרות');
     } finally {
       setSaving(false);
@@ -104,26 +161,59 @@ export default function Settings() {
     setSettings({ ...settings, [field]: value });
   };
 
-  const updateBusinessHours = (day: string, field: 'open' | 'close' | 'closed', value: any) => {
+  const updateSettingsField = (field: string, value: any) => {
     if (!settings) return;
-    const hours = settings.business_hours || {};
     setSettings({
       ...settings,
-      business_hours: {
-        ...hours,
-        [day]: {
-          ...(hours[day] || { open: '09:00', close: '17:00', closed: false }),
-          [field]: value
+      settings: {
+        ...settings.settings,
+        [field]: value
+      }
+    });
+  };
+
+  const updateBusinessHours = (day: string, field: 'open' | 'close' | 'closed', value: any) => {
+    if (!settings) return;
+    const hours = settings.settings.business_hours || {};
+    setSettings({
+      ...settings,
+      settings: {
+        ...settings.settings,
+        business_hours: {
+          ...hours,
+          [day]: {
+            ...(hours[day] || { open: '09:00', close: '17:00', closed: false }),
+            [field]: value
+          }
         }
       }
     });
   };
 
+  // Show NoActiveBusiness if no business is selected
+  if (!currentBusinessId) {
+    return (
+      <PageContainer>
+        <NoActiveBusiness
+          onNavigateToBusinesses={() => navigate('/business/businesses')}
+          message="כדי לנהל הגדרות, עליך לבחור עסק פעיל"
+        />
+      </PageContainer>
+    );
+  }
+
   if (loading) {
     return (
       <PageContainer>
-        <PageHeader title="הגדרות עסק" />
-        <div style={{ padding: '2rem', textAlign: 'center' }}>טוען...</div>
+        <PageHeader icon="⚙️" title="הגדרות עסק" />
+        <div style={{
+          textAlign: 'center',
+          padding: '64px 24px',
+          color: tokens.colors.subtle
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+          <p style={{ fontSize: '18px', margin: 0 }}>טוען הגדרות...</p>
+        </div>
       </PageContainer>
     );
   }
@@ -131,8 +221,15 @@ export default function Settings() {
   if (!settings) {
     return (
       <PageContainer>
-        <PageHeader title="הגדרות עסק" />
-        <div style={{ padding: '2rem', textAlign: 'center' }}>לא נמצא עסק</div>
+        <PageHeader icon="⚙️" title="הגדרות עסק" />
+        <div style={{
+          textAlign: 'center',
+          padding: '64px 24px',
+          color: tokens.colors.subtle
+        }}>
+          <div style={{ fontSize: '64px', marginBottom: '16px' }}>❌</div>
+          <p style={{ fontSize: '18px', margin: 0 }}>לא נמצא עסק</p>
+        </div>
       </PageContainer>
     );
   }
@@ -140,23 +237,51 @@ export default function Settings() {
   return (
     <PageContainer>
       <PageHeader
+        icon="⚙️"
         title="הגדרות עסק"
         subtitle="נהל את הגדרות העסק שלך"
-        action={
-          <Button onClick={handleSave} disabled={saving}>
+        actionButton={
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            style={{
+              padding: '12px 24px',
+              fontSize: '16px',
+              fontWeight: '600',
+              background: saving ? tokens.colors.border : tokens.gradients.primary,
+              color: tokens.colors.text.bright,
+              border: 'none',
+              borderRadius: '8px',
+              cursor: saving ? 'not-allowed' : 'pointer',
+              opacity: saving ? 0.6 : 1
+            }}
+          >
             {saving ? 'שומר...' : 'שמור שינויים'}
-          </Button>
+          </button>
         }
       />
 
-      <div style={{ padding: '1.5rem', display: 'grid', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gap: '24px' }}>
         <Card>
-          <div style={{ padding: '1.5rem' }}>
-            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', fontWeight: 600 }}>פרטי עסק</h3>
+          <div style={{ padding: '24px' }}>
+            <h3 style={{
+              margin: '0 0 20px 0',
+              fontSize: '20px',
+              fontWeight: '700',
+              color: tokens.colors.text
+            }}>
+              פרטי עסק
+            </h3>
 
-            <div style={{ display: 'grid', gap: '1rem' }}>
+            <div style={{ display: 'grid', gap: '16px' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  color: tokens.colors.text
+                }}>
                   שם העסק
                 </label>
                 <Input
@@ -167,7 +292,30 @@ export default function Settings() {
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  color: tokens.colors.text
+                }}>
+                  שם בעברית
+                </label>
+                <Input
+                  value={settings.name_hebrew || ''}
+                  onChange={(e) => updateField('name_hebrew', e.target.value)}
+                  placeholder="שם העסק בעברית"
+                />
+              </div>
+
+              <div>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  color: tokens.colors.text
+                }}>
                   תיאור
                 </label>
                 <textarea
@@ -176,47 +324,68 @@ export default function Settings() {
                   placeholder="תיאור העסק"
                   style={{
                     width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '0.5rem',
-                    border: '1px solid #e5e7eb',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: `1px solid ${tokens.colors.border}`,
+                    background: tokens.colors.surface,
+                    color: tokens.colors.text,
                     fontFamily: 'inherit',
-                    fontSize: '1rem',
-                    minHeight: '100px'
+                    fontSize: '16px',
+                    minHeight: '100px',
+                    resize: 'vertical'
                   }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  color: tokens.colors.text
+                }}>
                   כתובת
                 </label>
                 <Input
-                  value={settings.address}
-                  onChange={(e) => updateField('address', e.target.value)}
+                  value={settings.settings.address || ''}
+                  onChange={(e) => updateSettingsField('address', e.target.value)}
                   placeholder="כתובת העסק"
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    color: tokens.colors.text
+                  }}>
                     טלפון
                   </label>
                   <Input
-                    value={settings.phone}
-                    onChange={(e) => updateField('phone', e.target.value)}
+                    value={settings.settings.phone || ''}
+                    onChange={(e) => updateSettingsField('phone', e.target.value)}
                     placeholder="050-1234567"
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    color: tokens.colors.text
+                  }}>
                     אימייל
                   </label>
                   <Input
                     type="email"
-                    value={settings.email}
-                    onChange={(e) => updateField('email', e.target.value)}
+                    value={settings.settings.email || ''}
+                    onChange={(e) => updateSettingsField('email', e.target.value)}
                     placeholder="email@example.com"
                   />
                 </div>
@@ -226,65 +395,112 @@ export default function Settings() {
         </Card>
 
         <Card>
-          <div style={{ padding: '1.5rem' }}>
-            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', fontWeight: 600 }}>הגדרות הזמנות</h3>
+          <div style={{ padding: '24px' }}>
+            <h3 style={{
+              margin: '0 0 20px 0',
+              fontSize: '20px',
+              fontWeight: '700',
+              color: tokens.colors.text
+            }}>
+              הגדרות הזמנות
+            </h3>
 
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'grid', gap: '16px' }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '16px',
+                background: tokens.colors.surface,
+                borderRadius: '8px'
+              }}>
                 <div>
-                  <div style={{ fontWeight: 500 }}>משלוחים</div>
-                  <div style={{ fontSize: '0.875rem', color: '#666' }}>אפשר הזמנות עם משלוח</div>
+                  <div style={{ fontWeight: '600', fontSize: '16px', color: tokens.colors.text }}>
+                    משלוחים
+                  </div>
+                  <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
+                    אפשר הזמנות עם משלוח
+                  </div>
                 </div>
                 <Switch
-                  checked={settings.delivery_enabled}
-                  onChange={(checked) => updateField('delivery_enabled', checked)}
+                  checked={settings.settings.delivery_enabled ?? true}
+                  onChange={(checked) => updateSettingsField('delivery_enabled', checked)}
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '16px',
+                background: tokens.colors.surface,
+                borderRadius: '8px'
+              }}>
                 <div>
-                  <div style={{ fontWeight: 500 }}>איסוף עצמי</div>
-                  <div style={{ fontSize: '0.875rem', color: '#666' }}>אפשר איסוף מהעסק</div>
+                  <div style={{ fontWeight: '600', fontSize: '16px', color: tokens.colors.text }}>
+                    איסוף עצמי
+                  </div>
+                  <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
+                    אפשר איסוף מהעסק
+                  </div>
                 </div>
                 <Switch
-                  checked={settings.pickup_enabled}
-                  onChange={(checked) => updateField('pickup_enabled', checked)}
+                  checked={settings.settings.pickup_enabled ?? true}
+                  onChange={(checked) => updateSettingsField('pickup_enabled', checked)}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                    הזמנה מינימלית
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    color: tokens.colors.text
+                  }}>
+                    הזמנה מינימלית (₪)
                   </label>
                   <Input
                     type="number"
-                    value={settings.minimum_order}
-                    onChange={(e) => updateField('minimum_order', parseFloat(e.target.value))}
+                    value={settings.settings.minimum_order || 0}
+                    onChange={(e) => updateSettingsField('minimum_order', parseFloat(e.target.value))}
                     placeholder="0"
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                    דמי משלוח
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    color: tokens.colors.text
+                  }}>
+                    דמי משלוח (₪)
                   </label>
                   <Input
                     type="number"
-                    value={settings.delivery_fee}
-                    onChange={(e) => updateField('delivery_fee', parseFloat(e.target.value))}
+                    value={settings.settings.delivery_fee || 0}
+                    onChange={(e) => updateSettingsField('delivery_fee', parseFloat(e.target.value))}
                     placeholder="0"
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    color: tokens.colors.text
+                  }}>
                     מע"מ (%)
                   </label>
                   <Input
                     type="number"
-                    value={settings.tax_rate}
-                    onChange={(e) => updateField('tax_rate', parseFloat(e.target.value))}
+                    value={settings.settings.tax_rate || 17}
+                    onChange={(e) => updateSettingsField('tax_rate', parseFloat(e.target.value))}
                     placeholder="17"
                   />
                 </div>
@@ -294,15 +510,43 @@ export default function Settings() {
         </Card>
 
         <Card>
-          <div style={{ padding: '1.5rem' }}>
-            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', fontWeight: 600 }}>שעות פעילות</h3>
+          <div style={{ padding: '24px' }}>
+            <h3 style={{
+              margin: '0 0 20px 0',
+              fontSize: '20px',
+              fontWeight: '700',
+              color: tokens.colors.text
+            }}>
+              שעות פעילות
+            </h3>
 
-            <div style={{ display: 'grid', gap: '0.75rem' }}>
+            <div style={{ display: 'grid', gap: '12px' }}>
               {DAYS_OF_WEEK.map(day => {
-                const hours = settings.business_hours?.[day.key] || { open: '09:00', close: '17:00', closed: false };
+                const hours = settings.settings.business_hours?.[day.key] || {
+                  open: '09:00',
+                  close: '17:00',
+                  closed: false
+                };
                 return (
-                  <div key={day.key} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ width: '80px', fontWeight: 500 }}>{day.label}</div>
+                  <div
+                    key={day.key}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '16px',
+                      padding: '12px',
+                      background: tokens.colors.surface,
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <div style={{
+                      width: '80px',
+                      fontWeight: '600',
+                      fontSize: '16px',
+                      color: tokens.colors.text
+                    }}>
+                      {day.label}
+                    </div>
 
                     <Switch
                       checked={!hours.closed}
@@ -317,7 +561,7 @@ export default function Settings() {
                           onChange={(e) => updateBusinessHours(day.key, 'open', e.target.value)}
                           style={{ width: '120px' }}
                         />
-                        <span>-</span>
+                        <span style={{ color: tokens.colors.subtle }}>-</span>
                         <Input
                           type="time"
                           value={hours.close}
@@ -328,7 +572,13 @@ export default function Settings() {
                     )}
 
                     {hours.closed && (
-                      <span style={{ color: '#666' }}>סגור</span>
+                      <span style={{
+                        color: tokens.colors.subtle,
+                        fontSize: '14px',
+                        fontWeight: '500'
+                      }}>
+                        סגור
+                      </span>
                     )}
                   </div>
                 );

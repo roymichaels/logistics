@@ -1,6 +1,7 @@
 export * from './cache';
 export * from './debounce';
 export * from './eventListeners';
+export * from './exportUtils';
 export * from './format';
 export * from './haptic';
 export * from './layout';
