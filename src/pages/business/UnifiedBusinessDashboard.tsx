@@ -70,68 +70,6 @@ export function UnifiedBusinessDashboard() {
     }
   }, [currentBusinessId]);
 
-  const saveWidgets = (newWidgets: Widget[]) => {
-    setWidgets(newWidgets);
-    if (currentBusinessId) {
-      localStorage.setItem(`dashboard-widgets-${currentBusinessId}`, JSON.stringify(newWidgets));
-    }
-  };
-
-  const toggleWidget = (widgetId: string) => {
-    const newWidgets = widgets.map(w =>
-      w.id === widgetId ? { ...w, visible: !w.visible } : w
-    );
-    saveWidgets(newWidgets);
-  };
-
-  if (!currentBusinessId) {
-    return (
-      <PageContainer>
-        <NoActiveBusiness
-          onNavigateToBusinesses={() => navigate('/business/businesses')}
-          message="לוח הבקרה המאוחד דורש עסק פעיל. אנא בחר עסק או צור עסק חדש."
-        />
-      </PageContainer>
-    );
-  }
-
-  const loadBusinessName = async () => {
-    if (!currentBusinessId) return;
-
-    try {
-      const { data: business } = await supabase
-        .from('businesses')
-        .select('name')
-        .eq('id', currentBusinessId)
-        .single();
-
-      if (business) {
-        setBusinessName(business.name);
-      }
-    } catch (err) {
-      logger.error('[UnifiedBusinessDashboard] Failed to load business name:', err);
-    }
-  };
-
-  const loadAuditLogs = async () => {
-    if (!currentBusinessId) return;
-
-    try {
-      const { data } = await supabase
-        .from('audit_logs')
-        .select('id, action, table_name, created_at')
-        .eq('business_id', currentBusinessId)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (data) {
-        setAuditLogs(data);
-      }
-    } catch (err) {
-      logger.error('[UnifiedBusinessDashboard] Failed to load audit logs:', err);
-    }
-  };
-
   const activities = useMemo(() => {
     if (!stats) return [];
 
@@ -196,6 +134,68 @@ export function UnifiedBusinessDashboard() {
 
     return acts;
   }, [stats, auditLogs]);
+
+  const saveWidgets = (newWidgets: Widget[]) => {
+    setWidgets(newWidgets);
+    if (currentBusinessId) {
+      localStorage.setItem(`dashboard-widgets-${currentBusinessId}`, JSON.stringify(newWidgets));
+    }
+  };
+
+  const toggleWidget = (widgetId: string) => {
+    const newWidgets = widgets.map(w =>
+      w.id === widgetId ? { ...w, visible: !w.visible } : w
+    );
+    saveWidgets(newWidgets);
+  };
+
+  const loadBusinessName = async () => {
+    if (!currentBusinessId) return;
+
+    try {
+      const { data: business } = await supabase
+        .from('businesses')
+        .select('name')
+        .eq('id', currentBusinessId)
+        .single();
+
+      if (business) {
+        setBusinessName(business.name);
+      }
+    } catch (err) {
+      logger.error('[UnifiedBusinessDashboard] Failed to load business name:', err);
+    }
+  };
+
+  const loadAuditLogs = async () => {
+    if (!currentBusinessId) return;
+
+    try {
+      const { data } = await supabase
+        .from('audit_logs')
+        .select('id, action, table_name, created_at')
+        .eq('business_id', currentBusinessId)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (data) {
+        setAuditLogs(data);
+      }
+    } catch (err) {
+      logger.error('[UnifiedBusinessDashboard] Failed to load audit logs:', err);
+    }
+  };
+
+  if (!currentBusinessId) {
+    return (
+      <PageContainer>
+        <NoActiveBusiness
+          onNavigateToBusinesses={() => navigate('/business/businesses')}
+          message="לוח הבקרה המאוחד דורש עסק פעיל. אנא בחר עסק או צור עסק חדש."
+        />
+      </PageContainer>
+    );
+  }
 
   const quickActions = [
     { id: '1', label: 'הזמנה חדשה', icon: '📦', onClick: () => navigate('/business/orders') },

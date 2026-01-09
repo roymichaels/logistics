@@ -57,7 +57,7 @@ export function BusinessAnalytics() {
           .gte('created_at', dateThreshold),
         supabase
           .from('order_items')
-          .select('product_id, quantity, price')
+          .select('product_id, quantity, unit_price')
           .gte('created_at', dateThreshold),
         supabase
           .from('products')
@@ -65,7 +65,7 @@ export function BusinessAnalytics() {
           .eq('business_id', currentBusinessId),
         supabase
           .from('driver_profiles')
-          .select('id, user_id, status')
+          .select('id, active')
           .eq('business_id', currentBusinessId)
       ]);
 
@@ -128,7 +128,7 @@ export function BusinessAnalytics() {
       const existing = salesMap.get(productName) || { sales: 0, revenue: 0 };
       salesMap.set(productName, {
         sales: existing.sales + (item.quantity || 0),
-        revenue: existing.revenue + ((item.quantity || 0) * (item.price || 0))
+        revenue: existing.revenue + ((item.quantity || 0) * (item.unit_price || 0))
       });
     });
 
