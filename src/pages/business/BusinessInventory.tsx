@@ -29,6 +29,29 @@ export function BusinessInventory() {
 
   useEffect(() => {
     loadInventory();
+
+    if (!currentBusinessId) return;
+
+    const subscription = supabase
+      .channel(`business-inventory-${currentBusinessId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'inventory',
+          filter: `business_id=eq.${currentBusinessId}`
+        },
+        () => {
+          logger.info('[BusinessInventory] Real-time update received');
+          loadInventory();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [currentBusinessId]);
 
   const loadInventory = async () => {

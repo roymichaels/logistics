@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { Card } from '../../components/molecules/Card';
+import { StatCard } from '../../components/molecules/StatCard';
 import { tokens } from '../../styles/tokens';
 
 interface Customer {
@@ -249,36 +250,23 @@ export function BusinessCustomers() {
         gap: '16px',
         marginBottom: '24px'
       }}>
-        <Card>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '32px', fontWeight: '700', color: tokens.colors.text }}>
-              {stats.total}
-            </div>
-            <div style={{ fontSize: '14px', color: tokens.colors.subtle, marginTop: '4px' }}>
-              סה״כ לקוחות
-            </div>
-          </div>
-        </Card>
-        <Card>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '32px', fontWeight: '700', color: tokens.colors.status.success }}>
-              {stats.highValue}
-            </div>
-            <div style={{ fontSize: '14px', color: tokens.colors.subtle, marginTop: '4px' }}>
-              לקוחות VIP
-            </div>
-          </div>
-        </Card>
-        <Card>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '32px', fontWeight: '700', color: tokens.colors.accent }}>
-              {formatCurrency(stats.totalRevenue)}
-            </div>
-            <div style={{ fontSize: '14px', color: tokens.colors.subtle, marginTop: '4px' }}>
-              סה״כ הכנסות
-            </div>
-          </div>
-        </Card>
+        <StatCard
+          icon="👥"
+          label="סה״כ לקוחות"
+          value={stats.total}
+        />
+        <StatCard
+          icon="⭐"
+          label="לקוחות VIP"
+          value={stats.highValue}
+          color={tokens.colors.status.success}
+        />
+        <StatCard
+          icon="💰"
+          label="סה״כ הכנסות"
+          value={formatCurrency(stats.totalRevenue)}
+          color={tokens.colors.accent}
+        />
       </div>
 
       <div style={{ marginBottom: '24px' }}>

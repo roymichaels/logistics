@@ -31,6 +31,29 @@ export function BusinessDrivers() {
 
   useEffect(() => {
     loadDrivers();
+
+    if (!currentBusinessId) return;
+
+    const subscription = supabase
+      .channel(`business-drivers-${currentBusinessId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'driver_profiles',
+          filter: `business_id=eq.${currentBusinessId}`
+        },
+        () => {
+          logger.info('[BusinessDrivers] Real-time update received');
+          loadDrivers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [currentBusinessId]);
 
   const loadDrivers = async () => {

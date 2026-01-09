@@ -37,6 +37,29 @@ export function BusinessOrders() {
 
   useEffect(() => {
     loadOrders();
+
+    if (!currentBusinessId) return;
+
+    const subscription = supabase
+      .channel(`business-orders-${currentBusinessId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `business_id=eq.${currentBusinessId}`
+        },
+        () => {
+          logger.info('[BusinessOrders] Real-time update received');
+          loadOrders();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [currentBusinessId]);
 
   const loadOrders = async () => {
