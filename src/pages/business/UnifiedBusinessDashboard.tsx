@@ -202,13 +202,14 @@ export function UnifiedBusinessDashboard() {
 
   const quickActions = [
     { id: '1', label: 'הזמנה חדשה', icon: '📦', onClick: () => navigate('/business/orders') },
-    { id: '2', label: 'ניהול צוות', icon: '👥', onClick: () => navigate('/business/team') },
-    { id: '3', label: 'בדיקת מלאי', icon: '📊', onClick: () => navigate('/business/inventory') },
-    { id: '4', label: 'ניהול נהגים', icon: '🚗', onClick: () => navigate('/business/drivers') },
-    { id: '5', label: 'אנליטיקה', icon: '📈', onClick: () => navigate('/business/analytics') },
-    { id: '6', label: 'הגדרות', icon: '⚙️', onClick: () => navigate('/business/settings') },
-    { id: '7', label: 'יומני ביקורת', icon: '📋', onClick: () => navigate('/business/audit-logs') },
-    { id: '8', label: 'לקוחות', icon: '👤', onClick: () => navigate('/business/customers') },
+    { id: '2', label: 'דף ציבורי', icon: '🌐', onClick: () => navigate('/business/preview') },
+    { id: '3', label: 'ניהול צוות', icon: '👥', onClick: () => navigate('/business/team') },
+    { id: '4', label: 'בדיקת מלאי', icon: '📊', onClick: () => navigate('/business/inventory') },
+    { id: '5', label: 'ניהול נהגים', icon: '🚗', onClick: () => navigate('/business/drivers') },
+    { id: '6', label: 'אנליטיקה', icon: '📈', onClick: () => navigate('/business/analytics') },
+    { id: '7', label: 'הגדרות', icon: '⚙️', onClick: () => navigate('/business/settings') },
+    { id: '8', label: 'יומני ביקורת', icon: '📋', onClick: () => navigate('/business/audit-logs') },
+    { id: '9', label: 'לקוחות', icon: '👤', onClick: () => navigate('/business/customers') },
   ];
 
   if (loading) {

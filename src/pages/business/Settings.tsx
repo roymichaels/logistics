@@ -276,6 +276,100 @@ export default function Settings() {
         }
       />
 
+      {settings.is_public && (
+        <div style={{
+          padding: '20px',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          borderRadius: '12px',
+          marginBottom: '24px',
+          color: 'white',
+          boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '16px'
+          }}>
+            <div>
+              <div style={{
+                fontSize: '20px',
+                fontWeight: '700',
+                marginBottom: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <span>🌐</span>
+                <span>העסק שלך פעיל באינטרנט!</span>
+              </div>
+              <p style={{ margin: '0 0 8px 0', opacity: 0.95, fontSize: '14px' }}>
+                העסק שלך זמין לצפייה ציבורית. לקוחות יכולים לראות את הקטלוג ולפנות אליך.
+              </p>
+              <div style={{
+                fontFamily: 'monospace',
+                fontSize: '13px',
+                background: 'rgba(255,255,255,0.2)',
+                padding: '8px 12px',
+                borderRadius: '6px',
+                display: 'inline-block',
+                marginTop: '4px'
+              }}>
+                {window.location.origin}/business/{settings.slug}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <a
+                href={`/business/preview`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  padding: '10px 20px',
+                  background: 'white',
+                  color: '#667eea',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <span>👁️</span>
+                <span>צפה בדף</span>
+              </a>
+              <button
+                onClick={() => {
+                  const url = `${window.location.origin}/business/${settings.slug}`;
+                  navigator.clipboard.writeText(url);
+                  alert('הקישור הועתק ללוח!');
+                }}
+                style={{
+                  padding: '10px 20px',
+                  background: 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  border: '1px solid rgba(255,255,255,0.4)',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <span>🔗</span>
+                <span>העתק קישור</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gap: '24px' }}>
         <Card>
           <div style={{ padding: '24px' }}>
@@ -645,30 +739,65 @@ export default function Settings() {
                 }}>
                   כאשר מופעל, העסק והקטלוג שלך יהיו זמינים לכולם לצפייה
                 </p>
-                {settings.is_public && (
-                  <div style={{ marginTop: '12px' }}>
-                    <a
-                      href={`/business/preview`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                <div style={{ marginTop: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  <a
+                    href={`/business/preview`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 20px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      color: tokens.colors.text.bright,
+                      background: tokens.gradients.primary,
+                      borderRadius: '8px',
+                      textDecoration: 'none',
+                      transition: 'transform 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  >
+                    <span>👁️</span>
+                    <span>{settings.is_public ? 'צפה בדף הציבורי' : 'תצוגה מקדימה'}</span>
+                  </a>
+                  {settings.is_public && (
+                    <button
+                      onClick={() => {
+                        const url = `${window.location.origin}/business/${settings.slug}`;
+                        navigator.clipboard.writeText(url);
+                        alert('הקישור הועתק ללוח!');
+                      }}
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '8px',
-                        padding: '8px 16px',
+                        padding: '10px 20px',
                         fontSize: '14px',
                         fontWeight: '600',
-                        color: tokens.colors.text.bright,
-                        background: tokens.gradients.primary,
-                        borderRadius: '6px',
-                        textDecoration: 'none'
+                        color: tokens.colors.text,
+                        background: tokens.colors.surface,
+                        border: `1px solid ${tokens.colors.border}`,
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.borderColor = tokens.colors.primary;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.borderColor = tokens.colors.border;
                       }}
                     >
-                      <span>צפה בדף הציבורי</span>
-                      <span>→</span>
-                    </a>
-                  </div>
-                )}
+                      <span>🔗</span>
+                      <span>העתק קישור</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
               {settings.is_public && (
