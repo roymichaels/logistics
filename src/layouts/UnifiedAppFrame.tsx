@@ -14,6 +14,7 @@ interface UnifiedAppFrameProps {
   title?: string;
   headerContent?: React.ReactNode;
   showBottomNav?: boolean;
+  businessSelector?: React.ReactNode;
   onShowModeSelector?: () => void;
   onShowCreateOrder?: () => void;
   onShowCreateTask?: () => void;
@@ -32,6 +33,7 @@ export function UnifiedAppFrame({
   onNavigate,
   title = 'Menu',
   headerContent,
+  businessSelector,
   showBottomNav: showBottomNavProp,
   onShowModeSelector,
   onShowCreateOrder,
@@ -89,7 +91,7 @@ export function UnifiedAppFrame({
         backgroundColor: 'rgba(18, 18, 20, 0.95)',
       }}
     >
-      {headerContent && (
+      {(headerContent || businessSelector) && (
         <div
           style={{
             display: 'flex',
@@ -98,9 +100,19 @@ export function UnifiedAppFrame({
             padding: '16px 20px',
             borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
             backgroundColor: 'rgba(10, 10, 12, 0.3)',
+            gap: '16px'
           }}
         >
-          {headerContent}
+          {businessSelector && (
+            <div style={{ flexShrink: 0 }}>
+              {businessSelector}
+            </div>
+          )}
+          {headerContent && (
+            <div style={{ flex: 1 }}>
+              {headerContent}
+            </div>
+          )}
           <button
             onClick={() => setMenuOpen(true)}
             style={{

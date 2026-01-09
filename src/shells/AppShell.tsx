@@ -11,6 +11,8 @@ import { DevConsoleDrawer } from '../components/dev/DevConsoleDrawer';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { useUserDisplayName } from '../hooks/useUserDisplayName';
 import { NavigationProvider } from '../contexts/NavigationContext';
+import { BusinessHeaderSelector } from '../components/BusinessHeaderSelector';
+import { logger } from '../lib/logger';
 
 interface UnifiedAppShellProps {
   children: React.ReactNode;
@@ -21,6 +23,10 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
   const appServices = useSafeAppServices();
   const userRole = appServices?.userRole ?? 'user';
   const isAuthenticated = appServices?.isAuthenticated ?? false;
+  const currentBusinessId = appServices?.currentBusinessId ?? null;
+  const ownedBusinesses = appServices?.ownedBusinesses ?? [];
+  const setBusinessId = appServices?.setBusinessId;
+  const isMultiBusinessOwner = appServices?.isMultiBusinessOwner ?? false;
   const { user } = useAuth();
   const { title, subtitle } = usePageTitle();
   const location = useLocation();
@@ -56,8 +62,39 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
       path: item.path,
     }));
 
+  const isBusinessRole = ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service'].includes(userRole);
+  const showBusinessSelector = isBusinessRole && ownedBusinesses.length > 0;
+
+  const handleBusinessSwitch = (businessId: string | null) => {
+    logger.info('[UnifiedAppShell] Switching business:', businessId);
+    if (setBusinessId && businessId) {
+      setBusinessId(businessId);
+      localStorage.setItem('current-business-id', businessId);
+    }
+  };
+
+  const handleCreateBusiness = () => {
+    logger.info('[UnifiedAppShell] Navigating to create business');
+    navigate('/business/businesses?action=create');
+  };
+
   const headerContent = (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 'var(--spacing-sm)' }}>
+      {showBusinessSelector && (
+        <div style={{ flexShrink: 0 }}>
+          <BusinessHeaderSelector
+            currentBusinessId={currentBusinessId}
+            businesses={ownedBusinesses.map(b => ({
+              id: b.id,
+              name: b.name,
+              active: true
+            }))}
+            onSwitch={handleBusinessSwitch}
+            onCreateBusiness={handleCreateBusiness}
+            loading={false}
+          />
+        </div>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(8px, 2vw, 16px)', flex: 1, minWidth: 0 }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 'clamp(14px, 4vw, 18px)', fontWeight: 700, color: 'rgba(255, 255, 255, 0.95)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

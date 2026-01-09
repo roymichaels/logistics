@@ -4,6 +4,7 @@ import { UserRole } from './types';
 import { UnifiedAppFrame } from '../layouts/UnifiedAppFrame';
 import { getNavigationForRole } from './navigationSchema';
 import { MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
+import { BusinessHeaderSelector } from '../components/BusinessHeaderSelector';
 import { logger } from '../lib/logger';
 
 interface BusinessShellProps {
@@ -16,6 +17,7 @@ interface BusinessShellProps {
   businessId?: string;
   availableBusinesses?: Array<{ id: string; name: string }>;
   onBusinessSwitch?: (businessId: string | null) => void;
+  onCreateBusiness?: () => void;
 }
 
 export function BusinessShell({
@@ -27,7 +29,8 @@ export function BusinessShell({
   businessName,
   businessId,
   availableBusinesses = [],
-  onBusinessSwitch
+  onBusinessSwitch,
+  onCreateBusiness
 }: BusinessShellProps) {
   const [showOrderWizard, setShowOrderWizard] = useState(false);
 
@@ -87,6 +90,25 @@ export function BusinessShell({
     onNavigate('/business/products');
   };
 
+  const handleCreateBusiness = () => {
+    logger.info('[BusinessShell] Create business clicked');
+    if (onCreateBusiness) {
+      onCreateBusiness();
+    } else {
+      onNavigate('/business/businesses?action=create');
+    }
+  };
+
+  const businessSelector = onBusinessSwitch && availableBusinesses.length > 0 ? (
+    <BusinessHeaderSelector
+      currentBusinessId={businessId || null}
+      businesses={availableBusinesses}
+      onSwitch={(id) => onBusinessSwitch(id)}
+      onCreateBusiness={handleCreateBusiness}
+      loading={false}
+    />
+  ) : null;
+
   return (
     <BaseShell
       role={role}
@@ -95,43 +117,12 @@ export function BusinessShell({
       onLogout={onLogout}
       title={businessName || (isMultiBusinessOwner ? 'Multi-Business Portal' : 'Business Portal')}
     >
-      {isMultiBusinessOwner && availableBusinesses.length > 0 && onBusinessSwitch && (
-        <div style={{
-          position: 'fixed',
-          top: '1rem',
-          right: '1rem',
-          zIndex: 1000,
-          background: 'white',
-          padding: '0.5rem',
-          borderRadius: '0.5rem',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-        }}>
-          <select
-            value={businessId || ''}
-            onChange={(e) => onBusinessSwitch(e.target.value || null)}
-            style={{
-              padding: '0.5rem',
-              borderRadius: '0.25rem',
-              border: '1px solid #ddd',
-              background: 'white',
-              cursor: 'pointer'
-            }}
-          >
-            <option value="">All Businesses</option>
-            {availableBusinesses.map(business => (
-              <option key={business.id} value={business.id}>
-                {business.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
       <UnifiedAppFrame
         menuItems={menuItems}
         currentPath={currentPath}
         onNavigate={onNavigate}
         title={isMultiBusinessOwner ? 'Multi-Business Menu' : 'Business Menu'}
+        businessSelector={businessSelector}
         onShowModeSelector={handleShowModeSelector}
         onShowCreateTask={handleShowCreateTask}
         onShowScanBarcode={handleShowScanBarcode}
