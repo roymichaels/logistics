@@ -1,5 +1,4 @@
 import React, { useRef, useEffect } from 'react';
-import { tokens } from '../../styles/tokens';
 import { MessageGroup } from './MessageGroup';
 import { groupMessagesBySender } from './utils';
 
@@ -47,12 +46,12 @@ export function ChatMessagesArea({
           background: 'transparent'
         }}
       >
-        <div style={{ fontSize: '72px', opacity: 0.5 }}>💬</div>
+        <div style={{ fontSize: '72px', opacity: 0.3 }}>💬</div>
         <div
           style={{
             fontSize: '18px',
             fontWeight: '600',
-            color: tokens.colors.text,
+            color: '#00d4ff',
             textAlign: 'center'
           }}
         >
@@ -61,7 +60,7 @@ export function ChatMessagesArea({
         <div
           style={{
             fontSize: '14px',
-            color: tokens.colors.subtle,
+            color: 'rgba(255, 255, 255, 0.4)',
             textAlign: 'center',
             maxWidth: '300px',
             lineHeight: '1.5'
@@ -80,7 +79,7 @@ export function ChatMessagesArea({
         flex: 1,
         overflowY: 'auto',
         padding: '16px',
-        background: tokens.colors.background.primary,
+        background: 'rgba(10, 10, 10, 0.3)',
         display: 'flex',
         flexDirection: 'column'
       }}

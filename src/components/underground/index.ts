@@ -10,3 +10,7 @@ export { UndergroundStatCard } from './UndergroundStatCard';
 export { UndergroundTable } from './UndergroundTable';
 export { UndergroundModal } from './UndergroundModal';
 export { UndergroundSelect } from './UndergroundSelect';
+export { UndergroundSwitch } from './UndergroundSwitch';
+export { UndergroundSearchBar } from './UndergroundSearchBar';
+export { UndergroundAvatar } from './UndergroundAvatar';
+export { UndergroundTabs } from './UndergroundTabs';

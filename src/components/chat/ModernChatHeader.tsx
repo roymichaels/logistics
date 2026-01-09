@@ -1,5 +1,4 @@
 import React from 'react';
-import { tokens } from '../../styles/tokens';
 
 interface ModernChatHeaderProps {
   name: string;
@@ -26,8 +25,9 @@ export function ModernChatHeader({
     <div
       style={{
         padding: '12px 16px',
-        borderBottom: `1px solid ${tokens.colors.divider}`,
-        background: tokens.colors.background.secondary,
+        borderBottom: '1px solid rgba(0, 212, 255, 0.1)',
+        background: 'rgba(255, 255, 255, 0.02)',
+        backdropFilter: 'blur(10px)',
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
@@ -43,7 +43,7 @@ export function ModernChatHeader({
             padding: '10px',
             background: 'transparent',
             border: 'none',
-            color: tokens.colors.text.primary,
+            color: '#ffffff',
             fontSize: '20px',
             cursor: 'pointer',
             display: 'flex',
@@ -55,7 +55,7 @@ export function ModernChatHeader({
             height: '40px'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
+            e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)';
             e.currentTarget.style.transform = 'scale(1.05)';
           }}
           onMouseLeave={(e) => {
@@ -76,13 +76,16 @@ export function ModernChatHeader({
             borderRadius: '50%',
             background: avatar
               ? `url(${avatar}) center/cover`
-              : 'linear-gradient(135deg, #0084FF 0%, #0073E6 100%)',
+              : 'linear-gradient(135deg, rgba(0, 212, 255, 0.3) 0%, rgba(123, 63, 242, 0.3) 100%)',
+            backdropFilter: 'blur(10px)',
+            border: '2px solid rgba(0, 212, 255, 0.2)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: '18px',
             fontWeight: '600',
-            color: '#fff'
+            color: '#ffffff'
           }}
         >
           {!avatar && userInitial}
@@ -96,9 +99,10 @@ export function ModernChatHeader({
               width: '12px',
               height: '12px',
               borderRadius: '50%',
-              backgroundColor: tokens.colors.online,
-              border: `2px solid ${tokens.colors.background.secondary}`,
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)'
+              background: 'linear-gradient(135deg, #00ff88 0%, #00cc66 100%)',
+              border: '2px solid rgba(13, 13, 13, 0.9)',
+              boxShadow: '0 0 12px rgba(0, 255, 136, 0.6)',
+              animation: 'pulse 2s ease-in-out infinite'
             }}
           />
         )}
@@ -110,7 +114,7 @@ export function ModernChatHeader({
             margin: 0,
             fontSize: '16px',
             fontWeight: '600',
-            color: tokens.colors.text.primary,
+            color: '#ffffff',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap'
@@ -123,10 +127,10 @@ export function ModernChatHeader({
             margin: '2px 0 0 0',
             fontSize: '13px',
             color: isTyping
-              ? tokens.colors.brand.primary
+              ? '#00d4ff'
               : isOnline
-              ? tokens.colors.online
-              : tokens.colors.text.secondary,
+              ? '#00ff88'
+              : 'rgba(255, 255, 255, 0.5)',
             fontWeight: '400',
             fontStyle: isTyping ? 'italic' : 'normal'
           }}
@@ -147,7 +151,7 @@ export function ModernChatHeader({
             padding: '10px',
             background: 'transparent',
             border: 'none',
-            color: tokens.colors.text.primary,
+            color: '#ffffff',
             fontSize: '20px',
             cursor: 'pointer',
             display: 'flex',
@@ -159,7 +163,7 @@ export function ModernChatHeader({
             height: '40px'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
+            e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)';
             e.currentTarget.style.transform = 'scale(1.05)';
           }}
           onMouseLeave={(e) => {
@@ -176,7 +180,7 @@ export function ModernChatHeader({
             padding: '10px',
             background: 'transparent',
             border: 'none',
-            color: tokens.colors.text.primary,
+            color: '#ffffff',
             fontSize: '20px',
             cursor: 'pointer',
             display: 'flex',
@@ -188,7 +192,7 @@ export function ModernChatHeader({
             height: '40px'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
+            e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)';
             e.currentTarget.style.transform = 'scale(1.05)';
           }}
           onMouseLeave={(e) => {
@@ -205,7 +209,7 @@ export function ModernChatHeader({
             padding: '10px',
             background: 'transparent',
             border: 'none',
-            color: tokens.colors.text.primary,
+            color: '#ffffff',
             fontSize: '20px',
             cursor: 'pointer',
             display: 'flex',
@@ -217,7 +221,7 @@ export function ModernChatHeader({
             height: '40px'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
+            e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)';
             e.currentTarget.style.transform = 'scale(1.05)';
           }}
           onMouseLeave={(e) => {
@@ -236,7 +240,7 @@ export function ModernChatHeader({
               padding: '10px',
               background: 'transparent',
               border: 'none',
-              color: tokens.colors.text.primary,
+              color: '#ffffff',
               fontSize: '18px',
               cursor: 'pointer',
               display: 'flex',
@@ -248,7 +252,7 @@ export function ModernChatHeader({
               height: '40px'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
+              e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)';
               e.currentTarget.style.transform = 'scale(1.05)';
             }}
             onMouseLeave={(e) => {
@@ -261,6 +265,19 @@ export function ModernChatHeader({
           </button>
         )}
       </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.1);
+          }
+        }
+      `}</style>
     </div>
   );
 }

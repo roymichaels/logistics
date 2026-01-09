@@ -5,7 +5,6 @@ import { logger } from '../lib/logger';
 import { haptic } from '../utils/haptic';
 import { getUserIdentifier } from '../utils/userIdentifier';
 import { useAppServices } from '../context/AppServicesContext';
-import { tokens } from '../styles/tokens';
 import {
   useConversations,
   useMessages,
@@ -173,8 +172,10 @@ export function ModernChat({ currentUser: propCurrentUser }: ModernChatProps = {
           alignItems: 'center',
           justifyContent: 'center',
           height: '100vh',
-          background: tokens.colors.panel,
-          color: tokens.colors.text
+          background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%)',
+          color: '#00d4ff',
+          fontSize: '18px',
+          fontWeight: '600',
         }}
       >
         טוען...
@@ -235,7 +236,7 @@ export function ModernChat({ currentUser: propCurrentUser }: ModernChatProps = {
           margin: 0,
           fontSize: '24px',
           fontWeight: '700',
-          color: '#E7E9EA',
+          color: '#00d4ff',
           textAlign: 'center'
         }}
       >
@@ -245,7 +246,7 @@ export function ModernChat({ currentUser: propCurrentUser }: ModernChatProps = {
         style={{
           margin: 0,
           fontSize: '16px',
-          color: '#8899A6',
+          color: 'rgba(255, 255, 255, 0.5)',
           textAlign: 'center',
           maxWidth: '400px',
           lineHeight: '1.6'

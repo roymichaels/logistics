@@ -1,5 +1,4 @@
 import React, { ReactNode } from 'react';
-import { tokens } from '../../styles/tokens';
 
 interface ModernChatLayoutProps {
   sidebar: ReactNode;
@@ -18,7 +17,7 @@ export function ModernChatLayout({
     <div
       style={{
         minHeight: '100vh',
-        background: tokens.colors.panel,
+        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%)',
         padding: '28px clamp(16px, 5vw, 40px)',
         direction: 'rtl',
         position: 'relative',
@@ -40,10 +39,11 @@ export function ModernChatLayout({
             width: showSidebar ? '100%' : '380px',
             maxWidth: '380px',
             minWidth: '320px',
-            background: tokens.colors.background.card,
-            border: `1px solid ${tokens.colors.background.cardBorder}`,
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(0, 212, 255, 0.15)',
             borderRadius: '16px',
-            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.3)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.05)',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
@@ -62,10 +62,11 @@ export function ModernChatLayout({
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            background: tokens.colors.background.card,
-            border: `1px solid ${tokens.colors.background.cardBorder}`,
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(0, 212, 255, 0.15)',
             borderRadius: '16px',
-            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.3)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.05)',
             position: 'relative'
           }}
           className="chat-main"

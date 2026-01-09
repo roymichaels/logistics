@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { tokens } from '../../styles/tokens';
 
 interface ModernMessageInputProps {
   value: string;
@@ -27,6 +26,7 @@ export function ModernMessageInput({
   onTyping
 }: ModernMessageInputProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -62,8 +62,9 @@ export function ModernMessageInput({
     <div
       style={{
         padding: '12px 16px',
-        borderTop: `1px solid ${tokens.colors.divider}`,
-        background: tokens.colors.background.secondary,
+        borderTop: '1px solid rgba(0, 212, 255, 0.1)',
+        background: 'rgba(255, 255, 255, 0.02)',
+        backdropFilter: 'blur(10px)',
         position: 'relative'
       }}
     >
@@ -86,11 +87,12 @@ export function ModernMessageInput({
               bottom: '100%',
               right: '16px',
               marginBottom: '8px',
-              background: tokens.colors.background.tertiary,
-              border: `1px solid ${tokens.colors.divider}`,
+              background: 'rgba(20, 20, 30, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(0, 212, 255, 0.2)',
               borderRadius: '12px',
               padding: '12px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
               zIndex: 1000,
               maxWidth: '320px',
               display: 'grid',
@@ -110,16 +112,18 @@ export function ModernMessageInput({
                   fontSize: '20px',
                   cursor: 'pointer',
                   borderRadius: '6px',
-                  transition: 'background 0.2s ease',
+                  transition: 'all 0.2s ease',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
+                  e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)';
+                  e.currentTarget.style.transform = 'scale(1.1)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
                 {emoji}
@@ -140,10 +144,10 @@ export function ModernMessageInput({
           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
           style={{
             padding: '10px',
-            background: showEmojiPicker ? `${tokens.colors.brand.primary}20` : 'transparent',
+            background: showEmojiPicker ? 'rgba(0, 212, 255, 0.15)' : 'transparent',
             border: 'none',
             borderRadius: '50%',
-            color: tokens.colors.text.primary,
+            color: '#ffffff',
             fontSize: '22px',
             cursor: 'pointer',
             width: '44px',
@@ -155,11 +159,11 @@ export function ModernMessageInput({
             flexShrink: 0
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = `${tokens.colors.brand.primary}25`;
+            e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)';
             e.currentTarget.style.transform = 'scale(1.05)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = showEmojiPicker ? `${tokens.colors.brand.primary}20` : 'transparent';
+            e.currentTarget.style.background = showEmojiPicker ? 'rgba(0, 212, 255, 0.15)' : 'transparent';
             e.currentTarget.style.transform = 'scale(1)';
           }}
           title="הוסף אימוג'י"
@@ -173,7 +177,7 @@ export function ModernMessageInput({
             background: 'transparent',
             border: 'none',
             borderRadius: '50%',
-            color: tokens.colors.text.primary,
+            color: '#ffffff',
             fontSize: '20px',
             cursor: 'pointer',
             width: '44px',
@@ -185,7 +189,7 @@ export function ModernMessageInput({
             flexShrink: 0
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = `${tokens.colors.brand.primary}25`;
+            e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)';
             e.currentTarget.style.transform = 'scale(1.05)';
           }}
           onMouseLeave={(e) => {
@@ -203,32 +207,28 @@ export function ModernMessageInput({
           value={value}
           onChange={handleChange}
           onKeyPress={handleKeyPress}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           disabled={disabled}
           rows={1}
           style={{
             flex: 1,
             padding: '10px 16px',
-            border: `1px solid ${tokens.colors.border.default}`,
+            border: isFocused ? '1px solid rgba(0, 212, 255, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
             borderRadius: '24px',
-            background: tokens.colors.background.primary,
-            color: tokens.colors.text.primary,
+            background: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(10px)',
+            color: '#ffffff',
             fontSize: '15px',
             outline: 'none',
-            transition: 'all 0.2s ease',
+            transition: 'all 0.3s ease',
             minHeight: '40px',
             maxHeight: '120px',
             resize: 'none',
             fontFamily: 'inherit',
             lineHeight: '1.5',
-            overflowY: 'auto'
-          }}
-          onFocus={(e) => {
-            e.currentTarget.style.borderColor = tokens.colors.brand.primary;
-            e.currentTarget.style.boxShadow = `0 0 0 2px ${tokens.colors.brand.primary}20`;
-          }}
-          onBlur={(e) => {
-            e.currentTarget.style.borderColor = tokens.colors.border.default;
-            e.currentTarget.style.boxShadow = 'none';
+            overflowY: 'auto',
+            boxShadow: isFocused ? '0 0 20px rgba(0, 212, 255, 0.2)' : 'none'
           }}
           onInput={(e: any) => {
             e.target.style.height = 'auto';
@@ -243,9 +243,9 @@ export function ModernMessageInput({
             padding: '0',
             background:
               value.trim() && !disabled
-                ? 'linear-gradient(135deg, #0084FF 0%, #0073E6 100%)'
-                : tokens.colors.background.secondary,
-            color: value.trim() && !disabled ? '#fff' : tokens.colors.text.secondary,
+                ? 'linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)'
+                : 'rgba(255, 255, 255, 0.1)',
+            color: '#ffffff',
             border: 'none',
             borderRadius: '50%',
             fontSize: '22px',
@@ -258,7 +258,7 @@ export function ModernMessageInput({
             justifyContent: 'center',
             boxShadow:
               value.trim() && !disabled
-                ? '0 4px 16px rgba(0, 132, 255, 0.4)'
+                ? '0 4px 16px rgba(0, 212, 255, 0.4), 0 0 20px rgba(0, 212, 255, 0.3)'
                 : 'none',
             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             flexShrink: 0,
@@ -268,14 +268,14 @@ export function ModernMessageInput({
             if (value.trim() && !disabled) {
               e.currentTarget.style.transform = 'scale(1.1)';
               e.currentTarget.style.boxShadow =
-                '0 6px 20px rgba(0, 132, 255, 0.6)';
+                '0 6px 20px rgba(0, 212, 255, 0.6), 0 0 30px rgba(0, 212, 255, 0.4)';
             }
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'scale(1)';
             if (value.trim() && !disabled) {
               e.currentTarget.style.boxShadow =
-                '0 4px 16px rgba(0, 132, 255, 0.4)';
+                '0 4px 16px rgba(0, 212, 255, 0.4), 0 0 20px rgba(0, 212, 255, 0.3)';
             }
           }}
         >
