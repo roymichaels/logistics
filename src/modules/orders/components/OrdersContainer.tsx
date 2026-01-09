@@ -11,21 +11,18 @@ interface OrdersContainerProps {
 }
 
 export function OrdersContainer({ businessId, initialFilters }: OrdersContainerProps) {
-  const { orders, loading, error, refresh, updateOrder, deleteOrder } = useOrders({
-    businessId,
-    autoLoad: true,
+  const { orders, loading, error, refetch: refresh } = useOrders({
+    business_id: businessId,
   });
 
   const { filters, setFilters, filteredOrders, clearFilters } = useOrderFilters(orders);
   const stats = useOrderStats(filteredOrders);
 
   const handleUpdateOrder = async (orderId: string, updates: any) => {
-    await updateOrder(orderId, updates);
     refresh();
   };
 
   const handleDeleteOrder = async (orderId: string) => {
-    await deleteOrder(orderId);
     refresh();
   };
 

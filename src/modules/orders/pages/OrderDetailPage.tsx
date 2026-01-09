@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useOrders } from '../hooks';
+import React from 'react';
+import { useOrder } from '@/application/use-cases';
 import { Order } from '../types';
 import { OrderDetailView } from '../components/OrderDetailView';
 import { LoadingState } from '@ui/molecules';
@@ -10,18 +10,7 @@ interface OrderDetailPageProps {
 }
 
 export function OrderDetailPage({ orderId, onBack }: OrderDetailPageProps) {
-  const { getOrder } = useOrders({ autoLoad: false });
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function load() {
-      const result = await getOrder(orderId);
-      setOrder(result);
-      setLoading(false);
-    }
-    load();
-  }, [orderId, getOrder]);
+  const { order, loading } = useOrder(orderId);
 
   if (loading) {
     return <LoadingState message="Loading order details..." />;
