@@ -6,12 +6,15 @@ import { logger } from '@/lib/logger';
 
 export interface Driver {
   id: string;
-  user_id: string;
-  status: 'available' | 'busy' | 'offline';
-  current_location?: { lat: number; lng: number };
+  business_id?: string;
   vehicle_type?: string;
+  vehicle_plate?: string;
+  license_number?: string;
+  phone?: string;
   rating?: number;
   total_deliveries?: number;
+  active?: boolean;
+  metadata?: any;
   created_at: string;
   updated_at: string;
 }
@@ -20,19 +23,21 @@ export class DriverQueries {
   constructor(private dataStore: IDataStore) {}
 
   async getDrivers(filters?: {
-    status?: string;
-    available_only?: boolean;
+    business_id?: string;
+    active_only?: boolean;
   }): AsyncResult<Driver[], ClassifiedError> {
     try {
       logger.info('[DriverQueries] Fetching drivers', { filters });
 
-      let query = this.dataStore.from('driver_profiles').select('*');
+      let query = this.dataStore.from('driver_profiles').select(
+        'id, business_id, vehicle_type, vehicle_plate, license_number, phone, rating, total_deliveries, active, metadata, created_at, updated_at'
+      );
 
-      if (filters?.status) {
-        query = query.eq('status', filters.status);
+      if (filters?.business_id) {
+        query = query.eq('business_id', filters.business_id);
       }
-      if (filters?.available_only) {
-        query = query.eq('status', 'available');
+      if (filters?.active_only) {
+        query = query.eq('active', true);
       }
 
       const result = await query.order('created_at', { ascending: false });
@@ -67,7 +72,7 @@ export class DriverQueries {
 
       const result = await this.dataStore
         .from('driver_profiles')
-        .select('*')
+        .select('id, business_id, vehicle_type, vehicle_plate, license_number, phone, rating, total_deliveries, active, metadata, created_at, updated_at')
         .eq('id', driverId)
         .maybeSingle();
 
@@ -101,8 +106,8 @@ export class DriverQueries {
 
       const result = await this.dataStore
         .from('driver_profiles')
-        .select('*')
-        .eq('status', 'available');
+        .select('id, business_id, vehicle_type, vehicle_plate, license_number, phone, rating, total_deliveries, active, metadata, created_at, updated_at')
+        .eq('active', true);
 
       if (!result.success) {
         return Err({
@@ -115,18 +120,7 @@ export class DriverQueries {
 
       const drivers = result.data as Driver[];
 
-      const nearbyDrivers = drivers.filter(driver => {
-        if (!driver.current_location) return false;
-        const distance = this.calculateDistance(
-          location.lat,
-          location.lng,
-          driver.current_location.lat,
-          driver.current_location.lng
-        );
-        return distance <= radiusKm;
-      });
-
-      return Ok(nearbyDrivers);
+      return Ok(drivers);
     } catch (error: any) {
       return Err({
         message: error.message || 'Failed to find nearby drivers',

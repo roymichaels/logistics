@@ -138,13 +138,13 @@ export class OrderRepository implements IOrderRepository {
 
   async findByDriver(driverId: string, activeOnly = false): Promise<Order[]> {
     try {
-      const filters: any = { assigned_driver: driverId };
-      if (activeOnly) {
-        filters.status = ['assigned', 'picked_up', 'in_transit'];
-      }
-
-      const result = await this.dataStore.getOrders(filters);
-      return result.map((o: any) => this.mapToOrder(o));
+      const allOrders = await this.dataStore.getOrders({});
+      const orders = allOrders.filter((o: any) => {
+        const matchesDriver = o.metadata?.assigned_driver === driverId;
+        if (!activeOnly) return matchesDriver;
+        return matchesDriver && ['assigned', 'picked_up', 'in_transit'].includes(o.status);
+      });
+      return orders.map((o: any) => this.mapToOrder(o));
     } catch (error) {
       logger.error('OrderRepository.findByDriver failed:', error);
       throw new Error('Failed to fetch driver orders');
@@ -163,13 +163,13 @@ export class OrderRepository implements IOrderRepository {
 
   async findByZone(zoneId: string, status?: OrderStatus): Promise<Order[]> {
     try {
-      const filters: any = { zone_id: zoneId };
-      if (status) {
-        filters.status = status;
-      }
-
-      const result = await this.dataStore.getOrders(filters);
-      return result.map((o: any) => this.mapToOrder(o));
+      const result = await this.dataStore.getOrders({});
+      const filtered = result.filter((o: any) => {
+        const matchesZone = o.delivery_zone_id === zoneId;
+        if (!status) return matchesZone;
+        return matchesZone && o.status === status;
+      });
+      return filtered.map((o: any) => this.mapToOrder(o));
     } catch (error) {
       logger.error('OrderRepository.findByZone failed:', error);
       throw new Error('Failed to fetch zone orders');
@@ -180,31 +180,32 @@ export class OrderRepository implements IOrderRepository {
     try {
       const orderNumber = OrderDomainService.generateOrderNumber(data.businessId);
 
+      const subtotal = data.items.reduce((sum, item) => sum + item.subtotal, 0);
+      const discount = data.discount || 0;
+      const deliveryFee = data.deliveryFee || 0;
+      const tax = OrderDomainService.calculateOrderTax(subtotal, 0.1);
+      const total = subtotal - discount + tax + deliveryFee;
+
       const orderData = {
         business_id: data.businessId,
         order_number: orderNumber,
-        customer_name: data.customer.name,
-        customer_phone: data.customer.phone,
-        customer_email: data.customer.email,
-        customer_address: JSON.stringify(data.customer.address),
-        items: data.items,
+        customer_id: data.customer.id,
+        delivery_address: data.customer.address,
         payment_method: data.paymentMethod,
         payment_status: 'pending',
         status: 'pending' as OrderStatus,
-        priority: data.priority || 'normal',
-        subtotal: data.items.reduce((sum, item) => sum + item.subtotal, 0),
-        discount: data.discount || 0,
-        tax: 0,
-        delivery_fee: data.deliveryFee || 0,
+        subtotal: subtotal,
+        discount: discount,
+        tax: tax,
+        delivery_fee: deliveryFee,
+        total: total,
+        currency: 'USD',
         notes: data.notes,
-        tags: data.tags,
-        created_by: data.createdBy,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        metadata: {
+          priority: data.priority || 'normal',
+          tags: data.tags,
+        },
       };
-
-      orderData.tax = OrderDomainService.calculateOrderTax(orderData.subtotal, 0.1);
-      orderData.total = orderData.subtotal - orderData.discount + orderData.tax + orderData.delivery_fee;
 
       const created = await this.dataStore.createOrder(orderData as any);
       return this.mapToOrder(created);
@@ -218,18 +219,23 @@ export class OrderRepository implements IOrderRepository {
     try {
       const updateData = {
         status: order.status,
-        priority: order.priority,
-        assigned_driver: order.delivery.driverId,
         subtotal: order.subtotal,
         discount: order.discount,
         tax: order.tax,
         delivery_fee: order.deliveryFee,
         total: order.total,
         notes: order.notes,
-        internal_notes: order.internalNotes,
-        tags: order.tags,
+        payment_status: order.payment.status,
+        delivery_zone_id: order.delivery.zoneId,
+        metadata: {
+          priority: order.priority,
+          assigned_driver: order.delivery.driverId,
+          driver_name: order.delivery.driverName,
+          zone_name: order.delivery.zoneName,
+          internal_notes: order.internalNotes,
+          tags: order.tags,
+        },
         updated_at: new Date().toISOString(),
-        updated_by: order.updatedBy,
       };
 
       const updated = await this.dataStore.updateOrder(order.id, updateData as any);
@@ -279,7 +285,7 @@ export class OrderRepository implements IOrderRepository {
       const totalOrders = filteredOrders.length;
       const pendingOrders = filteredOrders.filter((o: any) => o.status === 'pending').length;
       const activeOrders = filteredOrders.filter((o: any) =>
-        ['confirmed', 'preparing', 'ready_for_pickup', 'assigned', 'picked_up', 'in_transit'].includes(o.status)
+        ['confirmed', 'preparing', 'ready', 'assigned', 'picked_up', 'in_transit'].includes(o.status)
       ).length;
       const completedOrders = filteredOrders.filter((o: any) => o.status === 'delivered').length;
       const cancelledOrders = filteredOrders.filter((o: any) => o.status === 'cancelled').length;
@@ -291,14 +297,14 @@ export class OrderRepository implements IOrderRepository {
       const averageOrderValue = totalOrders > 0 ? totalRevenue / completedOrders || 0 : 0;
 
       const deliveredOrdersWithTime = filteredOrders.filter(
-        (o: any) => o.status === 'delivered' && o.delivery_completed_at
+        (o: any) => o.status === 'delivered' && o.delivered_at
       );
 
       let averageDeliveryTime = 0;
       if (deliveredOrdersWithTime.length > 0) {
         const totalTime = deliveredOrdersWithTime.reduce((sum: number, o: any) => {
           const created = new Date(o.created_at).getTime();
-          const delivered = new Date(o.delivery_completed_at).getTime();
+          const delivered = new Date(o.delivered_at).getTime();
           return sum + (delivered - created);
         }, 0);
         averageDeliveryTime = totalTime / deliveredOrdersWithTime.length / 60000;
@@ -331,19 +337,18 @@ export class OrderRepository implements IOrderRepository {
   }
 
   private mapToOrder(data: any): Order {
+    const deliveryAddress = data.delivery_address || {};
+
     const orderData: OrderConstructorData = {
       id: data.id,
       businessId: data.business_id,
       orderNumber: data.order_number || data.id,
       customer: {
         id: data.customer_id,
-        name: data.customer_name,
-        phone: data.customer_phone,
-        email: data.customer_email,
-        address:
-          typeof data.customer_address === 'string'
-            ? JSON.parse(data.customer_address)
-            : data.customer_address || {},
+        name: deliveryAddress.name || '',
+        phone: deliveryAddress.phone || '',
+        email: deliveryAddress.email || '',
+        address: deliveryAddress || {},
       },
       items: data.items || [],
       payment: {
@@ -352,26 +357,26 @@ export class OrderRepository implements IOrderRepository {
         amount: data.total || 0,
       },
       delivery: {
-        driverId: data.assigned_driver,
-        driverName: data.driver_name,
-        zoneId: data.zone_id,
-        zoneName: data.zone_name,
+        driverId: data.metadata?.assigned_driver,
+        driverName: data.metadata?.driver_name,
+        zoneId: data.delivery_zone_id,
+        zoneName: data.metadata?.zone_name,
       },
       status: data.status,
-      priority: data.priority || 'normal',
-      timeline: data.timeline || [],
+      priority: data.metadata?.priority || 'normal',
+      timeline: [],
       subtotal: data.subtotal || 0,
       discount: data.discount || 0,
       tax: data.tax || 0,
       deliveryFee: data.delivery_fee || 0,
       total: data.total || 0,
       notes: data.notes,
-      internalNotes: data.internal_notes,
-      tags: data.tags || [],
+      internalNotes: data.metadata?.internal_notes,
+      tags: data.metadata?.tags || [],
       createdAt: new Date(data.created_at),
-      createdBy: data.created_by,
+      createdBy: undefined,
       updatedAt: new Date(data.updated_at),
-      updatedBy: data.updated_by,
+      updatedBy: undefined,
     };
 
     return new Order(orderData);
@@ -382,9 +387,7 @@ export class OrderRepository implements IOrderRepository {
 
     if (filters.businessId) dbFilters.business_id = filters.businessId;
     if (filters.status) dbFilters.status = filters.status;
-    if (filters.driverId) dbFilters.assigned_driver = filters.driverId;
     if (filters.customerId) dbFilters.customer_id = filters.customerId;
-    if (filters.zoneId) dbFilters.zone_id = filters.zoneId;
 
     return dbFilters;
   }

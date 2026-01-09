@@ -11,7 +11,7 @@ import type { ClassifiedError } from '@/foundation/error/ErrorTypes';
 export const useOrders = (filters?: {
   business_id?: string;
   status?: string;
-  driver_id?: string;
+  customer_id?: string;
 }) => {
   const app = useApp();
   const queries = new OrderQueries(app.db);
@@ -38,7 +38,7 @@ export const useOrdersPaginated = (
   filters?: {
     business_id?: string;
     status?: string;
-    driver_id?: string;
+    customer_id?: string;
   },
   pageSize = 20
 ) => {
@@ -51,7 +51,7 @@ export const useOrdersPaginated = (
   const result = usePaginatedQuery<Order>(
     baseKey,
     ({ page, pageSize: size, offset }) =>
-      queries.getOrders({ ...filters, page, limit: size, offset }),
+      queries.getOrders({ ...filters }),
     { pageSize, ttl: 15000, mode: 'infinite' }
   );
 
