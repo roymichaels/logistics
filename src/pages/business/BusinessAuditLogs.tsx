@@ -5,6 +5,8 @@ import { useSafeAppServices } from '../../context/AppServicesContext';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { Card } from '../../components/molecules/Card';
+import { StatCard } from '../../components/molecules/StatCard';
+import { Button } from '../../components/atoms/Button';
 import { tokens } from '../../styles/tokens';
 
 interface AuditLog {
@@ -174,6 +176,16 @@ export function BusinessAuditLogs() {
   });
 
   const uniqueTables = [...new Set(logs.map(log => log.table_name))];
+  const uniqueUsers = [...new Set(logs.map(log => log.user_id).filter(Boolean))];
+
+  const stats = {
+    total: logs.length,
+    inserts: logs.filter(l => l.action === 'INSERT').length,
+    updates: logs.filter(l => l.action === 'UPDATE').length,
+    deletes: logs.filter(l => l.action === 'DELETE').length,
+    tables: uniqueTables.length,
+    users: uniqueUsers.length
+  };
 
   if (loading) {
     return (
@@ -194,47 +206,68 @@ export function BusinessAuditLogs() {
         icon="📋"
         title="יומני ביקורת"
         subtitle="מעקב אחר כל השינויים והפעולות בעסק שלך"
-        actionButton={
-          <button
-            onClick={exportLogs}
-            style={{
-              padding: '10px 20px',
-              background: tokens.colors.accent,
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
+        actions={
+          <Button onClick={exportLogs} variant="primary">
             ייצוא CSV
-          </button>
+          </Button>
         }
       />
 
-      <div style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+        gap: tokens.spacing.md,
+        marginBottom: tokens.spacing.lg
+      }}>
+        <StatCard
+          icon="📊"
+          label="סה״כ פעולות"
+          value={stats.total}
+        />
+        <StatCard
+          icon="✅"
+          label="יצירות"
+          value={stats.inserts}
+          color={tokens.colors.success}
+        />
+        <StatCard
+          icon="✏️"
+          label="עדכונים"
+          value={stats.updates}
+          color={tokens.colors.info}
+        />
+        <StatCard
+          icon="❌"
+          label="מחיקות"
+          value={stats.deletes}
+          color={tokens.colors.error}
+        />
+        <StatCard
+          icon="📑"
+          label="טבלאות"
+          value={stats.tables}
+        />
+        <StatCard
+          icon="👥"
+          label="משתמשים"
+          value={stats.users}
+        />
+      </div>
+
+      <Card style={{ marginBottom: tokens.spacing.lg }}>
+        <div style={{ display: 'flex', gap: tokens.spacing.sm, marginBottom: tokens.spacing.md, flexWrap: 'wrap' }}>
           {(['1d', '7d', '30d', 'all'] as const).map(range => (
-            <button
+            <Button
               key={range}
               onClick={() => setDateRange(range)}
-              style={{
-                padding: '8px 16px',
-                background: dateRange === range ? tokens.colors.accent : 'transparent',
-                color: dateRange === range ? 'white' : tokens.colors.text,
-                border: `1px solid ${dateRange === range ? tokens.colors.accent : tokens.colors.border}`,
-                borderRadius: '8px',
-                fontSize: '14px',
-                cursor: 'pointer'
-              }}
+              variant={dateRange === range ? 'primary' : 'secondary'}
             >
               {range === '1d' ? 'יום אחרון' : range === '7d' ? '7 ימים' : range === '30d' ? '30 ימים' : 'הכל'}
-            </button>
+            </Button>
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: tokens.spacing.sm }}>
           <input
             type="text"
             value={searchQuery}
@@ -259,7 +292,8 @@ export function BusinessAuditLogs() {
               borderRadius: '8px',
               fontSize: '14px',
               background: tokens.colors.surface,
-              color: tokens.colors.text
+              color: tokens.colors.text,
+              cursor: 'pointer'
             }}
           >
             <option value="all">כל הפעולות</option>
@@ -277,7 +311,8 @@ export function BusinessAuditLogs() {
               borderRadius: '8px',
               fontSize: '14px',
               background: tokens.colors.surface,
-              color: tokens.colors.text
+              color: tokens.colors.text,
+              cursor: 'pointer'
             }}
           >
             <option value="all">כל הטבלאות</option>
@@ -286,7 +321,7 @@ export function BusinessAuditLogs() {
             ))}
           </select>
         </div>
-      </div>
+      </Card>
 
       <Card>
         <div style={{ overflowX: 'auto' }}>

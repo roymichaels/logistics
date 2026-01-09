@@ -3,7 +3,11 @@ import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useSafeAppServices } from '../../context/AppServicesContext';
 import { PageContainer } from '../../components/layout/PageContainer';
+import { PageHeader } from '../../components/layout/PageHeader';
 import { NoActiveBusiness } from '../../components/NoActiveBusiness';
+import { StatCard } from '../../components/molecules/StatCard';
+import { Card } from '../../components/molecules/Card';
+import { Button } from '../../components/atoms/Button';
 import { useNavigate } from 'react-router-dom';
 import { tokens } from '../../styles/tokens';
 import { formatCurrency } from '../../utils/businessFormatters';
@@ -319,139 +323,90 @@ export function AnalyticsHub() {
 
   return (
     <PageContainer>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '24px',
-        flexWrap: 'wrap',
-        gap: '16px'
-      }}>
-        <div>
-          <h1 style={{
-            fontSize: '32px',
-            fontWeight: '700',
-            color: tokens.colors.text,
-            margin: '0 0 8px 0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-          }}>
-            <span>📊</span>
-            <span>מרכז אנליטיקה</span>
-          </h1>
-          <p style={{
-            fontSize: '16px',
-            color: tokens.colors.textSecondary,
-            margin: 0
-          }}>
-            תובנות מעמיקות על הביצועים העסקיים שלך
-          </p>
+      <PageHeader
+        title="מרכז אנליטיקה"
+        subtitle="תובנות מעמיקות על הביצועים העסקיים שלך"
+        actions={
+          <div style={{ display: 'flex', gap: tokens.spacing.sm, alignItems: 'center' }}>
+            <select
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value as DateRange)}
+              style={{
+                padding: '10px 16px',
+                fontSize: '14px',
+                fontWeight: '500',
+                borderRadius: '8px',
+                border: `1px solid ${tokens.colors.border}`,
+                backgroundColor: tokens.colors.background,
+                color: tokens.colors.text,
+                cursor: 'pointer'
+              }}
+            >
+              <option value="7d">7 ימים</option>
+              <option value="30d">30 ימים</option>
+              <option value="90d">90 ימים</option>
+              <option value="all">הכל</option>
+            </select>
+
+            <Button
+              onClick={() => setComparePeriod(!comparePeriod)}
+              variant={comparePeriod ? 'primary' : 'secondary'}
+            >
+              השווה תקופות
+            </Button>
+
+            <Button onClick={exportData} variant="primary">
+              <span>📥</span> ייצוא
+            </Button>
+          </div>
+        }
+      />
+
+      <Card style={{ marginBottom: tokens.spacing.lg }}>
+        <div style={{
+          display: 'flex',
+          gap: tokens.spacing.sm,
+          overflowX: 'auto',
+          paddingBottom: '8px'
+        }}>
+          {sections.map(section => (
+            <button
+              key={section.id}
+              onClick={() => setActiveSection(section.id)}
+              style={{
+                padding: '12px 20px',
+                fontSize: '14px',
+                fontWeight: '600',
+                borderRadius: '8px',
+                border: `1px solid ${tokens.colors.border}`,
+                backgroundColor: activeSection === section.id ? tokens.colors.primary : tokens.colors.surface,
+                color: activeSection === section.id ? '#ffffff' : tokens.colors.text,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s'
+              }}
+            >
+              <span>{section.icon}</span>
+              <span>{section.label}</span>
+            </button>
+          ))}
         </div>
-
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value as DateRange)}
-            style={{
-              padding: '10px 16px',
-              fontSize: '14px',
-              fontWeight: '500',
-              borderRadius: '8px',
-              border: `1px solid ${tokens.colors.border}`,
-              backgroundColor: tokens.colors.background,
-              color: tokens.colors.text,
-              cursor: 'pointer'
-            }}
-          >
-            <option value="7d">7 ימים</option>
-            <option value="30d">30 ימים</option>
-            <option value="90d">90 ימים</option>
-            <option value="all">הכל</option>
-          </select>
-
-          <button
-            onClick={() => setComparePeriod(!comparePeriod)}
-            style={{
-              padding: '10px 16px',
-              fontSize: '14px',
-              fontWeight: '500',
-              borderRadius: '8px',
-              border: `1px solid ${tokens.colors.border}`,
-              backgroundColor: comparePeriod ? tokens.colors.primary : tokens.colors.background,
-              color: comparePeriod ? '#ffffff' : tokens.colors.text,
-              cursor: 'pointer'
-            }}
-          >
-            השווה תקופות
-          </button>
-
-          <button
-            onClick={exportData}
-            style={{
-              padding: '10px 16px',
-              fontSize: '14px',
-              fontWeight: '500',
-              borderRadius: '8px',
-              border: `1px solid ${tokens.colors.border}`,
-              backgroundColor: tokens.colors.primary,
-              color: '#ffffff',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <span>📥</span>
-            <span>ייצוא</span>
-          </button>
-        </div>
-      </div>
-
-      <div style={{
-        display: 'flex',
-        gap: '12px',
-        marginBottom: '24px',
-        overflowX: 'auto',
-        paddingBottom: '8px'
-      }}>
-        {sections.map(section => (
-          <button
-            key={section.id}
-            onClick={() => setActiveSection(section.id)}
-            style={{
-              padding: '12px 20px',
-              fontSize: '14px',
-              fontWeight: '600',
-              borderRadius: '8px',
-              border: `1px solid ${tokens.colors.border}`,
-              backgroundColor: activeSection === section.id ? tokens.colors.primary : tokens.colors.surface,
-              color: activeSection === section.id ? '#ffffff' : tokens.colors.text,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              whiteSpace: 'nowrap',
-              transition: 'all 0.2s'
-            }}
-          >
-            <span>{section.icon}</span>
-            <span>{section.label}</span>
-          </button>
-        ))}
-      </div>
+      </Card>
 
       {activeSection === 'overview' && (
-        <div style={{ display: 'grid', gap: '24px' }}>
+        <div style={{ display: 'grid', gap: tokens.spacing.lg }}>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '16px'
+            gap: tokens.spacing.md
           }}>
-            <KPICard label="סה״כ הזמנות" value={analytics.totalOrders.toString()} icon="📦" />
-            <KPICard label="סה״כ הכנסות" value={formatCurrency(analytics.totalRevenue, 'ILS')} icon="💰" />
-            <KPICard label="ממוצע הזמנה" value={formatCurrency(analytics.avgOrderValue, 'ILS')} icon="📊" />
-            <KPICard label="לקוחות" value={analytics.totalCustomers.toString()} icon="👥" />
+            <StatCard label="סה״כ הזמנות" value={analytics.totalOrders.toString()} icon="📦" />
+            <StatCard label="סה״כ הכנסות" value={formatCurrency(analytics.totalRevenue, 'ILS')} icon="💰" />
+            <StatCard label="ממוצע הזמנה" value={formatCurrency(analytics.avgOrderValue, 'ILS')} icon="📊" />
+            <StatCard label="לקוחות" value={analytics.totalCustomers.toString()} icon="👥" />
           </div>
 
           <DataTable
@@ -555,42 +510,6 @@ export function AnalyticsHub() {
         />
       )}
     </PageContainer>
-  );
-}
-
-function KPICard({ label, value, icon }: { label: string; value: string; icon: string }) {
-  return (
-    <div style={{
-      backgroundColor: tokens.colors.surface,
-      border: `1px solid ${tokens.colors.border}`,
-      borderRadius: '12px',
-      padding: '20px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '12px'
-    }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <span style={{
-          fontSize: '14px',
-          fontWeight: '500',
-          color: tokens.colors.textSecondary
-        }}>
-          {label}
-        </span>
-        <span style={{ fontSize: '24px' }}>{icon}</span>
-      </div>
-      <div style={{
-        fontSize: '28px',
-        fontWeight: '700',
-        color: tokens.colors.text
-      }}>
-        {value}
-      </div>
-    </div>
   );
 }
 

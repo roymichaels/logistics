@@ -4,7 +4,11 @@ import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useSafeAppServices } from '../../context/AppServicesContext';
 import { PageContainer } from '../../components/layout/PageContainer';
+import { PageHeader } from '../../components/layout/PageHeader';
 import { NoActiveBusiness } from '../../components/NoActiveBusiness';
+import { StatCard } from '../../components/molecules/StatCard';
+import { Card } from '../../components/molecules/Card';
+import { Button } from '../../components/atoms/Button';
 import { tokens } from '../../styles/tokens';
 
 type OperationsTab = 'orders' | 'inventory' | 'products' | 'dispatch';
@@ -37,9 +41,35 @@ export function OperationsHub() {
   const [products, setProducts] = useState<any[]>([]);
   const [drivers, setDrivers] = useState<any[]>([]);
 
+  const [stats, setStats] = useState({
+    totalOrders: 0,
+    pendingOrders: 0,
+    lowStock: 0,
+    activeDrivers: 0
+  });
+
   useEffect(() => {
     if (!currentBusinessId) return;
     loadData();
+    loadStats();
+
+    const subscription = supabase
+      .channel(`operations-${currentBusinessId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `business_id=eq.${currentBusinessId}` }, () => {
+        logger.info('[OperationsHub] Order changed, reloading...');
+        if (activeTab === 'orders') loadData();
+        loadStats();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory', filter: `business_id=eq.${currentBusinessId}` }, () => {
+        logger.info('[OperationsHub] Inventory changed, reloading...');
+        if (activeTab === 'inventory') loadData();
+        loadStats();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [currentBusinessId, activeTab, filterStatus]);
 
   if (!currentBusinessId) {
@@ -135,6 +165,43 @@ export function OperationsHub() {
     setDrivers(data || []);
   };
 
+  const loadStats = async () => {
+    try {
+      if (!currentBusinessId) return;
+
+      const [ordersRes, inventoryRes, driversRes] = await Promise.all([
+        supabase
+          .from('orders')
+          .select('id, status', { count: 'exact' })
+          .eq('business_id', currentBusinessId),
+        supabase
+          .from('inventory')
+          .select('id, quantity', { count: 'exact' })
+          .eq('business_id', currentBusinessId)
+          .lte('quantity', 10),
+        supabase
+          .from('driver_profiles')
+          .select('id', { count: 'exact' })
+          .eq('business_id', currentBusinessId)
+          .eq('active', true)
+      ]);
+
+      const totalOrders = ordersRes.count || 0;
+      const pendingOrders = ordersRes.data?.filter(o => o.status === 'pending' || o.status === 'confirmed').length || 0;
+      const lowStock = inventoryRes.count || 0;
+      const activeDrivers = driversRes.count || 0;
+
+      setStats({
+        totalOrders,
+        pendingOrders,
+        lowStock,
+        activeDrivers
+      });
+    } catch (error) {
+      logger.error('[OperationsHub] Failed to load stats:', error);
+    }
+  };
+
   const filteredData = () => {
     if (!searchQuery) {
       if (activeTab === 'orders') return orders;
@@ -196,39 +263,109 @@ export function OperationsHub() {
     return [{ value: 'all', label: 'הכל' }];
   };
 
+  const exportData = () => {
+    const data = filteredData();
+    if (data.length === 0) {
+      logger.warn('[OperationsHub] No data to export');
+      return;
+    }
+
+    const csvContent = generateCSV(data);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `operations-${activeTab}-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    logger.info('[OperationsHub] Data exported successfully');
+  };
+
+  const generateCSV = (data: any[]): string => {
+    if (activeTab === 'orders') {
+      const headers = ['ID', 'Customer', 'Status', 'Amount', 'Date'];
+      const rows = data.map(o => [
+        o.id?.substring(0, 8) || '',
+        o.customer_name || 'Unknown',
+        o.status || '',
+        o.total_amount?.toFixed(2) || '0.00',
+        new Date(o.created_at).toLocaleDateString('he-IL')
+      ]);
+      return [headers, ...rows].map(row => row.join(',')).join('\n');
+    } else if (activeTab === 'inventory') {
+      const headers = ['Product', 'SKU', 'Quantity'];
+      const rows = data.map(i => [
+        i.products?.name || 'Unknown',
+        i.products?.sku || 'N/A',
+        i.quantity || 0
+      ]);
+      return [headers, ...rows].map(row => row.join(',')).join('\n');
+    } else if (activeTab === 'products') {
+      const headers = ['Name', 'SKU', 'Price', 'Active'];
+      const rows = data.map(p => [
+        p.name || '',
+        p.sku || 'N/A',
+        p.price?.toFixed(2) || '0.00',
+        p.active ? 'Yes' : 'No'
+      ]);
+      return [headers, ...rows].map(row => row.join(',')).join('\n');
+    } else if (activeTab === 'dispatch') {
+      const headers = ['Name', 'Phone', 'Active'];
+      const rows = data.map(d => [
+        d.name || 'Driver',
+        d.phone || 'N/A',
+        d.active ? 'Yes' : 'No'
+      ]);
+      return [headers, ...rows].map(row => row.join(',')).join('\n');
+    }
+    return '';
+  };
+
   const data = filteredData();
 
   return (
     <PageContainer>
+      <PageHeader
+        title="מרכז פעולות"
+        subtitle="ניהול מאוחד של הזמנות, מלאי, מוצרים ושיבוץ"
+        actions={
+          <Button onClick={exportData} variant="secondary">
+            ייצא נתונים
+          </Button>
+        }
+      />
+
       <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '24px',
-        flexWrap: 'wrap',
-        gap: '16px'
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: tokens.spacing.md,
+        marginBottom: tokens.spacing.lg
       }}>
-        <div>
-          <h1 style={{
-            fontSize: '32px',
-            fontWeight: '700',
-            color: tokens.colors.text,
-            margin: '0 0 8px 0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-          }}>
-            <span>⚙️</span>
-            <span>מרכז פעולות</span>
-          </h1>
-          <p style={{
-            fontSize: '16px',
-            color: tokens.colors.textSecondary,
-            margin: 0
-          }}>
-            ניהול מאוחד של הזמנות, מלאי, מוצרים ושיבוץ
-          </p>
-        </div>
+        <StatCard
+          icon="📦"
+          label="סה״כ הזמנות"
+          value={stats.totalOrders}
+        />
+        <StatCard
+          icon="⏳"
+          label="הזמנות ממתינות"
+          value={stats.pendingOrders}
+          color={stats.pendingOrders > 0 ? tokens.colors.warning : tokens.colors.text}
+        />
+        <StatCard
+          icon="⚠️"
+          label="מלאי נמוך"
+          value={stats.lowStock}
+          color={stats.lowStock > 0 ? tokens.colors.error : tokens.colors.text}
+        />
+        <StatCard
+          icon="🚗"
+          label="נהגים פעילים"
+          value={stats.activeDrivers}
+          color={tokens.colors.success}
+        />
       </div>
 
       <div style={{
@@ -273,74 +410,59 @@ export function OperationsHub() {
         </div>
 
         <div style={{
-          padding: '24px',
+          padding: tokens.spacing.lg,
           backgroundColor: tokens.colors.background
         }}>
-          <div style={{
-            display: 'flex',
-            gap: '12px',
-            marginBottom: '24px',
-            flexWrap: 'wrap'
-          }}>
-            <input
-              type="text"
-              placeholder="חיפוש..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                flex: 1,
-                minWidth: '200px',
-                padding: '12px 16px',
-                fontSize: '14px',
-                borderRadius: '8px',
-                border: `1px solid ${tokens.colors.border}`,
-                backgroundColor: tokens.colors.surface,
-                color: tokens.colors.text
-              }}
-            />
+          <Card style={{ marginBottom: tokens.spacing.lg }}>
+            <div style={{
+              display: 'flex',
+              gap: tokens.spacing.sm,
+              flexWrap: 'wrap'
+            }}>
+              <input
+                type="text"
+                placeholder="חיפוש..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  flex: 1,
+                  minWidth: '200px',
+                  padding: '12px 16px',
+                  fontSize: '14px',
+                  borderRadius: '8px',
+                  border: `1px solid ${tokens.colors.border}`,
+                  backgroundColor: tokens.colors.surface,
+                  color: tokens.colors.text
+                }}
+              />
 
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              style={{
-                padding: '12px 16px',
-                fontSize: '14px',
-                fontWeight: '500',
-                borderRadius: '8px',
-                border: `1px solid ${tokens.colors.border}`,
-                backgroundColor: tokens.colors.surface,
-                color: tokens.colors.text,
-                cursor: 'pointer',
-                minWidth: '150px'
-              }}
-            >
-              {getStatusOptions().map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                style={{
+                  padding: '12px 16px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  borderRadius: '8px',
+                  border: `1px solid ${tokens.colors.border}`,
+                  backgroundColor: tokens.colors.surface,
+                  color: tokens.colors.text,
+                  cursor: 'pointer',
+                  minWidth: '150px'
+                }}
+              >
+                {getStatusOptions().map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
 
-            <button
-              onClick={loadData}
-              style={{
-                padding: '12px 20px',
-                fontSize: '14px',
-                fontWeight: '500',
-                borderRadius: '8px',
-                border: `1px solid ${tokens.colors.border}`,
-                backgroundColor: tokens.colors.primary,
-                color: '#ffffff',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              <span>🔄</span>
-              <span>רענן</span>
-            </button>
-          </div>
+              <Button onClick={loadData} variant="secondary">
+                <span>🔄</span> רענן
+              </Button>
+            </div>
+          </Card>
 
           {loading ? (
             <div style={{

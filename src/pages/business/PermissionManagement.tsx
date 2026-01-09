@@ -5,7 +5,7 @@ import { PermissionMatrix } from '../../components/permissions/PermissionMatrix'
 import { RoleComparisonCard } from '../../components/permissions/RoleComparisonCard';
 import { Button } from '../../components/atoms/Button';
 import { Card } from '../../components/molecules/Card';
-import { colors, spacing } from '../../styles/design-system';
+import { tokens } from '../../styles/tokens';
 import type { User } from '../../data/types';
 import { useAuth } from '../../context/AuthContext';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -43,7 +43,7 @@ export function BusinessPermissionManagement() {
         subtitle="Manage roles and permissions for your business team"
       />
 
-      <div style={{ display: 'flex', gap: spacing.lg, marginBottom: spacing.lg }}>
+      <div style={{ display: 'flex', gap: tokens.spacing.lg, marginBottom: tokens.spacing.lg }}>
         <Button
           variant={viewMode === 'grid' ? 'primary' : 'secondary'}
           onClick={() => setViewMode('grid')}
@@ -69,12 +69,12 @@ export function BusinessPermissionManagement() {
       {!canManagePermissions && (
         <Card
           style={{
-            background: '#7C2D12',
-            border: '1px solid #F97316',
-            marginBottom: spacing.lg,
+            background: tokens.colors.warning + '20',
+            border: `1px solid ${tokens.colors.warning}`,
+            marginBottom: tokens.spacing.lg,
           }}
         >
-          <p style={{ color: '#FB923C' }}>
+          <p style={{ color: tokens.colors.warning }}>
             You have view-only access to permissions. Contact your business owner to request permission management access.
           </p>
         </Card>
@@ -85,7 +85,7 @@ export function BusinessPermissionManagement() {
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-            gap: spacing.lg,
+            gap: tokens.spacing.lg,
           }}
         >
           {businessRoles.map(role => (
@@ -108,28 +108,28 @@ export function BusinessPermissionManagement() {
         />
       )}
 
-      <Card style={{ marginTop: spacing.xl }}>
+      <Card style={{ marginTop: tokens.spacing.xl }}>
         <h3
           style={{
             fontSize: '16px',
             fontWeight: '600',
-            color: colors.text.primary,
-            marginBottom: spacing.md,
+            color: tokens.colors.text,
+            marginBottom: tokens.spacing.md,
           }}
         >
           Business Permission Overview
         </h3>
-        <div style={{ color: colors.text.secondary, fontSize: '14px', lineHeight: '1.6' }}>
-          <p style={{ marginBottom: spacing.md }}>
+        <div style={{ color: tokens.colors.textSecondary, fontSize: '14px', lineHeight: '1.6' }}>
+          <p style={{ marginBottom: tokens.spacing.md }}>
             As a Business Owner, you control team permissions for your business operations. You can:
           </p>
-          <ul style={{ marginLeft: spacing.lg, marginBottom: spacing.md }}>
+          <ul style={{ marginLeft: tokens.spacing.lg, marginBottom: tokens.spacing.md }}>
             <li>View all business-level roles and their permissions</li>
             <li>Assign roles to your team members</li>
             <li>Control access to orders, inventory, and customer data</li>
             <li>Manage operational permissions for managers, dispatchers, and staff</li>
           </ul>
-          <p style={{ marginBottom: spacing.md }}>
+          <p style={{ marginBottom: tokens.spacing.md }}>
             <strong>Important:</strong> All data and permissions are scoped to your business only.
             Team members cannot access data from other businesses unless they have multi-business roles.
           </p>

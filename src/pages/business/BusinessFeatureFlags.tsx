@@ -5,6 +5,8 @@ import { useSafeAppServices } from '../../context/AppServicesContext';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { Card } from '../../components/molecules/Card';
+import { StatCard } from '../../components/molecules/StatCard';
+import { Button } from '../../components/atoms/Button';
 import { Switch } from '../../components/atoms/Switch';
 import { tokens } from '../../styles/tokens';
 
@@ -235,6 +237,13 @@ export function BusinessFeatureFlags() {
     ? flags
     : flags.filter(f => f.category === categoryFilter);
 
+  const stats = {
+    total: flags.length,
+    enabled: flags.filter(f => f.enabled).length,
+    highImpact: flags.filter(f => f.impact === 'high').length,
+    categories: categories.length
+  };
+
   if (loading) {
     return (
       <PageContainer>
@@ -256,39 +265,55 @@ export function BusinessFeatureFlags() {
         subtitle="הפעל או השבת תכונות עבור העסק שלך"
       />
 
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
-        <button
-          onClick={() => setCategoryFilter('all')}
-          style={{
-            padding: '8px 16px',
-            background: categoryFilter === 'all' ? tokens.colors.accent : 'transparent',
-            color: categoryFilter === 'all' ? 'white' : tokens.colors.text,
-            border: `1px solid ${categoryFilter === 'all' ? tokens.colors.accent : tokens.colors.border}`,
-            borderRadius: '8px',
-            fontSize: '14px',
-            cursor: 'pointer'
-          }}
-        >
-          הכל
-        </button>
-        {categories.map(category => (
-          <button
-            key={category}
-            onClick={() => setCategoryFilter(category)}
-            style={{
-              padding: '8px 16px',
-              background: categoryFilter === category ? tokens.colors.accent : 'transparent',
-              color: categoryFilter === category ? 'white' : tokens.colors.text,
-              border: `1px solid ${categoryFilter === category ? tokens.colors.accent : tokens.colors.border}`,
-              borderRadius: '8px',
-              fontSize: '14px',
-              cursor: 'pointer'
-            }}
-          >
-            {getCategoryLabel(category)}
-          </button>
-        ))}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: tokens.spacing.md,
+        marginBottom: tokens.spacing.lg
+      }}>
+        <StatCard
+          icon="🎯"
+          label="סה״כ תכונות"
+          value={stats.total}
+        />
+        <StatCard
+          icon="✅"
+          label="תכונות פעילות"
+          value={stats.enabled}
+          color={tokens.colors.success}
+        />
+        <StatCard
+          icon="⚠️"
+          label="השפעה גבוהה"
+          value={stats.highImpact}
+          color={tokens.colors.warning}
+        />
+        <StatCard
+          icon="📂"
+          label="קטגוריות"
+          value={stats.categories}
+        />
       </div>
+
+      <Card style={{ marginBottom: tokens.spacing.lg }}>
+        <div style={{ display: 'flex', gap: tokens.spacing.sm, flexWrap: 'wrap' }}>
+          <Button
+            onClick={() => setCategoryFilter('all')}
+            variant={categoryFilter === 'all' ? 'primary' : 'secondary'}
+          >
+            הכל
+          </Button>
+          {categories.map(category => (
+            <Button
+              key={category}
+              onClick={() => setCategoryFilter(category)}
+              variant={categoryFilter === category ? 'primary' : 'secondary'}
+            >
+              {getCategoryLabel(category)}
+            </Button>
+          ))}
+        </div>
+      </Card>
 
       <div style={{ display: 'grid', gap: '16px' }}>
         {filteredFlags.map((flag) => (
