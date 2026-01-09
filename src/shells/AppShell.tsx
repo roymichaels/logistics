@@ -63,7 +63,7 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
     }));
 
   const isBusinessRole = ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service'].includes(userRole);
-  const showBusinessSelector = isBusinessRole && ownedBusinesses.length > 0;
+  const showBusinessSelector = isBusinessRole;
 
   const handleBusinessSwitch = (businessId: string | null) => {
     logger.info('[UnifiedAppShell] Switching business:', businessId);

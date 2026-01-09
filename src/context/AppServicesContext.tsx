@@ -135,13 +135,15 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
   }, [auth]);
 
   const refreshOwnedBusinesses = useCallback(async () => {
-    if (!user?.id || userRole !== 'business_owner') {
+    const businessRoles = ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service'];
+
+    if (!user?.id || !businessRoles.includes(userRole || '')) {
       setOwnedBusinesses([]);
       return;
     }
 
     try {
-      logger.info('🏢 Fetching owned businesses for user:', user.id);
+      logger.info('🏢 Fetching businesses for user:', { userId: user.id, role: userRole });
 
       const isFrontendOnly = useSXT || (typeof runtimeEnvironment?.isFrontendOnlyMode === 'function' ? runtimeEnvironment.isFrontendOnlyMode() : false);
 
@@ -153,7 +155,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
           created_at: undefined
         }));
         setOwnedBusinesses(formatted);
-        logger.info(`✅ Found ${formatted.length} owned business(es) (frontend-only mode)`);
+        logger.info(`✅ Found ${formatted.length} business(es) (frontend-only mode)`);
 
         if (formatted.length > 0 && !currentBusinessId) {
           const firstBusinessId = formatted[0].id;
@@ -168,25 +170,54 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         let businesses = [];
         let useDirectQuery = false;
 
-        try {
-          businesses = await getOwnedBusinesses(user.id);
-        } catch (rpcError) {
-          logger.warn('⚠️ RPC call failed, trying direct table query as fallback:', rpcError);
-          useDirectQuery = true;
-
+        // If business_owner, fetch owned businesses
+        if (userRole === 'business_owner') {
           try {
-            const { data: directBusinesses, error: directError } = await supabase
-              .from('businesses')
-              .select('*')
-              .eq('owner_id', user.id)
-              .order('created_at', { ascending: false });
+            businesses = await getOwnedBusinesses(user.id);
+          } catch (rpcError) {
+            logger.warn('⚠️ RPC call failed, trying direct table query as fallback:', rpcError);
+            useDirectQuery = true;
 
-            if (directError) throw directError;
-            businesses = directBusinesses || [];
-            logger.info(`✅ Fallback query succeeded, found ${businesses.length} business(es)`);
-          } catch (fallbackError) {
-            logger.error('❌ Both RPC and direct query failed:', fallbackError);
-            throw fallbackError;
+            try {
+              const { data: directBusinesses, error: directError } = await supabase
+                .from('businesses')
+                .select('*')
+                .eq('owner_id', user.id)
+                .order('created_at', { ascending: false });
+
+              if (directError) throw directError;
+              businesses = directBusinesses || [];
+              logger.info(`✅ Fallback query succeeded, found ${businesses.length} business(es)`);
+            } catch (fallbackError) {
+              logger.error('❌ Both RPC and direct query failed:', fallbackError);
+              throw fallbackError;
+            }
+          }
+        } else {
+          // For staff roles, fetch businesses from user_business_roles
+          try {
+            const { data: userBusinessRoles, error: rolesError } = await supabase
+              .from('user_business_roles')
+              .select(`
+                business_id,
+                businesses:business_id (
+                  id,
+                  name,
+                  created_at
+                )
+              `)
+              .eq('user_id', user.id);
+
+            if (rolesError) throw rolesError;
+
+            businesses = (userBusinessRoles || [])
+              .map(ubr => ubr.businesses)
+              .filter(Boolean);
+
+            logger.info(`✅ Found ${businesses.length} associated business(es) for staff role`);
+          } catch (staffError) {
+            logger.error('❌ Failed to fetch staff businesses:', staffError);
+            throw staffError;
           }
         }
 
@@ -197,7 +228,7 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         }));
 
         setOwnedBusinesses(formatted);
-        logger.info(`✅ Found ${businesses.length} owned business(es) from Supabase`);
+        logger.info(`✅ Found ${businesses.length} business(es) from Supabase`);
 
         if (!currentBusinessId && businesses.length > 0) {
           try {
@@ -225,12 +256,13 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
         }
       }
     } catch (err) {
-      logger.error('❌ Error fetching owned businesses:', {
+      logger.error('❌ Error fetching businesses:', {
         error: err,
         errorType: typeof err,
         errorMessage: err instanceof Error ? err.message : String(err),
         errorStack: err instanceof Error ? err.stack : undefined,
-        userId: user.id
+        userId: user.id,
+        role: userRole
       });
 
       const errorMessage = err instanceof Error ? err.message : 'Failed to load businesses';
@@ -660,13 +692,14 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     };
   }, [value, dataStore, loading]);
 
-  // Refresh owned businesses when user role changes to business_owner
+  // Refresh businesses when user role changes to any business role
   useEffect(() => {
     if (value || loading || !user?.id) {
       return;
     }
 
-    if (userRole === 'business_owner') {
+    const businessRoles = ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service'];
+    if (businessRoles.includes(userRole || '')) {
       refreshOwnedBusinesses();
     } else {
       setOwnedBusinesses([]);

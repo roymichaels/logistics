@@ -155,7 +155,10 @@ export function BusinessHeaderSelector({
               color: 'rgba(255, 255, 255, 0.5)',
               marginTop: '2px'
             }}>
-              {businesses.length} {businesses.length === 1 ? 'business' : 'businesses'}
+              {businesses.length === 0
+                ? 'Click to create business'
+                : `${businesses.length} ${businesses.length === 1 ? 'business' : 'businesses'}`
+              }
             </div>
           </div>
         </div>
@@ -200,7 +203,36 @@ export function BusinessHeaderSelector({
           </div>
 
           <div>
-            {businesses.map(business => {
+            {businesses.length === 0 ? (
+              <div style={{
+                padding: '32px 16px',
+                textAlign: 'center',
+                color: 'rgba(255, 255, 255, 0.5)'
+              }}>
+                <div style={{
+                  fontSize: '48px',
+                  marginBottom: '12px'
+                }}>
+                  🏢
+                </div>
+                <div style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  marginBottom: '8px'
+                }}>
+                  No businesses yet
+                </div>
+                <div style={{
+                  fontSize: '12px',
+                  color: 'rgba(255, 255, 255, 0.4)',
+                  marginBottom: '16px'
+                }}>
+                  Create your first business to get started
+                </div>
+              </div>
+            ) : (
+              businesses.map(business => {
               const isActive = currentBusinessId === business.id;
               return (
                 <button
@@ -292,7 +324,8 @@ export function BusinessHeaderSelector({
                   )}
                 </button>
               );
-            })}
+            })
+            )}
           </div>
 
           <button
