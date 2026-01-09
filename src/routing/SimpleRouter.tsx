@@ -45,6 +45,7 @@ const CheckoutPage = React.lazy(() => import('../store/CheckoutPage').then(m => 
 const MyOrdersPage = React.lazy(() => import('../store/MyOrdersPage').then(m => ({ default: m.MyOrdersPage })));
 const OrderDetailPage = React.lazy(() => import('../store/OrderDetailPage').then(m => ({ default: m.OrderDetailPage })));
 const UserProfile = React.lazy(() => import('../pages/UserProfile').then(m => ({ default: m.UserProfilePage })));
+const PublicUserProfile = React.lazy(() => import('../pages/PublicUserProfile').then(m => ({ default: m.PublicUserProfile })));
 const PlatformCatalog = React.lazy(() => import('../pages/admin/PlatformCatalog').then(m => ({ default: m.PlatformCatalog })));
 const PlatformDashboard = React.lazy(() => import('../pages/admin/PlatformDashboard').then(m => ({ default: m.PlatformDashboard })));
 const BusinessCatalogManagement = React.lazy(() => import('../pages/business/BusinessCatalogManagement').then(m => ({ default: m.BusinessCatalogManagement })));
@@ -146,6 +147,8 @@ export function SimpleRouter() {
         <Route path="/directory" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessDirectory /></Suspense>} />
         <Route path="/business/:slug" element={<Suspense fallback={<PageLoadingSkeleton />}><PublicBusinessPage /></Suspense>} />
         <Route path="/b/:slug" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessProfilePage /></Suspense>} />
+        <Route path="/u/:username" element={<Suspense fallback={<PageLoadingSkeleton />}><PublicUserProfile /></Suspense>} />
+        <Route path="/profile/:userId" element={<Suspense fallback={<PageLoadingSkeleton />}><PublicUserProfile /></Suspense>} />
         <Route path="/" element={<Suspense fallback={<PageLoadingSkeleton />}><LandingPage /></Suspense>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -164,6 +167,8 @@ export function SimpleRouter() {
       <Route path="/directory" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessDirectory /></Suspense>} />
       <Route path="/business/:slug" element={<Suspense fallback={<PageLoadingSkeleton />}><PublicBusinessPage /></Suspense>} />
       <Route path="/b/:slug" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessProfilePage /></Suspense>} />
+      <Route path="/u/:username" element={<Suspense fallback={<PageLoadingSkeleton />}><PublicUserProfile /></Suspense>} />
+      <Route path="/profile/:userId" element={<Suspense fallback={<PageLoadingSkeleton />}><PublicUserProfile /></Suspense>} />
 
       {/* Role Selection - accessible to all authenticated users */}
       <Route path="/role-selection" element={<RoleSelectionPage />} />
