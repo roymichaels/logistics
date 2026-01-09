@@ -78,6 +78,7 @@ const AdminOrders = React.lazy(() => import('../pages/admin/AdminOrders').then(m
 const PublicBusinessPage = React.lazy(() => import('../pages/public/PublicBusinessPage').then(m => ({ default: m.default })));
 const BusinessDirectory = React.lazy(() => import('../pages/public/BusinessDirectory').then(m => ({ default: m.default })));
 const BusinessPreview = React.lazy(() => import('../pages/business/BusinessPreview').then(m => ({ default: m.default })));
+const BusinessProfilePage = React.lazy(() => import('../pages/public/BusinessProfilePage').then(m => ({ default: m.BusinessProfilePage })));
 
 // Role-aware redirect component
 function RoleBasedRedirect() {
@@ -144,6 +145,7 @@ export function SimpleRouter() {
         />
         <Route path="/directory" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessDirectory /></Suspense>} />
         <Route path="/business/:slug" element={<Suspense fallback={<PageLoadingSkeleton />}><PublicBusinessPage /></Suspense>} />
+        <Route path="/b/:slug" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessProfilePage /></Suspense>} />
         <Route path="/" element={<Suspense fallback={<PageLoadingSkeleton />}><LandingPage /></Suspense>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -161,6 +163,7 @@ export function SimpleRouter() {
       {/* Public routes - accessible to all authenticated users */}
       <Route path="/directory" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessDirectory /></Suspense>} />
       <Route path="/business/:slug" element={<Suspense fallback={<PageLoadingSkeleton />}><PublicBusinessPage /></Suspense>} />
+      <Route path="/b/:slug" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessProfilePage /></Suspense>} />
 
       {/* Role Selection - accessible to all authenticated users */}
       <Route path="/role-selection" element={<RoleSelectionPage />} />

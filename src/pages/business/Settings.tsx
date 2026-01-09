@@ -276,6 +276,112 @@ export default function Settings() {
         }
       />
 
+      {/* Setup Checklist */}
+      {!settings.setup_completed && (
+        <Card style={{ marginBottom: '24px', padding: '24px', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%)', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+          <div style={{ marginBottom: '20px' }}>
+            <h3 style={{ margin: '0 0 8px 0', color: tokens.colors.text, fontSize: '20px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              ✅ השלמת הגדרת העסק
+            </h3>
+            <p style={{ margin: 0, color: tokens.colors.subtle, fontSize: '14px' }}>
+              השלם את השלבים הבאים כדי להפוך את העסק שלך לפומבי ולמקסם את החשיפה
+            </p>
+          </div>
+          <div style={{ display: 'grid', gap: '12px' }}>
+            <div style={{
+              padding: '16px',
+              background: settings.description ? 'rgba(34, 197, 94, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+              border: settings.description ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <div style={{ fontSize: '24px' }}>{settings.description ? '✅' : '⭕'}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '600', color: tokens.colors.text, marginBottom: '4px' }}>
+                  תיאור העסק
+                </div>
+                <div style={{ fontSize: '13px', color: tokens.colors.subtle }}>
+                  {settings.description ? 'הושלם' : 'הוסף תיאור מפורט של העסק שלך'}
+                </div>
+              </div>
+            </div>
+
+            <div style={{
+              padding: '16px',
+              background: settings.logo_url ? 'rgba(34, 197, 94, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+              border: settings.logo_url ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <div style={{ fontSize: '24px' }}>{settings.logo_url ? '✅' : '⭕'}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '600', color: tokens.colors.text, marginBottom: '4px' }}>
+                  לוגו
+                </div>
+                <div style={{ fontSize: '13px', color: tokens.colors.subtle }}>
+                  {settings.logo_url ? 'הושלם' : 'העלה לוגו לעסק שלך'}
+                </div>
+              </div>
+            </div>
+
+            <div style={{
+              padding: '16px',
+              background: (settings.public_email || settings.public_phone) ? 'rgba(34, 197, 94, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+              border: (settings.public_email || settings.public_phone) ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <div style={{ fontSize: '24px' }}>{(settings.public_email || settings.public_phone) ? '✅' : '⭕'}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '600', color: tokens.colors.text, marginBottom: '4px' }}>
+                  פרטי יצירת קשר
+                </div>
+                <div style={{ fontSize: '13px', color: tokens.colors.subtle }}>
+                  {(settings.public_email || settings.public_phone) ? 'הושלם' : 'הוסף אימייל או טלפון ליצירת קשר'}
+                </div>
+              </div>
+            </div>
+
+            <div style={{
+              padding: '16px',
+              background: settings.is_public ? 'rgba(34, 197, 94, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+              border: settings.is_public ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <div style={{ fontSize: '24px' }}>{settings.is_public ? '✅' : '⭕'}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '600', color: tokens.colors.text, marginBottom: '4px' }}>
+                  הפוך לפומבי
+                </div>
+                <div style={{ fontSize: '13px', color: tokens.colors.subtle }}>
+                  {settings.is_public ? 'העסק פומבי' : 'הפעל את מצב הצפייה הציבורית'}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style={{
+            marginTop: '20px',
+            padding: '16px',
+            background: 'rgba(251, 191, 36, 0.1)',
+            border: '1px solid rgba(251, 191, 36, 0.3)',
+            borderRadius: '8px',
+            fontSize: '13px',
+            color: tokens.colors.text
+          }}>
+            <strong>טיפ:</strong> לאחר השלמת כל השלבים, העסק שלך יהיה זמין לצפייה ציבורית בכתובת: <code style={{ background: 'rgba(0,0,0,0.2)', padding: '2px 6px', borderRadius: '4px' }}>/b/{settings.slug}</code>
+          </div>
+        </Card>
+      )}
+
       {settings.is_public && (
         <div style={{
           padding: '20px',

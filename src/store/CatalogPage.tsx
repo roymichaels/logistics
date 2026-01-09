@@ -12,10 +12,17 @@ import { MetricCard, MetricGrid } from '../components/dashboard/MetricCard';
 import { CartDrawer } from '../components/modern/CartDrawer';
 import { useCart } from '../hooks/useCart';
 import { colors, spacing, borderRadius, shadows, typography } from '../styles/design-system';
+import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 interface CatalogPageProps {
   dataStore: any;
   onNavigate?: (dest: string) => void;
+}
+
+interface PlatformProduct extends Product {
+  business_name?: string;
+  business_name_hebrew?: string;
 }
 
 const CATEGORIES = [
@@ -29,12 +36,13 @@ const CATEGORIES = [
 ];
 
 export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<PlatformProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState<string>('הכל');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isCartOpen, setCartOpen] = useState(false);
+  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
   const { addItem, cart } = useCart();
   const items = cart.items;
 
@@ -42,9 +50,21 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
     let mounted = true;
     async function load() {
       try {
-        const list = (await dataStore?.listProducts?.()) ?? [];
-        if (mounted) setProducts(list);
+        logger.info('[CatalogPage] Loading platform catalog from all public businesses');
+
+        const { data, error: rpcError } = await supabase.rpc('get_platform_catalog');
+
+        if (rpcError) {
+          logger.error('[CatalogPage] Error loading platform catalog:', rpcError);
+          throw rpcError;
+        }
+
+        if (mounted && data) {
+          logger.info('[CatalogPage] Loaded platform catalog:', { count: data.length });
+          setProducts(data as PlatformProduct[]);
+        }
       } catch (err: any) {
+        logger.error('[CatalogPage] Exception loading catalog:', err);
         if (mounted) setError(err?.message || 'Failed to load catalog');
       } finally {
         if (mounted) setLoading(false);
@@ -54,10 +74,14 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
     return () => {
       mounted = false;
     };
-  }, [dataStore]);
+  }, []);
 
   const filteredProducts = useMemo(() => {
     let result = products;
+
+    if (selectedBusiness) {
+      result = result.filter((p) => p.business_name === selectedBusiness);
+    }
 
     if (category !== 'הכל') {
       result = result.filter((p) =>
@@ -70,13 +94,28 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(query) ||
+          (p.name_hebrew || '').toLowerCase().includes(query) ||
           (p.description || '').toLowerCase().includes(query) ||
-          (p.category || '').toLowerCase().includes(query)
+          (p.business_name || '').toLowerCase().includes(query) ||
+          (p.business_name_hebrew || '').toLowerCase().includes(query)
       );
     }
 
     return result;
-  }, [products, category, searchQuery]);
+  }, [products, category, searchQuery, selectedBusiness]);
+
+  const uniqueBusinesses = useMemo(() => {
+    const businessMap = new Map<string, { name: string; name_hebrew: string }>();
+    products.forEach((p) => {
+      if (p.business_name && !businessMap.has(p.business_name)) {
+        businessMap.set(p.business_name, {
+          name: p.business_name,
+          name_hebrew: p.business_name_hebrew || p.business_name
+        });
+      }
+    });
+    return Array.from(businessMap.values());
+  }, [products]);
 
   const totalCartItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalCartValue = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
@@ -238,6 +277,81 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
                 </button>
               ))}
             </div>
+
+            {uniqueBusinesses.length > 1 && (
+              <>
+                <div style={{
+                  marginTop: spacing.md,
+                  paddingTop: spacing.md,
+                  borderTop: '1px solid rgba(255, 255, 255, 0.08)'
+                }}>
+                  <Text variant="caption" style={{ color: 'rgba(255, 255, 255, 0.6)', marginBottom: spacing.xs, display: 'block' }}>
+                    סנן לפי עסק:
+                  </Text>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: spacing.xs,
+                      overflowX: 'auto',
+                      padding: `${spacing.xs} 0`,
+                      WebkitOverflowScrolling: 'touch',
+                    }}
+                  >
+                    <button
+                      onClick={() => setSelectedBusiness(null)}
+                      style={{
+                        padding: `${spacing.xs} ${spacing.sm}`,
+                        borderRadius: borderRadius.full,
+                        border: !selectedBusiness
+                          ? '1px solid rgba(34, 197, 94, 0.6)'
+                          : '1px solid rgba(255, 255, 255, 0.1)',
+                        background: !selectedBusiness
+                          ? 'rgba(34, 197, 94, 0.15)'
+                          : 'rgba(255, 255, 255, 0.03)',
+                        color: !selectedBusiness
+                          ? '#4ade80'
+                          : 'rgba(255, 255, 255, 0.7)',
+                        fontSize: typography.fontSize.xs,
+                        fontWeight: !selectedBusiness ? 600 : 500,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                      }}
+                    >
+                      כל העסקים
+                    </button>
+                    {uniqueBusinesses.map((business) => (
+                      <button
+                        key={business.name}
+                        onClick={() => setSelectedBusiness(business.name)}
+                        style={{
+                          padding: `${spacing.xs} ${spacing.sm}`,
+                          borderRadius: borderRadius.full,
+                          border: selectedBusiness === business.name
+                            ? '1px solid rgba(34, 197, 94, 0.6)'
+                            : '1px solid rgba(255, 255, 255, 0.1)',
+                          background: selectedBusiness === business.name
+                            ? 'rgba(34, 197, 94, 0.15)'
+                            : 'rgba(255, 255, 255, 0.03)',
+                          color: selectedBusiness === business.name
+                            ? '#4ade80'
+                            : 'rgba(255, 255, 255, 0.7)',
+                          fontSize: typography.fontSize.xs,
+                          fontWeight: selectedBusiness === business.name ? 600 : 500,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {business.name_hebrew || business.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </Card>
 
           {loading && (
