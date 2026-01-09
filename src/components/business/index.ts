@@ -1,3 +1,9 @@
 export { BusinessMetrics } from './BusinessMetrics';
 export { BusinessQuickActions } from './BusinessQuickActions';
 export { BusinessActivityFeed } from './BusinessActivityFeed';
+export { BusinessProfileHeader } from './BusinessProfileHeader';
+export { BusinessProfileTabs } from './BusinessProfileTabs';
+export { ReviewCard } from './ReviewCard';
+export { ReviewSubmissionForm } from './ReviewSubmissionForm';
+export { BusinessPostGrid } from './BusinessPostGrid';
+export { EnhancedPostCard } from './EnhancedPostCard';
