@@ -18,6 +18,7 @@ import { EmptyState } from '../../components/molecules/EmptyState';
 import { Text } from '../../components/atoms/Typography';
 import { Grid } from '../../components/atoms/Grid';
 import { Toast } from '../../components/Toast';
+import { tokens } from '../../styles/tokens';
 
 interface Product {
   id: string;
