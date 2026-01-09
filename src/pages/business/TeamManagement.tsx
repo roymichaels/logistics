@@ -19,6 +19,63 @@ export function TeamManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
 
+  const inputStyle = {
+    padding: '12px 16px',
+    fontSize: '16px',
+    border: `1px solid ${tokens.colors.border}`,
+    borderRadius: '8px',
+    background: tokens.colors.surface,
+    color: tokens.colors.text,
+    outline: 'none',
+    width: '100%',
+  };
+
+  const buttonPrimaryStyle = {
+    padding: '12px 24px',
+    fontSize: '16px',
+    fontWeight: '600',
+    background: tokens.gradients.primary,
+    color: tokens.colors.text.bright,
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+  };
+
+  const buttonSecondaryStyle = {
+    padding: '12px 24px',
+    fontSize: '16px',
+    fontWeight: '600',
+    background: tokens.colors.surface,
+    color: tokens.colors.text,
+    border: `1px solid ${tokens.colors.border}`,
+    borderRadius: '8px',
+    cursor: 'pointer',
+  };
+
+  const buttonDangerStyle = {
+    padding: '12px 24px',
+    fontSize: '16px',
+    fontWeight: '600',
+    background: tokens.colors.status.error,
+    color: tokens.colors.text.bright,
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+  };
+
+  const badgeBaseStyle = {
+    display: 'inline-block',
+    padding: '4px 12px',
+    fontSize: '12px',
+    fontWeight: '600',
+    borderRadius: '6px',
+  };
+
+  const badgeInfoStyle = {
+    background: `${tokens.colors.accent}20`,
+    color: tokens.colors.accent,
+  };
+
   const teamMembers: TeamMember[] = [
     { id: '1', name: 'John Doe', email: 'john@example.com', role: 'manager', status: 'active', joinedDate: '2024-01-15' },
     { id: '2', name: 'Jane Smith', email: 'jane@example.com', role: 'sales', status: 'active', joinedDate: '2024-02-01' },
@@ -75,7 +132,7 @@ export function TeamManagement() {
           <button
             onClick={handleInviteMember}
             style={{
-              ...styles.button.primary,
+              ...buttonPrimaryStyle,
               display: 'flex',
               alignItems: 'center',
               gap: '8px'
@@ -92,12 +149,12 @@ export function TeamManagement() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={t('teamManagementPage.searchPlaceholder')}
-          style={styles.input}
+          style={inputStyle}
         />
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          style={{ ...styles.input, minWidth: '200px' }}
+          style={{ ...inputStyle, minWidth: '200px' }}
         >
           {roleOptions.map((option) => (
             <option key={option.value} value={option.value}>
@@ -115,7 +172,7 @@ export function TeamManagement() {
         }}
       >
         {filteredMembers.map((member) => (
-          <ContentCard key={member.id} hoverable>
+          <Card key={member.id} hoverable>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
               <div
                 style={{
@@ -148,8 +205,8 @@ export function TeamManagement() {
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                   <span
                     style={{
-                      ...styles.badge.base,
-                      ...styles.badge.baseInfo,
+                      ...badgeBaseStyle,
+                      ...badgeInfoStyle,
                       textTransform: 'capitalize'
                     }}
                   >
@@ -178,7 +235,7 @@ export function TeamManagement() {
                   <button
                     onClick={() => console.log('Edit member:', member.id)}
                     style={{
-                      ...styles.button.secondary,
+                      ...buttonSecondaryStyle,
                       flex: 1,
                       padding: '8px 16px',
                       fontSize: '14px'
@@ -189,7 +246,7 @@ export function TeamManagement() {
                   <button
                     onClick={() => console.log('Remove member:', member.id)}
                     style={{
-                      ...styles.button.danger,
+                      ...buttonDangerStyle,
                       padding: '8px 16px',
                       fontSize: '14px'
                     }}
@@ -199,14 +256,24 @@ export function TeamManagement() {
                 </div>
               </div>
             </div>
-          </ContentCard>
+          </Card>
         ))}
       </div>
 
       {filteredMembers.length === 0 && (
-        <div style={styles.emptyState.container}>
-          <div style={styles.emptyState.containerIcon}>👥</div>
-          <p style={styles.emptyState.containerText}>
+        <div style={{
+          textAlign: 'center',
+          padding: '64px 24px',
+          color: tokens.colors.subtle
+        }}>
+          <div style={{
+            fontSize: '64px',
+            marginBottom: '16px'
+          }}>👥</div>
+          <p style={{
+            fontSize: '18px',
+            margin: 0
+          }}>
             {t('teamManagementPage.noTeamMembers')}
           </p>
         </div>
