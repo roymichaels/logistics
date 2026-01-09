@@ -4,12 +4,17 @@ import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useAuth } from '../../context/AuthContext';
 import { useSafeAppServices } from '../../context/AppServicesContext';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
 import { NoActiveBusiness } from '../../components/NoActiveBusiness';
-import { tokens } from '../../styles/tokens';
+import { undergroundTheme } from '../../styles/undergroundTheme';
 import { useBusinessStats } from '../../hooks/useBusinessStats';
 import { BusinessMetrics, BusinessQuickActions, BusinessActivityFeed } from '../../components/business';
+import {
+  UndergroundCard,
+  UndergroundHeader,
+  UndergroundSection,
+  UndergroundLoadingSpinner,
+  UndergroundEmptyState,
+} from '../../components/underground';
 
 export function BusinessOwnerDashboard() {
   const navigate = useNavigate();
@@ -37,12 +42,12 @@ export function BusinessOwnerDashboard() {
 
   if (!currentBusinessId) {
     return (
-      <PageContainer>
+      <div style={undergroundTheme.components.page}>
         <NoActiveBusiness
           onNavigateToBusinesses={() => navigate('/business/businesses')}
           message="לוח הבקרה של בעל העסק דורש עסק פעיל. אנא בחר עסק או צור עסק חדש."
         />
-      </PageContainer>
+      </div>
     );
   }
 
@@ -85,103 +90,62 @@ export function BusinessOwnerDashboard() {
 
   if (loading) {
     return (
-      <PageContainer>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60vh',
-          color: tokens.colors.text
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-            <div style={{ fontSize: '18px', fontWeight: '600' }}>טוען נתוני עסק...</div>
-          </div>
-        </div>
-      </PageContainer>
+      <div style={undergroundTheme.components.page}>
+        <UndergroundLoadingSpinner message="טוען נתוני עסק..." />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <PageContainer>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60vh',
-          color: tokens.colors.text
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
-              שגיאה בטעינת נתוני העסק
-            </div>
-            <button
-              onClick={refresh}
-              style={{
-                padding: '12px 24px',
-                fontSize: '16px',
-                fontWeight: '600',
-                borderRadius: '8px',
-                border: 'none',
-                backgroundColor: tokens.colors.primary,
-                color: '#ffffff',
-                cursor: 'pointer',
-                marginTop: '16px'
-              }}
-            >
-              נסה שנית
-            </button>
-          </div>
-        </div>
-      </PageContainer>
+      <div style={undergroundTheme.components.page}>
+        <UndergroundEmptyState
+          icon="❌"
+          title="שגיאה בטעינת נתוני העסק"
+          message="לא הצלחנו לטעון את נתוני העסק"
+          actionLabel="נסה שנית"
+          onAction={refresh}
+        />
+      </div>
     );
   }
 
   if (!stats || !currentBusinessId) {
     return (
-      <PageContainer>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60vh',
-          color: tokens.colors.text
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏢</div>
-            <div style={{ fontSize: '18px', fontWeight: '600' }}>
-              לא נמצא הקשר עסקי
-            </div>
-          </div>
-        </div>
-      </PageContainer>
+      <div style={undergroundTheme.components.page}>
+        <UndergroundEmptyState
+          icon="🏢"
+          title="לא נמצא הקשר עסקי"
+          message="לא נמצא מידע על העסק הנוכחי"
+        />
+      </div>
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader
-        icon="🏢"
+    <div style={undergroundTheme.components.page}>
+      <UndergroundHeader
         title={businessName || 'לוח בקרה עסקי'}
         subtitle="סקירה מקיפה של הפעילות העסקית שלך"
+        icon="🏢"
       />
 
-      <BusinessMetrics stats={stats} currency="ILS" />
+      <UndergroundSection>
+        <BusinessMetrics stats={stats} currency="ILS" />
+      </UndergroundSection>
 
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
-        gap: '24px',
-        marginTop: '32px'
+        gap: undergroundTheme.spacing['2xl'],
+        marginTop: undergroundTheme.spacing['4xl']
       }}>
-        <div>
+        <UndergroundSection>
           <h3 style={{
-            fontSize: '20px',
-            fontWeight: '700',
-            marginBottom: '16px',
-            color: tokens.colors.text
+            fontSize: undergroundTheme.typography.fontSize.xl,
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            marginBottom: undergroundTheme.spacing.lg,
+            color: undergroundTheme.colors.text.primary
           }}>
             פעולות מהירות
           </h3>
@@ -189,14 +153,14 @@ export function BusinessOwnerDashboard() {
             businessId={currentBusinessId}
             role={user?.role}
           />
-        </div>
+        </UndergroundSection>
 
-        <div>
+        <UndergroundSection>
           <h3 style={{
-            fontSize: '20px',
-            fontWeight: '700',
-            marginBottom: '16px',
-            color: tokens.colors.text
+            fontSize: undergroundTheme.typography.fontSize.xl,
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            marginBottom: undergroundTheme.spacing.lg,
+            color: undergroundTheme.colors.text.primary
           }}>
             פעילות אחרונה
           </h3>
@@ -204,8 +168,8 @@ export function BusinessOwnerDashboard() {
             stats={stats}
             auditLogs={auditLogs}
           />
-        </div>
+        </UndergroundSection>
       </div>
-    </PageContainer>
+    </div>
   );
 }

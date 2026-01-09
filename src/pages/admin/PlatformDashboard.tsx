@@ -2,12 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
-import { MetricCard } from '../../components/dashboard/MetricCard';
+import { undergroundTheme } from '../../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundHeader,
+  UndergroundStatCard,
+  UndergroundButton,
+  UndergroundLoadingSpinner,
+  UndergroundSection,
+} from '../../components/underground';
 import { QuickActionGrid, QuickAction } from '../../components/organisms/QuickActionGrid';
 import { ActivityFeed, Activity } from '../../components/organisms/ActivityFeed';
-import { tokens } from '../../styles/tokens';
 
 interface PlatformStats {
   totalBusinesses: number;
@@ -160,26 +165,15 @@ export function PlatformDashboard() {
 
   if (loading) {
     return (
-      <PageContainer>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60vh',
-          color: tokens.colors.text
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-            <div style={{ fontSize: '18px', fontWeight: '600' }}>טוען נתוני פלטפורמה...</div>
-          </div>
-        </div>
-      </PageContainer>
+      <div style={undergroundTheme.components.page}>
+        <UndergroundLoadingSpinner message="טוען נתוני פלטפורמה..." />
+      </div>
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader
+    <div style={undergroundTheme.components.page}>
+      <UndergroundHeader
         icon="🏛️"
         title="לוח בקרה ראשי"
         subtitle="ניהול ומעקב אחר הפלטפורמה כולה"
@@ -189,41 +183,37 @@ export function PlatformDashboard() {
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '20px',
-          marginBottom: '32px',
+          gap: undergroundTheme.spacing.lg,
+          marginBottom: undergroundTheme.spacing['4xl'],
         }}
       >
-        <MetricCard
+        <UndergroundStatCard
           label="עסקים פעילים"
           value={formatNumber(stats.totalBusinesses)}
-          change="+12%"
-          trend="up"
           icon="🏢"
           onClick={() => navigate('/admin/businesses')}
+          style={{ cursor: 'pointer' }}
         />
-        <MetricCard
+        <UndergroundStatCard
           label="משתמשים פעילים"
           value={formatNumber(stats.activeUsers)}
-          change="+8%"
-          trend="up"
           icon="👥"
           onClick={() => navigate('/admin/users')}
+          style={{ cursor: 'pointer' }}
         />
-        <MetricCard
+        <UndergroundStatCard
           label="סה״כ הזמנות"
           value={formatNumber(stats.totalOrders)}
-          change="+15%"
-          trend="up"
           icon="📦"
           onClick={() => navigate('/admin/orders')}
+          style={{ cursor: 'pointer' }}
         />
-        <MetricCard
+        <UndergroundStatCard
           label="הכנסות כוללות"
           value={formatCurrency(stats.totalRevenue)}
-          change="+22%"
-          trend="up"
           icon="💰"
           onClick={() => navigate('/admin/analytics')}
+          style={{ cursor: 'pointer' }}
         />
       </div>
 
@@ -238,25 +228,19 @@ export function PlatformDashboard() {
         />
       </div>
 
-      <div style={{
-        marginTop: '32px',
-        padding: '24px',
-        background: tokens.colors.background.card,
-        borderRadius: '16px',
-        border: `1px solid ${tokens.colors.background.cardBorder}`
-      }}>
+      <UndergroundSection>
         <h3 style={{
-          fontSize: '18px',
-          fontWeight: '700',
-          marginBottom: '16px',
-          color: tokens.colors.text
+          fontSize: undergroundTheme.typography.fontSize.xl,
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          marginBottom: undergroundTheme.spacing.lg,
+          color: undergroundTheme.colors.text.primary
         }}>
           קישורים מהירים
         </h3>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '12px'
+          gap: undergroundTheme.spacing.md
         }}>
           {[
             { label: 'סופר-אדמינים', path: '/admin/superadmins', icon: '👑' },
@@ -266,34 +250,37 @@ export function PlatformDashboard() {
             { label: 'דגלי תכונות', path: '/admin/feature-flags', icon: '🚩' },
             { label: 'הרשאות', path: '/admin/permissions', icon: '🔐' },
           ].map((link) => (
-            <button
+            <UndergroundCard
               key={link.path}
               onClick={() => navigate(link.path)}
               style={{
-                padding: '16px',
-                background: tokens.colors.bg,
-                border: `1px solid ${tokens.colors.background.cardBorder}`,
-                borderRadius: '12px',
                 cursor: 'pointer',
-                textAlign: 'right',
-                transition: 'all 0.2s ease',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px'
+                gap: undergroundTheme.spacing.md,
+                transition: undergroundTheme.transitions.normal,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = undergroundTheme.effects.hover.lift;
+                e.currentTarget.style.borderColor = undergroundTheme.colors.glassmorphism.borderHover;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.borderColor = undergroundTheme.colors.glassmorphism.border;
               }}
             >
-              <span style={{ fontSize: '24px' }}>{link.icon}</span>
+              <span style={{ fontSize: undergroundTheme.typography.fontSize['2xl'] }}>{link.icon}</span>
               <span style={{
-                fontSize: '14px',
-                fontWeight: '600',
-                color: tokens.colors.text
+                fontSize: undergroundTheme.typography.fontSize.base,
+                fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                color: undergroundTheme.colors.text.primary
               }}>
                 {link.label}
               </span>
-            </button>
+            </UndergroundCard>
           ))}
         </div>
-      </div>
-    </PageContainer>
+      </UndergroundSection>
+    </div>
   );
 }

@@ -2,10 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useSafeAppServices } from '../../context/AppServicesContext';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
-import { Card } from '../../components/molecules/Card';
-import { modernTokens } from '../../styles/modernTokens';
+import { undergroundTheme } from '../../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundHeader,
+  UndergroundButton,
+  UndergroundLoadingSpinner,
+  UndergroundSection,
+} from '../../components/underground';
 
 interface AnalyticsData {
   orderTrends: { date: string; count: number; revenue: number }[];
@@ -227,301 +231,222 @@ export function BusinessAnalytics() {
 
   if (loading) {
     return (
-      <PageContainer>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: modernTokens.colors.text.primary }}>טוען אנליטיקה...</div>
-          </div>
-        </div>
-      </PageContainer>
+      <div style={undergroundTheme.components.page}>
+        <UndergroundLoadingSpinner message="טוען אנליטיקה..." />
+      </div>
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader
+    <div style={undergroundTheme.components.page}>
+      <UndergroundHeader
         icon="📊"
         title="אנליטיקה עסקית"
         subtitle="תובנות מעמיקות על הביצועים העסקיים שלך"
-        actionButton={
-          <button
-            onClick={exportData}
-            style={{
-              padding: '10px 20px',
-              background: modernTokens.gradients.primary,
-              color: 'white',
-              border: 'none',
-              borderRadius: modernTokens.radius.md,
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              boxShadow: modernTokens.glows.primary,
-              transition: modernTokens.transitions.normal,
-            }}
-          >
-            ייצוא נתונים
-          </button>
-        }
       />
 
-      <Card style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: undergroundTheme.spacing['2xl'] }}>
+        <UndergroundButton onClick={exportData} variant="primary">
+          ייצוא נתונים
+        </UndergroundButton>
+      </div>
+
+      <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['2xl'] }}>
+        <div style={{ display: 'flex', gap: undergroundTheme.spacing.md, justifyContent: 'center', flexWrap: 'wrap' }}>
           {(['7d', '30d', '90d', 'all'] as const).map(range => (
-            <button
+            <UndergroundButton
               key={range}
               onClick={() => setDateRange(range)}
-              style={{
-                padding: '8px 16px',
-                background: dateRange === range ? modernTokens.gradients.primary : 'transparent',
-                color: dateRange === range ? 'white' : modernTokens.colors.text.primary,
-                border: dateRange === range ? 'none' : `1px solid ${modernTokens.colors.border.default}`,
-                borderRadius: modernTokens.radius.md,
-                fontSize: '14px',
-                cursor: 'pointer',
-                boxShadow: dateRange === range ? modernTokens.glows.primary : 'none',
-                transition: modernTokens.transitions.normal,
-              }}
+              variant={dateRange === range ? 'primary' : 'secondary'}
             >
               {range === '7d' ? '7 ימים' : range === '30d' ? '30 ימים' : range === '90d' ? '90 ימים' : 'הכל'}
-            </button>
+            </UndergroundButton>
           ))}
         </div>
-      </Card>
+      </UndergroundCard>
 
-      <div style={{ display: 'grid', gap: '24px' }}>
-        <Card title="מגמות הזמנות">
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{
-                  borderBottom: `2px solid ${modernTokens.colors.border.strong}`,
-                  background: modernTokens.colors.background.surface,
-                }}>
-                  <th style={{
-                    padding: '14px',
-                    textAlign: 'right',
-                    color: modernTokens.colors.text.secondary,
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}>תאריך</th>
-                  <th style={{
-                    padding: '14px',
-                    textAlign: 'right',
-                    color: modernTokens.colors.text.secondary,
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}>הזמנות</th>
-                  <th style={{
-                    padding: '14px',
-                    textAlign: 'right',
-                    color: modernTokens.colors.text.secondary,
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}>הכנסות</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analytics.orderTrends.slice(-10).map((trend, idx) => (
-                  <tr
-                    key={idx}
-                    style={{
-                      borderBottom: `1px solid ${modernTokens.colors.border.default}`,
-                      background: idx % 2 === 0 ? 'transparent' : modernTokens.colors.background.surface,
-                      transition: modernTokens.transitions.fast,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = modernTokens.colors.interactive.hover;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = idx % 2 === 0 ? 'transparent' : modernTokens.colors.background.surface;
-                    }}
-                  >
-                    <td style={{ padding: '12px', color: modernTokens.colors.text.primary }}>{trend.date}</td>
-                    <td style={{ padding: '12px', color: modernTokens.colors.brand.primary, fontWeight: 600 }}>{trend.count}</td>
-                    <td style={{ padding: '12px', color: modernTokens.colors.status.success, fontWeight: 600 }}>{formatCurrency(trend.revenue)}</td>
+      <div style={{ display: 'grid', gap: undergroundTheme.spacing['2xl'] }}>
+        <UndergroundSection>
+          <h3 style={{
+            fontSize: undergroundTheme.typography.fontSize.xl,
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            marginBottom: undergroundTheme.spacing.lg,
+            color: undergroundTheme.colors.text.primary
+          }}>
+            מגמות הזמנות
+          </h3>
+          <UndergroundCard>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{
+                    borderBottom: `2px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                  }}>
+                    <th style={{
+                      padding: undergroundTheme.spacing.lg,
+                      textAlign: 'right',
+                      color: undergroundTheme.colors.text.secondary,
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}>תאריך</th>
+                    <th style={{
+                      padding: undergroundTheme.spacing.lg,
+                      textAlign: 'right',
+                      color: undergroundTheme.colors.text.secondary,
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}>הזמנות</th>
+                    <th style={{
+                      padding: undergroundTheme.spacing.lg,
+                      textAlign: 'right',
+                      color: undergroundTheme.colors.text.secondary,
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}>הכנסות</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                </thead>
+                <tbody>
+                  {analytics.orderTrends.slice(-10).map((trend, idx) => (
+                    <tr
+                      key={idx}
+                      style={{
+                        borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                        transition: undergroundTheme.transitions.fast,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.light;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                      }}
+                    >
+                      <td style={{ padding: undergroundTheme.spacing.md, color: undergroundTheme.colors.text.primary }}>{trend.date}</td>
+                      <td style={{ padding: undergroundTheme.spacing.md, color: undergroundTheme.colors.accent.primary, fontWeight: 600 }}>{trend.count}</td>
+                      <td style={{ padding: undergroundTheme.spacing.md, color: undergroundTheme.colors.status.success, fontWeight: 600 }}>{formatCurrency(trend.revenue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </UndergroundCard>
+        </UndergroundSection>
 
-        <Card title="מוצרים מובילים">
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{
-                  borderBottom: `2px solid ${modernTokens.colors.border.strong}`,
-                  background: modernTokens.colors.background.surface,
-                }}>
-                  <th style={{
-                    padding: '14px',
-                    textAlign: 'right',
-                    color: modernTokens.colors.text.secondary,
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}>מוצר</th>
-                  <th style={{
-                    padding: '14px',
-                    textAlign: 'right',
-                    color: modernTokens.colors.text.secondary,
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}>מכירות</th>
-                  <th style={{
-                    padding: '14px',
-                    textAlign: 'right',
-                    color: modernTokens.colors.text.secondary,
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}>הכנסות</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analytics.topProducts.map((product, idx) => (
-                  <tr
-                    key={idx}
-                    style={{
-                      borderBottom: `1px solid ${modernTokens.colors.border.default}`,
-                      background: idx % 2 === 0 ? 'transparent' : modernTokens.colors.background.surface,
-                      transition: modernTokens.transitions.fast,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = modernTokens.colors.interactive.hover;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = idx % 2 === 0 ? 'transparent' : modernTokens.colors.background.surface;
-                    }}
-                  >
-                    <td style={{ padding: '12px', color: modernTokens.colors.text.primary }}>{product.name}</td>
-                    <td style={{ padding: '12px', color: modernTokens.colors.brand.primary, fontWeight: 600 }}>{product.sales}</td>
-                    <td style={{ padding: '12px', color: modernTokens.colors.status.success, fontWeight: 600 }}>{formatCurrency(product.revenue)}</td>
+        <UndergroundSection>
+          <h3 style={{
+            fontSize: undergroundTheme.typography.fontSize.xl,
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            marginBottom: undergroundTheme.spacing.lg,
+            color: undergroundTheme.colors.text.primary
+          }}>
+            מוצרים מובילים
+          </h3>
+          <UndergroundCard>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: `2px solid ${undergroundTheme.colors.glassmorphism.border}` }}>
+                    <th style={{ padding: undergroundTheme.spacing.lg, textAlign: 'right', color: undergroundTheme.colors.text.secondary, fontWeight: undergroundTheme.typography.fontWeight.semibold, fontSize: undergroundTheme.typography.fontSize.sm, textTransform: 'uppercase', letterSpacing: '0.5px' }}>מוצר</th>
+                    <th style={{ padding: undergroundTheme.spacing.lg, textAlign: 'right', color: undergroundTheme.colors.text.secondary, fontWeight: undergroundTheme.typography.fontWeight.semibold, fontSize: undergroundTheme.typography.fontSize.sm, textTransform: 'uppercase', letterSpacing: '0.5px' }}>מכירות</th>
+                    <th style={{ padding: undergroundTheme.spacing.lg, textAlign: 'right', color: undergroundTheme.colors.text.secondary, fontWeight: undergroundTheme.typography.fontWeight.semibold, fontSize: undergroundTheme.typography.fontSize.sm, textTransform: 'uppercase', letterSpacing: '0.5px' }}>הכנסות</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                </thead>
+                <tbody>
+                  {analytics.topProducts.map((product, idx) => (
+                    <tr key={idx} style={{ borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`, transition: undergroundTheme.transitions.fast }} onMouseEnter={(e) => { e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.light; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
+                      <td style={{ padding: undergroundTheme.spacing.md, color: undergroundTheme.colors.text.primary }}>{product.name}</td>
+                      <td style={{ padding: undergroundTheme.spacing.md, color: undergroundTheme.colors.accent.primary, fontWeight: 600 }}>{product.sales}</td>
+                      <td style={{ padding: undergroundTheme.spacing.md, color: undergroundTheme.colors.status.success, fontWeight: 600 }}>{formatCurrency(product.revenue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </UndergroundCard>
+        </UndergroundSection>
 
-        <Card title="ביצועי נהגים">
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{
-                  borderBottom: `2px solid ${modernTokens.colors.border.strong}`,
-                  background: modernTokens.colors.background.surface,
-                }}>
-                  <th style={{
-                    padding: '14px',
-                    textAlign: 'right',
-                    color: modernTokens.colors.text.secondary,
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}>נהג</th>
-                  <th style={{
-                    padding: '14px',
-                    textAlign: 'right',
-                    color: modernTokens.colors.text.secondary,
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}>משלוחים</th>
-                  <th style={{
-                    padding: '14px',
-                    textAlign: 'right',
-                    color: modernTokens.colors.text.secondary,
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}>דירוג</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analytics.driverPerformance.map((driver, idx) => (
-                  <tr
-                    key={idx}
-                    style={{
-                      borderBottom: `1px solid ${modernTokens.colors.border.default}`,
-                      background: idx % 2 === 0 ? 'transparent' : modernTokens.colors.background.surface,
-                      transition: modernTokens.transitions.fast,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = modernTokens.colors.interactive.hover;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = idx % 2 === 0 ? 'transparent' : modernTokens.colors.background.surface;
-                    }}
-                  >
-                    <td style={{ padding: '12px', color: modernTokens.colors.text.primary }}>{driver.name}</td>
-                    <td style={{ padding: '12px', color: modernTokens.colors.brand.primary, fontWeight: 600 }}>{driver.deliveries}</td>
-                    <td style={{ padding: '12px', color: modernTokens.colors.status.warning }}>
-                      {driver.rating.toFixed(1)} ⭐
-                    </td>
+        <UndergroundSection>
+          <h3 style={{
+            fontSize: undergroundTheme.typography.fontSize.xl,
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            marginBottom: undergroundTheme.spacing.lg,
+            color: undergroundTheme.colors.text.primary
+          }}>
+            ביצועי נהגים
+          </h3>
+          <UndergroundCard>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: `2px solid ${undergroundTheme.colors.glassmorphism.border}` }}>
+                    <th style={{ padding: undergroundTheme.spacing.lg, textAlign: 'right', color: undergroundTheme.colors.text.secondary, fontWeight: undergroundTheme.typography.fontWeight.semibold, fontSize: undergroundTheme.typography.fontSize.sm, textTransform: 'uppercase', letterSpacing: '0.5px' }}>נהג</th>
+                    <th style={{ padding: undergroundTheme.spacing.lg, textAlign: 'right', color: undergroundTheme.colors.text.secondary, fontWeight: undergroundTheme.typography.fontWeight.semibold, fontSize: undergroundTheme.typography.fontSize.sm, textTransform: 'uppercase', letterSpacing: '0.5px' }}>משלוחים</th>
+                    <th style={{ padding: undergroundTheme.spacing.lg, textAlign: 'right', color: undergroundTheme.colors.text.secondary, fontWeight: undergroundTheme.typography.fontWeight.semibold, fontSize: undergroundTheme.typography.fontSize.sm, textTransform: 'uppercase', letterSpacing: '0.5px' }}>דירוג</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                </thead>
+                <tbody>
+                  {analytics.driverPerformance.map((driver, idx) => (
+                    <tr key={idx} style={{ borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`, transition: undergroundTheme.transitions.fast }} onMouseEnter={(e) => { e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.light; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
+                      <td style={{ padding: undergroundTheme.spacing.md, color: undergroundTheme.colors.text.primary }}>{driver.name}</td>
+                      <td style={{ padding: undergroundTheme.spacing.md, color: undergroundTheme.colors.accent.primary, fontWeight: 600 }}>{driver.deliveries}</td>
+                      <td style={{ padding: undergroundTheme.spacing.md, color: undergroundTheme.colors.status.warning }}>{driver.rating.toFixed(1)} ⭐</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </UndergroundCard>
+        </UndergroundSection>
 
-        <Card title="דפוסי לקוחות">
-          <div style={{ display: 'grid', gap: '16px' }}>
+        <UndergroundSection>
+          <h3 style={{
+            fontSize: undergroundTheme.typography.fontSize.xl,
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            marginBottom: undergroundTheme.spacing.lg,
+            color: undergroundTheme.colors.text.primary
+          }}>
+            דפוסי לקוחות
+          </h3>
+          <div style={{ display: 'grid', gap: undergroundTheme.spacing.lg }}>
             {analytics.customerPatterns.map((pattern, idx) => (
-              <div
+              <UndergroundCard
                 key={idx}
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  padding: '16px',
-                  background: modernTokens.gradients.card,
-                  border: `1px solid ${modernTokens.colors.border.default}`,
-                  borderRadius: modernTokens.radius.md,
-                  transition: modernTokens.transitions.normal,
+                  alignItems: 'center',
+                  transition: undergroundTheme.transitions.normal,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateX(-4px)';
-                  e.currentTarget.style.boxShadow = modernTokens.shadows.lg;
-                  e.currentTarget.style.border = `1px solid ${modernTokens.colors.border.hover}`;
+                  e.currentTarget.style.transform = undergroundTheme.effects.hover.lift;
+                  e.currentTarget.style.borderColor = undergroundTheme.colors.glassmorphism.borderHover;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateX(0)';
-                  e.currentTarget.style.boxShadow = 'none';
-                  e.currentTarget.style.border = `1px solid ${modernTokens.colors.border.default}`;
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.borderColor = undergroundTheme.colors.glassmorphism.border;
                 }}
               >
                 <span style={{
-                  color: modernTokens.colors.text.primary,
-                  fontWeight: 600,
+                  color: undergroundTheme.colors.text.primary,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
                 }}>{pattern.segment}</span>
-                <div style={{ display: 'flex', gap: '24px' }}>
-                  <span style={{ color: modernTokens.colors.text.secondary }}>{pattern.count} לקוחות</span>
+                <div style={{ display: 'flex', gap: undergroundTheme.spacing['2xl'] }}>
+                  <span style={{ color: undergroundTheme.colors.text.secondary }}>{pattern.count} לקוחות</span>
                   <span style={{
-                    color: modernTokens.colors.brand.primary,
-                    fontWeight: 600,
+                    color: undergroundTheme.colors.accent.primary,
+                    fontWeight: undergroundTheme.typography.fontWeight.semibold,
                   }}>{formatCurrency(pattern.avgOrderValue)} ממוצע</span>
                 </div>
-              </div>
+              </UndergroundCard>
             ))}
           </div>
-        </Card>
+        </UndergroundSection>
       </div>
-    </PageContainer>
+    </div>
   );
 }

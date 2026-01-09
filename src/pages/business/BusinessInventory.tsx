@@ -2,11 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useSafeAppServices } from '../../context/AppServicesContext';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
-import { Card } from '../../components/molecules/Card';
-import { StatCard } from '../../components/molecules/StatCard';
-import { tokens } from '../../styles/tokens';
+import { undergroundTheme } from '../../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundHeader,
+  UndergroundButton,
+  UndergroundStatCard,
+  UndergroundBadge,
+  UndergroundInput,
+  UndergroundLoadingSpinner,
+  UndergroundSection,
+} from '../../components/underground';
 
 interface InventoryItem {
   id: string;
@@ -122,15 +128,6 @@ export function BusinessInventory() {
     return labels[status];
   };
 
-  const getStockStatusColor = (status: 'in_stock' | 'low' | 'out'): string => {
-    const colors = {
-      in_stock: tokens.colors.status.success,
-      low: tokens.colors.status.warning,
-      out: tokens.colors.status.error
-    };
-    return colors[status];
-  };
-
   const formatDate = (dateString?: string): string => {
     if (!dateString) return 'אף פעם';
     const date = new Date(dateString);
@@ -183,108 +180,83 @@ export function BusinessInventory() {
 
   if (loading) {
     return (
-      <PageContainer>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📦</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: tokens.colors.text }}>טוען מלאי...</div>
-          </div>
-        </div>
-      </PageContainer>
+      <div style={undergroundTheme.components.page}>
+        <UndergroundLoadingSpinner message="טוען מלאי..." />
+      </div>
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader
+    <div style={undergroundTheme.components.page}>
+      <UndergroundHeader
         icon="📦"
         title="ניהול מלאי"
         subtitle="נהל ועקוב אחר המלאי שלך"
-        actionButton={
-          <button
-            onClick={exportInventory}
-            style={{
-              padding: '10px 20px',
-              background: tokens.colors.accent,
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
-            ייצוא CSV
-          </button>
-        }
       />
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: undergroundTheme.spacing['2xl'] }}>
+        <UndergroundButton onClick={exportInventory} variant="primary">
+          ייצוא CSV
+        </UndergroundButton>
+      </div>
 
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '16px',
-        marginBottom: '24px'
+        gap: undergroundTheme.spacing.lg,
+        marginBottom: undergroundTheme.spacing['2xl']
       }}>
-        <StatCard
+        <UndergroundStatCard
           icon="📦"
           label="סה״כ פריטים"
-          value={stats.total}
+          value={stats.total.toString()}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="✅"
           label="במלאי"
-          value={stats.inStock}
-          color={tokens.colors.status.success}
+          value={stats.inStock.toString()}
           onClick={() => setStockFilter('in_stock')}
+          style={{ cursor: 'pointer' }}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="⚠️"
           label="מלאי נמוך"
-          value={stats.lowStock}
-          color={tokens.colors.status.warning}
+          value={stats.lowStock.toString()}
           onClick={() => setStockFilter('low')}
+          style={{ cursor: 'pointer' }}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="❌"
           label="אזל מהמלאי"
-          value={stats.outOfStock}
-          color={tokens.colors.status.error}
+          value={stats.outOfStock.toString()}
           onClick={() => setStockFilter('out')}
+          style={{ cursor: 'pointer' }}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="📊"
           label="יחידות כוללות"
-          value={stats.totalItems}
+          value={stats.totalItems.toString()}
         />
       </div>
 
-      <div style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '12px' }}>
-          <input
+      <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['2xl'] }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: undergroundTheme.spacing.md }}>
+          <UndergroundInput
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="חיפוש לפי שם מוצר או SKU..."
-            style={{
-              padding: '10px 16px',
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: '8px',
-              fontSize: '14px',
-              background: tokens.colors.surface,
-              color: tokens.colors.text
-            }}
           />
 
           <select
             value={stockFilter}
             onChange={(e) => setStockFilter(e.target.value as any)}
             style={{
-              padding: '10px 16px',
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: '8px',
-              fontSize: '14px',
-              background: tokens.colors.surface,
-              color: tokens.colors.text
+              padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
+              ...undergroundTheme.effects.glassmorphism.light,
+              borderRadius: undergroundTheme.borderRadius.lg,
+              color: undergroundTheme.colors.text.primary,
+              fontSize: undergroundTheme.typography.fontSize.base,
             }}
           >
             <option value="all">כל הסטטוסים</option>
@@ -293,41 +265,30 @@ export function BusinessInventory() {
             <option value="out">אזל מהמלאי</option>
           </select>
 
-          <button
-            onClick={loadInventory}
-            style={{
-              padding: '10px 16px',
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: '8px',
-              fontSize: '14px',
-              background: tokens.colors.surface,
-              color: tokens.colors.text,
-              cursor: 'pointer'
-            }}
-          >
+          <UndergroundButton onClick={loadInventory} variant="ghost">
             🔄
-          </button>
+          </UndergroundButton>
         </div>
-      </div>
+      </UndergroundCard>
 
-      <Card>
+      <UndergroundCard>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: `2px solid ${tokens.colors.border}` }}>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>מוצר</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>SKU</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>כמות</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>סף מלאי נמוך</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>סטטוס</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>עדכון אחרון</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>פעולות</th>
+              <tr style={{ borderBottom: `2px solid ${undergroundTheme.colors.glassmorphism.border}` }}>
+                <th style={{ padding: undergroundTheme.spacing.lg, textAlign: 'right', color: undergroundTheme.colors.text.secondary, fontWeight: undergroundTheme.typography.fontWeight.semibold }}>מוצר</th>
+                <th style={{ padding: undergroundTheme.spacing.lg, textAlign: 'right', color: undergroundTheme.colors.text.secondary, fontWeight: undergroundTheme.typography.fontWeight.semibold }}>SKU</th>
+                <th style={{ padding: undergroundTheme.spacing.lg, textAlign: 'right', color: undergroundTheme.colors.text.secondary, fontWeight: undergroundTheme.typography.fontWeight.semibold }}>כמות</th>
+                <th style={{ padding: undergroundTheme.spacing.lg, textAlign: 'right', color: undergroundTheme.colors.text.secondary, fontWeight: undergroundTheme.typography.fontWeight.semibold }}>סף מלאי נמוך</th>
+                <th style={{ padding: undergroundTheme.spacing.lg, textAlign: 'right', color: undergroundTheme.colors.text.secondary, fontWeight: undergroundTheme.typography.fontWeight.semibold }}>סטטוס</th>
+                <th style={{ padding: undergroundTheme.spacing.lg, textAlign: 'right', color: undergroundTheme.colors.text.secondary, fontWeight: undergroundTheme.typography.fontWeight.semibold }}>עדכון אחרון</th>
+                <th style={{ padding: undergroundTheme.spacing.lg, textAlign: 'right', color: undergroundTheme.colors.text.secondary, fontWeight: undergroundTheme.typography.fontWeight.semibold }}>פעולות</th>
               </tr>
             </thead>
             <tbody>
               {filteredInventory.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: tokens.colors.subtle }}>
+                  <td colSpan={7} style={{ padding: undergroundTheme.spacing['4xl'], textAlign: 'center', color: undergroundTheme.colors.text.tertiary }}>
                     לא נמצאו פריטים במלאי
                   </td>
                 </tr>
@@ -335,66 +296,63 @@ export function BusinessInventory() {
                 filteredInventory.map((item) => {
                   const status = getStockStatus(item.quantity, item.low_stock_threshold);
                   return (
-                    <tr key={item.id} style={{ borderBottom: `1px solid ${tokens.colors.border}` }}>
-                      <td style={{ padding: '16px' }}>
-                        <div style={{ fontWeight: '600', color: tokens.colors.text }}>
+                    <tr
+                      key={item.id}
+                      style={{
+                        borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                        transition: undergroundTheme.transitions.fast
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.light;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                      }}
+                    >
+                      <td style={{ padding: undergroundTheme.spacing.lg }}>
+                        <div style={{ fontWeight: undergroundTheme.typography.fontWeight.semibold, color: undergroundTheme.colors.text.primary }}>
                           {item.product_name}
                         </div>
                       </td>
-                      <td style={{ padding: '16px', color: tokens.colors.text }}>
+                      <td style={{ padding: undergroundTheme.spacing.lg, color: undergroundTheme.colors.text.secondary }}>
                         {item.product_sku || '-'}
                       </td>
-                      <td style={{ padding: '16px' }}>
+                      <td style={{ padding: undergroundTheme.spacing.lg }}>
                         <span style={{
-                          fontWeight: '600',
-                          color: status === 'out' ? tokens.colors.status.error :
-                                 status === 'low' ? tokens.colors.status.warning :
-                                 tokens.colors.text
+                          fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                          color: status === 'out' ? undergroundTheme.colors.status.error :
+                                 status === 'low' ? undergroundTheme.colors.status.warning :
+                                 undergroundTheme.colors.text.primary
                         }}>
                           {item.quantity}
                         </span>
                       </td>
-                      <td style={{ padding: '16px', color: tokens.colors.text }}>
+                      <td style={{ padding: undergroundTheme.spacing.lg, color: undergroundTheme.colors.text.secondary }}>
                         {item.low_stock_threshold}
                       </td>
-                      <td style={{ padding: '16px' }}>
-                        <span
-                          style={{
-                            padding: '4px 12px',
-                            borderRadius: '12px',
-                            fontSize: '12px',
-                            fontWeight: '600',
-                            background: getStockStatusColor(status) + '20',
-                            color: getStockStatusColor(status)
-                          }}
+                      <td style={{ padding: undergroundTheme.spacing.lg }}>
+                        <UndergroundBadge
+                          variant={status === 'in_stock' ? 'success' : status === 'low' ? 'warning' : 'error'}
                         >
                           {getStockStatusLabel(status)}
-                        </span>
+                        </UndergroundBadge>
                       </td>
-                      <td style={{ padding: '16px', color: tokens.colors.text }}>
+                      <td style={{ padding: undergroundTheme.spacing.lg, color: undergroundTheme.colors.text.secondary }}>
                         {formatDate(item.last_restocked)}
                       </td>
-                      <td style={{ padding: '16px' }}>
-                        <button
+                      <td style={{ padding: undergroundTheme.spacing.lg }}>
+                        <UndergroundButton
                           onClick={() => {
                             const newQuantity = prompt('הכנס כמות חדשה:', item.quantity.toString());
                             if (newQuantity !== null) {
                               logger.info('[BusinessInventory] Update quantity:', { itemId: item.id, newQuantity });
                             }
                           }}
-                          style={{
-                            padding: '6px 12px',
-                            background: tokens.colors.accent,
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            fontSize: '12px',
-                            fontWeight: '600',
-                            cursor: 'pointer'
-                          }}
+                          variant="secondary"
+                          style={{ fontSize: undergroundTheme.typography.fontSize.sm }}
                         >
                           עדכן
-                        </button>
+                        </UndergroundButton>
                       </td>
                     </tr>
                   );
@@ -405,16 +363,16 @@ export function BusinessInventory() {
         </div>
 
         <div style={{
-          marginTop: '24px',
-          padding: '16px',
-          background: tokens.colors.surface,
-          borderRadius: '8px',
-          color: tokens.colors.subtle,
-          fontSize: '14px'
+          marginTop: undergroundTheme.spacing['2xl'],
+          padding: undergroundTheme.spacing.lg,
+          ...undergroundTheme.effects.glassmorphism.light,
+          borderRadius: undergroundTheme.borderRadius.md,
+          color: undergroundTheme.colors.text.secondary,
+          fontSize: undergroundTheme.typography.fontSize.sm
         }}>
           <strong>סה״כ:</strong> {filteredInventory.length} פריטים (מתוך {inventory.length})
         </div>
-      </Card>
-    </PageContainer>
+      </UndergroundCard>
+    </div>
   );
 }
