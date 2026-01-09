@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getBusiness, getPublicBusinessCatalog, BusinessRecord } from '../../services/business';
-import { useBusinessContext } from '../../hooks/useBusinessContext';
+import { useSafeAppServices } from '../../context/AppServicesContext';
 import { logger } from '../../lib/logger';
 
 interface Product {
@@ -15,7 +15,7 @@ interface Product {
 }
 
 export default function BusinessPreview() {
-  const { currentBusinessId } = useBusinessContext();
+  const { currentBusinessId } = useSafeAppServices();
   const [business, setBusiness] = useState<BusinessRecord | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
