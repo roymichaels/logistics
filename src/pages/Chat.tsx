@@ -4,7 +4,6 @@ import { hebrew } from '../lib/i18n';
 import { logger } from '../lib/logger';
 import { EncryptedChatComponent } from '../components/EncryptedChat';
 import { initializeEncryptedChatService } from '../utils/security/encryptedChatService';
-import { tokens, styles } from '../styles/tokens';
 import { UserListView } from '../components/UserListView';
 import { UserProfileModal } from '../modules/auth/components';
 import { GroupChannelCreateModal } from '../components/GroupChannelCreateModal';
@@ -22,6 +21,7 @@ import {
   ChatMessagesArea,
   ModernMessageInput
 } from '../components/chat';
+import { UndergroundTabs, UndergroundSearchBar, UndergroundButton, UndergroundCard } from '../components/underground';
 
 interface ChatProps {
   dataStore?: DataStore;
@@ -33,11 +33,9 @@ type ChatTab = 'conversations' | 'groups' | 'users';
 type UserFilter = 'all' | 'online' | 'offline';
 
 export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, currentUser: propCurrentUser }: ChatProps = {}) {
-  // Get dataStore and navigation from context if not provided as props
   const { dataStore: contextDataStore, user: contextUser } = useAppServices();
   const navigate = useNavigate();
 
-  // Use prop if provided, otherwise use context
   const dataStore = propDataStore || contextDataStore;
   const onNavigate = propOnNavigate || ((path: string) => navigate(path));
   const currentUser = propCurrentUser || contextUser;
@@ -71,7 +69,6 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
     initializeEncryption();
     loadData();
 
-    // Update presence to online
     if (dataStore.updateUserPresence) {
       dataStore.updateUserPresence('online');
     }
@@ -95,7 +92,6 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
       unsubscribeMessageSent.unsubscribe();
       unsubscribeMessageReceived.unsubscribe();
       unsubscribeRoomCreated.unsubscribe();
-      // Set presence to offline when leaving
       if (dataStore.updateUserPresence) {
         dataStore.updateUserPresence('offline');
       }
@@ -232,7 +228,6 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
   };
 
   const handleUserSelect = async (user: User) => {
-    // User selection handled by profile modal
   };
 
   const handleSendMessageToUser = async (userId: string) => {
@@ -245,10 +240,8 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
       haptic();
       const roomId = await dataStore.getOrCreateDirectMessageRoom(userId);
 
-      // Find or create the DM object
       let dm = directMessageRooms.find(d => d.room_id === roomId);
       if (!dm) {
-        // Load the user info
         let otherUser: User | null = null;
         if (dataStore.getUserByTelegramId) {
           otherUser = await dataStore.getUserByTelegramId(userId);
@@ -331,11 +324,14 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
   if (loading) {
     return (
       <div style={{
-        padding: '20px',
-        textAlign: 'center',
-        color: tokens.colors.text,
-        backgroundColor: tokens.colors.panel,
-        minHeight: '100vh'
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#00d4ff',
+        fontSize: '18px',
+        fontWeight: '600'
       }}>
         טוען צ'אטים...
       </div>
@@ -364,7 +360,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
 
     return (
       <div style={{
-        background: tokens.colors.panel,
+        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%)',
         minHeight: '100vh',
         direction: 'rtl',
         display: 'flex',
@@ -397,20 +393,10 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
 
   return (
     <>
-      <style>{`
-        @keyframes pulse-button {
-          0%, 100% {
-            box-shadow: 0 0 20px rgba(29, 155, 240, 0.5), 0 0 40px rgba(29, 155, 240, 0.3);
-          }
-          50% {
-            box-shadow: 0 0 30px rgba(29, 155, 240, 0.8), 0 0 60px rgba(29, 155, 240, 0.5);
-          }
-        }
-      `}</style>
       <div style={{
-        background: tokens.colors.background.primary,
+        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%)',
         minHeight: '100vh',
-        paddingTop: '16px',
+        paddingTop: '28px',
         paddingBottom: '80px',
         direction: 'rtl'
       }}>
@@ -425,9 +411,12 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
         }}>
           <h1 style={{
             margin: '0',
-            fontSize: '24px',
+            fontSize: '28px',
             fontWeight: '700',
-            color: tokens.colors.text.primary
+            background: 'linear-gradient(135deg, #00d4ff 0%, #7b3ff2 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
           }}>
             הודעות
           </h1>
@@ -440,36 +429,36 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                 }}
                 style={{
                   padding: '0',
-                  width: '40px',
-                  height: '40px',
+                  width: '44px',
+                  height: '44px',
                   borderRadius: '50%',
                   border: 'none',
-                  background: tokens.colors.brand.primary,
+                  background: 'linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)',
                   color: '#fff',
-                  fontSize: '20px',
-                  fontWeight: '400',
+                  fontSize: '24px',
+                  fontWeight: '300',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   flexShrink: 0,
-                  lineHeight: 1
+                  lineHeight: 1,
+                  boxShadow: '0 4px 16px rgba(0, 212, 255, 0.4), 0 0 20px rgba(0, 212, 255, 0.3)'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.05)';
-                  e.currentTarget.style.background = tokens.colors.brand.primaryHover;
+                  e.currentTarget.style.transform = 'scale(1.1) rotate(90deg)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 212, 255, 0.6), 0 0 30px rgba(0, 212, 255, 0.4)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.background = tokens.colors.brand.primary;
+                  e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 212, 255, 0.4), 0 0 20px rgba(0, 212, 255, 0.3)';
                 }}
                 title="יצירת קבוצה או ערוץ"
               >
                 +
               </button>
 
-              {/* Telegram-style Create Menu */}
               {showCreateMenu && (
                 <div
                   style={{
@@ -477,10 +466,11 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                     top: '100%',
                     left: 0,
                     marginTop: '8px',
-                    background: tokens.colors.background.card,
-                    border: `1px solid ${tokens.colors.background.cardBorder}`,
+                    background: 'rgba(20, 20, 30, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(0, 212, 255, 0.2)',
                     borderRadius: '12px',
-                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
                     zIndex: 1001,
                     minWidth: '200px',
                     overflow: 'hidden'
@@ -498,7 +488,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                       padding: '14px 16px',
                       border: 'none',
                       background: 'transparent',
-                      color: tokens.colors.text,
+                      color: '#ffffff',
                       fontSize: '16px',
                       textAlign: 'right',
                       cursor: 'pointer',
@@ -508,7 +498,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                       transition: 'background 0.2s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
+                      e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = 'transparent';
@@ -517,7 +507,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                     <span style={{ fontSize: '24px' }}>👥</span>
                     <span style={{ fontWeight: '600' }}>קבוצה חדשה</span>
                   </button>
-                  <div style={{ height: '1px', background: tokens.colors.background.cardBorder }} />
+                  <div style={{ height: '1px', background: 'rgba(0, 212, 255, 0.1)' }} />
                   <button
                     onClick={() => {
                       haptic();
@@ -530,7 +520,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                       padding: '14px 16px',
                       border: 'none',
                       background: 'transparent',
-                      color: tokens.colors.text,
+                      color: '#ffffff',
                       fontSize: '16px',
                       textAlign: 'right',
                       cursor: 'pointer',
@@ -540,7 +530,7 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                       transition: 'background 0.2s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = `${tokens.colors.brand.primary}20`;
+                      e.currentTarget.style.background = 'rgba(0, 212, 255, 0.2)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = 'transparent';
@@ -555,65 +545,32 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
           )}
         </div>
 
-        {/* Tabs */}
-        <div style={{
-          display: 'flex',
-          gap: '8px',
-          marginBottom: '20px',
-          borderBottom: `2px solid ${tokens.colors.background.cardBorder}`,
-          paddingBottom: '12px'
-        }}>
-          <TabButton
-            label="שיחות"
-            icon="💬"
-            active={activeTab === 'conversations'}
-            count={directMessageRooms.reduce((sum, dm) => sum + (dm.unread_count || 0), 0)}
-            onClick={() => {
-              haptic();
-              setActiveTab('conversations');
-            }}
-          />
-          <TabButton
-            label="קבוצות"
-            icon="👥"
-            active={activeTab === 'groups'}
-            onClick={() => {
-              haptic();
-              setActiveTab('groups');
-            }}
-          />
-          <TabButton
-            label="משתמשים"
-            icon="🔍"
-            active={activeTab === 'users'}
-            onClick={() => {
-              haptic();
-              setActiveTab('users');
-            }}
-          />
-        </div>
+        <UndergroundTabs
+          tabs={[
+            { id: 'conversations', label: 'שיחות', icon: '💬', count: directMessageRooms.reduce((sum, dm) => sum + (dm.unread_count || 0), 0) },
+            { id: 'groups', label: 'קבוצות', icon: '👥' },
+            { id: 'users', label: 'משתמשים', icon: '🔍' }
+          ]}
+          activeTab={activeTab}
+          onChange={(tabId) => {
+            haptic();
+            setActiveTab(tabId as ChatTab);
+          }}
+        />
 
-        {/* Search */}
+        <div style={{ height: '20px' }} />
+
         {activeTab !== 'users' && (
-          <input
-            type="text"
-            placeholder={activeTab === 'conversations' ? 'חפש שיחות...' : 'חפש קבוצות...'}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '14px 16px',
-              border: `1px solid ${tokens.colors.background.cardBorder}`,
-              borderRadius: '12px',
-              background: tokens.colors.background.card,
-              color: tokens.colors.text,
-              fontSize: '16px',
-              marginBottom: '20px'
-            }}
-          />
+          <div style={{ marginBottom: '20px' }}>
+            <UndergroundSearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder={activeTab === 'conversations' ? 'חפש שיחות...' : 'חפש קבוצות...'}
+              onClear={() => setSearchQuery('')}
+            />
+          </div>
         )}
 
-        {/* Content */}
         {activeTab === 'conversations' && (
           <ConversationsList
             conversations={filteredConversations}
@@ -657,13 +614,13 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  background: tokens.gradients.primary,
-                  border: '3px solid rgba(255, 255, 255, 0.2)',
+                  background: 'linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)',
+                  border: '3px solid rgba(0, 212, 255, 0.3)',
                   color: '#fff',
                   fontSize: '32px',
                   fontWeight: '300',
                   cursor: 'pointer',
-                  boxShadow: `${tokens.glows.primary}, 0 4px 20px rgba(29, 155, 240, 0.6)`,
+                  boxShadow: '0 4px 20px rgba(0, 212, 255, 0.6), 0 0 40px rgba(0, 212, 255, 0.4)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -673,11 +630,11 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'scale(1.15) rotate(90deg)';
-                  e.currentTarget.style.boxShadow = '0 8px 32px rgba(29, 155, 240, 0.9)';
+                  e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 212, 255, 0.9), 0 0 60px rgba(0, 212, 255, 0.6)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
-                  e.currentTarget.style.boxShadow = `${tokens.glows.primary}, 0 4px 20px rgba(29, 155, 240, 0.6)`;
+                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 212, 255, 0.6), 0 0 40px rgba(0, 212, 255, 0.4)';
                 }}
                 title="יצירת קבוצה חדשה"
               >
@@ -689,28 +646,20 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
 
         {activeTab === 'users' && (
           <div>
-            <div
-              style={{
-                padding: '12px 16px',
-                background: `${tokens.colors.brand.primary}15`,
-                border: `1px solid ${tokens.colors.brand.primary}40`,
-                borderRadius: '12px',
-                marginBottom: '16px'
-              }}
-            >
-              <div style={{ fontSize: '14px', fontWeight: '600', color: tokens.colors.text, marginBottom: '4px' }}>
+            <UndergroundCard>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: '#00d4ff', marginBottom: '4px' }}>
                 🌐 היקף גישה: {userScope === 'all' ? 'כל התשתית' : 'העסק שלך'}
               </div>
-              <div style={{ fontSize: '13px', color: tokens.colors.subtle }}>
+              <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)' }}>
                 {users.length} משתמשים זמינים ({onlineUsersCount} מחוברים, {offlineUsersCount} לא מחוברים)
               </div>
-            </div>
+            </UndergroundCard>
 
-            {/* User Filter Buttons */}
             <div style={{
               display: 'flex',
               gap: '8px',
               marginBottom: '16px',
+              marginTop: '16px',
               overflowX: 'auto',
               paddingBottom: '4px'
             }}>
@@ -745,21 +694,19 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                 }}
               />
             </div>
-            <div style={{
-              padding: '10px 16px',
-              background: `${tokens.colors.brand.primary}10`,
-              border: `1px solid ${tokens.colors.brand.primary}30`,
-              borderRadius: '10px',
-              marginBottom: '16px',
-              fontSize: '13px',
-              color: tokens.colors.subtle,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}>
-              <span style={{ fontSize: '16px' }}>ℹ️</span>
-              <span>מוצגים כל המשתמשים במערכת, לא רק מחוברים</span>
-            </div>
+            <UndergroundCard>
+              <div style={{
+                fontSize: '13px',
+                color: 'rgba(255, 255, 255, 0.6)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <span style={{ fontSize: '16px' }}>ℹ️</span>
+                <span>מוצגים כל המשתמשים במערכת, לא רק מחוברים</span>
+              </div>
+            </UndergroundCard>
+            <div style={{ height: '16px' }} />
             <UserListView
               users={filteredUsers}
               currentUser={currentUser}
@@ -772,7 +719,6 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
         )}
       </div>
 
-      {/* Group/Channel Creation Modal */}
       {currentUser && (
         <GroupChannelCreateModal
           isOpen={showCreateGroupModal}
@@ -790,7 +736,6 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
         />
       )}
 
-      {/* Click outside to close menu */}
       {showCreateMenu && (
         <div
           onClick={() => setShowCreateMenu(false)}
@@ -805,62 +750,18 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
         />
       )}
       </div>
-    </>
-  );
-}
 
-function TabButton({
-  label,
-  icon,
-  active,
-  count,
-  onClick
-}: {
-  label: string;
-  icon: string;
-  active: boolean;
-  count?: number;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        flex: 1,
-        padding: '12px 16px',
-        background: active ? tokens.gradients.primary : 'transparent',
-        border: 'none',
-        borderRadius: '12px',
-        color: active ? '#fff' : tokens.colors.subtle,
-        fontSize: '15px',
-        fontWeight: '600',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '8px',
-        transition: 'all 0.3s ease',
-        boxShadow: active ? tokens.glows.primary : 'none',
-        position: 'relative'
-      }}
-    >
-      <span style={{ fontSize: '18px' }}>{icon}</span>
-      <span>{label}</span>
-      {count && count > 0 ? (
-        <span style={{
-          padding: '2px 8px',
-          borderRadius: '12px',
-          background: '#ff3b30',
-          color: '#fff',
-          fontSize: '12px',
-          fontWeight: '700',
-          minWidth: '20px',
-          textAlign: 'center'
-        }}>
-          {count > 99 ? '99+' : count}
-        </span>
-      ) : null}
-    </button>
+      <style>{`
+        @keyframes pulse-button {
+          0%, 100% {
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.6), 0 0 40px rgba(0, 212, 255, 0.4);
+          }
+          50% {
+            box-shadow: 0 8px 30px rgba(0, 212, 255, 0.8), 0 0 60px rgba(0, 212, 255, 0.6);
+          }
+        }
+      `}</style>
+    </>
   );
 }
 
@@ -873,25 +774,22 @@ function ConversationsList({
 }) {
   if (conversations.length === 0) {
     return (
-      <div style={{
-        ...styles.emptyState.container,
-        padding: '60px 20px',
-        borderRadius: '16px',
-        background: tokens.colors.background.card
-      }}>
-        <div style={{ fontSize: '64px', marginBottom: '16px' }}>💬</div>
-        <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text, fontSize: '20px' }}>
-          אין שיחות פעילות
-        </h3>
-        <div style={{ ...styles.emptyState.containerText, fontSize: '15px' }}>
-          לחץ על "משתמשים" כדי להתחיל שיחה חדשה
+      <UndergroundCard>
+        <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+          <div style={{ fontSize: '64px', marginBottom: '16px' }}>💬</div>
+          <h3 style={{ margin: '0 0 12px 0', color: '#00d4ff', fontSize: '20px', fontWeight: '700' }}>
+            אין שיחות פעילות
+          </h3>
+          <div style={{ fontSize: '15px', color: 'rgba(255, 255, 255, 0.5)' }}>
+            לחץ על "משתמשים" כדי להתחיל שיחה חדשה
+          </div>
         </div>
-      </div>
+      </UndergroundCard>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {conversations.map((dm) => (
         <ConversationCard key={dm.room_id} conversation={dm} onClick={() => onSelect(dm)} />
       ))}
@@ -910,19 +808,25 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
       onClick={onClick}
       style={{
         padding: '12px 16px',
-        background: 'transparent',
+        background: 'rgba(255, 255, 255, 0.03)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(0, 212, 255, 0.1)',
+        borderRadius: '12px',
         cursor: 'pointer',
-        borderBottom: `1px solid ${tokens.colors.divider}`,
-        transition: 'background 0.2s ease',
+        transition: 'all 0.3s ease',
         display: 'flex',
         alignItems: 'center',
         gap: '12px'
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+        e.currentTarget.style.background = 'rgba(0, 212, 255, 0.1)';
+        e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+        e.currentTarget.style.transform = 'translateX(-4px)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = 'transparent';
+        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+        e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.1)';
+        e.currentTarget.style.transform = 'translateX(0)';
       }}
     >
       <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -933,7 +837,10 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
             borderRadius: '50%',
             background: otherUser?.photo_url
               ? `url(${otherUser.photo_url}) center/cover`
-              : 'linear-gradient(135deg, #0084FF 0%, #0073E6 100%)',
+              : 'linear-gradient(135deg, rgba(0, 212, 255, 0.3) 0%, rgba(123, 63, 242, 0.3) 100%)',
+            backdropFilter: 'blur(10px)',
+            border: '2px solid rgba(0, 212, 255, 0.2)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -953,9 +860,9 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
               width: '14px',
               height: '14px',
               borderRadius: '50%',
-              backgroundColor: tokens.colors.online,
-              border: `2px solid ${tokens.colors.background.primary}`,
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)'
+              background: 'linear-gradient(135deg, #00ff88 0%, #00cc66 100%)',
+              border: '2px solid rgba(13, 13, 13, 0.9)',
+              boxShadow: '0 0 12px rgba(0, 255, 136, 0.6)'
             }}
           />
         )}
@@ -968,7 +875,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
               margin: 0,
               fontSize: '16px',
               fontWeight: '600',
-              color: tokens.colors.text.primary,
+              color: '#ffffff',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
@@ -977,7 +884,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
             {userName}
           </h3>
           {conversation.room?.last_message_at && (
-            <span style={{ fontSize: '12px', color: tokens.colors.text.secondary, flexShrink: 0, marginLeft: '8px' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.4)', flexShrink: 0, marginLeft: '8px' }}>
               {formatTime(conversation.room.last_message_at)}
             </span>
           )}
@@ -989,7 +896,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
               style={{
                 margin: 0,
                 fontSize: '14px',
-                color: hasUnread ? tokens.colors.text.primary : tokens.colors.text.secondary,
+                color: hasUnread ? '#ffffff' : 'rgba(255, 255, 255, 0.5)',
                 fontWeight: hasUnread ? '500' : '400',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -1007,7 +914,7 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
                 height: '20px',
                 padding: '0 6px',
                 borderRadius: '10px',
-                background: tokens.colors.brand.primary,
+                background: 'linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)',
                 color: '#fff',
                 fontSize: '12px',
                 fontWeight: '600',
@@ -1015,7 +922,8 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginLeft: '8px',
-                flexShrink: 0
+                flexShrink: 0,
+                boxShadow: '0 0 12px rgba(0, 212, 255, 0.6)'
               }}
             >
               {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
@@ -1040,54 +948,25 @@ function GroupsList({
 }) {
   if (groups.length === 0) {
     return (
-      <div style={{
-        ...styles.emptyState.container,
-        padding: '60px 20px',
-        borderRadius: '16px',
-        background: tokens.colors.background.card
-      }}>
-        <div style={{ fontSize: '64px', marginBottom: '16px' }}>👥</div>
-        <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text, fontSize: '20px' }}>
-          אין קבוצות זמינות
-        </h3>
-        <div style={{ ...styles.emptyState.containerText, fontSize: '15px', marginBottom: '24px' }}>
-          {canCreateGroup
-            ? 'צור קבוצה חדשה כדי להתחיל שיחת צוות'
-            : 'קבוצות צ\'אט יופיעו כאן'}
+      <UndergroundCard>
+        <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+          <div style={{ fontSize: '64px', marginBottom: '16px' }}>👥</div>
+          <h3 style={{ margin: '0 0 12px 0', color: '#00d4ff', fontSize: '20px', fontWeight: '700' }}>
+            אין קבוצות זמינות
+          </h3>
+          <div style={{ fontSize: '15px', color: 'rgba(255, 255, 255, 0.5)', marginBottom: '24px' }}>
+            {canCreateGroup
+              ? 'צור קבוצה חדשה כדי להתחיל שיחת צוות'
+              : 'קבוצות צ\'אט יופיעו כאן'}
+          </div>
+          {canCreateGroup && onCreateGroup && (
+            <UndergroundButton onClick={onCreateGroup}>
+              <span style={{ fontSize: '20px' }}>+</span>
+              <span>צור קבוצה חדשה</span>
+            </UndergroundButton>
+          )}
         </div>
-        {canCreateGroup && onCreateGroup && (
-          <button
-            onClick={onCreateGroup}
-            style={{
-              padding: '14px 32px',
-              borderRadius: '12px',
-              border: 'none',
-              background: tokens.gradients.primary,
-              color: '#fff',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              boxShadow: tokens.glows.primary,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              margin: '0 auto',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(29, 155, 240, 0.6)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = tokens.glows.primary;
-            }}
-          >
-            <span style={{ fontSize: '20px' }}>+</span>
-            <span>צור קבוצה חדשה</span>
-          </button>
-        )}
-      </div>
+      </UndergroundCard>
     );
   }
 
@@ -1111,33 +990,14 @@ function ChatCard({ chat, onClick }: { chat: GroupChat; onClick: () => void }) {
   };
 
   return (
-    <div
-      onClick={onClick}
-      style={{
-        padding: '16px',
-        background: tokens.colors.background.card,
-        borderRadius: '16px',
-        cursor: 'pointer',
-        border: `1px solid ${tokens.colors.background.cardBorder}`,
-        transition: 'all 0.3s ease',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = '0 4px 16px rgba(29, 155, 240, 0.3)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
-      }}
-    >
+    <UndergroundCard onClick={onClick} style={{ cursor: 'pointer' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
         <div style={{
           width: '48px',
           height: '48px',
           borderRadius: '14px',
-          background: `${tokens.colors.brand.primary}20`,
-          border: `2px solid ${tokens.colors.brand.primary}40`,
+          background: 'rgba(0, 212, 255, 0.2)',
+          border: '2px solid rgba(0, 212, 255, 0.4)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1152,313 +1012,32 @@ function ChatCard({ chat, onClick }: { chat: GroupChat; onClick: () => void }) {
             margin: '0 0 6px 0',
             fontSize: '17px',
             fontWeight: '700',
-            color: tokens.colors.text
+            color: '#ffffff'
           }}>
             {chat.name}
           </h3>
           <p style={{
             margin: '0 0 6px 0',
             fontSize: '14px',
-            color: tokens.colors.subtle,
+            color: 'rgba(255, 255, 255, 0.6)',
             lineHeight: '1.5'
           }}>
             {chat.description}
           </p>
           <div style={{
             fontSize: '13px',
-            color: tokens.colors.subtle,
+            color: 'rgba(255, 255, 255, 0.5)',
             fontWeight: '500'
           }}>
             {chat.members.length} חברים
           </div>
         </div>
 
-        <div style={{ fontSize: '20px', color: tokens.colors.brand.primary }}>
+        <div style={{ fontSize: '20px', color: '#00d4ff' }}>
           ←
         </div>
       </div>
-    </div>
-  );
-}
-
-function ChatView({
-  chat,
-  messages,
-  newMessage,
-  setNewMessage,
-  onSendMessage,
-  currentUser,
-  haptic,
-  messagesEndRef
-}: {
-  chat: any;
-  messages: any[];
-  newMessage: string;
-  setNewMessage: (msg: string) => void;
-  onSendMessage: () => void;
-  currentUser?: User;
-  haptic: () => void;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
-}) {
-  const isDirectMessage = chat.type === 'direct';
-  const chatName = isDirectMessage
-    ? (chat.otherUser?.name || chat.otherUser?.username || 'משתמש')
-    : chat.name;
-
-  return (
-    <div style={{
-      background: 'linear-gradient(135deg, #1a0033 0%, #0a001a 100%)',
-      minHeight: '100vh',
-      direction: 'rtl',
-      display: 'flex',
-      flexDirection: 'column',
-      paddingBottom: '80px'
-    }}>
-      <div style={{
-        padding: '16px',
-        borderBottom: `2px solid ${tokens.colors.background.cardBorder}`,
-        background: tokens.colors.background.card,
-        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.3)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px'
-      }}>
-        {isDirectMessage && chat.otherUser && (
-          <div style={{ position: 'relative' }}>
-            <div
-              style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: '50%',
-                background: chat.otherUser.photo_url
-                  ? `url(${chat.otherUser.photo_url}) center/cover`
-                  : 'linear-gradient(135deg, rgba(29, 155, 240, 0.8), rgba(123, 63, 242, 0.8))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '18px',
-                fontWeight: '700',
-                color: '#fff',
-                border: `2px solid ${tokens.colors.background.cardBorder}`
-              }}
-            >
-              {!chat.otherUser.photo_url && (chat.otherUser.name?.[0] || '?')}
-            </div>
-            {chat.otherUser?.online_status === 'online' && (
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '0',
-                  right: '0',
-                  width: '12px',
-                  height: '12px',
-                  borderRadius: '50%',
-                  backgroundColor: '#34c759',
-                  border: '2px solid ' + tokens.colors.background.card
-                }}
-              />
-            )}
-          </div>
-        )}
-
-        <div style={{ flex: 1 }}>
-          <h2 style={{
-            margin: 0,
-            fontSize: '18px',
-            fontWeight: '700',
-            color: tokens.colors.text
-          }}>
-            {chatName}
-          </h2>
-          {!isDirectMessage && (
-            <p style={{
-              margin: '4px 0 0 0',
-              fontSize: '13px',
-              color: tokens.colors.subtle,
-              fontWeight: '500'
-            }}>
-              {chat.members?.length || 0} חברים פעילים
-            </p>
-          )}
-          {isDirectMessage && chat.otherUser && (
-            <p style={{
-              margin: '4px 0 0 0',
-              fontSize: '13px',
-              color: chat.otherUser.online_status === 'online' ? '#34c759' : '#8e8e93',
-              fontWeight: '500'
-            }}>
-              {chat.otherUser.online_status === 'online' ? 'פעיל עכשיו' : 'לא מחובר'}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Messages */}
-      <div style={{
-        flex: 1,
-        padding: '16px',
-        overflowY: 'auto',
-        maxHeight: 'calc(100vh - 180px)'
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              isMe={message.user === currentUser?.telegram_id}
-            />
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-      </div>
-
-      {/* Input */}
-      <div style={{
-        position: 'fixed',
-        bottom: '60px',
-        left: 0,
-        right: 0,
-        padding: '16px',
-        borderTop: `2px solid ${tokens.colors.background.cardBorder}`,
-        background: tokens.colors.background.card,
-        boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.3)'
-      }}>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', maxWidth: '600px', margin: '0 auto' }}>
-          <input
-            type="text"
-            placeholder="כתוב הודעה..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                onSendMessage();
-              }
-            }}
-            style={{
-              flex: 1,
-              padding: '14px 18px',
-              border: `1px solid ${tokens.colors.background.cardBorder}`,
-              borderRadius: '24px',
-              background: tokens.colors.panel,
-              color: tokens.colors.text,
-              fontSize: '16px'
-            }}
-          />
-          <button
-            onClick={onSendMessage}
-            disabled={!newMessage.trim()}
-            style={{
-              padding: '0',
-              background: newMessage.trim()
-                ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
-                : tokens.colors.background.cardBorder,
-              color: '#fff',
-              border: 'none',
-              borderRadius: '50%',
-              fontSize: '20px',
-              cursor: newMessage.trim() ? 'pointer' : 'not-allowed',
-              width: '48px',
-              height: '48px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: newMessage.trim() ? '0 4px 12px rgba(29, 155, 240, 0.4)' : 'none',
-              transition: 'all 0.3s ease'
-            }}
-          >
-            ↵
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MessageBubble({ message, isMe }: { message: any; isMe: boolean }) {
-  return (
-    <div style={{
-      display: 'flex',
-      justifyContent: isMe ? 'flex-start' : 'flex-end',
-      alignItems: 'flex-start',
-      gap: '10px'
-    }}>
-      {!isMe && (
-        <div style={{
-          width: '36px',
-          height: '36px',
-          borderRadius: '12px',
-          background: `${tokens.colors.brand.primary}30`,
-          border: `2px solid ${tokens.colors.brand.primary}50`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '18px',
-          flexShrink: 0
-        }}>
-          {message.avatar}
-        </div>
-      )}
-
-      <div style={{
-        maxWidth: '70%',
-        padding: '12px 16px',
-        background: isMe
-          ? 'linear-gradient(135deg, #1D9BF0 0%, #1A8CD8 100%)'
-          : tokens.colors.background.card,
-        color: '#fff',
-        borderRadius: '18px',
-        borderBottomRightRadius: isMe ? '4px' : '18px',
-        borderBottomLeftRadius: isMe ? '18px' : '4px',
-        border: isMe ? 'none' : `1px solid ${tokens.colors.background.cardBorder}`,
-        boxShadow: isMe
-          ? '0 4px 12px rgba(29, 155, 240, 0.3)'
-          : '0 2px 8px rgba(0, 0, 0, 0.2)'
-      }}>
-        {!isMe && (
-          <div style={{
-            fontSize: '13px',
-            fontWeight: '700',
-            marginBottom: '6px',
-            color: tokens.colors.brand.primary
-          }}>
-            {message.user}
-          </div>
-        )}
-        <div style={{
-          fontSize: '15px',
-          lineHeight: '1.5',
-          color: isMe ? '#fff' : tokens.colors.text
-        }}>
-          {message.message}
-        </div>
-        <div style={{
-          fontSize: '11px',
-          marginTop: '6px',
-          opacity: 0.8,
-          textAlign: isMe ? 'left' : 'right',
-          color: isMe ? '#fff' : tokens.colors.subtle
-        }}>
-          {formatTime(message.timestamp)}
-        </div>
-      </div>
-
-      {isMe && (
-        <div style={{
-          width: '36px',
-          height: '36px',
-          borderRadius: '12px',
-          background: `${tokens.colors.status.warning}30`,
-          border: `2px solid ${tokens.colors.status.warning}50`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '18px',
-          flexShrink: 0
-        }}>
-          👤
-        </div>
-      )}
-    </div>
+    </UndergroundCard>
   );
 }
 
@@ -1481,9 +1060,10 @@ function FilterButton({
       style={{
         padding: '8px 16px',
         borderRadius: '20px',
-        border: `2px solid ${active ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
-        background: active ? tokens.gradients.primary : tokens.colors.background.card,
-        color: active ? '#fff' : tokens.colors.text,
+        border: active ? '2px solid rgba(0, 212, 255, 0.4)' : '2px solid rgba(255, 255, 255, 0.1)',
+        background: active ? 'linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(123, 63, 242, 0.2) 100%)' : 'rgba(255, 255, 255, 0.03)',
+        backdropFilter: 'blur(10px)',
+        color: active ? '#00d4ff' : 'rgba(255, 255, 255, 0.7)',
         fontSize: '14px',
         fontWeight: '600',
         cursor: 'pointer',
@@ -1491,9 +1071,21 @@ function FilterButton({
         display: 'flex',
         alignItems: 'center',
         gap: '6px',
-        transition: 'all 0.2s ease',
-        boxShadow: active ? tokens.glows.primary : 'none',
+        transition: 'all 0.3s ease',
+        boxShadow: active ? '0 0 20px rgba(0, 212, 255, 0.2)' : 'none',
         flexShrink: 0
+      }}
+      onMouseEnter={(e) => {
+        if (!active) {
+          e.currentTarget.style.background = 'rgba(0, 212, 255, 0.1)';
+          e.currentTarget.style.borderColor = 'rgba(0, 212, 255, 0.3)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active) {
+          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+        }
       }}
     >
       <span style={{ fontSize: '16px' }}>{icon}</span>
@@ -1501,7 +1093,7 @@ function FilterButton({
       <span style={{
         padding: '2px 8px',
         borderRadius: '10px',
-        background: active ? 'rgba(255, 255, 255, 0.2)' : 'rgba(29, 155, 240, 0.2)',
+        background: active ? 'rgba(0, 212, 255, 0.3)' : 'rgba(255, 255, 255, 0.1)',
         fontSize: '12px',
         minWidth: '20px',
         textAlign: 'center'
