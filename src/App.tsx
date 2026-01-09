@@ -49,6 +49,8 @@ import { PermissionProvider } from './lib/permissions/PermissionContext';
 import { UserRole } from './shells/types';
 import { OfflineSyncIndicator } from './components/OfflineSyncIndicator';
 import { ServiceProvider } from './foundation/container/ServiceProvider';
+import { ModalProvider } from './context/ModalContext';
+import { ModalManager } from './components/modals/ModalManager';
 
 // All page components are now lazy-loaded in MigrationRouter
 
@@ -828,15 +830,16 @@ export default function App() {
       boundaryName="App"
     >
       <Suspense fallback={<PageLoadingSkeleton />}>
-        <LanguageProvider>
-          <PermissionProvider role={userRole as UserRole}>
-            <PageTitleProvider>
-              <ServiceProvider dataStore={dataStore}>
-                <NavControllerProvider>
-                  <UIControllerProvider>
-                    <DrawerControllerProvider>
-                      <DataSandboxProvider>
-                        <ShellProvider
+        <ModalProvider>
+          <LanguageProvider>
+            <PermissionProvider role={userRole as UserRole}>
+              <PageTitleProvider>
+                <ServiceProvider dataStore={dataStore}>
+                  <NavControllerProvider>
+                    <UIControllerProvider>
+                      <DrawerControllerProvider>
+                        <DataSandboxProvider>
+                          <ShellProvider
                           value={{
                             currentPage,
                             handleNavigate,
@@ -886,7 +889,9 @@ export default function App() {
               </ServiceProvider>
             </PageTitleProvider>
           </PermissionProvider>
-        </LanguageProvider>
+          <ModalManager />
+          </LanguageProvider>
+        </ModalProvider>
       </Suspense>
 
       {/* Session migration notice */}
