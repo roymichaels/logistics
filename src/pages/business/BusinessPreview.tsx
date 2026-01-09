@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Edit2, Eye, ExternalLink, Upload, Plus, Settings as SettingsIcon } from 'lucide-react';
+import { Edit2, Eye, ExternalLink, Upload, Plus, Settings as SettingsIcon, Globe, Lock } from 'lucide-react';
 import { getBusiness, getPublicBusinessCatalog, BusinessRecord, updateBusiness } from '../../services/business';
 import { useSafeAppServices } from '../../context/AppServicesContext';
 import { useAuth } from '../../context/AuthContext';
@@ -9,11 +9,15 @@ import { EditOverlay } from '../../components/edit/EditOverlay';
 import { EditButton } from '../../components/edit/EditButton';
 import { QuickActionMenu, QuickAction } from '../../components/edit/QuickActionMenu';
 import { EditBusinessInfoModal } from '../../components/modals/business/EditBusinessInfoModal';
+import { EditContactInfoModal } from '../../components/modals/business/EditContactInfoModal';
 import { ImageUploadModal } from '../../components/modals/shared/ImageUploadModal';
+import { InlineTextEdit } from '../../components/edit/InlineTextEdit';
+import { ImageUploadButton } from '../../components/business/ImageUploadButton';
 import { ProductCard, ProductCardSkeleton } from '../../components/molecules/ProductCard';
 import { EmptyState } from '../../components/molecules/EmptyState';
 import { Text } from '../../components/atoms/Typography';
 import { Grid } from '../../components/atoms/Grid';
+import { Toast } from '../../components/Toast';
 
 interface Product {
   id: string;
@@ -36,6 +40,7 @@ export default function BusinessPreview() {
   const [showEditInfoModal, setShowEditInfoModal] = useState(false);
   const [showBannerUploadModal, setShowBannerUploadModal] = useState(false);
   const [showLogoUploadModal, setShowLogoUploadModal] = useState(false);
+  const [showContactInfoModal, setShowContactInfoModal] = useState(false);
 
   const isOwner = user && business && business.owner_id === user.id;
 
@@ -83,16 +88,102 @@ export default function BusinessPreview() {
     }
   };
 
-  const handleBannerUpload = async (files: File[]) => {
-    if (!business || files.length === 0) return;
+  const handleBannerUpload = async (publicUrl: string) => {
+    if (!business) return;
 
-    logger.info('[BusinessPreview] Banner upload requested', { files: files.length });
+    try {
+      const updated = await updateBusiness(business.id, {
+        banner_image_url: publicUrl,
+      });
+      setBusiness(updated);
+      Toast.success('Banner updated successfully');
+      logger.info('[BusinessPreview] Banner uploaded', { publicUrl });
+    } catch (error) {
+      logger.error('[BusinessPreview] Failed to update banner', error);
+      Toast.error('Failed to update banner');
+      throw error;
+    }
   };
 
-  const handleLogoUpload = async (files: File[]) => {
-    if (!business || files.length === 0) return;
+  const handleLogoUpload = async (publicUrl: string) => {
+    if (!business) return;
 
-    logger.info('[BusinessPreview] Logo upload requested', { files: files.length });
+    try {
+      const updated = await updateBusiness(business.id, {
+        logo_url: publicUrl,
+      });
+      setBusiness(updated);
+      Toast.success('Logo updated successfully');
+      logger.info('[BusinessPreview] Logo uploaded', { publicUrl });
+    } catch (error) {
+      logger.error('[BusinessPreview] Failed to update logo', error);
+      Toast.error('Failed to update logo');
+      throw error;
+    }
+  };
+
+  const handleUpdateName = async (name: string) => {
+    if (!business) return;
+
+    try {
+      const updated = await updateBusiness(business.id, { name });
+      setBusiness(updated);
+      Toast.success('Business name updated');
+      logger.info('[BusinessPreview] Name updated', { name });
+    } catch (error) {
+      logger.error('[BusinessPreview] Failed to update name', error);
+      Toast.error('Failed to update name');
+      throw error;
+    }
+  };
+
+  const handleUpdateTagline = async (tagline: string) => {
+    if (!business) return;
+
+    try {
+      const updated = await updateBusiness(business.id, { tagline });
+      setBusiness(updated);
+      Toast.success('Tagline updated');
+      logger.info('[BusinessPreview] Tagline updated', { tagline });
+    } catch (error) {
+      logger.error('[BusinessPreview] Failed to update tagline', error);
+      Toast.error('Failed to update tagline');
+      throw error;
+    }
+  };
+
+  const handleTogglePublic = async () => {
+    if (!business) return;
+
+    const newPublicStatus = !business.is_public;
+
+    try {
+      const updated = await updateBusiness(business.id, {
+        is_public: newPublicStatus,
+      });
+      setBusiness(updated);
+      Toast.success(newPublicStatus ? 'Business page is now public' : 'Business page is now private');
+      logger.info('[BusinessPreview] Public status toggled', { is_public: newPublicStatus });
+    } catch (error) {
+      logger.error('[BusinessPreview] Failed to toggle public status', error);
+      Toast.error('Failed to update public status');
+      throw error;
+    }
+  };
+
+  const handleUpdateContactInfo = async (data: { public_email?: string; public_phone?: string }) => {
+    if (!business) return;
+
+    try {
+      const updated = await updateBusiness(business.id, data);
+      setBusiness(updated);
+      Toast.success('Contact information updated');
+      logger.info('[BusinessPreview] Contact info updated', data);
+    } catch (error) {
+      logger.error('[BusinessPreview] Failed to update contact info', error);
+      Toast.error('Failed to update contact info');
+      throw error;
+    }
   };
 
   if (loading) {
@@ -165,15 +256,9 @@ export default function BusinessPreview() {
       requirePermission: 'edit',
     },
     {
-      label: 'Change banner',
-      icon: <Upload size={16} />,
-      onClick: () => setShowBannerUploadModal(true),
-      requirePermission: 'edit',
-    },
-    {
-      label: 'Change logo',
-      icon: <Upload size={16} />,
-      onClick: () => setShowLogoUploadModal(true),
+      label: 'Edit contact info',
+      icon: <Edit2 size={16} />,
+      onClick: () => setShowContactInfoModal(true),
       requirePermission: 'edit',
     },
     {
@@ -233,6 +318,37 @@ export default function BusinessPreview() {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            {isOwner && (
+              <button
+                onClick={handleTogglePublic}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 20px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#ffffff',
+                  background: isPublic ? '#10b981' : '#6b7280',
+                  border: 'none',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                }}
+              >
+                {isPublic ? <Globe size={16} /> : <Lock size={16} />}
+                <span>{isPublic ? 'Public' : 'Private'}</span>
+              </button>
+            )}
             {isPublic && (
               <a
                 href={publicUrl}
@@ -404,27 +520,30 @@ export default function BusinessPreview() {
                 )
               )}
               <div style={{ flex: 1, minWidth: '280px' }}>
-                <h1 style={{
-                  color: '#ffffff',
-                  fontSize: 'clamp(32px, 5vw, 56px)',
-                  fontWeight: 800,
-                  marginBottom: '12px',
-                  textShadow: '0 4px 16px rgba(0, 0, 0, 0.6)',
-                  lineHeight: 1.1,
-                }}>
-                  {business.name}
-                </h1>
-                {business.tagline && (
-                  <p style={{
-                    color: 'rgba(255, 255, 255, 0.95)',
-                    fontSize: 'clamp(18px, 3vw, 26px)',
-                    fontWeight: 500,
-                    textShadow: '0 2px 12px rgba(0, 0, 0, 0.6)',
-                    maxWidth: '700px',
-                  }}>
-                    {business.tagline}
-                  </p>
-                )}
+                <div style={{ marginBottom: '12px' }}>
+                  <InlineTextEdit
+                    value={business.name}
+                    onSave={handleUpdateName}
+                    maxLength={100}
+                    fontSize="clamp(32px, 5vw, 56px)"
+                    fontWeight="800"
+                    canEdit={isOwner}
+                    placeholder="Business name"
+                  />
+                </div>
+                <div>
+                  <InlineTextEdit
+                    value={business.tagline || ''}
+                    onSave={handleUpdateTagline}
+                    maxLength={150}
+                    fontSize="clamp(18px, 3vw, 26px)"
+                    fontWeight="500"
+                    canEdit={isOwner}
+                    emptyText="Add a tagline"
+                    placeholder="Enter your business tagline"
+                    multiline
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -556,7 +675,7 @@ export default function BusinessPreview() {
             </div>
           )}
 
-          {(business.public_email || business.public_phone) && (
+          {isOwner && (
             <div style={{
               display: 'flex',
               flexWrap: 'wrap',
@@ -565,6 +684,87 @@ export default function BusinessPreview() {
               marginTop: '32px',
               borderTop: '1px solid rgba(255, 255, 255, 0.1)',
             }}>
+              <div style={{ flex: '1', minWidth: '250px' }}>
+                <h3 style={{
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  marginBottom: '12px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                }}>
+                  Business Images
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <ImageUploadButton
+                    businessId={business.id}
+                    currentImageUrl={business.banner_image_url}
+                    uploadType="banner"
+                    onUploadComplete={handleBannerUpload}
+                  />
+                  <ImageUploadButton
+                    businessId={business.id}
+                    currentImageUrl={business.logo_url}
+                    uploadType="logo"
+                    onUploadComplete={handleLogoUpload}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(business.public_email || business.public_phone || isOwner) && (
+            <div style={{
+              paddingTop: '32px',
+              marginTop: '32px',
+              borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '16px',
+              }}>
+                <h3 style={{
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  margin: 0,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                }}>
+                  Contact Information
+                </h3>
+                {isOwner && (
+                  <button
+                    onClick={() => setShowContactInfoModal(true)}
+                    style={{
+                      padding: '6px 16px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: tokens.colors.primary,
+                      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                      border: `1px solid ${tokens.colors.primary}`,
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                    }}
+                  >
+                    ✏️ Edit
+                  </button>
+                )}
+              </div>
+              <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '16px',
+              }}>
               {business.public_email && (
                 <a
                   href={`mailto:${business.public_email}`}
@@ -659,11 +859,45 @@ export default function BusinessPreview() {
                   </div>
                 </a>
               )}
+              {!business.public_email && !business.public_phone && isOwner && (
+                <div style={{
+                  padding: '24px',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '2px dashed rgba(255, 255, 255, 0.15)',
+                  borderRadius: '12px',
+                  textAlign: 'center',
+                }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px', opacity: 0.5 }}>📞</div>
+                  <p style={{
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    margin: '0 0 8px 0',
+                  }}>
+                    No contact information yet
+                  </p>
+                  <p style={{
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    fontSize: '12px',
+                    margin: 0,
+                  }}>
+                    Add your email and phone so customers can reach you
+                  </p>
+                </div>
+              )}
+            </div>
             </div>
           )}
         </div>
 
-        <div>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '24px',
+          padding: '32px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+        }}>
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -822,28 +1056,12 @@ export default function BusinessPreview() {
         />
       )}
 
-      {showBannerUploadModal && (
-        <ImageUploadModal
-          title="Upload Banner Image"
-          currentImages={business.banner_image_url ? [business.banner_image_url] : []}
-          maxImages={1}
-          maxSizeMB={10}
-          recommendedSize="1920x600px"
-          onSave={handleBannerUpload}
-          onClose={() => setShowBannerUploadModal(false)}
-        />
-      )}
-
-      {showLogoUploadModal && (
-        <ImageUploadModal
-          title="Upload Logo"
-          currentImages={business.logo_url ? [business.logo_url] : []}
-          maxImages={1}
-          maxSizeMB={5}
-          aspectRatio={1}
-          recommendedSize="512x512px"
-          onSave={handleLogoUpload}
-          onClose={() => setShowLogoUploadModal(false)}
+      {showContactInfoModal && (
+        <EditContactInfoModal
+          currentEmail={business.public_email}
+          currentPhone={business.public_phone}
+          onSave={handleUpdateContactInfo}
+          onClose={() => setShowContactInfoModal(false)}
         />
       )}
 
