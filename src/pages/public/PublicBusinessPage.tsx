@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getBusinessBySlug, getPublicBusinessCatalog, BusinessRecord } from '../../services/business';
 import { logger } from '../../lib/logger';
+import { useAuth } from '../../context/AuthContext';
+import { useBusinessContext } from '../../hooks/useBusinessContext';
 
 interface Product {
   id: string;
@@ -14,10 +16,14 @@ interface Product {
 
 export default function PublicBusinessPage() {
   const { slug } = useParams<{ slug: string }>();
+  const { user } = useAuth();
+  const { activeBusiness } = useBusinessContext();
   const [business, setBusiness] = useState<BusinessRecord | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const isOwner = user && business && business.owner_id === user.id;
 
   useEffect(() => {
     const loadBusinessData = async () => {
@@ -114,7 +120,23 @@ export default function PublicBusinessPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">About Us</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-800">About Us</h2>
+            {isOwner && (
+              <Link
+                to={`/business/${business.id}/settings`}
+                className="inline-flex items-center px-3 py-1.5 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+              >
+                <div style={{ width: '14px', height: '14px', flexShrink: 0, marginRight: '4px' }}>
+                  <svg style={{ width: '14px', height: '14px', maxWidth: '14px', maxHeight: '14px', display: 'block' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                Edit Settings
+              </Link>
+            )}
+          </div>
           {business.description ? (
             <p className="text-gray-700 leading-relaxed">{business.description}</p>
           ) : (
@@ -124,9 +146,11 @@ export default function PublicBusinessPage() {
           <div className="mt-6 flex flex-wrap gap-6">
             {business.public_email && (
               <div className="flex items-center text-gray-700">
-                <svg className="w-5 h-5 mr-2" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
+                <div style={{ width: '20px', height: '20px', flexShrink: 0, marginRight: '8px' }}>
+                  <svg style={{ width: '20px', height: '20px', maxWidth: '20px', maxHeight: '20px', display: 'block' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
                 <a href={`mailto:${business.public_email}`} className="hover:text-blue-600">
                   {business.public_email}
                 </a>
@@ -134,9 +158,11 @@ export default function PublicBusinessPage() {
             )}
             {business.public_phone && (
               <div className="flex items-center text-gray-700">
-                <svg className="w-5 h-5 mr-2" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
+                <div style={{ width: '20px', height: '20px', flexShrink: 0, marginRight: '8px' }}>
+                  <svg style={{ width: '20px', height: '20px', maxWidth: '20px', maxHeight: '20px', display: 'block' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                </div>
                 <a href={`tel:${business.public_phone}`} className="hover:text-blue-600">
                   {business.public_phone}
                 </a>
@@ -148,16 +174,41 @@ export default function PublicBusinessPage() {
         <div>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-800">Our Catalog</h2>
-            <p className="text-gray-600">{products.length} products</p>
+            <div className="flex items-center gap-4">
+              <p className="text-gray-600">{products.length} products</p>
+              {isOwner && (
+                <Link
+                  to={`/business/${business.id}/catalog`}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                  <div style={{ width: '16px', height: '16px', flexShrink: 0, marginRight: '6px' }}>
+                    <svg style={{ width: '16px', height: '16px', maxWidth: '16px', maxHeight: '16px', display: 'block' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </div>
+                  Manage Catalog
+                </Link>
+              )}
+            </div>
           </div>
 
           {products.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-              <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-              </svg>
+              <div style={{ width: '64px', height: '64px', margin: '0 auto 16px' }}>
+                <svg style={{ width: '64px', height: '64px', maxWidth: '64px', maxHeight: '64px', display: 'block' }} className="text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+              </div>
               <p className="text-xl text-gray-600">No products available yet</p>
               <p className="text-gray-500 mt-2">Check back soon for new items!</p>
+              {isOwner && (
+                <Link
+                  to={`/business/${business.id}/catalog`}
+                  className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Add Your First Product
+                </Link>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -171,9 +222,11 @@ export default function PublicBusinessPage() {
                     />
                   ) : (
                     <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                      <svg className="w-16 h-16 text-gray-400" width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                      </svg>
+                      <div style={{ width: '64px', height: '64px' }}>
+                        <svg style={{ width: '64px', height: '64px', maxWidth: '64px', maxHeight: '64px', display: 'block' }} className="text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        </svg>
+                      </div>
                     </div>
                   )}
                   <div className="p-4">
