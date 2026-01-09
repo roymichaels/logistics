@@ -1,11 +1,5 @@
 import React from 'react';
-import { TELEGRAM_THEME } from '../../styles/telegramTheme';
-
-const spacing: any = TELEGRAM_THEME.spacing;
-const colors = TELEGRAM_THEME.colors;
-const borderRadius = TELEGRAM_THEME.radius;
-const transitions = TELEGRAM_THEME.transitions;
-const typography = TELEGRAM_THEME.typography;
+import { modernTokens } from '../../styles/modernTokens';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'elevated' | 'outlined' | 'flat' | 'glass';
@@ -13,14 +7,16 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   hoverable?: boolean;
   noPadding?: boolean;
   interactive?: boolean;
+  title?: string;
 }
 
 export function Card({
   variant = 'default',
-  padding = 4,
+  padding = 24,
   hoverable = false,
   noPadding = false,
   interactive = false,
+  title,
   children,
   style,
   className,
@@ -31,32 +27,32 @@ export function Card({
 
   const variantStyles: Record<string, React.CSSProperties> = {
     default: {
-      background: colors.card.background,
-      border: colors.card.border,
-      boxShadow: 'none',
+      background: modernTokens.gradients.card,
+      border: `1px solid ${modernTokens.colors.border.default}`,
+      boxShadow: modernTokens.shadows.md,
       backdropFilter: 'blur(20px)',
     },
     elevated: {
-      background: colors.card.background,
-      boxShadow: colors.shadow,
-      border: colors.card.border,
+      background: modernTokens.gradients.card,
+      boxShadow: modernTokens.shadows.lg,
+      border: `1px solid ${modernTokens.colors.border.default}`,
       backdropFilter: 'blur(20px)',
     },
     outlined: {
       background: 'transparent',
-      border: `1px solid ${colors.border.primary}`,
+      border: `1px solid ${modernTokens.colors.border.strong}`,
       boxShadow: 'none',
     },
     flat: {
-      background: colors.background.tertiary,
+      background: modernTokens.colors.background.surface,
       border: 'none',
       boxShadow: 'none',
     },
     glass: {
-      background: TELEGRAM_THEME.glass.background,
-      border: TELEGRAM_THEME.glass.border,
-      backdropFilter: TELEGRAM_THEME.glass.backdropFilter,
-      boxShadow: TELEGRAM_THEME.glass.shadow,
+      background: modernTokens.gradients.glass,
+      border: `1px solid ${modernTokens.colors.border.subtle}`,
+      backdropFilter: 'blur(20px)',
+      boxShadow: modernTokens.shadows.md,
     },
   };
 
@@ -66,15 +62,16 @@ export function Card({
     if (isPressed) {
       return {
         transform: 'scale(0.98)',
-        background: colors.background.hover,
+        background: modernTokens.gradients.cardHover,
       };
     }
 
     if (isHovered) {
       return {
-        background: colors.card.hover,
-        border: variant !== 'flat' ? `1px solid ${colors.border.hover}` : 'none',
-        boxShadow: variant === 'elevated' ? colors.shadowLarge : colors.shadow,
+        background: modernTokens.gradients.cardHover,
+        border: variant !== 'flat' ? `1px solid ${modernTokens.colors.border.hover}` : 'none',
+        boxShadow: variant === 'elevated' ? modernTokens.shadows.xl : modernTokens.shadows.lg,
+        transform: 'translateY(-2px)',
       };
     }
 
@@ -82,9 +79,9 @@ export function Card({
   };
 
   const cardStyles: React.CSSProperties = {
-    borderRadius: borderRadius.lg,
-    padding: noPadding ? 0 : spacing['2xl'],
-    transition: transitions.normal,
+    borderRadius: modernTokens.radius.lg,
+    padding: noPadding ? 0 : padding,
+    transition: modernTokens.transitions.normal,
     cursor: hoverable || interactive ? 'pointer' : 'default',
     userSelect: 'none',
     WebkitTapHighlightColor: 'transparent',
@@ -108,6 +105,19 @@ export function Card({
       onTouchEnd={() => setIsPressed(false)}
       {...props}
     >
+      {title && (
+        <h3
+          style={{
+            margin: 0,
+            marginBottom: modernTokens.spacing.lg,
+            fontSize: modernTokens.typography.fontSize.xl,
+            fontWeight: modernTokens.typography.fontWeight.bold,
+            color: modernTokens.colors.text.primary,
+          }}
+        >
+          {title}
+        </h3>
+      )}
       {children}
     </div>
   );
@@ -127,20 +137,20 @@ export function CardHeader({ title, subtitle, action, noBorder = false }: CardHe
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
-        marginBottom: spacing[4],
-        paddingBottom: noBorder ? 0 : spacing[3],
-        borderBottom: noBorder ? 'none' : `1px solid ${colors.border.primary}`,
+        marginBottom: modernTokens.spacing.lg,
+        paddingBottom: noBorder ? 0 : modernTokens.spacing.md,
+        borderBottom: noBorder ? 'none' : `1px solid ${modernTokens.colors.border.default}`,
       }}
     >
       <div style={{ flex: 1 }}>
         <h3
           style={{
             margin: 0,
-            fontSize: typography.fontSize.xl,
-            fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
-            marginBottom: subtitle ? spacing[1] : 0,
-            lineHeight: typography.lineHeight.tight,
+            fontSize: modernTokens.typography.fontSize.xl,
+            fontWeight: modernTokens.typography.fontWeight.bold,
+            color: modernTokens.colors.text.primary,
+            marginBottom: subtitle ? modernTokens.spacing.xs : 0,
+            lineHeight: modernTokens.typography.lineHeight.tight,
           }}
         >
           {title}
@@ -149,16 +159,16 @@ export function CardHeader({ title, subtitle, action, noBorder = false }: CardHe
           <p
             style={{
               margin: 0,
-              fontSize: typography.fontSize.sm,
-              color: colors.text.secondary,
-              lineHeight: typography.lineHeight.normal,
+              fontSize: modernTokens.typography.fontSize.sm,
+              color: modernTokens.colors.text.secondary,
+              lineHeight: modernTokens.typography.lineHeight.normal,
             }}
           >
             {subtitle}
           </p>
         )}
       </div>
-      {action && <div style={{ marginLeft: spacing[3] }}>{action}</div>}
+      {action && <div style={{ marginLeft: modernTokens.spacing.md }}>{action}</div>}
     </div>
   );
 }
@@ -167,11 +177,11 @@ export interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
   spacing?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12 | 16 | 20 | 24;
 }
 
-export function CardContent({ spacing: spacingSize = 3, children, style, ...props }: CardContentProps) {
+export function CardContent({ spacing = 12, children, style, ...props }: CardContentProps) {
   return (
     <div
       style={{
-        padding: `${spacing[spacingSize]} 0`,
+        padding: `${spacing}px 0`,
         ...style,
       }}
       {...props}
@@ -192,10 +202,10 @@ export function CardFooter({ noBorder = false, children, style, ...props }: Card
         display: 'flex',
         justifyContent: 'flex-end',
         alignItems: 'center',
-        gap: spacing[3],
-        paddingTop: spacing[3],
-        marginTop: spacing[3],
-        borderTop: noBorder ? 'none' : `1px solid ${colors.border.primary}`,
+        gap: modernTokens.spacing.md,
+        paddingTop: modernTokens.spacing.md,
+        marginTop: modernTokens.spacing.md,
+        borderTop: noBorder ? 'none' : `1px solid ${modernTokens.colors.border.default}`,
         ...style,
       }}
       {...props}

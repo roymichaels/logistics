@@ -1,5 +1,5 @@
 import React from 'react';
-import { tokens } from '../../styles/tokens';
+import { modernTokens } from '../../styles/modernTokens';
 
 interface PageContainerProps {
   children: React.ReactNode;
@@ -18,10 +18,10 @@ export function PageContainer({
     <div
       style={{
         minHeight: '100vh',
-        background: tokens.colors.panel,
+        background: modernTokens.colors.background.base,
         padding: '20px',
         paddingBottom: '100px',
-        color: tokens.colors.text,
+        color: modernTokens.colors.text.primary,
         position: 'relative',
         overflow: 'hidden',
         ...style
@@ -33,7 +33,7 @@ export function PageContainer({
             position: 'absolute',
             inset: 0,
             background:
-              'radial-gradient(80% 80% at 80% 10%, rgba(29, 155, 240, 0.08) 0%, rgba(21, 32, 43, 0) 60%)',
+              'radial-gradient(80% 80% at 80% 10%, rgba(0, 212, 255, 0.06) 0%, rgba(10, 14, 20, 0) 60%)',
             pointerEvents: 'none'
           }}
         />

@@ -9,7 +9,7 @@ import { PageHeader } from '../../components/layout/PageHeader';
 import { Card } from '../../components/molecules/Card';
 import { StatCard } from '../../components/molecules/StatCard';
 import { NoActiveBusiness } from '../../components/NoActiveBusiness';
-import { tokens } from '../../styles/tokens';
+import { modernTokens } from '../../styles/modernTokens';
 import { useBusinessStats } from '../../hooks/useBusinessStats';
 import { formatCurrency, formatNumber, formatTimeAgo } from '../../utils/businessFormatters';
 
@@ -219,7 +219,7 @@ export function UnifiedBusinessDashboard() {
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: '60vh',
-          color: tokens.colors.text
+          color: modernTokens.colors.text.primary
         }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
@@ -238,7 +238,7 @@ export function UnifiedBusinessDashboard() {
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: '60vh',
-          color: tokens.colors.text
+          color: modernTokens.colors.text.primary
         }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
@@ -251,12 +251,13 @@ export function UnifiedBusinessDashboard() {
                 padding: '12px 24px',
                 fontSize: '16px',
                 fontWeight: '600',
-                borderRadius: '8px',
+                borderRadius: modernTokens.radius.md,
                 border: 'none',
-                backgroundColor: tokens.colors.primary,
+                background: modernTokens.gradients.primary,
                 color: '#ffffff',
                 cursor: 'pointer',
-                marginTop: '16px'
+                marginTop: '16px',
+                boxShadow: modernTokens.glows.primary,
               }}
             >
               נסה שנית
@@ -275,7 +276,7 @@ export function UnifiedBusinessDashboard() {
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: '60vh',
-          color: tokens.colors.text
+          color: modernTokens.colors.text.primary
         }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏢</div>
@@ -309,11 +310,12 @@ export function UnifiedBusinessDashboard() {
                 padding: '10px 16px',
                 fontSize: '14px',
                 fontWeight: '500',
-                borderRadius: '8px',
-                border: `1px solid ${tokens.colors.border}`,
-                backgroundColor: tokens.colors.surface,
-                color: tokens.colors.text,
-                cursor: 'pointer'
+                borderRadius: modernTokens.radius.md,
+                border: `1px solid ${modernTokens.colors.border.default}`,
+                backgroundColor: modernTokens.colors.background.surface,
+                color: modernTokens.colors.text.primary,
+                cursor: 'pointer',
+                transition: modernTokens.transitions.fast,
               }}
             >
               <option value="1d">היום</option>
@@ -329,14 +331,16 @@ export function UnifiedBusinessDashboard() {
                 padding: '10px 16px',
                 fontSize: '14px',
                 fontWeight: '500',
-                borderRadius: '8px',
-                border: `1px solid ${tokens.colors.border}`,
-                backgroundColor: showCustomize ? tokens.colors.accent : tokens.colors.surface,
-                color: showCustomize ? '#ffffff' : tokens.colors.text,
+                borderRadius: modernTokens.radius.md,
+                border: showCustomize ? 'none' : `1px solid ${modernTokens.colors.border.default}`,
+                background: showCustomize ? modernTokens.gradients.primary : modernTokens.colors.background.surface,
+                color: '#ffffff',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '8px',
+                boxShadow: showCustomize ? modernTokens.glows.primary : 'none',
+                transition: modernTokens.transitions.normal,
               }}
             >
               <span>⚙️</span>
@@ -349,11 +353,12 @@ export function UnifiedBusinessDashboard() {
                 padding: '10px 16px',
                 fontSize: '14px',
                 fontWeight: '500',
-                borderRadius: '8px',
-                border: `1px solid ${tokens.colors.border}`,
-                backgroundColor: tokens.colors.surface,
-                color: tokens.colors.text,
-                cursor: 'pointer'
+                borderRadius: modernTokens.radius.md,
+                border: `1px solid ${modernTokens.colors.border.default}`,
+                backgroundColor: modernTokens.colors.background.surface,
+                color: modernTokens.colors.text.primary,
+                cursor: 'pointer',
+                transition: modernTokens.transitions.fast,
               }}
             >
               🔄
@@ -367,7 +372,7 @@ export function UnifiedBusinessDashboard() {
           <h3 style={{
             fontSize: '18px',
             fontWeight: '600',
-            color: tokens.colors.text,
+            color: modernTokens.colors.text.primary,
             marginBottom: '16px'
           }}>
             בחר ווידג'טים להצגה
@@ -385,10 +390,11 @@ export function UnifiedBusinessDashboard() {
                   alignItems: 'center',
                   gap: '8px',
                   padding: '12px',
-                  backgroundColor: tokens.colors.background,
-                  border: `1px solid ${tokens.colors.border}`,
-                  borderRadius: '8px',
-                  cursor: 'pointer'
+                  backgroundColor: modernTokens.colors.background.surface,
+                  border: `1px solid ${modernTokens.colors.border.default}`,
+                  borderRadius: modernTokens.radius.md,
+                  cursor: 'pointer',
+                  transition: modernTokens.transitions.fast,
                 }}
               >
                 <input
@@ -397,7 +403,7 @@ export function UnifiedBusinessDashboard() {
                   onChange={() => toggleWidget(widget.id)}
                   style={{ cursor: 'pointer' }}
                 />
-                <span style={{ color: tokens.colors.text, fontSize: '14px' }}>
+                <span style={{ color: modernTokens.colors.text.primary, fontSize: '14px' }}>
                   {widget.title}
                 </span>
               </label>
@@ -432,18 +438,21 @@ export function UnifiedBusinessDashboard() {
                   icon="💰"
                   label="הכנסות כוללות"
                   value={formatCurrency(stats.totalRevenue, 'ILS')}
+                  variant="revenue"
                   onClick={() => navigate('/business/analytics')}
                 />
                 <StatCard
                   icon="📊"
                   label="ממוצע הזמנה"
                   value={formatCurrency(stats.averageOrderValue, 'ILS')}
+                  variant="revenue"
                   onClick={() => navigate('/business/analytics')}
                 />
                 <StatCard
                   icon="⏳"
                   label="הזמנות ממתינות"
                   value={formatNumber(stats.pendingOrders)}
+                  variant="warning"
                   onClick={() => navigate('/business/orders')}
                 />
               </React.Fragment>
@@ -481,7 +490,7 @@ export function UnifiedBusinessDashboard() {
                 icon="⚠️"
                 label="פריטים במלאי נמוך"
                 value={formatNumber(stats.lowStockItems)}
-                color={stats.lowStockItems > 0 ? tokens.colors.status.warning : tokens.colors.text}
+                variant={stats.lowStockItems > 0 ? "warning" : "default"}
                 onClick={() => navigate('/business/inventory')}
               />
             );
@@ -494,7 +503,7 @@ export function UnifiedBusinessDashboard() {
                 icon="✅"
                 label="שיעור השלמה"
                 value={`${orderCompletionRate.toFixed(1)}%`}
-                color={orderCompletionRate > 80 ? tokens.colors.status.success : orderCompletionRate < 50 ? tokens.colors.status.error : tokens.colors.text}
+                variant={orderCompletionRate > 80 ? "success" : orderCompletionRate < 50 ? "error" : "warning"}
                 onClick={() => navigate('/business/analytics')}
               />
             );
@@ -519,7 +528,7 @@ export function UnifiedBusinessDashboard() {
                 fontSize: '20px',
                 fontWeight: '700',
                 marginBottom: '16px',
-                color: tokens.colors.text
+                color: modernTokens.colors.text.primary
               }}>
                 פעולות מהירות
               </h3>
@@ -534,30 +543,34 @@ export function UnifiedBusinessDashboard() {
                     onClick={action.onClick}
                     style={{
                       padding: '16px',
-                      backgroundColor: tokens.colors.surface,
-                      border: `1px solid ${tokens.colors.border}`,
-                      borderRadius: '12px',
+                      background: modernTokens.gradients.card,
+                      border: `1px solid ${modernTokens.colors.border.default}`,
+                      borderRadius: modernTokens.radius.lg,
                       cursor: 'pointer',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       gap: '8px',
-                      transition: 'all 0.2s',
+                      transition: modernTokens.transitions.normal,
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                      e.currentTarget.style.boxShadow = modernTokens.shadows.lg;
+                      e.currentTarget.style.background = modernTokens.gradients.cardHover;
+                      e.currentTarget.style.border = `1px solid ${modernTokens.colors.border.hover}`;
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'translateY(0)';
                       e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.background = modernTokens.gradients.card;
+                      e.currentTarget.style.border = `1px solid ${modernTokens.colors.border.default}`;
                     }}
                   >
                     <span style={{ fontSize: '32px' }}>{action.icon}</span>
                     <span style={{
                       fontSize: '14px',
                       fontWeight: '500',
-                      color: tokens.colors.text,
+                      color: modernTokens.colors.text.primary,
                       textAlign: 'center'
                     }}>
                       {action.label}
@@ -574,20 +587,27 @@ export function UnifiedBusinessDashboard() {
                 fontSize: '20px',
                 fontWeight: '700',
                 marginBottom: '16px',
-                color: tokens.colors.text
+                color: modernTokens.colors.text.primary
               }}>
                 פעילות אחרונה
               </h3>
               <Card>
-                {activities.map((activity) => (
+                {activities.map((activity, index) => (
                   <div
                     key={activity.id}
                     style={{
                       padding: '12px',
-                      borderBottom: `1px solid ${tokens.colors.border}`,
+                      borderBottom: index < activities.length - 1 ? `1px solid ${modernTokens.colors.border.default}` : 'none',
                       display: 'flex',
                       justifyContent: 'space-between',
-                      alignItems: 'center'
+                      alignItems: 'center',
+                      transition: modernTokens.transitions.fast,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = modernTokens.colors.interactive.hover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -596,14 +616,14 @@ export function UnifiedBusinessDashboard() {
                       </span>
                       <span style={{
                         fontSize: '14px',
-                        color: tokens.colors.text
+                        color: modernTokens.colors.text.primary
                       }}>
                         {activity.message}
                       </span>
                     </div>
                     <span style={{
                       fontSize: '12px',
-                      color: tokens.colors.textSecondary
+                      color: modernTokens.colors.text.secondary
                     }}>
                       {activity.time}
                     </span>
@@ -617,7 +637,7 @@ export function UnifiedBusinessDashboard() {
 
       <Card style={{ marginTop: '24px', textAlign: 'center' }}>
         <div style={{
-          color: tokens.colors.subtle,
+          color: modernTokens.colors.text.tertiary,
           fontSize: '12px'
         }}>
           עדכון אחרון: {stats.lastUpdated.toLocaleTimeString('he-IL')}

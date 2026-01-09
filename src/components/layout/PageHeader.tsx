@@ -1,5 +1,5 @@
 import React from 'react';
-import { tokens } from '../../styles/tokens';
+import { modernTokens } from '../../styles/modernTokens';
 
 interface PageHeaderProps {
   icon: string;
@@ -14,11 +14,12 @@ export function PageHeader({ icon, title, subtitle, actionButton, style }: PageH
     <header
       style={{
         padding: '24px',
-        background: 'linear-gradient(120deg, rgba(25, 39, 52, 0.95), rgba(21, 32, 43, 0.9))',
-        borderRadius: '20px',
-        border: `1px solid ${tokens.colors.background.cardBorder}`,
-        boxShadow: tokens.shadows.md,
+        background: modernTokens.gradients.card,
+        borderRadius: modernTokens.radius.xl,
+        border: `1px solid ${modernTokens.colors.border.default}`,
+        boxShadow: modernTokens.shadows.lg,
         marginBottom: '24px',
+        backdropFilter: 'blur(20px)',
         ...style
       }}
     >
@@ -28,23 +29,32 @@ export function PageHeader({ icon, title, subtitle, actionButton, style }: PageH
             style={{
               width: '56px',
               height: '56px',
-              borderRadius: '16px',
-              background: `linear-gradient(135deg, ${tokens.colors.brand.primary} 0%, ${tokens.colors.brand.primaryDark} 100%)`,
+              borderRadius: modernTokens.radius.lg,
+              background: modernTokens.gradients.primary,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '28px',
-              boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)'
+              boxShadow: modernTokens.glows.primary
             }}
           >
             {icon}
           </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700', color: tokens.colors.text }}>
+            <h1 style={{
+              margin: 0,
+              fontSize: '28px',
+              fontWeight: '700',
+              color: modernTokens.colors.text.primary
+            }}>
               {title}
             </h1>
             {subtitle && (
-              <p style={{ margin: '4px 0 0', color: tokens.colors.subtle, fontSize: '14px' }}>
+              <p style={{
+                margin: '4px 0 0',
+                color: modernTokens.colors.text.secondary,
+                fontSize: '14px'
+              }}>
                 {subtitle}
               </p>
             )}

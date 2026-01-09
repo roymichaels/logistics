@@ -5,7 +5,7 @@ import { useSafeAppServices } from '../../context/AppServicesContext';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { Card } from '../../components/molecules/Card';
-import { tokens } from '../../styles/tokens';
+import { modernTokens } from '../../styles/modernTokens';
 
 interface AnalyticsData {
   orderTrends: { date: string; count: number; revenue: number }[];
@@ -231,7 +231,7 @@ export function BusinessAnalytics() {
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: tokens.colors.text }}>טוען אנליטיקה...</div>
+            <div style={{ fontSize: '18px', fontWeight: '600', color: modernTokens.colors.text.primary }}>טוען אנליטיקה...</div>
           </div>
         </div>
       </PageContainer>
@@ -249,13 +249,15 @@ export function BusinessAnalytics() {
             onClick={exportData}
             style={{
               padding: '10px 20px',
-              background: tokens.colors.accent,
+              background: modernTokens.gradients.primary,
               color: 'white',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: modernTokens.radius.md,
               fontSize: '14px',
               fontWeight: '600',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              boxShadow: modernTokens.glows.primary,
+              transition: modernTokens.transitions.normal,
             }}
           >
             ייצוא נתונים
@@ -271,12 +273,14 @@ export function BusinessAnalytics() {
               onClick={() => setDateRange(range)}
               style={{
                 padding: '8px 16px',
-                background: dateRange === range ? tokens.colors.accent : 'transparent',
-                color: dateRange === range ? 'white' : tokens.colors.text,
-                border: `1px solid ${dateRange === range ? tokens.colors.accent : tokens.colors.border}`,
-                borderRadius: '8px',
+                background: dateRange === range ? modernTokens.gradients.primary : 'transparent',
+                color: dateRange === range ? 'white' : modernTokens.colors.text.primary,
+                border: dateRange === range ? 'none' : `1px solid ${modernTokens.colors.border.default}`,
+                borderRadius: modernTokens.radius.md,
                 fontSize: '14px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                boxShadow: dateRange === range ? modernTokens.glows.primary : 'none',
+                transition: modernTokens.transitions.normal,
               }}
             >
               {range === '7d' ? '7 ימים' : range === '30d' ? '30 ימים' : range === '90d' ? '90 ימים' : 'הכל'}
@@ -290,18 +294,58 @@ export function BusinessAnalytics() {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: `1px solid ${tokens.colors.border}` }}>
-                  <th style={{ padding: '12px', textAlign: 'right', color: tokens.colors.subtle }}>תאריך</th>
-                  <th style={{ padding: '12px', textAlign: 'right', color: tokens.colors.subtle }}>הזמנות</th>
-                  <th style={{ padding: '12px', textAlign: 'right', color: tokens.colors.subtle }}>הכנסות</th>
+                <tr style={{
+                  borderBottom: `2px solid ${modernTokens.colors.border.strong}`,
+                  background: modernTokens.colors.background.surface,
+                }}>
+                  <th style={{
+                    padding: '14px',
+                    textAlign: 'right',
+                    color: modernTokens.colors.text.secondary,
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}>תאריך</th>
+                  <th style={{
+                    padding: '14px',
+                    textAlign: 'right',
+                    color: modernTokens.colors.text.secondary,
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}>הזמנות</th>
+                  <th style={{
+                    padding: '14px',
+                    textAlign: 'right',
+                    color: modernTokens.colors.text.secondary,
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}>הכנסות</th>
                 </tr>
               </thead>
               <tbody>
                 {analytics.orderTrends.slice(-10).map((trend, idx) => (
-                  <tr key={idx} style={{ borderBottom: `1px solid ${tokens.colors.border}` }}>
-                    <td style={{ padding: '12px', color: tokens.colors.text }}>{trend.date}</td>
-                    <td style={{ padding: '12px', color: tokens.colors.text }}>{trend.count}</td>
-                    <td style={{ padding: '12px', color: tokens.colors.text }}>{formatCurrency(trend.revenue)}</td>
+                  <tr
+                    key={idx}
+                    style={{
+                      borderBottom: `1px solid ${modernTokens.colors.border.default}`,
+                      background: idx % 2 === 0 ? 'transparent' : modernTokens.colors.background.surface,
+                      transition: modernTokens.transitions.fast,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = modernTokens.colors.interactive.hover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = idx % 2 === 0 ? 'transparent' : modernTokens.colors.background.surface;
+                    }}
+                  >
+                    <td style={{ padding: '12px', color: modernTokens.colors.text.primary }}>{trend.date}</td>
+                    <td style={{ padding: '12px', color: modernTokens.colors.brand.primary, fontWeight: 600 }}>{trend.count}</td>
+                    <td style={{ padding: '12px', color: modernTokens.colors.status.success, fontWeight: 600 }}>{formatCurrency(trend.revenue)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -313,18 +357,58 @@ export function BusinessAnalytics() {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: `1px solid ${tokens.colors.border}` }}>
-                  <th style={{ padding: '12px', textAlign: 'right', color: tokens.colors.subtle }}>מוצר</th>
-                  <th style={{ padding: '12px', textAlign: 'right', color: tokens.colors.subtle }}>מכירות</th>
-                  <th style={{ padding: '12px', textAlign: 'right', color: tokens.colors.subtle }}>הכנסות</th>
+                <tr style={{
+                  borderBottom: `2px solid ${modernTokens.colors.border.strong}`,
+                  background: modernTokens.colors.background.surface,
+                }}>
+                  <th style={{
+                    padding: '14px',
+                    textAlign: 'right',
+                    color: modernTokens.colors.text.secondary,
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}>מוצר</th>
+                  <th style={{
+                    padding: '14px',
+                    textAlign: 'right',
+                    color: modernTokens.colors.text.secondary,
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}>מכירות</th>
+                  <th style={{
+                    padding: '14px',
+                    textAlign: 'right',
+                    color: modernTokens.colors.text.secondary,
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}>הכנסות</th>
                 </tr>
               </thead>
               <tbody>
                 {analytics.topProducts.map((product, idx) => (
-                  <tr key={idx} style={{ borderBottom: `1px solid ${tokens.colors.border}` }}>
-                    <td style={{ padding: '12px', color: tokens.colors.text }}>{product.name}</td>
-                    <td style={{ padding: '12px', color: tokens.colors.text }}>{product.sales}</td>
-                    <td style={{ padding: '12px', color: tokens.colors.text }}>{formatCurrency(product.revenue)}</td>
+                  <tr
+                    key={idx}
+                    style={{
+                      borderBottom: `1px solid ${modernTokens.colors.border.default}`,
+                      background: idx % 2 === 0 ? 'transparent' : modernTokens.colors.background.surface,
+                      transition: modernTokens.transitions.fast,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = modernTokens.colors.interactive.hover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = idx % 2 === 0 ? 'transparent' : modernTokens.colors.background.surface;
+                    }}
+                  >
+                    <td style={{ padding: '12px', color: modernTokens.colors.text.primary }}>{product.name}</td>
+                    <td style={{ padding: '12px', color: modernTokens.colors.brand.primary, fontWeight: 600 }}>{product.sales}</td>
+                    <td style={{ padding: '12px', color: modernTokens.colors.status.success, fontWeight: 600 }}>{formatCurrency(product.revenue)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -336,18 +420,60 @@ export function BusinessAnalytics() {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: `1px solid ${tokens.colors.border}` }}>
-                  <th style={{ padding: '12px', textAlign: 'right', color: tokens.colors.subtle }}>נהג</th>
-                  <th style={{ padding: '12px', textAlign: 'right', color: tokens.colors.subtle }}>משלוחים</th>
-                  <th style={{ padding: '12px', textAlign: 'right', color: tokens.colors.subtle }}>דירוג</th>
+                <tr style={{
+                  borderBottom: `2px solid ${modernTokens.colors.border.strong}`,
+                  background: modernTokens.colors.background.surface,
+                }}>
+                  <th style={{
+                    padding: '14px',
+                    textAlign: 'right',
+                    color: modernTokens.colors.text.secondary,
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}>נהג</th>
+                  <th style={{
+                    padding: '14px',
+                    textAlign: 'right',
+                    color: modernTokens.colors.text.secondary,
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}>משלוחים</th>
+                  <th style={{
+                    padding: '14px',
+                    textAlign: 'right',
+                    color: modernTokens.colors.text.secondary,
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}>דירוג</th>
                 </tr>
               </thead>
               <tbody>
                 {analytics.driverPerformance.map((driver, idx) => (
-                  <tr key={idx} style={{ borderBottom: `1px solid ${tokens.colors.border}` }}>
-                    <td style={{ padding: '12px', color: tokens.colors.text }}>{driver.name}</td>
-                    <td style={{ padding: '12px', color: tokens.colors.text }}>{driver.deliveries}</td>
-                    <td style={{ padding: '12px', color: tokens.colors.text }}>{driver.rating.toFixed(1)} ⭐</td>
+                  <tr
+                    key={idx}
+                    style={{
+                      borderBottom: `1px solid ${modernTokens.colors.border.default}`,
+                      background: idx % 2 === 0 ? 'transparent' : modernTokens.colors.background.surface,
+                      transition: modernTokens.transitions.fast,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = modernTokens.colors.interactive.hover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = idx % 2 === 0 ? 'transparent' : modernTokens.colors.background.surface;
+                    }}
+                  >
+                    <td style={{ padding: '12px', color: modernTokens.colors.text.primary }}>{driver.name}</td>
+                    <td style={{ padding: '12px', color: modernTokens.colors.brand.primary, fontWeight: 600 }}>{driver.deliveries}</td>
+                    <td style={{ padding: '12px', color: modernTokens.colors.status.warning }}>
+                      {driver.rating.toFixed(1)} ⭐
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -364,14 +490,32 @@ export function BusinessAnalytics() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   padding: '16px',
-                  background: tokens.colors.surface,
-                  borderRadius: '8px'
+                  background: modernTokens.gradients.card,
+                  border: `1px solid ${modernTokens.colors.border.default}`,
+                  borderRadius: modernTokens.radius.md,
+                  transition: modernTokens.transitions.normal,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateX(-4px)';
+                  e.currentTarget.style.boxShadow = modernTokens.shadows.lg;
+                  e.currentTarget.style.border = `1px solid ${modernTokens.colors.border.hover}`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateX(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.border = `1px solid ${modernTokens.colors.border.default}`;
                 }}
               >
-                <span style={{ color: tokens.colors.text, fontWeight: '600' }}>{pattern.segment}</span>
+                <span style={{
+                  color: modernTokens.colors.text.primary,
+                  fontWeight: 600,
+                }}>{pattern.segment}</span>
                 <div style={{ display: 'flex', gap: '24px' }}>
-                  <span style={{ color: tokens.colors.subtle }}>{pattern.count} לקוחות</span>
-                  <span style={{ color: tokens.colors.accent }}>{formatCurrency(pattern.avgOrderValue)} ממוצע</span>
+                  <span style={{ color: modernTokens.colors.text.secondary }}>{pattern.count} לקוחות</span>
+                  <span style={{
+                    color: modernTokens.colors.brand.primary,
+                    fontWeight: 600,
+                  }}>{formatCurrency(pattern.avgOrderValue)} ממוצע</span>
                 </div>
               </div>
             ))}
