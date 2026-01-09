@@ -1832,6 +1832,216 @@ export class LocalDataStore implements IDataStore {
     }
   }
 
+  async listInventory(filters?: any): Promise<any[]> {
+    try {
+      const inventory = this.getTable('inventory');
+      let result = [...inventory];
+
+      if (filters?.businessId) {
+        result = result.filter((item: any) => item.business_id === filters.businessId);
+      }
+      if (filters?.product_id) {
+        result = result.filter((item: any) => item.product_id === filters.product_id);
+      }
+      if (filters?.location_id) {
+        result = result.filter((item: any) => item.location_id === filters.location_id);
+      }
+
+      logger.debug('[LocalDataStore] Listed inventory:', result.length);
+      return result;
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to list inventory:', error);
+      return [];
+    }
+  }
+
+  async getInventory(productId: string, locationId?: string): Promise<any> {
+    try {
+      const inventory = this.getTable('inventory');
+      const item = inventory.find((i: any) =>
+        i.product_id === productId && (!locationId || i.location_id === locationId)
+      );
+      return item || null;
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to get inventory:', error);
+      return null;
+    }
+  }
+
+  async adjustStock(productId: string, locationId: string, quantity: number, reason?: string): Promise<void> {
+    try {
+      const inventory = this.getTable('inventory');
+      const item = inventory.find((i: any) => i.product_id === productId && i.location_id === locationId);
+
+      if (!item) {
+        logger.warn('[LocalDataStore] Inventory item not found');
+        return;
+      }
+
+      const oldItem = { ...item };
+      item.quantity = Math.max(0, item.quantity + quantity);
+      item.updated_at = new Date().toISOString();
+
+      this.saveToStorage();
+      this.notifySubscribers('inventory', {
+        eventType: 'UPDATE',
+        old: oldItem,
+        new: item,
+      });
+
+      logger.info('[LocalDataStore] Adjusted stock:', { productId, quantity, reason });
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to adjust stock:', error);
+      throw error;
+    }
+  }
+
+  async listOrders(filters?: any): Promise<any[]> {
+    try {
+      const orders = this.getTable('orders');
+      let result = [...orders];
+
+      if (filters?.businessId) {
+        result = result.filter((order: any) => order.business_id === filters.businessId);
+      }
+      if (filters?.status) {
+        result = result.filter((order: any) => order.status === filters.status);
+      }
+      if (filters?.q) {
+        const q = filters.q.toLowerCase();
+        result = result.filter((order: any) =>
+          order.id.toLowerCase().includes(q) ||
+          (order.customer_name && order.customer_name.toLowerCase().includes(q))
+        );
+      }
+
+      logger.debug('[LocalDataStore] Listed orders:', result.length);
+      return result;
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to list orders:', error);
+      return [];
+    }
+  }
+
+  async getOrder(id: string): Promise<any> {
+    try {
+      const orders = this.getTable('orders');
+      const order = orders.find((o: any) => o.id === id);
+      return order || null;
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to get order:', error);
+      return null;
+    }
+  }
+
+  async createOrder(input: any): Promise<{ id: string }> {
+    try {
+      const orders = this.getTable('orders');
+      const order = {
+        id: this.generateId(),
+        ...input,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      orders.push(order);
+      this.saveToStorage();
+      this.notifySubscribers('orders', {
+        eventType: 'INSERT',
+        new: order,
+        old: {},
+      });
+
+      logger.info('[LocalDataStore] Created order:', order.id);
+      return { id: order.id };
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to create order:', error);
+      throw error;
+    }
+  }
+
+  async updateOrder(id: string, updates: any): Promise<void> {
+    try {
+      const orders = this.getTable('orders');
+      const order = orders.find((o: any) => o.id === id);
+
+      if (!order) {
+        throw new Error('Order not found');
+      }
+
+      const oldOrder = { ...order };
+      Object.assign(order, updates);
+      order.updated_at = new Date().toISOString();
+
+      this.saveToStorage();
+      this.notifySubscribers('orders', {
+        eventType: 'UPDATE',
+        old: oldOrder,
+        new: order,
+      });
+
+      logger.info('[LocalDataStore] Updated order:', id);
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to update order:', error);
+      throw error;
+    }
+  }
+
+  async createRestockRequest(input: any): Promise<{ id: string }> {
+    try {
+      const restockRequests = this.getTable('restock_requests');
+      const request = {
+        id: this.generateId(),
+        ...input,
+        status: input.status || 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      restockRequests.push(request);
+      this.saveToStorage();
+      this.notifySubscribers('restock_requests', {
+        eventType: 'INSERT',
+        new: request,
+        old: {},
+      });
+
+      logger.info('[LocalDataStore] Created restock request:', request.id);
+      return { id: request.id };
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to create restock request:', error);
+      throw error;
+    }
+  }
+
+  async updateRestockRequest(id: string, updates: any): Promise<void> {
+    try {
+      const restockRequests = this.getTable('restock_requests');
+      const request = restockRequests.find((r: any) => r.id === id);
+
+      if (!request) {
+        throw new Error('Restock request not found');
+      }
+
+      const oldRequest = { ...request };
+      Object.assign(request, updates);
+      request.updated_at = new Date().toISOString();
+
+      this.saveToStorage();
+      this.notifySubscribers('restock_requests', {
+        eventType: 'UPDATE',
+        old: oldRequest,
+        new: request,
+      });
+
+      logger.info('[LocalDataStore] Updated restock request:', id);
+    } catch (error) {
+      logger.error('[LocalDataStore] Failed to update restock request:', error);
+      throw error;
+    }
+  }
+
   private generateId(): string {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }

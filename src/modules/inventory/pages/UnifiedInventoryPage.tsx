@@ -1,10 +1,55 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Component, ErrorInfo } from 'react';
 import { DashboardLayout, Section } from '@/components/templates/DashboardLayout';
 import { MetricCard } from '@components/dashboard/MetricCard';
 import { useInventory } from '@application/hooks/useInventory';
 import { useInventoryStats, useInventoryFilters, useInventoryMutations } from '../hooks';
 import { InventoryFilters } from '../types';
 import { logger } from '@lib/logger';
+
+class InventoryPageErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: string | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error: error.message };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    logger.error('[InventoryPage] Error boundary caught:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          <p style={{ color: 'red', marginBottom: '1rem' }}>
+            Failed to load inventory: {this.state.error}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#007aff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Reload Page
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 interface UnifiedInventoryPageProps {
   businessId?: string;
@@ -13,7 +58,7 @@ interface UnifiedInventoryPageProps {
   onNavigate?: (route: string) => void;
 }
 
-export function UnifiedInventoryPage({
+function UnifiedInventoryPageInner({
   businessId,
   role,
   userId,
@@ -359,5 +404,13 @@ export function UnifiedInventoryPage({
         }}
       />
     </DashboardLayout>
+  );
+}
+
+export function UnifiedInventoryPage(props: UnifiedInventoryPageProps) {
+  return (
+    <InventoryPageErrorBoundary>
+      <UnifiedInventoryPageInner {...props} />
+    </InventoryPageErrorBoundary>
   );
 }
