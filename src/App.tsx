@@ -51,6 +51,7 @@ import { OfflineSyncIndicator } from './components/OfflineSyncIndicator';
 import { ServiceProvider } from './foundation/container/ServiceProvider';
 import { ModalProvider } from './context/ModalContext';
 import { ModalManager } from './components/modals/ModalManager';
+import { ToastProvider, ToastContainer as NewToastContainer } from './context/ToastContext';
 
 // All page components are now lazy-loaded in MigrationRouter
 
@@ -830,8 +831,9 @@ export default function App() {
       boundaryName="App"
     >
       <Suspense fallback={<PageLoadingSkeleton />}>
-        <ModalProvider>
-          <LanguageProvider>
+        <ToastProvider>
+          <ModalProvider>
+            <LanguageProvider>
             <PermissionProvider role={userRole as UserRole}>
               <PageTitleProvider>
                 <ServiceProvider dataStore={dataStore}>
@@ -889,9 +891,11 @@ export default function App() {
               </ServiceProvider>
             </PageTitleProvider>
           </PermissionProvider>
-          <ModalManager />
-          </LanguageProvider>
-        </ModalProvider>
+            <ModalManager />
+            <NewToastContainer />
+            </LanguageProvider>
+          </ModalProvider>
+        </ToastProvider>
       </Suspense>
 
       {/* Session migration notice */}
