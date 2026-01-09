@@ -37,10 +37,22 @@ export type Permission =
   | 'products:update'
   | 'products:delete'
   | 'products:set_pricing'
+  | 'catalog:view_all'
+  | 'catalog:view_active'
   | 'catalog:view_business'
+  | 'catalog:create'
+  | 'catalog:edit_details'
+  | 'catalog:edit_pricing'
+  | 'catalog:edit_inventory'
   | 'catalog:edit_business'
+  | 'catalog:delete'
+  | 'catalog:publish'
   | 'catalog:manage_categories'
+  | 'catalog:bulk_import'
+  | 'catalog:bulk_export'
   | 'catalog:bulk_operations'
+  | 'catalog:approve_changes'
+  | 'catalog:request_changes'
   | 'catalog:export'
   // Inventory
   | 'inventory:view_business'
@@ -148,10 +160,21 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
       'products:update',
       'products:delete',
       'products:set_pricing',
+      'catalog:view_all',
+      'catalog:view_active',
       'catalog:view_business',
+      'catalog:create',
+      'catalog:edit_details',
+      'catalog:edit_pricing',
+      'catalog:edit_inventory',
       'catalog:edit_business',
+      'catalog:delete',
+      'catalog:publish',
       'catalog:manage_categories',
+      'catalog:bulk_import',
+      'catalog:bulk_export',
       'catalog:bulk_operations',
+      'catalog:approve_changes',
       'catalog:export',
       'inventory:view_business',
       'inventory:view_own',
@@ -231,10 +254,21 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
       'products:update',
       'products:delete',
       'products:set_pricing',
+      'catalog:view_all',
+      'catalog:view_active',
       'catalog:view_business',
+      'catalog:create',
+      'catalog:edit_details',
+      'catalog:edit_pricing',
+      'catalog:edit_inventory',
       'catalog:edit_business',
+      'catalog:delete',
+      'catalog:publish',
       'catalog:manage_categories',
+      'catalog:bulk_import',
+      'catalog:bulk_export',
       'catalog:bulk_operations',
+      'catalog:approve_changes',
       'catalog:export',
       'inventory:view_business',
       'inventory:view_own',
@@ -317,10 +351,21 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
       'products:update',
       'products:delete',
       'products:set_pricing',
+      'catalog:view_all',
+      'catalog:view_active',
       'catalog:view_business',
+      'catalog:create',
+      'catalog:edit_details',
+      'catalog:edit_pricing',
+      'catalog:edit_inventory',
       'catalog:edit_business',
+      'catalog:delete',
+      'catalog:publish',
       'catalog:manage_categories',
+      'catalog:bulk_import',
+      'catalog:bulk_export',
       'catalog:bulk_operations',
+      'catalog:approve_changes',
       'catalog:export',
 
       // Inventory - Full control
@@ -411,8 +456,17 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
       'products:view',
       'products:create',
       'products:update',
+      'catalog:view_all',
+      'catalog:view_active',
       'catalog:view_business',
+      'catalog:create',
+      'catalog:edit_details',
+      'catalog:edit_pricing',
       'catalog:edit_business',
+      'catalog:publish',
+      'catalog:bulk_export',
+      'catalog:request_changes',
+      'catalog:export',
 
       'inventory:view_business',
       'inventory:update',
@@ -455,7 +509,10 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
       'orders:change_status',
 
       'products:view',
+      'catalog:view_all',
       'catalog:view_business',
+      'catalog:edit_inventory',
+      'catalog:export',
 
       'inventory:view_business',
       'inventory:create',
@@ -484,6 +541,11 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
       'orders:view_business',
       'orders:assign_driver',
       'orders:change_status',
+
+      'products:view',
+      'catalog:view_active',
+      'catalog:view_business',
+      'catalog:export',
 
       'zones:view',
       'dispatch:view',
@@ -515,7 +577,10 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
       'orders:update',
 
       'products:view',
+      'catalog:view_active',
       'catalog:view_business',
+      'catalog:export',
+      'catalog:request_changes',
 
       'users:view_business',
 
@@ -544,7 +609,11 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
       'orders:update',
 
       'products:view',
+      'catalog:view_all',
       'catalog:view_business',
+      'catalog:edit_details',
+      'catalog:export',
+      'catalog:request_changes',
 
       'users:view_business',
 
@@ -602,6 +671,7 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
       'orders:create',
 
       'products:view',
+      'catalog:view_active',
       'catalog:view_business',
 
       'users:view_own',
@@ -624,6 +694,7 @@ export const ROLE_PERMISSIONS: Record<string, RolePermissions> = {
     requiresBusinessContext: false,
     permissions: [
       'products:view',
+      'catalog:view_active',
       'catalog:view_business',
     ],
   },
@@ -692,10 +763,22 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   'products:update': 'Update product details',
   'products:delete': 'Delete products',
   'products:set_pricing': 'Set product pricing',
+  'catalog:view_all': 'View all products including drafts and inactive',
+  'catalog:view_active': 'View active and published products only',
   'catalog:view_business': 'View business catalog',
+  'catalog:create': 'Create new catalog products',
+  'catalog:edit_details': 'Edit product descriptions and details',
+  'catalog:edit_pricing': 'Edit product pricing',
+  'catalog:edit_inventory': 'Edit inventory quantities and locations',
   'catalog:edit_business': 'Edit business catalog',
+  'catalog:delete': 'Delete catalog products',
+  'catalog:publish': 'Publish or unpublish products',
   'catalog:manage_categories': 'Manage product categories',
+  'catalog:bulk_import': 'Import products via CSV or bulk upload',
+  'catalog:bulk_export': 'Export catalog data',
   'catalog:bulk_operations': 'Perform bulk catalog operations',
+  'catalog:approve_changes': 'Approve product changes and requests',
+  'catalog:request_changes': 'Request changes to catalog products',
   'catalog:export': 'Export catalog data',
 
   // Inventory
