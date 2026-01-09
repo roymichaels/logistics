@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Component, ErrorInfo } from 'react';
 import { DashboardLayout, Section } from '@/components/templates/DashboardLayout';
 import { useOrders } from '@/application/use-cases';
 import { useOrderStats, useOrderFilters, useOrderMutations } from '../hooks';
@@ -8,6 +8,51 @@ import { orderWorkflowService } from '../services';
 import { logger } from '@lib/logger';
 import { BusinessContextGuard } from '@/components/guards';
 import { useSafeAppServices } from '@/context/AppServicesContext';
+
+class OrdersPageErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: string | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error: error.message };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    logger.error('[OrdersPage] Error boundary caught:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          <p style={{ color: 'red', marginBottom: '1rem' }}>
+            Failed to load orders: {this.state.error}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#007aff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Reload Page
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 interface UnifiedOrdersPageProps {
   businessId?: string;
@@ -293,5 +338,9 @@ export function UnifiedOrdersPage(props?: UnifiedOrdersPageProps) {
 
   const businessId = props?.businessId || businessIdFromContext || undefined;
 
-  return <UnifiedOrdersPageInner {...props} businessId={businessId} />;
+  return (
+    <OrdersPageErrorBoundary>
+      <UnifiedOrdersPageInner {...props} businessId={businessId} />
+    </OrdersPageErrorBoundary>
+  );
 }

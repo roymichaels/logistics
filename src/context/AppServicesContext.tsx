@@ -143,7 +143,9 @@ export function AppServicesProvider({ children, value }: AppServicesProviderProp
     try {
       logger.info('🏢 Fetching owned businesses for user:', user.id);
 
-      if (useSXT || runtimeEnvironment.isFrontendOnlyMode()) {
+      const isFrontendOnly = useSXT || (typeof runtimeEnvironment?.isFrontendOnlyMode === 'function' ? runtimeEnvironment.isFrontendOnlyMode() : false);
+
+      if (isFrontendOnly) {
         const myBusinesses = localBusinessDataService.getMyBusinesses(user.id);
         const formatted = myBusinesses.map(b => ({
           id: b.business_id,

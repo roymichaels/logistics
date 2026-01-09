@@ -4,7 +4,12 @@ import { useNavigation } from "./useNavigation";
 import { useDomain } from "./useDomain";
 
 export const useApp = () => {
-  const auth = useAuth();
+  let auth: ReturnType<typeof useAuth> | null = null;
+  try {
+    auth = useAuth();
+  } catch (error) {
+    throw new Error('useApp must be used within an AuthProvider');
+  }
   const db = useDataStore();
   const nav = useNavigation();
   const domain = useDomain();
