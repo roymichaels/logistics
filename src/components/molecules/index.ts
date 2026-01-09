@@ -20,6 +20,7 @@ export * from './SearchBar';
 export * from './SectionHeader';
 export * from './Select';
 export * from './SettingsCard';
+export * from './StatCard';
 export * from './TimeRangePicker';
 export * from './Toast';
 export * from './VisibilityToggle';

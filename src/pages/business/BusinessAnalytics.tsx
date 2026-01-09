@@ -263,25 +263,27 @@ export function BusinessAnalytics() {
         }
       />
 
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-        {(['7d', '30d', '90d', 'all'] as const).map(range => (
-          <button
-            key={range}
-            onClick={() => setDateRange(range)}
-            style={{
-              padding: '8px 16px',
-              background: dateRange === range ? tokens.colors.accent : 'transparent',
-              color: dateRange === range ? 'white' : tokens.colors.text,
-              border: `1px solid ${dateRange === range ? tokens.colors.accent : tokens.colors.border}`,
-              borderRadius: '8px',
-              fontSize: '14px',
-              cursor: 'pointer'
-            }}
-          >
-            {range === '7d' ? '7 ימים' : range === '30d' ? '30 ימים' : range === '90d' ? '90 ימים' : 'הכל'}
-          </button>
-        ))}
-      </div>
+      <Card style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+          {(['7d', '30d', '90d', 'all'] as const).map(range => (
+            <button
+              key={range}
+              onClick={() => setDateRange(range)}
+              style={{
+                padding: '8px 16px',
+                background: dateRange === range ? tokens.colors.accent : 'transparent',
+                color: dateRange === range ? 'white' : tokens.colors.text,
+                border: `1px solid ${dateRange === range ? tokens.colors.accent : tokens.colors.border}`,
+                borderRadius: '8px',
+                fontSize: '14px',
+                cursor: 'pointer'
+              }}
+            >
+              {range === '7d' ? '7 ימים' : range === '30d' ? '30 ימים' : range === '90d' ? '90 ימים' : 'הכל'}
+            </button>
+          ))}
+        </div>
+      </Card>
 
       <div style={{ display: 'grid', gap: '24px' }}>
         <Card title="מגמות הזמנות">

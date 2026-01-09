@@ -5,6 +5,9 @@ import { logger } from '../../lib/logger';
 import { useAuth } from '../../context/AuthContext';
 import { useSafeAppServices } from '../../context/AppServicesContext';
 import { PageContainer } from '../../components/layout/PageContainer';
+import { PageHeader } from '../../components/layout/PageHeader';
+import { Card } from '../../components/molecules/Card';
+import { StatCard } from '../../components/molecules/StatCard';
 import { NoActiveBusiness } from '../../components/NoActiveBusiness';
 import { tokens } from '../../styles/tokens';
 import { useBusinessStats } from '../../hooks/useBusinessStats';
@@ -293,104 +296,74 @@ export function UnifiedBusinessDashboard() {
 
   return (
     <PageContainer>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '24px',
-        flexWrap: 'wrap',
-        gap: '16px'
-      }}>
-        <div>
-          <h1 style={{
-            fontSize: '32px',
-            fontWeight: '700',
-            color: tokens.colors.text,
-            margin: '0 0 8px 0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-          }}>
-            <span>🏢</span>
-            <span>{businessName || 'לוח בקרה מאוחד'}</span>
-          </h1>
-          <p style={{
-            fontSize: '16px',
-            color: tokens.colors.textSecondary,
-            margin: 0
-          }}>
-            סקירה מקיפה של הפעילות העסקית שלך
-          </p>
-        </div>
+      <PageHeader
+        icon="🏢"
+        title={businessName || 'לוח בקרה מאוחד'}
+        subtitle="סקירה מקיפה של הפעילות העסקית שלך"
+        actionButton={
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <select
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value as DateRange)}
+              style={{
+                padding: '10px 16px',
+                fontSize: '14px',
+                fontWeight: '500',
+                borderRadius: '8px',
+                border: `1px solid ${tokens.colors.border}`,
+                backgroundColor: tokens.colors.surface,
+                color: tokens.colors.text,
+                cursor: 'pointer'
+              }}
+            >
+              <option value="1d">היום</option>
+              <option value="7d">7 ימים</option>
+              <option value="30d">30 ימים</option>
+              <option value="90d">90 ימים</option>
+              <option value="all">הכל</option>
+            </select>
 
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value as DateRange)}
-            style={{
-              padding: '10px 16px',
-              fontSize: '14px',
-              fontWeight: '500',
-              borderRadius: '8px',
-              border: `1px solid ${tokens.colors.border}`,
-              backgroundColor: tokens.colors.background,
-              color: tokens.colors.text,
-              cursor: 'pointer'
-            }}
-          >
-            <option value="1d">היום</option>
-            <option value="7d">7 ימים</option>
-            <option value="30d">30 ימים</option>
-            <option value="90d">90 ימים</option>
-            <option value="all">הכל</option>
-          </select>
+            <button
+              onClick={() => setShowCustomize(!showCustomize)}
+              style={{
+                padding: '10px 16px',
+                fontSize: '14px',
+                fontWeight: '500',
+                borderRadius: '8px',
+                border: `1px solid ${tokens.colors.border}`,
+                backgroundColor: showCustomize ? tokens.colors.accent : tokens.colors.surface,
+                color: showCustomize ? '#ffffff' : tokens.colors.text,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <span>⚙️</span>
+              <span>התאמה אישית</span>
+            </button>
 
-          <button
-            onClick={() => setShowCustomize(!showCustomize)}
-            style={{
-              padding: '10px 16px',
-              fontSize: '14px',
-              fontWeight: '500',
-              borderRadius: '8px',
-              border: `1px solid ${tokens.colors.border}`,
-              backgroundColor: showCustomize ? tokens.colors.primary : tokens.colors.background,
-              color: showCustomize ? '#ffffff' : tokens.colors.text,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <span>⚙️</span>
-            <span>התאמה אישית</span>
-          </button>
-
-          <button
-            onClick={refresh}
-            style={{
-              padding: '10px 16px',
-              fontSize: '14px',
-              fontWeight: '500',
-              borderRadius: '8px',
-              border: `1px solid ${tokens.colors.border}`,
-              backgroundColor: tokens.colors.background,
-              color: tokens.colors.text,
-              cursor: 'pointer'
-            }}
-          >
-            🔄
-          </button>
-        </div>
-      </div>
+            <button
+              onClick={refresh}
+              style={{
+                padding: '10px 16px',
+                fontSize: '14px',
+                fontWeight: '500',
+                borderRadius: '8px',
+                border: `1px solid ${tokens.colors.border}`,
+                backgroundColor: tokens.colors.surface,
+                color: tokens.colors.text,
+                cursor: 'pointer'
+              }}
+            >
+              🔄
+            </button>
+          </div>
+        }
+      />
 
       {showCustomize && (
-        <div style={{
-          backgroundColor: tokens.colors.surface,
-          border: `1px solid ${tokens.colors.border}`,
-          borderRadius: '12px',
-          padding: '20px',
-          marginBottom: '24px'
-        }}>
+        <Card style={{ marginBottom: '24px' }}>
           <h3 style={{
             fontSize: '18px',
             fontWeight: '600',
@@ -430,24 +403,23 @@ export function UnifiedBusinessDashboard() {
               </label>
             ))}
           </div>
-        </div>
+        </Card>
       )}
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '20px'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '16px'
       }}>
         {visibleWidgets.map(widget => {
           if (widget.id === 'orders' && widget.visible) {
             return (
-              <MetricCard
+              <StatCard
                 key={widget.id}
+                icon="📦"
                 label="סה״כ הזמנות"
                 value={formatNumber(stats.totalOrders)}
-                change={stats.recentOrders > 0 ? `+${stats.recentOrders} היום` : undefined}
-                trend={stats.recentOrders > 0 ? 'up' : undefined}
-                icon="📦"
+                subtitle={stats.recentOrders > 0 ? `+${stats.recentOrders} היום` : undefined}
                 onClick={() => navigate('/business/orders')}
               />
             );
@@ -455,36 +427,36 @@ export function UnifiedBusinessDashboard() {
 
           if (widget.id === 'revenue' && widget.visible) {
             return (
-              <div key={widget.id} style={{ display: 'contents' }}>
-                <MetricCard
+              <React.Fragment key={widget.id}>
+                <StatCard
+                  icon="💰"
                   label="הכנסות כוללות"
                   value={formatCurrency(stats.totalRevenue, 'ILS')}
-                  icon="💰"
                   onClick={() => navigate('/business/analytics')}
                 />
-                <MetricCard
+                <StatCard
+                  icon="📊"
                   label="ממוצע הזמנה"
                   value={formatCurrency(stats.averageOrderValue, 'ILS')}
-                  icon="📊"
                   onClick={() => navigate('/business/analytics')}
                 />
-                <MetricCard
+                <StatCard
+                  icon="⏳"
                   label="הזמנות ממתינות"
                   value={formatNumber(stats.pendingOrders)}
-                  icon="⏳"
                   onClick={() => navigate('/business/orders')}
                 />
-              </div>
+              </React.Fragment>
             );
           }
 
           if (widget.id === 'team' && widget.visible) {
             return (
-              <MetricCard
+              <StatCard
                 key={widget.id}
+                icon="👥"
                 label="חברי צוות פעילים"
                 value={formatNumber(stats.activeTeamMembers)}
-                icon="👥"
                 onClick={() => navigate('/business/team')}
               />
             );
@@ -492,11 +464,11 @@ export function UnifiedBusinessDashboard() {
 
           if (widget.id === 'drivers' && widget.visible) {
             return (
-              <MetricCard
+              <StatCard
                 key={widget.id}
+                icon="🚗"
                 label="נהגים זמינים"
                 value={`${formatNumber(stats.availableDrivers)}/${formatNumber(stats.totalDrivers)}`}
-                icon="🚗"
                 onClick={() => navigate('/business/drivers')}
               />
             );
@@ -504,12 +476,12 @@ export function UnifiedBusinessDashboard() {
 
           if (widget.id === 'inventory' && widget.visible) {
             return (
-              <MetricCard
+              <StatCard
                 key={widget.id}
+                icon="⚠️"
                 label="פריטים במלאי נמוך"
                 value={formatNumber(stats.lowStockItems)}
-                icon="⚠️"
-                trend={stats.lowStockItems > 0 ? 'down' : undefined}
+                color={stats.lowStockItems > 0 ? tokens.colors.status.warning : tokens.colors.text}
                 onClick={() => navigate('/business/inventory')}
               />
             );
@@ -517,12 +489,12 @@ export function UnifiedBusinessDashboard() {
 
           if (widget.id === 'completion' && widget.visible) {
             return (
-              <MetricCard
+              <StatCard
                 key={widget.id}
+                icon="✅"
                 label="שיעור השלמה"
                 value={`${orderCompletionRate.toFixed(1)}%`}
-                icon="✅"
-                trend={orderCompletionRate > 80 ? 'up' : orderCompletionRate < 50 ? 'down' : undefined}
+                color={orderCompletionRate > 80 ? tokens.colors.status.success : orderCompletionRate < 50 ? tokens.colors.status.error : tokens.colors.text}
                 onClick={() => navigate('/business/analytics')}
               />
             );
@@ -606,12 +578,7 @@ export function UnifiedBusinessDashboard() {
               }}>
                 פעילות אחרונה
               </h3>
-              <div style={{
-                backgroundColor: tokens.colors.surface,
-                border: `1px solid ${tokens.colors.border}`,
-                borderRadius: '12px',
-                padding: '16px'
-              }}>
+              <Card>
                 {activities.map((activity) => (
                   <div
                     key={activity.id}
@@ -642,101 +609,20 @@ export function UnifiedBusinessDashboard() {
                     </span>
                   </div>
                 ))}
-              </div>
+              </Card>
             </div>
           )}
         </div>
       )}
 
-      <div style={{
-        marginTop: '24px',
-        padding: '12px',
-        backgroundColor: tokens.colors.surface,
-        border: `1px solid ${tokens.colors.border}`,
-        borderRadius: '8px',
-        textAlign: 'center',
-        color: tokens.colors.textSecondary,
-        fontSize: '12px'
-      }}>
-        עדכון אחרון: {stats.lastUpdated.toLocaleTimeString('he-IL')}
-      </div>
-    </PageContainer>
-  );
-}
-
-interface MetricCardProps {
-  label: string;
-  value: string;
-  icon: string;
-  change?: string;
-  trend?: 'up' | 'down';
-  onClick?: () => void;
-}
-
-function MetricCard({ label, value, icon, change, trend, onClick }: MetricCardProps) {
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        backgroundColor: tokens.colors.surface,
-        border: `1px solid ${tokens.colors.border}`,
-        borderRadius: '12px',
-        padding: '20px',
-        cursor: onClick ? 'pointer' : 'default',
-        transition: 'all 0.2s'
-      }}
-      onMouseEnter={(e) => {
-        if (onClick) {
-          e.currentTarget.style.transform = 'translateY(-2px)';
-          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (onClick) {
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = 'none';
-        }
-      }}
-    >
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: '12px'
-      }}>
-        <span style={{
-          fontSize: '14px',
-          fontWeight: '500',
-          color: tokens.colors.textSecondary
-        }}>
-          {label}
-        </span>
-        <span style={{ fontSize: '24px' }}>{icon}</span>
-      </div>
-
-      <div style={{
-        fontSize: '28px',
-        fontWeight: '700',
-        color: tokens.colors.text,
-        marginBottom: '8px'
-      }}>
-        {value}
-      </div>
-
-      {change && (
+      <Card style={{ marginTop: '24px', textAlign: 'center' }}>
         <div style={{
-          fontSize: '12px',
-          fontWeight: '500',
-          color: trend === 'up' ? '#10b981' : trend === 'down' ? '#ef4444' : tokens.colors.textSecondary,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px'
+          color: tokens.colors.subtle,
+          fontSize: '12px'
         }}>
-          {trend === 'up' && '↗'}
-          {trend === 'down' && '↘'}
-          {change}
+          עדכון אחרון: {stats.lastUpdated.toLocaleTimeString('he-IL')}
         </div>
-      )}
-    </div>
+      </Card>
+    </PageContainer>
   );
 }
