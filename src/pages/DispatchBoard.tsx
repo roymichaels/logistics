@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { Truck, Map, Package, Clock, Radio, RefreshCw, List, LayoutGrid, X, MapPin, Phone, DollarSign, CheckCircle, AlertCircle, Timer } from 'lucide-react';
 
 import { useLanguage } from '../context/LanguageContext';
 import {
@@ -9,10 +10,16 @@ import {
 } from '../data/types';
 import { Toast } from '../components/Toast';
 import { DispatchOrchestrator, ZoneCoverageResult } from '../lib/dispatchOrchestrator';
-import { PageContainer } from '../components/layout/PageContainer';
-import { PageHeader } from '../components/layout/PageHeader';
-import { Card } from '../components/molecules/Card';
-import { tokens, styles } from '../styles/tokens';
+import { undergroundTheme } from '../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundStatCard,
+  UndergroundHeader,
+  UndergroundLoadingSpinner,
+  UndergroundButton,
+  UndergroundEmptyState,
+  UndergroundBadge
+} from '../components/underground';
 
 import { logger } from '../lib/logger';
 import { haptic } from '../utils/haptic';
@@ -64,11 +71,9 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
 
     const supabase = (dataStore as any)?.supabase;
 
-    // Set up Supabase Realtime for live updates only if supabase is available
     if (!supabase) {
       logger.warn('⚠️ Supabase client not available, realtime updates disabled. Using polling fallback.');
 
-      // Fallback to polling only
       const interval = setInterval(() => {
         loadData();
       }, 30000);
@@ -117,7 +122,6 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
       logger.error('Failed to setup realtime subscriptions:', err);
     }
 
-    // Auto-refresh every 30 seconds
     const interval = setInterval(() => {
       loadData();
     }, 30000);
@@ -174,57 +178,14 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
 
   if (loading) {
     return (
-      <PageContainer>
-        <div style={{ textAlign: 'center', paddingTop: '80px' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📡</div>
-          <div style={{ color: tokens.colors.subtle }}>{translations.dispatchBoardPage.loadingDispatchBoard}</div>
-        </div>
-      </PageContainer>
+      <div style={undergroundTheme.components.page}>
+        <UndergroundLoadingSpinner size="lg" centered />
+      </div>
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader
-        icon="📡"
-        title={translations.dispatchBoardPage.title}
-        subtitle={translations.dispatchBoardPage.subtitle}
-        actionButton={
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '6px 12px',
-              background: `${tokens.colors.status.success}20`,
-              borderRadius: '20px',
-              border: `1px solid ${tokens.colors.status.success}50`
-            }}>
-              <div style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: tokens.colors.status.success,
-                boxShadow: `0 0 8px ${tokens.colors.status.success}`,
-                animation: 'pulse 2s infinite'
-              }} />
-              <span style={{ fontSize: '12px', color: tokens.colors.status.success, fontWeight: '600' }}>
-                {translations.dispatchBoardPage.realTime}
-              </span>
-            </div>
-            <button
-              onClick={() => setViewMode(viewMode === 'kanban' ? 'list' : 'kanban')}
-              style={styles.button.secondary}
-            >
-              {viewMode === 'kanban' ? translations.dispatchBoardPage.list : translations.dispatchBoardPage.kanban}
-            </button>
-            <button onClick={handleRefresh} style={styles.button.secondary}>
-              🔄 {translations.dispatchBoardPage.refresh}
-            </button>
-          </div>
-        }
-      />
-
+    <div style={undergroundTheme.components.page}>
       <style>
         {`
           @keyframes pulse {
@@ -234,69 +195,108 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
         `}
       </style>
 
-      {error && (
-        <Card style={{ marginBottom: '20px' }}>
-          <div style={{
-            padding: '4px 0',
-            color: tokens.colors.status.error,
-            fontSize: '14px',
-            fontWeight: '500'
-          }}>
-            ⚠️ {error}
-          </div>
-        </Card>
-      )}
+      <UndergroundHeader
+        title={translations.dispatchBoardPage.title}
+        subtitle={translations.dispatchBoardPage.subtitle}
+        icon={<Radio size={32} />}
+        gradient
+      />
 
-      {/* Dashboard Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        <Card hoverable onClick={() => console.log('Show available drivers')} style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '36px', marginBottom: '8px' }}>🚗</div>
-          <div style={{ ...styles.stat.value, fontSize: '28px', color: tokens.colors.status.success }}>{totalOnline}</div>
-          <div style={styles.stat.label}>{translations.dispatchBoardPage.availableDrivers}</div>
-        </Card>
-        <Card hoverable onClick={() => console.log('Show zone details')} style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '36px', marginBottom: '8px' }}>🗺️</div>
-          <div style={{ ...styles.stat.value, fontSize: '28px', color: tokens.colors.status.info }}>{zones.length}</div>
-          <div style={styles.stat.label}>{translations.dispatchBoardPage.coverageZones}</div>
-        </Card>
-        <Card hoverable onClick={() => console.log('Filter to active deliveries')} style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '36px', marginBottom: '8px' }}>🚚</div>
-          <div style={{ ...styles.stat.value, fontSize: '28px', color: tokens.colors.brand.primary }}>{activeDeliveries}</div>
-          <div style={styles.stat.label}>{translations.dispatchBoardPage.inDelivery}</div>
-        </Card>
-        <Card hoverable onClick={() => console.log('Filter to pending assignments')} style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '36px', marginBottom: '8px' }}>⏱️</div>
-          <div style={{ ...styles.stat.value, fontSize: '28px', color: tokens.colors.status.warning }}>{pendingAssignments}</div>
-          <div style={styles.stat.label}>{translations.dispatchBoardPage.waiting}</div>
-        </Card>
+      <div style={{ display: 'flex', gap: undergroundTheme.spacing.md, marginBottom: undergroundTheme.spacing.xl, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: undergroundTheme.spacing.sm,
+          padding: `${undergroundTheme.spacing.xs} ${undergroundTheme.spacing.md}`,
+          background: `${undergroundTheme.colors.status.success}20`,
+          borderRadius: undergroundTheme.borderRadius.full,
+          border: `1px solid ${undergroundTheme.colors.status.success}50`
+        }}>
+          <div style={{
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            background: undergroundTheme.colors.status.success,
+            boxShadow: `0 0 12px ${undergroundTheme.colors.status.success}`,
+            animation: 'pulse 2s infinite'
+          }} />
+          <span style={{ fontSize: undergroundTheme.typography.fontSize.xs, color: undergroundTheme.colors.status.success, fontWeight: undergroundTheme.typography.fontWeight.semibold }}>
+            {translations.dispatchBoardPage.realTime}
+          </span>
+        </div>
+        <UndergroundButton
+          onClick={() => setViewMode(viewMode === 'kanban' ? 'list' : 'kanban')}
+          variant="secondary"
+        >
+          {viewMode === 'kanban' ? <List size={16} /> : <LayoutGrid size={16} />}
+          <span style={{ marginLeft: undergroundTheme.spacing.xs }}>
+            {viewMode === 'kanban' ? translations.dispatchBoardPage.list : translations.dispatchBoardPage.kanban}
+          </span>
+        </UndergroundButton>
+        <UndergroundButton onClick={handleRefresh} variant="secondary">
+          <RefreshCw size={16} />
+          <span style={{ marginLeft: undergroundTheme.spacing.xs }}>{translations.dispatchBoardPage.refresh}</span>
+        </UndergroundButton>
       </div>
 
-      {/* Kanban Board or List View */}
+      {error && (
+        <UndergroundCard variant="medium" style={{ marginBottom: undergroundTheme.spacing.xl }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: undergroundTheme.spacing.md,
+            color: undergroundTheme.colors.status.error
+          }}>
+            <AlertCircle size={20} />
+            <span>{error}</span>
+          </div>
+        </UndergroundCard>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: undergroundTheme.spacing.lg, marginBottom: undergroundTheme.spacing.xl }}>
+        <UndergroundStatCard
+          icon={<Truck size={28} />}
+          label={translations.dispatchBoardPage.availableDrivers}
+          value={totalOnline.toString()}
+          accentColor={undergroundTheme.colors.status.success}
+        />
+        <UndergroundStatCard
+          icon={<Map size={28} />}
+          label={translations.dispatchBoardPage.coverageZones}
+          value={zones.length.toString()}
+          accentColor={undergroundTheme.colors.accent.secondary}
+        />
+        <UndergroundStatCard
+          icon={<Package size={28} />}
+          label={translations.dispatchBoardPage.inDelivery}
+          value={activeDeliveries.toString()}
+          accentColor={undergroundTheme.colors.accent.primary}
+        />
+        <UndergroundStatCard
+          icon={<Clock size={28} />}
+          label={translations.dispatchBoardPage.waiting}
+          value={pendingAssignments.toString()}
+          accentColor={undergroundTheme.colors.status.warning}
+        />
+      </div>
+
       {viewMode === 'kanban' ? (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '16px',
-          marginBottom: '24px'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: undergroundTheme.spacing.lg,
+          marginBottom: undergroundTheme.spacing.xl
         }}>
-          {/* Pending Column */}
-          <Card style={{ minHeight: '400px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text }}>
+          <UndergroundCard variant="medium" style={{ minHeight: '400px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: undergroundTheme.spacing.lg }}>
+              <h3 style={{ margin: 0, fontSize: undergroundTheme.typography.fontSize.lg, fontWeight: undergroundTheme.typography.fontWeight.bold, color: undergroundTheme.colors.text.primary }}>
                 {translations.dispatchBoardPage.waitingForAssignment}
               </h3>
-              <div style={{
-                padding: '6px 12px',
-                background: tokens.gradients.primary,
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: '700',
-                color: tokens.colors.textBright
-              }}>
+              <UndergroundBadge>
                 {getOrdersByStatus('pending').length}
-              </div>
+              </UndergroundBadge>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
               {getOrdersByStatus('pending').map(order => (
                 <OrderCard
                   key={order.id}
@@ -308,106 +308,86 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 />
               ))}
               {getOrdersByStatus('pending').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.subtle }}>
-                  <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>✅</div>
-                  <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noWaitingOrders}</div>
-                </div>
+                <UndergroundEmptyState
+                  icon={<CheckCircle size={48} />}
+                  title={translations.dispatchBoardPage.noWaitingOrders}
+                  description=""
+                />
               )}
             </div>
-          </Card>
+          </UndergroundCard>
 
-          {/* Assigned Column */}
-          <Card style={{ minHeight: '400px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text }}>
+          <UndergroundCard variant="medium" style={{ minHeight: '400px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: undergroundTheme.spacing.lg }}>
+              <h3 style={{ margin: 0, fontSize: undergroundTheme.typography.fontSize.lg, fontWeight: undergroundTheme.typography.fontWeight.bold, color: undergroundTheme.colors.text.primary }}>
                 {translations.dispatchBoardPage.assigned}
               </h3>
-              <div style={{
-                padding: '6px 12px',
-                background: tokens.gradients.primary,
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: '700',
-                color: tokens.colors.textBright
-              }}>
+              <UndergroundBadge>
                 {getOrdersByStatus('assigned').length}
-              </div>
+              </UndergroundBadge>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
               {getOrdersByStatus('assigned').map(order => (
                 <OrderCard key={order.id} order={order} />
               ))}
               {getOrdersByStatus('assigned').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.subtle }}>
-                  <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>📎</div>
-                  <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noAssignedOrders}</div>
-                </div>
+                <UndergroundEmptyState
+                  icon={<Timer size={48} />}
+                  title={translations.dispatchBoardPage.noAssignedOrders}
+                  description=""
+                />
               )}
             </div>
-          </Card>
+          </UndergroundCard>
 
-          {/* In Progress Column */}
-          <Card style={{ minHeight: '400px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text }}>
+          <UndergroundCard variant="medium" style={{ minHeight: '400px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: undergroundTheme.spacing.lg }}>
+              <h3 style={{ margin: 0, fontSize: undergroundTheme.typography.fontSize.lg, fontWeight: undergroundTheme.typography.fontWeight.bold, color: undergroundTheme.colors.text.primary }}>
                 {translations.dispatchBoardPage.inProgress}
               </h3>
-              <div style={{
-                padding: '6px 12px',
-                background: tokens.gradients.primary,
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: '700',
-                color: tokens.colors.textBright
-              }}>
+              <UndergroundBadge>
                 {getOrdersByStatus('in_progress').length}
-              </div>
+              </UndergroundBadge>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
               {getOrdersByStatus('in_progress').map(order => (
                 <OrderCard key={order.id} order={order} />
               ))}
               {getOrdersByStatus('in_progress').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.subtle }}>
-                  <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>🚦</div>
-                  <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noDeliveriesInProgress}</div>
-                </div>
+                <UndergroundEmptyState
+                  icon={<Package size={48} />}
+                  title={translations.dispatchBoardPage.noDeliveriesInProgress}
+                  description=""
+                />
               )}
             </div>
-          </Card>
+          </UndergroundCard>
 
-          {/* Completed Column */}
-          <Card style={{ minHeight: '400px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: tokens.colors.text }}>
+          <UndergroundCard variant="medium" style={{ minHeight: '400px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: undergroundTheme.spacing.lg }}>
+              <h3 style={{ margin: 0, fontSize: undergroundTheme.typography.fontSize.lg, fontWeight: undergroundTheme.typography.fontWeight.bold, color: undergroundTheme.colors.text.primary }}>
                 {translations.dispatchBoardPage.completed}
               </h3>
-              <div style={{
-                padding: '6px 12px',
-                background: tokens.gradients.success,
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: '700',
-                color: tokens.colors.textBright
-              }}>
+              <UndergroundBadge glow>
                 {getOrdersByStatus('completed').length}
-              </div>
+              </UndergroundBadge>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
               {getOrdersByStatus('completed').slice(0, 5).map(order => (
                 <OrderCard key={order.id} order={order} />
               ))}
               {getOrdersByStatus('completed').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.subtle }}>
-                  <div style={{ fontSize: '48px', marginBottom: '12px', opacity: 0.5 }}>🎯</div>
-                  <div style={{ fontSize: '14px' }}>{translations.dispatchBoardPage.noCompletedOrders}</div>
-                </div>
+                <UndergroundEmptyState
+                  icon={<CheckCircle size={48} />}
+                  title={translations.dispatchBoardPage.noCompletedOrders}
+                  description=""
+                />
               )}
             </div>
-          </Card>
+          </UndergroundCard>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
           {outstandingOrders.map(order => (
             <OrderCard
               key={order.id}
@@ -421,7 +401,6 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
         </div>
       )}
 
-      {/* Driver Availability Sidebar */}
       {showDriverSelector && selectedOrder && (
         <div style={{
           position: 'fixed',
@@ -429,21 +408,22 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0, 0, 0, 0.8)',
+          background: 'rgba(0, 0, 0, 0.85)',
+          backdropFilter: 'blur(8px)',
           zIndex: 1000,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '20px'
+          padding: undergroundTheme.spacing.xl
         }}>
-          <Card style={{
+          <UndergroundCard variant="strong" style={{
             maxWidth: '500px',
             width: '100%',
             maxHeight: '80vh',
             overflow: 'auto'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: tokens.colors.text }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: undergroundTheme.spacing.xl }}>
+              <h3 style={{ margin: 0, fontSize: undergroundTheme.typography.fontSize.xl, fontWeight: undergroundTheme.typography.fontWeight.bold, color: undergroundTheme.colors.text.primary }}>
                 {translations.dispatchBoardPage.assignDriverToOrder}
               </h3>
               <button
@@ -454,63 +434,72 @@ export function DispatchBoard({ dataStore }: DispatchBoardProps) {
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: tokens.colors.subtle,
-                  fontSize: '24px',
-                  cursor: 'pointer'
+                  color: undergroundTheme.colors.text.secondary,
+                  cursor: 'pointer',
+                  padding: undergroundTheme.spacing.xs,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: undergroundTheme.borderRadius.md,
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.light;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
                 }}
               >
-                ✕
+                <X size={24} />
               </button>
             </div>
 
-            {/* Order Info */}
-            <div style={{
-              padding: '16px',
-              background: tokens.colors.bg,
-              borderRadius: '12px',
-              marginBottom: '20px',
-              border: `1px solid ${tokens.colors.background.cardBorder}`
-            }}>
-              <div style={{ fontSize: '16px', fontWeight: '600', color: tokens.colors.text, marginBottom: '8px' }}>
+            <UndergroundCard variant="light" style={{ marginBottom: undergroundTheme.spacing.xl }}>
+              <div style={{ fontSize: undergroundTheme.typography.fontSize.lg, fontWeight: undergroundTheme.typography.fontWeight.semibold, color: undergroundTheme.colors.text.primary, marginBottom: undergroundTheme.spacing.sm }}>
                 {selectedOrder.customer_name}
               </div>
-              <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
-                📍 {selectedOrder.customer_address}
+              <div style={{ display: 'flex', alignItems: 'center', gap: undergroundTheme.spacing.xs, fontSize: undergroundTheme.typography.fontSize.sm, color: undergroundTheme.colors.text.secondary }}>
+                <MapPin size={14} />
+                {selectedOrder.customer_address}
               </div>
-            </div>
+            </UndergroundCard>
 
-            {/* Available Drivers */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
               {zones.flatMap(z => z.onlineDrivers).filter(d => d.status === 'available').map(driver => (
-                <Card
+                <UndergroundCard
                   key={driver.driver_id}
-                  hoverable
+                  variant="medium"
+                  hover
                   onClick={() => handleAssignDriver(selectedOrder.id, driver.driver_id)}
-                  style={{ textAlign: isRTL ? 'right' : 'left' }}
                 >
-                  <div style={{ fontSize: '16px', fontWeight: '600', color: tokens.colors.text, marginBottom: '4px' }}>
-                    {translations.dispatchBoardPage.driver} #{driver.driver_id}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontSize: undergroundTheme.typography.fontSize.base, fontWeight: undergroundTheme.typography.fontWeight.semibold, color: undergroundTheme.colors.text.primary, marginBottom: undergroundTheme.spacing.xs }}>
+                        {translations.dispatchBoardPage.driver} #{driver.driver_id}
+                      </div>
+                      <div style={{ fontSize: undergroundTheme.typography.fontSize.sm, color: undergroundTheme.colors.status.success }}>
+                        {translations.dispatchBoardPage.available}
+                      </div>
+                    </div>
+                    <Truck size={24} style={{ color: undergroundTheme.colors.accent.primary }} />
                   </div>
-                  <div style={{ fontSize: '13px', color: tokens.colors.status.success }}>
-                    {translations.dispatchBoardPage.available}
-                  </div>
-                </Card>
+                </UndergroundCard>
               ))}
               {zones.flatMap(z => z.onlineDrivers).filter(d => d.status === 'available').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: tokens.colors.subtle }}>
-                  <div style={{ fontSize: '48px', marginBottom: '12px' }}>🚫</div>
-                  <div>{translations.dispatchBoardPage.noAvailableDrivers}</div>
-                </div>
+                <UndergroundEmptyState
+                  icon={<Truck size={48} />}
+                  title={translations.dispatchBoardPage.noAvailableDrivers}
+                  description=""
+                />
               )}
             </div>
-          </Card>
+          </UndergroundCard>
         </div>
       )}
-    </PageContainer>
+    </div>
   );
 }
 
-// Order Card Component
 function OrderCard({ order, onAssign }: {
   order: Order;
   onAssign?: () => void;
@@ -518,59 +507,60 @@ function OrderCard({ order, onAssign }: {
   const { t: translations } = useLanguage();
 
   return (
-    <div style={{
-      padding: '16px',
-      background: tokens.colors.bg,
-      border: `1px solid ${tokens.colors.background.cardBorder}`,
-      borderRadius: '12px',
-      transition: 'all 0.3s ease'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+    <UndergroundCard variant="light" style={{ transition: 'all 0.3s ease' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: undergroundTheme.spacing.md }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '16px', fontWeight: '600', color: tokens.colors.text, marginBottom: '4px' }}>
+          <div style={{ fontSize: undergroundTheme.typography.fontSize.base, fontWeight: undergroundTheme.typography.fontWeight.semibold, color: undergroundTheme.colors.text.primary, marginBottom: undergroundTheme.spacing.xs }}>
             {order.customer_name}
           </div>
-          <div style={{ fontSize: '13px', color: tokens.colors.subtle, marginBottom: '8px' }}>
-            📍 {order.customer_address}
+          <div style={{ display: 'flex', alignItems: 'center', gap: undergroundTheme.spacing.xs, fontSize: undergroundTheme.typography.fontSize.sm, color: undergroundTheme.colors.text.secondary, marginBottom: undergroundTheme.spacing.xs }}>
+            <MapPin size={14} />
+            {order.customer_address}
           </div>
-          <div style={{ fontSize: '13px', color: tokens.colors.subtle }}>
-            📞 {order.customer_phone}
+          <div style={{ display: 'flex', alignItems: 'center', gap: undergroundTheme.spacing.xs, fontSize: undergroundTheme.typography.fontSize.sm, color: undergroundTheme.colors.text.secondary }}>
+            <Phone size={14} />
+            {order.customer_phone}
           </div>
         </div>
         <div style={{
-          padding: '6px 12px',
-          background: `${tokens.colors.brand.primary}20`,
-          border: `1px solid ${tokens.colors.brand.primary}50`,
-          borderRadius: '8px',
-          color: tokens.colors.brand.primary,
-          fontSize: '12px',
-          fontWeight: '600'
+          display: 'flex',
+          alignItems: 'center',
+          gap: undergroundTheme.spacing.xs,
+          padding: `${undergroundTheme.spacing.xs} ${undergroundTheme.spacing.md}`,
+          background: undergroundTheme.colors.glassmorphism.medium,
+          borderRadius: undergroundTheme.borderRadius.md,
+          color: undergroundTheme.colors.accent.primary,
+          fontSize: undergroundTheme.typography.fontSize.sm,
+          fontWeight: undergroundTheme.typography.fontWeight.semibold,
+          boxShadow: undergroundTheme.shadows.glow.cyan
         }}>
+          <DollarSign size={14} />
           ₪{order.total_amount.toLocaleString()}
         </div>
       </div>
 
       {order.assigned_driver && (
         <div style={{
-          padding: '8px 12px',
-          background: `${tokens.colors.status.success}15`,
-          borderRadius: '8px',
-          fontSize: '13px',
-          color: tokens.colors.status.success,
-          marginBottom: '12px'
+          display: 'flex',
+          alignItems: 'center',
+          gap: undergroundTheme.spacing.xs,
+          padding: undergroundTheme.spacing.sm,
+          background: `${undergroundTheme.colors.status.success}20`,
+          borderRadius: undergroundTheme.borderRadius.md,
+          fontSize: undergroundTheme.typography.fontSize.sm,
+          color: undergroundTheme.colors.status.success,
+          marginBottom: undergroundTheme.spacing.md
         }}>
-          🚗 {translations.dispatchBoardPage.driver}: {order.assigned_driver}
+          <Truck size={16} />
+          {translations.dispatchBoardPage.driver}: {order.assigned_driver}
         </div>
       )}
 
       {onAssign && (
-        <button
-          onClick={onAssign}
-          style={styles.button.primary}
-        >
+        <UndergroundButton onClick={onAssign} variant="primary" fullWidth>
           {translations.dispatchBoardPage.assignDriver}
-        </button>
+        </UndergroundButton>
       )}
-    </div>
+    </UndergroundCard>
   );
 }
