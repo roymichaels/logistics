@@ -62,6 +62,9 @@ const DriverApplications = React.lazy(() => import('../pages/admin/DriverApplica
 const AdminAnalytics = React.lazy(() => import('../pages/admin/AdminAnalytics').then(m => ({ default: m.AdminAnalytics })));
 const BusinessSettings = React.lazy(() => import('../pages/business/Settings').then(m => ({ default: m.default })));
 const BusinessOwnerDashboard = React.lazy(() => import('../pages/business/BusinessOwnerDashboard').then(m => ({ default: m.BusinessOwnerDashboard })));
+const UnifiedBusinessDashboard = React.lazy(() => import('../pages/business/UnifiedBusinessDashboard').then(m => ({ default: m.UnifiedBusinessDashboard })));
+const OperationsHub = React.lazy(() => import('../pages/business/OperationsHub').then(m => ({ default: m.OperationsHub })));
+const AnalyticsHub = React.lazy(() => import('../pages/business/AnalyticsHub').then(m => ({ default: m.AnalyticsHub })));
 const BusinessAnalytics = React.lazy(() => import('../pages/business/BusinessAnalytics').then(m => ({ default: m.BusinessAnalytics })));
 const BusinessAuditLogs = React.lazy(() => import('../pages/business/BusinessAuditLogs').then(m => ({ default: m.BusinessAuditLogs })));
 const BusinessFeatureFlags = React.lazy(() => import('../pages/business/BusinessFeatureFlags').then(m => ({ default: m.BusinessFeatureFlags })));
@@ -177,8 +180,9 @@ export function SimpleRouter() {
       {/* Business routes */}
       {isBusinessRole && (
         <>
-          <Route path="/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedDashboard role={userRole} /></Suspense>} />
-          <Route path="/business/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedDashboard role={userRole} /></Suspense>} />
+          <Route path="/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedBusinessDashboard /></Suspense>} />
+          <Route path="/business/dashboard" element={<Suspense fallback={<PageLoadingSkeleton />}><UnifiedBusinessDashboard /></Suspense>} />
+          <Route path="/business/operations" element={<Suspense fallback={<PageLoadingSkeleton />}><OperationsHub /></Suspense>} />
           <Route path="/business/businesses" element={<Suspense fallback={<PageLoadingSkeleton />}><Businesses dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
           <Route path="/business/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><Orders /></Suspense>} />
@@ -202,7 +206,7 @@ export function SimpleRouter() {
           <Route path="/business/restock" element={<Suspense fallback={<PageLoadingSkeleton />}><RestockRequests dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
-          <Route path="/business/analytics" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessAnalytics /></Suspense>} />
+          <Route path="/business/analytics" element={<Suspense fallback={<PageLoadingSkeleton />}><AnalyticsHub /></Suspense>} />
           <Route path="/business/customers" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessCustomers /></Suspense>} />
           <Route path="/business/audit-logs" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessAuditLogs /></Suspense>} />
           <Route path="/business/feature-flags" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessFeatureFlags /></Suspense>} />

@@ -112,7 +112,7 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     id: 'business-dashboard',
     label: 'לוח בקרה',
     path: '/business/dashboard',
-    icon: '📊',
+    icon: '🏢',
     visible: true,
     requiredRoles: ['business_owner', 'manager']
   },
@@ -120,57 +120,33 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     id: 'business-businesses',
     label: 'העסקים שלי',
     path: '/business/businesses',
-    icon: '🏢',
+    icon: '🏪',
     visible: true,
     requiredRoles: ['business_owner']
   },
   {
-    id: 'business-orders',
-    label: 'הזמנות',
-    path: '/business/orders',
-    icon: '📋',
+    id: 'business-operations',
+    label: 'מרכז פעולות',
+    path: '/business/operations',
+    icon: '⚙️',
     visible: true,
-    requiredRoles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service']
+    requiredRoles: ['business_owner', 'manager', 'warehouse', 'dispatcher']
   },
   {
-    id: 'business-inventory',
-    label: 'מלאי',
-    path: '/business/inventory',
-    icon: '📦',
+    id: 'business-analytics',
+    label: 'אנליטיקה',
+    path: '/business/analytics',
+    icon: '📊',
     visible: true,
-    requiredRoles: ['business_owner', 'manager', 'warehouse']
+    requiredRoles: ['business_owner', 'manager']
   },
   {
-    id: 'business-catalog',
-    label: 'קטלוג מוצרים',
-    path: '/business/catalog',
-    icon: '📚',
+    id: 'business-customers',
+    label: 'לקוחות ומכירות',
+    path: '/business/customers',
+    icon: '👥',
     visible: true,
-    requiredRoles: ['business_owner', 'manager', 'warehouse']
-  },
-  {
-    id: 'business-permissions',
-    label: 'הרשאות צוות',
-    path: '/business/permissions',
-    icon: '🔐',
-    visible: true,
-    requiredRoles: ['business_owner']
-  },
-  {
-    id: 'business-dispatch',
-    label: 'שיבוץ',
-    path: '/business/dispatch',
-    icon: '🚚',
-    visible: true,
-    requiredRoles: ['business_owner', 'manager', 'dispatcher']
-  },
-  {
-    id: 'business-drivers',
-    label: 'נהגים',
-    path: '/business/drivers',
-    icon: '🚗',
-    visible: true,
-    requiredRoles: ['business_owner', 'manager', 'dispatcher']
+    requiredRoles: ['business_owner', 'sales']
   },
   {
     id: 'business-team',
@@ -181,92 +157,12 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     requiredRoles: ['business_owner', 'manager']
   },
   {
-    id: 'business-analytics',
-    label: 'אנליטיקה',
-    path: '/business/analytics',
-    icon: '📊',
-    visible: true,
-    requiredRoles: ['business_owner']
-  },
-  {
-    id: 'business-customers',
-    label: 'לקוחות',
-    path: '/business/customers',
-    icon: '👥',
-    visible: true,
-    requiredRoles: ['business_owner']
-  },
-  {
-    id: 'business-reports',
-    label: 'דוחות',
-    path: '/business/business-reports',
-    icon: '📈',
-    visible: true,
-    requiredRoles: ['business_owner', 'manager']
-  },
-  {
-    id: 'business-audit-logs',
-    label: 'יומני ביקורת',
-    path: '/business/audit-logs',
-    icon: '📋',
-    visible: true,
-    requiredRoles: ['business_owner']
-  },
-  {
-    id: 'business-feature-flags',
-    label: 'תכונות',
-    path: '/business/feature-flags',
-    icon: '🚩',
-    visible: true,
-    requiredRoles: ['business_owner']
-  },
-  {
-    id: 'business-tasks',
-    label: 'משימות',
-    path: '/business/tasks',
-    icon: '✅',
-    visible: true,
-    requiredRoles: ['business_owner', 'manager', 'warehouse', 'dispatcher']
-  },
-  {
-    id: 'business-sales',
-    label: 'מכירות',
-    path: '/business/sales',
-    icon: '💼',
-    visible: true,
-    requiredRoles: ['business_owner', 'sales']
-  },
-  {
-    id: 'business-support',
-    label: 'תמיכה',
-    path: '/business/support',
-    icon: '🎧',
-    visible: true,
-    requiredRoles: ['business_owner', 'customer_service']
-  },
-  {
-    id: 'business-warehouse',
-    label: 'מחסן',
-    path: '/business/warehouse',
-    icon: '🏭',
-    visible: true,
-    requiredRoles: ['business_owner', 'warehouse']
-  },
-  {
-    id: 'business-zones',
-    label: 'אזורים',
-    path: '/business/zones',
-    icon: '📍',
-    visible: true,
-    requiredRoles: ['business_owner'] // Manager should NOT configure zones
-  },
-  {
     id: 'business-settings',
     label: 'הגדרות',
     path: '/business/settings',
     icon: '⚙️',
     visible: true,
-    requiredRoles: ['business_owner'] // Only business owner can change settings
+    requiredRoles: ['business_owner']
   }
 ];
 
