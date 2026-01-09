@@ -79,8 +79,8 @@ export function ChatMessagesArea({
       style={{
         flex: 1,
         overflowY: 'auto',
-        padding: '24px',
-        background: 'transparent',
+        padding: '16px',
+        background: tokens.colors.background.primary,
         display: 'flex',
         flexDirection: 'column'
       }}

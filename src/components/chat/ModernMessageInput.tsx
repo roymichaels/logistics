@@ -61,10 +61,9 @@ export function ModernMessageInput({
   return (
     <div
       style={{
-        padding: '16px',
-        borderTop: `1px solid ${tokens.colors.background.cardBorder}`,
-        background: tokens.colors.background.card,
-        boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.3)',
+        padding: '12px 16px',
+        borderTop: `1px solid ${tokens.colors.divider}`,
+        background: tokens.colors.background.secondary,
         position: 'relative'
       }}
     >
@@ -87,11 +86,11 @@ export function ModernMessageInput({
               bottom: '100%',
               right: '16px',
               marginBottom: '8px',
-              background: tokens.colors.background.card,
-              border: `1px solid ${tokens.colors.background.cardBorder}`,
+              background: tokens.colors.background.tertiary,
+              border: `1px solid ${tokens.colors.divider}`,
               borderRadius: '12px',
               padding: '12px',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
               zIndex: 1000,
               maxWidth: '320px',
               display: 'grid',
@@ -208,15 +207,15 @@ export function ModernMessageInput({
           rows={1}
           style={{
             flex: 1,
-            padding: '12px 16px',
+            padding: '10px 16px',
             border: `1px solid ${tokens.colors.border.default}`,
             borderRadius: '24px',
-            background: tokens.colors.background.secondary,
+            background: tokens.colors.background.primary,
             color: tokens.colors.text.primary,
             fontSize: '15px',
             outline: 'none',
             transition: 'all 0.2s ease',
-            minHeight: '44px',
+            minHeight: '40px',
             maxHeight: '120px',
             resize: 'none',
             fontFamily: 'inherit',
@@ -225,7 +224,7 @@ export function ModernMessageInput({
           }}
           onFocus={(e) => {
             e.currentTarget.style.borderColor = tokens.colors.brand.primary;
-            e.currentTarget.style.boxShadow = `0 0 0 3px ${tokens.colors.brand.primary}20`;
+            e.currentTarget.style.boxShadow = `0 0 0 2px ${tokens.colors.brand.primary}20`;
           }}
           onBlur={(e) => {
             e.currentTarget.style.borderColor = tokens.colors.border.default;

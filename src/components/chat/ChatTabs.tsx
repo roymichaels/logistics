@@ -13,10 +13,9 @@ export function ChatTabs({ activeTab, onTabChange, unreadCount = 0 }: ChatTabsPr
   return (
     <div style={{
       display: 'flex',
-      gap: '8px',
-      marginBottom: '20px',
-      borderBottom: `2px solid ${tokens.colors.background.cardBorder}`,
-      paddingBottom: '12px'
+      gap: '0',
+      marginBottom: '16px',
+      borderBottom: `1px solid ${tokens.colors.divider}`,
     }}>
       <TabButton
         label="שיחות"
@@ -60,33 +59,45 @@ function TabButton({
       style={{
         flex: 1,
         padding: '12px 16px',
-        background: active ? tokens.gradients.primary : 'transparent',
+        background: 'transparent',
         border: 'none',
-        borderRadius: '12px',
-        color: active ? '#fff' : tokens.colors.subtle,
+        borderBottom: active ? `3px solid ${tokens.colors.brand.primary}` : '3px solid transparent',
+        color: active ? tokens.colors.text.primary : tokens.colors.text.secondary,
         fontSize: '15px',
-        fontWeight: '600',
+        fontWeight: active ? '600' : '500',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         gap: '8px',
-        transition: 'all 0.3s ease',
-        boxShadow: active ? tokens.glows.primary : 'none',
-        position: 'relative'
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        position: 'relative',
+        marginBottom: '-1px'
+      }}
+      onMouseEnter={(e) => {
+        if (!active) {
+          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+          e.currentTarget.style.color = tokens.colors.text.primary;
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active) {
+          e.currentTarget.style.background = 'transparent';
+          e.currentTarget.style.color = tokens.colors.text.secondary;
+        }
       }}
     >
       <span style={{ fontSize: '18px' }}>{icon}</span>
       <span>{label}</span>
       {count && count > 0 ? (
         <span style={{
-          padding: '2px 8px',
-          borderRadius: '12px',
-          background: '#ff3b30',
+          padding: '2px 6px',
+          borderRadius: '10px',
+          background: tokens.colors.error,
           color: '#fff',
-          fontSize: '12px',
+          fontSize: '11px',
           fontWeight: '700',
-          minWidth: '20px',
+          minWidth: '18px',
           textAlign: 'center'
         }}>
           {count > 99 ? '99+' : count}

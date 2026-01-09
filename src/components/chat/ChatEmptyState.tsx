@@ -14,47 +14,45 @@ interface ChatEmptyStateProps {
 export function ChatEmptyState({ icon, title, message, action }: ChatEmptyStateProps) {
   return (
     <div style={{
-      ...styles.emptyState.container,
-      padding: '60px 20px',
-      borderRadius: '16px',
-      background: tokens.colors.background.card
+      textAlign: 'center',
+      padding: '80px 20px',
+      color: tokens.colors.text.secondary
     }}>
-      <div style={{ fontSize: '64px', marginBottom: '16px' }}>{icon}</div>
-      <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text, fontSize: '20px' }}>
+      <div style={{ fontSize: '72px', marginBottom: '20px', opacity: 0.5 }}>{icon}</div>
+      <h3 style={{ margin: '0 0 12px 0', color: tokens.colors.text.primary, fontSize: '20px', fontWeight: '600' }}>
         {title}
       </h3>
-      <div style={{ ...styles.emptyState.containerText, fontSize: '15px', marginBottom: action ? '24px' : '0' }}>
+      <div style={{ fontSize: '15px', marginBottom: action ? '32px' : '0', lineHeight: '1.5', maxWidth: '400px', margin: '0 auto' }}>
         {message}
       </div>
       {action && (
         <button
           onClick={action.onClick}
           style={{
-            padding: '14px 32px',
-            borderRadius: '12px',
+            padding: '12px 28px',
+            borderRadius: '24px',
             border: 'none',
-            background: tokens.gradients.primary,
+            background: tokens.colors.brand.primary,
             color: '#fff',
-            fontSize: '16px',
+            fontSize: '15px',
             fontWeight: '600',
             cursor: 'pointer',
-            boxShadow: tokens.glows.primary,
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
-            margin: '0 auto',
-            transition: 'all 0.3s ease'
+            marginTop: '24px',
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 8px 24px rgba(29, 155, 240, 0.6)';
+            e.currentTarget.style.transform = 'scale(1.05)';
+            e.currentTarget.style.background = tokens.colors.brand.primaryHover;
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = tokens.glows.primary;
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.background = tokens.colors.brand.primary;
           }}
         >
-          <span style={{ fontSize: '20px' }}>+</span>
+          <span style={{ fontSize: '18px' }}>+</span>
           <span>{action.label}</span>
         </button>
       )}

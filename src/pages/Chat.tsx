@@ -408,29 +408,28 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
         }
       `}</style>
       <div style={{
-        background: tokens.colors.panel,
+        background: tokens.colors.background.primary,
         minHeight: '100vh',
         paddingTop: '16px',
         paddingBottom: '80px',
         direction: 'rtl'
       }}>
-      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '0 16px' }}>
-        {/* Header with Title and Create Button */}
+      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '0 16px' }}>
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '20px',
-          position: 'relative'
+          marginBottom: '24px',
+          position: 'relative',
+          padding: '8px 0'
         }}>
           <h1 style={{
             margin: '0',
-            fontSize: '28px',
+            fontSize: '24px',
             fontWeight: '700',
-            color: tokens.colors.text,
-            textShadow: '0 0 20px rgba(29, 155, 240, 0.5)'
+            color: tokens.colors.text.primary
           }}>
-            💬 הודעות
+            הודעות
           </h1>
           {canCreateGroup && (
             <div style={{ position: 'relative' }}>
@@ -440,21 +439,30 @@ export function Chat({ dataStore: propDataStore, onNavigate: propOnNavigate, cur
                   setShowCreateMenu(!showCreateMenu);
                 }}
                 style={{
-                  padding: '8px 14px',
-                  borderRadius: '12px',
+                  padding: '0',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
                   border: 'none',
-                  background: tokens.gradients.primary,
+                  background: tokens.colors.brand.primary,
                   color: '#fff',
-                  fontSize: '28px',
-                  fontWeight: '300',
+                  fontSize: '20px',
+                  fontWeight: '400',
                   cursor: 'pointer',
-                  boxShadow: tokens.glows.primary,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  transition: 'all 0.3s ease',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   flexShrink: 0,
                   lineHeight: 1
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.background = tokens.colors.brand.primaryHover;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.background = tokens.colors.brand.primary;
                 }}
                 title="יצירת קבוצה או ערוץ"
               >
@@ -901,43 +909,37 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
     <div
       onClick={onClick}
       style={{
-        padding: '16px',
-        background: tokens.colors.background.card,
-        borderRadius: '16px',
+        padding: '12px 16px',
+        background: 'transparent',
         cursor: 'pointer',
-        border: `1px solid ${hasUnread ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`,
-        transition: 'all 0.3s ease',
-        boxShadow: hasUnread ? tokens.glows.primary : '0 2px 8px rgba(0, 0, 0, 0.2)',
+        borderBottom: `1px solid ${tokens.colors.divider}`,
+        transition: 'background 0.2s ease',
         display: 'flex',
         alignItems: 'center',
-        gap: '14px'
+        gap: '12px'
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = '0 4px 16px rgba(29, 155, 240, 0.3)';
+        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = hasUnread ? tokens.glows.primary : '0 2px 8px rgba(0, 0, 0, 0.2)';
+        e.currentTarget.style.background = 'transparent';
       }}
     >
-      {/* Avatar with online status */}
       <div style={{ position: 'relative', flexShrink: 0 }}>
         <div
           style={{
-            width: '56px',
-            height: '56px',
+            width: '52px',
+            height: '52px',
             borderRadius: '50%',
             background: otherUser?.photo_url
               ? `url(${otherUser.photo_url}) center/cover`
-              : 'linear-gradient(135deg, rgba(29, 155, 240, 0.8), rgba(123, 63, 242, 0.8))',
+              : 'linear-gradient(135deg, #0084FF 0%, #0073E6 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '24px',
-            fontWeight: '700',
-            color: '#fff',
-            border: `2px solid ${hasUnread ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`
+            fontSize: '20px',
+            fontWeight: '600',
+            color: '#fff'
           }}
         >
           {!otherUser?.photo_url && userInitial}
@@ -948,26 +950,25 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
               position: 'absolute',
               bottom: '0',
               right: '0',
-              width: '16px',
-              height: '16px',
+              width: '14px',
+              height: '14px',
               borderRadius: '50%',
-              backgroundColor: '#34c759',
-              border: '3px solid ' + tokens.colors.background.card,
-              boxShadow: '0 2px 4px rgba(52, 199, 89, 0.4)'
+              backgroundColor: tokens.colors.online,
+              border: `2px solid ${tokens.colors.background.primary}`,
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)'
             }}
           />
         )}
       </div>
 
-      {/* Message Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
           <h3
             style={{
               margin: 0,
-              fontSize: '17px',
-              fontWeight: hasUnread ? '700' : '600',
-              color: tokens.colors.text,
+              fontSize: '16px',
+              fontWeight: '600',
+              color: tokens.colors.text.primary,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
@@ -976,50 +977,52 @@ function ConversationCard({ conversation, onClick }: { conversation: any; onClic
             {userName}
           </h3>
           {conversation.room?.last_message_at && (
-            <span style={{ fontSize: '13px', color: tokens.colors.subtle, flexShrink: 0, marginLeft: '8px' }}>
+            <span style={{ fontSize: '12px', color: tokens.colors.text.secondary, flexShrink: 0, marginLeft: '8px' }}>
               {formatTime(conversation.room.last_message_at)}
             </span>
           )}
         </div>
 
-        {conversation.room?.last_message_preview && (
-          <p
-            style={{
-              margin: 0,
-              fontSize: '14px',
-              color: hasUnread ? tokens.colors.text : tokens.colors.subtle,
-              fontWeight: hasUnread ? '500' : '400',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {conversation.room.last_message_preview}
-          </p>
-        )}
-      </div>
-
-      {/* Unread Badge */}
-      {hasUnread && (
-        <div
-          style={{
-            minWidth: '24px',
-            height: '24px',
-            padding: '0 8px',
-            borderRadius: '12px',
-            background: tokens.colors.brand.primary,
-            color: '#fff',
-            fontSize: '13px',
-            fontWeight: '700',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(29, 155, 240, 0.4)'
-          }}
-        >
-          {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {conversation.room?.last_message_preview && (
+            <p
+              style={{
+                margin: 0,
+                fontSize: '14px',
+                color: hasUnread ? tokens.colors.text.primary : tokens.colors.text.secondary,
+                fontWeight: hasUnread ? '500' : '400',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                flex: 1
+              }}
+            >
+              {conversation.room.last_message_preview}
+            </p>
+          )}
+          {hasUnread && (
+            <div
+              style={{
+                minWidth: '20px',
+                height: '20px',
+                padding: '0 6px',
+                borderRadius: '10px',
+                background: tokens.colors.brand.primary,
+                color: '#fff',
+                fontSize: '12px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginLeft: '8px',
+                flexShrink: 0
+              }}
+            >
+              {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

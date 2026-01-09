@@ -47,22 +47,20 @@ export function MessageGroup({
       {!isCurrentUser && showAvatar && (
         <div
           style={{
-            width: '36px',
-            height: '36px',
+            width: '32px',
+            height: '32px',
             borderRadius: '50%',
             background: senderAvatar
               ? `url(${senderAvatar}) center/cover`
-              : 'linear-gradient(135deg, #1D9BF0, #7B3FF2)',
+              : 'linear-gradient(135deg, #0084FF 0%, #0073E6 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '16px',
-            fontWeight: '700',
+            fontSize: '14px',
+            fontWeight: '600',
             color: '#fff',
             flexShrink: 0,
-            alignSelf: 'flex-end',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-            border: '2px solid rgba(255, 255, 255, 0.1)'
+            alignSelf: 'flex-end'
           }}
         >
           {!senderAvatar && senderInitial}
@@ -111,30 +109,25 @@ export function MessageGroup({
             >
               <div
                 style={{
-                  padding: '12px 16px',
+                  padding: '10px 14px',
                   background: isCurrentUser
-                    ? 'linear-gradient(135deg, #0084FF 0%, #0073E6 100%)'
-                    : tokens.colors.background.card,
+                    ? '#0084FF'
+                    : tokens.colors.background.tertiary,
                   color: isCurrentUser ? '#fff' : tokens.colors.text.primary,
-                  borderRadius: '20px',
+                  borderRadius: '18px',
                   borderTopRightRadius:
-                    isCurrentUser && isFirst ? '20px' : isCurrentUser ? '6px' : '20px',
+                    isCurrentUser && isFirst ? '18px' : isCurrentUser ? '4px' : '18px',
                   borderTopLeftRadius:
-                    !isCurrentUser && isFirst ? '20px' : !isCurrentUser ? '6px' : '20px',
-                  borderBottomRightRadius: isCurrentUser && isLast ? '6px' : '20px',
-                  borderBottomLeftRadius: !isCurrentUser && isLast ? '6px' : '20px',
-                  border: isCurrentUser
-                    ? 'none'
-                    : `1px solid ${tokens.colors.border.default}`,
-                  boxShadow: isCurrentUser
-                    ? '0 2px 12px rgba(0, 132, 255, 0.35)'
-                    : '0 2px 8px rgba(0, 0, 0, 0.25)',
+                    !isCurrentUser && isFirst ? '18px' : !isCurrentUser ? '4px' : '18px',
+                  borderBottomRightRadius: isCurrentUser && isLast ? '4px' : '18px',
+                  borderBottomLeftRadius: !isCurrentUser && isLast ? '4px' : '18px',
                   wordWrap: 'break-word',
                   whiteSpace: 'pre-wrap',
                   position: 'relative',
                   transition: 'all 0.2s ease',
                   transform: isHovered ? 'translateY(-1px)' : 'translateY(0)',
-                  cursor: 'default'
+                  cursor: 'default',
+                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
                 }}
               >
                 {/* Message tail/pointer */}
@@ -142,20 +135,17 @@ export function MessageGroup({
                   <div
                     style={{
                       position: 'absolute',
-                      bottom: '6px',
+                      bottom: '4px',
                       [isCurrentUser ? 'right' : 'left']: '-6px',
                       width: '0',
                       height: '0',
                       borderStyle: 'solid',
                       borderWidth: isCurrentUser
-                        ? '0 0 12px 12px'
-                        : '0 12px 12px 0',
+                        ? '0 0 10px 10px'
+                        : '0 10px 10px 0',
                       borderColor: isCurrentUser
                         ? 'transparent transparent transparent #0084FF'
-                        : `transparent ${tokens.colors.background.card} transparent transparent`,
-                      filter: isCurrentUser
-                        ? 'drop-shadow(0 1px 2px rgba(0, 132, 255, 0.3))'
-                        : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2))'
+                        : `transparent ${tokens.colors.background.tertiary} transparent transparent`
                     }}
                   />
                 )}

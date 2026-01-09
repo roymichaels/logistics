@@ -25,17 +25,15 @@ export function ModernChatHeader({
   return (
     <div
       style={{
-        padding: '14px 16px',
-        borderBottom: `1px solid ${tokens.colors.border.default}`,
-        background: tokens.colors.background.card,
-        boxShadow: '0 2px 16px rgba(0, 0, 0, 0.4)',
+        padding: '12px 16px',
+        borderBottom: `1px solid ${tokens.colors.divider}`,
+        background: tokens.colors.background.secondary,
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
         position: 'sticky',
         top: 0,
-        zIndex: 10,
-        backdropFilter: 'blur(10px)'
+        zIndex: 10
       }}
     >
       {onBack && (
@@ -73,20 +71,18 @@ export function ModernChatHeader({
       <div style={{ position: 'relative', flexShrink: 0 }}>
         <div
           style={{
-            width: '48px',
-            height: '48px',
+            width: '40px',
+            height: '40px',
             borderRadius: '50%',
             background: avatar
               ? `url(${avatar}) center/cover`
-              : 'linear-gradient(135deg, #1D9BF0, #7B3FF2)',
+              : 'linear-gradient(135deg, #0084FF 0%, #0073E6 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '20px',
-            fontWeight: '700',
-            color: '#fff',
-            border: '2px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
+            fontSize: '18px',
+            fontWeight: '600',
+            color: '#fff'
           }}
         >
           {!avatar && userInitial}
@@ -97,12 +93,12 @@ export function ModernChatHeader({
               position: 'absolute',
               bottom: '0',
               right: '0',
-              width: '14px',
-              height: '14px',
+              width: '12px',
+              height: '12px',
               borderRadius: '50%',
-              backgroundColor: '#34c759',
-              border: `3px solid ${tokens.colors.background.card}`,
-              boxShadow: '0 2px 6px rgba(52, 199, 89, 0.5)'
+              backgroundColor: tokens.colors.online,
+              border: `2px solid ${tokens.colors.background.secondary}`,
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)'
             }}
           />
         )}
@@ -112,34 +108,29 @@ export function ModernChatHeader({
         <h2
           style={{
             margin: 0,
-            fontSize: '17px',
-            fontWeight: '700',
+            fontSize: '16px',
+            fontWeight: '600',
             color: tokens.colors.text.primary,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            letterSpacing: '0.3px'
+            whiteSpace: 'nowrap'
           }}
         >
           {name}
         </h2>
         <p
           style={{
-            margin: '4px 0 0 0',
+            margin: '2px 0 0 0',
             fontSize: '13px',
             color: isTyping
               ? tokens.colors.brand.primary
               : isOnline
-              ? '#34c759'
+              ? tokens.colors.online
               : tokens.colors.text.secondary,
-            fontWeight: '500',
-            fontStyle: isTyping ? 'italic' : 'normal',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px'
+            fontWeight: '400',
+            fontStyle: isTyping ? 'italic' : 'normal'
           }}
         >
-          {isTyping && <span style={{ fontSize: '14px' }}>⌨️</span>}
           {isTyping
             ? 'מקליד...'
             : memberCount
