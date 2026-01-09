@@ -1,17 +1,23 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Activity, DollarSign, Package, TrendingUp, Users, Truck, AlertTriangle, CheckCircle, BarChart3, Globe, Settings, FileText, User } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useAuth } from '../../context/AuthContext';
 import { useSafeAppServices } from '../../context/AppServicesContext';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
-import { Card } from '../../components/molecules/Card';
-import { StatCard } from '../../components/molecules/StatCard';
 import { NoActiveBusiness } from '../../components/NoActiveBusiness';
-import { modernTokens } from '../../styles/modernTokens';
+import { undergroundTheme } from '../../styles/undergroundTheme';
 import { useBusinessStats } from '../../hooks/useBusinessStats';
 import { formatCurrency, formatNumber, formatTimeAgo } from '../../utils/businessFormatters';
+import {
+  UndergroundCard,
+  UndergroundButton,
+  UndergroundStatCard,
+  UndergroundBadge,
+  UndergroundHeader,
+  UndergroundSection,
+  UndergroundLoadingSpinner,
+} from '../../components/underground';
 
 type DateRange = '1d' | '7d' | '30d' | '90d' | 'all';
 
@@ -191,102 +197,72 @@ export function UnifiedBusinessDashboard() {
 
   if (!currentBusinessId) {
     return (
-      <PageContainer>
+      <div style={undergroundTheme.components.page}>
         <NoActiveBusiness
           onNavigateToBusinesses={() => navigate('/business/businesses')}
           message="לוח הבקרה המאוחד דורש עסק פעיל. אנא בחר עסק או צור עסק חדש."
         />
-      </PageContainer>
+      </div>
     );
   }
 
   const quickActions = [
-    { id: '1', label: 'הזמנה חדשה', icon: '📦', onClick: () => navigate('/business/orders') },
-    { id: '2', label: 'דף ציבורי', icon: '🌐', onClick: () => navigate('/business/preview') },
-    { id: '3', label: 'ניהול צוות', icon: '👥', onClick: () => navigate('/business/team') },
-    { id: '4', label: 'בדיקת מלאי', icon: '📊', onClick: () => navigate('/business/inventory') },
-    { id: '5', label: 'ניהול נהגים', icon: '🚗', onClick: () => navigate('/business/drivers') },
-    { id: '6', label: 'אנליטיקה', icon: '📈', onClick: () => navigate('/business/analytics') },
-    { id: '7', label: 'הגדרות', icon: '⚙️', onClick: () => navigate('/business/settings') },
-    { id: '8', label: 'יומני ביקורת', icon: '📋', onClick: () => navigate('/business/audit-logs') },
-    { id: '9', label: 'לקוחות', icon: '👤', onClick: () => navigate('/business/customers') },
+    { id: '1', label: 'הזמנה חדשה', icon: <Package size={24} />, color: '#00d9ff', onClick: () => navigate('/business/orders') },
+    { id: '2', label: 'דף ציבורי', icon: <Globe size={24} />, color: '#10b981', onClick: () => navigate('/business/preview') },
+    { id: '3', label: 'ניהול צוות', icon: <Users size={24} />, color: '#8b5cf6', onClick: () => navigate('/business/team') },
+    { id: '4', label: 'בדיקת מלאי', icon: <BarChart3 size={24} />, color: '#f59e0b', onClick: () => navigate('/business/inventory') },
+    { id: '5', label: 'ניהול נהגים', icon: <Truck size={24} />, color: '#ec4899', onClick: () => navigate('/business/drivers') },
+    { id: '6', label: 'אנליטיקה', icon: <TrendingUp size={24} />, color: '#3b82f6', onClick: () => navigate('/business/analytics') },
+    { id: '7', label: 'הגדרות', icon: <Settings size={24} />, color: '#6b7280', onClick: () => navigate('/business/settings') },
+    { id: '8', label: 'יומני ביקורת', icon: <FileText size={24} />, color: '#06b6d4', onClick: () => navigate('/business/audit-logs') },
+    { id: '9', label: 'לקוחות', icon: <User size={24} />, color: '#f97316', onClick: () => navigate('/business/customers') },
   ];
 
   if (loading) {
     return (
-      <PageContainer>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60vh',
-          color: modernTokens.colors.text.primary
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-            <div style={{ fontSize: '18px', fontWeight: '600' }}>טוען נתוני עסק...</div>
+      <div style={undergroundTheme.components.page}>
+        <UndergroundCard>
+          <UndergroundLoadingSpinner centered size="lg" />
+          <div style={{ textAlign: 'center', marginTop: undergroundTheme.spacing.xl }}>
+            <div style={{ fontSize: undergroundTheme.typography.fontSize.lg, fontWeight: undergroundTheme.typography.fontWeight.semibold, color: undergroundTheme.colors.text.primary }}>
+              טוען נתוני עסק...
+            </div>
           </div>
-        </div>
-      </PageContainer>
+        </UndergroundCard>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <PageContainer>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60vh',
-          color: modernTokens.colors.text.primary
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
+      <div style={undergroundTheme.components.page}>
+        <UndergroundCard>
+          <div style={{ textAlign: 'center', padding: undergroundTheme.spacing['5xl'] }}>
+            <AlertTriangle size={64} color={undergroundTheme.colors.status.error} style={{ marginBottom: undergroundTheme.spacing.xl }} />
+            <div style={{ fontSize: undergroundTheme.typography.fontSize.xl, fontWeight: undergroundTheme.typography.fontWeight.semibold, color: undergroundTheme.colors.text.primary, marginBottom: undergroundTheme.spacing.lg }}>
               שגיאה בטעינת נתוני העסק
             </div>
-            <button
-              onClick={refresh}
-              style={{
-                padding: '12px 24px',
-                fontSize: '16px',
-                fontWeight: '600',
-                borderRadius: modernTokens.radius.md,
-                border: 'none',
-                background: modernTokens.gradients.primary,
-                color: '#ffffff',
-                cursor: 'pointer',
-                marginTop: '16px',
-                boxShadow: modernTokens.glows.primary,
-              }}
-            >
+            <UndergroundButton onClick={refresh}>
               נסה שנית
-            </button>
+            </UndergroundButton>
           </div>
-        </div>
-      </PageContainer>
+        </UndergroundCard>
+      </div>
     );
   }
 
   if (!stats || !currentBusinessId) {
     return (
-      <PageContainer>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60vh',
-          color: modernTokens.colors.text.primary
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏢</div>
-            <div style={{ fontSize: '18px', fontWeight: '600' }}>
+      <div style={undergroundTheme.components.page}>
+        <UndergroundCard>
+          <div style={{ textAlign: 'center', padding: undergroundTheme.spacing['5xl'] }}>
+            <Package size={64} color={undergroundTheme.colors.text.tertiary} style={{ marginBottom: undergroundTheme.spacing.xl }} />
+            <div style={{ fontSize: undergroundTheme.typography.fontSize.xl, fontWeight: undergroundTheme.typography.fontWeight.semibold, color: undergroundTheme.colors.text.primary }}>
               לא נמצא הקשר עסקי
             </div>
           </div>
-        </div>
-      </PageContainer>
+        </UndergroundCard>
+      </div>
     );
   }
 
@@ -297,26 +273,22 @@ export function UnifiedBusinessDashboard() {
   const visibleWidgets = widgets.filter(w => w.visible).sort((a, b) => a.order - b.order);
 
   return (
-    <PageContainer>
-      <PageHeader
-        icon="🏢"
+    <div style={undergroundTheme.components.page}>
+      <UndergroundHeader
         title={businessName || 'לוח בקרה מאוחד'}
         subtitle="סקירה מקיפה של הפעילות העסקית שלך"
-        actionButton={
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        icon={<Activity size={32} />}
+        gradient
+        actions={
+          <div style={{ display: 'flex', gap: undergroundTheme.spacing.md, alignItems: 'center', flexWrap: 'wrap' }}>
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value as DateRange)}
               style={{
-                padding: '10px 16px',
-                fontSize: '14px',
-                fontWeight: '500',
-                borderRadius: modernTokens.radius.md,
-                border: `1px solid ${modernTokens.colors.border.default}`,
-                backgroundColor: modernTokens.colors.background.surface,
-                color: modernTokens.colors.text.primary,
+                ...undergroundTheme.components.input,
+                width: 'auto',
+                padding: `${undergroundTheme.spacing.sm} ${undergroundTheme.spacing.lg}`,
                 cursor: 'pointer',
-                transition: modernTokens.transitions.fast,
               }}
             >
               <option value="1d">היום</option>
@@ -326,62 +298,39 @@ export function UnifiedBusinessDashboard() {
               <option value="all">הכל</option>
             </select>
 
-            <button
+            <UndergroundButton
+              variant={showCustomize ? 'primary' : 'secondary'}
               onClick={() => setShowCustomize(!showCustomize)}
-              style={{
-                padding: '10px 16px',
-                fontSize: '14px',
-                fontWeight: '500',
-                borderRadius: modernTokens.radius.md,
-                border: showCustomize ? 'none' : `1px solid ${modernTokens.colors.border.default}`,
-                background: showCustomize ? modernTokens.gradients.primary : modernTokens.colors.background.surface,
-                color: '#ffffff',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: showCustomize ? modernTokens.glows.primary : 'none',
-                transition: modernTokens.transitions.normal,
-              }}
+              icon={<Settings size={18} />}
             >
-              <span>⚙️</span>
-              <span>התאמה אישית</span>
-            </button>
+              התאמה אישית
+            </UndergroundButton>
 
-            <button
+            <UndergroundButton
+              variant="ghost"
               onClick={refresh}
-              style={{
-                padding: '10px 16px',
-                fontSize: '14px',
-                fontWeight: '500',
-                borderRadius: modernTokens.radius.md,
-                border: `1px solid ${modernTokens.colors.border.default}`,
-                backgroundColor: modernTokens.colors.background.surface,
-                color: modernTokens.colors.text.primary,
-                cursor: 'pointer',
-                transition: modernTokens.transitions.fast,
-              }}
+              icon={<Activity size={18} />}
             >
-              🔄
-            </button>
+              רענן
+            </UndergroundButton>
           </div>
         }
       />
 
       {showCustomize && (
-        <Card style={{ marginBottom: '24px' }}>
+        <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['4xl'] }}>
           <h3 style={{
-            fontSize: '18px',
-            fontWeight: '600',
-            color: modernTokens.colors.text.primary,
-            marginBottom: '16px'
+            fontSize: undergroundTheme.typography.fontSize.lg,
+            fontWeight: undergroundTheme.typography.fontWeight.semibold,
+            color: undergroundTheme.colors.text.primary,
+            marginBottom: undergroundTheme.spacing.xl
           }}>
             בחר ווידג'טים להצגה
           </h3>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-            gap: '12px'
+            gap: undergroundTheme.spacing.md
           }}>
             {widgets.map(widget => (
               <label
@@ -389,45 +338,47 @@ export function UnifiedBusinessDashboard() {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  padding: '12px',
-                  backgroundColor: modernTokens.colors.background.surface,
-                  border: `1px solid ${modernTokens.colors.border.default}`,
-                  borderRadius: modernTokens.radius.md,
+                  gap: undergroundTheme.spacing.sm,
+                  padding: undergroundTheme.spacing.md,
+                  ...undergroundTheme.effects.glassmorphism.light,
+                  borderRadius: undergroundTheme.borderRadius.md,
                   cursor: 'pointer',
-                  transition: modernTokens.transitions.fast,
+                  transition: undergroundTheme.transitions.normal,
                 }}
               >
                 <input
                   type="checkbox"
                   checked={widget.visible}
                   onChange={() => toggleWidget(widget.id)}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', accentColor: undergroundTheme.colors.accent.primary }}
                 />
-                <span style={{ color: modernTokens.colors.text.primary, fontSize: '14px' }}>
+                <span style={{ color: undergroundTheme.colors.text.primary, fontSize: undergroundTheme.typography.fontSize.sm }}>
                   {widget.title}
                 </span>
               </label>
             ))}
           </div>
-        </Card>
+        </UndergroundCard>
       )}
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '16px'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+        gap: undergroundTheme.spacing.xl,
+        marginBottom: undergroundTheme.spacing['4xl']
       }}>
         {visibleWidgets.map(widget => {
           if (widget.id === 'orders' && widget.visible) {
             return (
-              <StatCard
+              <UndergroundStatCard
                 key={widget.id}
-                icon="📦"
+                icon={<Package size={28} />}
                 label="סה״כ הזמנות"
                 value={formatNumber(stats.totalOrders)}
-                subtitle={stats.recentOrders > 0 ? `+${stats.recentOrders} היום` : undefined}
+                subtext={stats.recentOrders > 0 ? `+${stats.recentOrders} היום` : undefined}
+                accentColor={undergroundTheme.colors.accent.primary}
                 onClick={() => navigate('/business/orders')}
+                trend={stats.recentOrders > 0 ? { value: `+${stats.recentOrders}`, direction: 'up' } : undefined}
               />
             );
           }
@@ -435,25 +386,25 @@ export function UnifiedBusinessDashboard() {
           if (widget.id === 'revenue' && widget.visible) {
             return (
               <React.Fragment key={widget.id}>
-                <StatCard
-                  icon="💰"
+                <UndergroundStatCard
+                  icon={<DollarSign size={28} />}
                   label="הכנסות כוללות"
                   value={formatCurrency(stats.totalRevenue, 'ILS')}
-                  variant="revenue"
+                  accentColor={undergroundTheme.colors.status.success}
                   onClick={() => navigate('/business/analytics')}
                 />
-                <StatCard
-                  icon="📊"
+                <UndergroundStatCard
+                  icon={<BarChart3 size={28} />}
                   label="ממוצע הזמנה"
                   value={formatCurrency(stats.averageOrderValue, 'ILS')}
-                  variant="revenue"
+                  accentColor="#8b5cf6"
                   onClick={() => navigate('/business/analytics')}
                 />
-                <StatCard
-                  icon="⏳"
+                <UndergroundStatCard
+                  icon={<Activity size={28} />}
                   label="הזמנות ממתינות"
                   value={formatNumber(stats.pendingOrders)}
-                  variant="warning"
+                  accentColor={undergroundTheme.colors.status.warning}
                   onClick={() => navigate('/business/orders')}
                 />
               </React.Fragment>
@@ -462,11 +413,12 @@ export function UnifiedBusinessDashboard() {
 
           if (widget.id === 'team' && widget.visible) {
             return (
-              <StatCard
+              <UndergroundStatCard
                 key={widget.id}
-                icon="👥"
+                icon={<Users size={28} />}
                 label="חברי צוות פעילים"
                 value={formatNumber(stats.activeTeamMembers)}
+                accentColor="#8b5cf6"
                 onClick={() => navigate('/business/team')}
               />
             );
@@ -474,11 +426,12 @@ export function UnifiedBusinessDashboard() {
 
           if (widget.id === 'drivers' && widget.visible) {
             return (
-              <StatCard
+              <UndergroundStatCard
                 key={widget.id}
-                icon="🚗"
+                icon={<Truck size={28} />}
                 label="נהגים זמינים"
                 value={`${formatNumber(stats.availableDrivers)}/${formatNumber(stats.totalDrivers)}`}
+                accentColor="#ec4899"
                 onClick={() => navigate('/business/drivers')}
               />
             );
@@ -486,25 +439,31 @@ export function UnifiedBusinessDashboard() {
 
           if (widget.id === 'inventory' && widget.visible) {
             return (
-              <StatCard
+              <UndergroundStatCard
                 key={widget.id}
-                icon="⚠️"
+                icon={<AlertTriangle size={28} />}
                 label="פריטים במלאי נמוך"
                 value={formatNumber(stats.lowStockItems)}
-                variant={stats.lowStockItems > 0 ? "warning" : "default"}
+                accentColor={stats.lowStockItems > 0 ? undergroundTheme.colors.status.warning : undergroundTheme.colors.status.success}
                 onClick={() => navigate('/business/inventory')}
               />
             );
           }
 
           if (widget.id === 'completion' && widget.visible) {
+            const completionColor = orderCompletionRate > 80
+              ? undergroundTheme.colors.status.success
+              : orderCompletionRate < 50
+              ? undergroundTheme.colors.status.error
+              : undergroundTheme.colors.status.warning;
+
             return (
-              <StatCard
+              <UndergroundStatCard
                 key={widget.id}
-                icon="✅"
+                icon={<CheckCircle size={28} />}
                 label="שיעור השלמה"
                 value={`${orderCompletionRate.toFixed(1)}%`}
-                variant={orderCompletionRate > 80 ? "success" : orderCompletionRate < 50 ? "error" : "warning"}
+                accentColor={completionColor}
                 onClick={() => navigate('/business/analytics')}
               />
             );
@@ -518,132 +477,106 @@ export function UnifiedBusinessDashboard() {
         <div style={{
           display: 'grid',
           gridTemplateColumns: visibleWidgets.find(w => w.id === 'quickActions') && visibleWidgets.find(w => w.id === 'activity')
-            ? '1fr 1fr'
+            ? 'repeat(auto-fit, minmax(400px, 1fr))'
             : '1fr',
-          gap: '24px',
-          marginTop: '32px'
+          gap: undergroundTheme.spacing['3xl'],
         }}>
           {visibleWidgets.find(w => w.id === 'quickActions') && (
-            <div>
-              <h3 style={{
-                fontSize: '20px',
-                fontWeight: '700',
-                marginBottom: '16px',
-                color: modernTokens.colors.text.primary
-              }}>
-                פעולות מהירות
-              </h3>
+            <UndergroundSection title="פעולות מהירות">
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                gap: '12px'
+                gap: undergroundTheme.spacing.md
               }}>
                 {quickActions.map(action => (
-                  <button
+                  <UndergroundCard
                     key={action.id}
+                    variant="light"
+                    hover
                     onClick={action.onClick}
                     style={{
-                      padding: '16px',
-                      background: modernTokens.gradients.card,
-                      border: `1px solid ${modernTokens.colors.border.default}`,
-                      borderRadius: modernTokens.radius.lg,
-                      cursor: 'pointer',
+                      padding: undergroundTheme.spacing.lg,
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      gap: '8px',
-                      transition: modernTokens.transitions.normal,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = modernTokens.shadows.lg;
-                      e.currentTarget.style.background = modernTokens.gradients.cardHover;
-                      e.currentTarget.style.border = `1px solid ${modernTokens.colors.border.hover}`;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = 'none';
-                      e.currentTarget.style.background = modernTokens.gradients.card;
-                      e.currentTarget.style.border = `1px solid ${modernTokens.colors.border.default}`;
+                      gap: undergroundTheme.spacing.sm,
+                      textAlign: 'center',
                     }}
                   >
-                    <span style={{ fontSize: '32px' }}>{action.icon}</span>
+                    <div style={{
+                      color: action.color,
+                      padding: undergroundTheme.spacing.sm,
+                      borderRadius: undergroundTheme.borderRadius.md,
+                      background: `${action.color}15`,
+                      boxShadow: `0 0 20px ${action.color}30`,
+                    }}>
+                      {action.icon}
+                    </div>
                     <span style={{
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: modernTokens.colors.text.primary,
-                      textAlign: 'center'
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      fontWeight: undergroundTheme.typography.fontWeight.medium,
+                      color: undergroundTheme.colors.text.primary,
                     }}>
                       {action.label}
                     </span>
-                  </button>
+                  </UndergroundCard>
                 ))}
               </div>
-            </div>
+            </UndergroundSection>
           )}
 
           {visibleWidgets.find(w => w.id === 'activity') && (
-            <div>
-              <h3 style={{
-                fontSize: '20px',
-                fontWeight: '700',
-                marginBottom: '16px',
-                color: modernTokens.colors.text.primary
-              }}>
-                פעילות אחרונה
-              </h3>
-              <Card>
+            <UndergroundSection title="פעילות אחרונה">
+              <UndergroundCard variant="medium">
                 {activities.map((activity, index) => (
                   <div
                     key={activity.id}
                     style={{
-                      padding: '12px',
-                      borderBottom: index < activities.length - 1 ? `1px solid ${modernTokens.colors.border.default}` : 'none',
+                      padding: undergroundTheme.spacing.md,
+                      borderBottom: index < activities.length - 1
+                        ? `1px solid ${undergroundTheme.colors.glassmorphism.border}`
+                        : 'none',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      transition: modernTokens.transitions.fast,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = modernTokens.colors.interactive.hover;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
+                      transition: undergroundTheme.transitions.fast,
+                      borderRadius: undergroundTheme.borderRadius.sm,
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '20px' }}>
-                        {activity.type === 'alert' ? '⚠️' : activity.type === 'order' ? '📦' : 'ℹ️'}
-                      </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: undergroundTheme.spacing.md }}>
+                      {activity.type === 'alert' ? (
+                        <AlertTriangle size={20} color={undergroundTheme.colors.status.warning} />
+                      ) : activity.type === 'order' ? (
+                        <Package size={20} color={undergroundTheme.colors.accent.primary} />
+                      ) : (
+                        <Activity size={20} color={undergroundTheme.colors.text.tertiary} />
+                      )}
                       <span style={{
-                        fontSize: '14px',
-                        color: modernTokens.colors.text.primary
+                        fontSize: undergroundTheme.typography.fontSize.sm,
+                        color: undergroundTheme.colors.text.primary
                       }}>
                         {activity.message}
                       </span>
                     </div>
-                    <span style={{
-                      fontSize: '12px',
-                      color: modernTokens.colors.text.secondary
-                    }}>
+                    <UndergroundBadge variant="metric">
                       {activity.time}
-                    </span>
+                    </UndergroundBadge>
                   </div>
                 ))}
-              </Card>
-            </div>
+              </UndergroundCard>
+            </UndergroundSection>
           )}
         </div>
       )}
 
-      <Card style={{ marginTop: '24px', textAlign: 'center' }}>
+      <UndergroundCard style={{ marginTop: undergroundTheme.spacing['4xl'], textAlign: 'center', padding: undergroundTheme.spacing.lg }}>
         <div style={{
-          color: modernTokens.colors.text.tertiary,
-          fontSize: '12px'
+          color: undergroundTheme.colors.text.tertiary,
+          fontSize: undergroundTheme.typography.fontSize.xs
         }}>
           עדכון אחרון: {stats.lastUpdated.toLocaleTimeString('he-IL')}
         </div>
-      </Card>
-    </PageContainer>
+      </UndergroundCard>
+    </div>
   );
 }
