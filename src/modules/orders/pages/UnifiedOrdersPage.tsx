@@ -7,6 +7,7 @@ import { Order, OrderStatus, OrderFilters } from '../types';
 import { orderWorkflowService } from '../services';
 import { logger } from '@lib/logger';
 import { BusinessContextGuard } from '@/components/guards';
+import { useSafeAppServices } from '@/context/AppServicesContext';
 
 interface UnifiedOrdersPageProps {
   businessId?: string;
@@ -15,7 +16,7 @@ interface UnifiedOrdersPageProps {
   onNavigate?: (route: string) => void;
 }
 
-export function UnifiedOrdersPage({
+function UnifiedOrdersPageInner({
   businessId,
   role,
   userId,
@@ -284,4 +285,13 @@ export function UnifiedOrdersPage({
       </DashboardLayout>
     </BusinessContextGuard>
   );
+}
+
+export function UnifiedOrdersPage(props?: UnifiedOrdersPageProps) {
+  const appServices = useSafeAppServices();
+  const businessIdFromContext = appServices?.currentBusinessId;
+
+  const businessId = props?.businessId || businessIdFromContext || undefined;
+
+  return <UnifiedOrdersPageInner {...props} businessId={businessId} />;
 }
