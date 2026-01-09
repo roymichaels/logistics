@@ -12,6 +12,11 @@ export interface BusinessRecord {
   business_type: string;
   status: 'active' | 'inactive' | 'suspended';
   logo_url?: string;
+  banner_image_url?: string;
+  tagline?: string;
+  public_email?: string;
+  public_phone?: string;
+  is_public?: boolean;
   primary_color: string;
   secondary_color: string;
   order_number_prefix?: string;
@@ -400,4 +405,102 @@ export async function setActiveBusinessId(businessId: string, userId?: string): 
     logger.error('[BusinessService] Exception setting active business:', error);
     return false;
   }
+}
+
+/**
+ * Get a public business by slug (no authentication required)
+ */
+export async function getBusinessBySlug(slug: string): Promise<BusinessRecord | null> {
+  logger.debug(`[BusinessService] Getting public business by slug: ${slug}`);
+
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('*')
+    .eq('slug', slug)
+    .eq('is_public', true)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  if (error) {
+    logger.error('[BusinessService] Failed to get business by slug', error);
+    throw error;
+  }
+
+  return data as BusinessRecord | null;
+}
+
+/**
+ * Get all public businesses (for directory)
+ */
+export async function getPublicBusinesses(): Promise<BusinessRecord[]> {
+  logger.debug('[BusinessService] Getting all public businesses');
+
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('*')
+    .eq('is_public', true)
+    .eq('status', 'active')
+    .order('name', { ascending: true });
+
+  if (error) {
+    logger.error('[BusinessService] Failed to get public businesses', error);
+    throw error;
+  }
+
+  return (data || []) as BusinessRecord[];
+}
+
+/**
+ * Get published products for a public business
+ */
+export async function getPublicBusinessCatalog(businessId: string) {
+  logger.debug(`[BusinessService] Getting public catalog for business: ${businessId}`);
+
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('business_id', businessId)
+    .eq('is_published', true)
+    .order('name', { ascending: true });
+
+  if (error) {
+    logger.error('[BusinessService] Failed to get public catalog', error);
+    throw error;
+  }
+
+  return data || [];
+}
+
+/**
+ * Update business public settings (owner only)
+ */
+export async function updateBusinessPublicSettings(
+  businessId: string,
+  settings: {
+    is_public?: boolean;
+    banner_image_url?: string;
+    tagline?: string;
+    public_email?: string;
+    public_phone?: string;
+    description?: string;
+  }
+): Promise<BusinessRecord> {
+  logger.info('[BusinessService] Updating business public settings', { businessId });
+
+  const { data, error } = await supabase
+    .from('businesses')
+    .update({
+      ...settings,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', businessId)
+    .select()
+    .single();
+
+  if (error) {
+    logger.error('[BusinessService] Failed to update business public settings', error);
+    throw error;
+  }
+
+  return data as BusinessRecord;
 }

@@ -19,6 +19,11 @@ interface BusinessSettings {
   description?: string;
   slug: string;
   logo_url?: string;
+  banner_image_url?: string;
+  tagline?: string;
+  public_email?: string;
+  public_phone?: string;
+  is_public?: boolean;
   primary_color: string;
   secondary_color: string;
   default_currency: string;
@@ -93,6 +98,11 @@ export default function Settings() {
           description: business.description || '',
           slug: business.slug || '',
           logo_url: business.logo_url || '',
+          banner_image_url: business.banner_image_url || '',
+          tagline: business.tagline || '',
+          public_email: business.public_email || '',
+          public_phone: business.public_phone || '',
+          is_public: business.is_public || false,
           primary_color: business.primary_color || '#3b82f6',
           secondary_color: business.secondary_color || '#60a5fa',
           default_currency: business.default_currency || 'ILS',
@@ -132,6 +142,11 @@ export default function Settings() {
           name_hebrew: settings.name_hebrew,
           description: settings.description,
           logo_url: settings.logo_url,
+          banner_image_url: settings.banner_image_url,
+          tagline: settings.tagline,
+          public_email: settings.public_email,
+          public_phone: settings.public_phone,
+          is_public: settings.is_public,
           primary_color: settings.primary_color,
           secondary_color: settings.secondary_color,
           default_currency: settings.default_currency,
@@ -583,6 +598,221 @@ export default function Settings() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <div style={{ padding: '24px' }}>
+            <h3 style={{
+              margin: '0 0 20px 0',
+              fontSize: '20px',
+              fontWeight: '700',
+              color: tokens.colors.text
+            }}>
+              חנות ציבורית (Public Storefront)
+            </h3>
+
+            <div style={{ display: 'grid', gap: '16px' }}>
+              <div style={{
+                padding: '16px',
+                background: tokens.colors.surface,
+                borderRadius: '8px',
+                border: `1px solid ${tokens.colors.border}`
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '8px'
+                }}>
+                  <label style={{
+                    fontWeight: '600',
+                    fontSize: '16px',
+                    color: tokens.colors.text
+                  }}>
+                    הפוך את העסק לציבורי
+                  </label>
+                  <Switch
+                    checked={settings.is_public || false}
+                    onChange={(checked) => updateField('is_public', checked)}
+                  />
+                </div>
+                <p style={{
+                  margin: '0',
+                  fontSize: '14px',
+                  color: tokens.colors.subtle
+                }}>
+                  כאשר מופעל, העסק והקטלוג שלך יהיו זמינים לכולם לצפייה
+                </p>
+                {settings.is_public && (
+                  <div style={{ marginTop: '12px' }}>
+                    <a
+                      href={`/business/preview`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '8px 16px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: tokens.colors.text.bright,
+                        background: tokens.gradients.primary,
+                        borderRadius: '6px',
+                        textDecoration: 'none'
+                      }}
+                    >
+                      <span>צפה בדף הציבורי</span>
+                      <span>→</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {settings.is_public && (
+                <>
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontWeight: '600',
+                      fontSize: '14px',
+                      color: tokens.colors.text
+                    }}>
+                      כתובת URL (slug)
+                    </label>
+                    <div style={{
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: `1px solid ${tokens.colors.border}`,
+                      background: tokens.colors.surface,
+                      color: tokens.colors.subtle,
+                      fontFamily: 'monospace',
+                      fontSize: '14px'
+                    }}>
+                      /business/{settings.slug}
+                    </div>
+                    <p style={{
+                      margin: '8px 0 0 0',
+                      fontSize: '12px',
+                      color: tokens.colors.subtle
+                    }}>
+                      זה הקישור הציבורי לעסק שלך
+                    </p>
+                  </div>
+
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontWeight: '600',
+                      fontSize: '14px',
+                      color: tokens.colors.text
+                    }}>
+                      משפט פתיחה (Tagline)
+                    </label>
+                    <Input
+                      value={settings.tagline || ''}
+                      onChange={(e) => updateField('tagline', e.target.value)}
+                      placeholder="למשל: המקום הטוב ביותר לקניות"
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontWeight: '600',
+                      fontSize: '14px',
+                      color: tokens.colors.text
+                    }}>
+                      כתובת תמונת רקע (Banner URL)
+                    </label>
+                    <Input
+                      value={settings.banner_image_url || ''}
+                      onChange={(e) => updateField('banner_image_url', e.target.value)}
+                      placeholder="https://..."
+                    />
+                    {settings.banner_image_url && (
+                      <div style={{ marginTop: '12px' }}>
+                        <img
+                          src={settings.banner_image_url}
+                          alt="Banner preview"
+                          style={{
+                            width: '100%',
+                            height: '150px',
+                            objectFit: 'cover',
+                            borderRadius: '8px',
+                            border: `1px solid ${tokens.colors.border}`
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontWeight: '600',
+                      fontSize: '14px',
+                      color: tokens.colors.text
+                    }}>
+                      אימייל ציבורי
+                    </label>
+                    <Input
+                      type="email"
+                      value={settings.public_email || ''}
+                      onChange={(e) => updateField('public_email', e.target.value)}
+                      placeholder="info@business.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      fontWeight: '600',
+                      fontSize: '14px',
+                      color: tokens.colors.text
+                    }}>
+                      טלפון ציבורי
+                    </label>
+                    <Input
+                      type="tel"
+                      value={settings.public_phone || ''}
+                      onChange={(e) => updateField('public_phone', e.target.value)}
+                      placeholder="050-1234567"
+                    />
+                  </div>
+
+                  <div style={{
+                    padding: '16px',
+                    background: 'rgba(59, 130, 246, 0.1)',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(59, 130, 246, 0.3)'
+                  }}>
+                    <h4 style={{
+                      margin: '0 0 8px 0',
+                      fontSize: '14px',
+                      fontWeight: '700',
+                      color: tokens.colors.text
+                    }}>
+                      💡 טיפ
+                    </h4>
+                    <p style={{
+                      margin: '0',
+                      fontSize: '14px',
+                      color: tokens.colors.text,
+                      lineHeight: '1.5'
+                    }}>
+                      כדי שמוצרים יופיעו בחנות הציבורית, יש לסמן אותם כ"פורסם" בדף הקטלוג
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </Card>
