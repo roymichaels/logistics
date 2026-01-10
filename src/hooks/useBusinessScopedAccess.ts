@@ -29,5 +29,5 @@ export function useBusinessScopedAccess(): BusinessScopedAccess {
       currentBusinessName: businessContext?.activeBusiness?.name ?? null,
       loading
     };
-  }, [role, businessContext?.activeBusiness, businessContext?.loading]);
+  }, [role, businessContext?.activeBusiness?.id, businessContext?.activeBusiness?.name, businessContext?.loading]);
 }
