@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { DataStore, Notification } from '../data/types';
-import { TELEGRAM_THEME } from '../styles/telegramTheme';
+import { tokens } from '../styles/telegramTheme';
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
 import { hideBackButton } from '../utils/telegram';
+
+const TELEGRAM_THEME = tokens;
 
 interface NotificationsProps {
   dataStore: DataStore;
@@ -137,14 +139,14 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
   };
 
   const getNotificationColor = (type?: string, isRead?: boolean) => {
-    if (isRead) return TELEGRAM_THEME.colors.text.tertiary;
+    if (isRead) return tokens.colors.text.tertiary;
     switch (type) {
-      case 'order_assigned': return TELEGRAM_THEME.colors.accent.primary;
-      case 'order_completed': return TELEGRAM_THEME.colors.status.success;
-      case 'low_stock': return TELEGRAM_THEME.colors.status.error;
-      case 'restock_approved': return TELEGRAM_THEME.colors.accent.primary;
-      case 'user_registered': return TELEGRAM_THEME.colors.status.warning;
-      default: return TELEGRAM_THEME.colors.text.primary;
+      case 'order_assigned': return tokens.colors.accent.primary;
+      case 'order_completed': return tokens.colors.status.success;
+      case 'low_stock': return tokens.colors.status.error;
+      case 'restock_approved': return tokens.colors.accent.primary;
+      case 'user_registered': return tokens.colors.status.warning;
+      default: return tokens.colors.text.primary;
     }
   };
 
@@ -185,10 +187,10 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
             <button
               onClick={handleMarkAllAsRead}
               style={{
-                background: TELEGRAM_THEME.colors.accent.faded,
+                background: TELEGRAM_THEME.colors.background.tertiary,
                 color: TELEGRAM_THEME.colors.accent.primary,
-                border: `1px solid ${TELEGRAM_THEME.colors.accent.border}`,
-                borderRadius: TELEGRAM_THEME.radius.xl,
+                border: `1px solid ${TELEGRAM_THEME.colors.border.primary}`,
+                borderRadius: TELEGRAM_THEME.borderRadius.xl,
                 padding: `${TELEGRAM_THEME.spacing.sm} ${TELEGRAM_THEME.spacing.lg}`,
                 fontSize: TELEGRAM_THEME.typography.fontSize.sm,
                 fontWeight: TELEGRAM_THEME.typography.fontWeight.semibold,
@@ -196,10 +198,10 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
                 transition: TELEGRAM_THEME.transitions.normal,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = TELEGRAM_THEME.colors.accent.light;
+                e.currentTarget.style.background = TELEGRAM_THEME.colors.background.surface;
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = TELEGRAM_THEME.colors.accent.faded;
+                e.currentTarget.style.background = TELEGRAM_THEME.colors.background.tertiary;
               }}
             >
               Mark all read
@@ -257,7 +259,7 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
         {loading ? (
           <div style={{
             textAlign: 'center',
-            padding: TELEGRAM_THEME.spacing['5xl'],
+            padding: TELEGRAM_THEME.spacing['3xl'],
             color: TELEGRAM_THEME.colors.text.secondary
           }}>
             <div style={{ fontSize: '48px', marginBottom: TELEGRAM_THEME.spacing.lg }}>⏳</div>
@@ -266,7 +268,7 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
         ) : notifications.length === 0 ? (
           <div style={{
             textAlign: 'center',
-            padding: TELEGRAM_THEME.spacing['5xl'],
+            padding: TELEGRAM_THEME.spacing['3xl'],
             color: TELEGRAM_THEME.colors.text.secondary
           }}>
             <div style={{ fontSize: '64px', marginBottom: TELEGRAM_THEME.spacing.lg }}>📭</div>
@@ -287,10 +289,10 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
                 style={{
                   background: notification.read_at
                     ? 'transparent'
-                    : TELEGRAM_THEME.glass.background,
-                  backdropFilter: notification.read_at ? 'none' : TELEGRAM_THEME.glass.backdropFilter,
+                    : TELEGRAM_THEME.colors.background.secondary,
+                  backdropFilter: notification.read_at ? 'none' : 'blur(10px)',
                   border: `1px solid ${TELEGRAM_THEME.colors.border.primary}`,
-                  borderRadius: TELEGRAM_THEME.radius.lg,
+                  borderRadius: TELEGRAM_THEME.borderRadius.lg,
                   padding: TELEGRAM_THEME.spacing.lg,
                   cursor: notification.read_at ? 'default' : 'pointer',
                   transition: TELEGRAM_THEME.transitions.normal,
@@ -298,12 +300,12 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
                 }}
                 onMouseEnter={(e) => {
                   if (!notification.read_at) {
-                    e.currentTarget.style.background = TELEGRAM_THEME.colors.card.hover;
+                    e.currentTarget.style.background = TELEGRAM_THEME.colors.background.tertiary;
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!notification.read_at) {
-                    e.currentTarget.style.background = TELEGRAM_THEME.glass.background;
+                    e.currentTarget.style.background = TELEGRAM_THEME.colors.background.secondary;
                   }
                 }}
               >
@@ -348,7 +350,7 @@ export function Notifications({ dataStore, onNavigate }: NotificationsProps) {
                       margin: 0,
                       fontSize: TELEGRAM_THEME.typography.fontSize.base,
                       color: TELEGRAM_THEME.colors.text.secondary,
-                      lineHeight: TELEGRAM_THEME.typography.lineHeight.relaxed,
+                      lineHeight: TELEGRAM_THEME.typography.lineHeight.normal,
                     }}>
                       {notification.message}
                     </p>
