@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { tokens, styles } from '../styles/tokens';
-
+import { undergroundTheme } from '../styles/undergroundTheme';
+import { UndergroundCard } from '../components/underground/UndergroundCard';
+import { UndergroundStatCard } from '../components/underground/UndergroundStatCard';
 import { logger } from '../lib/logger';
 import {
   DataStore,
@@ -108,85 +109,104 @@ export function WarehouseDashboard({ dataStore, onNavigate = () => {} }: Warehou
   return (
     <div
       style={{
-        backgroundColor: tokens.colors.panel,
-        color: tokens.colors.text,
+        background: undergroundTheme.colors.gradient.primary,
+        color: undergroundTheme.colors.text.primary,
         minHeight: '100vh',
-        padding: '20px',
+        padding: undergroundTheme.spacing['2xl'],
+        paddingBottom: undergroundTheme.spacing['8xl'],
         direction: 'rtl'
       }}
     >
-      <h1 style={{ fontSize: '24px', margin: '0 0 16px' }}>מרכז מחסן</h1>
-      <p style={{ margin: '0 0 24px', color: tokens.colors.subtle }}>
+      <h1 style={{
+        fontSize: undergroundTheme.typography.fontSize['4xl'],
+        fontWeight: undergroundTheme.typography.fontWeight.bold,
+        margin: `0 0 ${undergroundTheme.spacing.sm} 0`,
+        textShadow: undergroundTheme.shadows.glow.cyan
+      }}>
+        מרכז מחסן
+      </h1>
+      <p style={{
+        margin: `0 0 ${undergroundTheme.spacing['3xl']} 0`,
+        color: undergroundTheme.colors.text.secondary,
+        fontSize: undergroundTheme.typography.fontSize.lg
+      }}>
         מעקב מלאי לפי מיקומים, בקשות חידוש פתוחות ותיעוד תנועות אחרונות.
       </p>
 
       <section
         style={{
           display: 'grid',
-          gap: '12px',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          marginBottom: '28px'
+          gap: undergroundTheme.spacing.lg,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          marginBottom: undergroundTheme.spacing['4xl']
         }}
       >
-        <SummaryCard
-          label={'סה"כ מיקומים'}
+        <UndergroundStatCard
+          icon={<span style={{ fontSize: '32px' }}>📍</span>}
+          label='סה"כ מיקומים'
           value={summary.totalLocations}
+          accentColor={undergroundTheme.colors.accent.primary}
           onClick={() => onNavigate('inventory')}
         />
-        <SummaryCard
+        <UndergroundStatCard
+          icon={<span style={{ fontSize: '32px' }}>⚠️</span>}
           label="מיקומים עם מלאי נמוך"
           value={summary.lowStockLocations}
-          accent="#ff9500"
+          accentColor={undergroundTheme.colors.status.warning}
           onClick={() => onNavigate('inventory?filter=lowStock')}
         />
-        <SummaryCard
+        <UndergroundStatCard
+          icon={<span style={{ fontSize: '32px' }}>🔔</span>}
           label="התראות מלאי"
           value={summary.totalAlerts}
-          accent="#ff3b30"
+          accentColor={undergroundTheme.colors.status.error}
           onClick={() => onNavigate('my-inventory?alerts=true')}
         />
-        <SummaryCard
+        <UndergroundStatCard
+          icon={<span style={{ fontSize: '32px' }}>📦</span>}
           label="בקשות חידוש ממתינות"
           value={summary.pendingRestocks}
-          accent="#007aff"
+          accentColor={undergroundTheme.colors.status.info}
           onClick={() => onNavigate('restock-requests')}
         />
       </section>
 
-      {loading && <div style={{ marginBottom: '16px', color: tokens.colors.subtle }}>טוען נתוני מחסן...</div>}
+      {loading && <div style={{ marginBottom: undergroundTheme.spacing.lg, color: undergroundTheme.colors.text.secondary }}>טוען נתוני מחסן...</div>}
 
-      <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '18px', margin: '0 0 12px' }}>סטטוס לפי מיקום</h2>
+      <section style={{ marginBottom: undergroundTheme.spacing['4xl'] }}>
+        <h2 style={{
+          fontSize: undergroundTheme.typography.fontSize['2xl'],
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          margin: `0 0 ${undergroundTheme.spacing.lg} 0`,
+          color: undergroundTheme.colors.text.primary
+        }}>
+          סטטוס לפי מיקום
+        </h2>
         {locations.length === 0 ? (
-          <div style={{ padding: '16px', borderRadius: '12px', backgroundColor: tokens.colors.background.card }}>
+          <UndergroundCard>
             אין נתוני מלאי זמינים.
-          </div>
+          </UndergroundCard>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
             {locations.map((location) => (
-              <div
+              <UndergroundCard
                 key={location.id}
+                hover
                 onClick={() => onNavigate(`inventory?location=${location.id}`)}
-                style={{
-                  padding: '16px',
-                  borderRadius: '12px',
-                  backgroundColor: tokens.colors.background.card,
-                  border: `1px solid ${tokens.colors.subtle}30`,
-                  cursor: 'pointer',
-                  transition: 'all 200ms ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <strong>{location.name}</strong>
-                  <span style={{ fontSize: '12px', color: tokens.colors.subtle }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: undergroundTheme.spacing.sm }}>
+                  <strong style={{
+                    fontSize: undergroundTheme.typography.fontSize.lg,
+                    fontWeight: undergroundTheme.typography.fontWeight.bold,
+                    color: undergroundTheme.colors.text.primary
+                  }}>
+                    {location.name}
+                  </strong>
+                  <span style={{
+                    fontSize: undergroundTheme.typography.fontSize.xs,
+                    color: location.lowStockSkus > 0 ? undergroundTheme.colors.status.warning : undergroundTheme.colors.text.tertiary,
+                    fontWeight: undergroundTheme.typography.fontWeight.semibold
+                  }}>
                     {location.lowStockSkus} מוצרים עם מלאי נמוך
                   </span>
                 </div>
@@ -194,144 +214,154 @@ export function WarehouseDashboard({ dataStore, onNavigate = () => {} }: Warehou
                   style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                    gap: '8px',
-                    fontSize: '12px'
+                    gap: undergroundTheme.spacing.sm,
+                    fontSize: undergroundTheme.typography.fontSize.sm,
+                    color: undergroundTheme.colors.text.secondary
                   }}
                 >
-                  <div>זמין: <strong>{location.onHand}</strong></div>
-                  <div>בהקצאה: <strong>{location.reserved}</strong></div>
-                  <div>פגומים: <strong>{location.damaged}</strong></div>
-                  <div>מק"טים במיקום: <strong>{location.skuCount}</strong></div>
+                  <div>זמין: <strong style={{ color: undergroundTheme.colors.text.primary }}>{location.onHand}</strong></div>
+                  <div>בהקצאה: <strong style={{ color: undergroundTheme.colors.text.primary }}>{location.reserved}</strong></div>
+                  <div>פגומים: <strong style={{ color: undergroundTheme.colors.text.primary }}>{location.damaged}</strong></div>
+                  <div>מק"טים במיקום: <strong style={{ color: undergroundTheme.colors.text.primary }}>{location.skuCount}</strong></div>
                 </div>
-              </div>
+              </UndergroundCard>
             ))}
           </div>
         )}
       </section>
 
-      <section style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '18px', margin: '0 0 12px' }}>בקשות חידוש פתוחות</h2>
+      <section style={{ marginBottom: undergroundTheme.spacing['4xl'] }}>
+        <h2 style={{
+          fontSize: undergroundTheme.typography.fontSize['2xl'],
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          margin: `0 0 ${undergroundTheme.spacing.lg} 0`,
+          color: undergroundTheme.colors.text.primary
+        }}>
+          בקשות חידוש פתוחות
+        </h2>
         {restockRequests.length === 0 ? (
-          <div style={{ color: tokens.colors.subtle }}>אין בקשות חידוש ממתינות.</div>
+          <UndergroundCard>
+            <div style={{ color: undergroundTheme.colors.text.secondary }}>אין בקשות חידוש ממתינות.</div>
+          </UndergroundCard>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.sm }}>
             {restockRequests.map((request) => (
-              <div
-                key={request.id}
-                style={{
-                  padding: '12px',
-                  borderRadius: '10px',
-                  backgroundColor: tokens.colors.background.card,
-                  border: `1px solid ${tokens.colors.subtle}30`
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <strong>{request.product?.name || request.product_id}</strong>
-                  <span style={{ fontSize: '12px', color: tokens.colors.subtle }}>
+              <UndergroundCard key={request.id} variant="light">
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: undergroundTheme.spacing.xs }}>
+                  <strong style={{
+                    fontSize: undergroundTheme.typography.fontSize.base,
+                    color: undergroundTheme.colors.text.primary
+                  }}>
+                    {request.product?.name || request.product_id}
+                  </strong>
+                  <span style={{
+                    fontSize: undergroundTheme.typography.fontSize.xs,
+                    color: undergroundTheme.colors.text.tertiary
+                  }}>
                     {new Date(request.created_at).toLocaleString('he-IL')}
                   </span>
                 </div>
-                <div style={{ fontSize: '13px' }}>
-                  כמות מבוקשת: <strong>{request.requested_quantity}</strong>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  color: undergroundTheme.colors.text.secondary,
+                  marginBottom: undergroundTheme.spacing.xs
+                }}>
+                  כמות מבוקשת: <strong style={{ color: undergroundTheme.colors.accent.primary }}>{request.requested_quantity}</strong>
                 </div>
-                <div style={{ fontSize: '12px', color: tokens.colors.subtle }}>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize.xs,
+                  color: undergroundTheme.colors.text.tertiary
+                }}>
                   {request.from_location?.name || 'מקור לא משויך'} → {request.to_location?.name || 'יעד לא משויך'}
                 </div>
                 {request.notes && (
-                  <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginTop: '4px' }}>{request.notes}</div>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.xs,
+                    color: undergroundTheme.colors.text.tertiary,
+                    marginTop: undergroundTheme.spacing.xs,
+                    fontStyle: 'italic'
+                  }}>
+                    {request.notes}
+                  </div>
                 )}
-              </div>
+              </UndergroundCard>
             ))}
           </div>
         )}
       </section>
 
       <section>
-        <h2 style={{ fontSize: '18px', margin: '0 0 12px' }}>תנועות מלאי אחרונות</h2>
+        <h2 style={{
+          fontSize: undergroundTheme.typography.fontSize['2xl'],
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          margin: `0 0 ${undergroundTheme.spacing.lg} 0`,
+          color: undergroundTheme.colors.text.primary
+        }}>
+          תנועות מלאי אחרונות
+        </h2>
         {logs.length === 0 ? (
-          <div style={{ color: tokens.colors.subtle }}>אין תנועות מתועדות.</div>
+          <UndergroundCard>
+            <div style={{ color: undergroundTheme.colors.text.secondary }}>אין תנועות מתועדות.</div>
+          </UndergroundCard>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.sm }}>
             {logs.map((log) => (
-              <div
-                key={log.id}
-                style={{
-                  padding: '12px',
-                  borderRadius: '10px',
-                  backgroundColor: tokens.colors.background.card,
-                  border: `1px solid ${tokens.colors.subtle}30`
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <strong>{log.product?.name || log.product_id}</strong>
-                  <span style={{ fontSize: '12px', color: tokens.colors.subtle }}>
+              <UndergroundCard key={log.id} variant="light">
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: undergroundTheme.spacing.xs }}>
+                  <strong style={{
+                    fontSize: undergroundTheme.typography.fontSize.base,
+                    color: undergroundTheme.colors.text.primary
+                  }}>
+                    {log.product?.name || log.product_id}
+                  </strong>
+                  <span style={{
+                    fontSize: undergroundTheme.typography.fontSize.xs,
+                    color: undergroundTheme.colors.text.tertiary
+                  }}>
                     {new Date(log.created_at).toLocaleString('he-IL')}
                   </span>
                 </div>
-                <div style={{ fontSize: '13px' }}>
-                  שינוי: <strong>{log.quantity_change}</strong> ({log.change_type})
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  color: undergroundTheme.colors.text.secondary
+                }}>
+                  שינוי: <strong style={{
+                    color: log.quantity_change > 0 ? undergroundTheme.colors.status.success : undergroundTheme.colors.status.error
+                  }}>
+                    {log.quantity_change > 0 ? '+' : ''}{log.quantity_change}
+                  </strong> ({log.change_type})
                 </div>
                 {(log.from_location || log.to_location) && (
-                  <div style={{ fontSize: '12px', color: tokens.colors.subtle }}>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.xs,
+                    color: undergroundTheme.colors.text.tertiary,
+                    marginTop: undergroundTheme.spacing.xs
+                  }}>
                     {log.from_location?.name || '—'} → {log.to_location?.name || '—'}
                   </div>
                 )}
                 {log.metadata && Object.keys(log.metadata).length > 0 && (
                   <pre
                     style={{
-                      marginTop: '6px',
-                      fontSize: '11px',
+                      marginTop: undergroundTheme.spacing.sm,
+                      fontSize: undergroundTheme.typography.fontSize.xs,
                       direction: 'ltr',
-                      backgroundColor: tokens.colors.panel,
-                      padding: '6px',
-                      borderRadius: '6px'
+                      background: undergroundTheme.colors.background.deepDark,
+                      padding: undergroundTheme.spacing.sm,
+                      borderRadius: undergroundTheme.borderRadius.sm,
+                      border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                      color: undergroundTheme.colors.text.tertiary,
+                      overflow: 'auto'
                     }}
                   >
                     {JSON.stringify(log.metadata, null, 2)}
                   </pre>
                 )}
-              </div>
+              </UndergroundCard>
             ))}
           </div>
         )}
       </section>
-    </div>
-  );
-}
-
-function SummaryCard({
-  label,
-  value,
-  accent,
-  onClick
-}: {
-  label: string;
-  value: number;
-  accent?: string;
-  onClick?: () => void;
-}) {
-  const [isHovered, setIsHovered] = React.useState(false);
-  const color = accent || tokens.colors.text;
-  const isClickable = !!onClick;
-
-  return (
-    <div
-      onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={{
-        padding: '16px',
-        borderRadius: '12px',
-        backgroundColor: tokens.colors.background.card,
-        border: `1px solid ${tokens.colors.background.cardBorder}`,
-        cursor: isClickable ? 'pointer' : 'default',
-        transform: isHovered && isClickable ? 'translateY(-2px)' : 'none',
-        transition: 'all 200ms ease',
-        boxShadow: isHovered && isClickable ? '0 4px 12px rgba(0, 0, 0, 0.1)' : 'none'
-      }}
-    >
-      <div style={{ fontSize: '13px', color: tokens.colors.subtle, marginBottom: '4px' }}>{label}</div>
-      <div style={{ fontSize: '24px', fontWeight: 600, color }}>{value}</div>
     </div>
   );
 }
