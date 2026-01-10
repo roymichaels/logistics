@@ -45,7 +45,7 @@ export function BusinessOwnerDashboard() {
       <div style={undergroundTheme.components.page}>
         <NoActiveBusiness
           onNavigateToBusinesses={() => navigate('/business/businesses')}
-          message="לוח הבקרה של בעל העסק דורש עסק פעיל. אנא בחר עסק או צור עסק חדש."
+          message="Business Owner Dashboard requires an active business. Please select or create a business."
         />
       </div>
     );
@@ -91,7 +91,7 @@ export function BusinessOwnerDashboard() {
   if (loading) {
     return (
       <div style={undergroundTheme.components.page}>
-        <UndergroundLoadingSpinner message="טוען נתוני עסק..." />
+        <UndergroundLoadingSpinner message="Loading business data..." />
       </div>
     );
   }
@@ -101,9 +101,9 @@ export function BusinessOwnerDashboard() {
       <div style={undergroundTheme.components.page}>
         <UndergroundEmptyState
           icon="❌"
-          title="שגיאה בטעינת נתוני העסק"
-          message="לא הצלחנו לטעון את נתוני העסק"
-          actionLabel="נסה שנית"
+          title="Error Loading Business Data"
+          message="We couldn't load your business data"
+          actionLabel="Try Again"
           onAction={refresh}
         />
       </div>
@@ -115,8 +115,8 @@ export function BusinessOwnerDashboard() {
       <div style={undergroundTheme.components.page}>
         <UndergroundEmptyState
           icon="🏢"
-          title="לא נמצא הקשר עסקי"
-          message="לא נמצא מידע על העסק הנוכחי"
+          title="No Business Context"
+          message="No information found for the current business"
         />
       </div>
     );
@@ -125,8 +125,8 @@ export function BusinessOwnerDashboard() {
   return (
     <div style={undergroundTheme.components.page}>
       <UndergroundHeader
-        title={businessName || 'לוח בקרה עסקי'}
-        subtitle="סקירה מקיפה של הפעילות העסקית שלך"
+        title={businessName || 'Business Dashboard'}
+        subtitle="Comprehensive overview of your business operations"
         icon="🏢"
       />
 
@@ -147,7 +147,7 @@ export function BusinessOwnerDashboard() {
             marginBottom: undergroundTheme.spacing.lg,
             color: undergroundTheme.colors.text.primary
           }}>
-            פעולות מהירות
+            Quick Actions
           </h3>
           <BusinessQuickActions
             businessId={currentBusinessId}
@@ -162,7 +162,7 @@ export function BusinessOwnerDashboard() {
             marginBottom: undergroundTheme.spacing.lg,
             color: undergroundTheme.colors.text.primary
           }}>
-            פעילות אחרונה
+            Recent Activity
           </h3>
           <BusinessActivityFeed
             stats={stats}

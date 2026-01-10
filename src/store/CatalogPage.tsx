@@ -20,21 +20,11 @@ interface PlatformProduct extends Product {
   business_name_hebrew?: string;
 }
 
-const CATEGORIES = [
-  'הכל',
-  'סמארטפונים מאובטחים',
-  'מפתחות חומרה',
-  'מכשירי פרטיות',
-  'אבטחת רשתות',
-  'כלי הצפנה',
-  'תוכנות אבטחה',
-];
-
 export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
   const [products, setProducts] = useState<PlatformProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [category, setCategory] = useState<string>('הכל');
+  const [category, setCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
   const { addItem, cart } = useCart();
@@ -46,16 +36,45 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
       try {
         logger.info('[CatalogPage] Loading platform catalog from all public businesses');
 
-        const { data, error: rpcError } = await supabase.rpc('get_platform_catalog');
+        const { data: productsData, error: productsError } = await supabase
+          .from('products')
+          .select(`
+            *,
+            business:businesses!inner(
+              id,
+              name,
+              name_hebrew,
+              is_active
+            )
+          `)
+          .eq('is_active', true)
+          .eq('business.is_active', true)
+          .order('created_at', { ascending: false });
 
-        if (rpcError) {
-          logger.error('[CatalogPage] Error loading platform catalog:', rpcError);
-          throw rpcError;
+        if (productsError) {
+          logger.error('[CatalogPage] Error loading products:', productsError);
+          throw productsError;
         }
 
-        if (mounted && data) {
-          logger.info('[CatalogPage] Loaded platform catalog:', { count: data.length });
-          setProducts(data as PlatformProduct[]);
+        if (mounted && productsData) {
+          const formattedProducts: PlatformProduct[] = productsData.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            name_hebrew: p.name_hebrew,
+            description: p.description,
+            price: p.price,
+            category: p.category || 'General',
+            image_url: p.image_url,
+            stock_quantity: p.stock_quantity,
+            business_id: p.business_id,
+            business_name: p.business?.name,
+            business_name_hebrew: p.business?.name_hebrew,
+            is_active: p.is_active,
+            created_at: p.created_at
+          }));
+
+          logger.info('[CatalogPage] Loaded platform catalog:', { count: formattedProducts.length });
+          setProducts(formattedProducts);
         }
       } catch (err: any) {
         logger.error('[CatalogPage] Exception loading catalog:', err);
@@ -70,6 +89,17 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
     };
   }, []);
 
+  const categories = useMemo(() => {
+    const categorySet = new Set<string>();
+    categorySet.add('All');
+    products.forEach((p) => {
+      if (p.category && p.category.trim()) {
+        categorySet.add(p.category.trim());
+      }
+    });
+    return Array.from(categorySet);
+  }, [products]);
+
   const filteredProducts = useMemo(() => {
     let result = products;
 
@@ -77,7 +107,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
       result = result.filter((p) => p.business_name === selectedBusiness);
     }
 
-    if (category !== 'הכל') {
+    if (category !== 'All') {
       result = result.filter((p) =>
         (p.category || '').trim() === category.trim()
       );
@@ -119,8 +149,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
       minHeight: '100vh',
       background: undergroundTheme.colors.gradient.primary,
       padding: undergroundTheme.spacing['2xl'],
-      paddingBottom: undergroundTheme.spacing['8xl'],
-      direction: 'rtl'
+      paddingBottom: undergroundTheme.spacing['8xl']
     }}>
       <div style={{ marginBottom: undergroundTheme.spacing['4xl'] }}>
         <h1 style={{
@@ -130,14 +159,14 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
           color: undergroundTheme.colors.text.primary,
           textShadow: undergroundTheme.shadows.glow.cyan
         }}>
-          🛒 חנות אבטחה
+          🛒 Platform Catalog
         </h1>
         <p style={{
           margin: 0,
           color: undergroundTheme.colors.text.secondary,
           fontSize: undergroundTheme.typography.fontSize.lg
         }}>
-          ציוד אבטחה ברמה ארגונית
+          Browse products from all businesses
         </p>
       </div>
 
@@ -149,13 +178,13 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
       }}>
         <UndergroundStatCard
           icon={<span style={{ fontSize: '32px' }}>📦</span>}
-          label="מוצרים"
+          label="Products"
           value={products.length.toString()}
           accentColor={undergroundTheme.colors.accent.primary}
         />
         <UndergroundStatCard
           icon={<span style={{ fontSize: '32px' }}>🛒</span>}
-          label="פריטים בעגלה"
+          label="Cart Items"
           value={totalCartItems.toString()}
           accentColor={undergroundTheme.colors.status.success}
           onClick={() => onNavigate?.('/store/cart')}
@@ -163,7 +192,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
         />
         <UndergroundStatCard
           icon={<span style={{ fontSize: '32px' }}>💰</span>}
-          label="סכום כולל"
+          label="Total Value"
           value={`₪${totalCartValue.toFixed(2)}`}
           accentColor={undergroundTheme.colors.status.warning}
           onClick={() => onNavigate?.('/store/cart')}
@@ -174,7 +203,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
       <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['3xl'] }}>
         <div style={{ marginBottom: undergroundTheme.spacing.lg }}>
           <UndergroundInput
-            placeholder="חיפוש מוצרי אבטחה..."
+            placeholder="Search products, businesses, categories..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             icon="🔍"
@@ -189,7 +218,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
           marginBottom: undergroundTheme.spacing.lg,
           WebkitOverflowScrolling: 'touch'
         }}>
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
@@ -242,7 +271,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
                 marginBottom: undergroundTheme.spacing.sm,
                 fontSize: undergroundTheme.typography.fontSize.sm
               }}>
-                סנן לפי עסק:
+                Filter by Business:
               </div>
               <div style={{
                 display: 'flex',
@@ -273,7 +302,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
                     flexShrink: 0
                   }}
                 >
-                  כל העסקים
+                  All Businesses
                 </button>
                 {uniqueBusinesses.map((business) => (
                   <button
@@ -315,7 +344,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
           color: undergroundTheme.colors.text.secondary
         }}>
           <div style={{ fontSize: '48px', marginBottom: undergroundTheme.spacing.md }}>⏳</div>
-          <div style={{ fontSize: undergroundTheme.typography.fontSize.lg }}>טוען מוצרים...</div>
+          <div style={{ fontSize: undergroundTheme.typography.fontSize.lg }}>Loading products...</div>
         </div>
       )}
 
@@ -328,7 +357,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
               color: undergroundTheme.colors.status.error,
               marginBottom: undergroundTheme.spacing.md
             }}>
-              טעינת מוצרים נכשלה
+              Failed to Load Products
             </div>
             <div style={{
               color: undergroundTheme.colors.text.secondary,
@@ -337,7 +366,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
               {error}
             </div>
             <UndergroundButton onClick={() => window.location.reload()}>
-              נסה שוב
+              Try Again
             </UndergroundButton>
           </div>
         </UndergroundCard>
@@ -353,22 +382,22 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
               color: undergroundTheme.colors.text.primary,
               marginBottom: undergroundTheme.spacing.sm
             }}>
-              לא נמצאו מוצרים
+              No Products Found
             </div>
             <div style={{
               color: undergroundTheme.colors.text.secondary,
               marginBottom: undergroundTheme.spacing.lg
             }}>
-              נסה לשנות את קריטריוני החיפוש או הסינון
+              Try adjusting your search or filter criteria
             </div>
-            {(searchQuery || category !== 'הכל') && (
+            {(searchQuery || category !== 'All') && (
               <UndergroundButton
                 onClick={() => {
                   setSearchQuery('');
-                  setCategory('הכל');
+                  setCategory('All');
                 }}
               >
-                נקה מסננים
+                Clear Filters
               </UndergroundButton>
             )}
           </div>
@@ -389,7 +418,7 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
               fontWeight: undergroundTheme.typography.fontWeight.semibold,
               fontSize: undergroundTheme.typography.fontSize.lg
             }}>
-              {filteredProducts.length} {filteredProducts.length === 1 ? 'מוצר' : 'מוצרים'}
+              {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
             </div>
           </div>
 

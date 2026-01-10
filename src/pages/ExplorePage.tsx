@@ -1,553 +1,351 @@
 import React, { useState, useEffect } from 'react';
-import { Search, TrendingUp, Sparkles, ShoppingBag, Users } from 'lucide-react';
-import { feedAlgorithmService, TrendingTopic } from '../services/feedAlgorithm';
-import { shoppableContentService } from '../services/shoppableContent';
-import { LoadingState } from '../components/molecules/LoadingState';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import { logger } from '../lib/logger';
+import { undergroundTheme } from '../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundButton,
+  UndergroundInput,
+  UndergroundHeader,
+  UndergroundLoadingSpinner,
+  UndergroundEmptyState,
+  UndergroundBadge,
+} from '../components/underground';
+import { Toast } from '../components/Toast';
 
-type ExploreTab = 'for-you' | 'trending' | 'shopping' | 'people';
+interface Business {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  location: string;
+  logo_url?: string;
+  banner_url?: string;
+  rating: number;
+  total_orders: number;
+  is_verified: boolean;
+  created_at: string;
+}
+
+type ExploreCategory = 'all' | 'food' | 'retail' | 'services' | 'groceries';
 
 export function ExplorePage() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<ExploreTab>('for-you');
-  const [trendingTopics, setTrendingTopics] = useState<TrendingTopic[]>([]);
-  const [exploreContent, setExploreContent] = useState<any[]>([]);
-  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<ExploreCategory>('all');
 
   useEffect(() => {
-    loadExploreContent();
-  }, [activeTab]);
+    loadBusinesses();
+  }, []);
 
-  const loadExploreContent = async () => {
+  useEffect(() => {
+    filterBusinesses();
+  }, [businesses, searchQuery, activeCategory]);
+
+  const loadBusinesses = async () => {
     try {
-      setLoading(true);
+      logger.info('[ExplorePage] Loading businesses');
 
-      const [topics, content, recs] = await Promise.all([
-        feedAlgorithmService.getTrendingTopics(10),
-        feedAlgorithmService.exploreContent(undefined, 20),
-        feedAlgorithmService.getUserRecommendations(undefined, 10),
-      ]);
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
-      setTrendingTopics(topics);
-      setExploreContent(content);
-      setRecommendations(recs);
-    } catch (error) {
-      logger.error('Failed to load explore content', { error });
+      if (error) {
+        throw error;
+      }
+
+      const formattedBusinesses: Business[] = (data || []).map((biz: any) => ({
+        id: biz.id,
+        name: biz.name || 'Unnamed Business',
+        description: biz.description || '',
+        category: biz.category || 'General',
+        location: biz.address || 'Location not specified',
+        logo_url: biz.logo_url,
+        banner_url: biz.banner_url,
+        rating: biz.average_rating || 0,
+        total_orders: biz.total_orders || 0,
+        is_verified: biz.is_verified || false,
+        created_at: biz.created_at,
+      }));
+
+      logger.info('[ExplorePage] Businesses loaded', { count: formattedBusinesses.length });
+      setBusinesses(formattedBusinesses);
+    } catch (error: any) {
+      logger.error('[ExplorePage] Failed to load businesses', { error });
+      Toast.error('Failed to load businesses');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const filterBusinesses = () => {
+    let filtered = [...businesses];
+
+    // Filter by search query
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (biz) =>
+          biz.name.toLowerCase().includes(query) ||
+          biz.description.toLowerCase().includes(query) ||
+          biz.category.toLowerCase().includes(query) ||
+          biz.location.toLowerCase().includes(query)
+      );
     }
+
+    // Filter by category
+    if (activeCategory !== 'all') {
+      filtered = filtered.filter(
+        (biz) => biz.category.toLowerCase() === activeCategory.toLowerCase()
+      );
+    }
+
+    setFilteredBusinesses(filtered);
   };
 
-  return (
-    <div
-      style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '20px',
-      }}
-    >
-      <div
-        style={{
-          position: 'sticky',
-          top: 0,
-          backgroundColor: 'white',
-          zIndex: 100,
-          paddingBottom: '20px',
-          borderBottom: '1px solid #dbdbdb',
-          marginBottom: '20px',
-        }}
-      >
-        <form
-          onSubmit={handleSearch}
-          style={{
-            marginBottom: '20px',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '12px 16px',
-              backgroundColor: '#efefef',
-              borderRadius: '8px',
-            }}
-          >
-            <Search size={20} color="#8e8e8e" />
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                flex: 1,
-                border: 'none',
-                backgroundColor: 'transparent',
-                outline: 'none',
-                fontSize: '14px',
-                color: '#262626',
-              }}
-            />
-          </div>
-        </form>
+  const handleBusinessClick = (businessId: string) => {
+    navigate(`/business/${businessId}/preview`);
+  };
 
-        <div
-          style={{
-            display: 'flex',
-            gap: '8px',
-          }}
-        >
-          <button
-            onClick={() => setActiveTab('for-you')}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: activeTab === 'for-you' ? '#262626' : 'transparent',
-              color: activeTab === 'for-you' ? 'white' : '#8e8e8e',
-              border: '1px solid #dbdbdb',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <Sparkles size={16} />
-            For You
-          </button>
-          <button
-            onClick={() => setActiveTab('trending')}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: activeTab === 'trending' ? '#262626' : 'transparent',
-              color: activeTab === 'trending' ? 'white' : '#8e8e8e',
-              border: '1px solid #dbdbdb',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <TrendingUp size={16} />
-            Trending
-          </button>
-          <button
-            onClick={() => setActiveTab('shopping')}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: activeTab === 'shopping' ? '#262626' : 'transparent',
-              color: activeTab === 'shopping' ? 'white' : '#8e8e8e',
-              border: '1px solid #dbdbdb',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <ShoppingBag size={16} />
-            Shopping
-          </button>
-          <button
-            onClick={() => setActiveTab('people')}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: activeTab === 'people' ? '#262626' : 'transparent',
-              color: activeTab === 'people' ? 'white' : '#8e8e8e',
-              border: '1px solid #dbdbdb',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <Users size={16} />
-            People
-          </button>
+  const categories: { id: ExploreCategory; label: string; icon: string }[] = [
+    { id: 'all', label: 'All', icon: '🏪' },
+    { id: 'food', label: 'Food & Dining', icon: '🍕' },
+    { id: 'retail', label: 'Retail', icon: '🛍️' },
+    { id: 'services', label: 'Services', icon: '⚙️' },
+    { id: 'groceries', label: 'Groceries', icon: '🥬' },
+  ];
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: undergroundTheme.spacing.lg,
+        padding: undergroundTheme.spacing.xl
+      }}>
+        <UndergroundLoadingSpinner size="large" />
+        <div style={{
+          fontSize: undergroundTheme.typography.fontSize.lg,
+          color: undergroundTheme.colors.text.secondary
+        }}>
+          Loading businesses...
         </div>
       </div>
+    );
+  }
 
-      {loading ? (
-        <LoadingState />
-      ) : (
-        <div
-          style={{
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing.xl,
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+        <UndergroundHeader
+          title="Explore Businesses"
+          subtitle="Discover local businesses and shops"
+          icon="🔍"
+        />
+
+        <div style={{
+          marginTop: undergroundTheme.spacing['3xl'],
+          marginBottom: undergroundTheme.spacing['2xl']
+        }}>
+          <UndergroundInput
+            type="text"
+            placeholder="Search businesses, categories, locations..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ marginBottom: undergroundTheme.spacing.xl }}
+          />
+
+          <div style={{
             display: 'flex',
-            gap: '30px',
-          }}
-        >
-          <div
-            style={{
-              flex: 1,
-            }}
-          >
-            {activeTab === 'trending' && (
-              <div>
-                <h2
-                  style={{
-                    fontSize: '24px',
-                    fontWeight: '700',
-                    marginBottom: '20px',
-                    color: '#262626',
-                  }}
-                >
-                  Trending Now
-                </h2>
-                {trendingTopics.length > 0 ? (
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                      gap: '16px',
-                    }}
-                  >
-                    {trendingTopics.map((topic, index) => (
-                      <div
-                        key={topic.id}
-                        style={{
-                          padding: '16px',
-                          border: '1px solid #dbdbdb',
-                          borderRadius: '12px',
-                          cursor: 'pointer',
-                          transition: 'background-color 0.2s',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#fafafa';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'white';
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            marginBottom: '8px',
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize: '12px',
-                              color: '#8e8e8e',
-                              fontWeight: '600',
-                            }}
-                          >
-                            #{index + 1} Trending
-                          </span>
-                          <TrendingUp size={14} color="#ff3b5c" />
-                        </div>
-                        <div
-                          style={{
-                            fontSize: '18px',
-                            fontWeight: '700',
-                            marginBottom: '4px',
-                            color: '#262626',
-                          }}
-                        >
-                          {topic.topic_type === 'hashtag' ? '#' : ''}
-                          {topic.topic_value}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: '14px',
-                            color: '#8e8e8e',
-                          }}
-                        >
-                          {topic.mention_count.toLocaleString()} posts •{' '}
-                          {topic.engagement_count.toLocaleString()} engagements
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      padding: '40px',
-                      textAlign: 'center',
-                      color: '#8e8e8e',
-                    }}
-                  >
-                    No trending topics available
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'for-you' && (
-              <div>
-                <h2
-                  style={{
-                    fontSize: '24px',
-                    fontWeight: '700',
-                    marginBottom: '20px',
-                    color: '#262626',
-                  }}
-                >
-                  Recommended For You
-                </h2>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                    gap: '4px',
-                  }}
-                >
-                  {exploreContent.map((post) => (
-                    <div
-                      key={post.id}
-                      style={{
-                        aspectRatio: '1',
-                        backgroundColor: '#efefef',
-                        cursor: 'pointer',
-                        position: 'relative',
-                        overflow: 'hidden',
-                      }}
-                      onClick={() => navigate(`/posts/${post.id}`)}
-                    >
-                      {post.media_urls?.[0] && (
-                        <img
-                          src={post.media_urls[0]}
-                          alt="Post"
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                          }}
-                        />
-                      )}
-                      <div
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          background: 'rgba(0, 0, 0, 0)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          opacity: 0,
-                          transition: 'all 0.2s',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'rgba(0, 0, 0, 0.3)';
-                          e.currentTarget.style.opacity = '1';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.opacity = '0';
-                        }}
-                      >
-                        <div
-                          style={{
-                            color: 'white',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '20px',
-                          }}
-                        >
-                          <span>❤️ {post.likes_count?.toLocaleString() || 0}</span>
-                          <span>💬 {post.comments_count?.toLocaleString() || 0}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'shopping' && (
-              <div>
-                <h2
-                  style={{
-                    fontSize: '24px',
-                    fontWeight: '700',
-                    marginBottom: '20px',
-                    color: '#262626',
-                  }}
-                >
-                  Shop the Feed
-                </h2>
-                <div
-                  style={{
-                    padding: '40px',
-                    textAlign: 'center',
-                    color: '#8e8e8e',
-                  }}
-                >
-                  <ShoppingBag size={48} style={{ marginBottom: '16px' }} />
-                  <p>Shopping content will appear here</p>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'people' && (
-              <div>
-                <h2
-                  style={{
-                    fontSize: '24px',
-                    fontWeight: '700',
-                    marginBottom: '20px',
-                    color: '#262626',
-                  }}
-                >
-                  Suggested For You
-                </h2>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '16px',
-                  }}
-                >
-                  {recommendations.map((rec) => (
-                    <div
-                      key={rec.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
-                        padding: '16px',
-                        border: '1px solid #dbdbdb',
-                        borderRadius: '12px',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: '60px',
-                          height: '60px',
-                          borderRadius: '50%',
-                          backgroundColor: '#efefef',
-                          flexShrink: 0,
-                        }}
-                      />
-                      <div style={{ flex: 1 }}>
-                        <div
-                          style={{
-                            fontWeight: '600',
-                            marginBottom: '4px',
-                            color: '#262626',
-                          }}
-                        >
-                          Recommended {rec.recommendation_type}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: '14px',
-                            color: '#8e8e8e',
-                          }}
-                        >
-                          {rec.recommendation_reason}
-                        </div>
-                      </div>
-                      <button
-                        style={{
-                          padding: '8px 24px',
-                          backgroundColor: '#0095f6',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        Follow
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div
-            style={{
-              width: '320px',
-              position: 'sticky',
-              top: '120px',
-              alignSelf: 'flex-start',
-            }}
-          >
-            <div
-              style={{
-                padding: '20px',
-                backgroundColor: '#fafafa',
-                borderRadius: '12px',
-                marginBottom: '20px',
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: '16px',
-                  fontWeight: '700',
-                  marginBottom: '16px',
-                  color: '#262626',
-                }}
+            gap: undergroundTheme.spacing.md,
+            flexWrap: 'wrap'
+          }}>
+            {categories.map((cat) => (
+              <UndergroundButton
+                key={cat.id}
+                variant={activeCategory === cat.id ? 'primary' : 'secondary'}
+                size="small"
+                onClick={() => setActiveCategory(cat.id)}
               >
-                Trending Topics
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {trendingTopics.slice(0, 5).map((topic) => (
-                  <div
-                    key={topic.id}
-                    style={{
-                      cursor: 'pointer',
-                      padding: '8px',
-                      borderRadius: '8px',
-                      transition: 'background-color 0.2s',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'white';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        color: '#262626',
-                        marginBottom: '2px',
-                      }}
-                    >
-                      {topic.topic_type === 'hashtag' ? '#' : ''}
-                      {topic.topic_value}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '12px',
-                        color: '#8e8e8e',
-                      }}
-                    >
-                      {topic.mention_count.toLocaleString()} posts
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                {cat.icon} {cat.label}
+              </UndergroundButton>
+            ))}
           </div>
         </div>
-      )}
+
+        {filteredBusinesses.length === 0 ? (
+          <UndergroundEmptyState
+            title="No businesses found"
+            description="Try adjusting your search or category filter"
+            action={{
+              label: 'Clear Filters',
+              onClick: () => {
+                setSearchQuery('');
+                setActiveCategory('all');
+              }
+            }}
+          />
+        ) : (
+          <>
+            <div style={{
+              marginBottom: undergroundTheme.spacing.xl,
+              fontSize: undergroundTheme.typography.fontSize.sm,
+              color: undergroundTheme.colors.text.secondary
+            }}>
+              Showing {filteredBusinesses.length} {filteredBusinesses.length === 1 ? 'business' : 'businesses'}
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+              gap: undergroundTheme.spacing.xl
+            }}>
+              {filteredBusinesses.map((business) => (
+                <UndergroundCard
+                  key={business.id}
+                  variant="light"
+                  hover
+                  onClick={() => handleBusinessClick(business.id)}
+                  style={{
+                    cursor: 'pointer',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
+                  {/* Banner/Logo Area */}
+                  <div style={{
+                    width: '100%',
+                    height: '180px',
+                    background: business.banner_url
+                      ? `url(${business.banner_url}) center/cover`
+                      : undergroundTheme.colors.glassmorphism.dark,
+                    borderRadius: undergroundTheme.borderRadius.lg,
+                    marginBottom: undergroundTheme.spacing.lg,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
+                    {!business.banner_url && (
+                      <div style={{ fontSize: '64px', opacity: 0.3 }}>🏪</div>
+                    )}
+                    {business.is_verified && (
+                      <div style={{
+                        position: 'absolute',
+                        top: undergroundTheme.spacing.md,
+                        right: undergroundTheme.spacing.md
+                      }}>
+                        <UndergroundBadge variant="success">✓ Verified</UndergroundBadge>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Business Info */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <h3 style={{
+                      margin: `0 0 ${undergroundTheme.spacing.sm} 0`,
+                      fontSize: undergroundTheme.typography.fontSize.xl,
+                      fontWeight: undergroundTheme.typography.fontWeight.bold,
+                      color: undergroundTheme.colors.text.primary
+                    }}>
+                      {business.name}
+                    </h3>
+
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.accent.primary,
+                      marginBottom: undergroundTheme.spacing.md,
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold
+                    }}>
+                      {business.category}
+                    </div>
+
+                    <p style={{
+                      margin: `0 0 ${undergroundTheme.spacing.lg} 0`,
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.text.secondary,
+                      lineHeight: 1.5,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical'
+                    }}>
+                      {business.description || 'No description available'}
+                    </p>
+
+                    <div style={{
+                      marginTop: 'auto',
+                      paddingTop: undergroundTheme.spacing.md,
+                      borderTop: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: undergroundTheme.spacing.sm,
+                        fontSize: undergroundTheme.typography.fontSize.sm,
+                        color: undergroundTheme.colors.text.tertiary
+                      }}>
+                        <span>📍</span>
+                        <span style={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {business.location}
+                        </span>
+                      </div>
+
+                      {business.rating > 0 && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: undergroundTheme.spacing.xs,
+                          fontSize: undergroundTheme.typography.fontSize.sm,
+                          color: undergroundTheme.colors.status.warning
+                        }}>
+                          ⭐ {business.rating.toFixed(1)}
+                        </div>
+                      )}
+                    </div>
+
+                    {business.total_orders > 0 && (
+                      <div style={{
+                        marginTop: undergroundTheme.spacing.sm,
+                        fontSize: undergroundTheme.typography.fontSize.xs,
+                        color: undergroundTheme.colors.text.tertiary,
+                        textAlign: 'center'
+                      }}>
+                        {business.total_orders} {business.total_orders === 1 ? 'order' : 'orders'} completed
+                      </div>
+                    )}
+                  </div>
+                </UndergroundCard>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
