@@ -1,5 +1,5 @@
 import React from 'react';
-import { TELEGRAM_THEME } from '../../styles/telegramTheme';
+import { undergroundTheme } from '../../styles/undergroundTheme';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'ghost' | 'link';
@@ -28,12 +28,12 @@ export function Button({
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: TELEGRAM_THEME.spacing.sm,
+    gap: undergroundTheme.spacing.sm,
     border: 'none',
     cursor: disabled || loading ? 'not-allowed' : 'pointer',
-    fontFamily: TELEGRAM_THEME.typography.fontFamily.primary,
-    fontWeight: TELEGRAM_THEME.typography.fontWeight.semibold,
-    transition: TELEGRAM_THEME.transitions.normal,
+    fontFamily: undergroundTheme.typography.fontFamily.primary,
+    fontWeight: undergroundTheme.typography.fontWeight.semibold,
+    transition: undergroundTheme.transitions.normal,
     outline: 'none',
     opacity: disabled || loading ? 0.5 : 1,
     width: fullWidth ? '100%' : 'auto',
@@ -45,68 +45,68 @@ export function Button({
 
   const sizeStyles: Record<string, React.CSSProperties> = {
     sm: {
-      padding: TELEGRAM_THEME.components.button.padding.small,
-      fontSize: TELEGRAM_THEME.typography.fontSize.sm,
-      borderRadius: TELEGRAM_THEME.radius.xl,
-      minHeight: TELEGRAM_THEME.components.button.height.small,
-      fontWeight: TELEGRAM_THEME.typography.fontWeight.semibold,
+      padding: `${undergroundTheme.spacing.sm} ${undergroundTheme.spacing.lg}`,
+      fontSize: undergroundTheme.typography.fontSize.sm,
+      borderRadius: undergroundTheme.borderRadius.lg,
+      minHeight: '32px',
+      fontWeight: undergroundTheme.typography.fontWeight.semibold,
     },
     md: {
-      padding: TELEGRAM_THEME.components.button.padding.medium,
-      fontSize: TELEGRAM_THEME.typography.fontSize.base,
-      borderRadius: TELEGRAM_THEME.radius.xl,
-      minHeight: TELEGRAM_THEME.components.button.height.medium,
-      fontWeight: TELEGRAM_THEME.typography.fontWeight.semibold,
+      padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.xl}`,
+      fontSize: undergroundTheme.typography.fontSize.base,
+      borderRadius: undergroundTheme.borderRadius.lg,
+      minHeight: '40px',
+      fontWeight: undergroundTheme.typography.fontWeight.semibold,
     },
     lg: {
-      padding: TELEGRAM_THEME.components.button.padding.large,
-      fontSize: TELEGRAM_THEME.typography.fontSize.lg,
-      borderRadius: TELEGRAM_THEME.radius.xl,
-      minHeight: TELEGRAM_THEME.components.button.height.large,
-      fontWeight: TELEGRAM_THEME.typography.fontWeight.semibold,
+      padding: `${undergroundTheme.spacing.lg} ${undergroundTheme.spacing['2xl']}`,
+      fontSize: undergroundTheme.typography.fontSize.lg,
+      borderRadius: undergroundTheme.borderRadius.xl,
+      minHeight: '48px',
+      fontWeight: undergroundTheme.typography.fontWeight.semibold,
     },
   };
 
   const variantStyles: Record<string, React.CSSProperties> = {
     primary: {
-      background: TELEGRAM_THEME.colors.accent.primary,
-      color: TELEGRAM_THEME.colors.white,
-      boxShadow: 'none',
+      background: undergroundTheme.colors.gradient.accent,
+      color: undergroundTheme.colors.text.primary,
+      boxShadow: undergroundTheme.shadows.glow.cyan,
       border: 'none',
     },
     secondary: {
-      background: TELEGRAM_THEME.colors.accent.faded,
-      color: TELEGRAM_THEME.colors.accent.primary,
-      border: `1px solid ${TELEGRAM_THEME.colors.accent.border}`,
+      background: undergroundTheme.colors.glassmorphism.light,
+      color: undergroundTheme.colors.accent.primary,
+      border: `2px solid ${undergroundTheme.colors.accent.primary}`,
       boxShadow: 'none',
     },
     success: {
-      background: TELEGRAM_THEME.colors.status.success,
-      color: TELEGRAM_THEME.colors.white,
-      boxShadow: 'none',
+      background: undergroundTheme.colors.gradient.success,
+      color: undergroundTheme.colors.text.primary,
+      boxShadow: undergroundTheme.shadows.glow.success,
       border: 'none',
     },
     warning: {
-      background: TELEGRAM_THEME.colors.status.warning,
-      color: TELEGRAM_THEME.colors.black,
-      boxShadow: 'none',
+      background: undergroundTheme.colors.gradient.warning,
+      color: undergroundTheme.colors.text.primary,
+      boxShadow: undergroundTheme.shadows.glow.warning,
       border: 'none',
     },
     danger: {
-      background: TELEGRAM_THEME.colors.status.error,
-      color: TELEGRAM_THEME.colors.white,
-      boxShadow: 'none',
+      background: undergroundTheme.colors.gradient.error,
+      color: undergroundTheme.colors.text.primary,
+      boxShadow: undergroundTheme.shadows.glow.error,
       border: 'none',
     },
     ghost: {
       background: 'transparent',
-      color: TELEGRAM_THEME.colors.text.primary,
+      color: undergroundTheme.colors.text.secondary,
       border: 'none',
       boxShadow: 'none',
     },
     link: {
       background: 'transparent',
-      color: TELEGRAM_THEME.colors.text.link,
+      color: undergroundTheme.colors.accent.primary,
       padding: '0',
       minHeight: 'auto',
       boxShadow: 'none',
@@ -122,11 +122,12 @@ export function Button({
 
     const hoverMap: Record<string, React.CSSProperties> = {
       primary: {
-        background: TELEGRAM_THEME.colors.accent.hover,
+        filter: 'brightness(1.1)',
+        boxShadow: undergroundTheme.shadows.glow.cyanLarge,
       },
       secondary: {
-        background: TELEGRAM_THEME.colors.accent.light,
-        borderColor: TELEGRAM_THEME.colors.accent.primary,
+        background: undergroundTheme.colors.glassmorphism.medium,
+        borderColor: undergroundTheme.colors.accent.secondary,
       },
       success: {
         filter: 'brightness(1.1)',
@@ -138,7 +139,7 @@ export function Button({
         filter: 'brightness(1.1)',
       },
       ghost: {
-        background: TELEGRAM_THEME.colors.background.hover,
+        background: undergroundTheme.colors.glassmorphism.light,
       },
       link: {
         textDecoration: 'underline',
