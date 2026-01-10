@@ -1,107 +1,64 @@
 import { useState, useEffect } from 'react';
-import { useDataStore } from '../../application/hooks/useDataStore';
+import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { undergroundTheme } from '../../styles/undergroundTheme';
 import {
   UndergroundCard,
-  UndergroundButton,
-  UndergroundInput,
   UndergroundSection,
-  UndergroundBadge,
+  UndergroundStatCard,
   UndergroundLoadingSpinner,
-  UndergroundModal,
-  UndergroundEmptyState
+  UndergroundButton
 } from '../../components/underground';
 
-interface Infrastructure {
-  id: string;
-  name: string;
-  owner_wallet: string;
-  business_count: number;
-  created_at: string;
-  status: 'active' | 'inactive';
+interface PlatformStats {
+  totalBusinesses: number;
+  activeBusinesses: number;
+  totalUsers: number;
+  totalOrders: number;
+  totalDrivers: number;
+  activeDrivers: number;
+  totalProducts: number;
+  platformRevenue: number;
 }
 
 export default function Infrastructures() {
-  const dataStore = useDataStore();
-  const [infrastructures, setInfrastructures] = useState<Infrastructure[]>([]);
+  const [stats, setStats] = useState<PlatformStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newInfrastructure, setNewInfrastructure] = useState({
-    name: '',
-    owner_wallet: ''
-  });
 
   useEffect(() => {
-    loadInfrastructures();
+    loadPlatformStats();
   }, []);
 
-  const loadInfrastructures = async () => {
+  const loadPlatformStats = async () => {
     try {
       setLoading(true);
 
-      if (!dataStore?.query) {
-        setInfrastructures([]);
-        setLoading(false);
-        return;
-      }
+      const [businessesResult, usersResult, ordersResult, driversResult, productsResult] = await Promise.all([
+        supabase.from('businesses').select('id, status', { count: 'exact' }),
+        supabase.from('profiles').select('id', { count: 'exact' }),
+        supabase.from('orders').select('id, total_price', { count: 'exact' }),
+        supabase.from('driver_profiles').select('id, status', { count: 'exact' }),
+        supabase.from('products').select('id', { count: 'exact' })
+      ]);
 
-      const result = await dataStore.query('infrastructures', []);
-      if (result.success) {
-        setInfrastructures(result.data || []);
-      } else {
-        logger.error('Failed to load infrastructures', { error: result.error });
-        setInfrastructures([]);
-      }
+      const activeBusinesses = businessesResult.data?.filter(b => b.status === 'active').length || 0;
+      const activeDrivers = driversResult.data?.filter(d => d.status === 'active').length || 0;
+      const platformRevenue = ordersResult.data?.reduce((sum, order) => sum + (order.total_price || 0), 0) || 0;
+
+      setStats({
+        totalBusinesses: businessesResult.count || 0,
+        activeBusinesses,
+        totalUsers: usersResult.count || 0,
+        totalOrders: ordersResult.count || 0,
+        totalDrivers: driversResult.count || 0,
+        activeDrivers,
+        totalProducts: productsResult.count || 0,
+        platformRevenue
+      });
     } catch (error) {
-      logger.error('Failed to load infrastructures', { error });
-      setInfrastructures([]);
+      logger.error('Failed to load platform stats', { error });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleCreateInfrastructure = async () => {
-    if (!newInfrastructure.name || !newInfrastructure.owner_wallet) {
-      return;
-    }
-
-    if (!dataStore?.insert) {
-      logger.error('Data store not available');
-      return;
-    }
-
-    try {
-      await dataStore.insert('infrastructures', {
-        id: crypto.randomUUID(),
-        name: newInfrastructure.name,
-        owner_wallet: newInfrastructure.owner_wallet,
-        business_count: 0,
-        created_at: new Date().toISOString(),
-        status: 'active'
-      });
-
-      setShowCreateModal(false);
-      setNewInfrastructure({ name: '', owner_wallet: '' });
-      loadInfrastructures();
-    } catch (error) {
-      logger.error('Failed to create infrastructure', { error });
-    }
-  };
-
-  const toggleStatus = async (id: string, currentStatus: string) => {
-    if (!dataStore?.update) {
-      logger.error('Data store not available');
-      return;
-    }
-
-    try {
-      await dataStore.update('infrastructures', id, {
-        status: currentStatus === 'active' ? 'inactive' : 'active'
-      });
-      loadInfrastructures();
-    } catch (error) {
-      logger.error('Failed to toggle infrastructure status', { error });
     }
   };
 
@@ -128,7 +85,7 @@ export default function Infrastructures() {
     }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <UndergroundSection
-          title="Infrastructures"
+          title="System Overview"
           icon="🏗️"
           style={{ marginBottom: undergroundTheme.spacing.xl }}
         >
@@ -142,190 +99,178 @@ export default function Infrastructures() {
                 fontSize: undergroundTheme.typography.fontSize.sm,
                 color: undergroundTheme.colors.text.secondary
               }}>
-                Manage all infrastructures on the platform
+                Platform-wide metrics and system configuration
               </div>
 
-              <div style={{ display: 'flex', gap: undergroundTheme.spacing.md }}>
-                <UndergroundButton
-                  variant="secondary"
-                  size="small"
-                  onClick={loadInfrastructures}
-                >
-                  Refresh
-                </UndergroundButton>
-                <UndergroundButton
-                  variant="primary"
-                  size="small"
-                  onClick={() => setShowCreateModal(true)}
-                >
-                  Create Infrastructure
-                </UndergroundButton>
-              </div>
+              <UndergroundButton
+                variant="secondary"
+                size="small"
+                onClick={loadPlatformStats}
+              >
+                Refresh
+              </UndergroundButton>
             </div>
           </UndergroundCard>
 
-          {infrastructures.length === 0 ? (
-            <UndergroundCard>
-              <UndergroundEmptyState
-                icon="🏗️"
-                title="No Infrastructures"
-                description="Create the first infrastructure to get started"
-                action={
-                  <UndergroundButton variant="primary" onClick={() => setShowCreateModal(true)}>
-                    Create Infrastructure
-                  </UndergroundButton>
-                }
-              />
-            </UndergroundCard>
-          ) : (
-            <div style={{ display: 'grid', gap: undergroundTheme.spacing.lg }}>
-              {infrastructures.map((infra) => (
-                <UndergroundCard key={infra.id}>
+          {stats && (
+            <>
+              <div style={{
+                marginBottom: undergroundTheme.spacing.xl
+              }}>
+                <h3 style={{
+                  margin: 0,
+                  marginBottom: undergroundTheme.spacing.lg,
+                  fontSize: undergroundTheme.typography.fontSize.xl,
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
+                  Business Metrics
+                </h3>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                  gap: undergroundTheme.spacing.lg
+                }}>
+                  <UndergroundStatCard
+                    label="Total Businesses"
+                    value={stats.totalBusinesses}
+                    icon="🏢"
+                    trend={{ value: stats.activeBusinesses, label: 'active' }}
+                  />
+                  <UndergroundStatCard
+                    label="Total Orders"
+                    value={stats.totalOrders}
+                    icon="📦"
+                  />
+                  <UndergroundStatCard
+                    label="Platform Revenue"
+                    value={`$${(stats.platformRevenue / 100).toFixed(2)}`}
+                    icon="💰"
+                  />
+                </div>
+              </div>
+
+              <div style={{
+                marginBottom: undergroundTheme.spacing.xl
+              }}>
+                <h3 style={{
+                  margin: 0,
+                  marginBottom: undergroundTheme.spacing.lg,
+                  fontSize: undergroundTheme.typography.fontSize.xl,
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
+                  Users & Drivers
+                </h3>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                  gap: undergroundTheme.spacing.lg
+                }}>
+                  <UndergroundStatCard
+                    label="Total Users"
+                    value={stats.totalUsers}
+                    icon="👥"
+                  />
+                  <UndergroundStatCard
+                    label="Total Drivers"
+                    value={stats.totalDrivers}
+                    icon="🚗"
+                    trend={{ value: stats.activeDrivers, label: 'active' }}
+                  />
+                  <UndergroundStatCard
+                    label="Total Products"
+                    value={stats.totalProducts}
+                    icon="📦"
+                  />
+                </div>
+              </div>
+
+              <UndergroundCard>
+                <h3 style={{
+                  margin: 0,
+                  marginBottom: undergroundTheme.spacing.lg,
+                  fontSize: undergroundTheme.typography.fontSize.xl,
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
+                  System Configuration
+                </h3>
+                <div style={{
+                  display: 'grid',
+                  gap: undergroundTheme.spacing.md,
+                  fontSize: undergroundTheme.typography.fontSize.sm
+                }}>
                   <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'flex-start'
+                    alignItems: 'center',
+                    padding: undergroundTheme.spacing.md,
+                    background: undergroundTheme.colors.glassmorphism.light,
+                    borderRadius: undergroundTheme.borderRadius.lg
                   }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: undergroundTheme.spacing.md,
-                        marginBottom: undergroundTheme.spacing.md
-                      }}>
-                        <div style={{
-                          width: '48px',
-                          height: '48px',
-                          borderRadius: '50%',
-                          background: undergroundTheme.colors.glassmorphism.medium,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '24px'
-                        }}>
-                          🏗️
-                        </div>
-                        <div>
-                          <h3 style={{
-                            margin: 0,
-                            fontSize: undergroundTheme.typography.fontSize.xl,
-                            fontWeight: undergroundTheme.typography.fontWeight.bold,
-                            color: undergroundTheme.colors.text.primary
-                          }}>
-                            {infra.name}
-                          </h3>
-                          <div style={{
-                            fontSize: undergroundTheme.typography.fontSize.sm,
-                            fontFamily: 'monospace',
-                            color: undergroundTheme.colors.text.tertiary,
-                            marginTop: undergroundTheme.spacing.xs
-                          }}>
-                            Wallet: {infra.owner_wallet.slice(0, 6)}...{infra.owner_wallet.slice(-4)}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style={{
-                        display: 'flex',
-                        gap: undergroundTheme.spacing.xl,
-                        fontSize: undergroundTheme.typography.fontSize.sm,
-                        color: undergroundTheme.colors.text.tertiary,
-                        marginBottom: undergroundTheme.spacing.lg
-                      }}>
-                        <div>
-                          <span>Businesses: </span>
-                          <strong style={{ color: undergroundTheme.colors.text.secondary }}>
-                            {infra.business_count}
-                          </strong>
-                        </div>
-                        <div>
-                          <span>Created: </span>
-                          <strong style={{ color: undergroundTheme.colors.text.secondary }}>
-                            {new Date(infra.created_at).toLocaleDateString()}
-                          </strong>
-                        </div>
-                      </div>
-
-                      <div style={{
-                        display: 'flex',
-                        gap: undergroundTheme.spacing.md
-                      }}>
-                        <UndergroundButton
-                          variant={infra.status === 'active' ? 'secondary' : 'primary'}
-                          size="small"
-                          onClick={() => toggleStatus(infra.id, infra.status)}
-                        >
-                          {infra.status === 'active' ? 'Deactivate' : 'Activate'}
-                        </UndergroundButton>
-                        <UndergroundButton
-                          variant="ghost"
-                          size="small"
-                        >
-                          View Details
-                        </UndergroundButton>
-                      </div>
-                    </div>
-
-                    <UndergroundBadge variant={infra.status === 'active' ? 'success' : 'error'}>
-                      {infra.status}
-                    </UndergroundBadge>
+                    <span style={{ color: undergroundTheme.colors.text.secondary }}>Database Status</span>
+                    <span style={{
+                      color: undergroundTheme.colors.status.success,
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold
+                    }}>
+                      Connected
+                    </span>
                   </div>
-                </UndergroundCard>
-              ))}
-            </div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: undergroundTheme.spacing.md,
+                    background: undergroundTheme.colors.glassmorphism.light,
+                    borderRadius: undergroundTheme.borderRadius.lg
+                  }}>
+                    <span style={{ color: undergroundTheme.colors.text.secondary }}>Storage Provider</span>
+                    <span style={{
+                      color: undergroundTheme.colors.text.primary,
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold
+                    }}>
+                      Supabase
+                    </span>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: undergroundTheme.spacing.md,
+                    background: undergroundTheme.colors.glassmorphism.light,
+                    borderRadius: undergroundTheme.borderRadius.lg
+                  }}>
+                    <span style={{ color: undergroundTheme.colors.text.secondary }}>Auth Provider</span>
+                    <span style={{
+                      color: undergroundTheme.colors.text.primary,
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold
+                    }}>
+                      Supabase Auth
+                    </span>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: undergroundTheme.spacing.md,
+                    background: undergroundTheme.colors.glassmorphism.light,
+                    borderRadius: undergroundTheme.borderRadius.lg
+                  }}>
+                    <span style={{ color: undergroundTheme.colors.text.secondary }}>Realtime Status</span>
+                    <span style={{
+                      color: undergroundTheme.colors.status.success,
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold
+                    }}>
+                      Active
+                    </span>
+                  </div>
+                </div>
+              </UndergroundCard>
+            </>
           )}
         </UndergroundSection>
       </div>
-
-      <UndergroundModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        title="Create New Infrastructure"
-      >
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: undergroundTheme.spacing.lg
-        }}>
-          <UndergroundInput
-            type="text"
-            label="Infrastructure Name *"
-            value={newInfrastructure.name}
-            onChange={(e) => setNewInfrastructure({ ...newInfrastructure, name: e.target.value })}
-            placeholder="e.g., North Infrastructure"
-          />
-
-          <UndergroundInput
-            type="text"
-            label="Owner Wallet Address *"
-            value={newInfrastructure.owner_wallet}
-            onChange={(e) => setNewInfrastructure({ ...newInfrastructure, owner_wallet: e.target.value })}
-            placeholder="0x..."
-          />
-
-          <div style={{
-            display: 'flex',
-            gap: undergroundTheme.spacing.md,
-            marginTop: undergroundTheme.spacing.lg
-          }}>
-            <UndergroundButton
-              variant="primary"
-              onClick={handleCreateInfrastructure}
-              disabled={!newInfrastructure.name || !newInfrastructure.owner_wallet}
-              style={{ flex: 1 }}
-            >
-              Create Infrastructure
-            </UndergroundButton>
-            <UndergroundButton
-              variant="ghost"
-              onClick={() => setShowCreateModal(false)}
-              style={{ flex: 1 }}
-            >
-              Cancel
-            </UndergroundButton>
-          </div>
-        </div>
-      </UndergroundModal>
     </div>
   );
 }

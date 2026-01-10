@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useDataStore } from '../../application/hooks/useDataStore';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
-import { Card } from '../../components/molecules/Card';
-import { Button } from '../../components/atoms/Button';
-import { Input } from '../../components/atoms/Input';
+import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
+import { undergroundTheme } from '../../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundSection,
+  UndergroundLoadingSpinner,
+  UndergroundButton,
+  UndergroundInput,
+  UndergroundBadge,
+  UndergroundEmptyState,
+  UndergroundStatCard
+} from '../../components/underground';
 
 interface AuditLog {
   id: string;
@@ -24,12 +30,10 @@ interface AuditLog {
 type LogLevel = 'all' | 'info' | 'warning' | 'error' | 'critical';
 
 export default function AuditLogs() {
-  const dataStore = useDataStore();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<LogLevel>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
   useEffect(() => {
     loadLogs();
@@ -39,28 +43,24 @@ export default function AuditLogs() {
     try {
       setLoading(true);
 
-      if (!dataStore?.query) {
+      let query = supabase
+        .from('audit_logs')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(100);
+
+      if (filter !== 'all') {
+        query = query.eq('level', filter);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        logger.error('Failed to load audit logs', { error });
         setLogs([]);
-        setLoading(false);
-        return;
-      }
-
-      const result = await dataStore.query('audit_logs', [], {
-        orderBy: { column: 'timestamp', ascending: false },
-        limit: 100
-      });
-
-      let filtered: AuditLog[] = [];
-      if (result.success) {
-        filtered = result.data || [];
-        if (filter !== 'all') {
-          filtered = filtered.filter((log: AuditLog) => log.level === filter);
-        }
       } else {
-        logger.error('Failed to load audit logs', { error: result.error });
+        setLogs(data || []);
       }
-
-      setLogs(filtered);
     } catch (error) {
       logger.error('Failed to load audit logs', { error });
       setLogs([]);
@@ -80,16 +80,6 @@ export default function AuditLogs() {
     }
     return true;
   });
-
-  const getLevelColor = (level: string) => {
-    switch (level) {
-      case 'info': return '#3b82f6';
-      case 'warning': return '#f59e0b';
-      case 'error': return '#ef4444';
-      case 'critical': return '#991b1b';
-      default: return '#6b7280';
-    }
-  };
 
   const getLevelIcon = (level: string) => {
     switch (level) {
@@ -127,113 +117,136 @@ export default function AuditLogs() {
 
   if (loading) {
     return (
-      <PageContainer>
-        <PageHeader title="יומני ביקורת" />
-        <div style={{ padding: '2rem', textAlign: 'center' }}>טוען...</div>
-      </PageContainer>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: undergroundTheme.colors.gradient.primary
+      }}>
+        <UndergroundLoadingSpinner size="large" />
+      </div>
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader
-        title="יומני ביקורת"
-        subtitle="מעקב אחר כל הפעולות במערכת"
-        action={
-          <Button onClick={exportLogs}>
-            📥 ייצא CSV
-          </Button>
-        }
-      />
-
-      <div style={{ padding: '1.5rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-          <Input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="חפש פעולות, משתמשים או ישויות..."
-            style={{ flex: 1, minWidth: '200px' }}
-          />
-
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value as LogLevel)}
-            style={{
-              padding: '0.75rem 1rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #e5e7eb',
-              backgroundColor: 'white',
-              fontSize: '1rem',
-              cursor: 'pointer'
-            }}
-          >
-            <option value="all">כל הרמות</option>
-            <option value="info">מידע</option>
-            <option value="warning">אזהרה</option>
-            <option value="error">שגיאה</option>
-            <option value="critical">קריטי</option>
-          </select>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-          <Card style={{ padding: '1rem', textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#3b82f6' }}>
-              {logs.filter(l => l.level === 'info').length}
-            </div>
-            <div style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.25rem' }}>מידע</div>
-          </Card>
-
-          <Card style={{ padding: '1rem', textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f59e0b' }}>
-              {logs.filter(l => l.level === 'warning').length}
-            </div>
-            <div style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.25rem' }}>אזהרות</div>
-          </Card>
-
-          <Card style={{ padding: '1rem', textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ef4444' }}>
-              {logs.filter(l => l.level === 'error').length}
-            </div>
-            <div style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.25rem' }}>שגיאות</div>
-          </Card>
-
-          <Card style={{ padding: '1rem', textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#991b1b' }}>
-              {logs.filter(l => l.level === 'critical').length}
-            </div>
-            <div style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.25rem' }}>קריטי</div>
-          </Card>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {filteredLogs.length === 0 ? (
-            <Card>
-              <div style={{ padding: '3rem', textAlign: 'center' }}>
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
-                <p style={{ fontSize: '1.125rem', fontWeight: 500, marginBottom: '0.5rem' }}>
-                  אין רשומות יומן
-                </p>
-                <p style={{ color: '#666', fontSize: '0.875rem' }}>
-                  {searchTerm ? 'נסה לשנות את החיפוש' : 'כל פעולות המערכת יופיעו כאן'}
-                </p>
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing.xl,
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+        <UndergroundSection
+          title="Audit Logs"
+          icon="📋"
+          style={{ marginBottom: undergroundTheme.spacing.xl }}
+        >
+          <UndergroundCard style={{ marginBottom: undergroundTheme.spacing.lg }}>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: undergroundTheme.spacing.md
+            }}>
+              <div style={{
+                display: 'flex',
+                gap: undergroundTheme.spacing.md,
+                flexWrap: 'wrap',
+                alignItems: 'center'
+              }}>
+                <UndergroundInput
+                  type="text"
+                  placeholder="Search logs..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{ flex: 1, minWidth: '200px' }}
+                />
+                <UndergroundButton
+                  variant="secondary"
+                  size="small"
+                  onClick={loadLogs}
+                >
+                  Refresh
+                </UndergroundButton>
+                <UndergroundButton
+                  variant="ghost"
+                  size="small"
+                  onClick={exportLogs}
+                >
+                  Export CSV
+                </UndergroundButton>
               </div>
-            </Card>
+
+              <div style={{
+                display: 'flex',
+                gap: undergroundTheme.spacing.sm,
+                flexWrap: 'wrap'
+              }}>
+                {(['all', 'info', 'warning', 'error', 'critical'] as LogLevel[]).map(level => (
+                  <UndergroundButton
+                    key={level}
+                    variant={filter === level ? 'primary' : 'ghost'}
+                    size="small"
+                    onClick={() => setFilter(level)}
+                  >
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  </UndergroundButton>
+                ))}
+              </div>
+            </div>
+          </UndergroundCard>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: undergroundTheme.spacing.lg,
+            marginBottom: undergroundTheme.spacing.xl
+          }}>
+            <UndergroundStatCard
+              label="Info"
+              value={logs.filter(l => l.level === 'info').length}
+              icon="ℹ️"
+            />
+            <UndergroundStatCard
+              label="Warnings"
+              value={logs.filter(l => l.level === 'warning').length}
+              icon="⚠️"
+            />
+            <UndergroundStatCard
+              label="Errors"
+              value={logs.filter(l => l.level === 'error').length}
+              icon="❌"
+            />
+            <UndergroundStatCard
+              label="Critical"
+              value={logs.filter(l => l.level === 'critical').length}
+              icon="🚨"
+            />
+          </div>
+
+          {filteredLogs.length === 0 ? (
+            <UndergroundCard>
+              <UndergroundEmptyState
+                icon="📋"
+                title="No Audit Logs"
+                description={searchTerm ? 'No logs match your search criteria' : 'No audit logs found'}
+              />
+            </UndergroundCard>
           ) : (
-            filteredLogs.map((log) => (
-              <Card key={log.id}>
-                <div style={{ padding: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'start', gap: '1rem' }}>
+            <div style={{ display: 'grid', gap: undergroundTheme.spacing.md }}>
+              {filteredLogs.map((log) => (
+                <UndergroundCard key={log.id}>
+                  <div style={{ display: 'flex', alignItems: 'start', gap: undergroundTheme.spacing.lg }}>
                     <div
                       style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '0.5rem',
-                        backgroundColor: `${getLevelColor(log.level)}22`,
-                        border: `1px solid ${getLevelColor(log.level)}44`,
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '50%',
+                        background: undergroundTheme.colors.glassmorphism.medium,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '1.25rem',
+                        fontSize: '24px',
                         flexShrink: 0
                       }}
                     >
@@ -241,57 +254,76 @@ export default function AuditLogs() {
                     </div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'start',
+                        marginBottom: undergroundTheme.spacing.sm,
+                        flexWrap: 'wrap',
+                        gap: undergroundTheme.spacing.sm
+                      }}>
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: '0.25rem' }}>
+                          <h3 style={{
+                            margin: 0,
+                            fontSize: undergroundTheme.typography.fontSize.lg,
+                            fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                            color: undergroundTheme.colors.text.primary,
+                            marginBottom: undergroundTheme.spacing.xs
+                          }}>
                             {log.action}
-                          </div>
-                          <div style={{ fontSize: '0.875rem', color: '#666' }}>
+                          </h3>
+                          <div style={{
+                            fontSize: undergroundTheme.typography.fontSize.sm,
+                            color: undergroundTheme.colors.text.secondary
+                          }}>
                             {log.user_name || 'System'} • {log.entity_type}
                           </div>
                         </div>
-                        <span
-                          style={{
-                            padding: '0.25rem 0.625rem',
-                            borderRadius: '0.375rem',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            backgroundColor: `${getLevelColor(log.level)}22`,
-                            color: getLevelColor(log.level)
-                          }}
+                        <UndergroundBadge
+                          variant={
+                            log.level === 'error' || log.level === 'critical' ? 'error' :
+                            log.level === 'warning' ? 'warning' :
+                            'info'
+                          }
                         >
                           {log.level.toUpperCase()}
-                        </span>
+                        </UndergroundBadge>
                       </div>
 
                       {log.changes && Object.keys(log.changes).length > 0 && (
                         <div
                           style={{
-                            padding: '0.75rem',
-                            borderRadius: '0.375rem',
-                            backgroundColor: '#f9fafb',
-                            border: '1px solid #e5e7eb',
-                            marginTop: '0.5rem',
-                            fontSize: '0.875rem',
-                            fontFamily: 'monospace'
+                            padding: undergroundTheme.spacing.md,
+                            borderRadius: undergroundTheme.borderRadius.md,
+                            background: undergroundTheme.colors.glassmorphism.light,
+                            border: `1px solid ${undergroundTheme.colors.glassmorphism.medium}`,
+                            marginTop: undergroundTheme.spacing.sm,
+                            fontSize: undergroundTheme.typography.fontSize.sm,
+                            fontFamily: 'monospace',
+                            color: undergroundTheme.colors.text.secondary,
+                            overflow: 'auto'
                           }}
                         >
                           {JSON.stringify(log.changes, null, 2)}
                         </div>
                       )}
 
-                      <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#9ca3af' }}>
-                        {new Date(log.timestamp).toLocaleString('he-IL')}
+                      <div style={{
+                        marginTop: undergroundTheme.spacing.md,
+                        fontSize: undergroundTheme.typography.fontSize.xs,
+                        color: undergroundTheme.colors.text.tertiary
+                      }}>
+                        {new Date(log.timestamp).toLocaleString()}
                         {log.ip_address && ` • IP: ${log.ip_address}`}
                       </div>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))
+                </UndergroundCard>
+              ))}
+            </div>
           )}
-        </div>
+        </UndergroundSection>
       </div>
-    </PageContainer>
+    </div>
   );
 }

@@ -6,6 +6,7 @@ import { colors, spacing, navigation } from '../styles/design-system';
 import { useAuth } from '../context/AuthContext';
 import { haptic } from '../utils/haptic';
 import { useBusinessScopedAccess } from '../hooks/useBusinessScopedAccess';
+import { UserMenu } from './organisms/UserMenu';
 
 /**
  * 🧠 ROY MICHAELS MILITARIZED NAVIGATION
@@ -545,6 +546,29 @@ export const BottomNavigation = React.memo(function BottomNavigation({
   for (let i = leftSideTabs; i < totalTabs; i++) {
     const tab = tabs[i];
     navItems.push(renderTab(tab));
+  }
+
+  // Add avatar dropdown at the end (visually first in RTL)
+  if (authCtx?.user && onLogout) {
+    navItems.push(
+      <div
+        key="avatar-menu"
+        style={{
+          flex: 1,
+          minWidth: '0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '6px 4px',
+        }}
+      >
+        <UserMenu
+          user={authCtx.user}
+          onNavigate={onNavigate}
+          onLogout={onLogout}
+        />
+      </div>
+    );
   }
 
   return (

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { UnifiedMenuPanel, CollapsibleMenuPanel, MenuItemConfig, MenuCategory } from '../components/navigation';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { FloatingActionMenu } from '../components/FloatingActionMenu';
-import { ProfileDropdown } from '../components/navigation/ProfileDropdown';
 import { useAuth } from '../context/AuthContext';
 import { shellEngine, ShellConfig } from '../foundation/engine/ShellEngine';
 import { logger } from '../lib/logger';
@@ -96,18 +95,6 @@ export function UnifiedAppFrame({
         backgroundColor: 'rgba(18, 18, 20, 0.95)',
       }}
     >
-      <style>{`
-        .mobile-profile-dropdown {
-          display: block;
-        }
-
-        @media (min-width: 768px) {
-          .mobile-profile-dropdown {
-            display: none;
-          }
-        }
-      `}</style>
-
       {(headerContent || businessSelector) && (
         <div
           style={{
@@ -128,19 +115,6 @@ export function UnifiedAppFrame({
           {headerContent && (
             <div style={{ flex: 1 }}>
               {headerContent}
-            </div>
-          )}
-
-          {/* Profile dropdown - visible on mobile only */}
-          {authCtx?.user && onLogout && (
-            <div className="mobile-profile-dropdown" style={{ flexShrink: 0 }}>
-              <ProfileDropdown
-                user={authCtx.user}
-                onNavigate={onNavigate}
-                onLogout={onLogout}
-                compact={true}
-                position="top"
-              />
             </div>
           )}
 
