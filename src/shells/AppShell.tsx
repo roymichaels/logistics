@@ -189,6 +189,10 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
             onNavigate={navigate}
             userRole={userRole as any}
             onOpenSidebar={() => setMenuOpen(true)}
+            onLogout={() => {
+              localStorage.clear();
+              navigate('/login');
+            }}
           />
           <UnifiedMenuPanel
             isOpen={menuOpen}
