@@ -189,6 +189,8 @@ export function UnifiedAppFrame({
           currentPath={currentPath}
           onNavigate={onNavigate}
           title={title}
+          user={authCtx?.user}
+          onLogout={onLogout}
         />
       ) : (
         <UnifiedMenuPanel
@@ -198,6 +200,8 @@ export function UnifiedAppFrame({
           currentPath={currentPath}
           onNavigate={onNavigate}
           title={title}
+          user={authCtx?.user}
+          onLogout={onLogout}
         />
       )}
 

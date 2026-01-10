@@ -6,7 +6,6 @@ import { colors, spacing, navigation } from '../styles/design-system';
 import { useAuth } from '../context/AuthContext';
 import { haptic } from '../utils/haptic';
 import { useBusinessScopedAccess } from '../hooks/useBusinessScopedAccess';
-import { ProfileDropdown } from './navigation/ProfileDropdown';
 
 /**
  * 🧠 ROY MICHAELS MILITARIZED NAVIGATION
@@ -81,7 +80,6 @@ export const BottomNavigation = React.memo(function BottomNavigation({
   const { translations } = useI18n();
   const authCtx = useAuth();
   const authRole = (authCtx?.user as any)?.role || null;
-  const currentUser = authCtx?.user || null;
   void authRole;
 
   const businessAccess = useBusinessScopedAccess();
@@ -532,21 +530,6 @@ export const BottomNavigation = React.memo(function BottomNavigation({
     );
   };
 
-  // Add profile dropdown slot (positioned at bottom on desktop, far right on mobile)
-  if (currentUser && onLogout) {
-    navItems.push(
-      <div key="profile-dropdown-slot" className="profile-dropdown-slot" style={{ flex: 1, minWidth: 0 }}>
-        <ProfileDropdown
-          user={currentUser as any}
-          onNavigate={onNavigate}
-          onLogout={onLogout}
-          compact={true}
-          position="bottom"
-        />
-      </div>
-    );
-  }
-
   // Add left side tabs (shown on right in RTL)
   for (let i = 0; i < leftSideTabs; i++) {
     const tab = tabs[i];
@@ -595,15 +578,6 @@ export const BottomNavigation = React.memo(function BottomNavigation({
           border-top-color: rgba(56, 68, 77, 0.8);
         }
 
-        .profile-dropdown-slot {
-          order: 999;
-          flex: 1 !important;
-          min-width: 0 !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-        }
-
         @media (min-width: 768px) {
           :root {
             --nav-sidebar-offset: 80px;
@@ -632,14 +606,6 @@ export const BottomNavigation = React.memo(function BottomNavigation({
           .bottom-nav-container button {
             width: 100% !important;
             flex: 0 0 auto !important;
-          }
-
-          .profile-dropdown-slot {
-            order: 999;
-            margin-top: auto !important;
-            flex: 0 0 auto !important;
-            padding-top: 16px !important;
-            border-top: 1px solid rgba(56, 68, 77, 0.4) !important;
           }
         }
 

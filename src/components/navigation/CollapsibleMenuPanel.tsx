@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { colors } from '../../styles/design-system';
+import { ProfileDropdown } from './ProfileDropdown';
 
 export interface MenuItemConfig {
   id: string;
@@ -27,6 +28,8 @@ interface CollapsibleMenuPanelProps {
   currentPath: string;
   onNavigate: (path: string) => void;
   title?: string;
+  user?: any;
+  onLogout?: () => void;
 }
 
 export function CollapsibleMenuPanel({
@@ -37,6 +40,8 @@ export function CollapsibleMenuPanel({
   currentPath,
   onNavigate,
   title = 'תפריט',
+  user,
+  onLogout,
 }: CollapsibleMenuPanelProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(categories.filter(c => c.defaultOpen).map(c => c.id))
@@ -337,6 +342,22 @@ export function CollapsibleMenuPanel({
 
           {/* Render categories with their items */}
           {categories.map(renderCategory)}
+
+          {/* Profile dropdown at the bottom */}
+          {user && onLogout && (
+            <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
+              <ProfileDropdown
+                user={user}
+                onNavigate={(path) => {
+                  onNavigate(path);
+                  onClose();
+                }}
+                onLogout={onLogout}
+                compact={false}
+                position="left"
+              />
+            </div>
+          )}
         </div>
       </div>
     </>

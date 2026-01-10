@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { ProfileDropdown } from './ProfileDropdown';
 
 export interface MenuItemConfig {
   id: string;
@@ -17,6 +18,8 @@ interface UnifiedMenuPanelProps {
   currentPath: string;
   onNavigate: (path: string) => void;
   title?: string;
+  user?: any;
+  onLogout?: () => void;
 }
 
 export function UnifiedMenuPanel({
@@ -26,6 +29,8 @@ export function UnifiedMenuPanel({
   currentPath,
   onNavigate,
   title = 'תפריט',
+  user,
+  onLogout,
 }: UnifiedMenuPanelProps) {
   useEffect(() => {
     if (isOpen) {
@@ -212,6 +217,22 @@ export function UnifiedMenuPanel({
               )}
             </button>
           ))}
+
+          {/* Profile dropdown at the bottom */}
+          {user && onLogout && (
+            <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
+              <ProfileDropdown
+                user={user}
+                onNavigate={(path) => {
+                  onNavigate(path);
+                  onClose();
+                }}
+                onLogout={onLogout}
+                compact={false}
+                position="left"
+              />
+            </div>
+          )}
         </div>
       </div>
     </>
