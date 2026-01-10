@@ -1,17 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { Product } from '../data/types';
-import { Section } from '../components/atoms/Section';
-import { Grid } from '../components/atoms/Grid';
-import { Chip } from '../components/atoms/Chip';
-import { Text } from '../components/atoms/Typography';
-import { SearchBar } from '../components/molecules/SearchBar';
-import { ProductCard, ProductCardSkeleton } from '../components/molecules/ProductCard';
-import { EmptyState } from '../components/molecules/EmptyState';
-import { Card } from '../components/molecules/Card';
-import { MetricCard, MetricGrid } from '../components/dashboard/MetricCard';
-import { CartDrawer } from '../components/modern/CartDrawer';
+import { undergroundTheme } from '../styles/undergroundTheme';
+import { UndergroundCard } from '../components/underground/UndergroundCard';
+import { UndergroundButton } from '../components/underground/UndergroundButton';
+import { UndergroundInput } from '../components/underground/UndergroundInput';
+import { UndergroundStatCard } from '../components/underground/UndergroundStatCard';
+import { ProductCard } from '../components/molecules/ProductCard';
 import { useCart } from '../hooks/useCart';
-import { colors, spacing, borderRadius, shadows, typography } from '../styles/design-system';
 import { supabase } from '../lib/supabase';
 import { logger } from '../lib/logger';
 
@@ -41,7 +36,6 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState<string>('הכל');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isCartOpen, setCartOpen] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
   const { addItem, cart } = useCart();
   const items = cart.items;
@@ -120,336 +114,306 @@ export function CatalogPage({ dataStore, onNavigate }: CatalogPageProps) {
   const totalCartItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalCartValue = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
 
-  const containerStyle: React.CSSProperties = {
-    minHeight: '100vh',
-    background: 'rgba(18, 18, 20, 0.95)',
-    paddingBottom: '100px',
-    direction: 'rtl',
-  };
-
-  const heroStyle: React.CSSProperties = {
-    background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.08) 100%)',
-    padding: `${spacing.xl} ${spacing.lg}`,
-    marginBottom: spacing.lg,
-    borderRadius: `0 0 ${borderRadius.xl} ${borderRadius.xl}`,
-    border: '1px solid rgba(59, 130, 246, 0.1)',
-    backdropFilter: 'blur(12px)',
-  };
-
   return (
-    <>
-      <div style={containerStyle}>
-        <div style={heroStyle}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <Text
-              variant="h1"
-              style={{
-                color: 'rgba(255, 255, 255, 0.95)',
-                marginBottom: spacing.sm,
-                fontSize: 'clamp(24px, 5vw, 32px)',
-                fontWeight: 700,
-                letterSpacing: '-0.02em',
-              }}
-            >
-              חנות אבטחה
-            </Text>
-            <Text
-              variant="body"
-              style={{
-                color: 'rgba(255, 255, 255, 0.7)',
-                marginBottom: spacing.lg,
-                fontSize: typography.fontSize.md,
-              }}
-            >
-              ציוד אבטחה ברמה ארגונית
-            </Text>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-              gap: spacing.md,
-              marginTop: spacing.lg
-            }}>
-              <div style={{
-                background: 'rgba(59, 130, 246, 0.1)',
-                border: '1px solid rgba(59, 130, 246, 0.2)',
-                borderRadius: borderRadius.lg,
-                padding: spacing.md,
-                textAlign: 'center',
-              }}>
-                <div style={{ fontSize: '24px', marginBottom: spacing.xs }}>📦</div>
-                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: typography.fontSize.xs, marginBottom: spacing.xs }}>מוצרים</div>
-                <div style={{ color: 'rgba(255, 255, 255, 0.95)', fontSize: typography.fontSize.xl, fontWeight: 700 }}>{products.length}</div>
-              </div>
-              <div style={{
-                background: 'rgba(34, 197, 94, 0.1)',
-                border: '1px solid rgba(34, 197, 94, 0.2)',
-                borderRadius: borderRadius.lg,
-                padding: spacing.md,
-                textAlign: 'center',
-              }}>
-                <div style={{ fontSize: '24px', marginBottom: spacing.xs }}>🛒</div>
-                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: typography.fontSize.xs, marginBottom: spacing.xs }}>פריטים בעגלה</div>
-                <div style={{ color: 'rgba(255, 255, 255, 0.95)', fontSize: typography.fontSize.xl, fontWeight: 700 }}>{totalCartItems}</div>
-              </div>
-              <div style={{
-                background: 'rgba(251, 191, 36, 0.1)',
-                border: '1px solid rgba(251, 191, 36, 0.2)',
-                borderRadius: borderRadius.lg,
-                padding: spacing.md,
-                textAlign: 'center',
-              }}>
-                <div style={{ fontSize: '24px', marginBottom: spacing.xs }}>💰</div>
-                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: typography.fontSize.xs, marginBottom: spacing.xs }}>סכום כולל</div>
-                <div style={{ color: 'rgba(255, 255, 255, 0.95)', fontSize: typography.fontSize.xl, fontWeight: 700 }}>₪{totalCartValue.toFixed(2)}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: `0 ${spacing.lg}` }}>
-          <Card
-            variant="elevated"
-            style={{
-              marginBottom: spacing.lg,
-              padding: spacing.lg,
-              background: 'rgba(30, 30, 35, 0.6)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: borderRadius.xl,
-              backdropFilter: 'blur(12px)',
-            }}
-          >
-            <SearchBar
-              placeholder="חיפוש מוצרי אבטחה..."
-              onSearch={setSearchQuery}
-              onClear={() => setSearchQuery('')}
-              style={{ marginBottom: spacing.md }}
-            />
-
-            <div
-              style={{
-                display: 'flex',
-                gap: spacing.xs,
-                overflowX: 'auto',
-                padding: `${spacing.xs} 0`,
-                WebkitOverflowScrolling: 'touch',
-                scrollbarWidth: 'thin',
-                scrollbarColor: 'rgba(255, 255, 255, 0.1) transparent',
-              }}
-            >
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setCategory(cat)}
-                  style={{
-                    padding: `${spacing.sm} ${spacing.md}`,
-                    borderRadius: borderRadius.full,
-                    border: cat === category
-                      ? '1px solid rgba(59, 130, 246, 0.6)'
-                      : '1px solid rgba(255, 255, 255, 0.1)',
-                    background: cat === category
-                      ? 'rgba(59, 130, 246, 0.15)'
-                      : 'rgba(255, 255, 255, 0.03)',
-                    color: cat === category
-                      ? '#60a5fa'
-                      : 'rgba(255, 255, 255, 0.7)',
-                    fontSize: typography.fontSize.sm,
-                    fontWeight: cat === category ? 600 : 500,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (cat !== category) {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
-                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.95)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (cat !== category) {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
-                    }
-                  }}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-
-            {uniqueBusinesses.length > 1 && (
-              <>
-                <div style={{
-                  marginTop: spacing.md,
-                  paddingTop: spacing.md,
-                  borderTop: '1px solid rgba(255, 255, 255, 0.08)'
-                }}>
-                  <Text variant="caption" style={{ color: 'rgba(255, 255, 255, 0.6)', marginBottom: spacing.xs, display: 'block' }}>
-                    סנן לפי עסק:
-                  </Text>
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: spacing.xs,
-                      overflowX: 'auto',
-                      padding: `${spacing.xs} 0`,
-                      WebkitOverflowScrolling: 'touch',
-                    }}
-                  >
-                    <button
-                      onClick={() => setSelectedBusiness(null)}
-                      style={{
-                        padding: `${spacing.xs} ${spacing.sm}`,
-                        borderRadius: borderRadius.full,
-                        border: !selectedBusiness
-                          ? '1px solid rgba(34, 197, 94, 0.6)'
-                          : '1px solid rgba(255, 255, 255, 0.1)',
-                        background: !selectedBusiness
-                          ? 'rgba(34, 197, 94, 0.15)'
-                          : 'rgba(255, 255, 255, 0.03)',
-                        color: !selectedBusiness
-                          ? '#4ade80'
-                          : 'rgba(255, 255, 255, 0.7)',
-                        fontSize: typography.fontSize.xs,
-                        fontWeight: !selectedBusiness ? 600 : 500,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        whiteSpace: 'nowrap',
-                        flexShrink: 0,
-                      }}
-                    >
-                      כל העסקים
-                    </button>
-                    {uniqueBusinesses.map((business) => (
-                      <button
-                        key={business.name}
-                        onClick={() => setSelectedBusiness(business.name)}
-                        style={{
-                          padding: `${spacing.xs} ${spacing.sm}`,
-                          borderRadius: borderRadius.full,
-                          border: selectedBusiness === business.name
-                            ? '1px solid rgba(34, 197, 94, 0.6)'
-                            : '1px solid rgba(255, 255, 255, 0.1)',
-                          background: selectedBusiness === business.name
-                            ? 'rgba(34, 197, 94, 0.15)'
-                            : 'rgba(255, 255, 255, 0.03)',
-                          color: selectedBusiness === business.name
-                            ? '#4ade80'
-                            : 'rgba(255, 255, 255, 0.7)',
-                          fontSize: typography.fontSize.xs,
-                          fontWeight: selectedBusiness === business.name ? 600 : 500,
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                          whiteSpace: 'nowrap',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {business.name_hebrew || business.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-          </Card>
-
-          {loading && (
-            <Grid autoFit minItemWidth="280px" gap="lg">
-              <ProductCardSkeleton count={8} />
-            </Grid>
-          )}
-
-          {error && (
-            <Card variant="outlined">
-              <EmptyState
-                variant="error"
-                title="טעינת מוצרים נכשלה"
-                description={error}
-                action={{
-                  label: 'נסה שוב',
-                  onClick: () => window.location.reload(),
-                }}
-              />
-            </Card>
-          )}
-
-          {!loading && !error && filteredProducts.length === 0 && (
-            <Card variant="outlined">
-              <EmptyState
-                variant="search"
-                title="לא נמצאו מוצרים"
-                description="נסה לשנות את קריטריוני החיפוש או הסינון."
-                action={
-                  searchQuery || category !== 'הכל'
-                    ? {
-                        label: 'נקה מסננים',
-                        onClick: () => {
-                          setSearchQuery('');
-                          setCategory('הכל');
-                        },
-                      }
-                    : undefined
-                }
-              />
-            </Card>
-          )}
-
-          {!loading && !error && filteredProducts.length > 0 && (
-            <>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: spacing.md,
-                  padding: `0 ${spacing.xs}`,
-                }}
-              >
-                <Text
-                  variant="body"
-                  style={{
-                    color: 'rgba(255, 255, 255, 0.8)',
-                    fontWeight: 600,
-                    fontSize: typography.fontSize.md,
-                  }}
-                >
-                  {filteredProducts.length} {filteredProducts.length === 1 ? 'מוצר' : 'מוצרים'}
-                </Text>
-              </div>
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                  gap: spacing.lg,
-                  marginBottom: spacing.xl,
-                }}
-              >
-                {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={(p) => {
-                      addItem(p);
-                      setCartOpen(true);
-                    }}
-                    onClick={(p) => {
-                      console.log('Product clicked:', p.name);
-                    }}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing['2xl'],
+      paddingBottom: undergroundTheme.spacing['8xl'],
+      direction: 'rtl'
+    }}>
+      <div style={{ marginBottom: undergroundTheme.spacing['4xl'] }}>
+        <h1 style={{
+          fontSize: undergroundTheme.typography.fontSize['4xl'],
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          margin: '0 0 8px 0',
+          color: undergroundTheme.colors.text.primary,
+          textShadow: undergroundTheme.shadows.glow.cyan
+        }}>
+          🛒 חנות אבטחה
+        </h1>
+        <p style={{
+          margin: 0,
+          color: undergroundTheme.colors.text.secondary,
+          fontSize: undergroundTheme.typography.fontSize.lg
+        }}>
+          ציוד אבטחה ברמה ארגונית
+        </p>
       </div>
 
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setCartOpen(false)}
-        onCheckout={() => onNavigate?.('/store/checkout')}
-      />
-    </>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: undergroundTheme.spacing.lg,
+        marginBottom: undergroundTheme.spacing['4xl']
+      }}>
+        <UndergroundStatCard
+          icon={<span style={{ fontSize: '32px' }}>📦</span>}
+          label="מוצרים"
+          value={products.length.toString()}
+          accentColor={undergroundTheme.colors.accent.primary}
+        />
+        <UndergroundStatCard
+          icon={<span style={{ fontSize: '32px' }}>🛒</span>}
+          label="פריטים בעגלה"
+          value={totalCartItems.toString()}
+          accentColor={undergroundTheme.colors.status.success}
+          onClick={() => onNavigate?.('/store/cart')}
+          style={{ cursor: 'pointer' }}
+        />
+        <UndergroundStatCard
+          icon={<span style={{ fontSize: '32px' }}>💰</span>}
+          label="סכום כולל"
+          value={`₪${totalCartValue.toFixed(2)}`}
+          accentColor={undergroundTheme.colors.status.warning}
+          onClick={() => onNavigate?.('/store/cart')}
+          style={{ cursor: 'pointer' }}
+        />
+      </div>
+
+      <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['3xl'] }}>
+        <div style={{ marginBottom: undergroundTheme.spacing.lg }}>
+          <UndergroundInput
+            placeholder="חיפוש מוצרי אבטחה..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            icon="🔍"
+          />
+        </div>
+
+        <div style={{
+          display: 'flex',
+          gap: undergroundTheme.spacing.xs,
+          overflowX: 'auto',
+          padding: `${undergroundTheme.spacing.xs} 0`,
+          marginBottom: undergroundTheme.spacing.lg,
+          WebkitOverflowScrolling: 'touch'
+        }}>
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategory(cat)}
+              style={{
+                padding: `${undergroundTheme.spacing.sm} ${undergroundTheme.spacing.md}`,
+                borderRadius: undergroundTheme.borderRadius.full,
+                border: cat === category
+                  ? `1px solid ${undergroundTheme.colors.accent.primary}`
+                  : `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                background: cat === category
+                  ? `${undergroundTheme.colors.accent.primary}20`
+                  : undergroundTheme.colors.glassmorphism.light,
+                color: cat === category
+                  ? undergroundTheme.colors.accent.primary
+                  : undergroundTheme.colors.text.secondary,
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                fontWeight: cat === category ? undergroundTheme.typography.fontWeight.bold : undergroundTheme.typography.fontWeight.medium,
+                cursor: 'pointer',
+                transition: undergroundTheme.transitions.fast,
+                whiteSpace: 'nowrap',
+                flexShrink: 0
+              }}
+              onMouseEnter={(e) => {
+                if (cat !== category) {
+                  e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.medium;
+                  e.currentTarget.style.color = undergroundTheme.colors.text.primary;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (cat !== category) {
+                  e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.light;
+                  e.currentTarget.style.color = undergroundTheme.colors.text.secondary;
+                }
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {uniqueBusinesses.length > 1 && (
+          <>
+            <div style={{
+              paddingTop: undergroundTheme.spacing.md,
+              borderTop: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+              marginTop: undergroundTheme.spacing.md
+            }}>
+              <div style={{
+                color: undergroundTheme.colors.text.tertiary,
+                marginBottom: undergroundTheme.spacing.sm,
+                fontSize: undergroundTheme.typography.fontSize.sm
+              }}>
+                סנן לפי עסק:
+              </div>
+              <div style={{
+                display: 'flex',
+                gap: undergroundTheme.spacing.xs,
+                overflowX: 'auto',
+                padding: `${undergroundTheme.spacing.xs} 0`,
+                WebkitOverflowScrolling: 'touch'
+              }}>
+                <button
+                  onClick={() => setSelectedBusiness(null)}
+                  style={{
+                    padding: `${undergroundTheme.spacing.xs} ${undergroundTheme.spacing.sm}`,
+                    borderRadius: undergroundTheme.borderRadius.full,
+                    border: !selectedBusiness
+                      ? `1px solid ${undergroundTheme.colors.status.success}`
+                      : `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                    background: !selectedBusiness
+                      ? `${undergroundTheme.colors.status.success}20`
+                      : undergroundTheme.colors.glassmorphism.light,
+                    color: !selectedBusiness
+                      ? undergroundTheme.colors.status.success
+                      : undergroundTheme.colors.text.secondary,
+                    fontSize: undergroundTheme.typography.fontSize.xs,
+                    fontWeight: !selectedBusiness ? undergroundTheme.typography.fontWeight.bold : undergroundTheme.typography.fontWeight.medium,
+                    cursor: 'pointer',
+                    transition: undergroundTheme.transitions.fast,
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0
+                  }}
+                >
+                  כל העסקים
+                </button>
+                {uniqueBusinesses.map((business) => (
+                  <button
+                    key={business.name}
+                    onClick={() => setSelectedBusiness(business.name)}
+                    style={{
+                      padding: `${undergroundTheme.spacing.xs} ${undergroundTheme.spacing.sm}`,
+                      borderRadius: undergroundTheme.borderRadius.full,
+                      border: selectedBusiness === business.name
+                        ? `1px solid ${undergroundTheme.colors.status.success}`
+                        : `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                      background: selectedBusiness === business.name
+                        ? `${undergroundTheme.colors.status.success}20`
+                        : undergroundTheme.colors.glassmorphism.light,
+                      color: selectedBusiness === business.name
+                        ? undergroundTheme.colors.status.success
+                        : undergroundTheme.colors.text.secondary,
+                      fontSize: undergroundTheme.typography.fontSize.xs,
+                      fontWeight: selectedBusiness === business.name ? undergroundTheme.typography.fontWeight.bold : undergroundTheme.typography.fontWeight.medium,
+                      cursor: 'pointer',
+                      transition: undergroundTheme.transitions.fast,
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
+                    }}
+                  >
+                    {business.name_hebrew || business.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </UndergroundCard>
+
+      {loading && (
+        <div style={{
+          textAlign: 'center',
+          padding: undergroundTheme.spacing['4xl'],
+          color: undergroundTheme.colors.text.secondary
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: undergroundTheme.spacing.md }}>⏳</div>
+          <div style={{ fontSize: undergroundTheme.typography.fontSize.lg }}>טוען מוצרים...</div>
+        </div>
+      )}
+
+      {error && (
+        <UndergroundCard variant="error">
+          <div style={{ textAlign: 'center', padding: undergroundTheme.spacing.xl }}>
+            <div style={{ fontSize: '48px', marginBottom: undergroundTheme.spacing.md }}>❌</div>
+            <div style={{
+              fontSize: undergroundTheme.typography.fontSize.lg,
+              color: undergroundTheme.colors.status.error,
+              marginBottom: undergroundTheme.spacing.md
+            }}>
+              טעינת מוצרים נכשלה
+            </div>
+            <div style={{
+              color: undergroundTheme.colors.text.secondary,
+              marginBottom: undergroundTheme.spacing.lg
+            }}>
+              {error}
+            </div>
+            <UndergroundButton onClick={() => window.location.reload()}>
+              נסה שוב
+            </UndergroundButton>
+          </div>
+        </UndergroundCard>
+      )}
+
+      {!loading && !error && filteredProducts.length === 0 && (
+        <UndergroundCard>
+          <div style={{ textAlign: 'center', padding: undergroundTheme.spacing['4xl'] }}>
+            <div style={{ fontSize: '64px', marginBottom: undergroundTheme.spacing.lg }}>🔍</div>
+            <div style={{
+              fontSize: undergroundTheme.typography.fontSize.xl,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary,
+              marginBottom: undergroundTheme.spacing.sm
+            }}>
+              לא נמצאו מוצרים
+            </div>
+            <div style={{
+              color: undergroundTheme.colors.text.secondary,
+              marginBottom: undergroundTheme.spacing.lg
+            }}>
+              נסה לשנות את קריטריוני החיפוש או הסינון
+            </div>
+            {(searchQuery || category !== 'הכל') && (
+              <UndergroundButton
+                onClick={() => {
+                  setSearchQuery('');
+                  setCategory('הכל');
+                }}
+              >
+                נקה מסננים
+              </UndergroundButton>
+            )}
+          </div>
+        </UndergroundCard>
+      )}
+
+      {!loading && !error && filteredProducts.length > 0 && (
+        <>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: undergroundTheme.spacing.lg,
+            padding: `0 ${undergroundTheme.spacing.xs}`
+          }}>
+            <div style={{
+              color: undergroundTheme.colors.text.primary,
+              fontWeight: undergroundTheme.typography.fontWeight.semibold,
+              fontSize: undergroundTheme.typography.fontSize.lg
+            }}>
+              {filteredProducts.length} {filteredProducts.length === 1 ? 'מוצר' : 'מוצרים'}
+            </div>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: undergroundTheme.spacing.lg
+          }}>
+            {filteredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={(p) => {
+                  addItem(p);
+                  onNavigate?.('/store/cart');
+                }}
+                onClick={(p) => {
+                  console.log('Product clicked:', p.name);
+                }}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
