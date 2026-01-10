@@ -13,6 +13,7 @@ import { getStatusBadgeStyle, createPageContainerStyle } from '../utils/undergro
 import { supabase } from '../lib/supabase';
 import { logger } from '../lib/logger';
 import { Toast } from '../components/Toast';
+import { haptic } from '../utils/haptic';
 
 interface MyOrdersPageProps {
   dataStore?: any;
@@ -68,6 +69,8 @@ export function MyOrdersPage({ dataStore, onNavigate }: MyOrdersPageProps) {
           filter: `customer_id=eq.${user.id}`
         }, () => {
           logger.info('[MyOrdersPage] Order updated, refetching...');
+          Toast.success('Order updated!');
+          haptic('light');
           loadOrders();
         })
         .subscribe();
@@ -134,12 +137,14 @@ export function MyOrdersPage({ dataStore, onNavigate }: MyOrdersPageProps) {
     } catch (error: any) {
       logger.error('[MyOrdersPage] Failed to load orders', { error });
       Toast.error('Failed to load orders. Please try again.');
+      haptic('error');
     } finally {
       setLoading(false);
     }
   };
 
   const handleOrderClick = (orderId: string) => {
+    haptic('light');
     if (onNavigate) {
       onNavigate(`/store/orders/${orderId}`);
     } else {

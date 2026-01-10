@@ -5,6 +5,8 @@ import { undergroundTheme } from '../styles/undergroundTheme';
 import { UndergroundCard } from '../components/underground/UndergroundCard';
 import { UndergroundButton } from '../components/underground/UndergroundButton';
 import { UndergroundSection } from '../components/underground/UndergroundSection';
+import { Toast } from '../components/Toast';
+import { haptic } from '../utils/haptic';
 
 interface CartPageProps {
   onNavigate?: (dest: string) => void;
@@ -15,6 +17,8 @@ export function CartPage({ onNavigate }: CartPageProps) {
   const { cart, updateQuantity, removeItem, clearCart } = useCart();
 
   const handleCheckout = () => {
+    haptic('medium');
+    Toast.success('Proceeding to checkout');
     if (onNavigate) {
       onNavigate('/store/checkout');
     } else {
@@ -121,7 +125,11 @@ export function CartPage({ onNavigate }: CartPageProps) {
                 <UndergroundButton
                   variant="ghost"
                   size="small"
-                  onClick={clearCart}
+                  onClick={() => {
+                    clearCart();
+                    Toast.success('Cart cleared');
+                    haptic('light');
+                  }}
                   style={{ color: undergroundTheme.colors.status.error }}
                 >
                   Clear Cart
@@ -197,7 +205,10 @@ export function CartPage({ onNavigate }: CartPageProps) {
                         padding: undergroundTheme.spacing.xs
                       }}>
                         <button
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                          onClick={() => {
+                            updateQuantity(item.product.id, item.quantity - 1);
+                            haptic('light');
+                          }}
                           style={{
                             width: '32px',
                             height: '32px',
@@ -234,7 +245,10 @@ export function CartPage({ onNavigate }: CartPageProps) {
                           {item.quantity}
                         </span>
                         <button
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                          onClick={() => {
+                            updateQuantity(item.product.id, item.quantity + 1);
+                            haptic('light');
+                          }}
                           style={{
                             width: '32px',
                             height: '32px',
@@ -275,7 +289,11 @@ export function CartPage({ onNavigate }: CartPageProps) {
                       <UndergroundButton
                         variant="ghost"
                         size="small"
-                        onClick={() => removeItem(item.product.id)}
+                        onClick={() => {
+                          removeItem(item.product.id);
+                          Toast.success('Item removed from cart');
+                          haptic('medium');
+                        }}
                         style={{
                           color: undergroundTheme.colors.status.error,
                           fontSize: undergroundTheme.typography.fontSize.xs

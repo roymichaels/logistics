@@ -16,6 +16,7 @@ import {
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
 import { supabase } from '../lib/supabase';
+import { haptic } from '../utils/haptic';
 
 interface CheckoutPageProps {
   dataStore?: any;
@@ -81,24 +82,29 @@ export function CheckoutPage({ dataStore, onNavigate }: CheckoutPageProps) {
 
     if (!validateForm()) {
       Toast.error('Please fill in all required fields');
+      haptic('error');
       return;
     }
 
     if (cart.items.length === 0) {
       Toast.error('Your cart is empty');
+      haptic('error');
       return;
     }
 
     if (!user) {
       Toast.error('You must be logged in to place an order');
+      haptic('error');
       return;
     }
 
     if (!currentBusinessId) {
       Toast.error('No business selected');
+      haptic('error');
       return;
     }
 
+    haptic('medium');
     setLoading(true);
 
     try {
@@ -169,6 +175,7 @@ export function CheckoutPage({ dataStore, onNavigate }: CheckoutPageProps) {
       clearCart();
 
       Toast.success('Order placed successfully!');
+      haptic('success');
 
       if (onNavigate) {
         onNavigate(`/store/orders/${order.id}`);
@@ -178,6 +185,7 @@ export function CheckoutPage({ dataStore, onNavigate }: CheckoutPageProps) {
     } catch (error: any) {
       logger.error('[CheckoutPage] Failed to create order', { error });
       Toast.error(error.message || 'Failed to place order. Please try again.');
+      haptic('error');
     } finally {
       setLoading(false);
     }
