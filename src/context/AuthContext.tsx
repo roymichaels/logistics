@@ -20,6 +20,7 @@ import {
 } from '../lib/auth/walletAuth';
 import { runtimeEnvironment } from '../lib/runtimeEnvironment';
 import { getUserDisplayName } from '../utils/userIdentifier';
+import { sessionManager } from '../lib/sessionManager';
 
 interface AuthContextValue extends AuthState {
   signOut: () => Promise<void>;
@@ -64,12 +65,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setAuthState(state);
     });
 
-    authService.initialize().catch(error => {
+    Promise.all([
+      authService.initialize(),
+      sessionManager.initialize(),
+    ]).catch(error => {
       logger.error('[AUTH] Initialization error:', error);
     });
 
     return () => {
       unsubscribe();
+      sessionManager.destroy();
     };
   }, []);
 
@@ -88,7 +93,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const refreshSession = async () => {
-    await authService.refreshSession();
+    const sessionValid = await sessionManager.refreshSession();
+    if (sessionValid) {
+      await authService.refreshSession();
+    }
   };
 
   const authenticate = async () => {
