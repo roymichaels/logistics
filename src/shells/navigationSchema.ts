@@ -7,7 +7,8 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/platform-dashboard',
     icon: '🏗️',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    category: 'overview'
   },
   {
     id: 'admin-infrastructures',
@@ -15,7 +16,8 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/infrastructures',
     icon: '🏭',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    category: 'platform'
   },
   {
     id: 'admin-superadmins',
@@ -23,7 +25,8 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/superadmins',
     icon: '👑',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    category: 'platform'
   },
   {
     id: 'admin-businesses',
@@ -31,7 +34,8 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/businesses',
     icon: '🏢',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    category: 'entities'
   },
   {
     id: 'admin-users',
@@ -39,31 +43,8 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/users',
     icon: '👥',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
-  },
-  {
-    id: 'admin-catalog',
-    label: 'קטלוג פלטפורמה',
-    path: '/admin/platform-catalog',
-    icon: '📦',
-    visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
-  },
-  {
-    id: 'admin-analytics',
-    label: 'אנליטיקה',
-    path: '/admin/analytics',
-    icon: '📊',
-    visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
-  },
-  {
-    id: 'admin-orders',
-    label: 'הזמנות',
-    path: '/admin/orders',
-    icon: '📋',
-    visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    category: 'entities'
   },
   {
     id: 'admin-drivers',
@@ -71,7 +52,35 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/drivers',
     icon: '🚗',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    category: 'entities'
+  },
+  {
+    id: 'admin-catalog',
+    label: 'קטלוג פלטפורמה',
+    path: '/admin/platform-catalog',
+    icon: '📦',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    category: 'operations'
+  },
+  {
+    id: 'admin-orders',
+    label: 'הזמנות',
+    path: '/admin/orders',
+    icon: '📋',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    category: 'operations'
+  },
+  {
+    id: 'admin-analytics',
+    label: 'אנליטיקה',
+    path: '/admin/analytics',
+    icon: '📊',
+    visible: true,
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    category: 'analytics'
   },
   {
     id: 'admin-logs',
@@ -79,7 +88,8 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/logs',
     icon: '📋',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    category: 'analytics'
   },
   {
     id: 'admin-feature-flags',
@@ -87,7 +97,8 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/feature-flags',
     icon: '🚩',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    category: 'settings'
   },
   {
     id: 'admin-permissions',
@@ -95,7 +106,8 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/permissions',
     icon: '🔐',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    category: 'settings'
   },
   {
     id: 'admin-settings',
@@ -103,7 +115,8 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/system-settings',
     icon: '⚙️',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner']
+    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    category: 'settings'
   }
 ];
 
@@ -340,6 +353,15 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
 ];
 
 // Menu categories for organized navigation
+export const ADMIN_MENU_CATEGORIES = [
+  { id: 'overview', label: 'סקירה כללית', icon: '🏗️', defaultOpen: true },
+  { id: 'platform', label: 'ניהול פלטפורמה', icon: '🏭', defaultOpen: false },
+  { id: 'entities', label: 'ישויות ומשתמשים', icon: '👥', defaultOpen: false },
+  { id: 'operations', label: 'פעילות תפעולית', icon: '📦', defaultOpen: false },
+  { id: 'analytics', label: 'מעקב וניתוח', icon: '📊', defaultOpen: false },
+  { id: 'settings', label: 'הגדרות ותצורות', icon: '⚙️', defaultOpen: false }
+];
+
 export const BUSINESS_MENU_CATEGORIES = [
   { id: 'operations', label: 'פעילות ותפעול', icon: '⚙️', defaultOpen: true },
   { id: 'inventory', label: 'מלאי ומוצרים', icon: '📦', defaultOpen: false },

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ProfileDropdown } from './ProfileDropdown';
 
 export interface MenuItemConfig {
@@ -9,12 +9,21 @@ export interface MenuItemConfig {
   disabled?: boolean;
   disabledMessage?: string;
   requiresBusinessContext?: boolean;
+  category?: string;
+}
+
+export interface MenuCategory {
+  id: string;
+  label: string;
+  icon: string;
+  defaultOpen: boolean;
 }
 
 interface UnifiedMenuPanelProps {
   isOpen: boolean;
   onClose: () => void;
   items: MenuItemConfig[];
+  categories?: MenuCategory[];
   currentPath: string;
   onNavigate: (path: string) => void;
   title?: string;
@@ -26,12 +35,17 @@ export function UnifiedMenuPanel({
   isOpen,
   onClose,
   items,
+  categories,
   currentPath,
   onNavigate,
   title = 'תפריט',
   user,
   onLogout,
 }: UnifiedMenuPanelProps) {
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set(categories?.filter(c => c.defaultOpen).map(c => c.id) || [])
+  );
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -57,6 +71,29 @@ export function UnifiedMenuPanel({
     onNavigate(path);
     onClose();
   };
+
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
+  };
+
+  const groupedItems = categories
+    ? categories.map(category => ({
+        category,
+        items: items.filter(item => item.category === category.id)
+      }))
+    : null;
+
+  const uncategorizedItems = categories
+    ? items.filter(item => !item.category)
+    : items;
 
   return (
     <>
@@ -168,7 +205,7 @@ export function UnifiedMenuPanel({
             gap: '4px',
           }}
         >
-          {items.map((item) => (
+          {uncategorizedItems.map((item) => (
             <button
               key={item.id}
               onClick={() => handleNavigate(item.path, item.disabled, item.disabledMessage)}
@@ -228,6 +265,109 @@ export function UnifiedMenuPanel({
                 <span style={{ fontSize: '14px', opacity: 0.5 }}>🔒</span>
               )}
             </button>
+          ))}
+
+          {groupedItems?.map(({ category, items: categoryItems }) => (
+            <div key={category.id} style={{ marginBottom: '8px' }}>
+              <button
+                onClick={() => toggleCategory(category.id)}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '10px 16px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  textAlign: 'right',
+                  marginBottom: expandedCategories.has(category.id) ? '4px' : '0',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
+                }}
+              >
+                <span style={{ fontSize: '16px' }}>{category.icon}</span>
+                <span style={{ flex: 1 }}>{category.label}</span>
+                <span style={{
+                  fontSize: '12px',
+                  transition: 'transform 0.2s ease',
+                  transform: expandedCategories.has(category.id) ? 'rotate(180deg)' : 'rotate(0deg)'
+                }}>
+                  ▼
+                </span>
+              </button>
+
+              {expandedCategories.has(category.id) && categoryItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavigate(item.path, item.disabled, item.disabledMessage)}
+                  title={item.disabled ? (item.disabledMessage || 'בחר עסק כדי לגשת') : undefined}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 16px 12px 28px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    backgroundColor: isActive(item.path)
+                      ? 'rgba(59, 130, 246, 0.15)'
+                      : 'transparent',
+                    color: item.disabled
+                      ? 'rgba(255, 255, 255, 0.3)'
+                      : isActive(item.path)
+                      ? '#60a5fa'
+                      : 'rgba(255, 255, 255, 0.7)',
+                    fontSize: '14px',
+                    fontWeight: isActive(item.path) ? '600' : '500',
+                    cursor: item.disabled ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.15s ease',
+                    textAlign: 'right',
+                    position: 'relative',
+                    opacity: item.disabled ? 0.5 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive(item.path) && !item.disabled) {
+                      e.currentTarget.style.backgroundColor =
+                        'rgba(255, 255, 255, 0.05)';
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.95)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive(item.path) && !item.disabled) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
+                    }
+                  }}
+                >
+                  {isActive(item.path) && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: '0',
+                        width: '3px',
+                        height: '60%',
+                        backgroundColor: '#60a5fa',
+                        borderRadius: '2px 0 0 2px',
+                      }}
+                    />
+                  )}
+                  <span style={{ fontSize: '18px' }}>{item.icon}</span>
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                  {item.disabled && (
+                    <span style={{ fontSize: '14px', opacity: 0.5 }}>🔒</span>
+                  )}
+                </button>
+              ))}
+            </div>
           ))}
 
           {/* Profile dropdown at the bottom - desktop only */}

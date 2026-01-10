@@ -1,7 +1,7 @@
 import React from 'react';
 import { BaseShell } from './BaseShell';
 import { UnifiedAppFrame } from '../layouts/UnifiedAppFrame';
-import { getNavigationForRole } from './navigationSchema';
+import { getNavigationForRole, ADMIN_MENU_CATEGORIES } from './navigationSchema';
 import { MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
 import { UserRole } from './types';
 import { NavigationProvider } from '../contexts/NavigationContext';
@@ -39,6 +39,7 @@ export function AdminShell({
       label: item.label,
       icon: item.icon || '📌',
       path: item.path,
+      category: item.category,
     }));
 
   // Determine title based on role
@@ -69,6 +70,7 @@ export function AdminShell({
       >
         <UnifiedAppFrame
           menuItems={menuItems}
+          menuCategories={ADMIN_MENU_CATEGORIES}
           currentPath={currentPath}
           onNavigate={onNavigate}
           onLogout={onLogout}
