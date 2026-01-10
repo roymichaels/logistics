@@ -206,7 +206,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
         }
       />
 
-      <ContentCard style={{ marginBottom: '24px' }}>
+      <Card style={{ marginBottom: '24px' }}>
           <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
             <input
               type="text"
@@ -260,11 +260,11 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
               ))}
             </select>
           </div>
-      </ContentCard>
+      </Card>
 
         <div style={{ display: 'grid', gap: '20px' }}>
           {filteredZones.length === 0 ? (
-            <ContentCard>
+            <Card>
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>🗺️</div>
               <div style={{ padding: '48px', textAlign: 'center' }}>
                 <h3 style={{ margin: '0 0 8px', fontSize: '20px' }}>אין אזורים</h3>
@@ -272,10 +272,10 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
                   צור אזור חדש כדי להתחיל
                 </p>
               </div>
-            </ContentCard>
+            </Card>
           ) : (
             filteredZones.map((zone) => (
-              <ContentCard key={zone.id}>
+              <Card key={zone.id}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
@@ -380,7 +380,7 @@ export function ZoneManager({ dataStore }: ZoneManagerProps) {
                     </button>
                   </div>
                 </div>
-              </ContentCard>
+              </Card>
             ))
           )}
         </div>
