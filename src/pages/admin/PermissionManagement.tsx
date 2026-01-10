@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
+import { undergroundTheme } from '../../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundButton,
+  UndergroundSection,
+  UndergroundBadge,
+  UndergroundLoadingSpinner,
+  UndergroundTabs,
+  UndergroundAlert
+} from '../../components/underground';
 import { PermissionMatrix } from '../../components/permissions/PermissionMatrix';
 import { RoleComparisonCard } from '../../components/permissions/RoleComparisonCard';
-import { Button } from '../../components/atoms/Button';
-import { Card } from '../../components/molecules/Card';
-import { colors, spacing } from '../../styles/design-system';
 import { ROLE_PERMISSIONS } from '../../lib/rolePermissions';
 import type { User } from '../../data/types';
 import { useAuth } from '../../context/AuthContext';
@@ -32,157 +37,243 @@ export function PermissionManagement() {
   };
 
   return (
-    <PageContainer>
-      <PageHeader
-        title="Permission Management"
-        subtitle="Manage roles and permissions across the platform"
-      />
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing.xl,
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+        <UndergroundSection
+          title="Permission Management"
+          icon="🔐"
+          style={{ marginBottom: undergroundTheme.spacing.xl }}
+        >
+          <UndergroundCard style={{ marginBottom: undergroundTheme.spacing.lg }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: undergroundTheme.spacing.md
+            }}>
+              <div style={{
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                color: undergroundTheme.colors.text.secondary
+              }}>
+                Manage roles and permissions across the platform
+              </div>
 
-      <div style={{ display: 'flex', gap: spacing.lg, marginBottom: spacing.lg }}>
-        <Button
-          variant={viewMode === 'grid' ? 'primary' : 'secondary'}
-          onClick={() => setViewMode('grid')}
-        >
-          Role Overview
-        </Button>
-        <Button
-          variant={viewMode === 'matrix' ? 'primary' : 'secondary'}
-          onClick={() => setViewMode('matrix')}
-        >
-          Permission Matrix
-        </Button>
-        {selectedRoles.length > 1 && (
-          <Button
-            variant={showComparison ? 'primary' : 'secondary'}
-            onClick={() => setShowComparison(!showComparison)}
-          >
-            Compare Selected ({selectedRoles.length})
-          </Button>
-        )}
-        {selectedRoles.length > 0 && (
-          <Button
-            variant="secondary"
-            onClick={() => setSelectedRoles([])}
-          >
-            Clear Selection
-          </Button>
-        )}
-      </div>
+              <div style={{ display: 'flex', gap: undergroundTheme.spacing.md, flexWrap: 'wrap' }}>
+                <UndergroundButton
+                  variant={viewMode === 'grid' ? 'primary' : 'secondary'}
+                  size="small"
+                  onClick={() => setViewMode('grid')}
+                >
+                  Role Overview
+                </UndergroundButton>
+                <UndergroundButton
+                  variant={viewMode === 'matrix' ? 'primary' : 'secondary'}
+                  size="small"
+                  onClick={() => setViewMode('matrix')}
+                >
+                  Permission Matrix
+                </UndergroundButton>
+                {selectedRoles.length > 1 && (
+                  <UndergroundButton
+                    variant={showComparison ? 'primary' : 'secondary'}
+                    size="small"
+                    onClick={() => setShowComparison(!showComparison)}
+                  >
+                    Compare ({selectedRoles.length})
+                  </UndergroundButton>
+                )}
+                {selectedRoles.length > 0 && (
+                  <UndergroundButton
+                    variant="ghost"
+                    size="small"
+                    onClick={() => setSelectedRoles([])}
+                  >
+                    Clear
+                  </UndergroundButton>
+                )}
+              </div>
+            </div>
+          </UndergroundCard>
 
-      {!canManagePermissions && (
-        <Card
-          style={{
-            background: '#7C2D12',
-            border: '1px solid #F97316',
-            marginBottom: spacing.lg,
-          }}
-        >
-          <p style={{ color: '#FB923C' }}>
-            You have view-only access to permissions. Contact a superadmin to request permission management access.
-          </p>
-        </Card>
-      )}
+          {!canManagePermissions && (
+            <UndergroundAlert
+              variant="warning"
+              style={{ marginBottom: undergroundTheme.spacing.lg }}
+            >
+              You have view-only access to permissions. Contact a superadmin to request permission management access.
+            </UndergroundAlert>
+          )}
 
-      {viewMode === 'grid' && (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-            gap: spacing.lg,
-          }}
-        >
-          {allRoles.map(role => (
-            <RoleComparisonCard
-              key={role}
-              role={role}
-              onSelect={() => toggleRoleSelection(role)}
-              selected={selectedRoles.includes(role)}
-              showDetails={!showComparison}
+          {viewMode === 'grid' && (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+                gap: undergroundTheme.spacing.lg,
+              }}
+            >
+              {allRoles.map(role => (
+                <RoleComparisonCard
+                  key={role}
+                  role={role}
+                  onSelect={() => toggleRoleSelection(role)}
+                  selected={selectedRoles.includes(role)}
+                  showDetails={!showComparison}
+                />
+              ))}
+            </div>
+          )}
+
+          {viewMode === 'matrix' && (
+            <PermissionMatrix
+              selectedRoles={selectedRoles.length > 0 ? selectedRoles : undefined}
+              readOnly={!canManagePermissions}
+              highlightDifferences={selectedRoles.length > 1}
             />
-          ))}
-        </div>
-      )}
+          )}
 
-      {viewMode === 'matrix' && (
-        <PermissionMatrix
-          selectedRoles={selectedRoles.length > 0 ? selectedRoles : undefined}
-          readOnly={!canManagePermissions}
-          highlightDifferences={selectedRoles.length > 1}
-        />
-      )}
+          {showComparison && selectedRoles.length > 1 && viewMode === 'grid' && (
+            <div style={{ marginTop: undergroundTheme.spacing.xl }}>
+              <UndergroundCard>
+                <h2
+                  style={{
+                    margin: `0 0 ${undergroundTheme.spacing.lg} 0`,
+                    fontSize: undergroundTheme.typography.fontSize.xl,
+                    fontWeight: undergroundTheme.typography.fontWeight.bold,
+                    color: undergroundTheme.colors.text.primary,
+                  }}
+                >
+                  Comparing {selectedRoles.length} Roles
+                </h2>
+                <PermissionMatrix
+                  selectedRoles={selectedRoles}
+                  readOnly={true}
+                  highlightDifferences={true}
+                />
+              </UndergroundCard>
+            </div>
+          )}
 
-      {showComparison && selectedRoles.length > 1 && viewMode === 'grid' && (
-        <div style={{ marginTop: spacing.xl }}>
-          <h2
-            style={{
-              fontSize: '20px',
-              fontWeight: '600',
-              color: colors.text.primary,
-              marginBottom: spacing.lg,
-            }}
-          >
-            Comparing {selectedRoles.length} Roles
-          </h2>
-          <PermissionMatrix
-            selectedRoles={selectedRoles}
-            readOnly={true}
-            highlightDifferences={true}
-          />
-        </div>
-      )}
-
-      <Card style={{ marginTop: spacing.xl }}>
-        <h3
-          style={{
-            fontSize: '16px',
-            fontWeight: '600',
-            color: colors.text.primary,
-            marginBottom: spacing.md,
-          }}
-        >
-          Permission Statistics
-        </h3>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: spacing.md,
-          }}
-        >
-          <div>
-            <div style={{ fontSize: '12px', color: colors.text.secondary, marginBottom: spacing.xs }}>
-              Total Roles
+          <UndergroundCard style={{ marginTop: undergroundTheme.spacing.xl }}>
+            <h3
+              style={{
+                margin: `0 0 ${undergroundTheme.spacing.lg} 0`,
+                fontSize: undergroundTheme.typography.fontSize.lg,
+                fontWeight: undergroundTheme.typography.fontWeight.bold,
+                color: undergroundTheme.colors.text.primary,
+              }}
+            >
+              Permission Statistics
+            </h3>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: undergroundTheme.spacing.lg,
+              }}
+            >
+              <div style={{
+                padding: undergroundTheme.spacing.md,
+                background: undergroundTheme.colors.glassmorphism.light,
+                borderRadius: undergroundTheme.borderRadius.md,
+                border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
+              }}>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize.xs,
+                  color: undergroundTheme.colors.text.tertiary,
+                  marginBottom: undergroundTheme.spacing.xs,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em'
+                }}>
+                  Total Roles
+                </div>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize['3xl'],
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
+                  {allRoles.length}
+                </div>
+              </div>
+              <div style={{
+                padding: undergroundTheme.spacing.md,
+                background: undergroundTheme.colors.glassmorphism.light,
+                borderRadius: undergroundTheme.borderRadius.md,
+                border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
+              }}>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize.xs,
+                  color: undergroundTheme.colors.text.tertiary,
+                  marginBottom: undergroundTheme.spacing.xs,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em'
+                }}>
+                  Platform-Level
+                </div>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize['3xl'],
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.accent.secondary
+                }}>
+                  {allRoles.filter(r => ROLE_PERMISSIONS[r]?.level === 'platform').length}
+                </div>
+              </div>
+              <div style={{
+                padding: undergroundTheme.spacing.md,
+                background: undergroundTheme.colors.glassmorphism.light,
+                borderRadius: undergroundTheme.borderRadius.md,
+                border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
+              }}>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize.xs,
+                  color: undergroundTheme.colors.text.tertiary,
+                  marginBottom: undergroundTheme.spacing.xs,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em'
+                }}>
+                  Infrastructure
+                </div>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize['3xl'],
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.status.success
+                }}>
+                  {allRoles.filter(r => ROLE_PERMISSIONS[r]?.level === 'infrastructure').length}
+                </div>
+              </div>
+              <div style={{
+                padding: undergroundTheme.spacing.md,
+                background: undergroundTheme.colors.glassmorphism.light,
+                borderRadius: undergroundTheme.borderRadius.md,
+                border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
+              }}>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize.xs,
+                  color: undergroundTheme.colors.text.tertiary,
+                  marginBottom: undergroundTheme.spacing.xs,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em'
+                }}>
+                  Business-Level
+                </div>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize['3xl'],
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.status.warning
+                }}>
+                  {allRoles.filter(r => ROLE_PERMISSIONS[r]?.level === 'business').length}
+                </div>
+              </div>
             </div>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: colors.text.primary }}>
-              {allRoles.length}
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: '12px', color: colors.text.secondary, marginBottom: spacing.xs }}>
-              Platform-Level Roles
-            </div>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#60A5FA' }}>
-              {allRoles.filter(r => ROLE_PERMISSIONS[r]?.level === 'platform').length}
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: '12px', color: colors.text.secondary, marginBottom: spacing.xs }}>
-              Infrastructure-Level Roles
-            </div>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#4ADE80' }}>
-              {allRoles.filter(r => ROLE_PERMISSIONS[r]?.level === 'infrastructure').length}
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: '12px', color: colors.text.secondary, marginBottom: spacing.xs }}>
-              Business-Level Roles
-            </div>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#FB923C' }}>
-              {allRoles.filter(r => ROLE_PERMISSIONS[r]?.level === 'business').length}
-            </div>
-          </div>
-        </div>
-      </Card>
-    </PageContainer>
+          </UndergroundCard>
+        </UndergroundSection>
+      </div>
+    </div>
   );
 }

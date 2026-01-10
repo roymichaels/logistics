@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { Toast } from '../../components/Toast';
 import { undergroundTheme } from '../../styles/undergroundTheme';
@@ -60,12 +61,30 @@ export function AdminSettings() {
   const loadSettings = async () => {
     try {
       setLoading(true);
-      const savedSettings = localStorage.getItem('platform_settings');
-      if (savedSettings) {
-        const parsed = JSON.parse(savedSettings);
-        setSettings({ ...settings, ...parsed });
+
+      const { data, error } = await supabase
+        .from('platform_settings')
+        .select('key, value');
+
+      if (error) {
+        logger.error('[AdminSettings] Failed to load settings from Supabase', error);
+        Toast.error('Failed to load settings');
+      } else if (data && data.length > 0) {
+        const loadedSettings: Partial<PlatformSettings> = {};
+        data.forEach((setting: any) => {
+          if (setting.key && setting.value !== null) {
+            loadedSettings[setting.key as keyof PlatformSettings] = setting.value;
+          }
+        });
+
+        setSettings({
+          ...settings,
+          ...loadedSettings
+        });
+        logger.info('[AdminSettings] Loaded settings from Supabase', { count: data.length });
+      } else {
+        logger.info('[AdminSettings] No settings found in Supabase, using defaults');
       }
-      logger.info('[AdminSettings] Loaded settings from localStorage');
     } catch (error) {
       logger.error('[AdminSettings] Failed to load settings', error);
       Toast.error('Failed to load settings');
@@ -77,9 +96,52 @@ export function AdminSettings() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      localStorage.setItem('platform_settings', JSON.stringify(settings));
+
+      const settingsArray = Object.entries(settings).map(([key, value]) => ({
+        key,
+        value,
+        category: 'platform',
+        description: `Platform setting: ${key}`,
+        updated_at: new Date().toISOString()
+      }));
+
+      for (const setting of settingsArray) {
+        const { data: existing, error: checkError } = await supabase
+          .from('platform_settings')
+          .select('id')
+          .eq('key', setting.key)
+          .maybeSingle();
+
+        if (checkError && checkError.code !== 'PGRST116') {
+          logger.error('[AdminSettings] Failed to check existing setting', checkError);
+          continue;
+        }
+
+        if (existing) {
+          const { error: updateError } = await supabase
+            .from('platform_settings')
+            .update({
+              value: setting.value,
+              updated_at: setting.updated_at
+            })
+            .eq('id', existing.id);
+
+          if (updateError) {
+            logger.error('[AdminSettings] Failed to update setting', { key: setting.key, error: updateError });
+          }
+        } else {
+          const { error: insertError } = await supabase
+            .from('platform_settings')
+            .insert(setting);
+
+          if (insertError) {
+            logger.error('[AdminSettings] Failed to insert setting', { key: setting.key, error: insertError });
+          }
+        }
+      }
+
       Toast.success('Settings saved successfully');
-      logger.info('[AdminSettings] Settings saved to localStorage', settings);
+      logger.info('[AdminSettings] Settings saved to Supabase', { count: settingsArray.length });
     } catch (error) {
       logger.error('[AdminSettings] Failed to save settings', error);
       Toast.error('Failed to save settings');

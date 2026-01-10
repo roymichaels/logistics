@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useDataStore } from '../../application/hooks/useDataStore';
+import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { undergroundTheme } from '../../styles/undergroundTheme';
 import {
@@ -29,7 +29,6 @@ interface FeatureFlag {
 }
 
 export default function FeatureFlags() {
-  const dataStore = useDataStore();
   const [flags, setFlags] = useState<FeatureFlag[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -49,24 +48,20 @@ export default function FeatureFlags() {
   const loadFlags = async () => {
     try {
       setLoading(true);
+      const { data, error } = await supabase
+        .from('feature_flags')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      if (!dataStore?.query) {
+      if (error) {
+        logger.error('[FeatureFlags] Failed to load feature flags', error);
         setFlags([]);
-        setLoading(false);
-        return;
-      }
-
-      const result = await dataStore.query('feature_flags', [], {
-        orderBy: { column: 'created_at', ascending: false }
-      });
-      if (result.success) {
-        setFlags(result.data || []);
       } else {
-        logger.error('Failed to load feature flags', { error: result.error });
-        setFlags([]);
+        setFlags(data || []);
+        logger.info('[FeatureFlags] Loaded feature flags from Supabase', { count: data?.length || 0 });
       }
     } catch (error) {
-      logger.error('Failed to load feature flags', { error });
+      logger.error('[FeatureFlags] Failed to load feature flags', error);
       setFlags([]);
     } finally {
       setLoading(false);
@@ -78,21 +73,22 @@ export default function FeatureFlags() {
       return;
     }
 
-    if (!dataStore?.insert) {
-      logger.error('Data store not available');
-      return;
-    }
-
     try {
-      const flagData: FeatureFlag = {
-        id: `flag-${Date.now()}`,
-        ...newFlag,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+      const { data, error } = await supabase
+        .from('feature_flags')
+        .insert({
+          name: newFlag.name,
+          key: newFlag.key,
+          description: newFlag.description,
+          enabled: newFlag.enabled,
+          rollout_percentage: newFlag.rollout_percentage
+        })
+        .select()
+        .single();
 
-      const result = await dataStore.insert('feature_flags', flagData);
-      if (result.success) {
+      if (error) {
+        logger.error('[FeatureFlags] Failed to create feature flag', error);
+      } else {
         setShowCreateModal(false);
         setNewFlag({
           name: '',
@@ -102,50 +98,51 @@ export default function FeatureFlags() {
           rollout_percentage: 100
         });
         loadFlags();
-        logger.info('Feature flag created');
+        logger.info('[FeatureFlags] Feature flag created', { key: newFlag.key });
       }
     } catch (error) {
-      logger.error('Failed to create feature flag', { error });
+      logger.error('[FeatureFlags] Failed to create feature flag', error);
     }
   };
 
   const handleToggleFlag = async (flag: FeatureFlag) => {
-    if (!dataStore?.update) {
-      logger.error('Data store not available');
-      return;
-    }
-
     try {
-      const result = await dataStore.update('feature_flags', flag.id, {
-        enabled: !flag.enabled,
-        updated_at: new Date().toISOString()
-      });
+      const { error } = await supabase
+        .from('feature_flags')
+        .update({
+          enabled: !flag.enabled,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', flag.id);
 
-      if (result.success) {
+      if (error) {
+        logger.error('[FeatureFlags] Failed to toggle feature flag', error);
+      } else {
         loadFlags();
-        logger.info('Feature flag toggled', { key: flag.key, enabled: !flag.enabled });
+        logger.info('[FeatureFlags] Feature flag toggled', { key: flag.key, enabled: !flag.enabled });
       }
     } catch (error) {
-      logger.error('Failed to toggle feature flag', { error });
+      logger.error('[FeatureFlags] Failed to toggle feature flag', error);
     }
   };
 
   const handleDeleteFlag = async (flagId: string) => {
     if (!confirm('Are you sure you want to delete this feature flag?')) return;
 
-    if (!dataStore?.delete) {
-      logger.error('Data store not available');
-      return;
-    }
-
     try {
-      const result = await dataStore.delete('feature_flags', flagId);
-      if (result.success) {
+      const { error } = await supabase
+        .from('feature_flags')
+        .delete()
+        .eq('id', flagId);
+
+      if (error) {
+        logger.error('[FeatureFlags] Failed to delete feature flag', error);
+      } else {
         loadFlags();
-        logger.info('Feature flag deleted');
+        logger.info('[FeatureFlags] Feature flag deleted', { flagId });
       }
     } catch (error) {
-      logger.error('Failed to delete feature flag', { error });
+      logger.error('[FeatureFlags] Failed to delete feature flag', error);
     }
   };
 
