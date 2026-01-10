@@ -21,7 +21,7 @@ interface RoleAction {
   onClick: () => void;
 }
 
-export function FloatingActionMenu({
+export const FloatingActionMenu = React.memo(function FloatingActionMenu({
   onNavigate,
   onShowModeSelector,
   isOpen,
@@ -468,4 +468,4 @@ export function FloatingActionMenu({
       </div>
     </div>
   );
-}
+});

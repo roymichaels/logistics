@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { businessContextManager, Business, BusinessContextState } from '../lib/businessContext';
 import { useAuth } from './AuthContext';
 import { supabase } from '../lib/supabase';
@@ -19,23 +19,7 @@ export function BusinessContextProvider({ children }: BusinessContextProviderPro
   const { user, role } = useAuth();
   const [state, setState] = useState<BusinessContextState>(businessContextManager.getState());
 
-  useEffect(() => {
-    const unsubscribe = businessContextManager.subscribe((newState) => {
-      setState(newState);
-    });
-
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    if (user && role === 'business_owner') {
-      refreshBusinesses();
-    } else {
-      businessContextManager.reset();
-    }
-  }, [user, role]);
-
-  const refreshBusinesses = async () => {
+  const refreshBusinesses = useCallback(async () => {
     if (!user) return;
 
     businessContextManager.setLoading(true);
@@ -58,17 +42,42 @@ export function BusinessContextProvider({ children }: BusinessContextProviderPro
     } finally {
       businessContextManager.setLoading(false);
     }
-  };
+  }, [user]);
 
-  const switchBusiness = (business: Business) => {
+  const switchBusiness = useCallback((business: Business) => {
     businessContextManager.setActiveBusiness(business);
-  };
+  }, []);
 
-  const value: BusinessContextValue = {
+  useEffect(() => {
+    const unsubscribe = businessContextManager.subscribe((newState) => {
+      setState(prevState => {
+        if (
+          prevState.activeBusiness?.id === newState.activeBusiness?.id &&
+          prevState.loading === newState.loading &&
+          prevState.ownedBusinesses.length === newState.ownedBusinesses.length
+        ) {
+          return prevState;
+        }
+        return newState;
+      });
+    });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (user && role === 'business_owner') {
+      refreshBusinesses();
+    } else {
+      businessContextManager.reset();
+    }
+  }, [user, role, refreshBusinesses]);
+
+  const value: BusinessContextValue = useMemo(() => ({
     ...state,
     switchBusiness,
     refreshBusinesses,
-  };
+  }), [state, switchBusiness, refreshBusinesses]);
 
   return (
     <BusinessContext.Provider value={value}>

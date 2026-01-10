@@ -59,7 +59,7 @@ interface BottomNavigationProps {
   onShowCreateProduct?: () => void;
 }
 
-export function BottomNavigation({
+export const BottomNavigation = React.memo(function BottomNavigation({
   currentPage,
   onNavigate,
   userRole,
@@ -664,4 +664,4 @@ export function BottomNavigation({
       </div>
     </>
   );
-}
+});

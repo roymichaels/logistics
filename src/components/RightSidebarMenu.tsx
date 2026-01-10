@@ -20,7 +20,7 @@ interface RightSidebarMenuProps {
   onNavigate: (page: string) => void;
 }
 
-export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNavigate }: RightSidebarMenuProps) {
+export const RightSidebarMenu = React.memo(function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNavigate }: RightSidebarMenuProps) {
   const authCtx = useAuth();
   const authRole = (authCtx?.user as any)?.role || null;
   void authRole;
@@ -347,4 +347,4 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
       `}</style>
     </>
   );
-}
+});
