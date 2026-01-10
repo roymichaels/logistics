@@ -189,7 +189,7 @@ export default function Settings() {
             <div style={{
               display: 'flex',
               gap: undergroundTheme.spacing.md,
-              borderBottom: `1px solid ${undergroundTheme.colors.border.primary}`
+              borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
             }}>
               {[
                 { key: 'general', label: 'כללי', icon: '📋' },

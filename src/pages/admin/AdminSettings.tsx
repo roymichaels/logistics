@@ -286,7 +286,7 @@ export function AdminSettings() {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   paddingBottom: undergroundTheme.spacing.md,
-                  borderBottom: `1px solid ${undergroundTheme.colors.border.secondary}`
+                  borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
                 }}>
                   <div>
                     <div style={{
@@ -311,7 +311,7 @@ export function AdminSettings() {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   paddingBottom: undergroundTheme.spacing.md,
-                  borderBottom: `1px solid ${undergroundTheme.colors.border.secondary}`
+                  borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
                 }}>
                   <div>
                     <div style={{
@@ -337,7 +337,7 @@ export function AdminSettings() {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   paddingBottom: undergroundTheme.spacing.md,
-                  borderBottom: `1px solid ${undergroundTheme.colors.border.secondary}`
+                  borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
                 }}>
                   <div>
                     <div style={{
@@ -402,7 +402,7 @@ export function AdminSettings() {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   paddingBottom: undergroundTheme.spacing.md,
-                  borderBottom: `1px solid ${undergroundTheme.colors.border.secondary}`
+                  borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
                 }}>
                   <div>
                     <div style={{
@@ -427,7 +427,7 @@ export function AdminSettings() {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   paddingBottom: undergroundTheme.spacing.md,
-                  borderBottom: `1px solid ${undergroundTheme.colors.border.secondary}`
+                  borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
                 }}>
                   <div>
                     <div style={{
@@ -452,7 +452,7 @@ export function AdminSettings() {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   paddingBottom: undergroundTheme.spacing.md,
-                  borderBottom: `1px solid ${undergroundTheme.colors.border.secondary}`
+                  borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
                 }}>
                   <div>
                     <div style={{
@@ -525,7 +525,7 @@ export function AdminSettings() {
                     style={{
                       flex: 1,
                       padding: undergroundTheme.spacing.lg,
-                      border: `2px solid ${settings.theme === 'light' ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.border.secondary}`,
+                      border: `2px solid ${settings.theme === 'light' ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.glassmorphism.border}`,
                       borderRadius: undergroundTheme.borderRadius.lg,
                       background: settings.theme === 'light' ? undergroundTheme.colors.glassmorphism.medium : undergroundTheme.colors.glassmorphism.light,
                       cursor: 'pointer',
@@ -547,7 +547,7 @@ export function AdminSettings() {
                     style={{
                       flex: 1,
                       padding: undergroundTheme.spacing.lg,
-                      border: `2px solid ${settings.theme === 'dark' ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.border.secondary}`,
+                      border: `2px solid ${settings.theme === 'dark' ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.glassmorphism.border}`,
                       borderRadius: undergroundTheme.borderRadius.lg,
                       background: settings.theme === 'dark' ? undergroundTheme.colors.glassmorphism.medium : undergroundTheme.colors.glassmorphism.light,
                       cursor: 'pointer',
@@ -569,7 +569,7 @@ export function AdminSettings() {
                     style={{
                       flex: 1,
                       padding: undergroundTheme.spacing.lg,
-                      border: `2px solid ${settings.theme === 'auto' ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.border.secondary}`,
+                      border: `2px solid ${settings.theme === 'auto' ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.glassmorphism.border}`,
                       borderRadius: undergroundTheme.borderRadius.lg,
                       background: settings.theme === 'auto' ? undergroundTheme.colors.glassmorphism.medium : undergroundTheme.colors.glassmorphism.light,
                       cursor: 'pointer',
