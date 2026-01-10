@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useAppServices } from '../../context/AppServicesContext';
+import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { undergroundTheme } from '../../styles/undergroundTheme';
 import {
@@ -32,7 +32,6 @@ interface PlatformProduct {
 
 export function PlatformCatalog() {
   const { user } = useAuth();
-  const { dataStore } = useAppServices();
   const [products, setProducts] = useState<PlatformProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,11 +62,22 @@ export function PlatformCatalog() {
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const table = dataStore?.getTable?.('platform_products') || [];
-      setProducts(table);
-      logger.info('[PlatformCatalog] Loaded products', { count: table.length });
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('catalog_type', 'platform')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        logger.error('[PlatformCatalog] Failed to load products', error);
+        setProducts([]);
+      } else {
+        setProducts(data || []);
+        logger.info('[PlatformCatalog] Loaded products from Supabase', { count: data?.length });
+      }
     } catch (error) {
-      logger.error('[PlatformCatalog] Failed to load products', error);
+      logger.error('[PlatformCatalog] Exception loading products', error);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -102,20 +112,27 @@ export function PlatformCatalog() {
 
   const handleCreate = async () => {
     try {
-      const newProduct: PlatformProduct = {
-        id: `platform-prod-${Date.now()}`,
-        ...formData,
-        catalog_type: 'platform',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+      const { error } = await supabase
+        .from('products')
+        .insert({
+          ...formData,
+          catalog_type: 'platform',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
 
-      await dataStore?.upsert?.('platform_products', [newProduct]);
+      if (error) {
+        logger.error('[PlatformCatalog] Failed to create product', error);
+        alert('Failed to create product. Please try again.');
+        return;
+      }
+
       setShowCreateModal(false);
-      loadProducts();
-      logger.info('[PlatformCatalog] Product created');
+      await loadProducts();
+      logger.info('[PlatformCatalog] Product created successfully');
     } catch (error) {
-      logger.error('[PlatformCatalog] Failed to create product', error);
+      logger.error('[PlatformCatalog] Exception creating product', error);
+      alert('Failed to create product. Please try again.');
     }
   };
 
@@ -123,19 +140,27 @@ export function PlatformCatalog() {
     if (!editingProduct) return;
 
     try {
-      const updatedProduct: PlatformProduct = {
-        ...editingProduct,
-        ...formData,
-        updated_at: new Date().toISOString(),
-      };
+      const { error } = await supabase
+        .from('products')
+        .update({
+          ...formData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', editingProduct.id);
 
-      await dataStore?.upsert?.('platform_products', [updatedProduct]);
+      if (error) {
+        logger.error('[PlatformCatalog] Failed to update product', error);
+        alert('Failed to update product. Please try again.');
+        return;
+      }
+
       setShowEditModal(false);
       setEditingProduct(null);
-      loadProducts();
-      logger.info('[PlatformCatalog] Product updated');
+      await loadProducts();
+      logger.info('[PlatformCatalog] Product updated successfully');
     } catch (error) {
-      logger.error('[PlatformCatalog] Failed to update product', error);
+      logger.error('[PlatformCatalog] Exception updating product', error);
+      alert('Failed to update product. Please try again.');
     }
   };
 
@@ -143,11 +168,22 @@ export function PlatformCatalog() {
     if (!confirm('Are you sure you want to delete this product?')) return;
 
     try {
-      await dataStore?.delete?.('platform_products', productId);
-      loadProducts();
-      logger.info('[PlatformCatalog] Product deleted');
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+
+      if (error) {
+        logger.error('[PlatformCatalog] Failed to delete product', error);
+        alert('Failed to delete product. Please try again.');
+        return;
+      }
+
+      await loadProducts();
+      logger.info('[PlatformCatalog] Product deleted successfully');
     } catch (error) {
-      logger.error('[PlatformCatalog] Failed to delete product', error);
+      logger.error('[PlatformCatalog] Exception deleting product', error);
+      alert('Failed to delete product. Please try again.');
     }
   };
 

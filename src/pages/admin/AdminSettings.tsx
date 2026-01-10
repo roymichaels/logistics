@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAppServices } from '../../context/AppServicesContext';
 import { logger } from '../../lib/logger';
 import { Toast } from '../../components/Toast';
 import { undergroundTheme } from '../../styles/undergroundTheme';
@@ -33,7 +32,6 @@ interface PlatformSettings {
 }
 
 export function AdminSettings() {
-  const { dataStore } = useAppServices();
   const [settings, setSettings] = useState<PlatformSettings>({
     platform_name: 'Delivery Platform',
     platform_email: 'admin@platform.com',
@@ -62,11 +60,12 @@ export function AdminSettings() {
   const loadSettings = async () => {
     try {
       setLoading(true);
-      const savedSettings = dataStore?.getTable?.('platform_settings')?.[0];
+      const savedSettings = localStorage.getItem('platform_settings');
       if (savedSettings) {
-        setSettings({ ...settings, ...savedSettings });
+        const parsed = JSON.parse(savedSettings);
+        setSettings({ ...settings, ...parsed });
       }
-      logger.info('[AdminSettings] Loaded settings');
+      logger.info('[AdminSettings] Loaded settings from localStorage');
     } catch (error) {
       logger.error('[AdminSettings] Failed to load settings', error);
       Toast.error('Failed to load settings');
@@ -78,9 +77,9 @@ export function AdminSettings() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      await dataStore?.from('platform_settings').upsert('platform-settings-1', settings);
+      localStorage.setItem('platform_settings', JSON.stringify(settings));
       Toast.success('Settings saved successfully');
-      logger.info('[AdminSettings] Settings saved', settings);
+      logger.info('[AdminSettings] Settings saved to localStorage', settings);
     } catch (error) {
       logger.error('[AdminSettings] Failed to save settings', error);
       Toast.error('Failed to save settings');
