@@ -543,6 +543,121 @@ export interface Translations {
     confirmPassword: string;
   };
 
+  // User Menu
+  userMenu: {
+    myProfile: string;
+    settings: string;
+    logout: string;
+    profile: string;
+  };
+
+  // Role Names
+  roleNames: {
+    superadmin: string;
+    admin: string;
+    infrastructure_owner: string;
+    business_owner: string;
+    manager: string;
+    dispatcher: string;
+    driver: string;
+    warehouse: string;
+    sales: string;
+    customer_service: string;
+    customer: string;
+    user: string;
+  };
+
+  // Form Fields
+  formFields: {
+    name: string;
+    description: string;
+    email: string;
+    phone: string;
+    address: string;
+    city: string;
+    zipCode: string;
+    country: string;
+    notes: string;
+    quantity: string;
+    price: string;
+    total: string;
+    date: string;
+    time: string;
+    status: string;
+    category: string;
+    type: string;
+  };
+
+  // Status Labels
+  statusLabels: {
+    active: string;
+    inactive: string;
+    pending: string;
+    approved: string;
+    rejected: string;
+    completed: string;
+    cancelled: string;
+    inProgress: string;
+    draft: string;
+    published: string;
+    archived: string;
+  };
+
+  // Action Buttons
+  actionButtons: {
+    save: string;
+    cancel: string;
+    delete: string;
+    edit: string;
+    create: string;
+    update: string;
+    add: string;
+    remove: string;
+    submit: string;
+    confirm: string;
+    close: string;
+    yes: string;
+    no: string;
+  };
+
+  // Modal Labels
+  modalLabels: {
+    confirmDelete: string;
+    confirmAction: string;
+    areYouSure: string;
+    cannotBeUndone: string;
+    success: string;
+    error: string;
+    warning: string;
+    info: string;
+  };
+
+  // Validation Messages
+  validationMessages: {
+    required: string;
+    invalidEmail: string;
+    invalidPhone: string;
+    tooShort: string;
+    tooLong: string;
+    invalidFormat: string;
+    mustBePositive: string;
+    mustBeNumber: string;
+  };
+
+  // Toast Messages
+  toastMessages: {
+    saveSuccess: string;
+    saveFailed: string;
+    deleteSuccess: string;
+    deleteFailed: string;
+    updateSuccess: string;
+    updateFailed: string;
+    createSuccess: string;
+    createFailed: string;
+    copied: string;
+    copyFailed: string;
+  };
+
   // Driver Dashboard
   driverDashboard: {
     title: string;
@@ -1961,6 +2076,121 @@ const hebrewTranslations: Translations = {
     closeAppSubtitle: 'חזור לטלגרם',
     requestAdminAccess: 'בקש גישת מנהל',
     requestAdminAccessSubtitle: 'הזן PIN למעבר לתפקיד מנהל',
+  },
+
+  // User Menu
+  userMenu: {
+    myProfile: 'הפרופיל שלי',
+    settings: 'הגדרות',
+    logout: 'התנתק',
+    profile: 'פרופיל',
+  },
+
+  // Role Names
+  roleNames: {
+    superadmin: 'מנהל על',
+    admin: 'מנהל',
+    infrastructure_owner: 'בעל תשתית',
+    business_owner: 'בעל עסק',
+    manager: 'מנהל',
+    dispatcher: 'מוקדן',
+    driver: 'נהג',
+    warehouse: 'מחסנאי',
+    sales: 'איש מכירות',
+    customer_service: 'שירות לקוחות',
+    customer: 'לקוח',
+    user: 'משתמש',
+  },
+
+  // Form Fields
+  formFields: {
+    name: 'שם',
+    description: 'תיאור',
+    email: 'אימייל',
+    phone: 'טלפון',
+    address: 'כתובת',
+    city: 'עיר',
+    zipCode: 'מיקוד',
+    country: 'מדינה',
+    notes: 'הערות',
+    quantity: 'כמות',
+    price: 'מחיר',
+    total: 'סה"כ',
+    date: 'תאריך',
+    time: 'שעה',
+    status: 'סטטוס',
+    category: 'קטגוריה',
+    type: 'סוג',
+  },
+
+  // Status Labels
+  statusLabels: {
+    active: 'פעיל',
+    inactive: 'לא פעיל',
+    pending: 'ממתין',
+    approved: 'מאושר',
+    rejected: 'נדחה',
+    completed: 'הושלם',
+    cancelled: 'בוטל',
+    inProgress: 'בתהליך',
+    draft: 'טיוטה',
+    published: 'פורסם',
+    archived: 'בארכיון',
+  },
+
+  // Action Buttons
+  actionButtons: {
+    save: 'שמור',
+    cancel: 'ביטול',
+    delete: 'מחק',
+    edit: 'ערוך',
+    create: 'צור',
+    update: 'עדכן',
+    add: 'הוסף',
+    remove: 'הסר',
+    submit: 'שלח',
+    confirm: 'אשר',
+    close: 'סגור',
+    yes: 'כן',
+    no: 'לא',
+  },
+
+  // Modal Labels
+  modalLabels: {
+    confirmDelete: 'אישור מחיקה',
+    confirmAction: 'אישור פעולה',
+    areYouSure: 'האם אתה בטוח?',
+    cannotBeUndone: 'פעולה זו לא ניתנת לביטול',
+    success: 'הצלחה',
+    error: 'שגיאה',
+    warning: 'אזהרה',
+    info: 'מידע',
+  },
+
+  // Validation Messages
+  validationMessages: {
+    required: 'שדה חובה',
+    invalidEmail: 'אימייל לא תקין',
+    invalidPhone: 'מספר טלפון לא תקין',
+    tooShort: 'קצר מדי',
+    tooLong: 'ארוך מדי',
+    invalidFormat: 'פורמט לא תקין',
+    mustBePositive: 'חייב להיות מספר חיובי',
+    mustBeNumber: 'חייב להיות מספר',
+  },
+
+  // Toast Messages
+  toastMessages: {
+    saveSuccess: 'נשמר בהצלחה',
+    saveFailed: 'שמירה נכשלה',
+    deleteSuccess: 'נמחק בהצלחה',
+    deleteFailed: 'מחיקה נכשלה',
+    updateSuccess: 'עודכן בהצלחה',
+    updateFailed: 'עדכון נכשל',
+    createSuccess: 'נוצר בהצלחה',
+    createFailed: 'יצירה נכשלה',
+    copied: 'הועתק ללוח',
+    copyFailed: 'העתקה נכשלה',
   },
 
   // Driver Dashboard
@@ -3442,6 +3672,121 @@ const englishTranslations: Translations = {
     closeAppSubtitle: 'Return to Telegram',
     requestAdminAccess: 'Request Admin Access',
     requestAdminAccessSubtitle: 'Enter PIN to switch to manager role',
+  },
+
+  // User Menu
+  userMenu: {
+    myProfile: 'My Profile',
+    settings: 'Settings',
+    logout: 'Logout',
+    profile: 'Profile',
+  },
+
+  // Role Names
+  roleNames: {
+    superadmin: 'Super Admin',
+    admin: 'Admin',
+    infrastructure_owner: 'Infrastructure Owner',
+    business_owner: 'Business Owner',
+    manager: 'Manager',
+    dispatcher: 'Dispatcher',
+    driver: 'Driver',
+    warehouse: 'Warehouse Worker',
+    sales: 'Sales Representative',
+    customer_service: 'Customer Service',
+    customer: 'Customer',
+    user: 'User',
+  },
+
+  // Form Fields
+  formFields: {
+    name: 'Name',
+    description: 'Description',
+    email: 'Email',
+    phone: 'Phone',
+    address: 'Address',
+    city: 'City',
+    zipCode: 'Zip Code',
+    country: 'Country',
+    notes: 'Notes',
+    quantity: 'Quantity',
+    price: 'Price',
+    total: 'Total',
+    date: 'Date',
+    time: 'Time',
+    status: 'Status',
+    category: 'Category',
+    type: 'Type',
+  },
+
+  // Status Labels
+  statusLabels: {
+    active: 'Active',
+    inactive: 'Inactive',
+    pending: 'Pending',
+    approved: 'Approved',
+    rejected: 'Rejected',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+    inProgress: 'In Progress',
+    draft: 'Draft',
+    published: 'Published',
+    archived: 'Archived',
+  },
+
+  // Action Buttons
+  actionButtons: {
+    save: 'Save',
+    cancel: 'Cancel',
+    delete: 'Delete',
+    edit: 'Edit',
+    create: 'Create',
+    update: 'Update',
+    add: 'Add',
+    remove: 'Remove',
+    submit: 'Submit',
+    confirm: 'Confirm',
+    close: 'Close',
+    yes: 'Yes',
+    no: 'No',
+  },
+
+  // Modal Labels
+  modalLabels: {
+    confirmDelete: 'Confirm Deletion',
+    confirmAction: 'Confirm Action',
+    areYouSure: 'Are you sure?',
+    cannotBeUndone: 'This action cannot be undone',
+    success: 'Success',
+    error: 'Error',
+    warning: 'Warning',
+    info: 'Information',
+  },
+
+  // Validation Messages
+  validationMessages: {
+    required: 'Required field',
+    invalidEmail: 'Invalid email',
+    invalidPhone: 'Invalid phone number',
+    tooShort: 'Too short',
+    tooLong: 'Too long',
+    invalidFormat: 'Invalid format',
+    mustBePositive: 'Must be a positive number',
+    mustBeNumber: 'Must be a number',
+  },
+
+  // Toast Messages
+  toastMessages: {
+    saveSuccess: 'Saved successfully',
+    saveFailed: 'Save failed',
+    deleteSuccess: 'Deleted successfully',
+    deleteFailed: 'Delete failed',
+    updateSuccess: 'Updated successfully',
+    updateFailed: 'Update failed',
+    createSuccess: 'Created successfully',
+    createFailed: 'Create failed',
+    copied: 'Copied to clipboard',
+    copyFailed: 'Copy failed',
   },
 
   // Driver Dashboard

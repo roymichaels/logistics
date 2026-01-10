@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Avatar, Text, Divider } from '../atoms';
 import { colors, spacing, borderRadius, shadows, zIndex } from '../../styles/design-system';
 import { getDisplayName, formatUsername } from '../../lib/usernames';
+import { useI18n } from '../../lib/i18n';
+import { useLanguage } from '../../context/LanguageContext';
 
 export interface UserMenuProps {
   user?: {
@@ -15,22 +17,11 @@ export interface UserMenuProps {
   onLogout?: () => void;
 }
 
-const roleDisplayMap: Record<string, string> = {
-  superadmin: 'Super Admin 👑',
-  admin: 'Admin 👑',
-  infrastructure_owner: 'Infrastructure Owner 👑',
-  business_owner: 'בעלים 👑',
-  manager: 'מנהל',
-  dispatcher: 'מוקדן',
-  driver: 'נהג',
-  warehouse: 'מחסנאי',
-  sales: 'מכירות',
-  customer_service: 'שירות',
-};
-
 export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { t, translations } = useI18n();
+  const { language, setLanguage } = useLanguage();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -45,10 +36,33 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
     }
   }, [dropdownOpen]);
 
-  const userName = user ? getDisplayName(user) : 'משתמש';
+  const userName = user ? getDisplayName(user) : translations.roleNames.user;
   const userInitial = userName[0]?.toUpperCase() || 'U';
   const userHandle = formatUsername(user?.username);
-  const roleDisplay = user?.role ? roleDisplayMap[user.role] || user.role : '';
+
+  // Get role display name with icon
+  const getRoleDisplay = (role?: string): string => {
+    if (!role) return '';
+    const roleIcons: Record<string, string> = {
+      superadmin: '👑',
+      admin: '👑',
+      infrastructure_owner: '👑',
+      business_owner: '👑',
+      manager: '👔',
+      dispatcher: '📡',
+      driver: '🚗',
+      warehouse: '📦',
+      sales: '💼',
+      customer_service: '📞',
+      customer: '🛍️',
+      user: '👤',
+    };
+    const roleName = translations.roleNames[role as keyof typeof translations.roleNames] || role;
+    const icon = roleIcons[role] || '';
+    return `${roleName} ${icon}`;
+  };
+
+  const roleDisplay = getRoleDisplay(user?.role);
 
   const getProfilePath = (role?: string): string => {
     if (!role) return '/store/profile';
@@ -197,7 +211,23 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
               }}
             >
               <span style={{ fontSize: '18px' }}>👤</span>
-              <span>הפרופיל שלי</span>
+              <span>{translations.userMenu.myProfile}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setLanguage(language === 'he' ? 'en' : 'he');
+              }}
+              style={menuItemStyles}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <span style={{ fontSize: '18px' }}>🌐</span>
+              <span>{language === 'he' ? 'English' : 'עברית'}</span>
             </button>
 
             <Divider spacing="xs" />
@@ -213,7 +243,7 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
               }}
             >
               <span style={{ fontSize: '18px' }}>🚪</span>
-              <span>התנתק</span>
+              <span>{translations.userMenu.logout}</span>
             </button>
           </div>
           </div>

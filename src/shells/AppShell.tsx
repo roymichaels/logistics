@@ -5,11 +5,9 @@ import { useSafeAppServices } from '../context/AppServicesContext';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../lib/i18n';
 import { UnifiedMenuPanel, MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
-import { UserMenu } from '../components/organisms/UserMenu';
 import { getNavigationForRole } from './navigationSchema';
 import { DevConsoleDrawer } from '../components/dev/DevConsoleDrawer';
 import { BottomNavigation } from '../components/BottomNavigation';
-import { useUserDisplayName } from '../hooks/useUserDisplayName';
 import { NavigationProvider } from '../contexts/NavigationContext';
 import { BusinessHeaderSelector } from '../components/BusinessHeaderSelector';
 import { logger } from '../lib/logger';
@@ -34,7 +32,6 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
   const { translations } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const [devConsoleOpen, setDevConsoleOpen] = useState(false);
-  const displayName = useUserDisplayName(user);
 
   const resolvedTitle = title === undefined ? 'UndergroundLab' : title;
   const resolvedSubtitle = subtitle;
@@ -140,21 +137,6 @@ export function UnifiedAppShell({ children }: UnifiedAppShellProps) {
         >
           ☰
         </button>
-        <UserMenu
-          user={user ? {
-            name: displayName,
-            username: user.username,
-            role: userRole || undefined,
-            photo_url: user.photo_url
-          } : undefined}
-          onNavigate={(page) => {
-            navigate(page);
-          }}
-          onLogout={() => {
-            localStorage.clear();
-            navigate('/login');
-          }}
-        />
       </div>
     </div>
   );
