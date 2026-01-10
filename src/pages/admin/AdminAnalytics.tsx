@@ -46,25 +46,30 @@ export function AdminAnalytics({ dataStore }: AdminAnalyticsProps) {
 
         setUser(profile);
 
+        const safeBusinesses = businesses || [];
+        const safeOrders = orders || [];
+        const safeDrivers = drivers || [];
+        const safeUsers = users || [];
+
         const now = new Date();
         const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const ordersToday = orders.filter(o => new Date(o.created_at) >= todayStart).length;
+        const ordersToday = safeOrders.filter(o => new Date(o.created_at) >= todayStart).length;
 
-        const activeBusinesses = businesses.filter(b => b.status === 'active').length;
-        const activeDrivers = drivers.filter(d => d.status === 'active').length;
+        const activeBusinesses = safeBusinesses.filter(b => b.status === 'active').length;
+        const activeDrivers = safeDrivers.filter(d => d.status === 'active').length;
 
-        const totalRevenue = orders.reduce((sum, order) => {
+        const totalRevenue = safeOrders.reduce((sum, order) => {
           return sum + (order.total_price || 0);
         }, 0);
 
         setMetrics({
-          totalBusinesses: businesses.length,
+          totalBusinesses: safeBusinesses.length,
           activeBusinesses,
-          totalOrders: orders.length,
+          totalOrders: safeOrders.length,
           totalRevenue,
-          totalDrivers: drivers.length,
+          totalDrivers: safeDrivers.length,
           activeDrivers,
-          totalUsers: users.length,
+          totalUsers: safeUsers.length,
           ordersToday
         });
       } catch (error) {

@@ -32,7 +32,7 @@ class BusinessContextManager {
   subscribe(listener: (state: BusinessContextState) => void): () => void {
     this.listeners.add(listener);
     return () => {
-      this.listeners.remove(listener);
+      this.listeners.delete(listener);
     };
   }
 
