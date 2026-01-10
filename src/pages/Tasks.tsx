@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { DataStore, Task, User } from '../data/types';
-import { tokens, styles } from '../styles/tokens';
+import { undergroundTheme } from '../styles/undergroundTheme';
 import { hebrew, useI18n } from '../lib/i18n';
 import { logger } from '../lib/logger';
 
@@ -138,21 +138,44 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
 
   if (loading) {
     return (
-      <div style={styles.pageContainer}>
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.background.deepDark,
+        padding: undergroundTheme.spacing['2xl'],
+      }}>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
-          <p style={{ color: tokens.colors.subtle }}>טוען משימות...</p>
+          <p style={{ color: undergroundTheme.colors.text.tertiary }}>טוען משימות...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={styles.pageContainer}>
-      <div style={styles.pageHeader}>
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.background.deepDark,
+      padding: undergroundTheme.spacing['2xl'],
+      paddingBottom: '100px',
+    }}>
+      <div style={{
+        marginBottom: undergroundTheme.spacing['3xl'],
+        textAlign: 'center',
+      }}>
         <div style={{ fontSize: '64px', marginBottom: '16px' }}>📋</div>
-        <h1 style={styles.pageTitle}>משימות</h1>
-        <p style={styles.pageSubtitle}>
+        <h1 style={{
+          margin: 0,
+          fontSize: undergroundTheme.typography.fontSize['4xl'],
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          color: undergroundTheme.colors.text.primary,
+          marginBottom: undergroundTheme.spacing.sm,
+        }}>משימות</h1>
+        <p style={{
+          margin: 0,
+          fontSize: undergroundTheme.typography.fontSize.base,
+          color: undergroundTheme.colors.text.tertiary,
+          fontWeight: undergroundTheme.typography.fontWeight.medium,
+        }}>
           ניהול ומעקב אחר משימות
         </p>
       </div>
@@ -165,36 +188,92 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
         marginBottom: '24px'
       }}>
         <div style={{
-          ...styles.card,
-          background: filter === 'all' ? tokens.gradients.card : tokens.colors.background.cardBg,
-          cursor: 'pointer'
+          background: filter === 'all' ? undergroundTheme.colors.gradient.accent : undergroundTheme.colors.glassmorphism.light,
+          border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+          borderRadius: undergroundTheme.borderRadius.xl,
+          padding: undergroundTheme.spacing['2xl'],
+          backdropFilter: 'blur(20px)',
+          boxShadow: filter === 'all' ? undergroundTheme.shadows.glow.cyan : undergroundTheme.shadows.md,
+          transition: undergroundTheme.transitions.normal,
+          cursor: 'pointer',
         }} onClick={() => setFilter('all')}>
-          <div style={styles.stat.value}>{statusCounts.all}</div>
-          <div style={styles.stat.label}>כל המשימות</div>
+          <div style={{
+            fontSize: undergroundTheme.typography.fontSize['3xl'],
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            color: undergroundTheme.colors.accent.primary,
+            marginBottom: undergroundTheme.spacing.xs,
+          }}>{statusCounts.all}</div>
+          <div style={{
+            fontSize: undergroundTheme.typography.fontSize.sm,
+            color: undergroundTheme.colors.text.tertiary,
+            fontWeight: undergroundTheme.typography.fontWeight.medium,
+          }}>כל המשימות</div>
         </div>
         <div style={{
-          ...styles.card,
-          background: filter === 'pending' ? tokens.gradients.card : tokens.colors.background.cardBg,
-          cursor: 'pointer'
+          background: filter === 'pending' ? undergroundTheme.colors.gradient.accent : undergroundTheme.colors.glassmorphism.light,
+          border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+          borderRadius: undergroundTheme.borderRadius.xl,
+          padding: undergroundTheme.spacing['2xl'],
+          backdropFilter: 'blur(20px)',
+          boxShadow: filter === 'pending' ? undergroundTheme.shadows.glow.cyan : undergroundTheme.shadows.md,
+          transition: undergroundTheme.transitions.normal,
+          cursor: 'pointer',
         }} onClick={() => setFilter('pending')}>
-          <div style={styles.stat.value}>{statusCounts.pending}</div>
-          <div style={styles.stat.label}>ממתינות</div>
+          <div style={{
+            fontSize: undergroundTheme.typography.fontSize['3xl'],
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            color: undergroundTheme.colors.accent.primary,
+            marginBottom: undergroundTheme.spacing.xs,
+          }}>{statusCounts.pending}</div>
+          <div style={{
+            fontSize: undergroundTheme.typography.fontSize.sm,
+            color: undergroundTheme.colors.text.tertiary,
+            fontWeight: undergroundTheme.typography.fontWeight.medium,
+          }}>ממתינות</div>
         </div>
         <div style={{
-          ...styles.card,
-          background: filter === 'in_progress' ? tokens.gradients.card : tokens.colors.background.cardBg,
-          cursor: 'pointer'
+          background: filter === 'in_progress' ? undergroundTheme.colors.gradient.accent : undergroundTheme.colors.glassmorphism.light,
+          border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+          borderRadius: undergroundTheme.borderRadius.xl,
+          padding: undergroundTheme.spacing['2xl'],
+          backdropFilter: 'blur(20px)',
+          boxShadow: filter === 'in_progress' ? undergroundTheme.shadows.glow.cyan : undergroundTheme.shadows.md,
+          transition: undergroundTheme.transitions.normal,
+          cursor: 'pointer',
         }} onClick={() => setFilter('in_progress')}>
-          <div style={styles.stat.value}>{statusCounts.in_progress}</div>
-          <div style={styles.stat.label}>בביצוע</div>
+          <div style={{
+            fontSize: undergroundTheme.typography.fontSize['3xl'],
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            color: undergroundTheme.colors.accent.primary,
+            marginBottom: undergroundTheme.spacing.xs,
+          }}>{statusCounts.in_progress}</div>
+          <div style={{
+            fontSize: undergroundTheme.typography.fontSize.sm,
+            color: undergroundTheme.colors.text.tertiary,
+            fontWeight: undergroundTheme.typography.fontWeight.medium,
+          }}>בביצוע</div>
         </div>
         <div style={{
-          ...styles.card,
-          background: filter === 'completed' ? tokens.gradients.card : tokens.colors.background.cardBg,
-          cursor: 'pointer'
+          background: filter === 'completed' ? undergroundTheme.colors.gradient.accent : undergroundTheme.colors.glassmorphism.light,
+          border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+          borderRadius: undergroundTheme.borderRadius.xl,
+          padding: undergroundTheme.spacing['2xl'],
+          backdropFilter: 'blur(20px)',
+          boxShadow: filter === 'completed' ? undergroundTheme.shadows.glow.cyan : undergroundTheme.shadows.md,
+          transition: undergroundTheme.transitions.normal,
+          cursor: 'pointer',
         }} onClick={() => setFilter('completed')}>
-          <div style={styles.stat.value}>{statusCounts.completed}</div>
-          <div style={styles.stat.label}>הושלמו</div>
+          <div style={{
+            fontSize: undergroundTheme.typography.fontSize['3xl'],
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            color: undergroundTheme.colors.accent.primary,
+            marginBottom: undergroundTheme.spacing.xs,
+          }}>{statusCounts.completed}</div>
+          <div style={{
+            fontSize: undergroundTheme.typography.fontSize.sm,
+            color: undergroundTheme.colors.text.tertiary,
+            fontWeight: undergroundTheme.typography.fontWeight.medium,
+          }}>הושלמו</div>
         </div>
       </div>
 
@@ -203,9 +282,18 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
         <button
           onClick={() => setShowCreateModal(true)}
           style={{
-            ...styles.button.primary,
             width: '100%',
-            marginBottom: '24px'
+            marginBottom: '24px',
+            padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
+            background: undergroundTheme.colors.gradient.accent,
+            border: 'none',
+            borderRadius: undergroundTheme.borderRadius.lg,
+            color: undergroundTheme.colors.text.primary,
+            fontSize: undergroundTheme.typography.fontSize.base,
+            fontWeight: undergroundTheme.typography.fontWeight.semibold,
+            cursor: 'pointer',
+            boxShadow: undergroundTheme.shadows.glow.cyan,
+            transition: undergroundTheme.transitions.normal,
           }}
         >
           + צור משימה חדשה
@@ -214,9 +302,20 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
 
       {/* Tasks List */}
       {filteredTasks.length === 0 ? (
-        <div style={styles.emptyState.container}>
-          <div style={styles.emptyState.containerIcon}>📋</div>
-          <div style={styles.emptyState.containerText}>
+        <div style={{
+          textAlign: 'center',
+          padding: `${undergroundTheme.spacing['5xl']} ${undergroundTheme.spacing.xl}`,
+          color: undergroundTheme.colors.text.tertiary,
+        }}>
+          <div style={{
+            fontSize: '64px',
+            marginBottom: undergroundTheme.spacing.lg,
+            opacity: 0.5,
+          }}>📋</div>
+          <div style={{
+            fontSize: undergroundTheme.typography.fontSize.lg,
+            color: undergroundTheme.colors.text.tertiary,
+          }}>
             אין משימות להצגה
           </div>
         </div>
@@ -282,8 +381,8 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
   };
 
   const priorityColors = {
-    low: tokens.colors.subtle,
-    normal: tokens.colors.text,
+    low: undergroundTheme.colors.text.tertiary,
+    normal: undergroundTheme.colors.text.primary,
     high: '#FFC107',
     urgent: '#F44336'
   };
@@ -306,22 +405,28 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
 
   return (
     <div style={{
-      ...styles.card,
-      cursor: 'pointer'
+      background: undergroundTheme.colors.glassmorphism.light,
+      border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+      borderRadius: undergroundTheme.borderRadius.xl,
+      padding: undergroundTheme.spacing['2xl'],
+      backdropFilter: 'blur(20px)',
+      boxShadow: undergroundTheme.shadows.md,
+      transition: undergroundTheme.transitions.normal,
+      cursor: 'pointer',
     }}>
       <div onClick={() => setExpanded(!expanded)}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
           <div style={{ flex: 1 }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: tokens.colors.text, fontWeight: '600' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: undergroundTheme.colors.text.primary, fontWeight: '600' }}>
               {task.title}
             </h3>
             {task.description && (
-              <p style={{ margin: 0, fontSize: '14px', color: tokens.colors.subtle }}>
+              <p style={{ margin: 0, fontSize: '14px', color: undergroundTheme.colors.text.tertiary }}>
                 {task.description}
               </p>
             )}
           </div>
-          <div style={{ fontSize: '20px', marginLeft: '12px' }}>
+          <div style={{ fontSize: '20px', marginLeft: '12px', color: undergroundTheme.colors.accent.primary }}>
             {expanded ? '▼' : '◀'}
           </div>
         </div>
@@ -360,7 +465,7 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
               background: 'rgba(255, 255, 255, 0.1)',
               border: `1px solid rgba(255, 255, 255, 0.2)`,
               fontSize: '12px',
-              color: tokens.colors.subtle
+              color: undergroundTheme.colors.text.tertiary
             }}>
               📅 {new Date(task.due_date).toLocaleDateString('he-IL')}
             </div>
@@ -369,11 +474,11 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
       </div>
 
       {expanded && (
-        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: `1px solid ${tokens.colors.border.default}` }}>
+        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: `1px solid ${undergroundTheme.colors.glassmorphism.border}` }}>
           {task.notes && (
             <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '4px' }}>הערות</div>
-              <div style={{ fontSize: '14px', color: tokens.colors.text }}>{task.notes}</div>
+              <div style={{ fontSize: '12px', color: undergroundTheme.colors.text.tertiary, marginBottom: '4px' }}>הערות</div>
+              <div style={{ fontSize: '14px', color: undergroundTheme.colors.text.primary }}>{task.notes}</div>
             </div>
           )}
 
@@ -385,8 +490,16 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
                   onEdit();
                 }}
                 style={{
-                  ...styles.button.secondary,
-                  flex: 1
+                  flex: 1,
+                  padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
+                  background: undergroundTheme.colors.glassmorphism.light,
+                  border: `2px solid ${undergroundTheme.colors.accent.primary}`,
+                  borderRadius: undergroundTheme.borderRadius.lg,
+                  color: undergroundTheme.colors.accent.primary,
+                  fontSize: undergroundTheme.typography.fontSize.base,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  cursor: 'pointer',
+                  transition: undergroundTheme.transitions.normal,
                 }}
               >
                 ערוך
@@ -399,8 +512,17 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
                     onStatusChange('in_progress');
                   }}
                   style={{
-                    ...styles.button.primary,
-                    flex: 1
+                    flex: 1,
+                    padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
+                    background: undergroundTheme.colors.gradient.accent,
+                    border: 'none',
+                    borderRadius: undergroundTheme.borderRadius.lg,
+                    color: undergroundTheme.colors.text.primary,
+                    fontSize: undergroundTheme.typography.fontSize.base,
+                    fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                    cursor: 'pointer',
+                    boxShadow: undergroundTheme.shadows.glow.cyan,
+                    transition: undergroundTheme.transitions.normal,
                   }}
                 >
                   התחל
@@ -414,9 +536,16 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
                     onStatusChange('completed');
                   }}
                   style={{
-                    ...styles.button.primary,
                     flex: 1,
-                    background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)'
+                    padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
+                    background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
+                    border: 'none',
+                    borderRadius: undergroundTheme.borderRadius.lg,
+                    color: undergroundTheme.colors.text.primary,
+                    fontSize: undergroundTheme.typography.fontSize.base,
+                    fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                    cursor: 'pointer',
+                    transition: undergroundTheme.transitions.normal,
                   }}
                 >
                   סיים
@@ -429,8 +558,16 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
                   onDelete();
                 }}
                 style={{
-                  ...styles.button.danger,
-                  flex: 0.5
+                  flex: 0.5,
+                  padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
+                  background: undergroundTheme.colors.status.error,
+                  border: 'none',
+                  borderRadius: undergroundTheme.borderRadius.lg,
+                  color: undergroundTheme.colors.text.primary,
+                  fontSize: undergroundTheme.typography.fontSize.base,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  cursor: 'pointer',
+                  transition: undergroundTheme.transitions.normal,
                 }}
               >
                 🗑️
@@ -497,25 +634,26 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          backgroundColor: tokens.colors.background.cardBg,
-          borderRadius: '20px',
-          border: `1px solid ${tokens.colors.background.cardBorder}`,
+          backgroundColor: undergroundTheme.colors.glassmorphism.medium,
+          borderRadius: undergroundTheme.borderRadius.xl,
+          border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
           maxWidth: '500px',
           width: '100%',
           maxHeight: '90vh',
           overflow: 'auto',
-          boxShadow: tokens.shadows.mdStrong
+          boxShadow: undergroundTheme.shadows.lg,
+          backdropFilter: 'blur(20px)',
         }}
       >
         <div style={{
           padding: '24px',
-          borderBottom: `1px solid ${tokens.colors.border.default}`
+          borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
         }}>
           <h2 style={{
             margin: 0,
             fontSize: '24px',
             fontWeight: '700',
-            color: tokens.colors.text
+            color: undergroundTheme.colors.text.primary
           }}>
             {task ? 'ערוך משימה' : 'צור משימה חדשה'}
           </h2>
@@ -529,7 +667,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text
+                color: undergroundTheme.colors.text.primary
               }}>
                 כותרת *
               </label>
@@ -537,7 +675,17 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                style={styles.input}
+                style={{
+                  width: '100%',
+                  padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
+                  background: undergroundTheme.colors.background.dark,
+                  border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                  borderRadius: undergroundTheme.borderRadius.md,
+                  color: undergroundTheme.colors.text.primary,
+                  fontSize: undergroundTheme.typography.fontSize.base,
+                  outline: 'none',
+                  transition: undergroundTheme.transitions.normal,
+                }}
                 placeholder="כותרת המשימה"
               />
             </div>
@@ -548,7 +696,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text
+                color: undergroundTheme.colors.text.primary
               }}>
                 תיאור
               </label>
@@ -557,8 +705,16 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
                 style={{
-                  ...styles.input,
-                  resize: 'vertical'
+                  width: '100%',
+                  padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
+                  background: undergroundTheme.colors.background.dark,
+                  border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                  borderRadius: undergroundTheme.borderRadius.md,
+                  color: undergroundTheme.colors.text.primary,
+                  fontSize: undergroundTheme.typography.fontSize.base,
+                  outline: 'none',
+                  transition: undergroundTheme.transitions.normal,
+                  resize: 'vertical',
                 }}
                 placeholder="תיאור המשימה"
               />
@@ -571,14 +727,24 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: tokens.colors.text
+                  color: undergroundTheme.colors.text.primary
                 }}>
                   סטטוס
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as Task['status'] })}
-                  style={styles.input}
+                  style={{
+                    width: '100%',
+                    padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
+                    background: undergroundTheme.colors.background.dark,
+                    border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                    borderRadius: undergroundTheme.borderRadius.md,
+                    color: undergroundTheme.colors.text.primary,
+                    fontSize: undergroundTheme.typography.fontSize.base,
+                    outline: 'none',
+                    transition: undergroundTheme.transitions.normal,
+                  }}
                 >
                   <option value="pending">ממתין</option>
                   <option value="in_progress">בביצוע</option>
@@ -593,14 +759,24 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: tokens.colors.text
+                  color: undergroundTheme.colors.text.primary
                 }}>
                   עדיפות
                 </label>
                 <select
                   value={formData.priority}
                   onChange={(e) => setFormData({ ...formData, priority: e.target.value as Task['priority'] })}
-                  style={styles.input}
+                  style={{
+                    width: '100%',
+                    padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
+                    background: undergroundTheme.colors.background.dark,
+                    border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                    borderRadius: undergroundTheme.borderRadius.md,
+                    color: undergroundTheme.colors.text.primary,
+                    fontSize: undergroundTheme.typography.fontSize.base,
+                    outline: 'none',
+                    transition: undergroundTheme.transitions.normal,
+                  }}
                 >
                   <option value="low">נמוך</option>
                   <option value="normal">רגיל</option>
@@ -617,14 +793,24 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                   marginBottom: '8px',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: tokens.colors.text
+                  color: undergroundTheme.colors.text.primary
                 }}>
                   הקצה למשתמש
                 </label>
                 <select
                   value={formData.assigned_to}
                   onChange={(e) => setFormData({ ...formData, assigned_to: e.target.value })}
-                  style={styles.input}
+                  style={{
+                    width: '100%',
+                    padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
+                    background: undergroundTheme.colors.background.dark,
+                    border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                    borderRadius: undergroundTheme.borderRadius.md,
+                    color: undergroundTheme.colors.text.primary,
+                    fontSize: undergroundTheme.typography.fontSize.base,
+                    outline: 'none',
+                    transition: undergroundTheme.transitions.normal,
+                  }}
                 >
                   <option value="">בחר משתמש...</option>
                   {users.map((user) => (
@@ -642,7 +828,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text
+                color: undergroundTheme.colors.text.primary
               }}>
                 תאריך יעד
               </label>
@@ -650,7 +836,17 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 type="date"
                 value={formData.due_date}
                 onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                style={styles.input}
+                style={{
+                  width: '100%',
+                  padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
+                  background: undergroundTheme.colors.background.dark,
+                  border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                  borderRadius: undergroundTheme.borderRadius.md,
+                  color: undergroundTheme.colors.text.primary,
+                  fontSize: undergroundTheme.typography.fontSize.base,
+                  outline: 'none',
+                  transition: undergroundTheme.transitions.normal,
+                }}
               />
             </div>
 
@@ -660,7 +856,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.text
+                color: undergroundTheme.colors.text.primary
               }}>
                 הערות
               </label>
@@ -669,8 +865,16 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 rows={3}
                 style={{
-                  ...styles.input,
-                  resize: 'vertical'
+                  width: '100%',
+                  padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
+                  background: undergroundTheme.colors.background.dark,
+                  border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                  borderRadius: undergroundTheme.borderRadius.md,
+                  color: undergroundTheme.colors.text.primary,
+                  fontSize: undergroundTheme.typography.fontSize.base,
+                  outline: 'none',
+                  transition: undergroundTheme.transitions.normal,
+                  resize: 'vertical',
                 }}
                 placeholder="הערות נוספות"
               />
@@ -686,8 +890,16 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
               type="button"
               onClick={onClose}
               style={{
-                ...styles.button.secondary,
-                flex: 1
+                flex: 1,
+                padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
+                background: undergroundTheme.colors.glassmorphism.light,
+                border: `2px solid ${undergroundTheme.colors.accent.primary}`,
+                borderRadius: undergroundTheme.borderRadius.lg,
+                color: undergroundTheme.colors.accent.primary,
+                fontSize: undergroundTheme.typography.fontSize.base,
+                fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                cursor: 'pointer',
+                transition: undergroundTheme.transitions.normal,
               }}
             >
               ביטול
@@ -695,8 +907,17 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
             <button
               type="submit"
               style={{
-                ...styles.button.primary,
-                flex: 2
+                flex: 2,
+                padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
+                background: undergroundTheme.colors.gradient.accent,
+                border: 'none',
+                borderRadius: undergroundTheme.borderRadius.lg,
+                color: undergroundTheme.colors.text.primary,
+                fontSize: undergroundTheme.typography.fontSize.base,
+                fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                cursor: 'pointer',
+                boxShadow: undergroundTheme.shadows.glow.cyan,
+                transition: undergroundTheme.transitions.normal,
               }}
             >
               {task ? 'עדכן' : 'צור משימה'}

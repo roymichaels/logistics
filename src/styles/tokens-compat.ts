@@ -16,12 +16,11 @@ export const tokens = {
       secondary: undergroundTheme.colors.background.dark,
       tertiary: undergroundTheme.colors.background.medium,
       surface: undergroundTheme.colors.background.surface,
+      cardBg: undergroundTheme.colors.glassmorphism.light,
+      cardBorder: undergroundTheme.colors.glassmorphism.border,
     },
-    text: {
-      primary: undergroundTheme.colors.text.primary,
-      secondary: undergroundTheme.colors.text.secondary,
-      tertiary: undergroundTheme.colors.text.tertiary,
-    },
+    text: undergroundTheme.colors.text.primary,
+    subtle: undergroundTheme.colors.text.tertiary,
     accent: {
       primary: undergroundTheme.colors.accent.primary,
       secondary: undergroundTheme.colors.accent.secondary,
@@ -36,7 +35,13 @@ export const tokens = {
     border: {
       primary: undergroundTheme.colors.glassmorphism.border,
       secondary: 'rgba(255, 255, 255, 0.05)',
+      default: undergroundTheme.colors.glassmorphism.border,
     },
+  },
+  gradients: {
+    primary: undergroundTheme.colors.gradient.accent,
+    card: undergroundTheme.colors.gradient.card,
+    accent: undergroundTheme.colors.gradient.accent,
   },
   spacing: {
     xs: undergroundTheme.spacing.xs,
@@ -60,6 +65,7 @@ export const tokens = {
     lg: undergroundTheme.shadows.lg,
     xl: undergroundTheme.shadows.xl,
     glow: undergroundTheme.shadows.glow.cyan,
+    mdStrong: undergroundTheme.shadows.lg,
   },
   typography: {
     fontSize: undergroundTheme.typography.fontSize,
@@ -100,33 +106,120 @@ export const twitterTheme = TWITTER_COLORS;
 export const telegramTheme = TELEGRAM_THEME;
 
 export const styles = {
+  // Page structure
+  pageContainer: {
+    minHeight: '100vh',
+    background: undergroundTheme.colors.background.deepDark,
+    padding: undergroundTheme.spacing['2xl'],
+    paddingBottom: '100px',
+  },
+  pageHeader: {
+    marginBottom: undergroundTheme.spacing['3xl'],
+    textAlign: 'center' as const,
+  },
+  pageTitle: {
+    margin: 0,
+    fontSize: undergroundTheme.typography.fontSize['4xl'],
+    fontWeight: undergroundTheme.typography.fontWeight.bold,
+    color: undergroundTheme.colors.text.primary,
+    marginBottom: undergroundTheme.spacing.sm,
+  },
+  pageSubtitle: {
+    margin: 0,
+    fontSize: undergroundTheme.typography.fontSize.base,
+    color: undergroundTheme.colors.text.tertiary,
+    fontWeight: undergroundTheme.typography.fontWeight.medium,
+  },
+  // Card styles
   card: {
-    base: {
-      background: undergroundTheme.colors.glassmorphism.light,
-      border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
-      borderRadius: undergroundTheme.borderRadius.lg,
-      padding: undergroundTheme.spacing.lg,
-      backdropFilter: 'blur(20px)',
+    background: undergroundTheme.colors.glassmorphism.light,
+    border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+    borderRadius: undergroundTheme.borderRadius.xl,
+    padding: undergroundTheme.spacing['2xl'],
+    marginBottom: undergroundTheme.spacing.lg,
+    backdropFilter: 'blur(20px)',
+    boxShadow: undergroundTheme.shadows.md,
+    transition: undergroundTheme.transitions.normal,
+  },
+  // Stat card styles
+  stat: {
+    value: {
+      fontSize: undergroundTheme.typography.fontSize['3xl'],
+      fontWeight: undergroundTheme.typography.fontWeight.bold,
+      color: undergroundTheme.colors.accent.primary,
+      marginBottom: undergroundTheme.spacing.xs,
+    },
+    label: {
+      fontSize: undergroundTheme.typography.fontSize.sm,
+      color: undergroundTheme.colors.text.tertiary,
+      fontWeight: undergroundTheme.typography.fontWeight.medium,
     },
   },
+  // Empty state styles
+  emptyState: {
+    container: {
+      textAlign: 'center' as const,
+      padding: `${undergroundTheme.spacing['5xl']} ${undergroundTheme.spacing.xl}`,
+      color: undergroundTheme.colors.text.tertiary,
+    },
+    containerIcon: {
+      fontSize: '64px',
+      marginBottom: undergroundTheme.spacing.lg,
+      opacity: 0.5,
+    },
+    containerText: {
+      fontSize: undergroundTheme.typography.fontSize.lg,
+      color: undergroundTheme.colors.text.tertiary,
+    },
+  },
+  // Button styles
   button: {
     primary: {
-      background: undergroundTheme.colors.accent.primary,
-      color: undergroundTheme.colors.text.primary,
-      padding: `${undergroundTheme.spacing.sm} ${undergroundTheme.spacing.md}`,
-      borderRadius: undergroundTheme.borderRadius.md,
+      padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
+      background: undergroundTheme.colors.gradient.accent,
       border: 'none',
+      borderRadius: undergroundTheme.borderRadius.lg,
+      color: undergroundTheme.colors.text.primary,
+      fontSize: undergroundTheme.typography.fontSize.base,
       fontWeight: undergroundTheme.typography.fontWeight.semibold,
+      cursor: 'pointer',
+      boxShadow: undergroundTheme.shadows.glow.cyan,
+      transition: undergroundTheme.transitions.normal,
+    },
+    secondary: {
+      padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
+      background: undergroundTheme.colors.glassmorphism.light,
+      border: `2px solid ${undergroundTheme.colors.accent.primary}`,
+      borderRadius: undergroundTheme.borderRadius.lg,
+      color: undergroundTheme.colors.accent.primary,
+      fontSize: undergroundTheme.typography.fontSize.base,
+      fontWeight: undergroundTheme.typography.fontWeight.semibold,
+      cursor: 'pointer',
+      transition: undergroundTheme.transitions.normal,
+    },
+    danger: {
+      padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
+      background: undergroundTheme.colors.status.error,
+      border: 'none',
+      borderRadius: undergroundTheme.borderRadius.lg,
+      color: undergroundTheme.colors.text.primary,
+      fontSize: undergroundTheme.typography.fontSize.base,
+      fontWeight: undergroundTheme.typography.fontWeight.semibold,
+      cursor: 'pointer',
+      transition: undergroundTheme.transitions.normal,
     },
   },
+  // Input styles
   input: {
-    base: {
-      background: undergroundTheme.colors.background.dark,
-      border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
-      borderRadius: undergroundTheme.borderRadius.md,
-      padding: undergroundTheme.spacing.md,
-      color: undergroundTheme.colors.text.primary,
-    },
+    width: '100%',
+    padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
+    background: undergroundTheme.colors.background.dark,
+    border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+    borderRadius: undergroundTheme.borderRadius.md,
+    color: undergroundTheme.colors.text.primary,
+    fontSize: undergroundTheme.typography.fontSize.base,
+    outline: 'none',
+    transition: undergroundTheme.transitions.normal,
   },
 };
 
