@@ -1,134 +1,216 @@
 import React, { useState, useEffect } from 'react';
-import { DataStore, RestockRequest, User } from '../data/types';
-
-import { hebrew, formatDate, formatTime } from '../lib/i18n';
-import { tokens, styles } from '../styles/tokens';
-import { Toast } from '../components/Toast';
-
+import { supabase } from '../lib/supabase';
 import { logger } from '../lib/logger';
+import { useSafeAppServices } from '../context/AppServicesContext';
+import { useAuth } from '../context/AuthContext';
+import { Toast } from '../components/Toast';
+import { undergroundTheme } from '../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundHeader,
+  UndergroundSection,
+  UndergroundButton,
+  UndergroundLoadingSpinner,
+  UndergroundEmptyState,
+  UndergroundBadge,
+  UndergroundStatCard,
+} from '../components/underground';
 
-interface RestockRequestsProps {
-  dataStore: DataStore;
-  onNavigate: (page: string) => void;
+interface RestockRequest {
+  id: string;
+  product_id: string;
+  from_location_id: string | null;
+  to_location_id: string;
+  requested_quantity: number;
+  approved_quantity: number | null;
+  fulfilled_quantity: number | null;
+  status: 'pending' | 'approved' | 'in_transit' | 'fulfilled' | 'rejected';
+  notes: string | null;
+  created_at: string;
+  approved_at: string | null;
+  fulfilled_at: string | null;
+  product?: { id: string; name: string; sku: string };
+  from_location?: { id: string; name: string };
+  to_location?: { id: string; name: string };
 }
 
-export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps) {
+type FilterStatus = 'all' | 'pending' | 'approved' | 'in_transit' | 'fulfilled';
+
+export function RestockRequests() {
+  const { user } = useAuth();
+  const appServices = useSafeAppServices();
+  const currentBusinessId = appServices?.currentBusinessId;
 
   const [requests, setRequests] = useState<RestockRequest[]>([]);
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'in_transit' | 'fulfilled'>('all');
+  const [filter, setFilter] = useState<FilterStatus>('all');
   const [selectedRequest, setSelectedRequest] = useState<RestockRequest | null>(null);
   const [actionInProgress, setActionInProgress] = useState(false);
 
   useEffect(() => {
+    if (!currentBusinessId) {
+      logger.warn('[RestockRequests] No business context');
+      setLoading(false);
+      return;
+    }
+
     loadData();
-  }, [filter]);
+
+    const subscription = supabase
+      .channel(`restock-requests-${currentBusinessId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'restock_requests',
+          filter: `business_id=eq.${currentBusinessId}`,
+        },
+        () => {
+          logger.info('[RestockRequests] Real-time update detected');
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [currentBusinessId, filter]);
 
   const loadData = async () => {
+    if (!currentBusinessId) return;
+
     try {
       setLoading(true);
-      const profile = await dataStore.getProfile();
-      setUser(profile);
 
-      if (!dataStore.listRestockRequests) {
-        Toast.error('רשימת בקשות חידוש אינה זמינה');
-        setLoading(false);
-        return;
+      let query = supabase
+        .from('restock_requests')
+        .select(
+          `
+          id,
+          product_id,
+          from_location_id,
+          to_location_id,
+          requested_quantity,
+          approved_quantity,
+          fulfilled_quantity,
+          status,
+          notes,
+          created_at,
+          approved_at,
+          fulfilled_at,
+          product:products(id, name, sku),
+          from_location:zones!from_location_id(id, name),
+          to_location:zones!to_location_id(id, name)
+        `
+        )
+        .eq('business_id', currentBusinessId)
+        .order('created_at', { ascending: false });
+
+      if (filter !== 'all') {
+        query = query.eq('status', filter);
       }
 
-      const allRequests = await dataStore.listRestockRequests({
-        status: filter === 'all' ? undefined : filter
-      });
+      const { data, error } = await query;
 
-      setRequests(allRequests);
+      if (error) {
+        throw error;
+      }
+
+      setRequests(data || []);
+      logger.info('[RestockRequests] Loaded requests', { count: data?.length });
     } catch (error) {
-      logger.error('Failed to load restock requests:', error);
-      Toast.error('שגיאה בטעינת בקשות חידוש');
+      logger.error('[RestockRequests] Failed to load requests:', error);
+      Toast.error('Failed to load restock requests');
     } finally {
       setLoading(false);
     }
   };
 
   const handleApprove = async (request: RestockRequest) => {
-    if (!dataStore.approveRestockRequest) {
-      Toast.error('פעולת אישור אינה זמינה');
-      return;
-    }
-
-    const confirmed = await new Promise<boolean>(resolve => {
-
-    });
-
+    const confirmed = window.confirm(
+      `Approve restock request for ${request.requested_quantity} units of ${request.product?.name || 'product'}?`
+    );
     if (!confirmed) return;
 
     try {
       setActionInProgress(true);
-      await dataStore.approveRestockRequest(request.id, {
-        approved_quantity: request.requested_quantity
-      });
-      Toast.success('הבקשה אושרה בהצלחה');
+
+      const { error } = await supabase
+        .from('restock_requests')
+        .update({
+          status: 'approved',
+          approved_quantity: request.requested_quantity,
+          approved_at: new Date().toISOString(),
+        })
+        .eq('id', request.id);
+
+      if (error) throw error;
+
+      Toast.success('Request approved successfully');
       setSelectedRequest(null);
       await loadData();
     } catch (error) {
-      logger.error('Failed to approve request:', error);
-      Toast.error('שגיאה באישור הבקשה');
+      logger.error('[RestockRequests] Failed to approve request:', error);
+      Toast.error('Failed to approve request');
     } finally {
       setActionInProgress(false);
     }
   };
 
   const handleReject = async (request: RestockRequest) => {
-    if (!dataStore.rejectRestockRequest) {
-      Toast.error('פעולת דחייה אינה זמינה');
-      return;
-    }
-
-    const confirmed = await new Promise<boolean>(resolve => {
-
-    });
-
+    const confirmed = window.confirm(`Reject restock request for ${request.product?.name || 'product'}?`);
     if (!confirmed) return;
 
     try {
       setActionInProgress(true);
-      await dataStore.rejectRestockRequest(request.id, {
-        notes: 'נדחה על ידי מנהל'
-      });
-      Toast.success('הבקשה נדחתה');
+
+      const { error } = await supabase
+        .from('restock_requests')
+        .update({
+          status: 'rejected',
+          notes: 'Rejected by manager',
+        })
+        .eq('id', request.id);
+
+      if (error) throw error;
+
+      Toast.success('Request rejected');
       setSelectedRequest(null);
       await loadData();
     } catch (error) {
-      logger.error('Failed to reject request:', error);
-      Toast.error('שגיאה בדחיית הבקשה');
+      logger.error('[RestockRequests] Failed to reject request:', error);
+      Toast.error('Failed to reject request');
     } finally {
       setActionInProgress(false);
     }
   };
 
   const handleFulfill = async (request: RestockRequest) => {
-    if (!dataStore.fulfillRestockRequest) {
-      Toast.error('פעולת מימוש אינה זמינה');
-      return;
-    }
-
-    const confirmed = await new Promise<boolean>(resolve => {
-
-    });
-
+    const confirmed = window.confirm(`Mark request as fulfilled for ${request.product?.name || 'product'}?`);
     if (!confirmed) return;
 
     try {
       setActionInProgress(true);
-      await dataStore.fulfillRestockRequest(request.id, {
-        fulfilled_quantity: request.approved_quantity || request.requested_quantity
-      });
-      Toast.success('הבקשה מומשה בהצלחה');
+
+      const { error } = await supabase
+        .from('restock_requests')
+        .update({
+          status: 'fulfilled',
+          fulfilled_quantity: request.approved_quantity || request.requested_quantity,
+          fulfilled_at: new Date().toISOString(),
+        })
+        .eq('id', request.id);
+
+      if (error) throw error;
+
+      Toast.success('Request fulfilled successfully');
       setSelectedRequest(null);
       await loadData();
     } catch (error) {
-      logger.error('Failed to fulfill request:', error);
-      Toast.error('שגיאה במימוש הבקשה');
+      logger.error('[RestockRequests] Failed to fulfill request:', error);
+      Toast.error('Failed to fulfill request');
     } finally {
       setActionInProgress(false);
     }
@@ -137,32 +219,32 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return tokens.colors.status.warning;
+        return undergroundTheme.colors.status.warning;
       case 'approved':
-        return tokens.colors.brand.primary;
+        return undergroundTheme.colors.accent.primary;
       case 'in_transit':
-        return tokens.colors.brand.primary;
+        return undergroundTheme.colors.status.info;
       case 'fulfilled':
-        return tokens.colors.status.success;
+        return undergroundTheme.colors.status.success;
       case 'rejected':
-        return tokens.colors.status.error;
+        return undergroundTheme.colors.status.error;
       default:
-        return tokens.colors.subtle;
+        return undergroundTheme.colors.text.tertiary;
     }
   };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'ממתין לאישור';
+        return 'Pending Approval';
       case 'approved':
-        return 'אושר';
+        return 'Approved';
       case 'in_transit':
-        return 'בדרך';
+        return 'In Transit';
       case 'fulfilled':
-        return 'מומש';
+        return 'Fulfilled';
       case 'rejected':
-        return 'נדחה';
+        return 'Rejected';
       default:
         return status;
     }
@@ -185,439 +267,465 @@ export function RestockRequests({ dataStore, onNavigate }: RestockRequestsProps)
     }
   };
 
-  const canApprove = user?.role === 'manager' || user?.role === 'infrastructure_owner' || user?.role === 'business_owner';
-  const canFulfill = user?.role === 'warehouse' || user?.role === 'manager' || user?.role === 'infrastructure_owner' || user?.role === 'business_owner';
+  const canApprove =
+    user?.role === 'manager' || user?.role === 'business_owner' || user?.role === 'warehouse';
+  const canFulfill =
+    user?.role === 'warehouse' || user?.role === 'manager' || user?.role === 'business_owner';
+
+  if (!currentBusinessId) {
+    return (
+      <div
+        style={{
+          background: undergroundTheme.colors.gradient.primary,
+          minHeight: '100vh',
+          padding: undergroundTheme.spacing['2xl'],
+        }}
+      >
+        <UndergroundEmptyState
+          title="No Business Context"
+          message="Please select a business to view restock requests"
+        />
+      </div>
+    );
+  }
 
   if (loading) {
     return (
-      <div style={styles.pageContainer}>
-        <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔄</div>
-          <p style={{ color: tokens.colors.subtle }}>{hebrew.loading}</p>
-        </div>
+      <div
+        style={{
+          background: undergroundTheme.colors.gradient.primary,
+          minHeight: '100vh',
+          padding: undergroundTheme.spacing['2xl'],
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <UndergroundLoadingSpinner size="lg" />
       </div>
     );
   }
 
   if (selectedRequest) {
     return (
-      <div style={styles.pageContainer}>
-        {/* Header with Back Button */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          marginBottom: '24px'
-        }}>
-          <button
-            onClick={() => setSelectedRequest(null)}
+      <div
+        style={{
+          background: undergroundTheme.colors.gradient.primary,
+          color: undergroundTheme.colors.text.primary,
+          minHeight: '100vh',
+          padding: undergroundTheme.spacing['2xl'],
+          paddingBottom: undergroundTheme.spacing['8xl'],
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: undergroundTheme.spacing.md,
+            marginBottom: undergroundTheme.spacing.xl,
+          }}
+        >
+          <UndergroundButton onClick={() => setSelectedRequest(null)} variant="secondary" size="sm">
+            ← Back
+          </UndergroundButton>
+          <h2
             style={{
-              padding: '8px 12px',
-              borderRadius: '8px',
-              border: `1px solid ${tokens.colors.background.cardBorder}`,
-              background: tokens.colors.background.card,
-              color: tokens.colors.text,
-              fontSize: '16px',
-              cursor: 'pointer'
+              margin: 0,
+              fontSize: undergroundTheme.typography.fontSize.xl,
+              color: undergroundTheme.colors.text.primary,
             }}
           >
-            ← חזרה
-          </button>
-          <h2 style={{ margin: 0, fontSize: '20px', color: tokens.colors.text }}>
-            פרטי בקשה
+            Request Details
           </h2>
         </div>
 
-        {/* Request Details Card */}
-        <div style={styles.card}>
-          {/* Status Badge */}
-          <div style={{
-            display: 'inline-block',
-            padding: '8px 16px',
-            borderRadius: '12px',
-            fontSize: '14px',
-            fontWeight: '600',
-            background: `${getStatusColor(selectedRequest.status)}22`,
-            color: getStatusColor(selectedRequest.status),
-            marginBottom: '20px'
-          }}>
+        <UndergroundCard>
+          <UndergroundBadge variant={selectedRequest.status === 'fulfilled' ? 'success' : 'warning'}>
             {getStatusIcon(selectedRequest.status)} {getStatusLabel(selectedRequest.status)}
-          </div>
+          </UndergroundBadge>
 
-          {/* Product Info */}
-          <div style={{ marginBottom: '20px' }}>
-            <h3 style={{
-              margin: '0 0 8px 0',
-              fontSize: '22px',
-              fontWeight: '700',
-              color: tokens.colors.text
-            }}>
-              {selectedRequest.product?.name || 'מוצר לא ידוע'}
+          <div style={{ marginTop: undergroundTheme.spacing.lg }}>
+            <h3
+              style={{
+                margin: `0 0 ${undergroundTheme.spacing.sm} 0`,
+                fontSize: undergroundTheme.typography.fontSize['2xl'],
+                fontWeight: undergroundTheme.typography.fontWeight.bold,
+                color: undergroundTheme.colors.text.primary,
+              }}
+            >
+              {selectedRequest.product?.name || 'Unknown Product'}
             </h3>
-            <div style={{
-              fontSize: '14px',
-              color: tokens.colors.subtle
-            }}>
+            <div
+              style={{
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                color: undergroundTheme.colors.text.tertiary,
+              }}
+            >
               SKU: {selectedRequest.product?.sku || 'N/A'}
             </div>
           </div>
 
-          {/* Quantities */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '12px',
-            marginBottom: '20px'
-          }}>
-            <div style={{
-              padding: '16px',
-              borderRadius: '12px',
-              background: 'rgba(29, 155, 240, 0.1)',
-              border: `1px solid ${tokens.colors.background.cardBorder}`
-            }}>
-              <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '4px' }}>
-                כמות מבוקשת
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: undergroundTheme.spacing.md,
+              marginTop: undergroundTheme.spacing.lg,
+              marginBottom: undergroundTheme.spacing.lg,
+            }}
+          >
+            <div
+              style={{
+                padding: undergroundTheme.spacing.lg,
+                borderRadius: undergroundTheme.borderRadius.md,
+                background: undergroundTheme.colors.glassmorphism.bg,
+                border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: undergroundTheme.typography.fontSize.xs,
+                  color: undergroundTheme.colors.text.tertiary,
+                  marginBottom: undergroundTheme.spacing.xs,
+                }}
+              >
+                Requested Quantity
               </div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: tokens.colors.brand.primary }}>
-                {selectedRequest.requested_quantity} יח'
+              <div
+                style={{
+                  fontSize: undergroundTheme.typography.fontSize['2xl'],
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.accent.primary,
+                }}
+              >
+                {selectedRequest.requested_quantity}
               </div>
             </div>
             {selectedRequest.approved_quantity && (
-              <div style={{
-                padding: '16px',
-                borderRadius: '12px',
-                background: 'rgba(77, 208, 225, 0.1)',
-                border: `1px solid ${tokens.colors.background.cardBorder}`
-              }}>
-                <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '4px' }}>
-                  כמות מאושרת
+              <div
+                style={{
+                  padding: undergroundTheme.spacing.lg,
+                  borderRadius: undergroundTheme.borderRadius.md,
+                  background: undergroundTheme.colors.glassmorphism.bg,
+                  border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: undergroundTheme.typography.fontSize.xs,
+                    color: undergroundTheme.colors.text.tertiary,
+                    marginBottom: undergroundTheme.spacing.xs,
+                  }}
+                >
+                  Approved Quantity
                 </div>
-                <div style={{ fontSize: '24px', fontWeight: '700', color: tokens.colors.brand.primary }}>
-                  {selectedRequest.approved_quantity} יח'
+                <div
+                  style={{
+                    fontSize: undergroundTheme.typography.fontSize['2xl'],
+                    fontWeight: undergroundTheme.typography.fontWeight.bold,
+                    color: undergroundTheme.colors.status.success,
+                  }}
+                >
+                  {selectedRequest.approved_quantity}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Locations */}
           {selectedRequest.from_location && (
-            <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '13px', color: tokens.colors.subtle, marginBottom: '4px' }}>
-                ממיקום
+            <div style={{ marginBottom: undergroundTheme.spacing.md }}>
+              <div
+                style={{
+                  fontSize: undergroundTheme.typography.fontSize.xs,
+                  color: undergroundTheme.colors.text.tertiary,
+                  marginBottom: undergroundTheme.spacing.xs,
+                }}
+              >
+                From Location
               </div>
-              <div style={{ fontSize: '16px', color: tokens.colors.text }}>
+              <div
+                style={{
+                  fontSize: undergroundTheme.typography.fontSize.base,
+                  color: undergroundTheme.colors.text.primary,
+                }}
+              >
                 {selectedRequest.from_location.name}
               </div>
             </div>
           )}
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ fontSize: '13px', color: tokens.colors.subtle, marginBottom: '4px' }}>
-              למיקום
+
+          <div style={{ marginBottom: undergroundTheme.spacing.lg }}>
+            <div
+              style={{
+                fontSize: undergroundTheme.typography.fontSize.xs,
+                color: undergroundTheme.colors.text.tertiary,
+                marginBottom: undergroundTheme.spacing.xs,
+              }}
+            >
+              To Location
             </div>
-            <div style={{ fontSize: '16px', color: tokens.colors.text }}>
-              {selectedRequest.to_location?.name || 'מיקום לא ידוע'}
+            <div
+              style={{
+                fontSize: undergroundTheme.typography.fontSize.base,
+                color: undergroundTheme.colors.text.primary,
+              }}
+            >
+              {selectedRequest.to_location?.name || 'Unknown Location'}
             </div>
           </div>
 
-          {/* Timestamps */}
-          <div style={{
-            padding: '16px',
-            borderRadius: '12px',
-            background: 'rgba(24, 10, 45, 0.5)',
-            border: `1px solid ${tokens.colors.background.cardBorder}`,
-            marginBottom: '20px'
-          }}>
-            <div style={{ marginBottom: '8px' }}>
-              <span style={{ fontSize: '13px', color: tokens.colors.subtle }}>נוצר: </span>
-              <span style={{ fontSize: '14px', color: tokens.colors.text }}>
-                {formatDate(selectedRequest.created_at)} • {formatTime(selectedRequest.created_at)}
+          <div
+            style={{
+              padding: undergroundTheme.spacing.lg,
+              borderRadius: undergroundTheme.borderRadius.md,
+              background: undergroundTheme.colors.background.deepDark,
+              border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+              marginBottom: undergroundTheme.spacing.lg,
+            }}
+          >
+            <div style={{ marginBottom: undergroundTheme.spacing.sm }}>
+              <span style={{ fontSize: undergroundTheme.typography.fontSize.xs, color: undergroundTheme.colors.text.tertiary }}>
+                Created:{' '}
+              </span>
+              <span style={{ fontSize: undergroundTheme.typography.fontSize.sm, color: undergroundTheme.colors.text.primary }}>
+                {new Date(selectedRequest.created_at).toLocaleString()}
               </span>
             </div>
             {selectedRequest.approved_at && (
-              <div style={{ marginBottom: '8px' }}>
-                <span style={{ fontSize: '13px', color: tokens.colors.subtle }}>אושר: </span>
-                <span style={{ fontSize: '14px', color: tokens.colors.text }}>
-                  {formatDate(selectedRequest.approved_at)} • {formatTime(selectedRequest.approved_at)}
+              <div>
+                <span style={{ fontSize: undergroundTheme.typography.fontSize.xs, color: undergroundTheme.colors.text.tertiary }}>
+                  Approved:{' '}
+                </span>
+                <span style={{ fontSize: undergroundTheme.typography.fontSize.sm, color: undergroundTheme.colors.text.primary }}>
+                  {new Date(selectedRequest.approved_at).toLocaleString()}
                 </span>
               </div>
             )}
           </div>
 
-          {/* Notes */}
           {selectedRequest.notes && (
-            <div style={{
-              padding: '16px',
-              borderRadius: '12px',
-              background: 'rgba(246, 201, 69, 0.1)',
-              border: `1px solid ${tokens.colors.background.cardBorder}`,
-              marginBottom: '20px'
-            }}>
-              <div style={{ fontSize: '13px', color: tokens.colors.subtle, marginBottom: '8px' }}>
-                הערות
+            <div
+              style={{
+                padding: undergroundTheme.spacing.lg,
+                borderRadius: undergroundTheme.borderRadius.md,
+                background: `${undergroundTheme.colors.status.warning}22`,
+                border: `1px solid ${undergroundTheme.colors.status.warning}44`,
+                marginBottom: undergroundTheme.spacing.lg,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: undergroundTheme.typography.fontSize.xs,
+                  color: undergroundTheme.colors.text.tertiary,
+                  marginBottom: undergroundTheme.spacing.sm,
+                }}
+              >
+                Notes
               </div>
-              <div style={{ fontSize: '14px', color: tokens.colors.text }}>
+              <div
+                style={{
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  color: undergroundTheme.colors.text.primary,
+                }}
+              >
                 {selectedRequest.notes}
               </div>
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
             {selectedRequest.status === 'pending' && canApprove && (
               <>
-                <button
+                <UndergroundButton
                   onClick={() => handleApprove(selectedRequest)}
                   disabled={actionInProgress}
-                  style={{
-                    padding: '14px 20px',
-                    borderRadius: '12px',
-                    border: 'none',
-                    background: tokens.colors.status.success,
-                    color: '#fff',
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    cursor: actionInProgress ? 'not-allowed' : 'pointer',
-                    opacity: actionInProgress ? 0.6 : 1
-                  }}
+                  variant="primary"
+                  fullWidth
                 >
-                  ✅ אשר בקשה
-                </button>
-                <button
+                  ✅ Approve Request
+                </UndergroundButton>
+                <UndergroundButton
                   onClick={() => handleReject(selectedRequest)}
                   disabled={actionInProgress}
-                  style={{
-                    padding: '14px 20px',
-                    borderRadius: '12px',
-                    border: `1px solid ${tokens.colors.status.error}`,
-                    background: 'transparent',
-                    color: tokens.colors.status.error,
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    cursor: actionInProgress ? 'not-allowed' : 'pointer',
-                    opacity: actionInProgress ? 0.6 : 1
-                  }}
+                  variant="error"
+                  fullWidth
                 >
-                  ❌ דחה בקשה
-                </button>
+                  ❌ Reject Request
+                </UndergroundButton>
               </>
             )}
             {(selectedRequest.status === 'approved' || selectedRequest.status === 'in_transit') && canFulfill && (
-              <button
+              <UndergroundButton
                 onClick={() => handleFulfill(selectedRequest)}
                 disabled={actionInProgress}
-                style={{
-                  padding: '14px 20px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  background: tokens.colors.brand.primary,
-                  color: '#fff',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  cursor: actionInProgress ? 'not-allowed' : 'pointer',
-                  opacity: actionInProgress ? 0.6 : 1
-                }}
+                variant="primary"
+                fullWidth
               >
-                📦 סמן כמומש
-              </button>
+                📦 Mark as Fulfilled
+              </UndergroundButton>
             )}
           </div>
-        </div>
+        </UndergroundCard>
       </div>
     );
   }
 
   return (
-    <div style={styles.pageContainer}>
-      {/* Header */}
-      <div style={styles.pageHeader}>
-        <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔄</div>
-        <h1 style={styles.pageTitle}>{hebrew.restock_requests}</h1>
-        <p style={styles.pageSubtitle}>
-          ניהול בקשות חידוש המלאי
-        </p>
-      </div>
+    <div
+      style={{
+        background: undergroundTheme.colors.gradient.primary,
+        color: undergroundTheme.colors.text.primary,
+        minHeight: '100vh',
+        padding: undergroundTheme.spacing['2xl'],
+        paddingBottom: undergroundTheme.spacing['8xl'],
+      }}
+    >
+      <UndergroundHeader title="Restock Requests" subtitle="Manage inventory replenishment requests" />
 
-      {/* Filter Tabs */}
-      <div style={{
-        display: 'flex',
-        gap: '8px',
-        marginBottom: '24px',
-        overflowX: 'auto',
-        padding: '0 4px'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: undergroundTheme.spacing.sm,
+          marginBottom: undergroundTheme.spacing.xl,
+          overflowX: 'auto',
+          paddingBottom: undergroundTheme.spacing.sm,
+        }}
+      >
         {[
-          { key: 'all', label: 'הכל', icon: '📋' },
-          { key: 'pending', label: 'ממתין', icon: '⏳' },
-          { key: 'approved', label: 'אושר', icon: '✅' },
-          { key: 'in_transit', label: 'בדרך', icon: '🚚' },
-          { key: 'fulfilled', label: 'מומש', icon: '📦' }
-        ].map(tab => (
-          <button
+          { key: 'all', label: 'All', icon: '📋' },
+          { key: 'pending', label: 'Pending', icon: '⏳' },
+          { key: 'approved', label: 'Approved', icon: '✅' },
+          { key: 'in_transit', label: 'In Transit', icon: '🚚' },
+          { key: 'fulfilled', label: 'Fulfilled', icon: '📦' },
+        ].map((tab) => (
+          <UndergroundButton
             key={tab.key}
-            onClick={() => setFilter(tab.key as typeof filter)}
-            style={{
-              padding: '10px 16px',
-              borderRadius: '10px',
-              border: filter === tab.key
-                ? `2px solid ${tokens.colors.brand.primary}`
-                : `1px solid ${tokens.colors.background.cardBorder}`,
-              background: filter === tab.key
-                ? 'rgba(29, 155, 240, 0.15)'
-                : tokens.colors.background.card,
-              color: filter === tab.key ? tokens.colors.brand.primary : tokens.colors.text,
-              fontSize: '13px',
-              fontWeight: filter === tab.key ? '600' : '500',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
+            variant={filter === tab.key ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setFilter(tab.key as FilterStatus)}
+            style={{ whiteSpace: 'nowrap' }}
           >
-            <span>{tab.icon}</span>
-            <span>{tab.label}</span>
-          </button>
+            {tab.icon} {tab.label}
+          </UndergroundButton>
         ))}
       </div>
 
-      {/* Stats Summary */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
-        gap: '12px',
-        marginBottom: '24px'
-      }}>
-        <div style={styles.stat.box}>
-          <div style={styles.stat.value}>{requests.length}</div>
-          <div style={styles.stat.label}>סה"כ בקשות</div>
-        </div>
-        <div style={styles.stat.box}>
-          <div style={{ ...styles.stat.value, color: tokens.colors.status.warning }}>
-            {requests.filter(r => r.status === 'pending').length}
-          </div>
-          <div style={styles.stat.label}>ממתינות</div>
-        </div>
-        <div style={styles.stat.box}>
-          <div style={{ ...styles.stat.value, color: tokens.colors.status.success }}>
-            {requests.filter(r => r.status === 'fulfilled').length}
-          </div>
-          <div style={styles.stat.label}>מומשו</div>
-        </div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+          gap: undergroundTheme.spacing.md,
+          marginBottom: undergroundTheme.spacing.xl,
+        }}
+      >
+        <UndergroundStatCard
+          label="Total Requests"
+          value={requests.length}
+          accentColor={undergroundTheme.colors.accent.primary}
+        />
+        <UndergroundStatCard
+          label="Pending"
+          value={requests.filter((r) => r.status === 'pending').length}
+          accentColor={undergroundTheme.colors.status.warning}
+        />
+        <UndergroundStatCard
+          label="Fulfilled"
+          value={requests.filter((r) => r.status === 'fulfilled').length}
+          accentColor={undergroundTheme.colors.status.success}
+        />
       </div>
 
-      {/* Requests List */}
       {requests.length === 0 ? (
-        <div style={styles.card}>
-          <div style={styles.emptyState.container}>
-            <div style={styles.emptyState.containerIcon}>📭</div>
-            <h3 style={{ margin: '0 0 8px 0', color: tokens.colors.text }}>
-              אין בקשות {filter !== 'all' ? 'בסטטוס זה' : ''}
-            </h3>
-            <div style={styles.emptyState.containerText}>
-              כל בקשות חידוש המלאי יופיעו כאן
-            </div>
-          </div>
-        </div>
+        <UndergroundEmptyState
+          title={filter !== 'all' ? `No ${filter} Requests` : 'No Requests'}
+          message="All restock requests will appear here"
+        />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {requests.map(request => (
-            <div
-              key={request.id}
-              onClick={() => setSelectedRequest(request)}
-              style={{
-                ...styles.card,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <div style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '12px'
-              }}>
-                {/* Status Icon */}
-                <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '12px',
-                  background: `${getStatusColor(request.status)}22`,
-                  border: `1px solid ${getStatusColor(request.status)}44`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '24px',
-                  flexShrink: 0
-                }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
+          {requests.map((request) => (
+            <UndergroundCard key={request.id} hover onClick={() => setSelectedRequest(request)}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: undergroundTheme.spacing.md }}>
+                <div
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: undergroundTheme.borderRadius.md,
+                    background: `${getStatusColor(request.status)}22`,
+                    border: `1px solid ${getStatusColor(request.status)}44`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '24px',
+                    flexShrink: 0,
+                  }}
+                >
                   {getStatusIcon(request.status)}
                 </div>
 
-                {/* Content */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  {/* Product Name */}
-                  <div style={{
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    color: tokens.colors.text,
-                    marginBottom: '4px'
-                  }}>
-                    {request.product?.name || 'מוצר לא ידוע'}
+                  <div
+                    style={{
+                      fontSize: undergroundTheme.typography.fontSize.base,
+                      fontWeight: undergroundTheme.typography.fontWeight.bold,
+                      color: undergroundTheme.colors.text.primary,
+                      marginBottom: undergroundTheme.spacing.xs,
+                    }}
+                  >
+                    {request.product?.name || 'Unknown Product'}
                   </div>
 
-                  {/* Status Badge */}
-                  <div style={{
-                    display: 'inline-block',
-                    padding: '4px 10px',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    fontWeight: '500',
-                    background: `${getStatusColor(request.status)}22`,
-                    color: getStatusColor(request.status),
-                    marginBottom: '8px'
-                  }}>
+                  <UndergroundBadge variant={request.status === 'fulfilled' ? 'success' : 'warning'} style={{ marginBottom: undergroundTheme.spacing.sm }}>
                     {getStatusLabel(request.status)}
+                  </UndergroundBadge>
+
+                  <div
+                    style={{
+                      fontSize: undergroundTheme.typography.fontSize.xs,
+                      color: undergroundTheme.colors.text.tertiary,
+                      marginBottom: undergroundTheme.spacing.sm,
+                    }}
+                  >
+                    → {request.to_location?.name || 'Unknown Location'}
                   </div>
 
-                  {/* Location Info */}
-                  <div style={{
-                    fontSize: '13px',
-                    color: tokens.colors.subtle,
-                    marginBottom: '8px'
-                  }}>
-                    → {request.to_location?.name || 'מיקום לא ידוע'}
-                  </div>
-
-                  {/* Quantity and Date */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px'
-                  }}>
-                    <div style={{
-                      fontSize: '16px',
-                      fontWeight: '700',
-                      color: tokens.colors.brand.primary
-                    }}>
-                      {request.requested_quantity} יח'
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: undergroundTheme.spacing.md,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: undergroundTheme.typography.fontSize.base,
+                        fontWeight: undergroundTheme.typography.fontWeight.bold,
+                        color: undergroundTheme.colors.accent.primary,
+                      }}
+                    >
+                      {request.requested_quantity} units
                     </div>
-                    <div style={{
-                      fontSize: '12px',
-                      color: tokens.colors.subtle
-                    }}>
-                      {formatDate(request.created_at)}
+                    <div
+                      style={{
+                        fontSize: undergroundTheme.typography.fontSize.xs,
+                        color: undergroundTheme.colors.text.tertiary,
+                      }}
+                    >
+                      {new Date(request.created_at).toLocaleDateString()}
                     </div>
                   </div>
                 </div>
 
-                {/* Arrow */}
-                <div style={{
-                  fontSize: '20px',
-                  color: tokens.colors.subtle,
-                  marginTop: '12px'
-                }}>
-                  ←
+                <div
+                  style={{
+                    fontSize: undergroundTheme.typography.fontSize.xl,
+                    color: undergroundTheme.colors.text.tertiary,
+                    marginTop: undergroundTheme.spacing.md,
+                  }}
+                >
+                  →
                 </div>
               </div>
-            </div>
+            </UndergroundCard>
           ))}
         </div>
       )}

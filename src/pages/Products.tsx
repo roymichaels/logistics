@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-
+import { useNavigate } from 'react-router-dom';
 import {
   useCatalog,
   useCategories,
@@ -13,22 +13,25 @@ import { useAppServices } from '../context/AppServicesContext';
 import { Diagnostics } from '../foundation/diagnostics/DiagnosticsStore';
 import { Toast } from '../components/Toast';
 import type { Product } from '../application/queries/catalog.queries';
-import { hebrew, formatCurrency } from '../lib/i18n';
-import { colors, spacing, commonStyles } from '../styles/design-system';
-import { tokens, styles } from '../styles/tokens';
-import { Input } from '../components/atoms/Input';
+import { formatCurrency } from '../lib/i18n';
 import { logger } from '../lib/logger';
-import { useNavigate } from 'react-router-dom';
 import { ImageUploadZone } from '../components/atoms/ImageUploadZone';
+import { undergroundTheme } from '../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundHeader,
+  UndergroundSection,
+  UndergroundButton,
+  UndergroundInput,
+  UndergroundSelect,
+  UndergroundModal,
+  UndergroundLoadingSpinner,
+  UndergroundEmptyState,
+  UndergroundBadge,
+} from '../components/underground';
 
-interface ProductsProps {
-  dataStore?: any;
-  onNavigate?: (page: string) => void;
-}
-
-export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
+export function Products() {
   const navigate = useNavigate();
-  const onNavigate = propOnNavigate || ((path: string) => navigate(path));
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -73,9 +76,8 @@ export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
     };
   }, [app.events, refetch]);
 
-  // Refetch products when business context changes
   useEffect(() => {
-    logger.info('🏢 Products: Business context changed, refetching...', { currentBusinessId });
+    logger.info('[Products] Business context changed, refetching...', { currentBusinessId });
     refetch();
   }, [currentBusinessId, refetch]);
 
@@ -85,13 +87,12 @@ export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
     const result = await createProduct(productData as any);
 
     if (result.success) {
-
-      Toast.success('המוצר נוצר בהצלחה');
+      Toast.success('Product created successfully');
       Diagnostics.logEvent({ type: 'log', message: 'Product created successfully', data: result.data });
       setShowCreateModal(false);
       refetch();
     } else {
-      Toast.error(result.error.message || 'שגיאה ביצירת המוצר');
+      Toast.error(result.error.message || 'Failed to create product');
       Diagnostics.logEvent({ type: 'error', message: 'Failed to create product', data: { error: result.error } });
     }
   };
@@ -102,20 +103,19 @@ export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
     const result = await updateProduct(productId, updates as any);
 
     if (result.success) {
-
-      Toast.success('המוצר עודכן בהצלחה');
+      Toast.success('Product updated successfully');
       Diagnostics.logEvent({ type: 'log', message: 'Product updated successfully', data: { productId } });
       setShowEditModal(false);
       setSelectedProduct(null);
       refetch();
     } else {
-      Toast.error(result.error.message || 'שגיאה בעדכון המוצר');
+      Toast.error(result.error.message || 'Failed to update product');
       Diagnostics.logEvent({ type: 'error', message: 'Failed to update product', data: { error: result.error } });
     }
   };
 
   const handleDeleteProduct = async (productId: string) => {
-    const confirmed = window.confirm('האם אתה בטוח שברצונך למחוק מוצר זה?');
+    const confirmed = window.confirm('Are you sure you want to delete this product?');
     if (!confirmed) return;
 
     Diagnostics.logEvent({ type: 'log', message: 'Deleting product', data: { productId } });
@@ -123,24 +123,24 @@ export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
     const result = await deleteProduct(productId);
 
     if (result.success) {
-
-      Toast.success('המוצר נמחק');
+      Toast.success('Product deleted');
       Diagnostics.logEvent({ type: 'log', message: 'Product deleted successfully', data: { productId } });
       refetch();
     } else {
-      Toast.error(result.error.message || 'שגיאה במחיקת המוצר');
+      Toast.error(result.error.message || 'Failed to delete product');
       Diagnostics.logEvent({ type: 'error', message: 'Failed to delete product', data: { error: result.error } });
     }
   };
 
-  const canManageProducts = user?.role === 'infrastructure_owner' ||
-                           user?.role === 'business_owner' ||
-                           user?.role === 'manager';
+  const canManageProducts =
+    user?.role === 'business_owner' ||
+    user?.role === 'manager' ||
+    user?.role === 'warehouse';
 
   const allCategories = ['all', ...categories];
 
   const filteredProducts = useMemo(() => {
-    return products.filter(p => {
+    return products.filter((p) => {
       if (filter !== 'all' && p.category !== filter) return false;
       if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
@@ -149,56 +149,57 @@ export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
 
   if (loading && products.length === 0) {
     return (
-      <div style={commonStyles.pageContainer}>
-        <div style={commonStyles.emptyState}>
-          <div style={commonStyles.emptyStateIcon}>📦</div>
-          <p style={commonStyles.emptyStateText}>טוען מוצרים...</p>
-        </div>
+      <div
+        style={{
+          background: undergroundTheme.colors.gradient.primary,
+          minHeight: '100vh',
+          padding: undergroundTheme.spacing['2xl'],
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <UndergroundLoadingSpinner size="lg" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={commonStyles.pageContainer}>
-        <div style={commonStyles.emptyState}>
-          <div style={commonStyles.emptyStateIcon}>❌</div>
-          <p style={commonStyles.emptyStateText}>{error.message || 'שגיאה בטעינת מוצרים'}</p>
-          <button
-            onClick={refetch}
-            style={{
-              marginTop: '16px',
-              padding: '12px 24px',
-              background: tokens.gradients.primary,
-              border: 'none',
-              borderRadius: '12px',
-              color: tokens.colors.textBright,
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
-            נסה שוב
-          </button>
+      <div
+        style={{
+          background: undergroundTheme.colors.gradient.primary,
+          minHeight: '100vh',
+          padding: undergroundTheme.spacing['2xl'],
+        }}
+      >
+        <UndergroundEmptyState
+          title="Error Loading Products"
+          message={error.message || 'Failed to load products'}
+        />
+        <div style={{ marginTop: undergroundTheme.spacing.lg, textAlign: 'center' }}>
+          <UndergroundButton onClick={refetch}>Try Again</UndergroundButton>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={commonStyles.pageContainer}>
-      <div style={commonStyles.pageHeader}>
-        <div style={commonStyles.emptyStateIcon}>📦</div>
-        <h1 style={commonStyles.pageTitle}>מוצרים</h1>
-        <p style={commonStyles.pageSubtitle}>
-          ניהול קטלוג המוצרים
-        </p>
-      </div>
+    <div
+      style={{
+        background: undergroundTheme.colors.gradient.primary,
+        color: undergroundTheme.colors.text.primary,
+        minHeight: '100vh',
+        padding: undergroundTheme.spacing['2xl'],
+        paddingBottom: undergroundTheme.spacing['8xl'],
+      }}
+    >
+      <UndergroundHeader title="Products" subtitle="Manage your product catalog" />
 
-      <div style={{ marginBottom: spacing['2xl'] }}>
-        <Input
+      <div style={{ marginBottom: undergroundTheme.spacing.xl }}>
+        <UndergroundInput
           type="text"
-          placeholder="🔍 חפש מוצר..."
+          placeholder="🔍 Search products..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           fullWidth
@@ -206,65 +207,56 @@ export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
       </div>
 
       {allCategories.length > 1 && (
-        <div style={{
-          display: 'flex',
-          gap: '8px',
-          overflowX: 'auto',
-          marginBottom: '20px',
-          paddingBottom: '8px'
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: undergroundTheme.spacing.sm,
+            overflowX: 'auto',
+            marginBottom: undergroundTheme.spacing.xl,
+            paddingBottom: undergroundTheme.spacing.sm,
+          }}
+        >
           {allCategories.map((cat) => (
-            <button
+            <UndergroundButton
               key={cat}
+              variant={filter === cat ? 'primary' : 'secondary'}
+              size="sm"
               onClick={() => {
-
                 setFilter(cat);
                 Diagnostics.logEvent({ type: 'log', message: 'Category filter changed', data: { category: cat } });
               }}
-              style={{
-                ...styles.button.secondary,
-                padding: '8px 16px',
-                fontSize: '14px',
-                whiteSpace: 'nowrap',
-                background: filter === cat ? tokens.gradients.card : tokens.colors.background.cardBg,
-                border: `1px solid ${filter === cat ? tokens.colors.brand.primary : tokens.colors.background.cardBorder}`
-              }}
+              style={{ whiteSpace: 'nowrap' }}
             >
-              {cat === 'all' ? 'הכל' : cat}
-            </button>
+              {cat === 'all' ? 'All' : cat}
+            </UndergroundButton>
           ))}
         </div>
       )}
 
       {canManageProducts && (
-        <button
-          onClick={() => {
-
-            setShowCreateModal(true);
-          }}
-          style={{
-            ...styles.button.primary,
-            width: '100%',
-            marginBottom: '24px'
-          }}
+        <UndergroundButton
+          onClick={() => setShowCreateModal(true)}
+          variant="primary"
+          fullWidth
+          style={{ marginBottom: undergroundTheme.spacing.xl }}
         >
-          + הוסף מוצר חדש
-        </button>
+          + Add New Product
+        </UndergroundButton>
       )}
 
       {filteredProducts.length === 0 ? (
-        <div style={styles.emptyState.container}>
-          <div style={styles.emptyState.containerIcon}>📦</div>
-          <div style={styles.emptyState.containerText}>
-            {searchQuery ? 'לא נמצאו מוצרים' : 'אין מוצרים להצגה'}
-          </div>
-        </div>
+        <UndergroundEmptyState
+          title={searchQuery ? 'No Products Found' : 'No Products'}
+          message={searchQuery ? 'Try a different search term' : 'Add products to get started'}
+        />
       ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: '16px'
-        }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: undergroundTheme.spacing.lg,
+          }}
+        >
           {filteredProducts.map((product) => (
             <ProductCard
               key={product.id}
@@ -282,11 +274,7 @@ export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
       )}
 
       {showCreateModal && (
-        <ProductModal
-          onClose={() => setShowCreateModal(false)}
-          onSubmit={handleCreateProduct}
-          loading={creating}
-        />
+        <ProductModal onClose={() => setShowCreateModal(false)} onSubmit={handleCreateProduct} loading={creating} />
       )}
 
       {showEditModal && selectedProduct && (
@@ -304,7 +292,13 @@ export function Products({ onNavigate: propOnNavigate }: ProductsProps = {}) {
   );
 }
 
-function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
+function ProductCard({
+  product,
+  canManage,
+  onEdit,
+  onDelete,
+  deleting,
+}: {
   product: Product;
   canManage: boolean;
   onEdit: () => void;
@@ -314,158 +308,164 @@ function ProductCard({ product, canManage, onEdit, onDelete, deleting }: {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div style={{
-      ...styles.card,
-      cursor: 'pointer',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
-      <div onClick={() => setExpanded(!expanded)}>
-        {product.image_url && (
-          <div style={{
+    <UndergroundCard hover onClick={() => setExpanded(!expanded)}>
+      {product.image_url && (
+        <div
+          style={{
             width: '100%',
             height: '180px',
-            borderRadius: '12px',
-            marginBottom: '12px',
+            borderRadius: undergroundTheme.borderRadius.md,
+            marginBottom: undergroundTheme.spacing.md,
             overflow: 'hidden',
-            background: 'rgba(255, 255, 255, 0.05)'
-          }}>
-            <img
-              src={product.image_url}
-              alt={product.name}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover'
-              }}
-            />
-          </div>
+            background: undergroundTheme.colors.glassmorphism.bg,
+          }}
+        >
+          <img
+            src={product.image_url}
+            alt={product.name}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+        </div>
+      )}
+
+      <div>
+        <h3
+          style={{
+            margin: `0 0 ${undergroundTheme.spacing.sm} 0`,
+            fontSize: undergroundTheme.typography.fontSize.lg,
+            color: undergroundTheme.colors.text.primary,
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+          }}
+        >
+          {product.name}
+        </h3>
+
+        {product.description && (
+          <p
+            style={{
+              margin: `0 0 ${undergroundTheme.spacing.md} 0`,
+              fontSize: undergroundTheme.typography.fontSize.sm,
+              color: undergroundTheme.colors.text.secondary,
+              lineHeight: '1.4',
+            }}
+          >
+            {product.description}
+          </p>
         )}
 
-        <div>
-          <h3 style={{
-            margin: '0 0 8px 0',
-            fontSize: '18px',
-            color: tokens.colors.text,
-            fontWeight: '600'
-          }}>
-            {product.name}
-          </h3>
-
-          {product.description && (
-            <p style={{
-              margin: '0 0 12px 0',
-              fontSize: '14px',
-              color: tokens.colors.subtle,
-              lineHeight: '1.4'
-            }}>
-              {product.description}
-            </p>
-          )}
-
-          <div style={{
+        <div
+          style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '8px'
-          }}>
-            <div style={{
-              fontSize: '20px',
-              fontWeight: '700',
-              color: tokens.colors.brand.primary
-            }}>
-              {formatCurrency(product.price)}
-            </div>
-
-            {product.category && (
-              <div style={{
-                padding: '4px 12px',
-                borderRadius: '12px',
-                background: 'rgba(138, 43, 226, 0.2)',
-                border: '1px solid rgba(138, 43, 226, 0.4)',
-                fontSize: '12px',
-                fontWeight: '600',
-                color: tokens.colors.brand.primary
-              }}>
-                {product.category}
-              </div>
-            )}
+            marginBottom: undergroundTheme.spacing.sm,
+          }}
+        >
+          <div
+            style={{
+              fontSize: undergroundTheme.typography.fontSize.xl,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.accent.primary,
+            }}
+          >
+            {formatCurrency(product.price)}
           </div>
 
-          {product.sku && (
-            <div style={{
-              fontSize: '12px',
-              color: tokens.colors.subtle,
-              marginTop: '4px'
-            }}>
-              SKU: {product.sku}
-            </div>
-          )}
+          {product.category && <UndergroundBadge variant="primary">{product.category}</UndergroundBadge>}
         </div>
+
+        {product.sku && (
+          <div
+            style={{
+              fontSize: undergroundTheme.typography.fontSize.xs,
+              color: undergroundTheme.colors.text.tertiary,
+              marginTop: undergroundTheme.spacing.xs,
+            }}
+          >
+            SKU: {product.sku}
+          </div>
+        )}
       </div>
 
       {expanded && (
-        <div style={{
-          marginTop: '16px',
-          paddingTop: '16px',
-          borderTop: `1px solid ${tokens.colors.border.default}`
-        }}>
+        <div
+          style={{
+            marginTop: undergroundTheme.spacing.lg,
+            paddingTop: undergroundTheme.spacing.lg,
+            borderTop: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+          }}
+        >
           {product.barcode && (
-            <div style={{ marginBottom: '8px' }}>
-              <span style={{ fontSize: '12px', color: tokens.colors.subtle }}>ברקוד: </span>
-              <span style={{ fontSize: '14px', color: tokens.colors.text }}>{product.barcode}</span>
+            <div style={{ marginBottom: undergroundTheme.spacing.sm }}>
+              <span style={{ fontSize: undergroundTheme.typography.fontSize.xs, color: undergroundTheme.colors.text.tertiary }}>
+                Barcode:{' '}
+              </span>
+              <span style={{ fontSize: undergroundTheme.typography.fontSize.sm, color: undergroundTheme.colors.text.primary }}>
+                {product.barcode}
+              </span>
             </div>
           )}
 
           {product.unit && (
-            <div style={{ marginBottom: '8px' }}>
-              <span style={{ fontSize: '12px', color: tokens.colors.subtle }}>יחידת מידה: </span>
-              <span style={{ fontSize: '14px', color: tokens.colors.text }}>{product.unit}</span>
+            <div style={{ marginBottom: undergroundTheme.spacing.sm }}>
+              <span style={{ fontSize: undergroundTheme.typography.fontSize.xs, color: undergroundTheme.colors.text.tertiary }}>
+                Unit:{' '}
+              </span>
+              <span style={{ fontSize: undergroundTheme.typography.fontSize.sm, color: undergroundTheme.colors.text.primary }}>
+                {product.unit}
+              </span>
             </div>
           )}
 
           {canManage && (
-            <div style={{
-              display: 'flex',
-              gap: '8px',
-              marginTop: '16px'
-            }}>
-              <button
-                onClick={(e) => {
+            <div
+              style={{
+                display: 'flex',
+                gap: undergroundTheme.spacing.sm,
+                marginTop: undergroundTheme.spacing.lg,
+              }}
+            >
+              <UndergroundButton
+                onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onEdit();
                 }}
-                style={{
-                  ...styles.button.secondary,
-                  flex: 1
-                }}
+                variant="secondary"
+                size="sm"
+                style={{ flex: 1 }}
               >
-                ערוך
-              </button>
-              <button
-                onClick={(e) => {
+                Edit
+              </UndergroundButton>
+              <UndergroundButton
+                onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onDelete();
                 }}
+                variant="error"
+                size="sm"
                 disabled={deleting}
-                style={{
-                  ...styles.button.danger,
-                  flex: 0.5,
-                  opacity: deleting ? 0.5 : 1,
-                  cursor: deleting ? 'not-allowed' : 'pointer'
-                }}
+                style={{ flex: 0 }}
               >
                 🗑️
-              </button>
+              </UndergroundButton>
             </div>
           )}
         </div>
       )}
-    </div>
+    </UndergroundCard>
   );
 }
 
-function ProductModal({ product, onClose, onSubmit, loading }: {
+function ProductModal({
+  product,
+  onClose,
+  onSubmit,
+  loading,
+}: {
   product?: Product;
   onClose: () => void;
   onSubmit: (data: Partial<Product>) => void;
@@ -478,21 +478,21 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
     category: product?.category || '',
     sku: product?.sku || '',
     barcode: product?.barcode || '',
-    unit: product?.unit || 'יחידה',
+    unit: product?.unit || 'unit',
     image_url: product?.image_url || '',
-    active: product?.active !== undefined ? product.active : true
+    active: product?.active !== undefined ? product.active : true,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name) {
-
+      Toast.error('Product name is required');
       return;
     }
 
     if (formData.price <= 0) {
-
+      Toast.error('Price must be greater than 0');
       return;
     }
 
@@ -500,275 +500,240 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999,
-        padding: '20px',
-        direction: 'rtl',
-        overflowY: 'auto'
-      }}
-      onClick={onClose}
+    <UndergroundModal
+      isOpen
+      onClose={onClose}
+      title={product ? 'Edit Product' : 'Add New Product'}
+      maxWidth="600px"
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          backgroundColor: tokens.colors.background.cardBg,
-          borderRadius: '20px',
-          border: `1px solid ${tokens.colors.background.cardBorder}`,
-          maxWidth: '500px',
-          width: '100%',
-          maxHeight: '90vh',
-          overflow: 'auto',
-          boxShadow: tokens.shadows.mdStrong
-        }}
-      >
-        <div style={{
-          padding: '24px',
-          borderBottom: `1px solid ${tokens.colors.border.default}`
-        }}>
-          <h2 style={{
-            margin: 0,
-            fontSize: '24px',
-            fontWeight: '700',
-            color: tokens.colors.text
-          }}>
-            {product ? 'ערוך מוצר' : 'הוסף מוצר חדש'}
-          </h2>
+      <form onSubmit={handleSubmit} style={{ padding: undergroundTheme.spacing.xl }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.lg }}>
+          <div>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: undergroundTheme.spacing.sm,
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                color: undergroundTheme.colors.text.primary,
+              }}
+            >
+              Product Name *
+            </label>
+            <UndergroundInput
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Product name"
+              disabled={loading}
+              fullWidth
+            />
+          </div>
+
+          <div>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: undergroundTheme.spacing.sm,
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                color: undergroundTheme.colors.text.primary,
+              }}
+            >
+              Description
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+              style={{
+                width: '100%',
+                padding: undergroundTheme.spacing.md,
+                background: undergroundTheme.colors.glassmorphism.bg,
+                border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                borderRadius: undergroundTheme.borderRadius.md,
+                color: undergroundTheme.colors.text.primary,
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                resize: 'vertical',
+              }}
+              placeholder="Product description"
+              disabled={loading}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: undergroundTheme.spacing.md }}>
+            <div>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: undergroundTheme.spacing.sm,
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary,
+                }}
+              >
+                Price *
+              </label>
+              <UndergroundInput
+                type="number"
+                step="0.01"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                placeholder="0.00"
+                disabled={loading}
+                fullWidth
+              />
+            </div>
+
+            <div>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: undergroundTheme.spacing.sm,
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary,
+                }}
+              >
+                Category
+              </label>
+              <UndergroundInput
+                type="text"
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                placeholder="Category"
+                disabled={loading}
+                fullWidth
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: undergroundTheme.spacing.md }}>
+            <div>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: undergroundTheme.spacing.sm,
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary,
+                }}
+              >
+                SKU
+              </label>
+              <UndergroundInput
+                type="text"
+                value={formData.sku}
+                onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                placeholder="SKU"
+                disabled={loading}
+                fullWidth
+              />
+            </div>
+
+            <div>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: undergroundTheme.spacing.sm,
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary,
+                }}
+              >
+                Barcode
+              </label>
+              <UndergroundInput
+                type="text"
+                value={formData.barcode}
+                onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                placeholder="Barcode"
+                disabled={loading}
+                fullWidth
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: undergroundTheme.spacing.sm,
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                color: undergroundTheme.colors.text.primary,
+              }}
+            >
+              Unit
+            </label>
+            <UndergroundSelect
+              value={formData.unit}
+              onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+              disabled={loading}
+              fullWidth
+            >
+              <option value="unit">Unit</option>
+              <option value="kg">Kilogram</option>
+              <option value="liter">Liter</option>
+              <option value="pack">Pack</option>
+              <option value="carton">Carton</option>
+            </UndergroundSelect>
+          </div>
+
+          <div>
+            <ImageUploadZone
+              uploadType="product"
+              currentImageUrl={formData.image_url}
+              onImageSelect={(file) => {
+                logger.info('Product image file selected', { fileName: file.name });
+              }}
+              label="Product Image"
+              helperText="Square image recommended, up to 5MB"
+              disabled={loading}
+            />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: undergroundTheme.spacing.md }}>
+            <input
+              type="checkbox"
+              id="active"
+              checked={formData.active}
+              onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+              style={{
+                width: '20px',
+                height: '20px',
+                cursor: 'pointer',
+              }}
+              disabled={loading}
+            />
+            <label
+              htmlFor="active"
+              style={{
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                color: undergroundTheme.colors.text.primary,
+                cursor: 'pointer',
+              }}
+            >
+              Active Product
+            </label>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: tokens.colors.text
-              }}>
-                שם המוצר *
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                style={styles.input}
-                placeholder="שם המוצר"
-                disabled={loading}
-              />
-            </div>
-
-            <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: tokens.colors.text
-              }}>
-                תיאור
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
-                style={{
-                  ...styles.input,
-                  resize: 'vertical'
-                }}
-                placeholder="תיאור המוצר"
-                disabled={loading}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div>
-                <label style={{
-                  display: 'block',
-                  marginBottom: '8px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: tokens.colors.text
-                }}>
-                  מחיר *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                  style={styles.input}
-                  placeholder="0.00"
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <label style={{
-                  display: 'block',
-                  marginBottom: '8px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: tokens.colors.text
-                }}>
-                  קטגוריה
-                </label>
-                <input
-                  type="text"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  style={styles.input}
-                  placeholder="קטגוריה"
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div>
-                <label style={{
-                  display: 'block',
-                  marginBottom: '8px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: tokens.colors.text
-                }}>
-                  SKU
-                </label>
-                <input
-                  type="text"
-                  value={formData.sku}
-                  onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                  style={styles.input}
-                  placeholder="SKU"
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <label style={{
-                  display: 'block',
-                  marginBottom: '8px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: tokens.colors.text
-                }}>
-                  ברקוד
-                </label>
-                <input
-                  type="text"
-                  value={formData.barcode}
-                  onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                  style={styles.input}
-                  placeholder="ברקוד"
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: tokens.colors.text
-              }}>
-                יחידת מידה
-              </label>
-              <select
-                value={formData.unit}
-                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                style={styles.input}
-                disabled={loading}
-              >
-                <option value="יחידה">יחידה</option>
-                <option value="ק״ג">ק״ג</option>
-                <option value="ליטר">ליטר</option>
-                <option value="מארז">מארז</option>
-                <option value="קרטון">קרטון</option>
-              </select>
-            </div>
-
-            <div>
-              <ImageUploadZone
-                uploadType="product"
-                currentImageUrl={formData.image_url}
-                onImageSelect={(file) => {
-                  logger.info('Product image file selected', { fileName: file.name });
-                }}
-                label="תמונת מוצר"
-                helperText="תמונה מרובעת מומלצת, עד 5MB"
-                disabled={loading}
-              />
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <input
-                type="checkbox"
-                id="active"
-                checked={formData.active}
-                onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                style={{
-                  width: '20px',
-                  height: '20px',
-                  cursor: 'pointer'
-                }}
-                disabled={loading}
-              />
-              <label
-                htmlFor="active"
-                style={{
-                  fontSize: '14px',
-                  color: tokens.colors.text,
-                  cursor: 'pointer'
-                }}
-              >
-                מוצר פעיל
-              </label>
-            </div>
-          </div>
-
-          <div style={{
+        <div
+          style={{
             display: 'flex',
-            gap: '12px',
-            marginTop: '24px'
-          }}>
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                ...styles.button.secondary,
-                flex: 1
-              }}
-              disabled={loading}
-            >
-              ביטול
-            </button>
-            <button
-              type="submit"
-              style={{
-                ...styles.button.primary,
-                flex: 2,
-                opacity: loading ? 0.5 : 1,
-                cursor: loading ? 'not-allowed' : 'pointer'
-              }}
-              disabled={loading}
-            >
-              {loading ? 'שומר...' : (product ? 'עדכן' : 'צור מוצר')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            gap: undergroundTheme.spacing.md,
+            marginTop: undergroundTheme.spacing.xl,
+          }}
+        >
+          <UndergroundButton type="button" onClick={onClose} variant="secondary" disabled={loading} style={{ flex: 1 }}>
+            Cancel
+          </UndergroundButton>
+          <UndergroundButton type="submit" variant="primary" disabled={loading} style={{ flex: 2 }}>
+            {loading ? 'Saving...' : product ? 'Update' : 'Create Product'}
+          </UndergroundButton>
+        </div>
+      </form>
+    </UndergroundModal>
   );
 }
