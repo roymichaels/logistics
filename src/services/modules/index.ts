@@ -16,6 +16,9 @@ export { CustomerService } from './CustomerService';
 export { CartService } from './CartService';
 export { OrderManagementService } from './OrderManagementService';
 export { StorefrontService } from './StorefrontService';
+export { AnalyticsService } from './AnalyticsService';
+export { AuditLogService } from './AuditLogService';
+export { TeamService } from './TeamService';
 
 export type {
   UserActiveContext,
@@ -78,3 +81,26 @@ export type {
   CreateNavigationInput,
   CreateBannerInput
 } from './StorefrontService';
+
+export type {
+  BusinessKPIs,
+  DriverPerformance,
+  ProductPerformance,
+  RevenueByCategory,
+  TimeSeries,
+  DateRangeFilter
+} from './AnalyticsService';
+
+export type {
+  AuditLog,
+  AuditLogFilter,
+  AuditLogStats
+} from './AuditLogService';
+
+export type {
+  TeamMember,
+  TeamInvitation,
+  CreateInvitationInput,
+  UpdateMemberInput,
+  TeamStats
+} from './TeamService';

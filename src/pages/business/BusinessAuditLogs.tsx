@@ -2,12 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useSafeAppServices } from '../../context/AppServicesContext';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
-import { Card } from '../../components/molecules/Card';
-import { StatCard } from '../../components/molecules/StatCard';
-import { Button } from '../../components/atoms/Button';
-import { tokens } from '../../styles/tokens';
+import {
+  UndergroundCard,
+  UndergroundHeader,
+  UndergroundStatCard,
+  UndergroundButton,
+  UndergroundSelect,
+  UndergroundInput,
+  UndergroundTable,
+  UndergroundLoadingSpinner,
+  UndergroundBadge
+} from '../../components/underground';
+import { undergroundTheme } from '../../styles/undergroundTheme';
 
 interface AuditLog {
   id: string;
@@ -104,10 +110,10 @@ export function BusinessAuditLogs() {
 
   const getActionColor = (action: string): string => {
     switch (action) {
-      case 'INSERT': return tokens.colors.status.success;
-      case 'UPDATE': return tokens.colors.status.info;
-      case 'DELETE': return tokens.colors.status.error;
-      default: return tokens.colors.subtle;
+      case 'INSERT': return undergroundTheme.colors.status.success;
+      case 'UPDATE': return undergroundTheme.colors.status.info;
+      case 'DELETE': return undergroundTheme.colors.status.error;
+      default: return undergroundTheme.colors.text.muted;
     }
   };
 
@@ -189,158 +195,138 @@ export function BusinessAuditLogs() {
 
   if (loading) {
     return (
-      <PageContainer>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: tokens.colors.text }}>טוען יומני ביקורת...</div>
-          </div>
-        </div>
-      </PageContainer>
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <UndergroundLoadingSpinner text="טוען יומני ביקורת..." />
+      </div>
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing['3xl'],
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <UndergroundHeader
         icon="📋"
         title="יומני ביקורת"
         subtitle="מעקב אחר כל השינויים והפעולות בעסק שלך"
         actions={
-          <Button onClick={exportLogs} variant="primary">
+          <UndergroundButton onClick={exportLogs} variant="primary">
             ייצוא CSV
-          </Button>
+          </UndergroundButton>
         }
       />
 
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-        gap: tokens.spacing.md,
-        marginBottom: tokens.spacing.lg
+        gap: undergroundTheme.spacing.lg,
+        marginBottom: undergroundTheme.spacing['2xl']
       }}>
-        <StatCard
+        <UndergroundStatCard
           icon="📊"
           label="סה״כ פעולות"
           value={stats.total}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="✅"
           label="יצירות"
           value={stats.inserts}
-          color={tokens.colors.success}
+          color={undergroundTheme.colors.status.success}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="✏️"
           label="עדכונים"
           value={stats.updates}
-          color={tokens.colors.info}
+          color={undergroundTheme.colors.status.info}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="❌"
           label="מחיקות"
           value={stats.deletes}
-          color={tokens.colors.error}
+          color={undergroundTheme.colors.status.error}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="📑"
           label="טבלאות"
           value={stats.tables}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="👥"
           label="משתמשים"
           value={stats.users}
         />
       </div>
 
-      <Card style={{ marginBottom: tokens.spacing.lg }}>
-        <div style={{ display: 'flex', gap: tokens.spacing.sm, marginBottom: tokens.spacing.md, flexWrap: 'wrap' }}>
+      <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['2xl'] }}>
+        <div style={{ display: 'flex', gap: undergroundTheme.spacing.sm, marginBottom: undergroundTheme.spacing.lg, flexWrap: 'wrap' }}>
           {(['1d', '7d', '30d', 'all'] as const).map(range => (
-            <Button
+            <UndergroundButton
               key={range}
               onClick={() => setDateRange(range)}
               variant={dateRange === range ? 'primary' : 'secondary'}
             >
               {range === '1d' ? 'יום אחרון' : range === '7d' ? '7 ימים' : range === '30d' ? '30 ימים' : 'הכל'}
-            </Button>
+            </UndergroundButton>
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: tokens.spacing.sm }}>
-          <input
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: undergroundTheme.spacing.md }}>
+          <UndergroundInput
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="חיפוש לפי משתמש, טבלה או מזהה..."
-            style={{
-              padding: '10px 16px',
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: '8px',
-              fontSize: '14px',
-              background: tokens.colors.surface,
-              color: tokens.colors.text
-            }}
           />
 
-          <select
+          <UndergroundSelect
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
-            style={{
-              padding: '10px 16px',
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: '8px',
-              fontSize: '14px',
-              background: tokens.colors.surface,
-              color: tokens.colors.text,
-              cursor: 'pointer'
-            }}
           >
             <option value="all">כל הפעולות</option>
             <option value="INSERT">יצירה</option>
             <option value="UPDATE">עדכון</option>
             <option value="DELETE">מחיקה</option>
-          </select>
+          </UndergroundSelect>
 
-          <select
+          <UndergroundSelect
             value={tableFilter}
             onChange={(e) => setTableFilter(e.target.value)}
-            style={{
-              padding: '10px 16px',
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: '8px',
-              fontSize: '14px',
-              background: tokens.colors.surface,
-              color: tokens.colors.text,
-              cursor: 'pointer'
-            }}
           >
             <option value="all">כל הטבלאות</option>
             {uniqueTables.map(table => (
               <option key={table} value={table}>{getTableLabel(table)}</option>
             ))}
-          </select>
+          </UndergroundSelect>
         </div>
-      </Card>
+      </UndergroundCard>
 
-      <Card>
+      <UndergroundCard>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: `2px solid ${tokens.colors.border}` }}>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>
+              <tr style={{ borderBottom: `2px solid ${undergroundTheme.colors.glassmorphism.border}` }}>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>
                   תאריך ושעה
                 </th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>
                   פעולה
                 </th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>
                   טבלה
                 </th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>
                   משתמש
                 </th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>
                   מזהה רשומה
                 </th>
               </tr>
@@ -348,37 +334,38 @@ export function BusinessAuditLogs() {
             <tbody>
               {filteredLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: tokens.colors.subtle }}>
+                  <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: undergroundTheme.colors.text.muted }}>
                     לא נמצאו יומני ביקורת
                   </td>
                 </tr>
               ) : (
                 filteredLogs.map((log) => (
-                  <tr key={log.id} style={{ borderBottom: `1px solid ${tokens.colors.border}` }}>
-                    <td style={{ padding: '16px', color: tokens.colors.text }}>
+                  <tr key={log.id} style={{
+                    borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                    transition: undergroundTheme.transitions.fast
+                  }}>
+                    <td style={{ padding: '16px', color: undergroundTheme.colors.text.secondary }}>
                       {formatDateTime(log.created_at)}
                     </td>
                     <td style={{ padding: '16px' }}>
-                      <span
-                        style={{
-                          padding: '4px 12px',
-                          borderRadius: '12px',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          background: getActionColor(log.action) + '20',
-                          color: getActionColor(log.action)
-                        }}
+                      <UndergroundBadge
+                        variant={log.action === 'INSERT' ? 'success' : log.action === 'DELETE' ? 'error' : 'info'}
                       >
                         {getActionLabel(log.action)}
-                      </span>
+                      </UndergroundBadge>
                     </td>
-                    <td style={{ padding: '16px', color: tokens.colors.text }}>
+                    <td style={{ padding: '16px', color: undergroundTheme.colors.text.secondary }}>
                       {getTableLabel(log.table_name)}
                     </td>
-                    <td style={{ padding: '16px', color: tokens.colors.text }}>
+                    <td style={{ padding: '16px', color: undergroundTheme.colors.text.secondary }}>
                       {log.user_email || 'Unknown'}
                     </td>
-                    <td style={{ padding: '16px', color: tokens.colors.subtle, fontFamily: 'monospace', fontSize: '12px' }}>
+                    <td style={{
+                      padding: '16px',
+                      color: undergroundTheme.colors.text.muted,
+                      fontFamily: undergroundTheme.typography.fontFamily.mono,
+                      fontSize: '12px'
+                    }}>
                       {log.record_id.slice(0, 8)}...
                     </td>
                   </tr>
@@ -389,16 +376,17 @@ export function BusinessAuditLogs() {
         </div>
 
         <div style={{
-          marginTop: '24px',
-          padding: '16px',
-          background: tokens.colors.surface,
-          borderRadius: '8px',
-          color: tokens.colors.subtle,
-          fontSize: '14px'
+          marginTop: undergroundTheme.spacing['2xl'],
+          padding: undergroundTheme.spacing.lg,
+          background: undergroundTheme.colors.glassmorphism.light,
+          borderRadius: undergroundTheme.borderRadius.md,
+          color: undergroundTheme.colors.text.tertiary,
+          fontSize: undergroundTheme.typography.fontSize.sm,
+          border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
         }}>
           <strong>סה״כ:</strong> {filteredLogs.length} רשומות (מתוך {logs.length})
         </div>
-      </Card>
-    </PageContainer>
+      </UndergroundCard>
+    </div>
   );
 }

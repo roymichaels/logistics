@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useSafeAppServices } from '../../context/AppServicesContext';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
-import { Card } from '../../components/molecules/Card';
-import { StatCard } from '../../components/molecules/StatCard';
-import { Button } from '../../components/atoms/Button';
-import { Switch } from '../../components/atoms/Switch';
-import { tokens } from '../../styles/tokens';
+import {
+  UndergroundCard,
+  UndergroundHeader,
+  UndergroundStatCard,
+  UndergroundButton,
+  UndergroundSwitch,
+  UndergroundLoadingSpinner,
+  UndergroundBadge
+} from '../../components/underground';
+import { undergroundTheme } from '../../styles/undergroundTheme';
 
 interface FeatureFlag {
   id: string;
@@ -200,10 +203,10 @@ export function BusinessFeatureFlags() {
 
   const getImpactColor = (impact: string): string => {
     switch (impact) {
-      case 'high': return tokens.colors.status.error;
-      case 'medium': return tokens.colors.status.warning;
-      case 'low': return tokens.colors.status.success;
-      default: return tokens.colors.subtle;
+      case 'high': return undergroundTheme.colors.status.error;
+      case 'medium': return undergroundTheme.colors.status.warning;
+      case 'low': return undergroundTheme.colors.status.success;
+      default: return undergroundTheme.colors.text.muted;
     }
   };
 
@@ -246,20 +249,26 @@ export function BusinessFeatureFlags() {
 
   if (loading) {
     return (
-      <PageContainer>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚩</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: tokens.colors.text }}>טוען תכונות...</div>
-          </div>
-        </div>
-      </PageContainer>
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <UndergroundLoadingSpinner text="טוען תכונות..." />
+      </div>
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing['3xl'],
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <UndergroundHeader
         icon="🚩"
         title="תכונות ויכולות"
         subtitle="הפעל או השבת תכונות עבור העסק שלך"
@@ -268,111 +277,106 @@ export function BusinessFeatureFlags() {
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: tokens.spacing.md,
-        marginBottom: tokens.spacing.lg
+        gap: undergroundTheme.spacing.lg,
+        marginBottom: undergroundTheme.spacing['2xl']
       }}>
-        <StatCard
+        <UndergroundStatCard
           icon="🎯"
           label="סה״כ תכונות"
           value={stats.total}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="✅"
           label="תכונות פעילות"
           value={stats.enabled}
-          color={tokens.colors.success}
+          color={undergroundTheme.colors.status.success}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="⚠️"
           label="השפעה גבוהה"
           value={stats.highImpact}
-          color={tokens.colors.warning}
+          color={undergroundTheme.colors.status.warning}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="📂"
           label="קטגוריות"
           value={stats.categories}
         />
       </div>
 
-      <Card style={{ marginBottom: tokens.spacing.lg }}>
-        <div style={{ display: 'flex', gap: tokens.spacing.sm, flexWrap: 'wrap' }}>
-          <Button
+      <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['2xl'] }}>
+        <div style={{ display: 'flex', gap: undergroundTheme.spacing.sm, flexWrap: 'wrap' }}>
+          <UndergroundButton
             onClick={() => setCategoryFilter('all')}
             variant={categoryFilter === 'all' ? 'primary' : 'secondary'}
           >
             הכל
-          </Button>
+          </UndergroundButton>
           {categories.map(category => (
-            <Button
+            <UndergroundButton
               key={category}
               onClick={() => setCategoryFilter(category)}
               variant={categoryFilter === category ? 'primary' : 'secondary'}
             >
               {getCategoryLabel(category)}
-            </Button>
+            </UndergroundButton>
           ))}
         </div>
-      </Card>
+      </UndergroundCard>
 
-      <div style={{ display: 'grid', gap: '16px' }}>
+      <div style={{ display: 'grid', gap: undergroundTheme.spacing.lg }}>
         {filteredFlags.map((flag) => (
-          <Card key={flag.key}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <UndergroundCard key={flag.key}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: undergroundTheme.spacing.lg }}>
               <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: '600', color: tokens.colors.text, margin: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: undergroundTheme.spacing.md, marginBottom: undergroundTheme.spacing.sm, flexWrap: 'wrap' }}>
+                  <h3 style={{
+                    fontSize: undergroundTheme.typography.fontSize.lg,
+                    fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                    color: undergroundTheme.colors.text.primary,
+                    margin: 0
+                  }}>
                     {flag.name}
                   </h3>
-                  <span
-                    style={{
-                      padding: '2px 8px',
-                      borderRadius: '8px',
-                      fontSize: '11px',
-                      fontWeight: '600',
-                      background: getImpactColor(flag.impact) + '20',
-                      color: getImpactColor(flag.impact)
-                    }}
+                  <UndergroundBadge
+                    variant={flag.impact === 'high' ? 'error' : flag.impact === 'medium' ? 'warning' : 'success'}
                   >
                     {getImpactLabel(flag.impact)}
-                  </span>
-                  <span
-                    style={{
-                      padding: '2px 8px',
-                      borderRadius: '8px',
-                      fontSize: '11px',
-                      fontWeight: '600',
-                      background: tokens.colors.surface,
-                      color: tokens.colors.subtle
-                    }}
-                  >
+                  </UndergroundBadge>
+                  <UndergroundBadge variant="default">
                     {getCategoryLabel(flag.category)}
-                  </span>
+                  </UndergroundBadge>
                 </div>
-                <p style={{ fontSize: '14px', color: tokens.colors.subtle, margin: 0 }}>
+                <p style={{
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  color: undergroundTheme.colors.text.tertiary,
+                  margin: 0,
+                  lineHeight: undergroundTheme.typography.lineHeight.relaxed
+                }}>
                   {flag.description}
                 </p>
               </div>
-              <Switch
+              <UndergroundSwitch
                 checked={flag.enabled}
                 onChange={(checked) => toggleFlag(flag.key, checked)}
               />
             </div>
-          </Card>
+          </UndergroundCard>
         ))}
       </div>
 
       <div style={{
-        marginTop: '24px',
-        padding: '16px',
-        background: tokens.colors.surface,
-        borderRadius: '8px',
-        fontSize: '14px',
-        color: tokens.colors.subtle
+        marginTop: undergroundTheme.spacing['2xl'],
+        padding: undergroundTheme.spacing.lg,
+        background: undergroundTheme.colors.glassmorphism.light,
+        borderRadius: undergroundTheme.borderRadius.lg,
+        fontSize: undergroundTheme.typography.fontSize.sm,
+        color: undergroundTheme.colors.text.tertiary,
+        border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
       }}>
         <strong>שימו לב:</strong> שינוי תכונות עלול להשפיע על חווית המשתמש והפעילות העסקית.
         תכונות עם השפעה גבוהה מומלץ להפעיל רק לאחר תיאום עם הצוות.
       </div>
-    </PageContainer>
+    </div>
   );
 }
