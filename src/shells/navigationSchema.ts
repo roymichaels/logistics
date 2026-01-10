@@ -175,24 +175,56 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
 
 export const DRIVER_SHELL_NAV: NavigationItem[] = [
   {
-    id: 'driver-drivers',
-    label: 'נהגים',
-    path: '/driver/drivers',
-    icon: '🚗',
+    id: 'driver-home',
+    label: 'בית',
+    path: '/driver/home',
+    icon: '🏠',
+    visible: true,
+    requiredRoles: ['driver']
+  },
+  {
+    id: 'driver-deliveries',
+    label: 'המשלוחים שלי',
+    path: '/driver/deliveries',
+    icon: '🚚',
     visible: true,
     requiredRoles: ['driver']
   },
   {
     id: 'driver-earnings',
-    label: 'רווחים',
+    label: 'הרווחים שלי',
     path: '/driver/earnings',
     icon: '💰',
     visible: true,
     requiredRoles: ['driver']
   },
   {
+    id: 'driver-stats',
+    label: 'הסטטיסטיקות שלי',
+    path: '/driver/stats',
+    icon: '📊',
+    visible: true,
+    requiredRoles: ['driver']
+  },
+  {
+    id: 'driver-tasks',
+    label: 'משימות',
+    path: '/tasks',
+    icon: '✓',
+    visible: true,
+    requiredRoles: ['driver']
+  },
+  {
+    id: 'driver-messages',
+    label: 'הודעות',
+    path: '/chat',
+    icon: '💬',
+    visible: true,
+    requiredRoles: ['driver']
+  },
+  {
     id: 'driver-profile',
-    label: 'פרופיל',
+    label: 'הפרופיל שלי',
     path: '/driver/profile',
     icon: '👤',
     visible: true,

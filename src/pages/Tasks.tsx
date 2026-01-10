@@ -189,7 +189,7 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
       }}>
         <div style={{
           background: filter === 'all' ? undergroundTheme.colors.gradient.accent : undergroundTheme.colors.glassmorphism.light,
-          border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+          border: `1px solid ${filter === 'all' ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.glassmorphism.border}`,
           borderRadius: undergroundTheme.borderRadius.xl,
           padding: undergroundTheme.spacing['2xl'],
           backdropFilter: 'blur(20px)',
@@ -200,18 +200,18 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
           <div style={{
             fontSize: undergroundTheme.typography.fontSize['3xl'],
             fontWeight: undergroundTheme.typography.fontWeight.bold,
-            color: undergroundTheme.colors.accent.primary,
+            color: filter === 'all' ? undergroundTheme.colors.text.primary : undergroundTheme.colors.accent.primary,
             marginBottom: undergroundTheme.spacing.xs,
           }}>{statusCounts.all}</div>
           <div style={{
             fontSize: undergroundTheme.typography.fontSize.sm,
-            color: undergroundTheme.colors.text.tertiary,
+            color: filter === 'all' ? undergroundTheme.colors.text.secondary : undergroundTheme.colors.text.tertiary,
             fontWeight: undergroundTheme.typography.fontWeight.medium,
           }}>כל המשימות</div>
         </div>
         <div style={{
           background: filter === 'pending' ? undergroundTheme.colors.gradient.accent : undergroundTheme.colors.glassmorphism.light,
-          border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+          border: `1px solid ${filter === 'pending' ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.glassmorphism.border}`,
           borderRadius: undergroundTheme.borderRadius.xl,
           padding: undergroundTheme.spacing['2xl'],
           backdropFilter: 'blur(20px)',
@@ -222,18 +222,18 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
           <div style={{
             fontSize: undergroundTheme.typography.fontSize['3xl'],
             fontWeight: undergroundTheme.typography.fontWeight.bold,
-            color: undergroundTheme.colors.accent.primary,
+            color: filter === 'pending' ? undergroundTheme.colors.text.primary : undergroundTheme.colors.accent.primary,
             marginBottom: undergroundTheme.spacing.xs,
           }}>{statusCounts.pending}</div>
           <div style={{
             fontSize: undergroundTheme.typography.fontSize.sm,
-            color: undergroundTheme.colors.text.tertiary,
+            color: filter === 'pending' ? undergroundTheme.colors.text.secondary : undergroundTheme.colors.text.tertiary,
             fontWeight: undergroundTheme.typography.fontWeight.medium,
           }}>ממתינות</div>
         </div>
         <div style={{
           background: filter === 'in_progress' ? undergroundTheme.colors.gradient.accent : undergroundTheme.colors.glassmorphism.light,
-          border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+          border: `1px solid ${filter === 'in_progress' ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.glassmorphism.border}`,
           borderRadius: undergroundTheme.borderRadius.xl,
           padding: undergroundTheme.spacing['2xl'],
           backdropFilter: 'blur(20px)',
@@ -244,18 +244,18 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
           <div style={{
             fontSize: undergroundTheme.typography.fontSize['3xl'],
             fontWeight: undergroundTheme.typography.fontWeight.bold,
-            color: undergroundTheme.colors.accent.primary,
+            color: filter === 'in_progress' ? undergroundTheme.colors.text.primary : undergroundTheme.colors.accent.primary,
             marginBottom: undergroundTheme.spacing.xs,
           }}>{statusCounts.in_progress}</div>
           <div style={{
             fontSize: undergroundTheme.typography.fontSize.sm,
-            color: undergroundTheme.colors.text.tertiary,
+            color: filter === 'in_progress' ? undergroundTheme.colors.text.secondary : undergroundTheme.colors.text.tertiary,
             fontWeight: undergroundTheme.typography.fontWeight.medium,
           }}>בביצוע</div>
         </div>
         <div style={{
           background: filter === 'completed' ? undergroundTheme.colors.gradient.accent : undergroundTheme.colors.glassmorphism.light,
-          border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+          border: `1px solid ${filter === 'completed' ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.glassmorphism.border}`,
           borderRadius: undergroundTheme.borderRadius.xl,
           padding: undergroundTheme.spacing['2xl'],
           backdropFilter: 'blur(20px)',
@@ -266,12 +266,12 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
           <div style={{
             fontSize: undergroundTheme.typography.fontSize['3xl'],
             fontWeight: undergroundTheme.typography.fontWeight.bold,
-            color: undergroundTheme.colors.accent.primary,
+            color: filter === 'completed' ? undergroundTheme.colors.text.primary : undergroundTheme.colors.accent.primary,
             marginBottom: undergroundTheme.spacing.xs,
           }}>{statusCounts.completed}</div>
           <div style={{
             fontSize: undergroundTheme.typography.fontSize.sm,
-            color: undergroundTheme.colors.text.tertiary,
+            color: filter === 'completed' ? undergroundTheme.colors.text.secondary : undergroundTheme.colors.text.tertiary,
             fontWeight: undergroundTheme.typography.fontWeight.medium,
           }}>הושלמו</div>
         </div>
