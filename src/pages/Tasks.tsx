@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-
+import React, { useState, useEffect, useCallback } from 'react';
 import { DataStore, Task, User } from '../data/types';
 import { undergroundTheme } from '../styles/undergroundTheme';
 import { hebrew, useI18n } from '../lib/i18n';
 import { logger } from '../lib/logger';
+import { useToast } from '../context/ToastContext';
+import { supabase } from '../lib/supabase';
 
 interface TasksProps {
   dataStore: DataStore;
@@ -12,20 +13,18 @@ interface TasksProps {
 
 export function Tasks({ dataStore, onNavigate }: TasksProps) {
   const { t } = useI18n();
+  const toast = useToast();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [profiles, setProfiles] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [operationLoading, setOperationLoading] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       if (!dataStore?.getProfile) {
@@ -37,86 +36,145 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
       setCurrentUser(profile);
 
       let tasksList: Task[] = [];
-      if (profile.role === 'infrastructure_owner' || profile.role === 'business_owner' || profile.role === 'manager' || profile.role === 'dispatcher') {
-        if (dataStore?.from) {
-          const result = await dataStore.from('tasks').select('*').order('created_at', { ascending: false });
-          if (result.success && result.data) {
-            tasksList = result.data;
-          }
+
+      // Check if user can manage tasks
+      const canManage = ['infrastructure_owner', 'business_owner', 'manager', 'dispatcher', 'superadmin', 'admin'].includes(profile.role);
+
+      if (canManage && dataStore?.from) {
+        // Load all tasks using Supabase
+        const result = await dataStore.from('tasks').select('*').order('created_at', { ascending: false });
+        if (result.success && result.data) {
+          tasksList = result.data;
         }
-      } else {
-        tasksList = await dataStore.listMyTasks?.() || [];
+      } else if (dataStore?.listMyTasks) {
+        // Load only user's assigned tasks
+        tasksList = await dataStore.listMyTasks();
       }
 
       setTasks(tasksList);
 
-      if (profile.role === 'infrastructure_owner' || profile.role === 'business_owner' || profile.role === 'manager' || profile.role === 'dispatcher') {
-        if (dataStore?.from) {
-          const usersResult = await dataStore.from('users').select('*').eq('active', true).order('name');
-          if (usersResult.success && usersResult.data) {
-            setUsers(usersResult.data);
-          }
+      // Load profiles (not users table) for assignment dropdown
+      if (canManage && dataStore?.from) {
+        const profilesResult = await dataStore.from('profiles').select('id, username, full_name, role, avatar_url').order('username');
+        if (profilesResult.success && profilesResult.data) {
+          setProfiles(profilesResult.data as User[]);
         }
       }
     } catch (error) {
       logger.error('Failed to load tasks:', error);
-
+      toast.error('Failed to load tasks', 'Please try again');
     } finally {
       setLoading(false);
     }
-  };
+  }, [dataStore, toast]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Real-time subscription
+  useEffect(() => {
+    if (!supabase || !currentUser) return;
+
+    const channel = supabase
+      .channel('tasks-changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'tasks' },
+        (payload) => {
+          logger.info('Task change detected:', payload);
+          loadData(); // Reload tasks when changes occur
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUser, loadData]);
 
   const handleCreateTask = async (taskData: Partial<Task>) => {
+    setOperationLoading('create');
     try {
       if (!dataStore.createTask) {
-
+        toast.error('Task creation not available');
         return;
       }
 
-      await dataStore.createTask(taskData as any);
+      // Validate required fields
+      if (!taskData.title || !taskData.title.trim()) {
+        toast.error('Task title is required');
+        return;
+      }
 
+      const result = await dataStore.createTask(taskData as any);
+
+      toast.success('Task created successfully!');
       setShowCreateModal(false);
-      loadData();
+      await loadData();
     } catch (error) {
       logger.error('Failed to create task:', error);
-
+      toast.error('Failed to create task', 'Please try again');
+    } finally {
+      setOperationLoading(null);
     }
   };
 
   const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
+    setOperationLoading(`update-${taskId}`);
     try {
       if (!dataStore.updateTask) {
-
+        toast.error('Task update not available');
         return;
       }
 
       await dataStore.updateTask(taskId, updates);
 
+      toast.success('Task updated successfully!');
       setShowEditModal(false);
       setSelectedTask(null);
-      loadData();
+      await loadData();
     } catch (error) {
       logger.error('Failed to update task:', error);
-
+      toast.error('Failed to update task', 'Please try again');
+    } finally {
+      setOperationLoading(null);
     }
   };
 
-  const handleDeleteTask = async (taskId: string) => {
-    const confirmed = window.confirm(t('tasksPage.confirmDelete'));
+  const handleDeleteTask = async (taskId: string, taskTitle: string) => {
+    const confirmed = window.confirm(`Are you sure you want to delete "${taskTitle}"?`);
     if (!confirmed) return;
 
+    setOperationLoading(`delete-${taskId}`);
     try {
-      if (!dataStore.supabase) return;
+      if (!dataStore.supabase) {
+        toast.error('Database connection not available');
+        return;
+      }
 
-      await dataStore.supabase
+      const { error } = await dataStore.supabase
         .from('tasks')
         .delete()
         .eq('id', taskId);
 
-      loadData();
+      if (error) throw error;
+
+      toast.success('Task deleted successfully!');
+      await loadData();
     } catch (error) {
       logger.error('Failed to delete task:', error);
+      toast.error('Failed to delete task', 'Please try again');
+    } finally {
+      setOperationLoading(null);
+    }
+  };
 
+  const handleQuickStatusChange = async (taskId: string, status: Task['status']) => {
+    setOperationLoading(`status-${taskId}`);
+    try {
+      await handleUpdateTask(taskId, { status });
+    } finally {
+      setOperationLoading(null);
     }
   };
 
@@ -124,10 +182,7 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
     ? tasks
     : tasks.filter(t => t.status === filter);
 
-  const canManageTasks = currentUser?.role === 'infrastructure_owner' ||
-                         currentUser?.role === 'business_owner' ||
-                         currentUser?.role === 'manager' ||
-                         currentUser?.role === 'dispatcher';
+  const canManageTasks = currentUser?.role && ['infrastructure_owner', 'business_owner', 'manager', 'dispatcher', 'superadmin', 'admin'].includes(currentUser.role);
 
   const statusCounts = {
     all: tasks.length,
@@ -144,9 +199,15 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
         padding: undergroundTheme.spacing['2xl'],
       }}>
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
-          <p style={{ color: undergroundTheme.colors.text.tertiary }}>טוען משימות...</p>
+          <div style={{ fontSize: '48px', marginBottom: '16px', animation: 'pulse 1.5s infinite' }}>📋</div>
+          <p style={{ color: undergroundTheme.colors.text.tertiary }}>Loading tasks...</p>
         </div>
+        <style>{`
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+        `}</style>
       </div>
     );
   }
@@ -169,14 +230,14 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
           fontWeight: undergroundTheme.typography.fontWeight.bold,
           color: undergroundTheme.colors.text.primary,
           marginBottom: undergroundTheme.spacing.sm,
-        }}>משימות</h1>
+        }}>Tasks</h1>
         <p style={{
           margin: 0,
           fontSize: undergroundTheme.typography.fontSize.base,
           color: undergroundTheme.colors.text.tertiary,
           fontWeight: undergroundTheme.typography.fontWeight.medium,
         }}>
-          ניהול ומעקב אחר משימות
+          Manage and track your tasks
         </p>
       </div>
 
@@ -187,116 +248,62 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
         gap: '12px',
         marginBottom: '24px'
       }}>
-        <div style={{
-          background: filter === 'all' ? undergroundTheme.colors.gradient.accent : undergroundTheme.colors.glassmorphism.light,
-          border: `1px solid ${filter === 'all' ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.glassmorphism.border}`,
-          borderRadius: undergroundTheme.borderRadius.xl,
-          padding: undergroundTheme.spacing['2xl'],
-          backdropFilter: 'blur(20px)',
-          boxShadow: filter === 'all' ? undergroundTheme.shadows.glow.cyan : undergroundTheme.shadows.md,
-          transition: undergroundTheme.transitions.normal,
-          cursor: 'pointer',
-        }} onClick={() => setFilter('all')}>
-          <div style={{
-            fontSize: undergroundTheme.typography.fontSize['3xl'],
-            fontWeight: undergroundTheme.typography.fontWeight.bold,
-            color: filter === 'all' ? undergroundTheme.colors.text.primary : undergroundTheme.colors.accent.primary,
-            marginBottom: undergroundTheme.spacing.xs,
-          }}>{statusCounts.all}</div>
-          <div style={{
-            fontSize: undergroundTheme.typography.fontSize.sm,
-            color: filter === 'all' ? undergroundTheme.colors.text.secondary : undergroundTheme.colors.text.tertiary,
-            fontWeight: undergroundTheme.typography.fontWeight.medium,
-          }}>כל המשימות</div>
-        </div>
-        <div style={{
-          background: filter === 'pending' ? undergroundTheme.colors.gradient.accent : undergroundTheme.colors.glassmorphism.light,
-          border: `1px solid ${filter === 'pending' ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.glassmorphism.border}`,
-          borderRadius: undergroundTheme.borderRadius.xl,
-          padding: undergroundTheme.spacing['2xl'],
-          backdropFilter: 'blur(20px)',
-          boxShadow: filter === 'pending' ? undergroundTheme.shadows.glow.cyan : undergroundTheme.shadows.md,
-          transition: undergroundTheme.transitions.normal,
-          cursor: 'pointer',
-        }} onClick={() => setFilter('pending')}>
-          <div style={{
-            fontSize: undergroundTheme.typography.fontSize['3xl'],
-            fontWeight: undergroundTheme.typography.fontWeight.bold,
-            color: filter === 'pending' ? undergroundTheme.colors.text.primary : undergroundTheme.colors.accent.primary,
-            marginBottom: undergroundTheme.spacing.xs,
-          }}>{statusCounts.pending}</div>
-          <div style={{
-            fontSize: undergroundTheme.typography.fontSize.sm,
-            color: filter === 'pending' ? undergroundTheme.colors.text.secondary : undergroundTheme.colors.text.tertiary,
-            fontWeight: undergroundTheme.typography.fontWeight.medium,
-          }}>ממתינות</div>
-        </div>
-        <div style={{
-          background: filter === 'in_progress' ? undergroundTheme.colors.gradient.accent : undergroundTheme.colors.glassmorphism.light,
-          border: `1px solid ${filter === 'in_progress' ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.glassmorphism.border}`,
-          borderRadius: undergroundTheme.borderRadius.xl,
-          padding: undergroundTheme.spacing['2xl'],
-          backdropFilter: 'blur(20px)',
-          boxShadow: filter === 'in_progress' ? undergroundTheme.shadows.glow.cyan : undergroundTheme.shadows.md,
-          transition: undergroundTheme.transitions.normal,
-          cursor: 'pointer',
-        }} onClick={() => setFilter('in_progress')}>
-          <div style={{
-            fontSize: undergroundTheme.typography.fontSize['3xl'],
-            fontWeight: undergroundTheme.typography.fontWeight.bold,
-            color: filter === 'in_progress' ? undergroundTheme.colors.text.primary : undergroundTheme.colors.accent.primary,
-            marginBottom: undergroundTheme.spacing.xs,
-          }}>{statusCounts.in_progress}</div>
-          <div style={{
-            fontSize: undergroundTheme.typography.fontSize.sm,
-            color: filter === 'in_progress' ? undergroundTheme.colors.text.secondary : undergroundTheme.colors.text.tertiary,
-            fontWeight: undergroundTheme.typography.fontWeight.medium,
-          }}>בביצוע</div>
-        </div>
-        <div style={{
-          background: filter === 'completed' ? undergroundTheme.colors.gradient.accent : undergroundTheme.colors.glassmorphism.light,
-          border: `1px solid ${filter === 'completed' ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.glassmorphism.border}`,
-          borderRadius: undergroundTheme.borderRadius.xl,
-          padding: undergroundTheme.spacing['2xl'],
-          backdropFilter: 'blur(20px)',
-          boxShadow: filter === 'completed' ? undergroundTheme.shadows.glow.cyan : undergroundTheme.shadows.md,
-          transition: undergroundTheme.transitions.normal,
-          cursor: 'pointer',
-        }} onClick={() => setFilter('completed')}>
-          <div style={{
-            fontSize: undergroundTheme.typography.fontSize['3xl'],
-            fontWeight: undergroundTheme.typography.fontWeight.bold,
-            color: filter === 'completed' ? undergroundTheme.colors.text.primary : undergroundTheme.colors.accent.primary,
-            marginBottom: undergroundTheme.spacing.xs,
-          }}>{statusCounts.completed}</div>
-          <div style={{
-            fontSize: undergroundTheme.typography.fontSize.sm,
-            color: filter === 'completed' ? undergroundTheme.colors.text.secondary : undergroundTheme.colors.text.tertiary,
-            fontWeight: undergroundTheme.typography.fontWeight.medium,
-          }}>הושלמו</div>
-        </div>
+        {([
+          { key: 'all' as const, label: 'All Tasks', count: statusCounts.all },
+          { key: 'pending' as const, label: 'Pending', count: statusCounts.pending },
+          { key: 'in_progress' as const, label: 'In Progress', count: statusCounts.in_progress },
+          { key: 'completed' as const, label: 'Completed', count: statusCounts.completed }
+        ]).map(({ key, label, count }) => (
+          <div
+            key={key}
+            onClick={() => setFilter(key)}
+            style={{
+              background: filter === key ? undergroundTheme.colors.gradient.accent : undergroundTheme.colors.glassmorphism.light,
+              border: `1px solid ${filter === key ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.glassmorphism.border}`,
+              borderRadius: undergroundTheme.borderRadius.xl,
+              padding: undergroundTheme.spacing['2xl'],
+              backdropFilter: 'blur(20px)',
+              boxShadow: filter === key ? undergroundTheme.shadows.glow.cyan : undergroundTheme.shadows.md,
+              transition: undergroundTheme.transitions.normal,
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{
+              fontSize: undergroundTheme.typography.fontSize['3xl'],
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: filter === key ? undergroundTheme.colors.text.primary : undergroundTheme.colors.accent.primary,
+              marginBottom: undergroundTheme.spacing.xs,
+            }}>{count}</div>
+            <div style={{
+              fontSize: undergroundTheme.typography.fontSize.sm,
+              color: filter === key ? undergroundTheme.colors.text.secondary : undergroundTheme.colors.text.tertiary,
+              fontWeight: undergroundTheme.typography.fontWeight.medium,
+            }}>{label}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Create Task Button (for admins) */}
+      {/* Create Task Button */}
       {canManageTasks && (
         <button
           onClick={() => setShowCreateModal(true)}
+          disabled={operationLoading === 'create'}
           style={{
             width: '100%',
             marginBottom: '24px',
             padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
-            background: undergroundTheme.colors.gradient.accent,
+            background: operationLoading === 'create' ? undergroundTheme.colors.glassmorphism.medium : undergroundTheme.colors.gradient.accent,
             border: 'none',
             borderRadius: undergroundTheme.borderRadius.lg,
             color: undergroundTheme.colors.text.primary,
             fontSize: undergroundTheme.typography.fontSize.base,
             fontWeight: undergroundTheme.typography.fontWeight.semibold,
-            cursor: 'pointer',
+            cursor: operationLoading === 'create' ? 'wait' : 'pointer',
             boxShadow: undergroundTheme.shadows.glow.cyan,
             transition: undergroundTheme.transitions.normal,
           }}
         >
-          + צור משימה חדשה
+          {operationLoading === 'create' ? '⏳ Creating...' : '+ Create New Task'}
         </button>
       )}
 
@@ -316,7 +323,7 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
             fontSize: undergroundTheme.typography.fontSize.lg,
             color: undergroundTheme.colors.text.tertiary,
           }}>
-            אין משימות להצגה
+            No tasks to display
           </div>
         </div>
       ) : (
@@ -326,12 +333,13 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
               key={task.id}
               task={task}
               canManage={canManageTasks}
+              isLoading={operationLoading?.includes(task.id) || false}
               onEdit={() => {
                 setSelectedTask(task);
                 setShowEditModal(true);
               }}
-              onDelete={() => handleDeleteTask(task.id)}
-              onStatusChange={(status) => handleUpdateTask(task.id, { status })}
+              onDelete={() => handleDeleteTask(task.id, task.title)}
+              onStatusChange={(status) => handleQuickStatusChange(task.id, status)}
             />
           ))}
         </div>
@@ -340,8 +348,9 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
       {/* Create Task Modal */}
       {showCreateModal && (
         <TaskModal
-          users={users}
+          profiles={profiles}
           currentUserId={currentUser?.id || ''}
+          isLoading={operationLoading === 'create'}
           onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreateTask}
         />
@@ -351,8 +360,9 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
       {showEditModal && selectedTask && (
         <TaskModal
           task={selectedTask}
-          users={users}
+          profiles={profiles}
           currentUserId={currentUser?.id || ''}
+          isLoading={operationLoading?.includes(selectedTask.id) || false}
           onClose={() => {
             setShowEditModal(false);
             setSelectedTask(null);
@@ -364,9 +374,10 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
   );
 }
 
-function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
+function TaskCard({ task, canManage, isLoading, onEdit, onDelete, onStatusChange }: {
   task: Task;
   canManage: boolean;
+  isLoading: boolean;
   onEdit: () => void;
   onDelete: () => void;
   onStatusChange: (status: Task['status']) => void;
@@ -382,23 +393,23 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
 
   const priorityColors = {
     low: undergroundTheme.colors.text.tertiary,
-    normal: undergroundTheme.colors.text.primary,
+    medium: undergroundTheme.colors.text.primary,
     high: '#FFC107',
     urgent: '#F44336'
   };
 
   const statusLabels = {
-    pending: 'ממתין',
-    in_progress: 'בביצוע',
-    completed: 'הושלם',
-    cancelled: 'בוטל'
+    pending: 'Pending',
+    in_progress: 'In Progress',
+    completed: 'Completed',
+    cancelled: 'Cancelled'
   };
 
   const priorityLabels = {
-    low: 'נמוך',
-    normal: 'רגיל',
-    high: 'גבוה',
-    urgent: 'דחוף'
+    low: 'Low',
+    medium: 'Normal',
+    high: 'High',
+    urgent: 'Urgent'
   };
 
   const color = statusColors[task.status];
@@ -413,8 +424,10 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
       boxShadow: undergroundTheme.shadows.md,
       transition: undergroundTheme.transitions.normal,
       cursor: 'pointer',
+      opacity: isLoading ? 0.6 : 1,
+      pointerEvents: isLoading ? 'none' : 'auto',
     }}>
-      <div onClick={() => setExpanded(!expanded)}>
+      <div onClick={() => !isLoading && setExpanded(!expanded)}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
           <div style={{ flex: 1 }}>
             <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: undergroundTheme.colors.text.primary, fontWeight: '600' }}>
@@ -427,7 +440,7 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
             )}
           </div>
           <div style={{ fontSize: '20px', marginLeft: '12px', color: undergroundTheme.colors.accent.primary }}>
-            {expanded ? '▼' : '◀'}
+            {isLoading ? '⏳' : expanded ? '▼' : '◀'}
           </div>
         </div>
 
@@ -467,7 +480,7 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
               fontSize: '12px',
               color: undergroundTheme.colors.text.tertiary
             }}>
-              📅 {new Date(task.due_date).toLocaleDateString('he-IL')}
+              📅 {new Date(task.due_date).toLocaleDateString()}
             </div>
           )}
         </div>
@@ -475,34 +488,29 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
 
       {expanded && (
         <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: `1px solid ${undergroundTheme.colors.glassmorphism.border}` }}>
-          {task.notes && (
-            <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '12px', color: undergroundTheme.colors.text.tertiary, marginBottom: '4px' }}>הערות</div>
-              <div style={{ fontSize: '14px', color: undergroundTheme.colors.text.primary }}>{task.notes}</div>
-            </div>
-          )}
-
           {canManage && (
-            <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '16px', flexWrap: 'wrap' }}>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onEdit();
                 }}
+                disabled={isLoading}
                 style={{
                   flex: 1,
-                  padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
+                  minWidth: '100px',
+                  padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
                   background: undergroundTheme.colors.glassmorphism.light,
                   border: `2px solid ${undergroundTheme.colors.accent.primary}`,
                   borderRadius: undergroundTheme.borderRadius.lg,
                   color: undergroundTheme.colors.accent.primary,
-                  fontSize: undergroundTheme.typography.fontSize.base,
+                  fontSize: undergroundTheme.typography.fontSize.sm,
                   fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                  cursor: 'pointer',
+                  cursor: isLoading ? 'wait' : 'pointer',
                   transition: undergroundTheme.transitions.normal,
                 }}
               >
-                ערוך
+                ✏️ Edit
               </button>
 
               {task.status === 'pending' && (
@@ -511,21 +519,23 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
                     e.stopPropagation();
                     onStatusChange('in_progress');
                   }}
+                  disabled={isLoading}
                   style={{
                     flex: 1,
-                    padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
+                    minWidth: '100px',
+                    padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
                     background: undergroundTheme.colors.gradient.accent,
                     border: 'none',
                     borderRadius: undergroundTheme.borderRadius.lg,
                     color: undergroundTheme.colors.text.primary,
-                    fontSize: undergroundTheme.typography.fontSize.base,
+                    fontSize: undergroundTheme.typography.fontSize.sm,
                     fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                    cursor: 'pointer',
+                    cursor: isLoading ? 'wait' : 'pointer',
                     boxShadow: undergroundTheme.shadows.glow.cyan,
                     transition: undergroundTheme.transitions.normal,
                   }}
                 >
-                  התחל
+                  ▶️ Start
                 </button>
               )}
 
@@ -535,20 +545,22 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
                     e.stopPropagation();
                     onStatusChange('completed');
                   }}
+                  disabled={isLoading}
                   style={{
                     flex: 1,
-                    padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
+                    minWidth: '100px',
+                    padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
                     background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
                     border: 'none',
                     borderRadius: undergroundTheme.borderRadius.lg,
                     color: undergroundTheme.colors.text.primary,
-                    fontSize: undergroundTheme.typography.fontSize.base,
+                    fontSize: undergroundTheme.typography.fontSize.sm,
                     fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                    cursor: 'pointer',
+                    cursor: isLoading ? 'wait' : 'pointer',
                     transition: undergroundTheme.transitions.normal,
                   }}
                 >
-                  סיים
+                  ✅ Complete
                 </button>
               )}
 
@@ -557,16 +569,17 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
                   e.stopPropagation();
                   onDelete();
                 }}
+                disabled={isLoading}
                 style={{
-                  flex: 0.5,
-                  padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
+                  flex: '0 0 auto',
+                  padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
                   background: undergroundTheme.colors.status.error,
                   border: 'none',
                   borderRadius: undergroundTheme.borderRadius.lg,
                   color: undergroundTheme.colors.text.primary,
-                  fontSize: undergroundTheme.typography.fontSize.base,
+                  fontSize: undergroundTheme.typography.fontSize.sm,
                   fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                  cursor: 'pointer',
+                  cursor: isLoading ? 'wait' : 'pointer',
                   transition: undergroundTheme.transitions.normal,
                 }}
               >
@@ -580,10 +593,11 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }: {
   );
 }
 
-function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
+function TaskModal({ task, profiles, currentUserId, isLoading, onClose, onSubmit }: {
   task?: Task;
-  users: User[];
+  profiles: User[];
   currentUserId: string;
+  isLoading: boolean;
   onClose: () => void;
   onSubmit: (data: Partial<Task>) => void;
 }) {
@@ -591,17 +605,33 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
     title: task?.title || '',
     description: task?.description || '',
     status: task?.status || 'pending' as Task['status'],
-    priority: task?.priority || 'normal' as Task['priority'],
+    priority: task?.priority || 'medium' as Task['priority'],
     assigned_to: task?.assigned_to || '',
     due_date: task?.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '',
-    notes: task?.notes || ''
+    type: task?.type || 'general' as Task['type']
   });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.title.trim()) {
+      newErrors.title = 'Title is required';
+    }
+
+    if (formData.title.length > 200) {
+      newErrors.title = 'Title must be less than 200 characters';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title) {
-
+    if (!validate()) {
       return;
     }
 
@@ -626,8 +656,8 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
         justifyContent: 'center',
         zIndex: 9999,
         padding: '20px',
-        direction: 'rtl',
-        overflowY: 'auto'
+        overflowY: 'auto',
+        animation: 'fadeIn 0.2s ease-out'
       }}
       onClick={onClose}
     >
@@ -643,6 +673,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
           overflow: 'auto',
           boxShadow: undergroundTheme.shadows.lg,
           backdropFilter: 'blur(20px)',
+          animation: 'slideUp 0.3s ease-out'
         }}
       >
         <div style={{
@@ -655,7 +686,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
             fontWeight: '700',
             color: undergroundTheme.colors.text.primary
           }}>
-            {task ? 'ערוך משימה' : 'צור משימה חדשה'}
+            {task ? 'Edit Task' : 'Create New Task'}
           </h2>
         </div>
 
@@ -669,7 +700,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 fontWeight: '600',
                 color: undergroundTheme.colors.text.primary
               }}>
-                כותרת *
+                Title *
               </label>
               <input
                 type="text"
@@ -679,15 +710,20 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                   width: '100%',
                   padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
                   background: undergroundTheme.colors.background.dark,
-                  border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                  border: `1px solid ${errors.title ? '#F44336' : undergroundTheme.colors.glassmorphism.border}`,
                   borderRadius: undergroundTheme.borderRadius.md,
                   color: undergroundTheme.colors.text.primary,
                   fontSize: undergroundTheme.typography.fontSize.base,
                   outline: 'none',
                   transition: undergroundTheme.transitions.normal,
                 }}
-                placeholder="כותרת המשימה"
+                placeholder="Task title"
               />
+              {errors.title && (
+                <div style={{ marginTop: '4px', fontSize: '12px', color: '#F44336' }}>
+                  {errors.title}
+                </div>
+              )}
             </div>
 
             <div>
@@ -698,7 +734,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 fontWeight: '600',
                 color: undergroundTheme.colors.text.primary
               }}>
-                תיאור
+                Description
               </label>
               <textarea
                 value={formData.description}
@@ -716,7 +752,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                   transition: undergroundTheme.transitions.normal,
                   resize: 'vertical',
                 }}
-                placeholder="תיאור המשימה"
+                placeholder="Task description"
               />
             </div>
 
@@ -729,7 +765,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                   fontWeight: '600',
                   color: undergroundTheme.colors.text.primary
                 }}>
-                  סטטוס
+                  Status
                 </label>
                 <select
                   value={formData.status}
@@ -746,10 +782,10 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                     transition: undergroundTheme.transitions.normal,
                   }}
                 >
-                  <option value="pending">ממתין</option>
-                  <option value="in_progress">בביצוע</option>
-                  <option value="completed">הושלם</option>
-                  <option value="cancelled">בוטל</option>
+                  <option value="pending">Pending</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
                 </select>
               </div>
 
@@ -761,7 +797,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                   fontWeight: '600',
                   color: undergroundTheme.colors.text.primary
                 }}>
-                  עדיפות
+                  Priority
                 </label>
                 <select
                   value={formData.priority}
@@ -778,15 +814,15 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                     transition: undergroundTheme.transitions.normal,
                   }}
                 >
-                  <option value="low">נמוך</option>
-                  <option value="normal">רגיל</option>
-                  <option value="high">גבוה</option>
-                  <option value="urgent">דחוף</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Normal</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
                 </select>
               </div>
             </div>
 
-            {users.length > 0 && (
+            {profiles.length > 0 && (
               <div>
                 <label style={{
                   display: 'block',
@@ -795,7 +831,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                   fontWeight: '600',
                   color: undergroundTheme.colors.text.primary
                 }}>
-                  הקצה למשתמש
+                  Assign to
                 </label>
                 <select
                   value={formData.assigned_to}
@@ -812,10 +848,10 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                     transition: undergroundTheme.transitions.normal,
                   }}
                 >
-                  <option value="">בחר משתמש...</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name || user.username} ({user.role})
+                  <option value="">Select user...</option>
+                  {profiles.map((profile) => (
+                    <option key={profile.id} value={profile.id}>
+                      {profile.full_name || profile.username} ({profile.role})
                     </option>
                   ))}
                 </select>
@@ -830,7 +866,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 fontWeight: '600',
                 color: undergroundTheme.colors.text.primary
               }}>
-                תאריך יעד
+                Due Date
               </label>
               <input
                 type="date"
@@ -849,36 +885,6 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 }}
               />
             </div>
-
-            <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: undergroundTheme.colors.text.primary
-              }}>
-                הערות
-              </label>
-              <textarea
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                rows={3}
-                style={{
-                  width: '100%',
-                  padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
-                  background: undergroundTheme.colors.background.dark,
-                  border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
-                  borderRadius: undergroundTheme.borderRadius.md,
-                  color: undergroundTheme.colors.text.primary,
-                  fontSize: undergroundTheme.typography.fontSize.base,
-                  outline: 'none',
-                  transition: undergroundTheme.transitions.normal,
-                  resize: 'vertical',
-                }}
-                placeholder="הערות נוספות"
-              />
-            </div>
           </div>
 
           <div style={{
@@ -889,6 +895,7 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
             <button
               type="button"
               onClick={onClose}
+              disabled={isLoading}
               style={{
                 flex: 1,
                 padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
@@ -898,33 +905,52 @@ function TaskModal({ task, users, currentUserId, onClose, onSubmit }: {
                 color: undergroundTheme.colors.accent.primary,
                 fontSize: undergroundTheme.typography.fontSize.base,
                 fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                cursor: 'pointer',
+                cursor: isLoading ? 'wait' : 'pointer',
                 transition: undergroundTheme.transitions.normal,
               }}
             >
-              ביטול
+              Cancel
             </button>
             <button
               type="submit"
+              disabled={isLoading}
               style={{
                 flex: 2,
                 padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing['2xl']}`,
-                background: undergroundTheme.colors.gradient.accent,
+                background: isLoading ? undergroundTheme.colors.glassmorphism.medium : undergroundTheme.colors.gradient.accent,
                 border: 'none',
                 borderRadius: undergroundTheme.borderRadius.lg,
                 color: undergroundTheme.colors.text.primary,
                 fontSize: undergroundTheme.typography.fontSize.base,
                 fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                cursor: 'pointer',
+                cursor: isLoading ? 'wait' : 'pointer',
                 boxShadow: undergroundTheme.shadows.glow.cyan,
                 transition: undergroundTheme.transitions.normal,
               }}
             >
-              {task ? 'עדכן' : 'צור משימה'}
+              {isLoading ? '⏳ Saving...' : (task ? 'Update Task' : 'Create Task')}
             </button>
           </div>
         </form>
       </div>
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+          from {
+            transform: translateY(20px);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   );
 }
