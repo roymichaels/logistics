@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { getStatusBadgeStyle, tokens } from '../../styles/tokens';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
-import { Card } from '../../components/molecules/Card';
+import { undergroundTheme } from '../../styles/undergroundTheme';
+import { UndergroundCard } from '../../components/underground/UndergroundCard';
+import { UndergroundButton } from '../../components/underground/UndergroundButton';
+import { UndergroundSelect } from '../../components/underground/UndergroundSelect';
+import { getStatusBadgeStyle } from '../../utils/undergroundStyles';
 
 interface DeliveryStop {
   id: string;
@@ -46,228 +47,328 @@ export function RoutePlanning() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return tokens.colors.status.error;
-      case 'medium': return tokens.colors.status.warning;
-      case 'low': return tokens.colors.status.info;
-      default: return tokens.colors.subtle;
+      case 'high': return undergroundTheme.colors.status.error;
+      case 'medium': return undergroundTheme.colors.status.warning;
+      case 'low': return undergroundTheme.colors.status.info;
+      default: return undergroundTheme.colors.text.tertiary;
+    }
+  };
+
+  const getPriorityIcon = (priority: string) => {
+    switch (priority) {
+      case 'high': return '🔴';
+      case 'medium': return '🟡';
+      case 'low': return '🟢';
+      default: return '⚪';
     }
   };
 
   return (
-    <PageContainer>
-      <PageHeader
-        icon="🗺️"
-        title="Route Planning"
-        subtitle="Plan and optimize delivery routes for drivers"
-      />
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-        <div>
-          <label style={{ display: 'block', fontSize: '14px', color: tokens.colors.subtle, marginBottom: '8px', fontWeight: 500 }}>
-            Assign to Driver
-          </label>
-          <select
-            value={selectedDriver}
-            onChange={(e) => setSelectedDriver(e.target.value)}
-            style={styles.input}
-          >
-            {drivers.map((driver) => (
-              <option key={driver.value} value={driver.value}>
-                {driver.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label style={{ display: 'block', fontSize: '14px', color: tokens.colors.subtle, marginBottom: '8px', fontWeight: 500 }}>
-            Filter by Zone
-          </label>
-          <select
-            value={selectedZone}
-            onChange={(e) => setSelectedZone(e.target.value)}
-            style={styles.input}
-          >
-            {zones.map((zone) => (
-              <option key={zone.value} value={zone.value}>
-                {zone.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-          <button
-            onClick={() => console.log('Optimize route')}
-            style={{
-              ...styles.button.primary,
-              width: '100%'
-            }}
-          >
-            Optimize Route
-          </button>
-        </div>
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing['2xl'],
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <div style={{ marginBottom: undergroundTheme.spacing['3xl'] }}>
+        <h1 style={{
+          fontSize: undergroundTheme.typography.fontSize['4xl'],
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          margin: '0 0 8px 0',
+          color: undergroundTheme.colors.text.primary,
+          textShadow: undergroundTheme.shadows.glow.cyan
+        }}>
+          🗺️ Route Planning
+        </h1>
+        <p style={{
+          margin: 0,
+          color: undergroundTheme.colors.text.secondary,
+          fontSize: undergroundTheme.typography.fontSize.lg
+        }}>
+          Plan and optimize delivery routes for drivers
+        </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '24px' }}>
-        <ContentCard>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={styles.cardTitle}>Pending Deliveries</h2>
-            <span
-              style={{
-                padding: '6px 12px',
-                background: tokens.colors.status.warning + '20',
-                color: tokens.colors.status.warning,
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: 700,
-              }}
+      <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['3xl'] }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: undergroundTheme.spacing.lg,
+          alignItems: 'end'
+        }}>
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: undergroundTheme.typography.fontSize.sm,
+              color: undergroundTheme.colors.text.secondary,
+              marginBottom: undergroundTheme.spacing.sm,
+              fontWeight: undergroundTheme.typography.fontWeight.semibold
+            }}>
+              Assign to Driver
+            </label>
+            <UndergroundSelect
+              value={selectedDriver}
+              onChange={(e) => setSelectedDriver(e.target.value)}
             >
+              {drivers.map((driver) => (
+                <option key={driver.value} value={driver.value}>
+                  {driver.label}
+                </option>
+              ))}
+            </UndergroundSelect>
+          </div>
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: undergroundTheme.typography.fontSize.sm,
+              color: undergroundTheme.colors.text.secondary,
+              marginBottom: undergroundTheme.spacing.sm,
+              fontWeight: undergroundTheme.typography.fontWeight.semibold
+            }}>
+              Filter by Zone
+            </label>
+            <UndergroundSelect
+              value={selectedZone}
+              onChange={(e) => setSelectedZone(e.target.value)}
+            >
+              {zones.map((zone) => (
+                <option key={zone.value} value={zone.value}>
+                  {zone.label}
+                </option>
+              ))}
+            </UndergroundSelect>
+          </div>
+          <UndergroundButton
+            variant="primary"
+            fullWidth
+            onClick={() => console.log('Optimize route')}
+          >
+            🎯 Optimize Route
+          </UndergroundButton>
+        </div>
+      </UndergroundCard>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))',
+        gap: undergroundTheme.spacing['2xl']
+      }}>
+        <UndergroundCard>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: undergroundTheme.spacing['2xl']
+          }}>
+            <h2 style={{
+              margin: 0,
+              fontSize: undergroundTheme.typography.fontSize['2xl'],
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary
+            }}>
+              📦 Pending Deliveries
+            </h2>
+            <span style={{
+              padding: `${undergroundTheme.spacing.xs} ${undergroundTheme.spacing.md}`,
+              background: `${undergroundTheme.colors.status.warning}20`,
+              color: undergroundTheme.colors.status.warning,
+              borderRadius: undergroundTheme.borderRadius.lg,
+              fontSize: undergroundTheme.typography.fontSize.sm,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              border: `1px solid ${undergroundTheme.colors.status.warning}40`
+            }}>
               {pendingStops.length} stops
             </span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
             {pendingStops.map((stop) => (
-              <ContentCard
+              <UndergroundCard
                 key={stop.id}
-                hoverable
+                variant="light"
+                hover
                 onClick={() => console.log('Select stop:', stop.id)}
-                style={{ padding: '16px', marginBottom: 0 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                  <div>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: tokens.colors.subtle, marginBottom: '4px' }}>
-                      {stop.orderNumber}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: undergroundTheme.spacing.md
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: undergroundTheme.spacing.sm,
+                      marginBottom: undergroundTheme.spacing.xs
+                    }}>
+                      <span style={{
+                        fontSize: undergroundTheme.typography.fontSize.xs,
+                        fontWeight: undergroundTheme.typography.fontWeight.bold,
+                        color: undergroundTheme.colors.text.tertiary
+                      }}>
+                        {stop.orderNumber}
+                      </span>
+                      <span style={{ fontSize: '16px' }}>
+                        {getPriorityIcon(stop.priority)}
+                      </span>
                     </div>
-                    <div style={{ fontSize: '16px', fontWeight: 600, color: tokens.colors.text, marginBottom: '4px' }}>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.lg,
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                      color: undergroundTheme.colors.text.primary,
+                      marginBottom: undergroundTheme.spacing.xs
+                    }}>
                       {stop.customerName}
                     </div>
-                    <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.text.secondary
+                    }}>
                       📍 {stop.address}
                     </div>
                   </div>
-                  <span
-                    style={{
-                      ...styles.badge.base,
-                      backgroundColor: getPriorityColor(stop.priority) + '20',
-                      color: getPriorityColor(stop.priority),
-                      border: `1px solid ${getPriorityColor(stop.priority)}40`,
-                      textTransform: 'uppercase',
-                    }}
-                  >
+                  <div style={{
+                    padding: `${undergroundTheme.spacing.xs} ${undergroundTheme.spacing.sm}`,
+                    background: `${getPriorityColor(stop.priority)}20`,
+                    color: getPriorityColor(stop.priority),
+                    borderRadius: undergroundTheme.borderRadius.md,
+                    fontSize: undergroundTheme.typography.fontSize.xs,
+                    fontWeight: undergroundTheme.typography.fontWeight.bold,
+                    textTransform: 'uppercase',
+                    border: `1px solid ${getPriorityColor(stop.priority)}40`
+                  }}>
                     {stop.priority}
-                  </span>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '14px', color: tokens.colors.subtle }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <span style={{
+                    fontSize: undergroundTheme.typography.fontSize.sm,
+                    color: undergroundTheme.colors.text.tertiary
+                  }}>
                     ETA: {stop.estimatedTime}
                   </span>
-                  <button
+                  <UndergroundButton
+                    variant="success"
+                    size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
                       console.log('Assign stop:', stop.id);
                     }}
-                    style={{
-                      ...styles.button.success,
-                      padding: '6px 12px',
-                      fontSize: '12px'
-                    }}
                   >
                     Assign
-                  </button>
+                  </UndergroundButton>
                 </div>
-              </ContentCard>
+              </UndergroundCard>
             ))}
           </div>
+        </UndergroundCard>
 
-          {pendingStops.length === 0 && (
-            <div style={styles.emptyState.container}>
-              <div style={styles.emptyState.containerIcon}>📦</div>
-              <p style={styles.emptyState.containerText}>
-                No pending deliveries at the moment.
-              </p>
-            </div>
-          )}
-        </ContentCard>
-
-        <ContentCard>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={styles.cardTitle}>Assigned Routes</h2>
-            <span
-              style={{
-                padding: '6px 12px',
-                background: tokens.colors.status.info + '20',
-                color: tokens.colors.status.info,
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: 700,
-              }}
-            >
+        <UndergroundCard>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: undergroundTheme.spacing['2xl']
+          }}>
+            <h2 style={{
+              margin: 0,
+              fontSize: undergroundTheme.typography.fontSize['2xl'],
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary
+            }}>
+              🚚 Assigned Routes
+            </h2>
+            <span style={{
+              padding: `${undergroundTheme.spacing.xs} ${undergroundTheme.spacing.md}`,
+              background: `${undergroundTheme.colors.status.info}20`,
+              color: undergroundTheme.colors.status.info,
+              borderRadius: undergroundTheme.borderRadius.lg,
+              fontSize: undergroundTheme.typography.fontSize.sm,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              border: `1px solid ${undergroundTheme.colors.status.info}40`
+            }}>
               {assignedStops.length} stops
             </span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
             {assignedStops.map((stop, index) => (
-              <ContentCard
+              <UndergroundCard
                 key={stop.id}
-                hoverable
+                variant="light"
+                hover
                 onClick={() => console.log('View stop details:', stop.id)}
-                style={{ padding: '16px', marginBottom: 0 }}
               >
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      background: tokens.gradients.primary,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '14px',
-                      fontWeight: 700,
-                      color: tokens.colors.text.bright,
-                      flexShrink: 0,
-                    }}
-                  >
+                <div style={{ display: 'flex', gap: undergroundTheme.spacing.md }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: undergroundTheme.colors.gradient.accent,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: undergroundTheme.typography.fontSize.lg,
+                    fontWeight: undergroundTheme.typography.fontWeight.bold,
+                    color: undergroundTheme.colors.text.primary,
+                    flexShrink: 0,
+                    boxShadow: undergroundTheme.shadows.glow.cyan
+                  }}>
                     {index + 1}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      marginBottom: undergroundTheme.spacing.sm
+                    }}>
                       <div>
-                        <div style={{ fontSize: '12px', fontWeight: 600, color: tokens.colors.subtle, marginBottom: '4px' }}>
+                        <div style={{
+                          fontSize: undergroundTheme.typography.fontSize.xs,
+                          fontWeight: undergroundTheme.typography.fontWeight.bold,
+                          color: undergroundTheme.colors.text.tertiary,
+                          marginBottom: undergroundTheme.spacing.xs
+                        }}>
                           {stop.orderNumber}
                         </div>
-                        <div style={{ fontSize: '16px', fontWeight: 600, color: tokens.colors.text, marginBottom: '4px' }}>
+                        <div style={{
+                          fontSize: undergroundTheme.typography.fontSize.lg,
+                          fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                          color: undergroundTheme.colors.text.primary,
+                          marginBottom: undergroundTheme.spacing.xs
+                        }}>
                           {stop.customerName}
                         </div>
-                        <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
+                        <div style={{
+                          fontSize: undergroundTheme.typography.fontSize.sm,
+                          color: undergroundTheme.colors.text.secondary
+                        }}>
                           📍 {stop.address}
                         </div>
                       </div>
-                      <span style={getStatusBadgeStyle(stop.status)}>
+                      <div style={getStatusBadgeStyle(stop.status)}>
                         {stop.status.replace('_', ' ')}
-                      </span>
+                      </div>
                     </div>
-                    <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.text.tertiary
+                    }}>
                       ETA: {stop.estimatedTime}
                     </div>
                   </div>
                 </div>
-              </ContentCard>
+              </UndergroundCard>
             ))}
           </div>
-
-          {assignedStops.length === 0 && (
-            <div style={styles.emptyState.container}>
-              <div style={styles.emptyState.containerIcon}>🚚</div>
-              <p style={styles.emptyState.containerText}>
-                No assigned routes yet. Start assigning deliveries.
-              </p>
-            </div>
-          )}
-        </ContentCard>
+        </UndergroundCard>
       </div>
-    </PageContainer>
+    </div>
   );
 }
