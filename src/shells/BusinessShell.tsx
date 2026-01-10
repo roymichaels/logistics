@@ -7,6 +7,7 @@ import { MenuItemConfig, MenuCategory } from '../components/navigation';
 import { BusinessHeaderSelector } from '../components/BusinessHeaderSelector';
 import { logger } from '../lib/logger';
 import { useBusinessScopedAccess } from '../hooks/useBusinessScopedAccess';
+import { NoBusinessSelected } from '../components/NoBusinessSelected';
 
 interface BusinessShellProps {
   children: React.ReactNode;
@@ -35,6 +36,11 @@ export function BusinessShell({
 }: BusinessShellProps) {
   const [showOrderWizard, setShowOrderWizard] = useState(false);
   const businessAccess = useBusinessScopedAccess();
+
+  const allowedPathsWithoutBusiness = [
+    '/business/businesses'
+  ];
+  const isAllowedPath = allowedPathsWithoutBusiness.some(path => currentPath.startsWith(path));
 
   const navigationItems = getNavigationForRole(role);
   const isMultiBusinessOwner = role === 'business_owner' && availableBusinesses.length > 1;
@@ -121,6 +127,8 @@ export function BusinessShell({
     />
   ) : null;
 
+  const needsBusinessContext = businessAccess.isBusinessScopedRole && !businessAccess.hasBusinessContext && !isAllowedPath;
+
   return (
     <BaseShell
       role={role}
@@ -146,7 +154,14 @@ export function BusinessShell({
         onShowCreateUser={handleShowCreateUser}
         onShowCreateProduct={handleShowCreateProduct}
       >
-        {children}
+        {needsBusinessContext ? (
+          <NoBusinessSelected
+            message="תפקיד זה דורש בחירת עסק פעיל. כל התכונות יהיו זמינות לאחר בחירת עסק."
+            showCreateButton={role === 'business_owner'}
+          />
+        ) : (
+          children
+        )}
       </UnifiedAppFrame>
     </BaseShell>
   );

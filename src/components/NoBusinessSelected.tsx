@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOptionalBusinessContext } from '../context/BusinessContext';
+import { useAuth } from '../context/AuthContext';
 import { Button } from './atoms/Button';
 import { Spinner } from './atoms/Spinner';
 
@@ -15,9 +16,11 @@ export function NoBusinessSelected({
 }: NoBusinessSelectedProps) {
   const navigate = useNavigate();
   const businessContext = useOptionalBusinessContext();
+  const { role } = useAuth();
 
   const loading = businessContext?.loading ?? false;
   const ownedBusinesses = businessContext?.ownedBusinesses ?? [];
+  const isBusinessOwner = role === 'business_owner';
 
   if (loading) {
     return (
@@ -35,6 +38,12 @@ export function NoBusinessSelected({
       </div>
     );
   }
+
+  const defaultMessage = ownedBusinesses.length === 0
+    ? (isBusinessOwner
+        ? 'עליך ליצור עסק כדי להתחיל. תפקידך מחייב הקשר עסקי פעיל.'
+        : 'תפקידך מחייב הקשר עסקי. אנא פנה לבעל העסק להוספתך לעסק.')
+    : 'נא לבחור עסק כדי להמשיך. כל התכונות זמינות רק בהקשר עסקי פעיל.';
 
   return (
     <div style={{
@@ -61,32 +70,31 @@ export function NoBusinessSelected({
           marginBottom: '0.5rem',
           color: 'var(--text-primary)'
         }}>
-          לא נבחר עסק
+          נדרש הקשר עסקי
         </h2>
         <p style={{
           color: 'var(--text-secondary)',
-          maxWidth: '400px',
-          margin: '0 auto'
+          maxWidth: '500px',
+          margin: '0 auto',
+          lineHeight: '1.6'
         }}>
-          {message || (ownedBusinesses.length === 0
-            ? 'עליך ליצור עסק כדי לגשת לדף זה.'
-            : 'נא לבחור עסק כדי להמשיך.')}
+          {message || defaultMessage}
         </p>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
         {ownedBusinesses.length > 0 && (
           <Button
-            variant="secondary"
+            variant="primary"
             onClick={() => navigate('/business/businesses')}
           >
             בחר עסק
           </Button>
         )}
 
-        {showCreateButton && (
+        {showCreateButton && isBusinessOwner && (
           <Button
-            variant="primary"
+            variant={ownedBusinesses.length === 0 ? 'primary' : 'secondary'}
             onClick={() => navigate('/business/businesses?action=create')}
           >
             {ownedBusinesses.length === 0 ? 'צור את העסק הראשון שלך' : 'צור עסק חדש'}
@@ -109,6 +117,25 @@ export function NoBusinessSelected({
           }}>
             <strong>העסקים שלך:</strong>{' '}
             {ownedBusinesses.map(b => b.name).join(', ')}
+          </p>
+        </div>
+      )}
+
+      {!isBusinessOwner && ownedBusinesses.length === 0 && (
+        <div style={{
+          marginTop: '1rem',
+          padding: '1rem',
+          backgroundColor: 'var(--warning-background)',
+          border: '1px solid var(--warning-border)',
+          borderRadius: '8px',
+          maxWidth: '500px'
+        }}>
+          <p style={{
+            fontSize: '0.875rem',
+            color: 'var(--warning-text)',
+            margin: 0
+          }}>
+            <strong>שים לב:</strong> תפקידך ({role}) דורש שיוך לעסק קיים. בעל העסק צריך להוסיף אותך לעסק שלו.
           </p>
         </div>
       )}
