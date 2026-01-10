@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useDataStore } from '../../application/hooks/useDataStore';
 import { logger } from '../../lib/logger';
 import { undergroundTheme } from '../../styles/undergroundTheme';
 import {
@@ -12,21 +11,16 @@ import {
   UndergroundModal,
   UndergroundEmptyState
 } from '../../components/underground';
-
-interface Superadmin {
-  id: string;
-  wallet_address: string;
-  name: string;
-  email?: string;
-  created_at: string;
-  last_login?: string;
-  status: 'active' | 'suspended';
-  created_by?: string;
-}
+import {
+  listSuperadmins,
+  createSuperadmin,
+  updateSuperadminStatus,
+  removeSuperadmin,
+  SuperadminUser
+} from '../../services/superadmin';
 
 export default function Superadmins() {
-  const dataStore = useDataStore();
-  const [superadmins, setSuperadmins] = useState<Superadmin[]>([]);
+  const [superadmins, setSuperadmins] = useState<SuperadminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newSuperadmin, setNewSuperadmin] = useState({
@@ -42,24 +36,11 @@ export default function Superadmins() {
   const loadSuperadmins = async () => {
     try {
       setLoading(true);
-
-      if (!dataStore?.query) {
-        setSuperadmins([]);
-        setLoading(false);
-        return;
-      }
-
-      const result = await dataStore.query('users', [
-        { column: 'role', operator: 'eq', value: 'superadmin' }
-      ]);
-      if (result.success) {
-        setSuperadmins(result.data || []);
-      } else {
-        logger.error('Failed to load superadmins', { error: result.error });
-        setSuperadmins([]);
-      }
+      const admins = await listSuperadmins();
+      setSuperadmins(admins);
+      logger.info('[Superadmins] Loaded superadmins from Supabase', { count: admins.length });
     } catch (error) {
-      logger.error('Failed to load superadmins', { error });
+      logger.error('[Superadmins] Failed to load superadmins', error);
       setSuperadmins([]);
     } finally {
       setLoading(false);
@@ -68,64 +49,51 @@ export default function Superadmins() {
 
   const handleAddSuperadmin = async () => {
     if (!newSuperadmin.wallet_address || !newSuperadmin.name) {
-      return;
-    }
-
-    if (!dataStore?.insert) {
-      logger.error('Data store not available');
+      alert('Please provide wallet address and name');
       return;
     }
 
     try {
-      await dataStore.insert('users', {
-        id: crypto.randomUUID(),
+      await createSuperadmin({
         wallet_address: newSuperadmin.wallet_address,
         name: newSuperadmin.name,
-        email: newSuperadmin.email,
-        role: 'superadmin',
-        created_at: new Date().toISOString(),
-        status: 'active'
+        email: newSuperadmin.email || undefined
       });
 
       setShowAddModal(false);
       setNewSuperadmin({ wallet_address: '', name: '', email: '' });
-      loadSuperadmins();
+      await loadSuperadmins();
+      logger.info('[Superadmins] Superadmin created successfully');
     } catch (error) {
-      logger.error('Failed to add superadmin', { error });
+      logger.error('[Superadmins] Failed to add superadmin', error);
+      alert('Failed to create superadmin. Please try again.');
     }
   };
 
   const toggleStatus = async (id: string, currentStatus: string) => {
-    if (!dataStore?.update) {
-      logger.error('Data store not available');
-      return;
-    }
-
     try {
-      await dataStore.update('users', id, {
-        status: currentStatus === 'active' ? 'suspended' : 'active'
-      });
-      loadSuperadmins();
+      const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
+      await updateSuperadminStatus(id, newStatus);
+      await loadSuperadmins();
+      logger.info('[Superadmins] Status updated successfully');
     } catch (error) {
-      logger.error('Failed to toggle superadmin status', { error });
+      logger.error('[Superadmins] Failed to toggle superadmin status', error);
+      alert('Failed to update status. Please try again.');
     }
   };
 
-  const removeSuperadmin = async (id: string) => {
-    if (!confirm('Are you sure you want to remove this superadmin?')) {
-      return;
-    }
-
-    if (!dataStore?.delete) {
-      logger.error('Data store not available');
+  const handleRemoveSuperadmin = async (id: string) => {
+    if (!confirm('Are you sure you want to remove this superadmin? Their role will be changed to customer.')) {
       return;
     }
 
     try {
-      await dataStore.delete('users', id);
-      loadSuperadmins();
+      await removeSuperadmin(id);
+      await loadSuperadmins();
+      logger.info('[Superadmins] Superadmin removed successfully');
     } catch (error) {
-      logger.error('Failed to remove superadmin', { error });
+      logger.error('[Superadmins] Failed to remove superadmin', error);
+      alert('Failed to remove superadmin. Please try again.');
     }
   };
 
@@ -325,7 +293,7 @@ export default function Superadmins() {
                         <UndergroundButton
                           variant="ghost"
                           size="small"
-                          onClick={() => removeSuperadmin(admin.id)}
+                          onClick={() => handleRemoveSuperadmin(admin.id)}
                         >
                           Remove
                         </UndergroundButton>
