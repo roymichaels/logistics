@@ -531,24 +531,7 @@ export const BottomNavigation = React.memo(function BottomNavigation({
     );
   };
 
-  // Add left side tabs (shown on right in RTL)
-  for (let i = 0; i < leftSideTabs; i++) {
-    const tab = tabs[i];
-    navItems.push(renderTab(tab));
-  }
-
-  // Add center action button
-  if (action) {
-    navItems.push(renderActionSlot());
-  }
-
-  // Add right side tabs (shown on left in RTL)
-  for (let i = leftSideTabs; i < totalTabs; i++) {
-    const tab = tabs[i];
-    navItems.push(renderTab(tab));
-  }
-
-  // Add avatar dropdown at the end (visually first in RTL)
+  // Add avatar dropdown first (visually last in RTL - far left)
   if (authCtx?.user && onLogout) {
     navItems.push(
       <div
@@ -569,6 +552,23 @@ export const BottomNavigation = React.memo(function BottomNavigation({
         />
       </div>
     );
+  }
+
+  // Add left side tabs (shown on right in RTL)
+  for (let i = 0; i < leftSideTabs; i++) {
+    const tab = tabs[i];
+    navItems.push(renderTab(tab));
+  }
+
+  // Add center action button
+  if (action) {
+    navItems.push(renderActionSlot());
+  }
+
+  // Add right side tabs (shown on left in RTL)
+  for (let i = leftSideTabs; i < totalTabs; i++) {
+    const tab = tabs[i];
+    navItems.push(renderTab(tab));
   }
 
   return (

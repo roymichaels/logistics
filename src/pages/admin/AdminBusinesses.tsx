@@ -170,99 +170,139 @@ export function AdminBusinesses() {
 
           <UndergroundCard>
             <UndergroundTable
-              headers={['Business', 'Owner', 'Type', 'Contact', 'Status', 'Orders', 'Revenue', 'Actions']}
-              rows={filteredBusinesses.map((business) => [
-                <div key="business">
-                  <div style={{
-                    fontWeight: undergroundTheme.typography.fontWeight.bold,
-                    color: undergroundTheme.colors.text.primary,
-                    fontSize: undergroundTheme.typography.fontSize.md,
-                    marginBottom: undergroundTheme.spacing.xs
-                  }}>
-                    {business.name}
-                  </div>
-                  <div style={{
-                    fontSize: undergroundTheme.typography.fontSize.xs,
-                    color: undergroundTheme.colors.text.tertiary
-                  }}>
-                    ID: {business.id.substring(0, 8)}...
-                  </div>
-                </div>,
-
-                <div key="owner">
-                  <div style={{
-                    fontSize: undergroundTheme.typography.fontSize.sm,
-                    color: undergroundTheme.colors.text.primary,
-                    marginBottom: undergroundTheme.spacing.xs
-                  }}>
-                    {business.owner_name || 'Unknown'}
-                  </div>
-                  {business.owner_email && (
-                    <div style={{
-                      fontSize: undergroundTheme.typography.fontSize.xs,
-                      color: undergroundTheme.colors.text.tertiary
-                    }}>
-                      {business.owner_email}
+              columns={[
+                {
+                  key: 'business',
+                  label: 'Business',
+                  render: (_, business) => (
+                    <div>
+                      <div style={{
+                        fontWeight: undergroundTheme.typography.fontWeight.bold,
+                        color: undergroundTheme.colors.text.primary,
+                        fontSize: undergroundTheme.typography.fontSize.md,
+                        marginBottom: undergroundTheme.spacing.xs
+                      }}>
+                        {business.name}
+                      </div>
+                      <div style={{
+                        fontSize: undergroundTheme.typography.fontSize.xs,
+                        color: undergroundTheme.colors.text.tertiary
+                      }}>
+                        ID: {business.id.substring(0, 8)}...
+                      </div>
                     </div>
-                  )}
-                </div>,
-
-                <UndergroundBadge key="type" variant="secondary">
-                  {business.business_type}
-                </UndergroundBadge>,
-
-                <div key="contact">
-                  {business.public_email && (
-                    <div style={{
-                      fontSize: undergroundTheme.typography.fontSize.sm,
-                      color: undergroundTheme.colors.text.primary,
-                      marginBottom: undergroundTheme.spacing.xs
-                    }}>
-                      {business.public_email}
+                  )
+                },
+                {
+                  key: 'owner',
+                  label: 'Owner',
+                  render: (_, business) => (
+                    <div>
+                      <div style={{
+                        fontSize: undergroundTheme.typography.fontSize.sm,
+                        color: undergroundTheme.colors.text.primary,
+                        marginBottom: undergroundTheme.spacing.xs
+                      }}>
+                        {business.owner_name || 'Unknown'}
+                      </div>
+                      {business.owner_email && (
+                        <div style={{
+                          fontSize: undergroundTheme.typography.fontSize.xs,
+                          color: undergroundTheme.colors.text.tertiary
+                        }}>
+                          {business.owner_email}
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {business.public_phone && (
-                    <div style={{
-                      fontSize: undergroundTheme.typography.fontSize.xs,
-                      color: undergroundTheme.colors.text.tertiary
-                    }}>
-                      {business.public_phone}
+                  )
+                },
+                {
+                  key: 'type',
+                  label: 'Type',
+                  render: (_, business) => (
+                    <UndergroundBadge variant="secondary">
+                      {business.business_type}
+                    </UndergroundBadge>
+                  )
+                },
+                {
+                  key: 'contact',
+                  label: 'Contact',
+                  render: (_, business) => (
+                    <div>
+                      {business.public_email && (
+                        <div style={{
+                          fontSize: undergroundTheme.typography.fontSize.sm,
+                          color: undergroundTheme.colors.text.primary,
+                          marginBottom: undergroundTheme.spacing.xs
+                        }}>
+                          {business.public_email}
+                        </div>
+                      )}
+                      {business.public_phone && (
+                        <div style={{
+                          fontSize: undergroundTheme.typography.fontSize.xs,
+                          color: undergroundTheme.colors.text.tertiary
+                        }}>
+                          {business.public_phone}
+                        </div>
+                      )}
+                      {!business.public_email && !business.public_phone && (
+                        <span style={{ color: undergroundTheme.colors.text.tertiary }}>-</span>
+                      )}
                     </div>
-                  )}
-                  {!business.public_email && !business.public_phone && (
-                    <span style={{ color: undergroundTheme.colors.text.tertiary }}>-</span>
-                  )}
-                </div>,
-
-                <UndergroundBadge key="status" variant={getStatusVariant(business.status)}>
-                  {business.status}
-                </UndergroundBadge>,
-
-                <div key="orders" style={{
-                  fontSize: undergroundTheme.typography.fontSize.md,
-                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                  color: undergroundTheme.colors.text.primary
-                }}>
-                  {business.total_orders || 0}
-                </div>,
-
-                <div key="revenue" style={{
-                  fontSize: undergroundTheme.typography.fontSize.md,
-                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                  color: undergroundTheme.colors.accent.primary
-                }}>
-                  ₪{(business.total_revenue || 0).toFixed(2)}
-                </div>,
-
-                <UndergroundButton
-                  key="actions"
-                  variant="ghost"
-                  size="small"
-                  onClick={() => openEditModal(business)}
-                >
-                  Edit
-                </UndergroundButton>
-              ])}
+                  )
+                },
+                {
+                  key: 'status',
+                  label: 'Status',
+                  render: (_, business) => (
+                    <UndergroundBadge variant={getStatusVariant(business.status)}>
+                      {business.status}
+                    </UndergroundBadge>
+                  )
+                },
+                {
+                  key: 'orders',
+                  label: 'Orders',
+                  render: (_, business) => (
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.md,
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                      color: undergroundTheme.colors.text.primary
+                    }}>
+                      {business.total_orders || 0}
+                    </div>
+                  )
+                },
+                {
+                  key: 'revenue',
+                  label: 'Revenue',
+                  render: (_, business) => (
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.md,
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                      color: undergroundTheme.colors.accent.primary
+                    }}>
+                      ₪{(business.total_revenue || 0).toFixed(2)}
+                    </div>
+                  )
+                },
+                {
+                  key: 'actions',
+                  label: 'Actions',
+                  render: (_, business) => (
+                    <UndergroundButton
+                      variant="ghost"
+                      size="small"
+                      onClick={() => openEditModal(business)}
+                    >
+                      Edit
+                    </UndergroundButton>
+                  )
+                }
+              ]}
+              data={filteredBusinesses}
             />
           </UndergroundCard>
         </UndergroundSection>
