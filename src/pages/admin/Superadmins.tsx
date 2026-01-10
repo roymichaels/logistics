@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useDataStore } from '../../application/hooks/useDataStore';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
-import { Card } from '../../components/molecules/Card';
-import { Button } from '../../components/atoms/Button';
-import { Input } from '../../components/atoms/Input';
-import { Modal } from '../../components/molecules/Modal';
 import { logger } from '../../lib/logger';
+import { undergroundTheme } from '../../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundButton,
+  UndergroundInput,
+  UndergroundSection,
+  UndergroundBadge,
+  UndergroundLoadingSpinner,
+  UndergroundModal,
+  UndergroundEmptyState
+} from '../../components/underground';
 
 interface Superadmin {
   id: string;
@@ -107,7 +112,7 @@ export default function Superadmins() {
   };
 
   const removeSuperadmin = async (id: string) => {
-    if (!confirm('האם אתה בטוח שברצונך להסיר מנהל על זה?')) {
+    if (!confirm('Are you sure you want to remove this superadmin?')) {
       return;
     }
 
@@ -126,152 +131,275 @@ export default function Superadmins() {
 
   if (loading) {
     return (
-      <PageContainer>
-        <PageHeader title="מנהלי על" />
-        <div style={{ padding: '2rem', textAlign: 'center' }}>טוען...</div>
-      </PageContainer>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: undergroundTheme.colors.gradient.primary
+      }}>
+        <UndergroundLoadingSpinner size="large" />
+      </div>
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader
-        title="מנהלי על"
-        subtitle="ניהול חשבונות מנהלי על של הפלטפורמה"
-        action={
-          <Button onClick={() => setShowAddModal(true)}>
-            + הוסף מנהל על
-          </Button>
-        }
-      />
-
-      <div style={{ padding: '1.5rem' }}>
-        <div style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '0.5rem', border: '1px solid #fbbf24' }}>
-          <strong>⚠️ אזהרה:</strong> מנהלי על יש להם גישה מלאה לכל הפלטפורמה. הוסף רק משתמשים מהימנים.
-        </div>
-
-        <div style={{ display: 'grid', gap: '1rem' }}>
-          {superadmins.length === 0 ? (
-            <Card>
-              <div style={{ padding: '2rem', textAlign: 'center' }}>
-                <p>אין מנהלי על במערכת</p>
-              </div>
-            </Card>
-          ) : (
-            superadmins.map((admin) => (
-              <Card key={admin.id}>
-                <div style={{ padding: '1.5rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
-                    <div>
-                      <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>{admin.name}</h3>
-                      <p style={{ margin: '0.5rem 0', color: '#666', fontSize: '0.875rem', fontFamily: 'monospace' }}>
-                        {admin.wallet_address.slice(0, 10)}...{admin.wallet_address.slice(-8)}
-                      </p>
-                      {admin.email && (
-                        <p style={{ margin: '0.25rem 0', color: '#666', fontSize: '0.875rem' }}>
-                          {admin.email}
-                        </p>
-                      )}
-                    </div>
-                    <span
-                      style={{
-                        padding: '0.25rem 0.75rem',
-                        borderRadius: '1rem',
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        backgroundColor: admin.status === 'active' ? '#10b981' : '#ef4444',
-                        color: 'white'
-                      }}
-                    >
-                      {admin.status === 'active' ? 'פעיל' : 'מושעה'}
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '2rem', marginBottom: '1rem', fontSize: '0.875rem' }}>
-                    <div>
-                      <span style={{ color: '#666' }}>נוצר: </span>
-                      <strong>{new Date(admin.created_at).toLocaleDateString('he-IL')}</strong>
-                    </div>
-                    {admin.last_login && (
-                      <div>
-                        <span style={{ color: '#666' }}>התחברות אחרונה: </span>
-                        <strong>{new Date(admin.last_login).toLocaleDateString('he-IL')}</strong>
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <Button
-                      variant={admin.status === 'active' ? 'secondary' : 'primary'}
-                      onClick={() => toggleStatus(admin.id, admin.status)}
-                    >
-                      {admin.status === 'active' ? 'השעה' : 'הפעל'}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => removeSuperadmin(admin.id)}
-                      style={{ color: '#dc2626' }}
-                    >
-                      הסר
-                    </Button>
-                  </div>
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing.xl,
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+        <UndergroundSection
+          title="Superadmins"
+          icon="👑"
+          style={{ marginBottom: undergroundTheme.spacing.xl }}
+        >
+          <UndergroundCard style={{ marginBottom: undergroundTheme.spacing.lg, background: 'rgba(251, 191, 36, 0.1)', border: '1px solid rgba(251, 191, 36, 0.3)' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: undergroundTheme.spacing.md
+            }}>
+              <span style={{ fontSize: '24px' }}>⚠️</span>
+              <div>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: '#fbbf24',
+                  marginBottom: undergroundTheme.spacing.xs
+                }}>
+                  Warning
                 </div>
-              </Card>
-            ))
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  color: undergroundTheme.colors.text.secondary
+                }}>
+                  Superadmins have full access to the entire platform. Only add trusted users.
+                </div>
+              </div>
+            </div>
+          </UndergroundCard>
+
+          <UndergroundCard style={{ marginBottom: undergroundTheme.spacing.lg }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div style={{
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                color: undergroundTheme.colors.text.secondary
+              }}>
+                Manage platform superadmin accounts
+              </div>
+
+              <div style={{ display: 'flex', gap: undergroundTheme.spacing.md }}>
+                <UndergroundButton
+                  variant="secondary"
+                  size="small"
+                  onClick={loadSuperadmins}
+                >
+                  Refresh
+                </UndergroundButton>
+                <UndergroundButton
+                  variant="primary"
+                  size="small"
+                  onClick={() => setShowAddModal(true)}
+                >
+                  Add Superadmin
+                </UndergroundButton>
+              </div>
+            </div>
+          </UndergroundCard>
+
+          {superadmins.length === 0 ? (
+            <UndergroundCard>
+              <UndergroundEmptyState
+                icon="👑"
+                title="No Superadmins"
+                description="Add the first superadmin to manage the platform"
+                action={
+                  <UndergroundButton variant="primary" onClick={() => setShowAddModal(true)}>
+                    Add Superadmin
+                  </UndergroundButton>
+                }
+              />
+            </UndergroundCard>
+          ) : (
+            <div style={{
+              display: 'grid',
+              gap: undergroundTheme.spacing.lg
+            }}>
+              {superadmins.map((admin) => (
+                <UndergroundCard key={admin.id}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start'
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: undergroundTheme.spacing.md,
+                        marginBottom: undergroundTheme.spacing.md
+                      }}>
+                        <div style={{
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '50%',
+                          background: undergroundTheme.colors.glassmorphism.medium,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '24px'
+                        }}>
+                          👑
+                        </div>
+                        <div>
+                          <h3 style={{
+                            margin: 0,
+                            fontSize: undergroundTheme.typography.fontSize.xl,
+                            fontWeight: undergroundTheme.typography.fontWeight.bold,
+                            color: undergroundTheme.colors.text.primary
+                          }}>
+                            {admin.name}
+                          </h3>
+                          <div style={{
+                            fontSize: undergroundTheme.typography.fontSize.sm,
+                            fontFamily: 'monospace',
+                            color: undergroundTheme.colors.text.tertiary,
+                            marginTop: undergroundTheme.spacing.xs
+                          }}>
+                            {admin.wallet_address.slice(0, 10)}...{admin.wallet_address.slice(-8)}
+                          </div>
+                        </div>
+                      </div>
+
+                      {admin.email && (
+                        <div style={{
+                          fontSize: undergroundTheme.typography.fontSize.sm,
+                          color: undergroundTheme.colors.text.secondary,
+                          marginBottom: undergroundTheme.spacing.sm
+                        }}>
+                          {admin.email}
+                        </div>
+                      )}
+
+                      <div style={{
+                        display: 'flex',
+                        gap: undergroundTheme.spacing.xl,
+                        fontSize: undergroundTheme.typography.fontSize.sm,
+                        color: undergroundTheme.colors.text.tertiary
+                      }}>
+                        <div>
+                          <span>Created: </span>
+                          <strong style={{ color: undergroundTheme.colors.text.secondary }}>
+                            {new Date(admin.created_at).toLocaleDateString()}
+                          </strong>
+                        </div>
+                        {admin.last_login && (
+                          <div>
+                            <span>Last Login: </span>
+                            <strong style={{ color: undergroundTheme.colors.text.secondary }}>
+                              {new Date(admin.last_login).toLocaleDateString()}
+                            </strong>
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{
+                        display: 'flex',
+                        gap: undergroundTheme.spacing.md,
+                        marginTop: undergroundTheme.spacing.lg
+                      }}>
+                        <UndergroundButton
+                          variant={admin.status === 'active' ? 'secondary' : 'primary'}
+                          size="small"
+                          onClick={() => toggleStatus(admin.id, admin.status)}
+                        >
+                          {admin.status === 'active' ? 'Suspend' : 'Activate'}
+                        </UndergroundButton>
+                        <UndergroundButton
+                          variant="ghost"
+                          size="small"
+                          onClick={() => removeSuperadmin(admin.id)}
+                        >
+                          Remove
+                        </UndergroundButton>
+                      </div>
+                    </div>
+
+                    <UndergroundBadge variant={admin.status === 'active' ? 'success' : 'error'}>
+                      {admin.status}
+                    </UndergroundBadge>
+                  </div>
+                </UndergroundCard>
+              ))}
+            </div>
           )}
-        </div>
+        </UndergroundSection>
       </div>
 
-      {showAddModal && (
-        <Modal
-          isOpen={showAddModal}
-          onClose={() => setShowAddModal(false)}
-          title="הוסף מנהל על חדש"
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                כתובת ארנק *
-              </label>
-              <Input
-                value={newSuperadmin.wallet_address}
-                onChange={(e) => setNewSuperadmin({ ...newSuperadmin, wallet_address: e.target.value })}
-                placeholder="0x..."
-              />
-            </div>
+      <UndergroundModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="Add Superadmin"
+      >
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: undergroundTheme.spacing.lg
+        }}>
+          <UndergroundInput
+            type="text"
+            label="Wallet Address *"
+            value={newSuperadmin.wallet_address}
+            onChange={(e) => setNewSuperadmin({ ...newSuperadmin, wallet_address: e.target.value })}
+            placeholder="0x..."
+          />
 
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                שם *
-              </label>
-              <Input
-                value={newSuperadmin.name}
-                onChange={(e) => setNewSuperadmin({ ...newSuperadmin, name: e.target.value })}
-                placeholder="שם מלא"
-              />
-            </div>
+          <UndergroundInput
+            type="text"
+            label="Full Name *"
+            value={newSuperadmin.name}
+            onChange={(e) => setNewSuperadmin({ ...newSuperadmin, name: e.target.value })}
+            placeholder="John Doe"
+          />
 
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                אימייל (אופציונלי)
-              </label>
-              <Input
-                type="email"
-                value={newSuperadmin.email}
-                onChange={(e) => setNewSuperadmin({ ...newSuperadmin, email: e.target.value })}
-                placeholder="email@example.com"
-              />
-            </div>
+          <UndergroundInput
+            type="email"
+            label="Email (Optional)"
+            value={newSuperadmin.email}
+            onChange={(e) => setNewSuperadmin({ ...newSuperadmin, email: e.target.value })}
+            placeholder="email@example.com"
+          />
 
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-              <Button onClick={handleAddSuperadmin}>הוסף מנהל על</Button>
-              <Button variant="secondary" onClick={() => setShowAddModal(false)}>
-                ביטול
-              </Button>
-            </div>
+          <div style={{
+            display: 'flex',
+            gap: undergroundTheme.spacing.md,
+            marginTop: undergroundTheme.spacing.lg
+          }}>
+            <UndergroundButton
+              variant="primary"
+              onClick={handleAddSuperadmin}
+              disabled={!newSuperadmin.wallet_address || !newSuperadmin.name}
+              style={{ flex: 1 }}
+            >
+              Add Superadmin
+            </UndergroundButton>
+            <UndergroundButton
+              variant="ghost"
+              onClick={() => setShowAddModal(false)}
+              style={{ flex: 1 }}
+            >
+              Cancel
+            </UndergroundButton>
           </div>
-        </Modal>
-      )}
-    </PageContainer>
+        </div>
+      </UndergroundModal>
+    </div>
   );
 }
