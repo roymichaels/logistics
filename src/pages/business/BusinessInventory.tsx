@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useSafeAppServices } from '../../context/AppServicesContext';
+import { useService } from '../../hooks/useService';
+import { InventoryService } from '../../services/modules/InventoryService';
 import { undergroundTheme } from '../../styles/undergroundTheme';
 import {
   UndergroundCard,
@@ -13,28 +15,58 @@ import {
   UndergroundLoadingSpinner,
   UndergroundSection,
   UndergroundEmptyState,
+  UndergroundModal,
+  UndergroundTextarea,
+  UndergroundSelect,
 } from '../../components/underground';
 import { Toast } from '../../components/Toast';
 
 interface InventoryItem {
   id: string;
   product_id: string;
+  location_id: string;
   on_hand_quantity: number;
   reserved_quantity: number;
   damaged_quantity: number;
   low_stock_threshold: number;
   last_restocked?: string;
   product?: { name: string; sku: string };
+  location?: { name: string };
+}
+
+interface AdjustmentModal {
+  show: boolean;
+  item: InventoryItem | null;
+  type: 'receive' | 'adjust' | 'damage' | null;
+}
+
+interface LowStockAlert {
+  product_id: string;
+  product_name: string;
+  location_id: string;
+  location_name: string;
+  on_hand_quantity: number;
+  low_stock_threshold: number;
 }
 
 export function BusinessInventory() {
   const appServices = useSafeAppServices();
   const currentBusinessId = appServices?.currentBusinessId;
+  const inventoryService = useService(InventoryService);
 
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [lowStockAlerts, setLowStockAlerts] = useState<LowStockAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [stockFilter, setStockFilter] = useState<'all' | 'in_stock' | 'low' | 'out'>('all');
+  const [adjustmentModal, setAdjustmentModal] = useState<AdjustmentModal>({
+    show: false,
+    item: null,
+    type: null
+  });
+  const [adjustmentQuantity, setAdjustmentQuantity] = useState('');
+  const [adjustmentReason, setAdjustmentReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     loadInventory();
@@ -72,29 +104,15 @@ export function BusinessInventory() {
         return;
       }
 
-      const { data: inventoryData, error } = await supabase
-        .from('inventory')
-        .select(`
-          id,
-          product_id,
-          on_hand_quantity,
-          reserved_quantity,
-          damaged_quantity,
-          low_stock_threshold,
-          last_restocked,
-          product:products(name, sku)
-        `)
-        .eq('business_id', currentBusinessId)
-        .order('on_hand_quantity', { ascending: true });
+      // Load inventory using InventoryService
+      const inventoryData = await inventoryService.listInventory();
 
-      if (error) {
-        logger.error('[BusinessInventory] Error loading inventory:', error);
-        Toast.error('Failed to load inventory');
-        return;
-      }
+      // Load low stock alerts
+      const alerts = await inventoryService.getLowStockAlerts();
 
-      setInventory(inventoryData || []);
-      logger.info('[BusinessInventory] Inventory loaded:', inventoryData?.length || 0);
+      setInventory(inventoryData as any);
+      setLowStockAlerts(alerts);
+      logger.info('[BusinessInventory] Inventory loaded:', inventoryData?.length || 0, 'Alerts:', alerts.length);
     } catch (error) {
       logger.error('[BusinessInventory] Failed to load inventory:', error);
       Toast.error('Failed to load inventory');
@@ -151,32 +169,70 @@ export function BusinessInventory() {
     Toast.success('Inventory exported successfully');
   };
 
-  const handleUpdateQuantity = async (item: InventoryItem) => {
-    const newQuantity = prompt('Enter new quantity:', item.on_hand_quantity.toString());
-    if (newQuantity === null) return;
+  const openAdjustmentModal = (item: InventoryItem, type: 'receive' | 'adjust' | 'damage') => {
+    setAdjustmentModal({ show: true, item, type });
+    setAdjustmentQuantity('');
+    setAdjustmentReason('');
+  };
 
-    const quantity = parseInt(newQuantity, 10);
-    if (isNaN(quantity) || quantity < 0) {
+  const closeAdjustmentModal = () => {
+    setAdjustmentModal({ show: false, item: null, type: null });
+    setAdjustmentQuantity('');
+    setAdjustmentReason('');
+  };
+
+  const handleAdjustmentSubmit = async () => {
+    if (!adjustmentModal.item || !adjustmentModal.type) return;
+
+    const quantity = parseInt(adjustmentQuantity, 10);
+    if (isNaN(quantity) || quantity <= 0) {
       Toast.error('Invalid quantity');
       return;
     }
 
     try {
+      setIsSubmitting(true);
+
+      const item = adjustmentModal.item;
+      let newQuantity = item.on_hand_quantity;
+      let newDamaged = item.damaged_quantity;
+
+      switch (adjustmentModal.type) {
+        case 'receive':
+          newQuantity += quantity;
+          break;
+        case 'adjust':
+          newQuantity = quantity;
+          break;
+        case 'damage':
+          newDamaged += quantity;
+          if (newDamaged > item.on_hand_quantity) {
+            Toast.error('Damaged quantity cannot exceed on-hand quantity');
+            return;
+          }
+          break;
+      }
+
+      // Update inventory using direct Supabase (InventoryService doesn't have this specific method)
       const { error } = await supabase
         .from('inventory')
         .update({
-          on_hand_quantity: quantity,
-          last_restocked: new Date().toISOString()
+          on_hand_quantity: newQuantity,
+          damaged_quantity: newDamaged,
+          last_restocked: adjustmentModal.type === 'receive' ? new Date().toISOString() : item.last_restocked
         })
         .eq('id', item.id);
 
       if (error) throw error;
 
-      Toast.success('Quantity updated successfully');
+      Toast.success(`Stock ${adjustmentModal.type === 'receive' ? 'received' : adjustmentModal.type === 'damage' ? 'marked as damaged' : 'adjusted'} successfully`);
+      closeAdjustmentModal();
       loadInventory();
     } catch (error) {
-      logger.error('[BusinessInventory] Failed to update quantity:', error);
-      Toast.error('Failed to update quantity');
+      logger.error('[BusinessInventory] Failed to adjust stock:', error);
+      Toast.error('Failed to adjust stock');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -547,13 +603,29 @@ export function BusinessInventory() {
                         {formatDate(item.last_restocked)}
                       </td>
                       <td style={{ padding: undergroundTheme.spacing.lg }}>
-                        <UndergroundButton
-                          onClick={() => handleUpdateQuantity(item)}
-                          variant="secondary"
-                          style={{ fontSize: undergroundTheme.typography.fontSize.sm }}
-                        >
-                          Update
-                        </UndergroundButton>
+                        <div style={{ display: 'flex', gap: undergroundTheme.spacing.sm }}>
+                          <UndergroundButton
+                            onClick={() => openAdjustmentModal(item, 'receive')}
+                            variant="success"
+                            style={{ fontSize: undergroundTheme.typography.fontSize.xs, padding: `${undergroundTheme.spacing.sm} ${undergroundTheme.spacing.md}` }}
+                          >
+                            Receive
+                          </UndergroundButton>
+                          <UndergroundButton
+                            onClick={() => openAdjustmentModal(item, 'adjust')}
+                            variant="secondary"
+                            style={{ fontSize: undergroundTheme.typography.fontSize.xs, padding: `${undergroundTheme.spacing.sm} ${undergroundTheme.spacing.md}` }}
+                          >
+                            Adjust
+                          </UndergroundButton>
+                          <UndergroundButton
+                            onClick={() => openAdjustmentModal(item, 'damage')}
+                            variant="warning"
+                            style={{ fontSize: undergroundTheme.typography.fontSize.xs, padding: `${undergroundTheme.spacing.sm} ${undergroundTheme.spacing.md}` }}
+                          >
+                            Damage
+                          </UndergroundButton>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -574,6 +646,169 @@ export function BusinessInventory() {
             {(searchQuery || stockFilter !== 'all') && ` (filtered from ${inventory.length})`}
           </div>
         </UndergroundCard>
+      )}
+
+      {/* Low Stock Alerts Section */}
+      {lowStockAlerts.length > 0 && (
+        <UndergroundCard style={{ marginTop: undergroundTheme.spacing['2xl'] }}>
+          <div style={{
+            padding: undergroundTheme.spacing.lg,
+            borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+            marginBottom: undergroundTheme.spacing.lg
+          }}>
+            <h3 style={{
+              margin: 0,
+              fontSize: undergroundTheme.typography.fontSize.lg,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.status.warning
+            }}>
+              ⚠️ Low Stock Alerts ({lowStockAlerts.length})
+            </h3>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
+            {lowStockAlerts.map((alert, index) => (
+              <div
+                key={index}
+                style={{
+                  padding: undergroundTheme.spacing.md,
+                  ...undergroundTheme.effects.glassmorphism.light,
+                  borderRadius: undergroundTheme.borderRadius.md,
+                  borderLeft: `4px solid ${undergroundTheme.colors.status.warning}`
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                      color: undergroundTheme.colors.text.primary,
+                      marginBottom: undergroundTheme.spacing.xs
+                    }}>
+                      {alert.product_name}
+                    </div>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.text.secondary
+                    }}>
+                      {alert.location_name} • On Hand: {alert.on_hand_quantity} • Threshold: {alert.low_stock_threshold}
+                    </div>
+                  </div>
+                  <UndergroundBadge variant="warning">
+                    Low Stock
+                  </UndergroundBadge>
+                </div>
+              </div>
+            ))}
+          </div>
+        </UndergroundCard>
+      )}
+
+      {/* Stock Adjustment Modal */}
+      {adjustmentModal.show && adjustmentModal.item && (
+        <UndergroundModal
+          isOpen={adjustmentModal.show}
+          onClose={closeAdjustmentModal}
+          title={
+            adjustmentModal.type === 'receive' ? 'Receive Stock' :
+            adjustmentModal.type === 'damage' ? 'Report Damage' :
+            'Adjust Stock'
+          }
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.lg }}>
+            <div>
+              <div style={{
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                color: undergroundTheme.colors.text.secondary,
+                marginBottom: undergroundTheme.spacing.sm
+              }}>
+                Product
+              </div>
+              <div style={{
+                fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                color: undergroundTheme.colors.text.primary
+              }}>
+                {adjustmentModal.item.product?.name || 'Unknown Product'}
+              </div>
+            </div>
+
+            <div>
+              <div style={{
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                color: undergroundTheme.colors.text.secondary,
+                marginBottom: undergroundTheme.spacing.sm
+              }}>
+                Current Stock
+              </div>
+              <div style={{
+                fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                color: undergroundTheme.colors.text.primary
+              }}>
+                On Hand: {adjustmentModal.item.on_hand_quantity} • Reserved: {adjustmentModal.item.reserved_quantity} • Damaged: {adjustmentModal.item.damaged_quantity}
+              </div>
+            </div>
+
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                color: undergroundTheme.colors.text.secondary,
+                marginBottom: undergroundTheme.spacing.sm
+              }}>
+                {adjustmentModal.type === 'receive' ? 'Quantity to Receive' :
+                 adjustmentModal.type === 'damage' ? 'Damaged Quantity' :
+                 'New Total Quantity'}
+              </label>
+              <UndergroundInput
+                type="number"
+                value={adjustmentQuantity}
+                onChange={(e) => setAdjustmentQuantity(e.target.value)}
+                placeholder="Enter quantity"
+                min="1"
+                fullWidth
+              />
+            </div>
+
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                color: undergroundTheme.colors.text.secondary,
+                marginBottom: undergroundTheme.spacing.sm
+              }}>
+                Reason (optional)
+              </label>
+              <UndergroundTextarea
+                value={adjustmentReason}
+                onChange={(e) => setAdjustmentReason(e.target.value)}
+                placeholder="Enter reason for adjustment..."
+                rows={3}
+                fullWidth
+              />
+            </div>
+
+            <div style={{
+              display: 'flex',
+              gap: undergroundTheme.spacing.md,
+              marginTop: undergroundTheme.spacing.lg
+            }}>
+              <UndergroundButton
+                onClick={handleAdjustmentSubmit}
+                variant="primary"
+                disabled={isSubmitting || !adjustmentQuantity}
+                style={{ flex: 1 }}
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit'}
+              </UndergroundButton>
+              <UndergroundButton
+                onClick={closeAdjustmentModal}
+                variant="ghost"
+                disabled={isSubmitting}
+                style={{ flex: 1 }}
+              >
+                Cancel
+              </UndergroundButton>
+            </div>
+          </div>
+        </UndergroundModal>
       )}
     </div>
   );

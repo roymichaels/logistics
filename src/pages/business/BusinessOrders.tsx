@@ -3,6 +3,8 @@ import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useSafeAppServices } from '../../context/AppServicesContext';
 import { useNavigate } from 'react-router-dom';
+import { useService } from '../../hooks/useService';
+import { OrderService } from '../../services/modules/OrderService';
 import { undergroundTheme } from '../../styles/undergroundTheme';
 import { getStatusBadgeStyle, getStatusColor } from '../../utils/undergroundStyles';
 import {
@@ -16,6 +18,8 @@ import {
   UndergroundStatCard,
   UndergroundLoadingSpinner,
   UndergroundEmptyState,
+  UndergroundModal,
+  UndergroundBadge,
 } from '../../components/underground';
 import { Toast } from '../../components/Toast';
 
@@ -32,18 +36,41 @@ interface Order {
   delivery_address?: string;
   customer_name?: string;
   customer_phone?: string;
+  items?: OrderItem[];
+  assigned_driver?: string | null;
+}
+
+interface OrderItem {
+  id: string;
+  product_id: string;
+  quantity: number;
+  price: number;
+  product?: { name: string; sku: string };
+}
+
+interface OrderDetailModalState {
+  show: boolean;
+  order: Order | null;
+  loading: boolean;
 }
 
 export function BusinessOrders() {
   const appServices = useSafeAppServices();
   const currentBusinessId = appServices?.currentBusinessId;
   const navigate = useNavigate();
+  const orderService = useService(OrderService);
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
   const [dateFilter, setDateFilter] = useState<'today' | 'week' | 'month' | 'all'>('all');
+  const [orderDetailModal, setOrderDetailModal] = useState<OrderDetailModalState>({
+    show: false,
+    order: null,
+    loading: false
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     loadOrders();
@@ -81,11 +108,11 @@ export function BusinessOrders() {
         return;
       }
 
-      let query = supabase
-        .from('orders')
-        .select('id, order_number, customer_id, status, total, created_at, updated_at, delivery_address')
-        .eq('business_id', currentBusinessId)
-        .order('created_at', { ascending: false });
+      // Prepare filters for OrderService
+      const filters: any = {
+        sortBy: 'created_at',
+        sortOrder: 'desc' as const
+      };
 
       if (dateFilter !== 'all') {
         const now = new Date();
@@ -99,17 +126,13 @@ export function BusinessOrders() {
           dateThreshold.setDate(now.getDate() - 30);
         }
 
-        query = query.gte('created_at', dateThreshold.toISOString());
+        filters.dateFrom = dateThreshold.toISOString();
       }
 
-      const { data: ordersData, error } = await query;
+      // Load orders using OrderService
+      const ordersData = await orderService.listOrders(filters);
 
-      if (error) {
-        logger.error('[BusinessOrders] Error loading orders:', error);
-        Toast.error('Failed to load orders');
-        return;
-      }
-
+      // Enrich with customer profiles
       const customerIds = Array.from(new Set(ordersData?.map(o => o.customer_id).filter(Boolean)));
 
       let profilesMap = new Map<string, any>();
@@ -130,17 +153,78 @@ export function BusinessOrders() {
         return {
           ...order,
           customer_name: profile?.full_name || 'Anonymous Customer',
-          customer_phone: profile?.phone || ''
+          customer_phone: profile?.phone || '',
+          total: order.total_amount || 0
         };
       });
 
-      setOrders(enrichedOrders);
+      setOrders(enrichedOrders as any);
       logger.info('[BusinessOrders] Orders loaded:', enrichedOrders.length);
     } catch (error) {
       logger.error('[BusinessOrders] Failed to load orders:', error);
       Toast.error('Failed to load orders');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openOrderDetail = async (order: Order) => {
+    setOrderDetailModal({ show: true, order: null, loading: true });
+
+    try {
+      // Load full order details with items using OrderService
+      const fullOrder = await orderService.getOrder(order.id);
+
+      // Load order items
+      const { data: items } = await supabase
+        .from('order_items')
+        .select(`
+          id,
+          product_id,
+          quantity,
+          price,
+          product:products(name, sku)
+        `)
+        .eq('order_id', order.id);
+
+      setOrderDetailModal({
+        show: true,
+        order: {
+          ...fullOrder,
+          items: items || [],
+          customer_name: order.customer_name,
+          customer_phone: order.customer_phone,
+          total: fullOrder.total_amount || 0
+        } as any,
+        loading: false
+      });
+    } catch (error) {
+      logger.error('[BusinessOrders] Failed to load order details:', error);
+      Toast.error('Failed to load order details');
+      setOrderDetailModal({ show: false, order: null, loading: false });
+    }
+  };
+
+  const closeOrderDetail = () => {
+    setOrderDetailModal({ show: false, order: null, loading: false });
+  };
+
+  const handleStatusChange = async (newStatus: OrderStatus) => {
+    if (!orderDetailModal.order) return;
+
+    try {
+      setIsSubmitting(true);
+
+      await orderService.updateStatus(orderDetailModal.order.id, newStatus);
+
+      Toast.success('Order status updated successfully');
+      closeOrderDetail();
+      loadOrders();
+    } catch (error) {
+      logger.error('[BusinessOrders] Failed to update order status:', error);
+      Toast.error('Failed to update order status');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -272,7 +356,7 @@ export function BusinessOrders() {
       render: (_: any, row: Order) => (
         <UndergroundButton
           variant="primary"
-          onClick={() => navigate(`/business/orders/${row.id}`)}
+          onClick={() => openOrderDetail(row)}
           style={{
             padding: `${undergroundTheme.spacing.sm} ${undergroundTheme.spacing.lg}`,
             fontSize: undergroundTheme.typography.fontSize.sm,
@@ -461,6 +545,351 @@ export function BusinessOrders() {
           )}
         </UndergroundCard>
       </UndergroundSection>
+
+      {/* Order Detail Modal */}
+      {orderDetailModal.show && (
+        <UndergroundModal
+          isOpen={orderDetailModal.show}
+          onClose={closeOrderDetail}
+          title={`Order #${orderDetailModal.order?.order_number || orderDetailModal.order?.id.slice(0, 8) || 'Loading...'}`}
+          size="large"
+        >
+          {orderDetailModal.loading || !orderDetailModal.order ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: undergroundTheme.spacing['3xl'] }}>
+              <UndergroundLoadingSpinner size="lg" />
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.xl }}>
+              {/* Order Status and Actions */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: undergroundTheme.spacing.lg,
+                ...undergroundTheme.effects.glassmorphism.light,
+                borderRadius: undergroundTheme.borderRadius.lg
+              }}>
+                <div>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.sm,
+                    color: undergroundTheme.colors.text.secondary,
+                    marginBottom: undergroundTheme.spacing.xs
+                  }}>
+                    Current Status
+                  </div>
+                  <UndergroundBadge variant={
+                    orderDetailModal.order.status === 'delivered' ? 'success' :
+                    orderDetailModal.order.status === 'cancelled' ? 'error' :
+                    orderDetailModal.order.status === 'pending' ? 'warning' :
+                    'info'
+                  }>
+                    {getStatusLabel(orderDetailModal.order.status)}
+                  </UndergroundBadge>
+                </div>
+                <div style={{ display: 'flex', gap: undergroundTheme.spacing.sm }}>
+                  {orderDetailModal.order.status === 'pending' && (
+                    <UndergroundButton
+                      onClick={() => handleStatusChange('confirmed')}
+                      variant="success"
+                      disabled={isSubmitting}
+                    >
+                      Confirm Order
+                    </UndergroundButton>
+                  )}
+                  {orderDetailModal.order.status === 'confirmed' && (
+                    <UndergroundButton
+                      onClick={() => handleStatusChange('preparing')}
+                      variant="primary"
+                      disabled={isSubmitting}
+                    >
+                      Start Preparing
+                    </UndergroundButton>
+                  )}
+                  {orderDetailModal.order.status === 'preparing' && (
+                    <UndergroundButton
+                      onClick={() => handleStatusChange('ready_for_pickup')}
+                      variant="primary"
+                      disabled={isSubmitting}
+                    >
+                      Mark Ready
+                    </UndergroundButton>
+                  )}
+                  {['pending', 'confirmed', 'preparing'].includes(orderDetailModal.order.status) && (
+                    <UndergroundButton
+                      onClick={() => handleStatusChange('cancelled')}
+                      variant="error"
+                      disabled={isSubmitting}
+                    >
+                      Cancel Order
+                    </UndergroundButton>
+                  )}
+                </div>
+              </div>
+
+              {/* Customer Information */}
+              <div>
+                <h4 style={{
+                  margin: 0,
+                  marginBottom: undergroundTheme.spacing.md,
+                  fontSize: undergroundTheme.typography.fontSize.lg,
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
+                  Customer Information
+                </h4>
+                <div style={{
+                  padding: undergroundTheme.spacing.lg,
+                  ...undergroundTheme.effects.glassmorphism.light,
+                  borderRadius: undergroundTheme.borderRadius.lg,
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: undergroundTheme.spacing.lg
+                }}>
+                  <div>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.text.secondary,
+                      marginBottom: undergroundTheme.spacing.xs
+                    }}>
+                      Name
+                    </div>
+                    <div style={{
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                      color: undergroundTheme.colors.text.primary
+                    }}>
+                      {orderDetailModal.order.customer_name || 'Anonymous'}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.text.secondary,
+                      marginBottom: undergroundTheme.spacing.xs
+                    }}>
+                      Phone
+                    </div>
+                    <div style={{
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                      color: undergroundTheme.colors.text.primary
+                    }}>
+                      {orderDetailModal.order.customer_phone || 'N/A'}
+                    </div>
+                  </div>
+                  {orderDetailModal.order.delivery_address && (
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <div style={{
+                        fontSize: undergroundTheme.typography.fontSize.sm,
+                        color: undergroundTheme.colors.text.secondary,
+                        marginBottom: undergroundTheme.spacing.xs
+                      }}>
+                        Delivery Address
+                      </div>
+                      <div style={{
+                        fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                        color: undergroundTheme.colors.text.primary
+                      }}>
+                        {orderDetailModal.order.delivery_address}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Order Items */}
+              <div>
+                <h4 style={{
+                  margin: 0,
+                  marginBottom: undergroundTheme.spacing.md,
+                  fontSize: undergroundTheme.typography.fontSize.lg,
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
+                  Order Items
+                </h4>
+                <div style={{
+                  ...undergroundTheme.effects.glassmorphism.light,
+                  borderRadius: undergroundTheme.borderRadius.lg,
+                  overflow: 'hidden'
+                }}>
+                  {orderDetailModal.order.items && orderDetailModal.order.items.length > 0 ? (
+                    <>
+                      {orderDetailModal.order.items.map((item, index) => (
+                        <div
+                          key={item.id}
+                          style={{
+                            padding: undergroundTheme.spacing.lg,
+                            borderBottom: index < orderDetailModal.order!.items!.length - 1
+                              ? `1px solid ${undergroundTheme.colors.glassmorphism.border}`
+                              : 'none',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <div style={{ flex: 1 }}>
+                            <div style={{
+                              fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                              color: undergroundTheme.colors.text.primary,
+                              marginBottom: undergroundTheme.spacing.xs
+                            }}>
+                              {item.product?.name || 'Unknown Product'}
+                            </div>
+                            <div style={{
+                              fontSize: undergroundTheme.typography.fontSize.sm,
+                              color: undergroundTheme.colors.text.secondary
+                            }}>
+                              SKU: {item.product?.sku || 'N/A'}
+                            </div>
+                          </div>
+                          <div style={{
+                            display: 'flex',
+                            gap: undergroundTheme.spacing.xl,
+                            alignItems: 'center'
+                          }}>
+                            <div style={{ textAlign: 'center' }}>
+                              <div style={{
+                                fontSize: undergroundTheme.typography.fontSize.sm,
+                                color: undergroundTheme.colors.text.secondary,
+                                marginBottom: undergroundTheme.spacing.xs
+                              }}>
+                                Quantity
+                              </div>
+                              <div style={{
+                                fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                                color: undergroundTheme.colors.text.primary
+                              }}>
+                                {item.quantity}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'center' }}>
+                              <div style={{
+                                fontSize: undergroundTheme.typography.fontSize.sm,
+                                color: undergroundTheme.colors.text.secondary,
+                                marginBottom: undergroundTheme.spacing.xs
+                              }}>
+                                Price
+                              </div>
+                              <div style={{
+                                fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                                color: undergroundTheme.colors.text.primary
+                              }}>
+                                {formatCurrency(item.price)}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right', minWidth: '100px' }}>
+                              <div style={{
+                                fontSize: undergroundTheme.typography.fontSize.sm,
+                                color: undergroundTheme.colors.text.secondary,
+                                marginBottom: undergroundTheme.spacing.xs
+                              }}>
+                                Subtotal
+                              </div>
+                              <div style={{
+                                fontWeight: undergroundTheme.typography.fontWeight.bold,
+                                color: undergroundTheme.colors.accent.primary,
+                                fontSize: undergroundTheme.typography.fontSize.lg
+                              }}>
+                                {formatCurrency(item.quantity * item.price)}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {/* Order Total */}
+                      <div style={{
+                        padding: undergroundTheme.spacing.lg,
+                        background: undergroundTheme.colors.glassmorphism.medium,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <div style={{
+                          fontSize: undergroundTheme.typography.fontSize.lg,
+                          fontWeight: undergroundTheme.typography.fontWeight.bold,
+                          color: undergroundTheme.colors.text.primary
+                        }}>
+                          Order Total
+                        </div>
+                        <div style={{
+                          fontSize: undergroundTheme.typography.fontSize['2xl'],
+                          fontWeight: undergroundTheme.typography.fontWeight.bold,
+                          color: undergroundTheme.colors.accent.primary
+                        }}>
+                          {formatCurrency(orderDetailModal.order.total)}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{ padding: undergroundTheme.spacing.xl, textAlign: 'center', color: undergroundTheme.colors.text.secondary }}>
+                      No items found
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Order Timeline */}
+              <div>
+                <h4 style={{
+                  margin: 0,
+                  marginBottom: undergroundTheme.spacing.md,
+                  fontSize: undergroundTheme.typography.fontSize.lg,
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
+                  Order Timeline
+                </h4>
+                <div style={{
+                  padding: undergroundTheme.spacing.lg,
+                  ...undergroundTheme.effects.glassmorphism.light,
+                  borderRadius: undergroundTheme.borderRadius.lg,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: undergroundTheme.spacing.md
+                }}>
+                  <div style={{ display: 'flex', gap: undergroundTheme.spacing.md }}>
+                    <div style={{ color: undergroundTheme.colors.text.secondary }}>📅</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                        color: undergroundTheme.colors.text.primary,
+                        marginBottom: undergroundTheme.spacing.xs
+                      }}>
+                        Order Created
+                      </div>
+                      <div style={{
+                        fontSize: undergroundTheme.typography.fontSize.sm,
+                        color: undergroundTheme.colors.text.secondary
+                      }}>
+                        {formatDate(orderDetailModal.order.created_at)}
+                      </div>
+                    </div>
+                  </div>
+                  {orderDetailModal.order.updated_at !== orderDetailModal.order.created_at && (
+                    <div style={{ display: 'flex', gap: undergroundTheme.spacing.md }}>
+                      <div style={{ color: undergroundTheme.colors.text.secondary }}>🔄</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                          color: undergroundTheme.colors.text.primary,
+                          marginBottom: undergroundTheme.spacing.xs
+                        }}>
+                          Last Updated
+                        </div>
+                        <div style={{
+                          fontSize: undergroundTheme.typography.fontSize.sm,
+                          color: undergroundTheme.colors.text.secondary
+                        }}>
+                          {formatDate(orderDetailModal.order.updated_at)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </UndergroundModal>
+      )}
     </div>
   );
 }
