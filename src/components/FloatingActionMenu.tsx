@@ -4,6 +4,7 @@ import { tokens, styles } from '../styles/tokens';
 import { useAppServices } from '../context/AppServicesContext';
 import { logger } from '../lib/logger';
 import { useAuth } from '../context/AuthContext';
+import { useBusinessScopedAccess } from '../hooks/useBusinessScopedAccess';
 
 interface FloatingActionMenuProps {
   onNavigate: (page: string) => void;
@@ -31,6 +32,8 @@ export function FloatingActionMenu({
   const authRole = (authCtx?.user as any)?.role || null;
   void authRole;
 
+  const businessAccess = useBusinessScopedAccess();
+
   const getPathPrefix = (role: string): string => {
     if (['business_owner', 'manager', 'sales', 'dispatcher', 'warehouse', 'customer_service'].includes(role)) {
       return '/business/';
@@ -49,6 +52,20 @@ export function FloatingActionMenu({
 
   const getRoleActions = (): RoleAction[] => {
     if (!user) return [];
+
+    // If business-scoped role without business context, show business selection
+    if (businessAccess.isBusinessScopedRole && !businessAccess.hasBusinessContext) {
+      return [{
+        icon: '🏢',
+        label: 'בחר עסק',
+        description: 'עליך לבחור עסק כדי להמשיך',
+        color: tokens.gradients.primary,
+        onClick: () => {
+          onClose();
+          onNavigate('/business/businesses');
+        }
+      }];
+    }
 
     const actions: RoleAction[] = [];
     const pathPrefix = getPathPrefix(user.role);

@@ -3,6 +3,7 @@ import React from 'react';
 import { tokens, styles } from '../styles/tokens';
 import { i18n } from '../lib/i18n';
 import { useAuth } from '../context/AuthContext';
+import { useBusinessScopedAccess } from '../hooks/useBusinessScopedAccess';
 
 interface MenuItem {
   id: string;
@@ -24,10 +25,19 @@ export function RightSidebarMenu({ isOpen, onClose, userRole, currentPage, onNav
   const authRole = (authCtx?.user as any)?.role || null;
   void authRole;
 
+  const businessAccess = useBusinessScopedAccess();
+
   const getMenuItems = (): MenuItem[] => {
     if (!userRole) return [];
 
     const t = i18n.getTranslations();
+
+    // If business-scoped role without business context, show only business selection
+    if (businessAccess.isBusinessScopedRole && !businessAccess.hasBusinessContext) {
+      return [
+        { id: 'businesses', label: t.businesses || 'Select Business', icon: '🏢', page: 'businesses' },
+      ];
+    }
 
     const menuMap: Record<string, MenuItem[]> = {
       admin: [

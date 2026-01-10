@@ -5,6 +5,7 @@ import { useSafeAppServices } from '../context/AppServicesContext';
 import { colors, spacing, navigation } from '../styles/design-system';
 import { useAuth } from '../context/AuthContext';
 import { haptic } from '../utils/haptic';
+import { useBusinessScopedAccess } from '../hooks/useBusinessScopedAccess';
 
 /**
  * 🧠 ROY MICHAELS MILITARIZED NAVIGATION
@@ -80,6 +81,9 @@ export function BottomNavigation({
   const authCtx = useAuth();
   const authRole = (authCtx?.user as any)?.role || null;
   void authRole;
+
+  const businessAccess = useBusinessScopedAccess();
+  const needsBusinessContext = businessAccess.isBusinessScopedRole && !businessAccess.hasBusinessContext;
 
   /**
    * 🔐 UNIFIED BOTTOM NAVIGATION
@@ -238,6 +242,77 @@ export function BottomNavigation({
   };
 
   const roleConfig = userRole && roleNavigation[userRole] ? roleNavigation[userRole] : roleNavigation.user;
+
+  // If user needs business context but doesn't have it, show minimal navigation
+  if (needsBusinessContext && !businessAccess.loading) {
+    return (
+      <>
+        <style>{`
+          .bottom-nav-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(21, 32, 43, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(56, 68, 77, 0.6);
+            display: flex;
+            padding: 0;
+            z-index: 1000;
+            direction: rtl;
+            height: 53px;
+            align-items: center;
+            justify-content: center;
+          }
+
+          @media (min-width: 768px) {
+            .bottom-nav-container {
+              bottom: 0 !important;
+              top: 0 !important;
+              left: 0 !important;
+              right: auto !important;
+              width: 80px !important;
+              height: 100vh !important;
+              flex-direction: column !important;
+              padding: 16px 8px !important;
+              border-top: none !important;
+              border-right: 1px solid rgba(56, 68, 77, 0.6) !important;
+              justify-content: flex-start !important;
+              gap: 8px !important;
+            }
+          }
+        `}</style>
+        <div className="bottom-nav-container" data-business-id={undefined}>
+          <button
+            onClick={() => {
+              haptic();
+              onNavigate('/business/businesses');
+            }}
+            style={{
+              flex: 1,
+              minWidth: '0',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '6px 4px',
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: colors.brand.primary,
+              cursor: 'pointer',
+              fontSize: '11px',
+              fontWeight: '700',
+            }}
+          >
+            <span style={{ fontSize: '26px' }}>🏢</span>
+            <span>{translations.businesses || 'Select Business'}</span>
+          </button>
+        </div>
+      </>
+    );
+  }
+
   const tabs = roleConfig?.tabs || [];
   const action = roleConfig?.action;
 

@@ -114,7 +114,8 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/dashboard',
     icon: '🏢',
     visible: true,
-    requiredRoles: ['business_owner', 'manager']
+    requiredRoles: ['business_owner', 'manager'],
+    requiresBusinessContext: true
   },
   {
     id: 'business-businesses',
@@ -122,7 +123,8 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/businesses',
     icon: '🏪',
     visible: true,
-    requiredRoles: ['business_owner']
+    requiredRoles: ['business_owner'],
+    requiresBusinessContext: false
   },
   {
     id: 'business-operations',
@@ -130,7 +132,8 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/operations',
     icon: '⚙️',
     visible: true,
-    requiredRoles: ['business_owner', 'manager', 'warehouse', 'dispatcher']
+    requiredRoles: ['business_owner', 'manager', 'warehouse', 'dispatcher'],
+    requiresBusinessContext: true
   },
   {
     id: 'business-analytics',
@@ -138,7 +141,8 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/analytics',
     icon: '📊',
     visible: true,
-    requiredRoles: ['business_owner', 'manager']
+    requiredRoles: ['business_owner', 'manager'],
+    requiresBusinessContext: true
   },
   {
     id: 'business-customers',
@@ -146,7 +150,8 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/customers',
     icon: '👥',
     visible: true,
-    requiredRoles: ['business_owner', 'sales']
+    requiredRoles: ['business_owner', 'sales'],
+    requiresBusinessContext: true
   },
   {
     id: 'business-team',
@@ -154,7 +159,8 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/team',
     icon: '👔',
     visible: true,
-    requiredRoles: ['business_owner', 'manager']
+    requiredRoles: ['business_owner', 'manager'],
+    requiresBusinessContext: true
   },
   {
     id: 'business-settings',
@@ -162,7 +168,8 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     path: '/business/settings',
     icon: '⚙️',
     visible: true,
-    requiredRoles: ['business_owner']
+    requiredRoles: ['business_owner'],
+    requiresBusinessContext: true
   }
 ];
 

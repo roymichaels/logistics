@@ -6,6 +6,7 @@ import { getNavigationForRole } from './navigationSchema';
 import { MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
 import { BusinessHeaderSelector } from '../components/BusinessHeaderSelector';
 import { logger } from '../lib/logger';
+import { useBusinessScopedAccess } from '../hooks/useBusinessScopedAccess';
 
 interface BusinessShellProps {
   children: React.ReactNode;
@@ -33,22 +34,38 @@ export function BusinessShell({
   onCreateBusiness
 }: BusinessShellProps) {
   const [showOrderWizard, setShowOrderWizard] = useState(false);
+  const businessAccess = useBusinessScopedAccess();
 
   const navigationItems = getNavigationForRole(role);
   const isMultiBusinessOwner = role === 'infrastructure_owner' || (role === 'business_owner' && availableBusinesses.length > 1);
 
-  const menuItems: MenuItemConfig[] = navigationItems
-    .filter(item => item.visible)
-    .filter(item => {
-      if (!item.requiredRoles) return true;
-      return item.requiredRoles.includes(role as any);
-    })
-    .map(item => ({
-      id: item.id,
-      label: item.label,
-      icon: item.icon || '📌',
-      path: item.path,
-    }));
+  // Filter menu items - if no business context, only show business selection
+  let menuItems: MenuItemConfig[] = [];
+
+  if (businessAccess.isBusinessScopedRole && !businessAccess.hasBusinessContext) {
+    // Show only business selection option
+    menuItems = [
+      {
+        id: 'select-business',
+        label: 'בחר עסק',
+        icon: '🏢',
+        path: '/business/businesses',
+      }
+    ];
+  } else {
+    menuItems = navigationItems
+      .filter(item => item.visible)
+      .filter(item => {
+        if (!item.requiredRoles) return true;
+        return item.requiredRoles.includes(role as any);
+      })
+      .map(item => ({
+        id: item.id,
+        label: item.label,
+        icon: item.icon || '📌',
+        path: item.path,
+      }));
+  }
 
   const handleShowModeSelector = () => {
     logger.info('[BusinessShell] Opening order wizard');
