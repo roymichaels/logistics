@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getBusinessBySlug, getPublicBusinessCatalog, BusinessRecord } from '../../services/business';
 import { logger } from '../../lib/logger';
 import { useAuth } from '../../context/AuthContext';
 import { useBusinessContext } from '../../hooks/useBusinessContext';
+import { undergroundTheme } from '../../styles/undergroundTheme';
+import { UndergroundCard } from '../../components/underground/UndergroundCard';
+import { UndergroundButton } from '../../components/underground/UndergroundButton';
+import { UndergroundSection } from '../../components/underground/UndergroundSection';
+import { UndergroundBadge } from '../../components/underground/UndergroundBadge';
 
 interface Product {
   id: string;
@@ -16,6 +21,7 @@ interface Product {
 
 export default function PublicBusinessPage() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { activeBusiness } = useBusinessContext();
   const [business, setBusiness] = useState<BusinessRecord | null>(null);
@@ -62,10 +68,25 @@ export default function PublicBusinessPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading business...</p>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: undergroundTheme.colors.gradient.primary
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            fontSize: '48px',
+            marginBottom: undergroundTheme.spacing.md,
+            animation: 'spin 1s linear infinite'
+          }}>⏳</div>
+          <div style={{
+            color: undergroundTheme.colors.text.secondary,
+            fontSize: undergroundTheme.typography.fontSize.lg
+          }}>
+            Loading business...
+          </div>
         </div>
       </div>
     );
@@ -73,184 +94,369 @@ export default function PublicBusinessPage() {
 
   if (error || !business) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Business Not Found</h1>
-          <p className="text-gray-600 mb-8">{error || 'This business page does not exist or is not public.'}</p>
-          <Link
-            to="/directory"
-            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: undergroundTheme.colors.gradient.primary,
+        padding: undergroundTheme.spacing.xl
+      }}>
+        <UndergroundCard style={{ maxWidth: '500px', textAlign: 'center' }}>
+          <div style={{ fontSize: '80px', marginBottom: undergroundTheme.spacing.lg }}>🏪</div>
+          <h1 style={{
+            margin: `0 0 ${undergroundTheme.spacing.md} 0`,
+            fontSize: undergroundTheme.typography.fontSize['3xl'],
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            color: undergroundTheme.colors.text.primary
+          }}>
+            Business Not Found
+          </h1>
+          <p style={{
+            margin: `0 0 ${undergroundTheme.spacing.xl} 0`,
+            color: undergroundTheme.colors.text.secondary,
+            fontSize: undergroundTheme.typography.fontSize.md,
+            lineHeight: 1.6
+          }}>
+            {error || 'This business page does not exist or is not public.'}
+          </p>
+          <UndergroundButton
+            onClick={() => navigate('/directory')}
+            size="large"
           >
             Browse All Businesses
-          </Link>
-        </div>
+          </UndergroundButton>
+        </UndergroundCard>
       </div>
     );
   }
 
+  const bannerStyle = business.banner_image_url
+    ? {
+        backgroundImage: `url(${business.banner_image_url})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }
+    : {
+        background: `linear-gradient(135deg, ${business.primary_color || undergroundTheme.colors.accent.primary}, ${business.secondary_color || undergroundTheme.colors.accent.secondary})`
+      };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div
-        className="w-full h-64 bg-gradient-to-r from-blue-600 to-blue-800 relative"
-        style={
-          business.banner_image_url
-            ? { backgroundImage: `url(${business.banner_image_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-            : { background: `linear-gradient(to right, ${business.primary_color}, ${business.secondary_color})` }
-        }
-      >
-        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-        <div className="relative h-full max-w-7xl mx-auto px-4 flex items-end pb-8">
-          <div className="flex items-center space-x-6">
-            {business.logo_url && (
-              <img
-                src={business.logo_url}
-                alt={business.name}
-                className="w-24 h-24 rounded-lg border-4 border-white shadow-lg bg-white"
-              />
-            )}
-            <div className="text-white">
-              <h1 className="text-4xl font-bold mb-2">{business.name}</h1>
-              {business.tagline && (
-                <p className="text-xl opacity-90">{business.tagline}</p>
-              )}
-            </div>
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <div style={{
+        width: '100%',
+        height: '280px',
+        position: 'relative',
+        ...bannerStyle
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.7) 100%)'
+        }} />
+
+        {isOwner && (
+          <div style={{
+            position: 'absolute',
+            top: undergroundTheme.spacing.lg,
+            right: undergroundTheme.spacing.lg
+          }}>
+            <UndergroundBadge variant="primary">
+              Owner View
+            </UndergroundBadge>
           </div>
+        )}
+
+        <div style={{
+          position: 'absolute',
+          bottom: undergroundTheme.spacing.xl,
+          left: undergroundTheme.spacing.xl,
+          right: undergroundTheme.spacing.xl,
+          zIndex: 1
+        }}>
+          <h1 style={{
+            margin: 0,
+            fontSize: 'clamp(32px, 6vw, 48px)',
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            color: 'white',
+            textShadow: '0 2px 20px rgba(0, 0, 0, 0.8)',
+            marginBottom: undergroundTheme.spacing.sm
+          }}>
+            {business.name}
+          </h1>
+          {business.description && (
+            <p style={{
+              margin: 0,
+              fontSize: undergroundTheme.typography.fontSize.lg,
+              color: 'rgba(255, 255, 255, 0.9)',
+              textShadow: '0 1px 10px rgba(0, 0, 0, 0.6)',
+              maxWidth: '600px'
+            }}>
+              {business.description}
+            </p>
+          )}
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-800">About Us</h2>
-            {isOwner && (
-              <Link
-                to={`/business/${business.id}/settings`}
-                className="inline-flex items-center px-3 py-1.5 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
-              >
-                <div style={{ width: '14px', height: '14px', flexShrink: 0, marginRight: '4px' }}>
-                  <svg style={{ width: '14px', height: '14px', maxWidth: '14px', maxHeight: '14px', display: 'block' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
+      <div style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: undergroundTheme.spacing.xl
+      }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: undergroundTheme.spacing.lg,
+          marginBottom: undergroundTheme.spacing['3xl']
+        }}>
+          {business.address && (
+            <UndergroundCard>
+              <div style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: undergroundTheme.spacing.md
+              }}>
+                <div style={{ fontSize: '28px' }}>📍</div>
+                <div>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.xs,
+                    color: undergroundTheme.colors.text.tertiary,
+                    marginBottom: undergroundTheme.spacing.xs,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>
+                    Address
+                  </div>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.md,
+                    color: undergroundTheme.colors.text.primary,
+                    fontWeight: undergroundTheme.typography.fontWeight.medium
+                  }}>
+                    {business.address}
+                  </div>
                 </div>
-                Edit Settings
-              </Link>
-            )}
-          </div>
-          {business.description ? (
-            <p className="text-gray-700 leading-relaxed">{business.description}</p>
-          ) : (
-            <p className="text-gray-500 italic">No description available</p>
+              </div>
+            </UndergroundCard>
           )}
 
-          <div className="mt-6 flex flex-wrap gap-6">
-            {business.public_email && (
-              <div className="flex items-center text-gray-700">
-                <div style={{ width: '20px', height: '20px', flexShrink: 0, marginRight: '8px' }}>
-                  <svg style={{ width: '20px', height: '20px', maxWidth: '20px', maxHeight: '20px', display: 'block' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
+          {business.phone && (
+            <UndergroundCard>
+              <div style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: undergroundTheme.spacing.md
+              }}>
+                <div style={{ fontSize: '28px' }}>📞</div>
+                <div>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.xs,
+                    color: undergroundTheme.colors.text.tertiary,
+                    marginBottom: undergroundTheme.spacing.xs,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>
+                    Phone
+                  </div>
+                  <a
+                    href={`tel:${business.phone}`}
+                    style={{
+                      fontSize: undergroundTheme.typography.fontSize.md,
+                      color: undergroundTheme.colors.accent.primary,
+                      fontWeight: undergroundTheme.typography.fontWeight.medium,
+                      textDecoration: 'none'
+                    }}
+                  >
+                    {business.phone}
+                  </a>
                 </div>
-                <a href={`mailto:${business.public_email}`} className="hover:text-blue-600">
-                  {business.public_email}
-                </a>
               </div>
-            )}
-            {business.public_phone && (
-              <div className="flex items-center text-gray-700">
-                <div style={{ width: '20px', height: '20px', flexShrink: 0, marginRight: '8px' }}>
-                  <svg style={{ width: '20px', height: '20px', maxWidth: '20px', maxHeight: '20px', display: 'block' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
+            </UndergroundCard>
+          )}
+
+          {business.email && (
+            <UndergroundCard>
+              <div style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: undergroundTheme.spacing.md
+              }}>
+                <div style={{ fontSize: '28px' }}>✉️</div>
+                <div>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.xs,
+                    color: undergroundTheme.colors.text.tertiary,
+                    marginBottom: undergroundTheme.spacing.xs,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>
+                    Email
+                  </div>
+                  <a
+                    href={`mailto:${business.email}`}
+                    style={{
+                      fontSize: undergroundTheme.typography.fontSize.md,
+                      color: undergroundTheme.colors.accent.primary,
+                      fontWeight: undergroundTheme.typography.fontWeight.medium,
+                      textDecoration: 'none'
+                    }}
+                  >
+                    {business.email}
+                  </a>
                 </div>
-                <a href={`tel:${business.public_phone}`} className="hover:text-blue-600">
-                  {business.public_phone}
-                </a>
               </div>
-            )}
-          </div>
+            </UndergroundCard>
+          )}
         </div>
 
-        <div>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Our Catalog</h2>
-            <div className="flex items-center gap-4">
-              <p className="text-gray-600">{products.length} products</p>
-              {isOwner && (
-                <Link
-                  to={`/business/${business.id}/catalog`}
-                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                >
-                  <div style={{ width: '16px', height: '16px', flexShrink: 0, marginRight: '6px' }}>
-                    <svg style={{ width: '16px', height: '16px', maxWidth: '16px', maxHeight: '16px', display: 'block' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </div>
-                  Manage Catalog
-                </Link>
-              )}
-            </div>
-          </div>
-
+        <UndergroundSection
+          title="Our Products"
+          icon="🛍️"
+          style={{ marginBottom: undergroundTheme.spacing.xl }}
+        >
           {products.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-              <div style={{ width: '64px', height: '64px', margin: '0 auto 16px' }}>
-                <svg style={{ width: '64px', height: '64px', maxWidth: '64px', maxHeight: '64px', display: 'block' }} className="text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
+            <UndergroundCard>
+              <div style={{
+                textAlign: 'center',
+                padding: undergroundTheme.spacing['4xl']
+              }}>
+                <div style={{ fontSize: '64px', marginBottom: undergroundTheme.spacing.lg }}>📦</div>
+                <h3 style={{
+                  margin: 0,
+                  fontSize: undergroundTheme.typography.fontSize.xl,
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.text.primary,
+                  marginBottom: undergroundTheme.spacing.sm
+                }}>
+                  No products available
+                </h3>
+                <p style={{
+                  margin: 0,
+                  color: undergroundTheme.colors.text.secondary
+                }}>
+                  This business hasn't added any products yet.
+                </p>
               </div>
-              <p className="text-xl text-gray-600">No products available yet</p>
-              <p className="text-gray-500 mt-2">Check back soon for new items!</p>
-              {isOwner && (
-                <Link
-                  to={`/business/${business.id}/catalog`}
-                  className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Add Your First Product
-                </Link>
-              )}
-            </div>
+            </UndergroundCard>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: undergroundTheme.spacing.lg
+            }}>
               {products.map((product) => (
-                <div key={product.id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                  {product.image_url ? (
-                    <img
-                      src={product.image_url}
-                      alt={product.name}
-                      className="w-full h-48 object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                      <div style={{ width: '64px', height: '64px' }}>
-                        <svg style={{ width: '64px', height: '64px', maxWidth: '64px', maxHeight: '64px', display: 'block' }} className="text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                        </svg>
-                      </div>
+                <UndergroundCard
+                  key={product.id}
+                  style={{
+                    cursor: 'pointer',
+                    transition: undergroundTheme.transitions.standard
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = undergroundTheme.shadows.glow.cyan;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                  onClick={() => navigate(`/products/${product.id}`)}
+                >
+                  <div style={{
+                    width: '100%',
+                    height: '200px',
+                    borderRadius: undergroundTheme.borderRadius.lg,
+                    background: undergroundTheme.colors.glassmorphism.medium,
+                    marginBottom: undergroundTheme.spacing.md,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden'
+                  }}>
+                    {product.image_url ? (
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    ) : (
+                      <span style={{ fontSize: '48px' }}>📦</span>
+                    )}
+                  </div>
+
+                  <h3 style={{
+                    margin: `0 0 ${undergroundTheme.spacing.xs} 0`,
+                    fontSize: undergroundTheme.typography.fontSize.lg,
+                    fontWeight: undergroundTheme.typography.fontWeight.bold,
+                    color: undergroundTheme.colors.text.primary
+                  }}>
+                    {product.name}
+                  </h3>
+
+                  {product.description && (
+                    <p style={{
+                      margin: `0 0 ${undergroundTheme.spacing.md} 0`,
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.text.secondary,
+                      lineHeight: 1.5,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}>
+                      {product.description}
+                    </p>
+                  )}
+
+                  {product.category && (
+                    <div style={{ marginBottom: undergroundTheme.spacing.md }}>
+                      <UndergroundBadge variant="secondary" size="small">
+                        {product.category}
+                      </UndergroundBadge>
                     </div>
                   )}
-                  <div className="p-4">
-                    <h3 className="font-semibold text-gray-800 mb-1">{product.name}</h3>
-                    {product.description && (
-                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">{product.description}</p>
-                    )}
-                    {product.category && (
-                      <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded mb-2">
-                        {product.category}
-                      </span>
-                    )}
-                    <p className="text-lg font-bold" style={{ color: business.primary_color }}>
-                      {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: business.default_currency
-                      }).format(product.price)}
-                    </p>
+
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.xl,
+                    fontWeight: undergroundTheme.typography.fontWeight.bold,
+                    color: undergroundTheme.colors.accent.primary,
+                    textShadow: undergroundTheme.shadows.glow.cyan
+                  }}>
+                    ₪{product.price.toFixed(2)}
                   </div>
-                </div>
+                </UndergroundCard>
               ))}
             </div>
           )}
-        </div>
+        </UndergroundSection>
+
+        {isOwner && (
+          <div style={{
+            marginTop: undergroundTheme.spacing['3xl'],
+            display: 'flex',
+            gap: undergroundTheme.spacing.md,
+            justifyContent: 'center'
+          }}>
+            <UndergroundButton
+              variant="primary"
+              onClick={() => navigate(`/business/${business.id}/edit`)}
+            >
+              Edit Business
+            </UndergroundButton>
+            <UndergroundButton
+              variant="secondary"
+              onClick={() => navigate(`/business/${business.id}/products`)}
+            >
+              Manage Products
+            </UndergroundButton>
+          </div>
+        )}
       </div>
     </div>
   );
