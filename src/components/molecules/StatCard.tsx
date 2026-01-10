@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from './Card';
-import { modernTokens, getStatusGradient } from '../../styles/modernTokens';
+import { modernTokens } from '../../styles/modernTokens';
 
 interface StatCardProps {
   icon?: string;
