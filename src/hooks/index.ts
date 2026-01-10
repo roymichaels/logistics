@@ -15,6 +15,7 @@ export * from './usePagination';
 export * from './usePermissions';
 export * from './usePopoverController';
 export * from './useRealtimeFeed';
+export * from './useRequiredBusiness';
 export * from './useResponsiveHeader';
 export * from './useRoleTheme';
 export * from './useService';
