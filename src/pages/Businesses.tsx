@@ -39,6 +39,13 @@ interface BusinessOwnership {
 
 export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
   const appServices = useAppServices();
+
+  const handleBusinessSelect = useCallback((businessId: string) => {
+    if (appServices?.setCurrentBusinessId) {
+      appServices.setCurrentBusinessId(businessId);
+      logger.info(`[Businesses] Selected business: ${businessId}`);
+    }
+  }, [appServices]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [myOwnerships, setMyOwnerships] = useState<BusinessOwnership[]>([]);
   const [user, setUser] = useState<User | null>(null);
@@ -336,6 +343,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
                 key={ownership.id}
                 ownership={ownership}
                 onNavigate={onNavigate}
+                onBusinessSelect={handleBusinessSelect}
               />
             ))}
           </div>
@@ -411,13 +419,21 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
   );
 }
 
-function OwnershipCard({ ownership, onNavigate }: {
+function OwnershipCard({ ownership, onNavigate, onBusinessSelect }: {
   ownership: BusinessOwnership;
   onNavigate: (page: string) => void;
+  onBusinessSelect: (businessId: string) => void;
 }) {
+  const handleClick = () => {
+    // Set the business context before navigating
+    onBusinessSelect(ownership.business_id);
+    // Navigate to business dashboard
+    onNavigate('/business/dashboard');
+  };
+
   return (
     <div
-      onClick={() => onNavigate(`/business/${ownership.business_id}`)}
+      onClick={handleClick}
       style={{
         ...styles.card,
         cursor: 'pointer',

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UnifiedMenuPanel, MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
+import { UnifiedMenuPanel, CollapsibleMenuPanel, MenuItemConfig, MenuCategory } from '../components/navigation';
 import { BottomNavigation } from '../components/BottomNavigation';
 import { FloatingActionMenu } from '../components/FloatingActionMenu';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +9,7 @@ import { logger } from '../lib/logger';
 interface UnifiedAppFrameProps {
   children: React.ReactNode;
   menuItems: MenuItemConfig[];
+  menuCategories?: MenuCategory[];
   currentPath: string;
   onNavigate: (path: string) => void;
   title?: string;
@@ -30,6 +31,7 @@ interface UnifiedAppFrameProps {
 export function UnifiedAppFrame({
   children,
   menuItems,
+  menuCategories,
   currentPath,
   onNavigate,
   title = 'Menu',
@@ -178,14 +180,26 @@ export function UnifiedAppFrame({
         />
       )}
 
-      <UnifiedMenuPanel
-        isOpen={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        items={menuItems}
-        currentPath={currentPath}
-        onNavigate={onNavigate}
-        title={title}
-      />
+      {menuCategories && menuCategories.length > 0 ? (
+        <CollapsibleMenuPanel
+          isOpen={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          items={menuItems}
+          categories={menuCategories}
+          currentPath={currentPath}
+          onNavigate={onNavigate}
+          title={title}
+        />
+      ) : (
+        <UnifiedMenuPanel
+          isOpen={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          items={menuItems}
+          currentPath={currentPath}
+          onNavigate={onNavigate}
+          title={title}
+        />
+      )}
 
       <FloatingActionMenu
         isOpen={actionMenuOpen}

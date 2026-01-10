@@ -32,6 +32,7 @@ export interface NavigationItem {
   visible?: boolean;
   requiredRoles?: UserRole[];
   requiresBusinessContext?: boolean;
+  category?: string;
 }
 
 export interface ShellContextValue {

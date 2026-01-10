@@ -147,12 +147,12 @@ export function Tasks({ dataStore, onNavigate }: TasksProps) {
 
     setOperationLoading(`delete-${taskId}`);
     try {
-      if (!dataStore.supabase) {
+      if (!supabase) {
         toast.error('Database connection not available');
         return;
       }
 
-      const { error } = await dataStore.supabase
+      const { error } = await supabase
         .from('tasks')
         .delete()
         .eq('id', taskId);

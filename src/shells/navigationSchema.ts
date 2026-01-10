@@ -108,6 +108,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
 ];
 
 export const BUSINESS_SHELL_NAV: NavigationItem[] = [
+  // Main Navigation
   {
     id: 'business-dashboard',
     label: 'לוח בקרה',
@@ -127,14 +128,111 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     requiresBusinessContext: false
   },
   {
+    id: 'business-preview',
+    label: 'תצוגה מקדימה',
+    path: '/business/preview',
+    icon: '👁️',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager'],
+    requiresBusinessContext: true,
+    category: 'content'
+  },
+
+  // Operations Category
+  {
     id: 'business-operations',
     label: 'מרכז פעולות',
     path: '/business/operations',
     icon: '⚙️',
     visible: true,
     requiredRoles: ['business_owner', 'manager', 'warehouse', 'dispatcher'],
-    requiresBusinessContext: true
+    requiresBusinessContext: true,
+    category: 'operations'
   },
+  {
+    id: 'business-orders',
+    label: 'הזמנות',
+    path: '/business/orders',
+    icon: '📦',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager', 'sales', 'customer_service'],
+    requiresBusinessContext: true,
+    category: 'operations'
+  },
+  {
+    id: 'business-dispatch',
+    label: 'שיבוץ ומשלוחים',
+    path: '/business/dispatch',
+    icon: '🚚',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager', 'dispatcher'],
+    requiresBusinessContext: true,
+    category: 'operations'
+  },
+  {
+    id: 'business-tasks',
+    label: 'משימות',
+    path: '/business/tasks',
+    icon: '✅',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales'],
+    requiresBusinessContext: true,
+    category: 'operations'
+  },
+
+  // Inventory Category
+  {
+    id: 'business-inventory',
+    label: 'מלאי',
+    path: '/business/inventory',
+    icon: '📦',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager', 'warehouse'],
+    requiresBusinessContext: true,
+    category: 'inventory'
+  },
+  {
+    id: 'business-products',
+    label: 'מוצרים',
+    path: '/business/products',
+    icon: '🏷️',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager', 'warehouse'],
+    requiresBusinessContext: true,
+    category: 'inventory'
+  },
+  {
+    id: 'business-catalog',
+    label: 'ניהול קטלוג',
+    path: '/business/catalog',
+    icon: '📚',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager'],
+    requiresBusinessContext: true,
+    category: 'inventory'
+  },
+  {
+    id: 'business-incoming',
+    label: 'קבלת סחורה',
+    path: '/business/incoming',
+    icon: '📥',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager', 'warehouse'],
+    requiresBusinessContext: true,
+    category: 'inventory'
+  },
+  {
+    id: 'business-restock',
+    label: 'בקשות חידוש מלאי',
+    path: '/business/restock',
+    icon: '🔄',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager', 'warehouse'],
+    requiresBusinessContext: true,
+    category: 'inventory'
+  },
+
+  // Analytics Category
   {
     id: 'business-analytics',
     label: 'אנליטיקה',
@@ -142,16 +240,40 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     icon: '📊',
     visible: true,
     requiredRoles: ['business_owner', 'manager'],
-    requiresBusinessContext: true
+    requiresBusinessContext: true,
+    category: 'analytics'
   },
   {
+    id: 'business-reports',
+    label: 'דוחות',
+    path: '/business/reports',
+    icon: '📋',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager'],
+    requiresBusinessContext: true,
+    category: 'analytics'
+  },
+  {
+    id: 'business-audit-logs',
+    label: 'יומני ביקורת',
+    path: '/business/audit-logs',
+    icon: '📝',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager'],
+    requiresBusinessContext: true,
+    category: 'analytics'
+  },
+
+  // Team Management Category
+  {
     id: 'business-customers',
-    label: 'לקוחות ומכירות',
+    label: 'לקוחות',
     path: '/business/customers',
     icon: '👥',
     visible: true,
-    requiredRoles: ['business_owner', 'sales'],
-    requiresBusinessContext: true
+    requiredRoles: ['business_owner', 'manager', 'sales', 'customer_service'],
+    requiresBusinessContext: true,
+    category: 'team'
   },
   {
     id: 'business-team',
@@ -160,8 +282,31 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     icon: '👔',
     visible: true,
     requiredRoles: ['business_owner', 'manager'],
-    requiresBusinessContext: true
+    requiresBusinessContext: true,
+    category: 'team'
   },
+  {
+    id: 'business-drivers',
+    label: 'נהגים',
+    path: '/business/drivers',
+    icon: '🚗',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager', 'dispatcher'],
+    requiresBusinessContext: true,
+    category: 'team'
+  },
+  {
+    id: 'business-zones',
+    label: 'אזורי חלוקה',
+    path: '/business/zones',
+    icon: '🗺️',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager', 'dispatcher'],
+    requiresBusinessContext: true,
+    category: 'team'
+  },
+
+  // Settings Category
   {
     id: 'business-settings',
     label: 'הגדרות',
@@ -169,8 +314,39 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     icon: '⚙️',
     visible: true,
     requiredRoles: ['business_owner'],
-    requiresBusinessContext: true
+    requiresBusinessContext: true,
+    category: 'settings'
+  },
+  {
+    id: 'business-permissions',
+    label: 'הרשאות',
+    path: '/business/permissions',
+    icon: '🔐',
+    visible: true,
+    requiredRoles: ['business_owner', 'manager'],
+    requiresBusinessContext: true,
+    category: 'settings'
+  },
+  {
+    id: 'business-feature-flags',
+    label: 'דגלי תכונות',
+    path: '/business/feature-flags',
+    icon: '🚩',
+    visible: true,
+    requiredRoles: ['business_owner'],
+    requiresBusinessContext: true,
+    category: 'settings'
   }
+];
+
+// Menu categories for organized navigation
+export const BUSINESS_MENU_CATEGORIES = [
+  { id: 'operations', label: 'פעילות ותפעול', icon: '⚙️', defaultOpen: true },
+  { id: 'inventory', label: 'מלאי ומוצרים', icon: '📦', defaultOpen: false },
+  { id: 'analytics', label: 'אנליטיקה ודוחות', icon: '📊', defaultOpen: false },
+  { id: 'team', label: 'אנשים וקבוצות', icon: '👥', defaultOpen: false },
+  { id: 'content', label: 'תוכן ופרסום', icon: '✨', defaultOpen: false },
+  { id: 'settings', label: 'הגדרות ותצורה', icon: '⚙️', defaultOpen: false }
 ];
 
 export const DRIVER_SHELL_NAV: NavigationItem[] = [

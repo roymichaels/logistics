@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { BaseShell } from './BaseShell';
 import { UserRole } from './types';
 import { UnifiedAppFrame } from '../layouts/UnifiedAppFrame';
-import { getNavigationForRole } from './navigationSchema';
-import { MenuItemConfig } from '../components/navigation/UnifiedMenuPanel';
+import { getNavigationForRole, BUSINESS_MENU_CATEGORIES } from './navigationSchema';
+import { MenuItemConfig, MenuCategory } from '../components/navigation';
 import { BusinessHeaderSelector } from '../components/BusinessHeaderSelector';
 import { logger } from '../lib/logger';
 import { useBusinessScopedAccess } from '../hooks/useBusinessScopedAccess';
@@ -58,6 +58,7 @@ export function BusinessShell({
         disabled: isDisabled,
         disabledMessage: isDisabled ? 'אנא בחר עסק כדי לגשת לתכונה זו' : undefined,
         requiresBusinessContext: requiresBusiness,
+        category: item.category,
       };
     });
 
@@ -130,6 +131,7 @@ export function BusinessShell({
     >
       <UnifiedAppFrame
         menuItems={menuItems}
+        menuCategories={BUSINESS_MENU_CATEGORIES}
         currentPath={currentPath}
         onNavigate={onNavigate}
         onLogout={onLogout}
