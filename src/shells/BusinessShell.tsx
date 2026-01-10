@@ -132,6 +132,7 @@ export function BusinessShell({
         menuItems={menuItems}
         currentPath={currentPath}
         onNavigate={onNavigate}
+        onLogout={onLogout}
         title={isMultiBusinessOwner ? 'Multi-Business Menu' : 'Business Menu'}
         businessSelector={businessSelector}
         onShowModeSelector={handleShowModeSelector}

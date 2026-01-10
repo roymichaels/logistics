@@ -15,6 +15,7 @@ interface UnifiedAppFrameProps {
   headerContent?: React.ReactNode;
   showBottomNav?: boolean;
   businessSelector?: React.ReactNode;
+  onLogout?: () => void;
   onShowModeSelector?: () => void;
   onShowCreateOrder?: () => void;
   onShowCreateTask?: () => void;
@@ -35,6 +36,7 @@ export function UnifiedAppFrame({
   headerContent,
   businessSelector,
   showBottomNav: showBottomNavProp,
+  onLogout,
   onShowModeSelector,
   onShowCreateOrder,
   onShowCreateTask,
@@ -163,7 +165,7 @@ export function UnifiedAppFrame({
           currentPage={currentPath}
           onNavigate={onNavigate}
           userRole={userRole}
-          onOpenSidebar={() => setMenuOpen(true)}
+          onLogout={onLogout}
           onShowActionMenu={() => setActionMenuOpen(true)}
           onShowCreateOrder={onShowCreateOrder}
           onShowCreateTask={onShowCreateTask}

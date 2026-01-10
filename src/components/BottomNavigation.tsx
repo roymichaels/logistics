@@ -6,6 +6,7 @@ import { colors, spacing, navigation } from '../styles/design-system';
 import { useAuth } from '../context/AuthContext';
 import { haptic } from '../utils/haptic';
 import { useBusinessScopedAccess } from '../hooks/useBusinessScopedAccess';
+import { ProfileDropdown } from './navigation/ProfileDropdown';
 
 /**
  * 🧠 ROY MICHAELS MILITARIZED NAVIGATION
@@ -48,7 +49,7 @@ interface BottomNavigationProps {
   onNavigate: (page: string) => void;
   userRole?: RoleKey;
   onShowActionMenu?: () => void;
-  onOpenSidebar?: () => void;
+  onLogout?: () => void;
   onShowCreateOrder?: () => void;
   onShowCreateTask?: () => void;
   onShowScanBarcode?: () => void;
@@ -64,7 +65,7 @@ export const BottomNavigation = React.memo(function BottomNavigation({
   onNavigate,
   userRole,
   onShowActionMenu,
-  onOpenSidebar,
+  onLogout,
   onShowCreateOrder,
   onShowCreateTask,
   onShowScanBarcode,
@@ -80,6 +81,7 @@ export const BottomNavigation = React.memo(function BottomNavigation({
   const { translations } = useI18n();
   const authCtx = useAuth();
   const authRole = (authCtx?.user as any)?.role || null;
+  const currentUser = authCtx?.user || null;
   void authRole;
 
   const businessAccess = useBusinessScopedAccess();
@@ -466,12 +468,11 @@ export const BottomNavigation = React.memo(function BottomNavigation({
   const navItems: React.ReactNode[] = [];
 
   // Calculate positions for proper centering in RTL
-  const hasSidebarButton = userRole && userRole !== 'user' && onOpenSidebar;
   const totalTabs = tabs.length;
 
-  // For RTL layout with action button in center and תפריט on far right:
-  // Structure: [תפריט] [צ'אט] [ACTION] [התראות] [משימות]
-  // Visual RTL: משימות | התראות | פעולות | צ'אט | תפריט
+  // For RTL layout with action button in center:
+  // Structure: [PROFILE] [צ'אט] [ACTION] [התראות] [משימות]
+  // Visual RTL: משימות | התראות | פעולות | צ'אט | פרופיל
   // With 3 tabs total: צ'אט (0), התראות (1), משימות (2)
   // Split: 1 tab left of action (צ'אט), 2 tabs right of action (התראות, משימות)
   const leftSideTabs = 1; // tabs to the left of center button
@@ -531,41 +532,18 @@ export const BottomNavigation = React.memo(function BottomNavigation({
     );
   };
 
-  // Add תפריט button first (on the far right in RTL layout)
-  if (hasSidebarButton) {
+  // Add profile dropdown slot (positioned at bottom on desktop, far right on mobile)
+  if (currentUser && onLogout) {
     navItems.push(
-      <button
-        key="sidebar-menu"
-        onClick={() => {
-          haptic();
-          onOpenSidebar();
-        }}
-        style={{
-          flex: '1',
-          minWidth: '0',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '8px 4px',
-          border: 'none',
-          backgroundColor: 'transparent',
-          color: colors.text.secondary,
-          cursor: 'pointer',
-          fontSize: '11px',
-          fontWeight: '600',
-          position: 'relative',
-          transition: 'all 0.2s ease'
-        }}
-      >
-        <span style={{
-          fontSize: '26px',
-          transition: 'all 200ms ease-in-out'
-        }}>
-          ☰
-        </span>
-        <span>תפריט</span>
-      </button>
+      <div key="profile-dropdown-slot" className="profile-dropdown-slot" style={{ flex: 1, minWidth: 0 }}>
+        <ProfileDropdown
+          user={currentUser as any}
+          onNavigate={onNavigate}
+          onLogout={onLogout}
+          compact={true}
+          position="bottom"
+        />
+      </div>
     );
   }
 
@@ -617,6 +595,15 @@ export const BottomNavigation = React.memo(function BottomNavigation({
           border-top-color: rgba(56, 68, 77, 0.8);
         }
 
+        .profile-dropdown-slot {
+          order: 999;
+          flex: 1 !important;
+          min-width: 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+
         @media (min-width: 768px) {
           :root {
             --nav-sidebar-offset: 80px;
@@ -645,6 +632,14 @@ export const BottomNavigation = React.memo(function BottomNavigation({
           .bottom-nav-container button {
             width: 100% !important;
             flex: 0 0 auto !important;
+          }
+
+          .profile-dropdown-slot {
+            order: 999;
+            margin-top: auto !important;
+            flex: 0 0 auto !important;
+            padding-top: 16px !important;
+            border-top: 1px solid rgba(56, 68, 77, 0.4) !important;
           }
         }
 

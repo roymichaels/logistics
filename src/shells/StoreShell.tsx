@@ -45,6 +45,7 @@ export function StoreShell({
         menuItems={menuItems}
         currentPath={currentPath}
         onNavigate={onNavigate}
+        onLogout={onLogout}
         title="תפריט"
       >
         {children}

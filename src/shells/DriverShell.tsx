@@ -55,6 +55,7 @@ export function DriverShell({
         menuItems={menuItems}
         currentPath={currentPath}
         onNavigate={onNavigate}
+        onLogout={onLogout}
         title="Driver Menu"
         onShowCheckInventory={handleShowCheckInventory}
         onShowCreateTask={handleShowCreateTask}

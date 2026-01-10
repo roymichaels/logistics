@@ -71,6 +71,7 @@ export function AdminShell({
           menuItems={menuItems}
           currentPath={currentPath}
           onNavigate={onNavigate}
+          onLogout={onLogout}
           title={`תפריט ${shellTitle}`}
           onShowCreateUser={handleShowCreateUser}
           onShowCreateTask={handleShowCreateTask}
