@@ -1,11 +1,12 @@
 import React from 'react';
-import { TELEGRAM_THEME } from '../../styles/telegramTheme';
+import { tokens } from '../../styles/telegramTheme';
 
-const colors = TELEGRAM_THEME.colors;
-const spacing: any = TELEGRAM_THEME.spacing;
-const borderRadius = TELEGRAM_THEME.radius;
-const typography = TELEGRAM_THEME.typography;
-const transitions = TELEGRAM_THEME.transitions;
+const colors = tokens.colors;
+const spacing: any = tokens.spacing;
+const borderRadius = tokens.radius;
+const typography = tokens.typography;
+const transitions = tokens.transitions;
+const shadows = tokens.shadows;
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: boolean;
@@ -47,20 +48,20 @@ export function Input({
     padding: `${spacing.md} ${spacing.lg}`,
     paddingLeft: leftIcon ? '40px' : spacing.lg,
     paddingRight: rightIcon ? '40px' : spacing.lg,
-    background: colors.input.background,
-    border: `1px solid ${error ? colors.status.error : isFocused ? colors.input.borderFocus : colors.input.border}`,
+    background: colors.background.secondary,
+    border: `1px solid ${error ? colors.status.error : isFocused ? colors.accent.primary : colors.border.primary}`,
     borderRadius: borderRadius.md,
-    color: colors.input.text,
+    color: colors.text.primary,
     fontSize: typography.fontSize.base,
-    fontFamily: typography.fontFamily.primary,
+    fontFamily: 'inherit',
     fontWeight: typography.fontWeight.normal,
-    lineHeight: typography.lineHeight.normal,
+    lineHeight: '1.5',
     outline: 'none',
     transition: transitions.normal,
     opacity: disabled ? 0.5 : 1,
     cursor: disabled ? 'not-allowed' : 'text',
     minHeight: '44px',
-    boxShadow: isFocused ? (error ? `0 0 0 2px ${colors.status.errorFaded}` : `0 0 0 2px ${colors.accent.faded}`) : 'none',
+    boxShadow: isFocused ? (error ? `0 0 0 2px rgba(248, 113, 113, 0.3)` : `0 0 0 2px ${colors.accent.primary}`) : 'none',
     ...style,
   };
 
@@ -76,19 +77,19 @@ export function Input({
 
   const leftIconStyles: React.CSSProperties = {
     ...iconStyles,
-    left: spacing[4],
+    left: spacing.md,
   };
 
   const rightIconStyles: React.CSSProperties = {
     ...iconStyles,
-    right: spacing[4],
+    right: spacing.md,
   };
 
   const errorMessageStyles: React.CSSProperties = {
-    marginTop: spacing[1],
+    marginTop: spacing.xs,
     fontSize: typography.fontSize.sm,
     color: colors.status.error,
-    paddingLeft: spacing[1],
+    paddingLeft: spacing.xs,
   };
 
   return (
@@ -144,22 +145,22 @@ export function TextArea({
 
   const textareaStyles: React.CSSProperties = {
     width: '100%',
-    padding: `${spacing[3]} ${spacing[4]}`,
+    padding: `${spacing.md} ${spacing.lg}`,
     background: colors.background.secondary,
-    border: `1px solid ${error ? colors.status.error : isFocused ? colors.border.focus : colors.border.primary}`,
+    border: `1px solid ${error ? colors.status.error : isFocused ? colors.border.hover : colors.border.primary}`,
     borderRadius: borderRadius.xl,
     color: colors.text.primary,
     fontSize: typography.fontSize.base,
-    fontFamily: typography.fontFamily.primary,
+    fontFamily: 'inherit',
     fontWeight: typography.fontWeight.normal,
-    lineHeight: typography.lineHeight.relaxed,
+    lineHeight: '1.75',
     outline: 'none',
-    transition: `all ${transitions.normal}`,
+    transition: transitions.normal,
     resize,
     minHeight: '100px',
     opacity: disabled ? 0.5 : 1,
     cursor: disabled ? 'not-allowed' : 'text',
-    boxShadow: isFocused ? (error ? `0 0 0 2px ${colors.status.errorFaded}` : shadows.focus) : 'none',
+    boxShadow: isFocused ? (error ? `0 0 0 2px rgba(248, 113, 113, 0.3)` : `0 0 0 2px ${colors.accent.primary}`) : 'none',
     ...style,
   };
 
@@ -167,7 +168,7 @@ export function TextArea({
     marginTop: spacing.xs,
     fontSize: typography.fontSize.sm,
     color: colors.status.error,
-    paddingLeft: spacing[1],
+    paddingLeft: spacing.xs,
   };
 
   return (

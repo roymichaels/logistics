@@ -22,6 +22,8 @@ interface OrderFormData {
   notes: string;
 }
 
+type PaymentMethod = 'cash_on_delivery' | 'crypto';
+
 export function CheckoutPage({ dataStore, onNavigate }: CheckoutPageProps) {
   const navigate = useNavigate();
   const { cart, clearCart } = useCart();
@@ -32,6 +34,7 @@ export function CheckoutPage({ dataStore, onNavigate }: CheckoutPageProps) {
     city: '',
     notes: '',
   });
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('crypto');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<OrderFormData>>({});
 
@@ -94,25 +97,35 @@ export function CheckoutPage({ dataStore, onNavigate }: CheckoutPageProps) {
         subtotal: cart.totalPrice,
         shipping_cost: shippingCost,
         total_amount: totalAmount,
-        payment_method: 'cash_on_delivery',
-        status: 'pending',
+        payment_method: paymentMethod,
+        status: paymentMethod === 'crypto' ? 'pending_payment' : 'pending',
         created_at: new Date().toISOString(),
       };
 
-      if (dataStore?.createOrder) {
-        await dataStore.createOrder(order);
-      } else {
-        const orders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
-        orders.push(order);
-        localStorage.setItem('customer_orders', JSON.stringify(orders));
-      }
+      if (paymentMethod === 'crypto') {
+        localStorage.setItem('pending_order', JSON.stringify(order));
 
-      clearCart();
-
-      if (onNavigate) {
-        onNavigate(`/store/orders/${order.id}`);
+        if (onNavigate) {
+          onNavigate('/payments/crypto');
+        } else {
+          navigate('/payments/crypto');
+        }
       } else {
-        navigate(`/store/orders/${order.id}`);
+        if (dataStore?.createOrder) {
+          await dataStore.createOrder(order);
+        } else {
+          const orders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
+          orders.push(order);
+          localStorage.setItem('customer_orders', JSON.stringify(orders));
+        }
+
+        clearCart();
+
+        if (onNavigate) {
+          onNavigate(`/store/orders/${order.id}`);
+        } else {
+          navigate(`/store/orders/${order.id}`);
+        }
       }
     } catch (error) {
       console.error('Failed to create order:', error);
@@ -343,39 +356,85 @@ export function CheckoutPage({ dataStore, onNavigate }: CheckoutPageProps) {
               Payment Method
             </Text>
 
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: spacing.md,
-                padding: spacing.lg,
-                background: colors.background.secondary,
-                borderRadius: borderRadius.md,
-                border: `2px solid ${colors.brand.primary}`,
-              }}
-            >
-              <div style={{ fontSize: '32px' }}>💵</div>
-              <div style={{ flex: 1 }}>
-                <Text weight="bold">Cash on Delivery</Text>
-                <Text variant="small" color="secondary">
-                  Pay with cash when you receive your order
-                </Text>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
+              <div
+                onClick={() => setPaymentMethod('crypto')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: spacing.md,
+                  padding: spacing.lg,
+                  background: colors.background.secondary,
+                  borderRadius: borderRadius.md,
+                  border: `2px solid ${paymentMethod === 'crypto' ? colors.brand.primary : colors.border.primary}`,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <div style={{ fontSize: '32px' }}>💰</div>
+                <div style={{ flex: 1 }}>
+                  <Text weight="bold">Cryptocurrency</Text>
+                  <Text variant="small" color="secondary">
+                    Pay with ETH, SOL, or TON
+                  </Text>
+                </div>
+                {paymentMethod === 'crypto' && <Badge variant="success">Selected</Badge>}
               </div>
-              <Badge variant="success">Selected</Badge>
+
+              <div
+                onClick={() => setPaymentMethod('cash_on_delivery')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: spacing.md,
+                  padding: spacing.lg,
+                  background: colors.background.secondary,
+                  borderRadius: borderRadius.md,
+                  border: `2px solid ${paymentMethod === 'cash_on_delivery' ? colors.brand.primary : colors.border.primary}`,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <div style={{ fontSize: '32px' }}>💵</div>
+                <div style={{ flex: 1 }}>
+                  <Text weight="bold">Cash on Delivery</Text>
+                  <Text variant="small" color="secondary">
+                    Pay with cash when you receive your order
+                  </Text>
+                </div>
+                {paymentMethod === 'cash_on_delivery' && <Badge variant="success">Selected</Badge>}
+              </div>
             </div>
 
-            <div
-              style={{
-                marginTop: spacing.md,
-                padding: spacing.md,
-                background: colors.background.tertiary,
-                borderRadius: borderRadius.sm,
-              }}
-            >
-              <Text variant="small" color="secondary">
-                Please have the exact amount ready (₪{totalAmount.toFixed(2)}) when the driver arrives
-              </Text>
-            </div>
+            {paymentMethod === 'cash_on_delivery' && (
+              <div
+                style={{
+                  marginTop: spacing.md,
+                  padding: spacing.md,
+                  background: colors.background.tertiary,
+                  borderRadius: borderRadius.sm,
+                }}
+              >
+                <Text variant="small" color="secondary">
+                  Please have the exact amount ready (₪{totalAmount.toFixed(2)}) when the driver arrives
+                </Text>
+              </div>
+            )}
+
+            {paymentMethod === 'crypto' && (
+              <div
+                style={{
+                  marginTop: spacing.md,
+                  padding: spacing.md,
+                  background: colors.background.tertiary,
+                  borderRadius: borderRadius.sm,
+                }}
+              >
+                <Text variant="small" color="secondary">
+                  You will be redirected to complete your payment with cryptocurrency on the next page
+                </Text>
+              </div>
+            )}
           </Card>
 
           <Button
@@ -388,7 +447,12 @@ export function CheckoutPage({ dataStore, onNavigate }: CheckoutPageProps) {
               boxShadow: shadows.lg,
             }}
           >
-            {loading ? 'Placing Order...' : `Place Order - ₪${totalAmount.toFixed(2)}`}
+            {loading
+              ? 'Processing...'
+              : paymentMethod === 'crypto'
+                ? `Continue to Payment - ₪${totalAmount.toFixed(2)}`
+                : `Place Order - ₪${totalAmount.toFixed(2)}`
+            }
           </Button>
 
           <Text variant="small" color="secondary" style={{ textAlign: 'center' }}>
