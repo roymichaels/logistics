@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Section } from '../components/atoms/Section';
-import { Card } from '../components/molecules/Card';
-import { Button } from '../components/atoms/Button';
-import { Text } from '../components/atoms/Typography';
-import { Badge } from '../components/atoms/Badge';
-import { EmptyState } from '../components/molecules/EmptyState';
-import { colors, spacing, borderRadius, shadows } from '../styles/design-system';
+import { UndergroundSection } from '../components/underground/UndergroundSection';
+import { UndergroundCard } from '../components/underground/UndergroundCard';
+import { UndergroundButton } from '../components/underground/UndergroundButton';
+import { UndergroundBadge } from '../components/underground/UndergroundBadge';
+import { UndergroundEmptyState } from '../components/underground/UndergroundEmptyState';
+import { undergroundTheme } from '../styles/undergroundTheme';
+import { getStatusBadgeStyle, createPageContainerStyle } from '../utils/undergroundStyles';
 
 interface MyOrdersPageProps {
   dataStore?: any;
@@ -35,12 +35,12 @@ interface Order {
 }
 
 const STATUS_CONFIG = {
-  pending: { label: 'Pending', variant: 'warning' as const, color: '#f59e0b' },
-  confirmed: { label: 'Confirmed', variant: 'info' as const, color: '#3b82f6' },
-  preparing: { label: 'Preparing', variant: 'info' as const, color: '#0ea5e9' },
-  out_for_delivery: { label: 'Out for Delivery', variant: 'info' as const, color: '#06b6d4' },
-  delivered: { label: 'Delivered', variant: 'success' as const, color: '#10b981' },
-  cancelled: { label: 'Cancelled', variant: 'error' as const, color: '#ef4444' },
+  pending: { label: 'Pending', variant: 'warning' as const, color: undergroundTheme.colors.status.warning },
+  confirmed: { label: 'Confirmed', variant: 'info' as const, color: undergroundTheme.colors.status.info },
+  preparing: { label: 'Preparing', variant: 'info' as const, color: undergroundTheme.colors.accent.tertiary },
+  out_for_delivery: { label: 'Out for Delivery', variant: 'info' as const, color: undergroundTheme.colors.accent.secondary },
+  delivered: { label: 'Delivered', variant: 'success' as const, color: undergroundTheme.colors.status.success },
+  cancelled: { label: 'Cancelled', variant: 'error' as const, color: undergroundTheme.colors.status.error },
 };
 
 export function MyOrdersPage({ dataStore, onNavigate }: MyOrdersPageProps) {
@@ -97,127 +97,187 @@ export function MyOrdersPage({ dataStore, onNavigate }: MyOrdersPageProps) {
 
   if (loading) {
     return (
-      <div style={{ padding: spacing.xl, textAlign: 'center' }}>
-        <Text variant="h4">Loading orders...</Text>
+      <div style={{
+        ...createPageContainerStyle(),
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh'
+      }}>
+        <div style={{
+          color: undergroundTheme.colors.text.primary,
+          fontSize: undergroundTheme.typography.fontSize['2xl'],
+          fontWeight: undergroundTheme.typography.fontWeight.semibold
+        }}>
+          Loading orders...
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: spacing.xl, maxWidth: '900px', margin: '0 auto', paddingBottom: '100px' }}>
-      <Button
+    <div style={{
+      ...createPageContainerStyle(),
+      maxWidth: '900px',
+      margin: '0 auto'
+    }}>
+      <UndergroundButton
         variant="secondary"
         onClick={handleBackToStore}
-        style={{ marginBottom: spacing.xl }}
+        style={{ marginBottom: undergroundTheme.spacing['2xl'] }}
       >
         ← Back to Store
-      </Button>
+      </UndergroundButton>
 
-      <Section
+      <UndergroundSection
         title="My Orders"
         style={{
-          marginBottom: spacing.xl,
+          marginBottom: undergroundTheme.spacing['4xl'],
         }}
       >
         {orders.length === 0 ? (
-          <Card variant="outlined">
-            <EmptyState
-              variant="default"
-              title="No orders yet"
-              description="You haven't placed any orders. Start shopping to see your orders here!"
-              action={{
-                label: 'Start Shopping',
-                onClick: handleBackToStore,
-              }}
-            />
-          </Card>
+          <UndergroundEmptyState
+            title="No orders yet"
+            description="You haven't placed any orders. Start shopping to see your orders here!"
+            action={{
+              label: 'Start Shopping',
+              onClick: handleBackToStore,
+            }}
+          />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.lg }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.xl }}>
             {orders.map((order) => {
-              const statusConfig = STATUS_CONFIG[order.status];
-              const totalItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
+              const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+              const items = order.items || [];
+              const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
               return (
-                <Card
+                <UndergroundCard
                   key={order.id}
-                  variant="outlined"
-                  hoverable
+                  hover
                   onClick={() => handleOrderClick(order.id)}
                   style={{
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
+                    transition: undergroundTheme.transitions.normal,
                   }}
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.lg }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div>
-                        <Text variant="h4" style={{ marginBottom: spacing.xs }}>
+                        <div style={{
+                          color: undergroundTheme.colors.text.primary,
+                          fontSize: undergroundTheme.typography.fontSize.xl,
+                          fontWeight: undergroundTheme.typography.fontWeight.bold,
+                          marginBottom: undergroundTheme.spacing.sm
+                        }}>
                           Order #{order.order_number}
-                        </Text>
-                        <Text variant="small" color="secondary">
+                        </div>
+                        <div style={{
+                          color: undergroundTheme.colors.text.tertiary,
+                          fontSize: undergroundTheme.typography.fontSize.sm
+                        }}>
                           {formatDate(order.created_at)}
-                        </Text>
+                        </div>
                       </div>
-                      <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                      <UndergroundBadge status={order.status}>
+                        {statusConfig.label}
+                      </UndergroundBadge>
                     </div>
 
                     <div
                       style={{
-                        padding: spacing.md,
-                        background: colors.background.secondary,
-                        borderRadius: borderRadius.md,
+                        padding: undergroundTheme.spacing.lg,
+                        background: undergroundTheme.colors.glassmorphism.light,
+                        borderRadius: undergroundTheme.borderRadius.lg,
+                        border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: spacing.sm }}>
-                        <Text variant="small" color="secondary">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: undergroundTheme.spacing.md }}>
+                        <div style={{
+                          color: undergroundTheme.colors.text.tertiary,
+                          fontSize: undergroundTheme.typography.fontSize.sm
+                        }}>
                           Items
-                        </Text>
-                        <Text variant="small" weight="semibold">
+                        </div>
+                        <div style={{
+                          color: undergroundTheme.colors.text.primary,
+                          fontSize: undergroundTheme.typography.fontSize.sm,
+                          fontWeight: undergroundTheme.typography.fontWeight.semibold
+                        }}>
                           {totalItems} {totalItems === 1 ? 'item' : 'items'}
-                        </Text>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: spacing.sm }}>
-                        <Text variant="small" color="secondary">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: undergroundTheme.spacing.md }}>
+                        <div style={{
+                          color: undergroundTheme.colors.text.tertiary,
+                          fontSize: undergroundTheme.typography.fontSize.sm
+                        }}>
                           Total Amount
-                        </Text>
-                        <Text variant="body" weight="bold" style={{ color: colors.brand.primary }}>
+                        </div>
+                        <div style={{
+                          color: undergroundTheme.colors.accent.primary,
+                          fontSize: undergroundTheme.typography.fontSize.lg,
+                          fontWeight: undergroundTheme.typography.fontWeight.bold,
+                          textShadow: undergroundTheme.shadows.glow.cyan
+                        }}>
                           ₪{order.total_amount.toFixed(2)}
-                        </Text>
+                        </div>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Text variant="small" color="secondary">
+                        <div style={{
+                          color: undergroundTheme.colors.text.tertiary,
+                          fontSize: undergroundTheme.typography.fontSize.sm
+                        }}>
                           Payment Method
-                        </Text>
-                        <Text variant="small" weight="semibold">
+                        </div>
+                        <div style={{
+                          color: undergroundTheme.colors.text.secondary,
+                          fontSize: undergroundTheme.typography.fontSize.sm,
+                          fontWeight: undergroundTheme.typography.fontWeight.semibold
+                        }}>
                           Cash on Delivery
-                        </Text>
+                        </div>
                       </div>
                     </div>
 
                     <div
                       style={{
                         display: 'flex',
-                        gap: spacing.xs,
+                        gap: undergroundTheme.spacing.sm,
                         flexWrap: 'wrap',
-                        borderTop: `1px solid ${colors.border.primary}`,
-                        paddingTop: spacing.md,
+                        borderTop: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                        paddingTop: undergroundTheme.spacing.lg,
                       }}
                     >
-                      {order.items.slice(0, 3).map((item, idx) => (
-                        <Text key={idx} variant="small" color="secondary">
+                      {items.slice(0, 3).map((item, idx) => (
+                        <div key={idx} style={{
+                          color: undergroundTheme.colors.text.tertiary,
+                          fontSize: undergroundTheme.typography.fontSize.sm,
+                          padding: `${undergroundTheme.spacing.xs} ${undergroundTheme.spacing.md}`,
+                          background: undergroundTheme.colors.glassmorphism.light,
+                          borderRadius: undergroundTheme.borderRadius.md,
+                          border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
+                        }}>
                           {item.product_name} ({item.quantity}x)
-                        </Text>
+                        </div>
                       ))}
-                      {order.items.length > 3 && (
-                        <Text variant="small" color="secondary" weight="semibold">
-                          +{order.items.length - 3} more
-                        </Text>
+                      {items.length > 3 && (
+                        <div style={{
+                          color: undergroundTheme.colors.accent.secondary,
+                          fontSize: undergroundTheme.typography.fontSize.sm,
+                          fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                          padding: `${undergroundTheme.spacing.xs} ${undergroundTheme.spacing.md}`,
+                          background: undergroundTheme.colors.accent.subtle,
+                          borderRadius: undergroundTheme.borderRadius.md,
+                          border: `1px solid ${undergroundTheme.colors.accent.primary}40`
+                        }}>
+                          +{items.length - 3} more
+                        </div>
                       )}
                     </div>
 
-                    <Button
+                    <UndergroundButton
                       variant="secondary"
-                      size="small"
                       fullWidth
                       onClick={(e) => {
                         e.stopPropagation();
@@ -225,14 +285,14 @@ export function MyOrdersPage({ dataStore, onNavigate }: MyOrdersPageProps) {
                       }}
                     >
                       View Details →
-                    </Button>
+                    </UndergroundButton>
                   </div>
-                </Card>
+                </UndergroundCard>
               );
             })}
           </div>
         )}
-      </Section>
+      </UndergroundSection>
     </div>
   );
 }
