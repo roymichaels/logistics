@@ -45,6 +45,25 @@ export function CreateBusinessModal({ dataStore, user, onClose, onSuccess }: Cre
         return;
       }
 
+      // Check if user can create business based on subscription
+      logger.info('[CreateBusinessModal] Checking subscription limits', { userId });
+      const { data: canCreate, error: subscriptionError } = await dataStore.supabase
+        .rpc('can_user_create_business', { p_user_id: userId });
+
+      if (subscriptionError) {
+        logger.error('[CreateBusinessModal] Error checking subscription', subscriptionError);
+        Toast.error('שגיאה בבדיקת מנוי. אנא נסה שוב.');
+        setLoading(false);
+        return;
+      }
+
+      if (!canCreate) {
+        logger.warn('[CreateBusinessModal] User reached business limit', { userId });
+        Toast.error('הגעת למגבלת העסקים במנוי שלך. אנא שדרג את המנוי כדי ליצור עסקים נוספים.');
+        setLoading(false);
+        return;
+      }
+
       const orderPrefix = formData.name.substring(0, 3).toUpperCase() || 'BUS';
 
       logger.info('[CreateBusinessModal] Creating business via Supabase', {

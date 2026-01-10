@@ -35,12 +35,26 @@ export function DriverProfileCheck({ onProfileReady }: DriverProfileCheckProps) 
     try {
       setLoading(true);
 
+      // Check for driver profile first
       const { data: profile } = await driverService.getDriverProfile(user.id);
 
       if (profile) {
+        // Driver profile exists, but check if they're attached to a business
+        if (!profile.business_id && !profile.metadata?.cooperation_approved) {
+          // Profile exists but no business attachment and not approved for freelance
+          setHasProfile(false);
+          setApplication({
+            status: 'approved_pending_assignment',
+            message: 'Your application is approved. Please wait for a business to assign you or contact support for freelance approval.'
+          } as any);
+          return;
+        }
+
+        // Profile exists and has business attachment or is approved for cooperation
         setHasProfile(true);
         onProfileReady();
       } else {
+        // No profile, check for application
         const { data: app } = await driverService.getDriverApplication(user.id);
         setApplication(app);
       }
@@ -100,6 +114,8 @@ export function DriverProfileCheck({ onProfileReady }: DriverProfileCheckProps) 
   }
 
   if (application) {
+    const isApprovedPendingAssignment = application.status === 'approved_pending_assignment';
+
     return (
       <div style={{
         minHeight: '100vh',
@@ -118,14 +134,16 @@ export function DriverProfileCheck({ onProfileReady }: DriverProfileCheckProps) 
           border: `1px solid ${tokens.colors.background.cardBorder}`,
           textAlign: 'center'
         }}>
-          <div style={{ fontSize: '64px', marginBottom: '24px' }}>⏳</div>
+          <div style={{ fontSize: '64px', marginBottom: '24px' }}>
+            {isApprovedPendingAssignment ? '✅' : '⏳'}
+          </div>
           <h2 style={{
             fontSize: '24px',
             fontWeight: '700',
             color: tokens.colors.text,
             marginBottom: '16px'
           }}>
-            הבקשה שלך בבדיקה
+            {isApprovedPendingAssignment ? 'בקשה אושרה - ממתין לשיוך' : 'הבקשה שלך בבדיקה'}
           </h2>
           <p style={{
             fontSize: '16px',
@@ -133,13 +151,20 @@ export function DriverProfileCheck({ onProfileReady }: DriverProfileCheckProps) 
             marginBottom: '24px',
             lineHeight: '1.6'
           }}>
-            הבקשה שלך להצטרף כנהג נמצאת כרגע בבדיקה. נעדכן אותך בהקדם האפשרי.
+            {isApprovedPendingAssignment
+              ? 'הבקשה שלך אושרה! כדי להתחיל לעבוד, עליך להיות משויך לעסק או לקבל אישור לעבודה בשיתוף פעולה חופשי. אנא צור קשר עם בעל עסק או פנה לתמיכה.'
+              : 'הבקשה שלך להצטרף כנהג נמצאת כרגע בבדיקה. נעדכן אותך בהקדם האפשרי.'}
           </p>
           <div style={{
             padding: '16px',
-            background: tokens.colors.bg,
+            background: isApprovedPendingAssignment
+              ? 'rgba(16, 185, 129, 0.1)'
+              : tokens.colors.bg,
             borderRadius: '12px',
-            marginBottom: '24px'
+            marginBottom: '24px',
+            border: isApprovedPendingAssignment
+              ? '1px solid rgba(16, 185, 129, 0.3)'
+              : 'none'
           }}>
             <div style={{
               display: 'flex',
@@ -150,21 +175,38 @@ export function DriverProfileCheck({ onProfileReady }: DriverProfileCheckProps) 
               <span style={{
                 fontSize: '14px',
                 fontWeight: '600',
-                color: tokens.colors.status.warning
+                color: isApprovedPendingAssignment
+                  ? tokens.colors.status.success
+                  : tokens.colors.status.warning
               }}>
-                ממתין לאישור
+                {isApprovedPendingAssignment ? 'אושר - ממתין לשיוך' : 'ממתין לאישור'}
               </span>
             </div>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between'
-            }}>
-              <span style={{ fontSize: '14px', color: tokens.colors.subtle }}>תאריך שליחה:</span>
-              <span style={{ fontSize: '14px', color: tokens.colors.text }}>
-                {new Date(application.submitted_at).toLocaleDateString('he-IL')}
-              </span>
-            </div>
+            {application.submitted_at && (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between'
+              }}>
+                <span style={{ fontSize: '14px', color: tokens.colors.subtle }}>תאריך שליחה:</span>
+                <span style={{ fontSize: '14px', color: tokens.colors.text }}>
+                  {new Date(application.submitted_at).toLocaleDateString('he-IL')}
+                </span>
+              </div>
+            )}
           </div>
+          {isApprovedPendingAssignment && (
+            <div style={{
+              padding: '16px',
+              background: 'rgba(59, 130, 246, 0.1)',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              borderRadius: '12px',
+              fontSize: '14px',
+              color: tokens.colors.text,
+              lineHeight: '1.6'
+            }}>
+              💡 <strong>טיפ:</strong> פנה לבעלי עסקים ברשימת העסקים או שלח בקשה לתמיכה לקבלת הרשאת עבודה חופשית.
+            </div>
+          )}
         </div>
       </div>
     );

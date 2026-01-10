@@ -10,6 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import { driverService, DriverProfile } from '../../services/driver';
 import { logger } from '../../lib/logger';
 import { Toast } from '../../components/Toast';
+import { tokens } from '../../styles/tokens';
 
 interface DriverStatsData {
   profile: DriverProfile | null;
