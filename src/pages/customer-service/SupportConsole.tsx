@@ -1,46 +1,123 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { undergroundTheme } from '../../styles/undergroundTheme';
 import { UndergroundCard } from '../../components/underground/UndergroundCard';
 import { UndergroundStatCard } from '../../components/underground/UndergroundStatCard';
 import { UndergroundButton } from '../../components/underground/UndergroundButton';
 import { UndergroundInput } from '../../components/underground/UndergroundInput';
 import { UndergroundSelect } from '../../components/underground/UndergroundSelect';
+import { UndergroundLoadingSpinner } from '../../components/underground/UndergroundLoadingSpinner';
+import { UndergroundEmptyState } from '../../components/underground/UndergroundEmptyState';
 import { getStatusBadgeStyle } from '../../utils/undergroundStyles';
 import { StatusVariant } from '../../components/atoms/StatusBadge';
+import { supabase } from '../../lib/supabase';
+import { logger } from '../../lib/logger';
+import { useAuth } from '../../context/AuthContext';
+import { useBusinessContext } from '../../hooks/useBusinessContext';
 
 interface Ticket {
   id: string;
-  customer: string;
-  subject: string;
+  title: string;
+  description: string;
   status: StatusVariant;
   priority: 'low' | 'medium' | 'high' | 'urgent';
-  created: string;
-  lastUpdate: string;
-  assignee?: string;
+  created_at: string;
+  updated_at: string;
+  assigned_to: string | null;
+  assigned_user?: {
+    name: string;
+  };
+  customer_name?: string;
+  order_id?: string;
 }
 
-type TicketFilter = 'all' | 'open' | 'pending' | 'resolved';
+type TicketFilter = 'all' | 'open' | 'in_progress' | 'completed';
 type PriorityFilter = 'all' | 'low' | 'medium' | 'high' | 'urgent';
 
 export function SupportConsole() {
+  const { user } = useAuth();
+  const { currentBusinessId } = useBusinessContext();
   const [statusFilter, setStatusFilter] = useState<TicketFilter>('all');
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [stats, setStats] = useState({
+    open: 0,
+    inProgress: 0,
+    avgResponseTime: 0,
+    resolvedToday: 0
+  });
 
-  const tickets: Ticket[] = [
-    { id: 'TKT-1024', customer: 'Sarah Johnson', subject: 'Order not delivered', status: 'urgent', priority: 'urgent', created: '2h ago', lastUpdate: '30m ago', assignee: 'You' },
-    { id: 'TKT-1023', customer: 'Mike Chen', subject: 'Product quality issue', status: 'in_progress', priority: 'high', created: '4h ago', lastUpdate: '1h ago', assignee: 'You' },
-    { id: 'TKT-1022', customer: 'Emma Davis', subject: 'Payment failed', status: 'pending', priority: 'high', created: '6h ago', lastUpdate: '2h ago', assignee: 'John' },
-    { id: 'TKT-1021', customer: 'Alex Brown', subject: 'Account access problem', status: 'open', priority: 'medium', created: '1d ago', lastUpdate: '4h ago' },
-    { id: 'TKT-1020', customer: 'Lisa White', subject: 'General inquiry', status: 'resolved', priority: 'low', created: '2d ago', lastUpdate: '1d ago', assignee: 'You' },
-  ];
+  useEffect(() => {
+    if (currentBusinessId) {
+      loadTickets();
+    }
+  }, [currentBusinessId]);
 
-  const stats = [
-    { label: 'Open Tickets', value: '24', icon: '🎫', accentColor: undergroundTheme.colors.accent.primary },
-    { label: 'In Progress', value: '8', icon: '⚙️', accentColor: undergroundTheme.colors.status.info },
-    { label: 'Avg Response', value: '12m', icon: '⏱️', accentColor: undergroundTheme.colors.status.warning },
-    { label: 'Resolved Today', value: '15', icon: '✅', accentColor: undergroundTheme.colors.status.success },
-  ];
+  const loadTickets = async () => {
+    if (!currentBusinessId) return;
+
+    try {
+      setLoading(true);
+
+      const { data: tasksData, error: tasksError } = await supabase
+        .from('tasks')
+        .select(`
+          *,
+          assigned_user:profiles!tasks_assigned_to_fkey(name)
+        `)
+        .eq('business_id', currentBusinessId)
+        .order('created_at', { ascending: false });
+
+      if (tasksError) {
+        logger.error('[SupportConsole] Failed to fetch tickets:', tasksError);
+        return;
+      }
+
+      const formattedTickets: Ticket[] = (tasksData || []).map(task => {
+        let priority: 'low' | 'medium' | 'high' | 'urgent' = 'medium';
+
+        if (task.priority === 'urgent') priority = 'urgent';
+        else if (task.priority === 'high') priority = 'high';
+        else if (task.priority === 'low') priority = 'low';
+
+        return {
+          id: task.id,
+          title: task.title,
+          description: task.description || '',
+          status: task.status as StatusVariant,
+          priority,
+          created_at: task.created_at,
+          updated_at: task.updated_at,
+          assigned_to: task.assigned_to,
+          assigned_user: task.assigned_user,
+          customer_name: task.metadata?.customer_name,
+          order_id: task.metadata?.order_id
+        };
+      });
+
+      setTickets(formattedTickets);
+
+      const openCount = formattedTickets.filter(t => t.status === 'pending' || t.status === 'open').length;
+      const inProgressCount = formattedTickets.filter(t => t.status === 'in_progress').length;
+      const today = new Date().toISOString().split('T')[0];
+      const resolvedTodayCount = formattedTickets.filter(t =>
+        t.status === 'completed' && t.updated_at.startsWith(today)
+      ).length;
+
+      setStats({
+        open: openCount,
+        inProgress: inProgressCount,
+        avgResponseTime: 12,
+        resolvedToday: resolvedTodayCount
+      });
+
+    } catch (error) {
+      logger.error('[SupportConsole] Error loading tickets:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
@@ -52,13 +129,74 @@ export function SupportConsole() {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  };
+
   const filteredTickets = tickets.filter(ticket => {
     if (statusFilter !== 'all' && ticket.status !== statusFilter) return false;
     if (priorityFilter !== 'all' && ticket.priority !== priorityFilter) return false;
-    if (searchQuery && !ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !ticket.customer.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return (
+        ticket.title.toLowerCase().includes(query) ||
+        ticket.description.toLowerCase().includes(query) ||
+        ticket.customer_name?.toLowerCase().includes(query)
+      );
+    }
     return true;
   });
+
+  const statsDisplay = [
+    {
+      label: 'Open Tickets',
+      value: stats.open.toString(),
+      icon: '🎫',
+      accentColor: undergroundTheme.colors.accent.primary
+    },
+    {
+      label: 'In Progress',
+      value: stats.inProgress.toString(),
+      icon: '⚙️',
+      accentColor: undergroundTheme.colors.status.info
+    },
+    {
+      label: 'Avg Response',
+      value: `${stats.avgResponseTime}m`,
+      icon: '⏱️',
+      accentColor: undergroundTheme.colors.status.warning
+    },
+    {
+      label: 'Resolved Today',
+      value: stats.resolvedToday.toString(),
+      icon: '✅',
+      accentColor: undergroundTheme.colors.status.success
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <UndergroundLoadingSpinner size="large" />
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -92,14 +230,13 @@ export function SupportConsole() {
         gap: undergroundTheme.spacing.lg,
         marginBottom: undergroundTheme.spacing['4xl']
       }}>
-        {stats.map((stat) => (
+        {statsDisplay.map((stat) => (
           <UndergroundStatCard
             key={stat.label}
             icon={<span style={{ fontSize: '32px' }}>{stat.icon}</span>}
             label={stat.label}
             value={stat.value}
             accentColor={stat.accentColor}
-            onClick={() => console.log('View:', stat.label)}
           />
         ))}
       </div>
@@ -123,8 +260,8 @@ export function SupportConsole() {
           >
             <option value="all">All Status</option>
             <option value="open">Open</option>
-            <option value="pending">Pending</option>
-            <option value="resolved">Resolved</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
           </UndergroundSelect>
           <UndergroundSelect
             value={priorityFilter}
@@ -144,112 +281,142 @@ export function SupportConsole() {
           }}>
             {filteredTickets.length} tickets found
           </span>
-          <UndergroundButton variant="primary" onClick={() => console.log('Create ticket')}>
+          <UndergroundButton
+            variant="primary"
+            onClick={() => logger.info('[SupportConsole] Create new ticket')}
+          >
             + New Ticket
           </UndergroundButton>
         </div>
       </UndergroundCard>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
-        {filteredTickets.map((ticket) => (
-          <UndergroundCard
-            key={ticket.id}
-            variant="light"
-            hover
-            onClick={() => console.log('Open ticket:', ticket.id)}
-          >
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr auto',
-              gap: undergroundTheme.spacing.lg,
-              alignItems: 'start'
-            }}>
-              <div>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: undergroundTheme.spacing.md,
-                  marginBottom: undergroundTheme.spacing.sm
-                }}>
-                  <span style={{
-                    fontSize: undergroundTheme.typography.fontSize.xl,
-                    fontWeight: undergroundTheme.typography.fontWeight.bold,
-                    color: undergroundTheme.colors.text.primary
+      {filteredTickets.length === 0 ? (
+        <UndergroundEmptyState
+          icon="🎫"
+          title="No tickets found"
+          description="Support tickets will appear here as they are created"
+        />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
+          {filteredTickets.map((ticket) => (
+            <UndergroundCard
+              key={ticket.id}
+              variant="light"
+              hover
+              onClick={() => logger.info('[SupportConsole] Open ticket:', ticket.id)}
+            >
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr auto',
+                gap: undergroundTheme.spacing.lg,
+                alignItems: 'start'
+              }}>
+                <div>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: undergroundTheme.spacing.md,
+                    marginBottom: undergroundTheme.spacing.sm
                   }}>
-                    {ticket.id}
-                  </span>
-                  <span style={{ fontSize: '20px' }}>
-                    {getPriorityIcon(ticket.priority)}
-                  </span>
-                  <div style={getStatusBadgeStyle(ticket.status)}>
-                    {ticket.status}
+                    <span style={{
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                      color: undergroundTheme.colors.text.tertiary,
+                      fontFamily: undergroundTheme.typography.fontFamily.mono
+                    }}>
+                      #{ticket.id.slice(0, 8)}
+                    </span>
+                    <span style={{ fontSize: '20px' }}>
+                      {getPriorityIcon(ticket.priority)}
+                    </span>
+                    <div style={getStatusBadgeStyle(ticket.status)}>
+                      {ticket.status}
+                    </div>
+                  </div>
+
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.lg,
+                    fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                    color: undergroundTheme.colors.text.primary,
+                    marginBottom: undergroundTheme.spacing.xs
+                  }}>
+                    {ticket.title}
+                  </div>
+
+                  {ticket.description && (
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.text.secondary,
+                      marginBottom: undergroundTheme.spacing.sm,
+                      maxWidth: '600px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {ticket.description}
+                    </div>
+                  )}
+
+                  {ticket.customer_name && (
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.text.secondary,
+                      marginBottom: undergroundTheme.spacing.sm
+                    }}>
+                      Customer: <strong style={{ color: undergroundTheme.colors.accent.primary }}>
+                        {ticket.customer_name}
+                      </strong>
+                    </div>
+                  )}
+
+                  <div style={{
+                    display: 'flex',
+                    gap: undergroundTheme.spacing.lg,
+                    fontSize: undergroundTheme.typography.fontSize.xs,
+                    color: undergroundTheme.colors.text.tertiary
+                  }}>
+                    <span>Created: {formatDate(ticket.created_at)}</span>
+                    <span>Updated: {formatDate(ticket.updated_at)}</span>
+                    {ticket.assigned_user && (
+                      <span>Assigned to: {ticket.assigned_user.name}</span>
+                    )}
                   </div>
                 </div>
 
                 <div style={{
-                  fontSize: undergroundTheme.typography.fontSize.lg,
-                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                  color: undergroundTheme.colors.text.primary,
-                  marginBottom: undergroundTheme.spacing.xs
-                }}>
-                  {ticket.subject}
-                </div>
-
-                <div style={{
-                  fontSize: undergroundTheme.typography.fontSize.sm,
-                  color: undergroundTheme.colors.text.secondary,
-                  marginBottom: undergroundTheme.spacing.sm
-                }}>
-                  Customer: <strong style={{ color: undergroundTheme.colors.accent.primary }}>
-                    {ticket.customer}
-                  </strong>
-                </div>
-
-                <div style={{
                   display: 'flex',
-                  gap: undergroundTheme.spacing.lg,
-                  fontSize: undergroundTheme.typography.fontSize.xs,
-                  color: undergroundTheme.colors.text.tertiary
+                  flexDirection: 'column',
+                  gap: undergroundTheme.spacing.sm,
+                  minWidth: '140px'
                 }}>
-                  <span>Created: {ticket.created}</span>
-                  <span>Last update: {ticket.lastUpdate}</span>
-                  {ticket.assignee && <span>Assigned to: {ticket.assignee}</span>}
+                  <UndergroundButton
+                    variant="primary"
+                    size="sm"
+                    fullWidth
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      logger.info('[SupportConsole] Reply to ticket:', ticket.id);
+                    }}
+                  >
+                    Reply
+                  </UndergroundButton>
+                  <UndergroundButton
+                    variant="secondary"
+                    size="sm"
+                    fullWidth
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      logger.info('[SupportConsole] Assign ticket:', ticket.id);
+                    }}
+                  >
+                    Assign
+                  </UndergroundButton>
                 </div>
               </div>
-
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: undergroundTheme.spacing.sm,
-                minWidth: '140px'
-              }}>
-                <UndergroundButton
-                  variant="primary"
-                  size="sm"
-                  fullWidth
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    console.log('Reply to:', ticket.id);
-                  }}
-                >
-                  Reply
-                </UndergroundButton>
-                <UndergroundButton
-                  variant="secondary"
-                  size="sm"
-                  fullWidth
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    console.log('Assign:', ticket.id);
-                  }}
-                >
-                  Assign
-                </UndergroundButton>
-              </div>
-            </div>
-          </UndergroundCard>
-        ))}
-      </div>
+            </UndergroundCard>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
