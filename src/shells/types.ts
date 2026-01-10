@@ -3,7 +3,6 @@ import React from 'react';
 export type UserRole =
   | 'superadmin'
   | 'admin'
-  | 'infrastructure_owner'
   | 'business_owner'
   | 'manager'
   | 'warehouse'

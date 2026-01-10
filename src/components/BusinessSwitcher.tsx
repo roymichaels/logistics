@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useOptionalBusinessContext } from '../context/BusinessContext';
+import { useNavigate } from 'react-router-dom';
 
 interface Business {
   id: string;
@@ -8,37 +10,42 @@ interface Business {
 }
 
 interface BusinessSwitcherProps {
-  currentBusinessId: string | null;
-  availableBusinesses: Business[];
-  onSwitch: (businessId: string | null) => void;
-  onViewAll?: () => void;
   showCreateButton?: boolean;
-  onCreateBusiness?: () => void;
 }
 
 export function BusinessSwitcher({
-  currentBusinessId,
-  availableBusinesses,
-  onSwitch,
-  onViewAll,
-  showCreateButton = false,
-  onCreateBusiness
+  showCreateButton = true
 }: BusinessSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const businessContext = useOptionalBusinessContext();
+  const navigate = useNavigate();
 
-  const currentBusiness = availableBusinesses.find(b => b.id === currentBusinessId);
+  if (!businessContext) {
+    return null;
+  }
 
-  const handleSwitch = (businessId: string | null) => {
-    onSwitch(businessId);
+  const { activeBusiness, ownedBusinesses, isMultiBusinessOwner, switchBusiness } = businessContext;
+
+  if (ownedBusinesses.length === 0) {
+    return null;
+  }
+
+  if (ownedBusinesses.length === 1 && !isMultiBusinessOwner) {
+    return null;
+  }
+
+  const handleSwitch = (business: Business) => {
+    switchBusiness(business);
     setIsOpen(false);
   };
 
-  const handleViewAll = () => {
-    if (onViewAll) {
-      onViewAll();
-    } else {
-      onSwitch(null);
-    }
+  const handleViewPortfolio = () => {
+    navigate('/portfolio/dashboard');
+    setIsOpen(false);
+  };
+
+  const handleCreateNew = () => {
+    navigate('/business/create');
     setIsOpen(false);
   };
 
@@ -49,7 +56,7 @@ export function BusinessSwitcher({
         onClick={() => setIsOpen(!isOpen)}
         style={{
           padding: '0.5rem 1rem',
-          background: currentBusinessId ? '#3b82f6' : '#6b7280',
+          background: activeBusiness ? '#3b82f6' : '#6b7280',
           color: 'white',
           border: 'none',
           borderRadius: '0.5rem',
@@ -71,7 +78,7 @@ export function BusinessSwitcher({
       >
         <span>🏢</span>
         <span>
-          {currentBusiness?.name || 'All Businesses'}
+          {activeBusiness?.name || 'All Businesses'}
         </span>
         <span style={{ fontSize: '0.7rem' }}>
           {isOpen ? '▲' : '▼'}
@@ -122,51 +129,53 @@ export function BusinessSwitcher({
               Switch Business Context
             </div>
 
-            {/* View All Option */}
-            <button
-              onClick={handleViewAll}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                textAlign: 'left',
-                border: 'none',
-                background: !currentBusinessId ? '#f3f4f6' : 'white',
-                cursor: 'pointer',
-                borderBottom: '1px solid #e5e7eb',
-                fontSize: '0.875rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                transition: 'background 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                if (currentBusinessId) e.currentTarget.style.background = '#f9fafb';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = !currentBusinessId ? '#f3f4f6' : 'white';
-              }}
-            >
-              <span>🏗️</span>
-              <div>
-                <div style={{ fontWeight: '600' }}>Infrastructure View</div>
-                <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                  All businesses
+            {/* Portfolio View for Multi-Business Owners */}
+            {isMultiBusinessOwner && (
+              <button
+                onClick={handleViewPortfolio}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  textAlign: 'left',
+                  border: 'none',
+                  background: 'white',
+                  cursor: 'pointer',
+                  borderBottom: '1px solid #e5e7eb',
+                  fontSize: '0.875rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#f9fafb';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'white';
+                }}
+              >
+                <span>📊</span>
+                <div>
+                  <div style={{ fontWeight: '600' }}>Portfolio Dashboard</div>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                    All businesses overview
+                  </div>
                 </div>
-              </div>
-            </button>
+              </button>
+            )}
 
             {/* Business List */}
             <div>
-              {availableBusinesses.map(business => (
+              {ownedBusinesses.map(business => (
                 <button
                   key={business.id}
-                  onClick={() => handleSwitch(business.id)}
+                  onClick={() => handleSwitch(business)}
                   style={{
                     width: '100%',
                     padding: '0.75rem 1rem',
                     textAlign: 'left',
                     border: 'none',
-                    background: currentBusinessId === business.id ? '#eff6ff' : 'white',
+                    background: activeBusiness?.id === business.id ? '#eff6ff' : 'white',
                     cursor: 'pointer',
                     fontSize: '0.875rem',
                     display: 'flex',
@@ -176,35 +185,19 @@ export function BusinessSwitcher({
                     borderBottom: '1px solid #f3f4f6'
                   }}
                   onMouseEnter={(e) => {
-                    if (currentBusinessId !== business.id) {
+                    if (activeBusiness?.id !== business.id) {
                       e.currentTarget.style.background = '#f9fafb';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = currentBusinessId === business.id ? '#eff6ff' : 'white';
+                    e.currentTarget.style.background = activeBusiness?.id === business.id ? '#eff6ff' : 'white';
                   }}
                 >
                   <span>🏢</span>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: '500' }}>{business.name}</div>
-                    {business.type && (
-                      <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                        {business.type}
-                      </div>
-                    )}
                   </div>
-                  {business.active === false && (
-                    <span style={{
-                      fontSize: '0.7rem',
-                      padding: '0.125rem 0.375rem',
-                      background: '#fee2e2',
-                      color: '#991b1b',
-                      borderRadius: '0.25rem'
-                    }}>
-                      Inactive
-                    </span>
-                  )}
-                  {currentBusinessId === business.id && (
+                  {activeBusiness?.id === business.id && (
                     <span style={{ color: '#3b82f6' }}>✓</span>
                   )}
                 </button>
@@ -212,12 +205,9 @@ export function BusinessSwitcher({
             </div>
 
             {/* Create Button */}
-            {showCreateButton && onCreateBusiness && (
+            {showCreateButton && (
               <button
-                onClick={() => {
-                  onCreateBusiness();
-                  setIsOpen(false);
-                }}
+                onClick={handleCreateNew}
                 style={{
                   width: '100%',
                   padding: '0.75rem 1rem',
@@ -250,7 +240,8 @@ export function BusinessSwitcher({
               textAlign: 'center',
               borderTop: '1px solid #e5e7eb'
             }}>
-              {availableBusinesses.length} {availableBusinesses.length === 1 ? 'business' : 'businesses'}
+              {ownedBusinesses.length} {ownedBusinesses.length === 1 ? 'business' : 'businesses'}
+              {isMultiBusinessOwner && <span> • Multi-Business Owner</span>}
             </div>
           </div>
         </>

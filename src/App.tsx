@@ -52,6 +52,7 @@ import { ServiceProvider } from './foundation/container/ServiceProvider';
 import { ModalProvider } from './context/ModalContext';
 import { ModalManager } from './components/modals/ModalManager';
 import { ToastProvider, ToastContainer as NewToastContainer } from './context/ToastContext';
+import { BusinessContextProvider } from './context/BusinessContext';
 
 // All page components are now lazy-loaded in MigrationRouter
 
@@ -835,8 +836,9 @@ export default function App() {
           <ModalProvider>
             <LanguageProvider>
             <PermissionProvider role={userRole as UserRole}>
-              <PageTitleProvider>
-                <ServiceProvider dataStore={dataStore}>
+              <BusinessContextProvider>
+                <PageTitleProvider>
+                  <ServiceProvider dataStore={dataStore}>
                   <NavControllerProvider>
                     <UIControllerProvider>
                       <DrawerControllerProvider>
@@ -890,6 +892,7 @@ export default function App() {
                 </NavControllerProvider>
               </ServiceProvider>
             </PageTitleProvider>
+              </BusinessContextProvider>
           </PermissionProvider>
             <ModalManager />
             <NewToastContainer />

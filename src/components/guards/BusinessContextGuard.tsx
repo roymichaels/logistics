@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
-import { useAppServices } from '../../context/AppServicesContext';
+import { useOptionalBusinessContext } from '../../context/BusinessContext';
+import { useAuth } from '../../context/AuthContext';
 import { logger } from '../../lib/logger';
 import { Button } from '../atoms/Button';
 import { Spinner } from '../atoms/Spinner';
@@ -15,7 +16,12 @@ export function BusinessContextGuard({
   fallback,
   showCreateButton = true
 }: BusinessContextGuardProps) {
-  const { currentBusinessId, loading, ownedBusinesses, userRole } = useAppServices();
+  const businessContext = useOptionalBusinessContext();
+  const { role } = useAuth();
+
+  const loading = businessContext?.loading ?? false;
+  const activeBusiness = businessContext?.activeBusiness;
+  const ownedBusinesses = businessContext?.ownedBusinesses ?? [];
 
   if (loading) {
     return (
@@ -34,9 +40,9 @@ export function BusinessContextGuard({
     );
   }
 
-  if (!currentBusinessId) {
+  if (!activeBusiness) {
     logger.warn('[BusinessContextGuard] No business context available', {
-      userRole,
+      role,
       ownedBusinessesCount: ownedBusinesses.length
     });
 

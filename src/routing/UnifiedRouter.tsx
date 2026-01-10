@@ -11,27 +11,27 @@ export interface RouteConfig {
 }
 
 export const UNIFIED_ROUTES: RouteConfig[] = [
-  // Admin routes
+  // Admin routes (superadmin, admin only - NO infrastructure_owner per knowledgebase)
   {
     path: '/admin',
     name: 'Admin',
-    roles: ['superadmin', 'admin', 'infrastructure_owner'],
+    roles: ['superadmin', 'admin'],
     isEntryPoint: true,
     children: [
-      { path: '/admin/platform-dashboard', name: 'Platform Dashboard', roles: ['superadmin', 'admin', 'infrastructure_owner'], isEntryPoint: true },
-      { path: '/admin/infrastructures', name: 'Infrastructures', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
-      { path: '/admin/superadmins', name: 'Superadmins', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
-      { path: '/admin/businesses', name: 'Businesses', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
-      { path: '/admin/users', name: 'Users', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
-      { path: '/admin/platform-catalog', name: 'Platform Catalog', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
-      { path: '/admin/analytics', name: 'Analytics', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
-      { path: '/admin/orders', name: 'Orders', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
-      { path: '/admin/drivers', name: 'Drivers', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
-      { path: '/admin/driver-applications', name: 'Driver Applications', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
-      { path: '/admin/logs', name: 'Audit Logs', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
-      { path: '/admin/feature-flags', name: 'Feature Flags', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
-      { path: '/admin/permissions', name: 'Permissions', roles: ['superadmin', 'admin', 'infrastructure_owner'] },
-      { path: '/admin/system-settings', name: 'System Settings', roles: ['superadmin', 'admin', 'infrastructure_owner'] }
+      { path: '/admin/platform-dashboard', name: 'Platform Dashboard', roles: ['superadmin', 'admin'], isEntryPoint: true },
+      { path: '/admin/infrastructures', name: 'Infrastructures', roles: ['superadmin', 'admin'] },
+      { path: '/admin/superadmins', name: 'Superadmins', roles: ['superadmin', 'admin'] },
+      { path: '/admin/businesses', name: 'Businesses', roles: ['superadmin', 'admin'] },
+      { path: '/admin/users', name: 'Users', roles: ['superadmin', 'admin'] },
+      { path: '/admin/platform-catalog', name: 'Platform Catalog', roles: ['superadmin', 'admin'] },
+      { path: '/admin/analytics', name: 'Analytics', roles: ['superadmin', 'admin'] },
+      { path: '/admin/orders', name: 'Orders', roles: ['superadmin', 'admin'] },
+      { path: '/admin/drivers', name: 'Drivers', roles: ['superadmin', 'admin'] },
+      { path: '/admin/driver-applications', name: 'Driver Applications', roles: ['superadmin', 'admin'] },
+      { path: '/admin/logs', name: 'Audit Logs', roles: ['superadmin', 'admin'] },
+      { path: '/admin/feature-flags', name: 'Feature Flags', roles: ['superadmin', 'admin'] },
+      { path: '/admin/permissions', name: 'Permissions', roles: ['superadmin', 'admin'] },
+      { path: '/admin/system-settings', name: 'System Settings', roles: ['superadmin', 'admin'] }
     ]
   },
 
@@ -87,23 +87,44 @@ export const UNIFIED_ROUTES: RouteConfig[] = [
   {
     path: '/auth',
     name: 'Authentication',
-    roles: ['superadmin', 'admin', 'infrastructure_owner', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'guest'],
+    roles: ['superadmin', 'admin', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'guest'],
     children: [
-      { path: '/auth/login', name: 'Login', roles: ['superadmin', 'admin', 'infrastructure_owner', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'guest'] },
-      { path: '/auth/kyc', name: 'KYC', roles: ['superadmin', 'admin', 'infrastructure_owner', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'guest'] }
+      { path: '/auth/login', name: 'Login', roles: ['superadmin', 'admin', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'guest'] },
+      { path: '/auth/kyc', name: 'KYC', roles: ['superadmin', 'admin', 'business_owner', 'manager', 'warehouse', 'dispatcher', 'sales', 'customer_service', 'driver', 'customer', 'guest'] }
+    ]
+  },
+
+  // Multi-business owner portfolio (computed capability, not a role)
+  {
+    path: '/portfolio',
+    name: 'Portfolio',
+    roles: ['business_owner'],
+    children: [
+      { path: '/portfolio/dashboard', name: 'Portfolio Dashboard', roles: ['business_owner'], isEntryPoint: true },
+      { path: '/portfolio/businesses', name: 'All Businesses', roles: ['business_owner'] },
+      { path: '/portfolio/analytics', name: 'Cross-Business Analytics', roles: ['business_owner'] }
     ]
   }
 ];
 
-export function canAccessRoute(userRole: UserRole | null, routePath: string): boolean {
+export function canAccessRoute(
+  userRole: UserRole | null,
+  routePath: string,
+  isMultiBusinessOwner?: boolean
+): boolean {
   if (!userRole) {
     // Non-authenticated users can access public routes
     return routePath.startsWith('/auth') || routePath.startsWith('/store');
   }
 
   // Admin roles can access all admin routes
-  if ((userRole === 'superadmin' || userRole === 'admin' || userRole === 'infrastructure_owner') && routePath.startsWith('/admin')) {
+  if ((userRole === 'superadmin' || userRole === 'admin') && routePath.startsWith('/admin')) {
     return true;
+  }
+
+  // Multi-business owner portfolio routes (computed capability)
+  if (routePath.startsWith('/portfolio')) {
+    return userRole === 'business_owner' && isMultiBusinessOwner === true;
   }
 
   function findRoute(routes: RouteConfig[], path: string): RouteConfig | null {
@@ -123,13 +144,17 @@ export function canAccessRoute(userRole: UserRole | null, routePath: string): bo
   return route.roles.includes(userRole);
 }
 
-export function getEntryPointForRole(role: UserRole | null): string {
+export function getEntryPointForRole(role: UserRole | null, isMultiBusinessOwner?: boolean): string {
   if (!role) return '/store/catalog';
+
+  // Multi-business owners get portfolio dashboard (computed capability per knowledgebase)
+  if (role === 'business_owner' && isMultiBusinessOwner) {
+    return '/portfolio/dashboard';
+  }
 
   const entryPoints: Record<UserRole, string> = {
     superadmin: '/admin/platform-dashboard',
     admin: '/admin/platform-dashboard',
-    infrastructure_owner: '/admin/platform-dashboard',
     business_owner: '/business/dashboard',
     manager: '/business/dashboard',
     warehouse: '/business/warehouse',
