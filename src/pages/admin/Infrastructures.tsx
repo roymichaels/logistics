@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useDataStore } from '../../application/hooks/useDataStore';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
-import { Card } from '../../components/molecules/Card';
-import { Button } from '../../components/atoms/Button';
-import { Input } from '../../components/atoms/Input';
-import { Modal } from '../../components/molecules/Modal';
 import { logger } from '../../lib/logger';
+import { undergroundTheme } from '../../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundButton,
+  UndergroundInput,
+  UndergroundSection,
+  UndergroundBadge,
+  UndergroundLoadingSpinner,
+  UndergroundModal,
+  UndergroundEmptyState
+} from '../../components/underground';
 
 interface Infrastructure {
   id: string;
@@ -102,124 +107,225 @@ export default function Infrastructures() {
 
   if (loading) {
     return (
-      <PageContainer>
-        <PageHeader title="תשתיות" />
-        <div style={{ padding: '2rem', textAlign: 'center' }}>טוען...</div>
-      </PageContainer>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: undergroundTheme.colors.gradient.primary
+      }}>
+        <UndergroundLoadingSpinner size="large" />
+      </div>
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader
-        title="תשתיות"
-        subtitle="ניהול כל התשתיות בפלטפורמה"
-        action={
-          <Button onClick={() => setShowCreateModal(true)}>
-            + צור תשתית חדשה
-          </Button>
-        }
-      />
-
-      <div style={{ padding: '1.5rem', display: 'grid', gap: '1rem' }}>
-        {infrastructures.length === 0 ? (
-          <Card>
-            <div style={{ padding: '2rem', textAlign: 'center' }}>
-              <p>אין תשתיות במערכת</p>
-              <Button onClick={() => setShowCreateModal(true)} style={{ marginTop: '1rem' }}>
-                צור תשתית ראשונה
-              </Button>
-            </div>
-          </Card>
-        ) : (
-          infrastructures.map((infra) => (
-            <Card key={infra.id}>
-              <div style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>{infra.name}</h3>
-                    <p style={{ margin: '0.5rem 0', color: '#666', fontSize: '0.875rem' }}>
-                      Wallet: {infra.owner_wallet.slice(0, 6)}...{infra.owner_wallet.slice(-4)}
-                    </p>
-                  </div>
-                  <span
-                    style={{
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: '1rem',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      backgroundColor: infra.status === 'active' ? '#10b981' : '#ef4444',
-                      color: 'white'
-                    }}
-                  >
-                    {infra.status === 'active' ? 'פעיל' : 'לא פעיל'}
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', gap: '2rem', marginBottom: '1rem', fontSize: '0.875rem' }}>
-                  <div>
-                    <span style={{ color: '#666' }}>עסקים: </span>
-                    <strong>{infra.business_count}</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: '#666' }}>נוצר: </span>
-                    <strong>{new Date(infra.created_at).toLocaleDateString('he-IL')}</strong>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <Button
-                    variant={infra.status === 'active' ? 'secondary' : 'primary'}
-                    onClick={() => toggleStatus(infra.id, infra.status)}
-                  >
-                    {infra.status === 'active' ? 'השבת' : 'הפעל'}
-                  </Button>
-                  <Button variant="secondary">צפה בפרטים</Button>
-                </div>
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing.xl,
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+        <UndergroundSection
+          title="Infrastructures"
+          icon="🏗️"
+          style={{ marginBottom: undergroundTheme.spacing.xl }}
+        >
+          <UndergroundCard style={{ marginBottom: undergroundTheme.spacing.lg }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div style={{
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                color: undergroundTheme.colors.text.secondary
+              }}>
+                Manage all infrastructures on the platform
               </div>
-            </Card>
-          ))
-        )}
+
+              <div style={{ display: 'flex', gap: undergroundTheme.spacing.md }}>
+                <UndergroundButton
+                  variant="secondary"
+                  size="small"
+                  onClick={loadInfrastructures}
+                >
+                  Refresh
+                </UndergroundButton>
+                <UndergroundButton
+                  variant="primary"
+                  size="small"
+                  onClick={() => setShowCreateModal(true)}
+                >
+                  Create Infrastructure
+                </UndergroundButton>
+              </div>
+            </div>
+          </UndergroundCard>
+
+          {infrastructures.length === 0 ? (
+            <UndergroundCard>
+              <UndergroundEmptyState
+                icon="🏗️"
+                title="No Infrastructures"
+                description="Create the first infrastructure to get started"
+                action={
+                  <UndergroundButton variant="primary" onClick={() => setShowCreateModal(true)}>
+                    Create Infrastructure
+                  </UndergroundButton>
+                }
+              />
+            </UndergroundCard>
+          ) : (
+            <div style={{ display: 'grid', gap: undergroundTheme.spacing.lg }}>
+              {infrastructures.map((infra) => (
+                <UndergroundCard key={infra.id}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start'
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: undergroundTheme.spacing.md,
+                        marginBottom: undergroundTheme.spacing.md
+                      }}>
+                        <div style={{
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '50%',
+                          background: undergroundTheme.colors.glassmorphism.medium,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '24px'
+                        }}>
+                          🏗️
+                        </div>
+                        <div>
+                          <h3 style={{
+                            margin: 0,
+                            fontSize: undergroundTheme.typography.fontSize.xl,
+                            fontWeight: undergroundTheme.typography.fontWeight.bold,
+                            color: undergroundTheme.colors.text.primary
+                          }}>
+                            {infra.name}
+                          </h3>
+                          <div style={{
+                            fontSize: undergroundTheme.typography.fontSize.sm,
+                            fontFamily: 'monospace',
+                            color: undergroundTheme.colors.text.tertiary,
+                            marginTop: undergroundTheme.spacing.xs
+                          }}>
+                            Wallet: {infra.owner_wallet.slice(0, 6)}...{infra.owner_wallet.slice(-4)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{
+                        display: 'flex',
+                        gap: undergroundTheme.spacing.xl,
+                        fontSize: undergroundTheme.typography.fontSize.sm,
+                        color: undergroundTheme.colors.text.tertiary,
+                        marginBottom: undergroundTheme.spacing.lg
+                      }}>
+                        <div>
+                          <span>Businesses: </span>
+                          <strong style={{ color: undergroundTheme.colors.text.secondary }}>
+                            {infra.business_count}
+                          </strong>
+                        </div>
+                        <div>
+                          <span>Created: </span>
+                          <strong style={{ color: undergroundTheme.colors.text.secondary }}>
+                            {new Date(infra.created_at).toLocaleDateString()}
+                          </strong>
+                        </div>
+                      </div>
+
+                      <div style={{
+                        display: 'flex',
+                        gap: undergroundTheme.spacing.md
+                      }}>
+                        <UndergroundButton
+                          variant={infra.status === 'active' ? 'secondary' : 'primary'}
+                          size="small"
+                          onClick={() => toggleStatus(infra.id, infra.status)}
+                        >
+                          {infra.status === 'active' ? 'Deactivate' : 'Activate'}
+                        </UndergroundButton>
+                        <UndergroundButton
+                          variant="ghost"
+                          size="small"
+                        >
+                          View Details
+                        </UndergroundButton>
+                      </div>
+                    </div>
+
+                    <UndergroundBadge variant={infra.status === 'active' ? 'success' : 'error'}>
+                      {infra.status}
+                    </UndergroundBadge>
+                  </div>
+                </UndergroundCard>
+              ))}
+            </div>
+          )}
+        </UndergroundSection>
       </div>
 
-      {showCreateModal && (
-        <Modal
-          isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          title="צור תשתית חדשה"
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                שם התשתית
-              </label>
-              <Input
-                value={newInfrastructure.name}
-                onChange={(e) => setNewInfrastructure({ ...newInfrastructure, name: e.target.value })}
-                placeholder="לדוגמה: תשתית צפון"
-              />
-            </div>
+      <UndergroundModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="Create New Infrastructure"
+      >
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: undergroundTheme.spacing.lg
+        }}>
+          <UndergroundInput
+            type="text"
+            label="Infrastructure Name *"
+            value={newInfrastructure.name}
+            onChange={(e) => setNewInfrastructure({ ...newInfrastructure, name: e.target.value })}
+            placeholder="e.g., North Infrastructure"
+          />
 
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                כתובת ארנק של הבעלים
-              </label>
-              <Input
-                value={newInfrastructure.owner_wallet}
-                onChange={(e) => setNewInfrastructure({ ...newInfrastructure, owner_wallet: e.target.value })}
-                placeholder="0x..."
-              />
-            </div>
+          <UndergroundInput
+            type="text"
+            label="Owner Wallet Address *"
+            value={newInfrastructure.owner_wallet}
+            onChange={(e) => setNewInfrastructure({ ...newInfrastructure, owner_wallet: e.target.value })}
+            placeholder="0x..."
+          />
 
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-              <Button onClick={handleCreateInfrastructure}>צור תשתית</Button>
-              <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
-                ביטול
-              </Button>
-            </div>
+          <div style={{
+            display: 'flex',
+            gap: undergroundTheme.spacing.md,
+            marginTop: undergroundTheme.spacing.lg
+          }}>
+            <UndergroundButton
+              variant="primary"
+              onClick={handleCreateInfrastructure}
+              disabled={!newInfrastructure.name || !newInfrastructure.owner_wallet}
+              style={{ flex: 1 }}
+            >
+              Create Infrastructure
+            </UndergroundButton>
+            <UndergroundButton
+              variant="ghost"
+              onClick={() => setShowCreateModal(false)}
+              style={{ flex: 1 }}
+            >
+              Cancel
+            </UndergroundButton>
           </div>
-        </Modal>
-      )}
-    </PageContainer>
+        </div>
+      </UndergroundModal>
+    </div>
   );
 }
