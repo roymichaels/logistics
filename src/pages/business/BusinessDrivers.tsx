@@ -2,11 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useSafeAppServices } from '../../context/AppServicesContext';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
-import { Card } from '../../components/molecules/Card';
-import { StatCard } from '../../components/molecules/StatCard';
-import { tokens } from '../../styles/tokens';
+import {
+  UndergroundCard,
+  UndergroundHeader,
+  UndergroundStatCard,
+  UndergroundButton,
+  UndergroundInput,
+  UndergroundSelect,
+  UndergroundLoadingSpinner,
+  UndergroundBadge
+} from '../../components/underground';
+import { undergroundTheme } from '../../styles/undergroundTheme';
 
 interface Driver {
   id: string;
@@ -203,212 +209,180 @@ export function BusinessDrivers() {
 
   if (loading) {
     return (
-      <PageContainer>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚗</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: tokens.colors.text }}>טוען נהגים...</div>
-          </div>
-        </div>
-      </PageContainer>
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <UndergroundLoadingSpinner text="טוען נהגים..." />
+      </div>
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing['3xl'],
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <UndergroundHeader
         icon="🚗"
         title="ניהול נהגים"
         subtitle="נהל ועקוב אחר הנהגים שלך"
-        actionButton={
-          <button
-            onClick={exportDrivers}
-            style={{
-              padding: '10px 20px',
-              background: tokens.colors.accent,
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
+        actions={
+          <UndergroundButton onClick={exportDrivers} variant="primary">
             ייצוא CSV
-          </button>
+          </UndergroundButton>
         }
       />
 
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '16px',
-        marginBottom: '24px'
+        gap: undergroundTheme.spacing.lg,
+        marginBottom: undergroundTheme.spacing['2xl']
       }}>
-        <StatCard
+        <UndergroundStatCard
           icon="🚗"
           label="סה״כ נהגים"
           value={stats.total}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="✅"
           label="נהגים פעילים"
           value={stats.active}
-          color={tokens.colors.status.success}
+          color={undergroundTheme.colors.status.success}
           onClick={() => setStatusFilter('active')}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="⏸️"
           label="נהגים לא פעילים"
           value={stats.inactive}
-          color={tokens.colors.subtle}
+          color={undergroundTheme.colors.text.muted}
           onClick={() => setStatusFilter('inactive')}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="📦"
           label="סה״כ משלוחים"
           value={stats.totalDeliveries}
+          color={undergroundTheme.colors.accent.primary}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="⭐"
           label="דירוג ממוצע"
           value={stats.avgRating}
-          color={tokens.colors.accent}
+          color={undergroundTheme.colors.accent.secondary}
         />
       </div>
 
-      <div style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '12px' }}>
-          <input
+      <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['2xl'] }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: undergroundTheme.spacing.md }}>
+          <UndergroundInput
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="חיפוש לפי שם, טלפון או אימייל..."
-            style={{
-              padding: '10px 16px',
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: '8px',
-              fontSize: '14px',
-              background: tokens.colors.surface,
-              color: tokens.colors.text
-            }}
           />
 
-          <select
+          <UndergroundSelect
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            style={{
-              padding: '10px 16px',
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: '8px',
-              fontSize: '14px',
-              background: tokens.colors.surface,
-              color: tokens.colors.text
-            }}
           >
             <option value="all">כל הסטטוסים</option>
             <option value="active">פעילים</option>
             <option value="inactive">לא פעילים</option>
-          </select>
+          </UndergroundSelect>
 
-          <button
-            onClick={loadDrivers}
-            style={{
-              padding: '10px 16px',
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: '8px',
-              fontSize: '14px',
-              background: tokens.colors.surface,
-              color: tokens.colors.text,
-              cursor: 'pointer'
-            }}
-          >
+          <UndergroundButton onClick={loadDrivers} variant="secondary">
             🔄
-          </button>
+          </UndergroundButton>
         </div>
-      </div>
+      </UndergroundCard>
 
-      <Card>
+      <UndergroundCard>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: `2px solid ${tokens.colors.border}` }}>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>נהג</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>טלפון</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>סטטוס</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>משלוחים</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>דירוג</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>תאריך הצטרפות</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>פעולות</th>
+              <tr style={{ borderBottom: `2px solid ${undergroundTheme.colors.glassmorphism.border}` }}>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>נהג</th>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>טלפון</th>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>סטטוס</th>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>משלוחים</th>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>דירוג</th>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>תאריך הצטרפות</th>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>פעולות</th>
               </tr>
             </thead>
             <tbody>
               {filteredDrivers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: tokens.colors.subtle }}>
+                  <td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: undergroundTheme.colors.text.muted }}>
                     לא נמצאו נהגים
                   </td>
                 </tr>
               ) : (
                 filteredDrivers.map((driver) => (
-                  <tr key={driver.id} style={{ borderBottom: `1px solid ${tokens.colors.border}` }}>
+                  <tr key={driver.id} style={{
+                    borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                    transition: undergroundTheme.transitions.fast,
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.light;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}>
                     <td style={{ padding: '16px' }}>
-                      <div style={{ fontWeight: '600', color: tokens.colors.text }}>
+                      <div style={{ fontWeight: '600', color: undergroundTheme.colors.text.primary }}>
                         {driver.user_name}
                       </div>
-                      <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginTop: '2px' }}>
+                      <div style={{
+                        fontSize: undergroundTheme.typography.fontSize.xs,
+                        color: undergroundTheme.colors.text.muted,
+                        marginTop: '2px',
+                        fontFamily: undergroundTheme.typography.fontFamily.mono
+                      }}>
                         {driver.user_email}
                       </div>
                     </td>
-                    <td style={{ padding: '16px', color: tokens.colors.text }}>
+                    <td style={{ padding: '16px', color: undergroundTheme.colors.text.secondary }}>
                       {driver.user_phone || '-'}
                     </td>
                     <td style={{ padding: '16px' }}>
-                      <span
-                        style={{
-                          padding: '4px 12px',
-                          borderRadius: '12px',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          background: driver.active
-                            ? tokens.colors.status.success + '20'
-                            : tokens.colors.subtle + '20',
-                          color: driver.active
-                            ? tokens.colors.status.success
-                            : tokens.colors.subtle
-                        }}
-                      >
+                      <UndergroundBadge variant={driver.active ? 'success' : 'default'}>
                         {driver.active ? 'פעיל' : 'לא פעיל'}
-                      </span>
+                      </UndergroundBadge>
                     </td>
-                    <td style={{ padding: '16px', color: tokens.colors.text, fontWeight: '600' }}>
+                    <td style={{
+                      padding: '16px',
+                      color: undergroundTheme.colors.accent.primary,
+                      fontWeight: undergroundTheme.typography.fontWeight.bold
+                    }}>
                       {driver.total_deliveries || 0}
                     </td>
-                    <td style={{ padding: '16px', color: tokens.colors.text }}>
+                    <td style={{ padding: '16px', color: undergroundTheme.colors.text.secondary }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <span>⭐</span>
-                        <span>{driver.rating?.toFixed(1) || '0.0'}</span>
+                        <span style={{ color: undergroundTheme.colors.accent.secondary }}>
+                          {driver.rating?.toFixed(1) || '0.0'}
+                        </span>
                       </span>
                     </td>
-                    <td style={{ padding: '16px', color: tokens.colors.text }}>
+                    <td style={{ padding: '16px', color: undergroundTheme.colors.text.secondary }}>
                       {formatDate(driver.created_at)}
                     </td>
                     <td style={{ padding: '16px' }}>
-                      <button
+                      <UndergroundButton
                         onClick={() => toggleDriverStatus(driver.id, driver.active)}
-                        style={{
-                          padding: '6px 12px',
-                          background: driver.active ? tokens.colors.subtle : tokens.colors.accent,
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          cursor: 'pointer'
-                        }}
+                        variant={driver.active ? 'secondary' : 'primary'}
+                        size="sm"
                       >
                         {driver.active ? 'השבת' : 'הפעל'}
-                      </button>
+                      </UndergroundButton>
                     </td>
                   </tr>
                 ))
@@ -418,16 +392,17 @@ export function BusinessDrivers() {
         </div>
 
         <div style={{
-          marginTop: '24px',
-          padding: '16px',
-          background: tokens.colors.surface,
-          borderRadius: '8px',
-          color: tokens.colors.subtle,
-          fontSize: '14px'
+          marginTop: undergroundTheme.spacing['2xl'],
+          padding: undergroundTheme.spacing.lg,
+          background: undergroundTheme.colors.glassmorphism.light,
+          borderRadius: undergroundTheme.borderRadius.md,
+          color: undergroundTheme.colors.text.tertiary,
+          fontSize: undergroundTheme.typography.fontSize.sm,
+          border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
         }}>
           <strong>סה״כ:</strong> {filteredDrivers.length} נהגים (מתוך {drivers.length})
         </div>
-      </Card>
-    </PageContainer>
+      </UndergroundCard>
+    </div>
   );
 }

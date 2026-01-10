@@ -3,12 +3,20 @@ import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useSafeAppServices } from '../../context/AppServicesContext';
 import { useNavigate } from 'react-router-dom';
-import { tokens } from '../../styles/tokens';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
-import { Card } from '../../components/molecules/Card';
+import {
+  UndergroundCard,
+  UndergroundHeader,
+  UndergroundButton,
+  UndergroundInput,
+  UndergroundSelect,
+  UndergroundLoadingSpinner,
+  UndergroundBadge,
+  UndergroundModal
+} from '../../components/underground';
+import { undergroundTheme } from '../../styles/undergroundTheme';
 import { NoActiveBusiness } from '../../components/NoActiveBusiness';
 import { useI18n } from '../../lib/i18n';
+import { TeamService } from '../../services/modules/TeamService';
 
 interface TeamMember {
   id: string;
@@ -37,6 +45,11 @@ export function TeamManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState('manager');
+  const [inviting, setInviting] = useState(false);
+
+  const teamService = currentBusinessId ? new TeamService(currentBusinessId) : null;
 
   useEffect(() => {
     if (currentBusinessId) {
@@ -165,12 +178,40 @@ export function TeamManagement() {
     return matchesSearch && matchesRole;
   });
 
-  const getStatusColor = (active: boolean) => {
-    return active ? tokens.colors.status.success : tokens.colors.status.error;
+  const getStatusVariant = (active: boolean): 'success' | 'danger' => {
+    return active ? 'success' : 'danger';
   };
 
   const getStatusText = (active: boolean) => {
     return active ? t('teamManagementPage.statusActive') : t('teamManagementPage.statusInactive');
+  };
+
+  const handleInviteMember = async () => {
+    if (!teamService || !inviteEmail || !inviteRole) {
+      alert('נא למלא את כל השדות');
+      return;
+    }
+
+    try {
+      setInviting(true);
+      const result = await teamService.inviteTeamMember(inviteEmail, inviteRole as any);
+
+      if (result.success) {
+        logger.info('[TeamManagement] Member invited successfully');
+        alert('הזמנה נשלחה בהצלחה!');
+        setInviteModalOpen(false);
+        setInviteEmail('');
+        setInviteRole('manager');
+        loadTeamMembers();
+      } else {
+        alert(result.error || 'שגיאה בשליחת ההזמנה');
+      }
+    } catch (error) {
+      logger.error('[TeamManagement] Failed to invite member:', error);
+      alert('שגיאה בשליחת ההזמנה');
+    } finally {
+      setInviting(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -186,135 +227,84 @@ export function TeamManagement() {
   // Show NoActiveBusiness if no business is selected
   if (!currentBusinessId) {
     return (
-      <PageContainer>
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
         <NoActiveBusiness
           onNavigateToBusinesses={() => navigate('/business/businesses')}
           message="כדי לנהל את הצוות שלך, עליך לבחור עסק פעיל"
         />
-      </PageContainer>
+      </div>
     );
   }
 
-  const inputStyle = {
-    padding: '12px 16px',
-    fontSize: '16px',
-    border: `1px solid ${tokens.colors.border}`,
-    borderRadius: '8px',
-    background: tokens.colors.surface,
-    color: tokens.colors.text,
-    outline: 'none',
-    width: '100%',
-  };
-
-  const buttonPrimaryStyle = {
-    padding: '12px 24px',
-    fontSize: '16px',
-    fontWeight: '600',
-    background: tokens.gradients.primary,
-    color: tokens.colors.text.bright,
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-  };
-
-  const buttonSecondaryStyle = {
-    padding: '12px 24px',
-    fontSize: '16px',
-    fontWeight: '600',
-    background: tokens.colors.surface,
-    color: tokens.colors.text,
-    border: `1px solid ${tokens.colors.border}`,
-    borderRadius: '8px',
-    cursor: 'pointer',
-  };
-
-  const buttonDangerStyle = {
-    padding: '12px 24px',
-    fontSize: '16px',
-    fontWeight: '600',
-    background: tokens.colors.status.error,
-    color: tokens.colors.text.bright,
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-  };
-
-  const badgeBaseStyle = {
-    display: 'inline-block',
-    padding: '4px 12px',
-    fontSize: '12px',
-    fontWeight: '600',
-    borderRadius: '6px',
-  };
-
-  const badgeInfoStyle = {
-    background: `${tokens.colors.accent}20`,
-    color: tokens.colors.accent,
-  };
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <UndergroundLoadingSpinner text="טוען את הצוות..." />
+      </div>
+    );
+  }
 
   return (
-    <PageContainer>
-      <PageHeader
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing['3xl'],
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <UndergroundHeader
         icon="👥"
         title={t('teamManagementPage.title')}
         subtitle={t('teamManagementPage.subtitle')}
-        actionButton={
-          <button
-            onClick={() => setInviteModalOpen(true)}
-            style={{
-              ...buttonPrimaryStyle,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
+        actions={
+          <UndergroundButton onClick={() => setInviteModalOpen(true)} variant="primary">
             + {t('teamManagementPage.inviteMember')}
-          </button>
+          </UndergroundButton>
         }
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '20px', marginBottom: '24px' }}>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={t('teamManagementPage.searchPlaceholder')}
-          style={inputStyle}
-        />
-        <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          style={{ ...inputStyle, minWidth: '200px' }}
-        >
-          {roleOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {loading ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '64px 24px',
-          color: tokens.colors.subtle
-        }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-          <p style={{ fontSize: '18px', margin: 0 }}>טוען את הצוות...</p>
-        </div>
-      ) : (
-        <>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-              gap: '20px'
-            }}
+      <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['2xl'] }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: undergroundTheme.spacing.lg }}>
+          <UndergroundInput
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('teamManagementPage.searchPlaceholder')}
+          />
+          <UndergroundSelect
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
           >
+            {roleOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </UndergroundSelect>
+        </div>
+      </UndergroundCard>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+          gap: undergroundTheme.spacing.xl
+        }}
+      >
             {filteredMembers.map((member) => (
-              <Card key={member.id} hoverable>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+              <UndergroundCard key={member.id}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: undergroundTheme.spacing.lg }}>
                   <div
                     style={{
                       width: '56px',
@@ -322,167 +312,181 @@ export function TeamManagement() {
                       borderRadius: '50%',
                       background: member.profile.avatar_url
                         ? `url(${member.profile.avatar_url}) center/cover`
-                        : tokens.gradients.primary,
+                        : undergroundTheme.colors.accent.gradient,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '24px',
-                      fontWeight: '700',
-                      color: tokens.colors.text.bright,
+                      fontSize: undergroundTheme.typography.fontSize['2xl'],
+                      fontWeight: undergroundTheme.typography.fontWeight.bold,
+                      color: undergroundTheme.colors.text.primary,
                       flexShrink: 0,
-                      boxShadow: '0 4px 12px rgba(29, 155, 240, 0.3)'
+                      boxShadow: `0 4px 12px ${undergroundTheme.colors.glow.cyan}40`,
+                      border: `2px solid ${undergroundTheme.colors.accent.primary}40`
                     }}
                   >
                     {!member.profile.avatar_url && (member.profile.name?.charAt(0) || member.profile.email?.charAt(0) || '?')}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ marginBottom: '12px' }}>
-                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: tokens.colors.text, marginBottom: '4px' }}>
+                    <div style={{ marginBottom: undergroundTheme.spacing.md }}>
+                      <h3 style={{
+                        margin: 0,
+                        fontSize: undergroundTheme.typography.fontSize.lg,
+                        fontWeight: undergroundTheme.typography.fontWeight.bold,
+                        color: undergroundTheme.colors.text.primary,
+                        marginBottom: undergroundTheme.spacing.xs
+                      }}>
                         {member.profile.name || member.profile.email || 'Unknown User'}
                       </h3>
-                      <p style={{ margin: 0, fontSize: '14px', color: tokens.colors.subtle }}>
+                      <p style={{
+                        margin: 0,
+                        fontSize: undergroundTheme.typography.fontSize.sm,
+                        color: undergroundTheme.colors.text.muted,
+                        fontFamily: undergroundTheme.typography.fontFamily.mono
+                      }}>
                         {member.profile.email || 'No email'}
                       </p>
                       {member.profile.phone && (
-                        <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: tokens.colors.subtle }}>
+                        <p style={{
+                          margin: `${undergroundTheme.spacing.xs} 0 0 0`,
+                          fontSize: undergroundTheme.typography.fontSize.xs,
+                          color: undergroundTheme.colors.text.tertiary
+                        }}>
                           {member.profile.phone}
                         </p>
                       )}
                     </div>
 
-                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                      <span
-                        style={{
-                          ...badgeBaseStyle,
-                          ...badgeInfoStyle,
-                          textTransform: 'capitalize'
-                        }}
-                      >
+                    <div style={{ display: 'flex', gap: undergroundTheme.spacing.sm, marginBottom: undergroundTheme.spacing.md, flexWrap: 'wrap' }}>
+                      <UndergroundBadge variant="info">
                         {formatRoleName(member.role)}
-                      </span>
-                      <span
-                        style={{
-                          ...badgeBaseStyle,
-                          background: `${getStatusColor(member.active)}20`,
-                          color: getStatusColor(member.active)
-                        }}
-                      >
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            width: '6px',
-                            height: '6px',
-                            borderRadius: '50%',
-                            backgroundColor: getStatusColor(member.active),
-                            marginRight: '6px'
-                          }}
-                        />
+                      </UndergroundBadge>
+                      <UndergroundBadge variant={getStatusVariant(member.active)}>
                         {getStatusText(member.active)}
-                      </span>
+                      </UndergroundBadge>
                     </div>
 
-                    <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '16px' }}>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.xs,
+                      color: undergroundTheme.colors.text.tertiary,
+                      marginBottom: undergroundTheme.spacing.lg
+                    }}>
                       הצטרף {formatDate(member.created_at)}
                     </div>
 
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      <button
+                    <div style={{ display: 'flex', gap: undergroundTheme.spacing.sm, flexWrap: 'wrap' }}>
+                      <UndergroundButton
                         onClick={() => handleToggleActive(member.id, member.active)}
-                        style={{
-                          ...buttonSecondaryStyle,
-                          flex: 1,
-                          padding: '8px 16px',
-                          fontSize: '14px'
-                        }}
+                        variant="secondary"
+                        size="sm"
+                        style={{ flex: 1 }}
                       >
                         {member.active ? 'השעה' : 'הפעל'}
-                      </button>
-                      <button
+                      </UndergroundButton>
+                      <UndergroundButton
                         onClick={() => handleRemoveMember(member.id)}
-                        style={{
-                          ...buttonDangerStyle,
-                          padding: '8px 16px',
-                          fontSize: '14px'
-                        }}
+                        variant="danger"
+                        size="sm"
                       >
                         {t('teamManagementPage.removeMember')}
-                      </button>
+                      </UndergroundButton>
                     </div>
                   </div>
                 </div>
-              </Card>
+              </UndergroundCard>
             ))}
           </div>
 
-          {filteredMembers.length === 0 && !loading && (
+      {filteredMembers.length === 0 && (
+        <UndergroundCard style={{ gridColumn: '1 / -1' }}>
+          <div style={{
+            textAlign: 'center',
+            padding: undergroundTheme.spacing['4xl'],
+            color: undergroundTheme.colors.text.muted
+          }}>
             <div style={{
-              textAlign: 'center',
-              padding: '64px 24px',
-              color: tokens.colors.subtle
+              fontSize: '64px',
+              marginBottom: undergroundTheme.spacing.lg
+            }}>👥</div>
+            <p style={{
+              fontSize: undergroundTheme.typography.fontSize.lg,
+              margin: 0
             }}>
-              <div style={{
-                fontSize: '64px',
-                marginBottom: '16px'
-              }}>👥</div>
-              <p style={{
-                fontSize: '18px',
-                margin: 0
-              }}>
-                {teamMembers.length === 0
-                  ? 'אין חברי צוות עדיין. הזמן את החבר הראשון!'
-                  : t('teamManagementPage.noTeamMembers')}
-              </p>
-            </div>
-          )}
-        </>
+              {teamMembers.length === 0
+                ? 'אין חברי צוות עדיין. הזמן את החבר הראשון!'
+                : t('teamManagementPage.noTeamMembers')}
+            </p>
+          </div>
+        </UndergroundCard>
       )}
 
-      {/* Invite Modal - Placeholder for future implementation */}
+      {/* Invite Modal */}
       {inviteModalOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px'
-          }}
-          onClick={() => setInviteModalOpen(false)}
+        <UndergroundModal
+          isOpen={inviteModalOpen}
+          onClose={() => setInviteModalOpen(false)}
+          title="הזמן חבר צוות"
         >
-          <div
-            style={{
-              background: tokens.colors.background,
-              borderRadius: '12px',
-              padding: '32px',
-              maxWidth: '500px',
-              width: '100%'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 style={{ margin: '0 0 24px 0', fontSize: '24px', fontWeight: '700', color: tokens.colors.text }}>
-              הזמן חבר צוות
-            </h2>
-            <p style={{ color: tokens.colors.subtle, marginBottom: '24px' }}>
-              פונקציונליות הזמנה תיושם בקרוב. לעת עתה, חברי צוות יכולים להצטרף דרך מערכת ההרשאות.
-            </p>
-            <button
-              onClick={() => setInviteModalOpen(false)}
-              style={{
-                ...buttonPrimaryStyle,
-                width: '100%'
-              }}
-            >
-              סגור
-            </button>
+          <div style={{ marginBottom: undergroundTheme.spacing.xl }}>
+            <label style={{
+              display: 'block',
+              marginBottom: undergroundTheme.spacing.sm,
+              color: undergroundTheme.colors.text.secondary,
+              fontSize: undergroundTheme.typography.fontSize.sm,
+              fontWeight: undergroundTheme.typography.fontWeight.semibold
+            }}>
+              כתובת אימייל
+            </label>
+            <UndergroundInput
+              type="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="example@domain.com"
+              disabled={inviting}
+            />
           </div>
-        </div>
+
+          <div style={{ marginBottom: undergroundTheme.spacing.xl }}>
+            <label style={{
+              display: 'block',
+              marginBottom: undergroundTheme.spacing.sm,
+              color: undergroundTheme.colors.text.secondary,
+              fontSize: undergroundTheme.typography.fontSize.sm,
+              fontWeight: undergroundTheme.typography.fontWeight.semibold
+            }}>
+              תפקיד
+            </label>
+            <UndergroundSelect
+              value={inviteRole}
+              onChange={(e) => setInviteRole(e.target.value)}
+              disabled={inviting}
+            >
+              <option value="manager">מנהל</option>
+              <option value="dispatcher">משגר</option>
+              <option value="warehouse">מחסנאי</option>
+              <option value="sales">מכירות</option>
+              <option value="customer_service">שירות לקוחות</option>
+            </UndergroundSelect>
+          </div>
+
+          <div style={{ display: 'flex', gap: undergroundTheme.spacing.md }}>
+            <UndergroundButton
+              onClick={handleInviteMember}
+              variant="primary"
+              style={{ flex: 1 }}
+              disabled={inviting || !inviteEmail || !inviteRole}
+            >
+              {inviting ? 'שולח הזמנה...' : 'שלח הזמנה'}
+            </UndergroundButton>
+            <UndergroundButton
+              onClick={() => setInviteModalOpen(false)}
+              variant="secondary"
+              disabled={inviting}
+            >
+              ביטול
+            </UndergroundButton>
+          </div>
+        </UndergroundModal>
       )}
-    </PageContainer>
+    </div>
   );
 }
