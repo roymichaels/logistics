@@ -1,18 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { tokens } from '../../styles/tokens';
+import { undergroundTheme } from '../../styles/undergroundTheme';
 import { logger } from '../../lib/logger';
 import { driverService, DriverProfile, DriverStatus as DriverServiceStatus } from '../../services/driver';
 import { assignmentService, AssignmentWithOrder } from '../../services/assignments';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { haptic } from '../../utils/haptic';
-import { Toast } from '../../components/Toast';
+import { Toast } from '../Toast';
 import { DriverStatsCard, OnlineToggle } from './shared';
 import { DeliveryMap, DeliveryLocation } from '../driver/DeliveryMap';
 import { PhotoCapture } from '../driver/PhotoCapture';
 import { OrderPreviewModal } from '../driver/OrderPreviewModal';
 import { CustomerContact } from '../driver/CustomerContact';
-import { Button } from '../atoms/Button';
+import {
+  UndergroundCard,
+  UndergroundButton,
+  UndergroundStatCard,
+  UndergroundLoadingSpinner,
+  UndergroundEmptyState,
+  UndergroundSection,
+  UndergroundHeader
+} from '../underground';
 
 export function DriverPersonalView() {
   const { user } = useAuth();
@@ -262,14 +270,10 @@ export function DriverPersonalView() {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        background: tokens.colors.panel
+        background: undergroundTheme.colors.gradient.primary,
+        padding: undergroundTheme.spacing.xl
       }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚗</div>
-          <div style={{ color: tokens.colors.text, fontSize: '18px', fontWeight: '600' }}>
-            טוען...
-          </div>
-        </div>
+        <UndergroundLoadingSpinner size="large" />
       </div>
     );
   }
@@ -277,73 +281,62 @@ export function DriverPersonalView() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: tokens.colors.panel,
-      padding: '20px',
-      paddingBottom: '100px',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing.xl,
+      paddingBottom: undergroundTheme.spacing['8xl'],
       direction: 'rtl'
     }}>
-      {/* Header */}
-      <div style={{ marginBottom: '24px' }}>
-        <h1 style={{
-          fontSize: '32px',
-          fontWeight: '700',
-          margin: '0 0 8px 0',
-          color: tokens.colors.text
-        }}>
-          👋 שלום נהג!
-        </h1>
-        <p style={{ margin: '0', color: tokens.colors.subtle, fontSize: '16px' }}>
-          {isOnline ? 'אתה מחובר ומוכן למשלוחים' : 'התחבר כדי להתחיל לעבוד'}
-        </p>
-      </div>
+      <UndergroundHeader
+        title="👋 שלום נהג!"
+        subtitle={isOnline ? 'אתה מחובר ומוכן למשלוחים' : 'התחבר כדי להתחיל לעבוד'}
+      />
 
-      {/* Online/Offline Toggle */}
-      <div style={{ marginBottom: '24px' }}>
+      <UndergroundSection style={{ marginTop: undergroundTheme.spacing['2xl'] }}>
         <OnlineToggle
           isOnline={isOnline}
           onToggle={toggleOnlineStatus}
         />
-      </div>
+      </UndergroundSection>
 
-      {/* Today's Stats */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '12px',
-        marginBottom: '24px'
-      }}>
-        <DriverStatsCard
-          icon="📦"
-          value={todayStats.deliveries}
-          label="משלוחים היום"
-        />
-        <DriverStatsCard
-          icon="💰"
-          value={`₪${todayStats.earnings.toFixed(0)}`}
-          label="רווחים היום"
-          color={tokens.colors.status.success}
-          gradient={true}
-        />
-        <DriverStatsCard
-          icon="⭐"
-          value={profile?.rating.toFixed(1) || '5.0'}
-          label="דירוג ממוצע"
-        />
-      </div>
+      <UndergroundSection style={{ marginTop: undergroundTheme.spacing['2xl'] }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: undergroundTheme.spacing.md
+        }}>
+          <UndergroundStatCard
+            icon="📦"
+            value={todayStats.deliveries.toString()}
+            label="משלוחים היום"
+          />
+          <UndergroundStatCard
+            icon="💰"
+            value={`₪${todayStats.earnings.toFixed(0)}`}
+            label="רווחים היום"
+            accentColor={undergroundTheme.colors.status.success}
+          />
+          <UndergroundStatCard
+            icon="⭐"
+            value={profile?.rating.toFixed(1) || '5.0'}
+            label="דירוג ממוצע"
+            accentColor={undergroundTheme.colors.status.warning}
+          />
+        </div>
+      </UndergroundSection>
 
-      {/* Deliveries Section */}
-      <div style={{ marginBottom: '24px' }}>
+      <UndergroundSection style={{ marginTop: undergroundTheme.spacing['3xl'] }}>
         <h2 style={{
-          fontSize: '20px',
-          fontWeight: '700',
-          color: tokens.colors.text,
-          marginBottom: '16px'
+          fontSize: undergroundTheme.typography.fontSize['2xl'],
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          color: undergroundTheme.colors.text.primary,
+          marginBottom: undergroundTheme.spacing.lg,
+          textShadow: undergroundTheme.shadows.glow.cyan
         }}>
           📦 המשלוחים שלי ({activeDeliveries.length})
         </h2>
 
         {activeDeliveries.length > 0 && (
-          <div style={{ marginBottom: '20px' }}>
+          <div style={{ marginBottom: undergroundTheme.spacing.xl }}>
             <DeliveryMap
               driverLocation={driverLocation}
               deliveries={deliveryLocations}
@@ -354,28 +347,13 @@ export function DriverPersonalView() {
         )}
 
         {activeDeliveries.length === 0 ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '60px 20px',
-            background: tokens.colors.background.card,
-            borderRadius: '20px',
-            border: `1px solid ${tokens.colors.background.cardBorder}`
-          }}>
-            <div style={{ fontSize: '64px', marginBottom: '16px' }}>📭</div>
-            <h3 style={{
-              fontSize: '20px',
-              fontWeight: '600',
-              color: tokens.colors.text,
-              marginBottom: '8px'
-            }}>
-              אין משלוחים פעילים
-            </h3>
-            <p style={{ color: tokens.colors.subtle, fontSize: '14px' }}>
-              {isOnline ? 'הזמנות חדשות יופיעו כאן' : 'התחבר כדי לקבל הזמנות'}
-            </p>
-          </div>
+          <UndergroundEmptyState
+            icon="📭"
+            title="אין משלוחים פעילים"
+            description={isOnline ? 'הזמנות חדשות יופיעו כאן' : 'התחבר כדי לקבל הזמנות'}
+          />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.lg }}>
             {activeDeliveries.map((delivery) => (
               <DeliveryCard
                 key={delivery.id}
@@ -392,15 +370,15 @@ export function DriverPersonalView() {
             ))}
           </div>
         )}
-      </div>
+      </UndergroundSection>
 
-      {/* Quick Actions */}
-      <div style={{ marginBottom: '24px' }}>
+      <UndergroundSection style={{ marginTop: undergroundTheme.spacing['3xl'] }}>
         <h2 style={{
-          fontSize: '20px',
-          fontWeight: '700',
-          color: tokens.colors.text,
-          marginBottom: '16px'
+          fontSize: undergroundTheme.typography.fontSize['2xl'],
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          color: undergroundTheme.colors.text.primary,
+          marginBottom: undergroundTheme.spacing.lg,
+          textShadow: undergroundTheme.shadows.glow.cyan
         }}>
           פעולות מהירות
         </h2>
@@ -408,139 +386,150 @@ export function DriverPersonalView() {
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: '12px'
+          gap: undergroundTheme.spacing.md
         }}>
-          <button
+          <UndergroundCard
+            variant="light"
             onClick={() => {
               navigate('/driver/earnings');
               haptic('light');
             }}
-            style={{
-              padding: '20px',
-              background: tokens.colors.background.card,
-              border: `1px solid ${tokens.colors.background.cardBorder}`,
-              borderRadius: '16px',
-              cursor: 'pointer',
-              textAlign: 'right',
-              transition: 'all 0.3s ease'
-            }}
+            style={{ cursor: 'pointer', textAlign: 'right' }}
           >
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>💵</div>
+            <div style={{ fontSize: '32px', marginBottom: undergroundTheme.spacing.sm }}>💵</div>
             <div style={{
-              fontSize: '16px',
-              fontWeight: '700',
-              color: tokens.colors.text,
-              marginBottom: '4px'
+              fontSize: undergroundTheme.typography.fontSize.lg,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary,
+              marginBottom: undergroundTheme.spacing.xs
             }}>
               הרווחים שלי
             </div>
             <div style={{
-              fontSize: '12px',
-              color: tokens.colors.subtle
+              fontSize: undergroundTheme.typography.fontSize.sm,
+              color: undergroundTheme.colors.text.tertiary
             }}>
               היסטוריית תשלומים
             </div>
-          </button>
+          </UndergroundCard>
 
-          <button
+          <UndergroundCard
+            variant="light"
             onClick={() => {
               navigate('/driver/profile');
               haptic('light');
             }}
-            style={{
-              padding: '20px',
-              background: tokens.colors.background.card,
-              border: `1px solid ${tokens.colors.background.cardBorder}`,
-              borderRadius: '16px',
-              cursor: 'pointer',
-              textAlign: 'right',
-              transition: 'all 0.3s ease'
-            }}
+            style={{ cursor: 'pointer', textAlign: 'right' }}
           >
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>⚙️</div>
+            <div style={{ fontSize: '32px', marginBottom: undergroundTheme.spacing.sm }}>⚙️</div>
             <div style={{
-              fontSize: '16px',
-              fontWeight: '700',
-              color: tokens.colors.text,
-              marginBottom: '4px'
+              fontSize: undergroundTheme.typography.fontSize.lg,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary,
+              marginBottom: undergroundTheme.spacing.xs
             }}>
               הפרופיל שלי
             </div>
             <div style={{
-              fontSize: '12px',
-              color: tokens.colors.subtle
+              fontSize: undergroundTheme.typography.fontSize.sm,
+              color: undergroundTheme.colors.text.tertiary
             }}>
               הגדרות ופרטים אישיים
             </div>
-          </button>
+          </UndergroundCard>
         </div>
-      </div>
+      </UndergroundSection>
 
-      {/* Driver Info Card */}
       {profile && (
-        <div style={{
-          background: tokens.colors.background.card,
-          borderRadius: '20px',
-          padding: '24px',
-          border: `1px solid ${tokens.colors.background.cardBorder}`,
-          boxShadow: tokens.shadows.md
-        }}>
-          <h2 style={{
-            fontSize: '20px',
-            fontWeight: '700',
-            color: tokens.colors.text,
-            marginBottom: '16px'
-          }}>
-            פרטי רכב
-          </h2>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '12px',
-              background: tokens.colors.bg,
-              borderRadius: '12px'
+        <UndergroundSection style={{ marginTop: undergroundTheme.spacing['3xl'] }}>
+          <UndergroundCard variant="darker">
+            <h2 style={{
+              fontSize: undergroundTheme.typography.fontSize['2xl'],
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary,
+              marginBottom: undergroundTheme.spacing.lg,
+              textShadow: undergroundTheme.shadows.glow.cyan
             }}>
-              <span style={{ fontSize: '14px', color: tokens.colors.subtle }}>סוג רכב</span>
-              <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text }}>
-                {profile.vehicle_type || 'לא צוין'}
-              </span>
-            </div>
+              פרטי רכב
+            </h2>
 
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '12px',
-              background: tokens.colors.bg,
-              borderRadius: '12px'
-            }}>
-              <span style={{ fontSize: '14px', color: tokens.colors.subtle }}>מספר רכב</span>
-              <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text }}>
-                {profile.vehicle_plate || 'לא צוין'}
-              </span>
-            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: undergroundTheme.spacing.md,
+                background: undergroundTheme.colors.surface.darker,
+                borderRadius: undergroundTheme.borderRadius.lg,
+                border: `1px solid ${undergroundTheme.colors.border.subtle}`
+              }}>
+                <span style={{
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  color: undergroundTheme.colors.text.tertiary
+                }}>
+                  סוג רכב
+                </span>
+                <span style={{
+                  fontSize: undergroundTheme.typography.fontSize.md,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
+                  {profile.vehicle_type || 'לא צוין'}
+                </span>
+              </div>
 
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '12px',
-              background: tokens.colors.bg,
-              borderRadius: '12px'
-            }}>
-              <span style={{ fontSize: '14px', color: tokens.colors.subtle }}>סה"כ משלוחים</span>
-              <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text }}>
-                {profile.total_deliveries || 0}
-              </span>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: undergroundTheme.spacing.md,
+                background: undergroundTheme.colors.surface.darker,
+                borderRadius: undergroundTheme.borderRadius.lg,
+                border: `1px solid ${undergroundTheme.colors.border.subtle}`
+              }}>
+                <span style={{
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  color: undergroundTheme.colors.text.tertiary
+                }}>
+                  מספר רכב
+                </span>
+                <span style={{
+                  fontSize: undergroundTheme.typography.fontSize.md,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
+                  {profile.vehicle_plate || 'לא צוין'}
+                </span>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: undergroundTheme.spacing.md,
+                background: undergroundTheme.colors.surface.darker,
+                borderRadius: undergroundTheme.borderRadius.lg,
+                border: `1px solid ${undergroundTheme.colors.border.subtle}`
+              }}>
+                <span style={{
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  color: undergroundTheme.colors.text.tertiary
+                }}>
+                  סה"כ משלוחים
+                </span>
+                <span style={{
+                  fontSize: undergroundTheme.typography.fontSize.md,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
+                  {profile.total_deliveries || 0}
+                </span>
+              </div>
             </div>
-          </div>
-        </div>
+          </UndergroundCard>
+        </UndergroundSection>
       )}
 
-      {/* Modals */}
       {pendingAssignment && (
         <OrderPreviewModal
           assignment={pendingAssignment}
@@ -587,63 +576,64 @@ function DeliveryCard({
   const getStatusConfig = () => {
     switch (delivery.status) {
       case 'assigned':
-        return { color: tokens.colors.brand.primary, label: 'נקבע', icon: '📋' };
+        return { color: undergroundTheme.colors.primary.cyan, label: 'נקבע', icon: '📋' };
       case 'accepted':
-        return { color: tokens.colors.status.warning, label: 'באיסוף', icon: '🚗' };
+        return { color: undergroundTheme.colors.status.warning, label: 'באיסוף', icon: '🚗' };
       case 'picked_up':
-        return { color: tokens.colors.status.info, label: 'במשלוח', icon: '📦' };
+        return { color: undergroundTheme.colors.status.info, label: 'במשלוח', icon: '📦' };
       default:
-        return { color: tokens.colors.subtle, label: delivery.status, icon: '❓' };
+        return { color: undergroundTheme.colors.text.tertiary, label: delivery.status, icon: '❓' };
     }
   };
 
   const statusConfig = getStatusConfig();
 
   return (
-    <div style={{
-      background: tokens.colors.background.card,
-      borderRadius: '20px',
-      border: `2px solid ${statusConfig.color}`,
-      overflow: 'hidden'
-    }}>
+    <UndergroundCard variant="light" style={{ overflow: 'hidden' }}>
       <div
         onClick={onToggleExpand}
         style={{
-          padding: '20px',
+          padding: undergroundTheme.spacing.lg,
           cursor: 'pointer',
-          background: `linear-gradient(135deg, ${statusConfig.color}15, ${statusConfig.color}05)`
+          background: `linear-gradient(135deg, ${statusConfig.color}15, ${statusConfig.color}05)`,
+          borderBottom: expanded ? `1px solid ${undergroundTheme.colors.border.subtle}` : 'none'
         }}
       >
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'start',
-          marginBottom: '12px'
+          marginBottom: undergroundTheme.spacing.md
         }}>
           <div style={{ flex: 1 }}>
             <div style={{
-              fontSize: '20px',
-              fontWeight: '700',
-              color: tokens.colors.text,
-              marginBottom: '4px'
+              fontSize: undergroundTheme.typography.fontSize.xl,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary,
+              marginBottom: undergroundTheme.spacing.xs,
+              textShadow: undergroundTheme.shadows.glow.text
             }}>
               הזמנה #{order.order_number}
             </div>
-            <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
+            <div style={{
+              fontSize: undergroundTheme.typography.fontSize.sm,
+              color: undergroundTheme.colors.text.secondary
+            }}>
               {order.customer_name || 'לקוח'}
             </div>
           </div>
           <div style={{
-            padding: '8px 16px',
+            padding: `${undergroundTheme.spacing.sm} ${undergroundTheme.spacing.md}`,
             background: `${statusConfig.color}20`,
             border: `1px solid ${statusConfig.color}`,
-            borderRadius: '12px',
-            fontSize: '13px',
-            fontWeight: '600',
+            borderRadius: undergroundTheme.borderRadius.lg,
+            fontSize: undergroundTheme.typography.fontSize.sm,
+            fontWeight: undergroundTheme.typography.fontWeight.semibold,
             color: statusConfig.color,
             display: 'flex',
             alignItems: 'center',
-            gap: '6px'
+            gap: undergroundTheme.spacing.xs,
+            boxShadow: `0 0 20px ${statusConfig.color}40`
           }}>
             <span>{statusConfig.icon}</span>
             {statusConfig.label}
@@ -651,54 +641,63 @@ function DeliveryCard({
         </div>
 
         <div style={{
-          fontSize: '15px',
-          color: tokens.colors.text,
-          marginBottom: '12px'
+          fontSize: undergroundTheme.typography.fontSize.md,
+          color: undergroundTheme.colors.text.primary,
+          marginBottom: undergroundTheme.spacing.md
         }}>
           📍 {order.delivery_address || 'אין כתובת'}
         </div>
 
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: undergroundTheme.spacing.md }}>
           <div style={{
             flex: 1,
-            padding: '12px',
-            background: tokens.colors.bg,
-            borderRadius: '12px',
+            padding: undergroundTheme.spacing.md,
+            background: undergroundTheme.colors.surface.darker,
+            borderRadius: undergroundTheme.borderRadius.lg,
+            border: `1px solid ${undergroundTheme.colors.border.subtle}`,
             textAlign: 'center'
           }}>
             <div style={{
-              fontSize: '20px',
-              fontWeight: '700',
-              color: tokens.colors.text
+              fontSize: undergroundTheme.typography.fontSize.xl,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary
             }}>
               ₪{order.total_amount.toFixed(2)}
             </div>
-            <div style={{ fontSize: '12px', color: tokens.colors.subtle }}>סכום</div>
+            <div style={{
+              fontSize: undergroundTheme.typography.fontSize.xs,
+              color: undergroundTheme.colors.text.tertiary
+            }}>
+              סכום
+            </div>
           </div>
           <div style={{
             flex: 1,
-            padding: '12px',
-            background: tokens.colors.bg,
-            borderRadius: '12px',
+            padding: undergroundTheme.spacing.md,
+            background: undergroundTheme.colors.surface.darker,
+            borderRadius: undergroundTheme.borderRadius.lg,
+            border: `1px solid ${undergroundTheme.colors.border.subtle}`,
             textAlign: 'center'
           }}>
             <div style={{
-              fontSize: '20px',
-              fontWeight: '700',
-              color: tokens.colors.text
+              fontSize: undergroundTheme.typography.fontSize.xl,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary
             }}>
               {order.items?.length || 0}
             </div>
-            <div style={{ fontSize: '12px', color: tokens.colors.subtle }}>פריטים</div>
+            <div style={{
+              fontSize: undergroundTheme.typography.fontSize.xs,
+              color: undergroundTheme.colors.text.tertiary
+            }}>
+              פריטים
+            </div>
           </div>
         </div>
       </div>
 
       {expanded && (
-        <div style={{
-          padding: '20px',
-          borderTop: `1px solid ${tokens.colors.background.cardBorder}`
-        }}>
+        <div style={{ padding: undergroundTheme.spacing.lg }}>
           {order.customer_name && (
             <CustomerContact
               customerName={order.customer_name}
@@ -707,45 +706,47 @@ function DeliveryCard({
             />
           )}
 
-          <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-            <Button
-              onClick={onNavigate}
+          <div style={{
+            display: 'flex',
+            gap: undergroundTheme.spacing.md,
+            marginTop: undergroundTheme.spacing.lg
+          }}>
+            <UndergroundButton
               variant="secondary"
-              size="medium"
+              onClick={onNavigate}
               style={{ flex: 1 }}
             >
               🗺️ ניווט
-            </Button>
+            </UndergroundButton>
 
             {delivery.status === 'accepted' && (
-              <Button
+              <UndergroundButton
+                variant="primary"
                 onClick={onPickup}
                 disabled={actionLoading}
-                variant="primary"
-                size="medium"
                 style={{ flex: 1 }}
               >
                 {actionLoading ? '⏳ מעבד...' : '📦 נאסף'}
-              </Button>
+              </UndergroundButton>
             )}
 
             {delivery.status === 'picked_up' && (
-              <Button
+              <UndergroundButton
+                variant="primary"
                 onClick={onComplete}
                 disabled={actionLoading}
-                variant="primary"
-                size="medium"
                 style={{
                   flex: 1,
-                  background: 'linear-gradient(135deg, #10b981, #059669)'
+                  background: `linear-gradient(135deg, ${undergroundTheme.colors.status.success}, ${undergroundTheme.colors.status.success}CC)`,
+                  boxShadow: undergroundTheme.shadows.glow.green
                 }}
               >
                 {actionLoading ? '⏳ מעבד...' : '✅ הושלם'}
-              </Button>
+              </UndergroundButton>
             )}
           </div>
         </div>
       )}
-    </div>
+    </UndergroundCard>
   );
 }

@@ -1,7 +1,21 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { logger } from '../../lib/logger';
-import { tokens } from '../../styles/tokens';
+import { supabase } from '../../lib/supabase';
+import { undergroundTheme } from '../../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundButton,
+  UndergroundStatCard,
+  UndergroundLoadingSpinner,
+  UndergroundEmptyState,
+  UndergroundInput,
+  UndergroundSelect,
+  UndergroundBadge,
+  UndergroundHeader,
+  UndergroundSection
+} from '../underground';
 import { DriverStatsCard, DriverStatusBadge } from './shared';
+import { Toast } from '../Toast';
 
 interface Driver {
   id: string;
@@ -13,6 +27,12 @@ interface Driver {
   vehicle_plate?: string;
   rating?: number;
   total_deliveries?: number;
+  active: boolean;
+  created_at: string;
+  profiles?: {
+    full_name?: string;
+    phone?: string;
+  };
 }
 
 interface DriversManagementViewProps {
@@ -36,23 +56,60 @@ export function DriversManagementView({
 
   useEffect(() => {
     loadDrivers();
+
+    const channel = supabase
+      .channel('drivers-management')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'driver_profiles'
+        },
+        () => {
+          logger.info('[DriversManagementView] Driver update detected, refreshing...');
+          loadDrivers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
   }, [businessId]);
 
   const loadDrivers = async () => {
     setLoading(true);
     try {
-      const storedDrivers: Driver[] = JSON.parse(localStorage.getItem('drivers') || '[]');
-
-      let filtered = storedDrivers;
+      let query = supabase
+        .from('driver_profiles')
+        .select(`
+          *,
+          profiles:user_id (
+            full_name,
+            phone
+          )
+        `)
+        .order('created_at', { ascending: false });
 
       if (businessId) {
-        filtered = filtered.filter(d => d.business_id === businessId);
+        query = query.eq('business_id', businessId);
       }
 
-      setDrivers(filtered);
-      logger.info('[DriversManagementView] Drivers loaded:', filtered.length);
+      const { data, error } = await query;
+
+      if (error) {
+        logger.error('[DriversManagementView] Failed to load drivers:', error);
+        Toast.error('Failed to load drivers');
+        setDrivers([]);
+        return;
+      }
+
+      setDrivers(data || []);
+      logger.info('[DriversManagementView] Drivers loaded:', data?.length || 0);
     } catch (error) {
       logger.error('[DriversManagementView] Failed to load drivers:', error);
+      Toast.error('Failed to load drivers');
       setDrivers([]);
     } finally {
       setLoading(false);
@@ -72,7 +129,8 @@ export function DriversManagementView({
         d.user_id.toLowerCase().includes(term) ||
         d.phone?.toLowerCase().includes(term) ||
         d.vehicle_plate?.toLowerCase().includes(term) ||
-        d.vehicle_type?.toLowerCase().includes(term)
+        d.vehicle_type?.toLowerCase().includes(term) ||
+        d.profiles?.full_name?.toLowerCase().includes(term)
       );
     }
 
@@ -105,12 +163,23 @@ export function DriversManagementView({
     if (!confirm('האם אתה בטוח שברצונך להסיר את הנהג?')) return;
 
     try {
-      const updatedDrivers = drivers.filter(d => d.id !== driverId);
-      localStorage.setItem('drivers', JSON.stringify(updatedDrivers));
+      const { error } = await supabase
+        .from('driver_profiles')
+        .update({ active: false })
+        .eq('id', driverId);
+
+      if (error) {
+        logger.error('[DriversManagementView] Failed to deactivate driver:', error);
+        Toast.error('Failed to remove driver');
+        return;
+      }
+
       await loadDrivers();
-      logger.info('[DriversManagementView] Driver deleted:', driverId);
+      Toast.success('Driver removed successfully');
+      logger.info('[DriversManagementView] Driver deactivated:', driverId);
     } catch (error) {
       logger.error('[DriversManagementView] Failed to delete driver:', error);
+      Toast.error('Failed to remove driver');
     }
   };
 
@@ -121,14 +190,10 @@ export function DriversManagementView({
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        background: tokens.colors.panel
+        background: undergroundTheme.colors.gradient.primary,
+        padding: undergroundTheme.spacing.xl
       }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚗</div>
-          <div style={{ color: tokens.colors.text, fontSize: '18px', fontWeight: '600' }}>
-            טוען נהגים...
-          </div>
-        </div>
+        <UndergroundLoadingSpinner size="large" />
       </div>
     );
   }
@@ -136,313 +201,220 @@ export function DriversManagementView({
   return (
     <div style={{
       minHeight: '100vh',
-      background: tokens.colors.panel,
-      padding: '20px',
-      paddingBottom: '100px',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing['2xl'],
+      paddingBottom: undergroundTheme.spacing['8xl'],
       direction: 'rtl'
     }}>
-      {/* Header */}
-      <div style={{
-        marginBottom: '32px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        gap: '24px',
-        flexWrap: 'wrap'
-      }}>
-        <div>
-          <h1 style={{
-            fontSize: '32px',
-            fontWeight: '700',
-            margin: '0 0 8px 0',
-            color: tokens.colors.text
-          }}>
-            ניהול נהגים
-          </h1>
-          <p style={{ margin: '0', color: tokens.colors.subtle, fontSize: '16px' }}>
-            נהל את נהגי המשלוחים ועקוב אחר הסטטוס שלהם
-          </p>
-        </div>
-        {(role === 'superadmin' || role === 'admin') && (
-          <button
-            onClick={() => onNavigate?.('/admin/driver-applications')}
-            style={{
-              padding: '12px 24px',
-              background: tokens.gradients.primary,
-              color: 'white',
-              border: 'none',
-              borderRadius: '12px',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: tokens.glows.primaryStrong,
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <span style={{ fontSize: '18px' }}>📋</span>
-            בקשות נהגים
-          </button>
-        )}
-      </div>
-
-      {/* Stats Overview */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-        gap: '16px',
-        marginBottom: '32px'
-      }}>
-        <DriverStatsCard
-          icon="👥"
-          value={stats.total}
-          label="סה״כ נהגים"
-        />
-        <DriverStatsCard
-          icon="🟢"
-          value={stats.available}
-          label="זמינים"
-          color={tokens.colors.status.success}
-        />
-        <DriverStatsCard
-          icon="🔵"
-          value={stats.busy}
-          label="עסוקים"
-          color={tokens.colors.status.info}
-        />
-        <DriverStatsCard
-          icon="⭐"
-          value={stats.avgRating.toFixed(1)}
-          label="דירוג ממוצע"
-          color={tokens.colors.status.warning}
-        />
-        <DriverStatsCard
-          icon="📦"
-          value={stats.totalDeliveries}
-          label="סה״כ משלוחים"
-        />
-      </div>
-
-      {/* Filters */}
-      <div style={{
-        marginBottom: '24px',
-        display: 'flex',
-        gap: '16px',
-        alignItems: 'center',
-        flexWrap: 'wrap'
-      }}>
-        <input
-          type="text"
-          placeholder="חיפוש נהגים..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            flex: '1',
-            minWidth: '200px',
-            padding: '12px 16px',
-            border: `1px solid ${tokens.colors.background.cardBorder}`,
-            borderRadius: '12px',
-            fontSize: '14px',
-            background: tokens.colors.background.card,
-            color: tokens.colors.text
-          }}
-        />
-
-        <select
-          value={selectedStatus}
-          onChange={(e) => setSelectedStatus(e.target.value as any)}
-          style={{
-            padding: '12px 16px',
-            border: `1px solid ${tokens.colors.background.cardBorder}`,
-            borderRadius: '12px',
-            fontSize: '14px',
-            background: tokens.colors.background.card,
-            color: tokens.colors.text
-          }}
-        >
-          <option value="all">כל הסטטוסים</option>
-          <option value="available">זמין</option>
-          <option value="busy">עסוק</option>
-          <option value="offline">לא מחובר</option>
-          <option value="on_break">הפסקה</option>
-        </select>
-
-        <button
-          onClick={loadDrivers}
-          style={{
-            padding: '12px 24px',
-            background: tokens.gradients.primary,
-            color: 'white',
-            border: 'none',
-            borderRadius: '12px',
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            boxShadow: tokens.glows.primary
-          }}
-        >
-          רענן
-        </button>
-      </div>
-
-      {/* Drivers List */}
-      {displayedDrivers.length === 0 ? (
-        <div style={{
-          padding: '64px',
-          textAlign: 'center',
-          background: tokens.colors.background.card,
-          borderRadius: '20px',
-          border: `1px solid ${tokens.colors.background.cardBorder}`,
-          boxShadow: tokens.shadows.md
-        }}>
-          <div style={{ fontSize: '64px', marginBottom: '16px' }}>🚗</div>
-          <div style={{
-            fontSize: '20px',
-            fontWeight: '700',
-            color: tokens.colors.text,
-            marginBottom: '8px'
-          }}>
-            לא נמצאו נהגים
-          </div>
-          <div style={{ color: tokens.colors.subtle, fontSize: '14px' }}>
-            {searchTerm || selectedStatus !== 'all'
-              ? 'נסה לשנות את המסננים'
-              : 'הוסף את הנהג הראשון שלך כדי להתחיל'}
-          </div>
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gap: '16px' }}>
-          {displayedDrivers.map(driver => (
-            <div
-              key={driver.id}
-              style={{
-                padding: '20px',
-                background: tokens.colors.background.card,
-                borderRadius: '16px',
-                border: `1px solid ${tokens.colors.background.cardBorder}`,
-                boxShadow: tokens.shadows.md,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                flexWrap: 'wrap'
-              }}
+      <UndergroundHeader
+        title="ניהול נהגים"
+        subtitle="נהל את נהגי המשלוחים ועקוב אחר הסטטוס שלהם"
+        action={
+          (role === 'superadmin' || role === 'admin') ? (
+            <UndergroundButton
+              variant="primary"
+              onClick={() => onNavigate?.('/admin/driver-applications')}
             >
-              {/* Driver Info */}
-              <div style={{ flex: 1, minWidth: '200px' }}>
-                <div style={{
-                  fontWeight: '700',
-                  fontSize: '16px',
-                  color: tokens.colors.text,
-                  marginBottom: '4px'
-                }}>
-                  {driver.user_id}
-                </div>
-                <div style={{
-                  fontSize: '14px',
-                  color: tokens.colors.subtle,
-                  marginBottom: '2px'
-                }}>
-                  {driver.vehicle_type} • {driver.vehicle_plate}
-                </div>
-                <div style={{ fontSize: '14px', color: tokens.colors.subtle }}>
-                  {driver.phone || 'אין טלפון'}
-                </div>
-              </div>
+              <span style={{ marginLeft: undergroundTheme.spacing.sm }}>📋</span>
+              בקשות נהגים
+            </UndergroundButton>
+          ) : undefined
+        }
+      />
 
-              {/* Rating */}
-              <div style={{
-                textAlign: 'center',
-                padding: '12px 16px',
-                background: tokens.colors.bg,
-                borderRadius: '12px'
-              }}>
-                <div style={{
-                  fontSize: '13px',
-                  color: tokens.colors.subtle,
-                  marginBottom: '4px'
-                }}>
-                  דירוג
-                </div>
-                <div style={{
-                  fontWeight: '700',
-                  fontSize: '18px',
-                  color: tokens.colors.text
-                }}>
-                  {driver.rating?.toFixed(1) || '5.0'} ⭐
-                </div>
-              </div>
-
-              {/* Deliveries */}
-              <div style={{
-                textAlign: 'center',
-                padding: '12px 16px',
-                background: tokens.colors.bg,
-                borderRadius: '12px'
-              }}>
-                <div style={{
-                  fontSize: '13px',
-                  color: tokens.colors.subtle,
-                  marginBottom: '4px'
-                }}>
-                  משלוחים
-                </div>
-                <div style={{
-                  fontWeight: '700',
-                  fontSize: '18px',
-                  color: tokens.colors.text
-                }}>
-                  {driver.total_deliveries || 0}
-                </div>
-              </div>
-
-              {/* Status Badge */}
-              <div>
-                <DriverStatusBadge status={driver.status} />
-              </div>
-
-              {/* Actions */}
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  onClick={() => setSelectedDriver(driver)}
-                  style={{
-                    padding: '10px 20px',
-                    background: tokens.colors.bg,
-                    border: `1px solid ${tokens.colors.background.cardBorder}`,
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: tokens.colors.text,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  פרטים
-                </button>
-                <button
-                  onClick={() => handleDeleteDriver(driver.id)}
-                  style={{
-                    padding: '10px 20px',
-                    background: `${tokens.colors.status.error}15`,
-                    color: tokens.colors.status.error,
-                    border: `1px solid ${tokens.colors.status.error}30`,
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  הסר
-                </button>
-              </div>
-            </div>
-          ))}
+      <UndergroundSection style={{ marginTop: undergroundTheme.spacing['3xl'] }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: undergroundTheme.spacing.lg,
+          marginBottom: undergroundTheme.spacing['3xl']
+        }}>
+          <UndergroundStatCard
+            icon="👥"
+            value={stats.total.toString()}
+            label="סה״כ נהגים"
+          />
+          <UndergroundStatCard
+            icon="🟢"
+            value={stats.available.toString()}
+            label="זמינים"
+            accentColor={undergroundTheme.colors.status.success}
+          />
+          <UndergroundStatCard
+            icon="🔵"
+            value={stats.busy.toString()}
+            label="עסוקים"
+            accentColor={undergroundTheme.colors.status.info}
+          />
+          <UndergroundStatCard
+            icon="⭐"
+            value={stats.avgRating.toFixed(1)}
+            label="דירוג ממוצע"
+            accentColor={undergroundTheme.colors.status.warning}
+          />
+          <UndergroundStatCard
+            icon="📦"
+            value={stats.totalDeliveries.toString()}
+            label="סה״כ משלוחים"
+            accentColor={undergroundTheme.colors.primary.cyan}
+          />
         </div>
-      )}
 
-      {/* Driver Details Modal */}
+        <div style={{
+          marginBottom: undergroundTheme.spacing['2xl'],
+          display: 'flex',
+          gap: undergroundTheme.spacing.lg,
+          alignItems: 'center',
+          flexWrap: 'wrap'
+        }}>
+          <UndergroundInput
+            type="text"
+            placeholder="חיפוש נהגים..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ flex: 1, minWidth: '200px' }}
+          />
+
+          <UndergroundSelect
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value as any)}
+            options={[
+              { value: 'all', label: 'כל הסטטוסים' },
+              { value: 'available', label: 'זמין' },
+              { value: 'busy', label: 'עסוק' },
+              { value: 'offline', label: 'לא מחובר' },
+              { value: 'on_break', label: 'הפסקה' }
+            ]}
+          />
+
+          <UndergroundButton
+            variant="secondary"
+            onClick={loadDrivers}
+          >
+            רענן
+          </UndergroundButton>
+        </div>
+
+        {displayedDrivers.length === 0 ? (
+          <UndergroundEmptyState
+            icon="🚗"
+            title="לא נמצאו נהגים"
+            description={
+              searchTerm || selectedStatus !== 'all'
+                ? 'נסה לשנות את המסננים'
+                : 'הוסף את הנהג הראשון שלך כדי להתחיל'
+            }
+          />
+        ) : (
+          <div style={{ display: 'grid', gap: undergroundTheme.spacing.lg }}>
+            {displayedDrivers.map(driver => (
+              <UndergroundCard key={driver.id} variant="light">
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: undergroundTheme.spacing.lg,
+                  flexWrap: 'wrap'
+                }}>
+                  <div style={{ flex: 1, minWidth: '200px' }}>
+                    <div style={{
+                      fontWeight: undergroundTheme.typography.fontWeight.bold,
+                      fontSize: undergroundTheme.typography.fontSize.lg,
+                      color: undergroundTheme.colors.text.primary,
+                      marginBottom: undergroundTheme.spacing.xs,
+                      textShadow: undergroundTheme.shadows.glow.text
+                    }}>
+                      {driver.profiles?.full_name || driver.user_id}
+                    </div>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.text.secondary,
+                      marginBottom: undergroundTheme.spacing.xs
+                    }}>
+                      {driver.vehicle_type || 'לא צוין'} • {driver.vehicle_plate || 'אין לוחית'}
+                    </div>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.text.tertiary
+                    }}>
+                      {driver.phone || driver.profiles?.phone || 'אין טלפון'}
+                    </div>
+                  </div>
+
+                  <div style={{
+                    textAlign: 'center',
+                    padding: undergroundTheme.spacing.md,
+                    background: undergroundTheme.colors.surface.darker,
+                    borderRadius: undergroundTheme.borderRadius.lg,
+                    border: `1px solid ${undergroundTheme.colors.border.subtle}`,
+                    minWidth: '90px'
+                  }}>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.xs,
+                      color: undergroundTheme.colors.text.tertiary,
+                      marginBottom: undergroundTheme.spacing.xs
+                    }}>
+                      דירוג
+                    </div>
+                    <div style={{
+                      fontWeight: undergroundTheme.typography.fontWeight.bold,
+                      fontSize: undergroundTheme.typography.fontSize.xl,
+                      color: undergroundTheme.colors.text.primary
+                    }}>
+                      {driver.rating?.toFixed(1) || '5.0'} ⭐
+                    </div>
+                  </div>
+
+                  <div style={{
+                    textAlign: 'center',
+                    padding: undergroundTheme.spacing.md,
+                    background: undergroundTheme.colors.surface.darker,
+                    borderRadius: undergroundTheme.borderRadius.lg,
+                    border: `1px solid ${undergroundTheme.colors.border.subtle}`,
+                    minWidth: '90px'
+                  }}>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.xs,
+                      color: undergroundTheme.colors.text.tertiary,
+                      marginBottom: undergroundTheme.spacing.xs
+                    }}>
+                      משלוחים
+                    </div>
+                    <div style={{
+                      fontWeight: undergroundTheme.typography.fontWeight.bold,
+                      fontSize: undergroundTheme.typography.fontSize.xl,
+                      color: undergroundTheme.colors.text.primary
+                    }}>
+                      {driver.total_deliveries || 0}
+                    </div>
+                  </div>
+
+                  <div>
+                    <DriverStatusBadge status={driver.status} />
+                  </div>
+
+                  <div style={{ display: 'flex', gap: undergroundTheme.spacing.sm }}>
+                    <UndergroundButton
+                      variant="secondary"
+                      onClick={() => setSelectedDriver(driver)}
+                      size="small"
+                    >
+                      פרטים
+                    </UndergroundButton>
+                    <UndergroundButton
+                      variant="danger"
+                      onClick={() => handleDeleteDriver(driver.id)}
+                      size="small"
+                    >
+                      הסר
+                    </UndergroundButton>
+                  </div>
+                </div>
+              </UndergroundCard>
+            ))}
+          </div>
+        )}
+      </UndergroundSection>
+
       {selectedDriver && (
         <div
           onClick={() => setSelectedDriver(null)}
@@ -452,140 +424,143 @@ export function DriversManagementView({
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0, 0, 0, 0.6)',
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(10px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 1000,
-            padding: '20px'
+            padding: undergroundTheme.spacing.xl
           }}
         >
-          <div
+          <UndergroundCard
+            variant="darker"
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: tokens.colors.background.card,
-              borderRadius: '20px',
-              padding: '32px',
               maxWidth: '500px',
-              width: '100%',
-              border: `1px solid ${tokens.colors.background.cardBorder}`,
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+              width: '100%'
             }}
           >
             <h2 style={{
-              fontSize: '24px',
-              fontWeight: '700',
-              color: tokens.colors.text,
-              marginBottom: '24px',
-              textAlign: 'center'
+              fontSize: undergroundTheme.typography.fontSize['3xl'],
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary,
+              marginBottom: undergroundTheme.spacing['2xl'],
+              textAlign: 'center',
+              textShadow: undergroundTheme.shadows.glow.cyan
             }}>
               פרטי נהג
             </h2>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.lg }}>
               <div style={{
-                padding: '16px',
-                background: tokens.colors.bg,
-                borderRadius: '12px'
+                padding: undergroundTheme.spacing.lg,
+                background: undergroundTheme.colors.surface.darker,
+                borderRadius: undergroundTheme.borderRadius.lg,
+                border: `1px solid ${undergroundTheme.colors.border.subtle}`
               }}>
                 <div style={{
-                  fontSize: '13px',
-                  color: tokens.colors.subtle,
-                  marginBottom: '4px'
+                  fontSize: undergroundTheme.typography.fontSize.xs,
+                  color: undergroundTheme.colors.text.tertiary,
+                  marginBottom: undergroundTheme.spacing.xs
                 }}>
-                  מזהה משתמש
+                  שם מלא
                 </div>
                 <div style={{
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  color: tokens.colors.text
+                  fontSize: undergroundTheme.typography.fontSize.lg,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary
                 }}>
-                  {selectedDriver.user_id}
+                  {selectedDriver.profiles?.full_name || selectedDriver.user_id}
                 </div>
               </div>
 
               <div style={{
-                padding: '16px',
-                background: tokens.colors.bg,
-                borderRadius: '12px'
+                padding: undergroundTheme.spacing.lg,
+                background: undergroundTheme.colors.surface.darker,
+                borderRadius: undergroundTheme.borderRadius.lg,
+                border: `1px solid ${undergroundTheme.colors.border.subtle}`
               }}>
                 <div style={{
-                  fontSize: '13px',
-                  color: tokens.colors.subtle,
-                  marginBottom: '4px'
+                  fontSize: undergroundTheme.typography.fontSize.xs,
+                  color: undergroundTheme.colors.text.tertiary,
+                  marginBottom: undergroundTheme.spacing.xs
                 }}>
                   טלפון
                 </div>
                 <div style={{
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  color: tokens.colors.text
+                  fontSize: undergroundTheme.typography.fontSize.lg,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary
                 }}>
-                  {selectedDriver.phone || 'לא צוין'}
+                  {selectedDriver.phone || selectedDriver.profiles?.phone || 'לא צוין'}
                 </div>
               </div>
 
               <div style={{
-                padding: '16px',
-                background: tokens.colors.bg,
-                borderRadius: '12px'
+                padding: undergroundTheme.spacing.lg,
+                background: undergroundTheme.colors.surface.darker,
+                borderRadius: undergroundTheme.borderRadius.lg,
+                border: `1px solid ${undergroundTheme.colors.border.subtle}`
               }}>
                 <div style={{
-                  fontSize: '13px',
-                  color: tokens.colors.subtle,
-                  marginBottom: '4px'
+                  fontSize: undergroundTheme.typography.fontSize.xs,
+                  color: undergroundTheme.colors.text.tertiary,
+                  marginBottom: undergroundTheme.spacing.xs
                 }}>
                   רכב
                 </div>
                 <div style={{
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  color: tokens.colors.text
+                  fontSize: undergroundTheme.typography.fontSize.lg,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary
                 }}>
-                  {selectedDriver.vehicle_type} • {selectedDriver.vehicle_plate}
+                  {selectedDriver.vehicle_type || 'לא צוין'} • {selectedDriver.vehicle_plate || 'אין לוחית'}
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: undergroundTheme.spacing.md }}>
                 <div style={{
-                  padding: '16px',
-                  background: tokens.colors.bg,
-                  borderRadius: '12px',
+                  padding: undergroundTheme.spacing.lg,
+                  background: undergroundTheme.colors.surface.darker,
+                  borderRadius: undergroundTheme.borderRadius.lg,
+                  border: `1px solid ${undergroundTheme.colors.border.subtle}`,
                   textAlign: 'center'
                 }}>
                   <div style={{
-                    fontSize: '13px',
-                    color: tokens.colors.subtle,
-                    marginBottom: '4px'
+                    fontSize: undergroundTheme.typography.fontSize.xs,
+                    color: undergroundTheme.colors.text.tertiary,
+                    marginBottom: undergroundTheme.spacing.xs
                   }}>
                     דירוג
                   </div>
                   <div style={{
-                    fontSize: '24px',
-                    fontWeight: '700',
-                    color: tokens.colors.text
+                    fontSize: undergroundTheme.typography.fontSize['3xl'],
+                    fontWeight: undergroundTheme.typography.fontWeight.bold,
+                    color: undergroundTheme.colors.text.primary
                   }}>
                     {selectedDriver.rating?.toFixed(1) || '5.0'} ⭐
                   </div>
                 </div>
 
                 <div style={{
-                  padding: '16px',
-                  background: tokens.colors.bg,
-                  borderRadius: '12px',
+                  padding: undergroundTheme.spacing.lg,
+                  background: undergroundTheme.colors.surface.darker,
+                  borderRadius: undergroundTheme.borderRadius.lg,
+                  border: `1px solid ${undergroundTheme.colors.border.subtle}`,
                   textAlign: 'center'
                 }}>
                   <div style={{
-                    fontSize: '13px',
-                    color: tokens.colors.subtle,
-                    marginBottom: '4px'
+                    fontSize: undergroundTheme.typography.fontSize.xs,
+                    color: undergroundTheme.colors.text.tertiary,
+                    marginBottom: undergroundTheme.spacing.xs
                   }}>
                     משלוחים
                   </div>
                   <div style={{
-                    fontSize: '24px',
-                    fontWeight: '700',
-                    color: tokens.colors.text
+                    fontSize: undergroundTheme.typography.fontSize['3xl'],
+                    fontWeight: undergroundTheme.typography.fontWeight.bold,
+                    color: undergroundTheme.colors.text.primary
                   }}>
                     {selectedDriver.total_deliveries || 0}
                   </div>
@@ -593,15 +568,16 @@ export function DriversManagementView({
               </div>
 
               <div style={{
-                padding: '16px',
-                background: tokens.colors.bg,
-                borderRadius: '12px',
+                padding: undergroundTheme.spacing.lg,
+                background: undergroundTheme.colors.surface.darker,
+                borderRadius: undergroundTheme.borderRadius.lg,
+                border: `1px solid ${undergroundTheme.colors.border.subtle}`,
                 textAlign: 'center'
               }}>
                 <div style={{
-                  fontSize: '13px',
-                  color: tokens.colors.subtle,
-                  marginBottom: '8px'
+                  fontSize: undergroundTheme.typography.fontSize.xs,
+                  color: undergroundTheme.colors.text.tertiary,
+                  marginBottom: undergroundTheme.spacing.sm
                 }}>
                   סטטוס נוכחי
                 </div>
@@ -609,25 +585,17 @@ export function DriversManagementView({
               </div>
             </div>
 
-            <button
+            <UndergroundButton
+              variant="primary"
               onClick={() => setSelectedDriver(null)}
               style={{
                 width: '100%',
-                marginTop: '24px',
-                padding: '14px',
-                background: tokens.gradients.primary,
-                color: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                boxShadow: tokens.glows.primaryStrong
+                marginTop: undergroundTheme.spacing['2xl']
               }}
             >
               סגור
-            </button>
-          </div>
+            </UndergroundButton>
+          </UndergroundCard>
         </div>
       )}
     </div>
