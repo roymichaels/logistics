@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback, useMemo, memo } from 'react';
 import { Card } from './Card';
 import { Button } from '../atoms/Button';
 import { Text } from '../atoms/Typography';
@@ -14,29 +14,29 @@ export interface ProductCardProps {
   variant?: 'default' | 'compact' | 'featured';
 }
 
-export function ProductCard({
+const ProductCardComponent = ({
   product,
   onClick,
   onAddToCart,
   variant = 'default',
-}: ProductCardProps) {
-  const [isHovered, setIsHovered] = React.useState(false);
+}: ProductCardProps) => {
+  const [isHovered, setIsHovered] = useState(false);
   const isFeatured = variant === 'featured';
   const isCompact = variant === 'compact';
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = useCallback((e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button')) {
       return;
     }
     onClick?.(product);
-  };
+  }, [onClick, product]);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onAddToCart?.(product);
-  };
+  }, [onAddToCart, product]);
 
-  const imageContainerStyle: React.CSSProperties = {
+  const imageContainerStyle: React.CSSProperties = useMemo(() => ({
     position: 'relative',
     width: '100%',
     height: isFeatured ? '240px' : isCompact ? '140px' : '200px',
@@ -50,9 +50,9 @@ export function ProductCard({
     overflow: 'hidden',
     transition: `all ${transitions.normal}`,
     boxShadow: isHovered ? shadows.lg : shadows.md,
-  };
+  }), [isFeatured, isCompact, isHovered]);
 
-  const priceTagStyle: React.CSSProperties = {
+  const priceTagStyle: React.CSSProperties = useMemo(() => ({
     position: 'absolute',
     top: spacing.md,
     right: spacing.md,
@@ -65,23 +65,23 @@ export function ProductCard({
     boxShadow: shadows.glow,
     backdropFilter: 'blur(8px)',
     border: `1px solid rgba(255, 255, 255, 0.2)`,
-  };
+  }), []);
 
-  const contentStyle: React.CSSProperties = {
+  const contentStyle: React.CSSProperties = useMemo(() => ({
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.sm,
     flex: 1,
-  };
+  }), []);
 
-  const footerStyle: React.CSSProperties = {
+  const footerStyle: React.CSSProperties = useMemo(() => ({
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: spacing.md,
     gap: spacing.sm,
     flexWrap: 'wrap',
-  };
+  }), []);
 
   return (
     <Card
@@ -201,7 +201,22 @@ export function ProductCard({
       )}
     </Card>
   );
-}
+};
+
+export const ProductCard = memo(ProductCardComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.product.id === nextProps.product.id &&
+    prevProps.product.name === nextProps.product.name &&
+    prevProps.product.price === nextProps.product.price &&
+    prevProps.product.stock_quantity === nextProps.product.stock_quantity &&
+    prevProps.product.image_url === nextProps.product.image_url &&
+    prevProps.variant === nextProps.variant &&
+    prevProps.onClick === nextProps.onClick &&
+    prevProps.onAddToCart === nextProps.onAddToCart
+  );
+});
+
+ProductCard.displayName = 'ProductCard';
 
 export interface ProductCardSkeletonProps {
   count?: number;

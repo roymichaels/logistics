@@ -97,7 +97,7 @@ const mockProducts: Product[] = [
     category: 'Secured Smartphones',
     description: 'Hardware kill switches, Linux-based OS, no backdoors. Complete digital sovereignty with open-source hardware and software.',
     warehouse_location: 'Vault A - Secure Storage',
-    image_url: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-15T10:00:00Z',
     updated_at: '2024-01-15T10:00:00Z'
   },
@@ -110,7 +110,7 @@ const mockProducts: Product[] = [
     category: 'Secured Smartphones',
     description: 'Military-grade encryption, secure VoIP, encrypted messaging. Enterprise privacy for sensitive communications.',
     warehouse_location: 'Vault A - Secure Storage',
-    image_url: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-16T09:30:00Z',
     updated_at: '2024-01-16T09:30:00Z'
   },
@@ -123,7 +123,7 @@ const mockProducts: Product[] = [
     category: 'Secured Smartphones',
     description: 'Certified secure by NATO, dual-OS architecture, hardware-level security. Built for defense and government.',
     warehouse_location: 'Vault A - Secure Storage',
-    image_url: 'https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-17T11:00:00Z',
     updated_at: '2024-01-17T11:00:00Z'
   },
@@ -138,7 +138,7 @@ const mockProducts: Product[] = [
     category: 'Hardware Keys',
     description: 'USB-C + NFC authentication key. FIDO2, U2F, smart card, OTP. Works with 1Password, LastPass, Google, Microsoft.',
     warehouse_location: 'Vault B - Authentication',
-    image_url: 'https://images.unsplash.com/photo-1633265486064-086b219458ec?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-18T08:00:00Z',
     updated_at: '2024-01-18T08:00:00Z'
   },
@@ -151,7 +151,7 @@ const mockProducts: Product[] = [
     category: 'Hardware Keys',
     description: 'USB-A + Bluetooth/NFC key set. FIDO standards certified. Protect against phishing and account takeovers.',
     warehouse_location: 'Vault B - Authentication',
-    image_url: 'https://images.unsplash.com/photo-1563203369-26f2e4a5ccf7?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-19T10:15:00Z',
     updated_at: '2024-01-19T10:15:00Z'
   },
@@ -164,7 +164,7 @@ const mockProducts: Product[] = [
     category: 'Hardware Keys',
     description: 'Open-source security key with firmware verification. FIDO2, PIV, OpenPGP. Made in Germany with privacy focus.',
     warehouse_location: 'Vault B - Authentication',
-    image_url: 'https://images.unsplash.com/photo-1614624532983-4ce03382d63d?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-20T09:45:00Z',
     updated_at: '2024-01-20T09:45:00Z'
   },
@@ -177,7 +177,7 @@ const mockProducts: Product[] = [
     category: 'Hardware Keys',
     description: 'Hardware password manager with self-destruct PIN. Stores up to 24 accounts offline. Uncrackable cold storage.',
     warehouse_location: 'Vault B - Authentication',
-    image_url: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-21T14:20:00Z',
     updated_at: '2024-01-21T14:20:00Z'
   },
@@ -192,7 +192,7 @@ const mockProducts: Product[] = [
     category: 'Privacy Devices',
     description: 'Military-grade RF shielding. Blocks WiFi, Bluetooth, cellular, GPS. Certified lab-tested. Fits laptops and tablets.',
     warehouse_location: 'Vault C - Privacy Tech',
-    image_url: 'https://images.unsplash.com/photo-1553531384-cc64ac80f931?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-22T08:30:00Z',
     updated_at: '2024-01-22T08:30:00Z'
   },
@@ -205,7 +205,7 @@ const mockProducts: Product[] = [
     category: 'Privacy Devices',
     description: 'Anti-spy filter limits viewing angle to 60°. Blocks side surveillance. Blue light reduction. Easy installation.',
     warehouse_location: 'Vault C - Privacy Tech',
-    image_url: 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-23T11:00:00Z',
     updated_at: '2024-01-23T11:00:00Z'
   },
@@ -218,7 +218,7 @@ const mockProducts: Product[] = [
     category: 'Privacy Devices',
     description: 'Prevent juice-jacking attacks. Power-only charging, blocks data transfer. Perfect for public USB ports and travel.',
     warehouse_location: 'Vault C - Privacy Tech',
-    image_url: 'https://images.unsplash.com/photo-1625948515291-69613efd103f?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-24T09:15:00Z',
     updated_at: '2024-01-24T09:15:00Z'
   },
@@ -231,7 +231,7 @@ const mockProducts: Product[] = [
     category: 'Privacy Devices',
     description: 'Ultra-thin sliding covers for laptops, tablets, phones. Block unauthorized camera access. Pack of 10.',
     warehouse_location: 'Vault C - Privacy Tech',
-    image_url: 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-25T10:30:00Z',
     updated_at: '2024-01-25T10:30:00Z'
   },
@@ -246,7 +246,7 @@ const mockProducts: Product[] = [
     category: 'Network Security',
     description: 'OpenWrt-based router with WireGuard/OpenVPN. Multi-protocol VPN client/server. Tor anonymity ready.',
     warehouse_location: 'Vault D - Network',
-    image_url: 'https://images.unsplash.com/photo-1606904825846-647eb07f5be2?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-26T08:45:00Z',
     updated_at: '2024-01-26T08:45:00Z'
   },
@@ -259,7 +259,7 @@ const mockProducts: Product[] = [
     category: 'Network Security',
     description: 'pfSense/OPNsense firewall appliance. 6-port Gigabit, Intel i5, fanless. Enterprise network security.',
     warehouse_location: 'Vault D - Network',
-    image_url: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-27T12:00:00Z',
     updated_at: '2024-01-27T12:00:00Z'
   },
@@ -272,7 +272,7 @@ const mockProducts: Product[] = [
     category: 'Encryption Tools',
     description: 'FIPS 140-2 Level 3 certified. AES 256-bit hardware encryption. Waterproof, tamper-proof. Self-destructs after 10 failed attempts.',
     warehouse_location: 'Vault E - Encryption',
-    image_url: 'https://images.unsplash.com/photo-1588636142235-a52e0fe56c25?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-28T09:00:00Z',
     updated_at: '2024-01-28T09:00:00Z'
   },
@@ -287,7 +287,7 @@ const mockProducts: Product[] = [
     category: 'Encryption Tools',
     description: 'Hardware-encrypted portable SSD. PIN authentication. FIPS certified. No software needed. Military-grade protection.',
     warehouse_location: 'Vault E - Encryption',
-    image_url: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-29T10:30:00Z',
     updated_at: '2024-01-29T10:30:00Z'
   },
@@ -300,7 +300,7 @@ const mockProducts: Product[] = [
     category: 'Encryption Tools',
     description: 'Self-encrypting NVMe drive. Instant crypto-erase. TCG Opal 2.0 compliant. Enterprise data protection.',
     warehouse_location: 'Vault E - Encryption',
-    image_url: 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-01-30T11:45:00Z',
     updated_at: '2024-01-30T11:45:00Z'
   },
@@ -315,7 +315,7 @@ const mockProducts: Product[] = [
     category: 'Security Software',
     description: 'Swiss VPN with Secure Core. No logs policy. 10 devices. NetShield ad-blocker. P2P and streaming optimized.',
     warehouse_location: 'Digital License',
-    image_url: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-02-01T08:00:00Z',
     updated_at: '2024-02-01T08:00:00Z'
   },
@@ -328,7 +328,7 @@ const mockProducts: Product[] = [
     category: 'Security Software',
     description: 'Multi-layered ransomware protection. Webcam protection. Secure VPN. Parental controls. Award-winning antivirus.',
     warehouse_location: 'Digital License',
-    image_url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-02-02T09:30:00Z',
     updated_at: '2024-02-02T09:30:00Z'
   },
@@ -341,7 +341,7 @@ const mockProducts: Product[] = [
     category: 'Security Software',
     description: 'Password manager for teams. Secure sharing. Watchtower alerts. Travel Mode. SSO integration. Up to 10 members.',
     warehouse_location: 'Digital License',
-    image_url: 'https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-02-03T10:15:00Z',
     updated_at: '2024-02-03T10:15:00Z'
   },
@@ -354,7 +354,7 @@ const mockProducts: Product[] = [
     category: 'Security Software',
     description: 'Real-time malware protection. Ransomware blocking. Exploit prevention. Brute force protection. Light on resources.',
     warehouse_location: 'Digital License',
-    image_url: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=400&h=300&fit=crop',
+    image_url: '/placeholder-product.png',
     created_at: '2024-02-04T11:00:00Z',
     updated_at: '2024-02-04T11:00:00Z'
   }
