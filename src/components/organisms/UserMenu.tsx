@@ -112,9 +112,9 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
 
   const dropdownStyles: React.CSSProperties = {
     position: 'absolute',
-    top: 'calc(100% + 8px)',
-    right: 0,
-    left: 'auto',
+    bottom: 'calc(100% + 8px)',
+    right: '50%',
+    transform: 'translateX(50%)',
     minWidth: '240px',
     maxWidth: 'calc(100vw - 16px)',
     background: 'rgba(30, 30, 35, 0.98)',
@@ -157,8 +157,19 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
       </button>
 
       {dropdownOpen && (
-        <div style={dropdownStyles}>
-          <div style={userInfoStyles}>
+        <>
+          <style>{`
+            @media (min-width: 768px) {
+              .user-menu-dropdown {
+                bottom: auto !important;
+                top: 0 !important;
+                right: calc(100% + 8px) !important;
+                transform: none !important;
+              }
+            }
+          `}</style>
+          <div className="user-menu-dropdown" style={dropdownStyles}>
+            <div style={userInfoStyles}>
             <Text variant="body" weight="semibold" style={{ marginBottom: spacing.xs, color: 'rgba(255, 255, 255, 0.95)' }}>
               {userName}
             </Text>
@@ -205,7 +216,8 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
               <span>התנתק</span>
             </button>
           </div>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
