@@ -19,6 +19,7 @@ import { tokens, styles } from '../styles/tokens';
 import { Input } from '../components/atoms/Input';
 import { logger } from '../lib/logger';
 import { useNavigate } from 'react-router-dom';
+import { ImageUploadZone } from '../components/atoms/ImageUploadZone';
 
 interface ProductsProps {
   dataStore?: any;
@@ -699,21 +700,14 @@ function ProductModal({ product, onClose, onSubmit, loading }: {
             </div>
 
             <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: tokens.colors.text
-              }}>
-                כתובת תמונה (URL)
-              </label>
-              <input
-                type="text"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                style={styles.input}
-                placeholder="https://..."
+              <ImageUploadZone
+                uploadType="product"
+                currentImageUrl={formData.image_url}
+                onImageSelect={(file) => {
+                  logger.info('Product image file selected', { fileName: file.name });
+                }}
+                label="תמונת מוצר"
+                helperText="תמונה מרובעת מומלצת, עד 5MB"
                 disabled={loading}
               />
             </div>

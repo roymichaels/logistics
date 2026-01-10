@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { BaseModal } from '../BaseModal';
 import { DollarSign, Package, Image as ImageIcon } from 'lucide-react';
+import { ImageUploadZone } from '../../atoms/ImageUploadZone';
+import { logger } from '../../../lib/logger';
 
 interface Product {
   id: string;
@@ -11,6 +13,7 @@ interface Product {
   sku?: string;
   category?: string;
   is_active?: boolean;
+  image_url?: string;
 }
 
 interface EditProductModalProps {
@@ -33,6 +36,7 @@ export function EditProductModal({
     sku: product.sku || '',
     category: product.category || '',
     is_active: product.is_active ?? true,
+    image_url: product.image_url || '',
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -56,6 +60,7 @@ export function EditProductModal({
     sku: product.sku || '',
     category: product.category || '',
     is_active: product.is_active ?? true,
+    image_url: product.image_url || '',
   });
 
   return (
@@ -151,6 +156,19 @@ export function EditProductModal({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 placeholder="Product description..."
                 rows={4}
+              />
+            </div>
+
+            <div>
+              <ImageUploadZone
+                uploadType="product"
+                currentImageUrl={formData.image_url}
+                onImageSelect={(file) => {
+                  logger.info('Product image file selected', { fileName: file.name });
+                }}
+                label="Product Image"
+                helperText="Square image recommended, up to 5MB"
+                disabled={isLoading}
               />
             </div>
 

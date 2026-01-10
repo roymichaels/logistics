@@ -4,6 +4,7 @@ import { tokens, styles } from '../../../styles/tokens';
 import { DataStore } from '../../../data/types';
 import { Toast } from '../../../components/Toast';
 import { logger } from '../../../lib/logger';
+import { ImageUploadZone } from '../../../components/atoms/ImageUploadZone';
 
 interface BusinessSettingsModalProps {
   businessId: string;
@@ -262,6 +263,30 @@ export function BusinessSettingsModal({
         <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {activeTab === 'branding' && (
             <>
+              <div style={{ marginBottom: '16px' }}>
+                <ImageUploadZone
+                  uploadType="business-logo"
+                  currentImageUrl={settings.logo_url}
+                  onImageSelect={(file) => {
+                    logger.info('Logo file selected', { fileName: file.name });
+                  }}
+                  label="לוגו העסק"
+                  helperText="תמונה מרובעת מומלצת, עד 2MB"
+                />
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <ImageUploadZone
+                  uploadType="business-banner"
+                  currentImageUrl={settings.banner_url}
+                  onImageSelect={(file) => {
+                    logger.info('Banner file selected', { fileName: file.name });
+                  }}
+                  label="תמונת רקע (באנר)"
+                  helperText="תמונה רחבה במידות 16:9, עד 5MB"
+                />
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ fontSize: '14px', color: tokens.colors.text, marginBottom: '8px', display: 'block', fontWeight: '600' }}>

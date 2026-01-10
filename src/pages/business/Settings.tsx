@@ -15,6 +15,7 @@ import {
   UndergroundEmptyState
 } from '../../components/underground';
 import { NoActiveBusiness } from '../../components/NoActiveBusiness';
+import { ImageUploadZone } from '../../components/atoms/ImageUploadZone';
 
 interface BusinessSettings {
   id: string;
@@ -438,21 +439,29 @@ export default function Settings() {
                 display: 'grid',
                 gap: undergroundTheme.spacing.lg
               }}>
-                <UndergroundInput
-                  type="text"
-                  label="Logo URL"
-                  value={settings.logo_url || ''}
-                  onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
-                  placeholder="https://..."
-                />
+                <div>
+                  <ImageUploadZone
+                    uploadType="business-logo"
+                    currentImageUrl={settings.logo_url}
+                    onImageSelect={(file) => {
+                      logger.info('Logo file selected', { fileName: file.name });
+                    }}
+                    label="לוגו העסק"
+                    helperText="תמונה מרובעת מומלצת, עד 2MB"
+                  />
+                </div>
 
-                <UndergroundInput
-                  type="text"
-                  label="Banner Image URL"
-                  value={settings.banner_image_url || ''}
-                  onChange={(e) => setSettings({ ...settings, banner_image_url: e.target.value })}
-                  placeholder="https://..."
-                />
+                <div>
+                  <ImageUploadZone
+                    uploadType="business-banner"
+                    currentImageUrl={settings.banner_image_url}
+                    onImageSelect={(file) => {
+                      logger.info('Banner file selected', { fileName: file.name });
+                    }}
+                    label="תמונת רקע (באנר)"
+                    helperText="תמונה רחבה במידות 16:9, עד 5MB"
+                  />
+                </div>
 
                 <UndergroundInput
                   type="color"

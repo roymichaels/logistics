@@ -5,6 +5,7 @@ import { Text } from '../atoms/Typography';
 import { colors, spacing, borderRadius, shadows, typography } from '../../styles/design-system';
 import { logger } from '../../lib/logger';
 import { isValidUsername, isWalletAddress, extractUsername } from '../../lib/usernames';
+import { ImageUploadZone } from '../atoms/ImageUploadZone';
 
 export interface EditProfileModalProps {
   isOpen: boolean;
@@ -331,17 +332,16 @@ export function EditProfileModal({
           </div>
 
           <div style={fieldStyle}>
-            <label style={labelStyle}>Profile Photo URL</label>
-            <Input
-              type="text"
-              value={photoUrl}
-              onChange={(e) => setPhotoUrl(e.target.value)}
-              placeholder="https://example.com/photo.jpg"
+            <ImageUploadZone
+              uploadType="user-avatar"
+              currentImageUrl={photoUrl}
+              onImageSelect={(file) => {
+                logger.info('Profile photo file selected', { fileName: file.name });
+              }}
+              label="Profile Photo"
+              helperText="Square image recommended, up to 1MB"
               disabled={saving}
             />
-            <Text variant="small" color="secondary" style={{ marginTop: spacing.xs }}>
-              Enter a URL to your profile photo
-            </Text>
           </div>
         </div>
 
