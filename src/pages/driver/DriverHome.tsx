@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { undergroundTheme } from '../../styles/undergroundTheme';
-import { UndergroundCard } from '../../components/underground/UndergroundCard';
-import { UndergroundStatCard } from '../../components/underground/UndergroundStatCard';
-import { UndergroundButton } from '../../components/underground/UndergroundButton';
+import {
+  UndergroundCard,
+  UndergroundStatCard,
+  UndergroundButton,
+  UndergroundBadge,
+  UndergroundLoadingSpinner
+} from '../../components/underground';
 import { logger } from '../../lib/logger';
 import { driverService, DriverStatus, DriverProfile } from '../../services/driver';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { haptic } from '../../utils/haptic';
+import { Toast } from '../../components/Toast';
+import { supabase } from '../../lib/supabase';
 
 export function DriverHome() {
   const { user } = useAuth();
@@ -22,9 +28,35 @@ export function DriverHome() {
     hours: 0,
     rating: 5.0
   });
+  const [pendingAssignments, setPendingAssignments] = useState<any[]>([]);
+  const [activeAssignments, setActiveAssignments] = useState<any[]>([]);
 
   useEffect(() => {
     loadDriverData();
+    loadAssignments();
+
+    const channel = supabase
+      .channel('driver-assignments')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'assignments',
+          filter: `driver_id=eq.${user?.id}`
+        },
+        (payload) => {
+          logger.info('[DriverHome] New assignment received', payload);
+          loadAssignments();
+          Toast.success('משימה חדשה התקבלה!');
+          haptic('heavy');
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const loadDriverData = async () => {
@@ -61,8 +93,35 @@ export function DriverHome() {
       }
     } catch (error) {
       logger.error('[DriverHome] Failed to load driver data:', error);
+      Toast.error('Failed to load driver data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAssignments = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data: assignments, error } = await supabase
+        .from('assignments')
+        .select(`
+          *,
+          order:orders(id, order_number, customer_name, delivery_address, total_amount),
+          business:businesses(name, name_hebrew)
+        `)
+        .eq('driver_id', user.id)
+        .in('status', ['pending', 'accepted', 'picked_up', 'in_transit']);
+
+      if (error) throw error;
+
+      const pending = assignments?.filter(a => a.status === 'pending') || [];
+      const active = assignments?.filter(a => ['accepted', 'picked_up', 'in_transit'].includes(a.status)) || [];
+
+      setPendingAssignments(pending);
+      setActiveAssignments(active);
+    } catch (error) {
+      logger.error('[DriverHome] Failed to load assignments:', error);
     }
   };
 
@@ -87,11 +146,50 @@ export function DriverHome() {
 
       if (!isOnline) {
         logger.info('[DriverHome] Driver went online');
+        Toast.success('התחברת בהצלחה - אתה זמין למשלוחים!');
       } else {
         logger.info('[DriverHome] Driver went offline');
+        Toast.success('התנתקת - לא זמין למשלוחים');
       }
     } catch (error) {
       logger.error('[DriverHome] Error toggling status:', error);
+      Toast.error('שגיאה בשינוי סטטוס');
+    }
+  };
+
+  const acceptAssignment = async (assignmentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('assignments')
+        .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+        .eq('id', assignmentId);
+
+      if (error) throw error;
+
+      Toast.success('המשימה התקבלה!');
+      loadAssignments();
+      haptic('success');
+    } catch (error) {
+      logger.error('[DriverHome] Failed to accept assignment:', error);
+      Toast.error('Failed to accept assignment');
+    }
+  };
+
+  const rejectAssignment = async (assignmentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('assignments')
+        .update({ status: 'rejected', rejected_at: new Date().toISOString() })
+        .eq('id', assignmentId);
+
+      if (error) throw error;
+
+      Toast.success('המשימה נדחתה');
+      loadAssignments();
+      haptic('light');
+    } catch (error) {
+      logger.error('[DriverHome] Failed to reject assignment:', error);
+      Toast.error('Failed to reject assignment');
     }
   };
 
@@ -104,12 +202,7 @@ export function DriverHome() {
         minHeight: '100vh',
         background: undergroundTheme.colors.gradient.primary
       }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚗</div>
-          <div style={{ color: undergroundTheme.colors.text.primary, fontSize: '18px', fontWeight: '600' }}>
-            טוען...
-          </div>
-        </div>
+        <UndergroundLoadingSpinner size="large" />
       </div>
     );
   }
@@ -277,6 +370,179 @@ export function DriverHome() {
           accentColor={undergroundTheme.colors.status.info}
         />
       </div>
+
+      {/* Pending Assignments */}
+      {pendingAssignments.length > 0 && (
+        <div style={{ marginBottom: undergroundTheme.spacing['3xl'] }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: undergroundTheme.spacing.lg
+          }}>
+            <h2 style={{
+              fontSize: undergroundTheme.typography.fontSize.xl,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary,
+              margin: 0
+            }}>
+              משימות ממתינות
+            </h2>
+            <UndergroundBadge variant="warning" size="md">
+              {pendingAssignments.length}
+            </UndergroundBadge>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
+            {pendingAssignments.map((assignment) => (
+              <UndergroundCard key={assignment.id} glow variant="strong">
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: undergroundTheme.spacing.md
+                }}>
+                  <div>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.lg,
+                      fontWeight: undergroundTheme.typography.fontWeight.bold,
+                      color: undergroundTheme.colors.text.primary,
+                      marginBottom: undergroundTheme.spacing.xs
+                    }}>
+                      הזמנה #{assignment.order?.order_number}
+                    </div>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.text.secondary
+                    }}>
+                      {assignment.business?.name_hebrew || assignment.business?.name}
+                    </div>
+                  </div>
+                  <UndergroundBadge variant="warning">חדש</UndergroundBadge>
+                </div>
+
+                <div style={{
+                  padding: undergroundTheme.spacing.md,
+                  background: 'rgba(0, 212, 255, 0.05)',
+                  borderRadius: undergroundTheme.borderRadius.md,
+                  border: '1px solid rgba(0, 212, 255, 0.1)',
+                  marginBottom: undergroundTheme.spacing.md
+                }}>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.sm,
+                    color: undergroundTheme.colors.text.secondary,
+                    marginBottom: undergroundTheme.spacing.xs
+                  }}>
+                    כתובת:
+                  </div>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.base,
+                    color: undergroundTheme.colors.text.primary,
+                    fontWeight: undergroundTheme.typography.fontWeight.medium
+                  }}>
+                    {assignment.order?.delivery_address}
+                  </div>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: undergroundTheme.spacing.lg
+                }}>
+                  <div>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.xs,
+                      color: undergroundTheme.colors.text.tertiary,
+                      marginBottom: undergroundTheme.spacing.xs
+                    }}>
+                      סכום ההזמנה
+                    </div>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.xl,
+                      fontWeight: undergroundTheme.typography.fontWeight.bold,
+                      color: undergroundTheme.colors.accent.primary
+                    }}>
+                      ₪{assignment.order?.total_amount?.toFixed(2)}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.xs,
+                      color: undergroundTheme.colors.text.tertiary,
+                      marginBottom: undergroundTheme.spacing.xs
+                    }}>
+                      דמי משלוח
+                    </div>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.xl,
+                      fontWeight: undergroundTheme.typography.fontWeight.bold,
+                      color: undergroundTheme.colors.status.success
+                    }}>
+                      ₪{assignment.delivery_fee?.toFixed(2) || '0.00'}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: undergroundTheme.spacing.md }}>
+                  <UndergroundButton
+                    variant="primary"
+                    onClick={() => acceptAssignment(assignment.id)}
+                    style={{ flex: 1 }}
+                  >
+                    קבל משימה
+                  </UndergroundButton>
+                  <UndergroundButton
+                    variant="ghost"
+                    onClick={() => rejectAssignment(assignment.id)}
+                    style={{ flex: 1 }}
+                  >
+                    דחה
+                  </UndergroundButton>
+                </div>
+              </UndergroundCard>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Active Assignments Banner */}
+      {activeAssignments.length > 0 && (
+        <UndergroundCard
+          variant="strong"
+          glow
+          style={{
+            marginBottom: undergroundTheme.spacing['3xl'],
+            border: `2px solid ${undergroundTheme.colors.status.info}`,
+            background: `${undergroundTheme.colors.status.info}10`
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{
+                fontSize: undergroundTheme.typography.fontSize.lg,
+                fontWeight: undergroundTheme.typography.fontWeight.bold,
+                color: undergroundTheme.colors.text.primary,
+                marginBottom: undergroundTheme.spacing.xs
+              }}>
+                משימות פעילות: {activeAssignments.length}
+              </div>
+              <div style={{
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                color: undergroundTheme.colors.text.secondary
+              }}>
+                יש לך משלוחים בתהליך
+              </div>
+            </div>
+            <UndergroundButton
+              variant="primary"
+              onClick={() => navigate('/driver/deliveries')}
+            >
+              צפה במשלוחים
+            </UndergroundButton>
+          </div>
+        </UndergroundCard>
+      )}
 
       {/* Quick Actions */}
       <div style={{ marginBottom: undergroundTheme.spacing['3xl'] }}>

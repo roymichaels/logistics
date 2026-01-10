@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { tokens } from '../../styles/tokens';
+import { undergroundTheme } from '../../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundButton,
+  UndergroundLoadingSpinner,
+  UndergroundBadge
+} from '../../components/underground';
 import { useAuth } from '../../context/AuthContext';
 import { driverService, DriverProfile } from '../../services/driver';
 import { logger } from '../../lib/logger';
+import { Toast } from '../../components/Toast';
 
 interface DriverStatsData {
   profile: DriverProfile | null;
@@ -84,6 +91,7 @@ export function DriverStats() {
       });
     } catch (error) {
       logger.error('[DriverStats] Failed to load stats', error);
+      Toast.error('Failed to load statistics');
     } finally {
       setLoading(false);
     }
@@ -97,15 +105,10 @@ export function DriverStats() {
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: '100vh',
-          background: tokens.colors.panel,
+          background: undergroundTheme.colors.gradient.primary,
         }}
       >
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-          <div style={{ color: tokens.colors.text, fontSize: '18px', fontWeight: '600' }}>
-            Loading statistics...
-          </div>
-        </div>
+        <UndergroundLoadingSpinner size="large" />
       </div>
     );
   }
@@ -114,149 +117,149 @@ export function DriverStats() {
     <div
       style={{
         minHeight: '100vh',
-        background: tokens.colors.panel,
-        paddingBottom: '100px',
+        background: undergroundTheme.colors.gradient.primary,
+        paddingBottom: undergroundTheme.spacing['8xl'],
+        direction: 'rtl'
       }}
     >
       <div
         style={{
-          padding: '20px',
-          background: 'linear-gradient(135deg, #1e293b, #334155)',
-          borderBottom: `1px solid ${tokens.colors.background.cardBorder}`,
+          padding: undergroundTheme.spacing['2xl'],
+          marginBottom: undergroundTheme.spacing['2xl']
         }}
       >
-        <h1 style={{ fontSize: '28px', fontWeight: '700', margin: '0 0 16px 0', color: '#fff' }}>
-          Performance Stats
+        <h1 style={{
+          fontSize: undergroundTheme.typography.fontSize['3xl'],
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          margin: `0 0 ${undergroundTheme.spacing.xl} 0`,
+          color: undergroundTheme.colors.text.primary,
+          textShadow: undergroundTheme.shadows.glow.cyan
+        }}>
+          סטטיסטיקות ביצועים
         </h1>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button
+        <div style={{ display: 'flex', gap: undergroundTheme.spacing.sm }}>
+          <UndergroundButton
+            variant={selectedPeriod === 'week' ? 'primary' : 'ghost'}
             onClick={() => setSelectedPeriod('week')}
-            style={{
-              flex: 1,
-              padding: '10px',
-              background: selectedPeriod === 'week' ? tokens.gradients.primary : 'rgba(255, 255, 255, 0.1)',
-              border: 'none',
-              borderRadius: '12px',
-              color: '#fff',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-            }}
+            style={{ flex: 1 }}
           >
-            This Week
-          </button>
-          <button
+            שבוע זה
+          </UndergroundButton>
+          <UndergroundButton
+            variant={selectedPeriod === 'month' ? 'primary' : 'ghost'}
             onClick={() => setSelectedPeriod('month')}
-            style={{
-              flex: 1,
-              padding: '10px',
-              background: selectedPeriod === 'month' ? tokens.gradients.primary : 'rgba(255, 255, 255, 0.1)',
-              border: 'none',
-              borderRadius: '12px',
-              color: '#fff',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-            }}
+            style={{ flex: 1 }}
           >
-            This Month
-          </button>
-          <button
+            חודש זה
+          </UndergroundButton>
+          <UndergroundButton
+            variant={selectedPeriod === 'all' ? 'primary' : 'ghost'}
             onClick={() => setSelectedPeriod('all')}
-            style={{
-              flex: 1,
-              padding: '10px',
-              background: selectedPeriod === 'all' ? tokens.gradients.primary : 'rgba(255, 255, 255, 0.1)',
-              border: 'none',
-              borderRadius: '12px',
-              color: '#fff',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-            }}
+            style={{ flex: 1 }}
           >
-            All Time
-          </button>
+            כל הזמן
+          </UndergroundButton>
         </div>
       </div>
 
-      <div style={{ padding: '20px' }}>
-        <div
+      <div style={{ padding: undergroundTheme.spacing['2xl'] }}>
+        <UndergroundCard
+          variant="strong"
+          glow
           style={{
             background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05))',
-            borderRadius: '20px',
-            padding: '24px',
-            border: '1px solid rgba(16, 185, 129, 0.3)',
-            marginBottom: '24px',
+            border: '2px solid rgba(16, 185, 129, 0.3)',
+            marginBottom: undergroundTheme.spacing['3xl'],
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: '48px', fontWeight: '700', color: tokens.colors.status.success, marginBottom: '8px' }}>
+          <div style={{
+            fontSize: undergroundTheme.typography.fontSize['5xl'],
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            color: undergroundTheme.colors.status.success,
+            marginBottom: undergroundTheme.spacing.sm,
+            textShadow: undergroundTheme.shadows.glow.success
+          }}>
             ₪{selectedPeriod === 'week' ? stats.weeklyEarnings.toFixed(2) : selectedPeriod === 'month' ? stats.monthlyEarnings.toFixed(2) : (stats.profile?.total_earnings || 0).toFixed(2)}
           </div>
-          <div style={{ fontSize: '16px', color: tokens.colors.text }}>
-            {selectedPeriod === 'week' ? 'Weekly' : selectedPeriod === 'month' ? 'Monthly' : 'Total'} Earnings
+          <div style={{
+            fontSize: undergroundTheme.typography.fontSize.lg,
+            color: undergroundTheme.colors.text.primary,
+            fontWeight: undergroundTheme.typography.fontWeight.semibold
+          }}>
+            {selectedPeriod === 'week' ? 'רווחים שבועיים' : selectedPeriod === 'month' ? 'רווחים חודשיים' : 'סה״כ רווחים'}
           </div>
-        </div>
+        </UndergroundCard>
 
-        <div
-          style={{
-            background: tokens.colors.background.card,
-            borderRadius: '20px',
-            padding: '24px',
-            border: `1px solid ${tokens.colors.background.cardBorder}`,
-            marginBottom: '24px',
-          }}
-        >
-          <h2 style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.text, marginBottom: '20px' }}>
-            Performance Metrics
+        <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['3xl'] }}>
+          <h2 style={{
+            fontSize: undergroundTheme.typography.fontSize.xl,
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            color: undergroundTheme.colors.text.primary,
+            marginBottom: undergroundTheme.spacing.lg
+          }}>
+            מדדי ביצועים
           </h2>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: undergroundTheme.spacing.lg }}>
             <MetricCard
               icon="⭐"
               value={stats.averageRating.toFixed(1)}
-              label="Rating"
-              color={tokens.colors.status.warning}
+              label="דירוג"
+              color={undergroundTheme.colors.status.warning}
               isGood={stats.averageRating >= 4.5}
             />
             <MetricCard
               icon="✅"
               value={`${stats.acceptanceRate.toFixed(0)}%`}
-              label="Acceptance"
-              color={tokens.colors.status.success}
+              label="קבלה"
+              color={undergroundTheme.colors.status.success}
               isGood={stats.acceptanceRate >= 80}
             />
             <MetricCard
               icon="📦"
               value={`${stats.completionRate.toFixed(0)}%`}
-              label="Completion"
-              color={tokens.colors.brand.primary}
+              label="השלמה"
+              color={undergroundTheme.colors.accent.primary}
               isGood={stats.completionRate >= 90}
             />
             <MetricCard
               icon="⏰"
               value={`${stats.onTimeRate.toFixed(0)}%`}
-              label="On-Time"
-              color={tokens.colors.status.info}
+              label="בזמן"
+              color={undergroundTheme.colors.status.info}
               isGood={stats.onTimeRate >= 85}
             />
           </div>
 
-          <div style={{ marginTop: '20px', padding: '16px', background: tokens.colors.bg, borderRadius: '12px' }}>
-            <div style={{ fontSize: '14px', color: tokens.colors.subtle, marginBottom: '8px' }}>
-              Performance Summary
+          <div style={{
+            marginTop: undergroundTheme.spacing.lg,
+            padding: undergroundTheme.spacing.lg,
+            background: 'rgba(0, 212, 255, 0.05)',
+            borderRadius: undergroundTheme.borderRadius.md,
+            border: '1px solid rgba(0, 212, 255, 0.1)'
+          }}>
+            <div style={{
+              fontSize: undergroundTheme.typography.fontSize.sm,
+              color: undergroundTheme.colors.text.tertiary,
+              marginBottom: undergroundTheme.spacing.sm
+            }}>
+              סיכום ביצועים
             </div>
-            <div style={{ fontSize: '15px', color: tokens.colors.text, lineHeight: '1.6' }}>
+            <div style={{
+              fontSize: undergroundTheme.typography.fontSize.base,
+              color: undergroundTheme.colors.text.primary,
+              lineHeight: '1.6'
+            }}>
               {stats.acceptanceRate >= 90 && stats.completionRate >= 95 && stats.averageRating >= 4.8
-                ? "Outstanding! You're in the top tier of drivers. Keep up the excellent work!"
+                ? "מעולה! אתה בקבוצת העילית של הנהגים. המשך בעבודה מצוינת!"
                 : stats.acceptanceRate >= 80 && stats.completionRate >= 85 && stats.averageRating >= 4.5
-                ? "Great performance! You're doing well. Small improvements in acceptance rate can boost your earnings."
-                : "Good work! Focus on maintaining high completion and acceptance rates to maximize your earnings."}
+                ? "ביצועים נהדרים! אתה עושה עבודה טובה. שיפורים קטנים בשיעור הקבלה יכולים להגדיל את הרווחים שלך."
+                : "עבודה טובה! התמקד בשמירה על שיעור השלמה וקבלה גבוהים כדי למקסם את הרווחים שלך."}
             </div>
           </div>
-        </div>
+        </UndergroundCard>
 
         <div
           style={{
