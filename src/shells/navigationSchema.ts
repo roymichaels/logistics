@@ -7,7 +7,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/platform-dashboard',
     icon: '🏗️',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    requiredRoles: ['superadmin', 'admin'],
     category: 'overview'
   },
   {
@@ -16,7 +16,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/infrastructures',
     icon: '🏭',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    requiredRoles: ['superadmin', 'admin'],
     category: 'platform'
   },
   {
@@ -25,7 +25,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/superadmins',
     icon: '👑',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    requiredRoles: ['superadmin', 'admin'],
     category: 'platform'
   },
   {
@@ -34,7 +34,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/businesses',
     icon: '🏢',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    requiredRoles: ['superadmin', 'admin'],
     category: 'entities'
   },
   {
@@ -43,7 +43,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/users',
     icon: '👥',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    requiredRoles: ['superadmin', 'admin'],
     category: 'entities'
   },
   {
@@ -52,7 +52,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/drivers',
     icon: '🚗',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    requiredRoles: ['superadmin', 'admin'],
     category: 'entities'
   },
   {
@@ -61,7 +61,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/platform-catalog',
     icon: '📦',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    requiredRoles: ['superadmin', 'admin'],
     category: 'operations'
   },
   {
@@ -70,7 +70,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/orders',
     icon: '📋',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    requiredRoles: ['superadmin', 'admin'],
     category: 'operations'
   },
   {
@@ -79,7 +79,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/analytics',
     icon: '📊',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    requiredRoles: ['superadmin', 'admin'],
     category: 'analytics'
   },
   {
@@ -88,7 +88,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/logs',
     icon: '📋',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    requiredRoles: ['superadmin', 'admin'],
     category: 'analytics'
   },
   {
@@ -97,7 +97,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/feature-flags',
     icon: '🚩',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    requiredRoles: ['superadmin', 'admin'],
     category: 'settings'
   },
   {
@@ -106,7 +106,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/permissions',
     icon: '🔐',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    requiredRoles: ['superadmin', 'admin'],
     category: 'settings'
   },
   {
@@ -115,7 +115,7 @@ export const ADMIN_SHELL_NAV: NavigationItem[] = [
     path: '/admin/system-settings',
     icon: '⚙️',
     visible: true,
-    requiredRoles: ['superadmin', 'admin', 'infrastructure_owner'],
+    requiredRoles: ['superadmin', 'admin'],
     category: 'settings'
   }
 ];

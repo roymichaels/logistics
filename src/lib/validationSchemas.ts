@@ -5,15 +5,17 @@ import { z } from 'zod';
 // ============================================================================
 
 export const userRoleSchema = z.enum([
-  'user',
-  'infrastructure_owner',
+  'superadmin',
+  'admin',
   'business_owner',
   'manager',
   'dispatcher',
   'driver',
   'warehouse',
   'sales',
-  'customer_service'
+  'customer_service',
+  'customer',
+  'guest'
 ]);
 
 export const userSchema = z.object({

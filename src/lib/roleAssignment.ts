@@ -2,7 +2,8 @@ import { localSessionManager } from './localSessionManager';
 import { logger } from './logger';
 
 export type UserRole =
-  | 'infrastructure_owner'
+  | 'superadmin'
+  | 'admin'
   | 'business_owner'
   | 'manager'
   | 'warehouse'
@@ -11,7 +12,7 @@ export type UserRole =
   | 'customer_service'
   | 'driver'
   | 'customer'
-  | 'user';
+  | 'guest';
 
 export interface RoleAssignment {
   walletAddress: string;
@@ -73,7 +74,7 @@ export class RoleAssignmentManager {
 
   isAdmin(walletAddress: string): boolean {
     const role = this.getRoleForWallet(walletAddress);
-    return role === 'infrastructure_owner';
+    return role === 'superadmin' || role === 'admin';
   }
 
   isBusiness(walletAddress: string): boolean {

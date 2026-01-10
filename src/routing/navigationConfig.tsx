@@ -16,91 +16,91 @@ export const ADMIN_NAVIGATION: NavigationItem[] = [
     label: 'Dashboard',
     path: '/admin/platform-dashboard',
     icon: '🏗️',
-    roles: ['superadmin', 'admin', 'infrastructure_owner'],
+    roles: ['superadmin', 'admin'],
   },
   {
     id: 'infrastructures',
     label: 'Infrastructures',
     path: '/admin/infrastructures',
     icon: '🏭',
-    roles: ['superadmin', 'admin', 'infrastructure_owner'],
+    roles: ['superadmin', 'admin'],
   },
   {
     id: 'businesses',
     label: 'Businesses',
     path: '/admin/businesses',
     icon: '🏢',
-    roles: ['superadmin', 'admin', 'infrastructure_owner'],
+    roles: ['superadmin', 'admin'],
   },
   {
     id: 'users',
     label: 'Users',
     path: '/admin/users',
     icon: '👥',
-    roles: ['superadmin', 'admin', 'infrastructure_owner'],
+    roles: ['superadmin', 'admin'],
   },
   {
     id: 'catalog',
     label: 'Platform Catalog',
     path: '/admin/platform-catalog',
     icon: '📦',
-    roles: ['superadmin', 'admin', 'infrastructure_owner'],
+    roles: ['superadmin', 'admin'],
   },
   {
     id: 'analytics',
     label: 'Analytics',
     path: '/admin/analytics',
     icon: '📊',
-    roles: ['superadmin', 'admin', 'infrastructure_owner'],
+    roles: ['superadmin', 'admin'],
   },
   {
     id: 'orders',
     label: 'Orders',
     path: '/admin/orders',
     icon: '📋',
-    roles: ['superadmin', 'admin', 'infrastructure_owner'],
+    roles: ['superadmin', 'admin'],
   },
   {
     id: 'drivers',
     label: 'Drivers',
     path: '/admin/drivers',
     icon: '🚗',
-    roles: ['superadmin', 'admin', 'infrastructure_owner'],
+    roles: ['superadmin', 'admin'],
   },
   {
     id: 'logs',
     label: 'Audit Logs',
     path: '/admin/logs',
     icon: '📋',
-    roles: ['superadmin', 'admin', 'infrastructure_owner'],
+    roles: ['superadmin', 'admin'],
   },
   {
     id: 'feature-flags',
     label: 'Feature Flags',
     path: '/admin/feature-flags',
     icon: '🚩',
-    roles: ['superadmin', 'admin', 'infrastructure_owner'],
+    roles: ['superadmin', 'admin'],
   },
   {
     id: 'permissions',
     label: 'Permissions',
     path: '/admin/permissions',
     icon: '🔐',
-    roles: ['superadmin', 'admin', 'infrastructure_owner'],
+    roles: ['superadmin', 'admin'],
   },
   {
     id: 'settings',
     label: 'System Settings',
     path: '/admin/system-settings',
     icon: '⚙️',
-    roles: ['superadmin', 'admin', 'infrastructure_owner'],
+    roles: ['superadmin', 'admin'],
   },
   {
     id: 'superadmins',
     label: 'Superadmins',
     path: '/admin/superadmins',
     icon: '👑',
-    roles: ['superadmin', 'admin', 'infrastructure_owner'],
+    roles: ['superadmin', 'admin'],
   },
 ];
 
@@ -275,7 +275,7 @@ export const STORE_NAVIGATION: NavigationItem[] = [
 ];
 
 export function getNavigationForRole(role: string): NavigationItem[] {
-  if (['superadmin', 'admin', 'infrastructure_owner'].includes(role)) {
+  if (['superadmin', 'admin'].includes(role)) {
     return ADMIN_NAVIGATION;
   }
 
