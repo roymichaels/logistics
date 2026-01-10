@@ -4,12 +4,14 @@ import { getGlassmorphicStyle } from '../../utils/undergroundStyles';
 
 interface UndergroundSelectProps {
   value: string;
-  onChange: (value: string) => void;
-  options: Array<{ value: string; label: string; icon?: string }>;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  options?: Array<{ value: string; label: string; icon?: string }>;
   placeholder?: string;
   disabled?: boolean;
   fullWidth?: boolean;
   style?: React.CSSProperties;
+  label?: string;
+  children?: ReactNode;
 }
 
 export function UndergroundSelect({
@@ -20,6 +22,8 @@ export function UndergroundSelect({
   disabled = false,
   fullWidth = false,
   style,
+  label,
+  children,
 }: UndergroundSelectProps) {
   const selectStyle: React.CSSProperties = {
     ...undergroundTheme.components.input,
@@ -50,24 +54,39 @@ export function UndergroundSelect({
   };
 
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      disabled={disabled}
-      style={selectStyle}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {placeholder && (
-        <option value="" disabled>
-          {placeholder}
-        </option>
+    <div style={{ width: fullWidth ? '100%' : 'auto' }}>
+      {label && (
+        <label
+          style={{
+            display: 'block',
+            marginBottom: undergroundTheme.spacing.xs,
+            fontSize: undergroundTheme.typography.fontSize.sm,
+            fontWeight: undergroundTheme.typography.fontWeight.medium,
+            color: undergroundTheme.colors.text.primary,
+          }}
+        >
+          {label}
+        </label>
       )}
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.icon ? `${option.icon} ${option.label}` : option.label}
-        </option>
-      ))}
-    </select>
+      <select
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        style={selectStyle}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {placeholder && (
+          <option value="" disabled>
+            {placeholder}
+          </option>
+        )}
+        {children ? children : options?.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.icon ? `${option.icon} ${option.label}` : option.label}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
