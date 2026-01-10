@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useSafeAppServices } from '../../context/AppServicesContext';
 import { useNavigate } from 'react-router-dom';
-import { tokens } from '../../styles/tokens';
+import { undergroundTheme } from '../../styles/undergroundTheme';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
-import { Card } from '../../components/molecules/Card';
+import { UndergroundCard } from '../../components/underground/UndergroundCard';
+import { UndergroundButton } from '../../components/underground/UndergroundButton';
+import { UndergroundInput } from '../../components/underground/UndergroundInput';
+import { UndergroundSelect } from '../../components/underground/UndergroundSelect';
+import { UndergroundStatCard } from '../../components/underground/UndergroundStatCard';
+import { UndergroundLoadingSpinner } from '../../components/underground/UndergroundLoadingSpinner';
 import { useI18n } from '../../lib/i18n';
 import { formatDate } from '../../utils/exportUtils';
+import { supabase } from '../../lib/supabase';
 
 interface Business {
   id: string;
@@ -164,10 +169,10 @@ export function BusinessesPortfolio() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return tokens.colors.status.success;
-      case 'inactive': return tokens.colors.status.warning;
-      case 'suspended': return tokens.colors.status.error;
-      default: return tokens.colors.subtle;
+      case 'active': return undergroundTheme.colors.success;
+      case 'inactive': return undergroundTheme.colors.warning;
+      case 'suspended': return undergroundTheme.colors.error;
+      default: return undergroundTheme.colors.textMuted;
     }
   };
 
@@ -188,27 +193,6 @@ export function BusinessesPortfolio() {
     }).format(amount);
   };
 
-  const inputStyle = {
-    padding: '12px 16px',
-    fontSize: '16px',
-    border: `1px solid ${tokens.colors.border}`,
-    borderRadius: '8px',
-    background: tokens.colors.surface,
-    color: tokens.colors.text,
-    outline: 'none',
-    width: '100%',
-  };
-
-  const buttonPrimaryStyle = {
-    padding: '12px 24px',
-    fontSize: '16px',
-    fontWeight: '600',
-    background: tokens.gradients.primary,
-    color: tokens.colors.text.bright,
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-  };
 
   return (
     <PageContainer>
@@ -217,48 +201,35 @@ export function BusinessesPortfolio() {
         title="העסקים שלי"
         subtitle={`מנהל את ${businesses.length} העסקים שלך`}
         actionButton={
-          <button
+          <UndergroundButton
             onClick={handleCreateBusiness}
-            style={{
-              ...buttonPrimaryStyle,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
+            variant="primary"
           >
             + צור עסק חדש
-          </button>
+          </UndergroundButton>
         }
       />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '20px', marginBottom: '24px' }}>
-        <input
+        <UndergroundInput
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="חפש לפי שם או תיאור..."
-          style={inputStyle}
         />
-        <select
+        <UndergroundSelect
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as any)}
-          style={{ ...inputStyle, minWidth: '150px' }}
+          style={{ minWidth: '150px' }}
         >
           <option value="all">כל הסטטוסים</option>
           <option value="active">פעיל</option>
           <option value="inactive">לא פעיל</option>
-        </select>
+        </UndergroundSelect>
       </div>
 
       {loading ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '64px 24px',
-          color: tokens.colors.subtle
-        }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-          <p style={{ fontSize: '18px', margin: 0 }}>טוען עסקים...</p>
-        </div>
+        <UndergroundLoadingSpinner size="large" message="טוען עסקים..." />
       ) : (
         <>
           <div
@@ -269,12 +240,12 @@ export function BusinessesPortfolio() {
             }}
           >
             {filteredBusinesses.map((business) => (
-              <Card
+              <UndergroundCard
                 key={business.id}
                 hoverable
                 style={{
                   cursor: 'pointer',
-                  border: business.id === currentBusinessId ? `2px solid ${tokens.colors.accent}` : undefined
+                  border: business.id === currentBusinessId ? `2px solid ${undergroundTheme.colors.accent}` : undefined
                 }}
                 onClick={() => handleSelectBusiness(business.id)}
               >
@@ -294,9 +265,9 @@ export function BusinessesPortfolio() {
                         justifyContent: 'center',
                         fontSize: '28px',
                         fontWeight: '700',
-                        color: tokens.colors.text.bright,
+                        color: undergroundTheme.colors.textBright,
                         flexShrink: 0,
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                        boxShadow: undergroundTheme.shadows.md
                       }}
                     >
                       {!business.logo_url && business.name.charAt(0)}
@@ -307,14 +278,14 @@ export function BusinessesPortfolio() {
                         margin: '0 0 4px 0',
                         fontSize: '20px',
                         fontWeight: '700',
-                        color: tokens.colors.text
+                        color: undergroundTheme.colors.text
                       }}>
                         {business.name_hebrew || business.name}
                       </h3>
                       <p style={{
                         margin: '0 0 8px 0',
                         fontSize: '14px',
-                        color: tokens.colors.subtle
+                        color: undergroundTheme.colors.textMuted
                       }}>
                         {business.slug}
                       </p>
@@ -349,7 +320,7 @@ export function BusinessesPortfolio() {
                     <p style={{
                       margin: '0 0 16px 0',
                       fontSize: '14px',
-                      color: tokens.colors.text,
+                      color: undergroundTheme.colors.text,
                       lineHeight: '1.5',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -368,38 +339,38 @@ export function BusinessesPortfolio() {
                     gap: '12px',
                     marginBottom: '16px',
                     padding: '16px',
-                    background: tokens.colors.surface,
+                    background: undergroundTheme.colors.surface,
                     borderRadius: '8px'
                   }}>
                     <div>
-                      <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '4px' }}>
+                      <div style={{ fontSize: '12px', color: undergroundTheme.colors.textMuted, marginBottom: '4px' }}>
                         הזמנות
                       </div>
-                      <div style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.text }}>
+                      <div style={{ fontSize: '20px', fontWeight: '700', color: undergroundTheme.colors.text }}>
                         {business.stats?.total_orders || 0}
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '4px' }}>
+                      <div style={{ fontSize: '12px', color: undergroundTheme.colors.textMuted, marginBottom: '4px' }}>
                         הכנסות
                       </div>
-                      <div style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.text }}>
+                      <div style={{ fontSize: '20px', fontWeight: '700', color: undergroundTheme.colors.text }}>
                         {formatCurrency(business.stats?.total_revenue || 0)}
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '4px' }}>
+                      <div style={{ fontSize: '12px', color: undergroundTheme.colors.textMuted, marginBottom: '4px' }}>
                         מוצרים
                       </div>
-                      <div style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.text }}>
+                      <div style={{ fontSize: '20px', fontWeight: '700', color: undergroundTheme.colors.text }}>
                         {business.stats?.active_products || 0}
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginBottom: '4px' }}>
+                      <div style={{ fontSize: '12px', color: undergroundTheme.colors.textMuted, marginBottom: '4px' }}>
                         צוות
                       </div>
-                      <div style={{ fontSize: '20px', fontWeight: '700', color: tokens.colors.text }}>
+                      <div style={{ fontSize: '20px', fontWeight: '700', color: undergroundTheme.colors.text }}>
                         {business.stats?.team_members || 0}
                       </div>
                     </div>
@@ -411,23 +382,23 @@ export function BusinessesPortfolio() {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     paddingTop: '12px',
-                    borderTop: `1px solid ${tokens.colors.border}`
+                    borderTop: `1px solid ${undergroundTheme.colors.border}`
                   }}>
-                    <div style={{ fontSize: '12px', color: tokens.colors.subtle }}>
+                    <div style={{ fontSize: '12px', color: undergroundTheme.colors.textMuted }}>
                       נוצר {formatDate(business.created_at)}
                     </div>
                     {business.id === currentBusinessId && (
                       <div style={{
                         fontSize: '12px',
                         fontWeight: '600',
-                        color: tokens.colors.accent
+                        color: undergroundTheme.colors.accent
                       }}>
                         ✓ עסק נוכחי
                       </div>
                     )}
                   </div>
                 </div>
-              </Card>
+              </UndergroundCard>
             ))}
           </div>
 
@@ -435,7 +406,7 @@ export function BusinessesPortfolio() {
             <div style={{
               textAlign: 'center',
               padding: '64px 24px',
-              color: tokens.colors.subtle
+              color: undergroundTheme.colors.textMuted
             }}>
               <div style={{ fontSize: '64px', marginBottom: '16px' }}>🏢</div>
               <p style={{ fontSize: '18px', margin: 0 }}>

@@ -8,30 +8,13 @@ import { UndergroundSelect } from '../../components/underground/UndergroundSelec
 import { UndergroundLoadingSpinner } from '../../components/underground/UndergroundLoadingSpinner';
 import { UndergroundEmptyState } from '../../components/underground/UndergroundEmptyState';
 import { getStatusBadgeStyle } from '../../utils/undergroundStyles';
-import { StatusVariant } from '../../components/atoms/StatusBadge';
-import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useAuth } from '../../context/AuthContext';
 import { useBusinessContext } from '../../hooks/useBusinessContext';
+import { ticketService, Ticket, TicketStats } from '../../services/modules/TicketService';
 
-interface Ticket {
-  id: string;
-  title: string;
-  description: string;
-  status: StatusVariant;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  created_at: string;
-  updated_at: string;
-  assigned_to: string | null;
-  assigned_user?: {
-    name: string;
-  };
-  customer_name?: string;
-  order_id?: string;
-}
-
-type TicketFilter = 'all' | 'open' | 'in_progress' | 'completed';
-type PriorityFilter = 'all' | 'low' | 'medium' | 'high' | 'urgent';
+type TicketFilter = 'all' | 'pending' | 'in_progress' | 'completed';
+type PriorityFilter = 'all' | 'low' | 'normal' | 'high' | 'urgent';
 
 export function SupportConsole() {
   const { user } = useAuth();
@@ -41,16 +24,18 @@ export function SupportConsole() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<TicketStats>({
     open: 0,
-    inProgress: 0,
-    avgResponseTime: 0,
-    resolvedToday: 0
+    in_progress: 0,
+    completed_today: 0,
+    avg_response_time_hours: 0,
+    urgent: 0
   });
 
   useEffect(() => {
     if (currentBusinessId) {
       loadTickets();
+      loadStats();
     }
   }, [currentBusinessId]);
 
@@ -60,57 +45,13 @@ export function SupportConsole() {
     try {
       setLoading(true);
 
-      const { data: tasksData, error: tasksError } = await supabase
-        .from('tasks')
-        .select(`
-          *,
-          assigned_user:profiles!tasks_assigned_to_fkey(name)
-        `)
-        .eq('business_id', currentBusinessId)
-        .order('created_at', { ascending: false });
-
-      if (tasksError) {
-        logger.error('[SupportConsole] Failed to fetch tickets:', tasksError);
-        return;
-      }
-
-      const formattedTickets: Ticket[] = (tasksData || []).map(task => {
-        let priority: 'low' | 'medium' | 'high' | 'urgent' = 'medium';
-
-        if (task.priority === 'urgent') priority = 'urgent';
-        else if (task.priority === 'high') priority = 'high';
-        else if (task.priority === 'low') priority = 'low';
-
-        return {
-          id: task.id,
-          title: task.title,
-          description: task.description || '',
-          status: task.status as StatusVariant,
-          priority,
-          created_at: task.created_at,
-          updated_at: task.updated_at,
-          assigned_to: task.assigned_to,
-          assigned_user: task.assigned_user,
-          customer_name: task.metadata?.customer_name,
-          order_id: task.metadata?.order_id
-        };
+      const ticketsList = await ticketService.listTickets(currentBusinessId, {
+        status: statusFilter === 'all' ? undefined : statusFilter,
+        priority: priorityFilter === 'all' ? undefined : priorityFilter,
+        search: searchQuery || undefined
       });
 
-      setTickets(formattedTickets);
-
-      const openCount = formattedTickets.filter(t => t.status === 'pending' || t.status === 'open').length;
-      const inProgressCount = formattedTickets.filter(t => t.status === 'in_progress').length;
-      const today = new Date().toISOString().split('T')[0];
-      const resolvedTodayCount = formattedTickets.filter(t =>
-        t.status === 'completed' && t.updated_at.startsWith(today)
-      ).length;
-
-      setStats({
-        open: openCount,
-        inProgress: inProgressCount,
-        avgResponseTime: 12,
-        resolvedToday: resolvedTodayCount
-      });
+      setTickets(ticketsList);
 
     } catch (error) {
       logger.error('[SupportConsole] Error loading tickets:', error);
@@ -119,11 +60,28 @@ export function SupportConsole() {
     }
   };
 
+  const loadStats = async () => {
+    if (!currentBusinessId) return;
+
+    try {
+      const ticketStats = await ticketService.getTicketStats(currentBusinessId);
+      setStats(ticketStats);
+    } catch (error) {
+      logger.error('[SupportConsole] Error loading stats:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (currentBusinessId) {
+      loadTickets();
+    }
+  }, [statusFilter, priorityFilter, searchQuery, currentBusinessId]);
+
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
       case 'urgent': return '🚨';
       case 'high': return '⚠️';
-      case 'medium': return '📌';
+      case 'normal': return '📌';
       case 'low': return '📋';
       default: return '📝';
     }
@@ -143,20 +101,6 @@ export function SupportConsole() {
     return date.toLocaleDateString();
   };
 
-  const filteredTickets = tickets.filter(ticket => {
-    if (statusFilter !== 'all' && ticket.status !== statusFilter) return false;
-    if (priorityFilter !== 'all' && ticket.priority !== priorityFilter) return false;
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      return (
-        ticket.title.toLowerCase().includes(query) ||
-        ticket.description.toLowerCase().includes(query) ||
-        ticket.customer_name?.toLowerCase().includes(query)
-      );
-    }
-    return true;
-  });
-
   const statsDisplay = [
     {
       label: 'Open Tickets',
@@ -166,19 +110,19 @@ export function SupportConsole() {
     },
     {
       label: 'In Progress',
-      value: stats.inProgress.toString(),
+      value: stats.in_progress.toString(),
       icon: '⚙️',
       accentColor: undergroundTheme.colors.status.info
     },
     {
-      label: 'Avg Response',
-      value: `${stats.avgResponseTime}m`,
-      icon: '⏱️',
-      accentColor: undergroundTheme.colors.status.warning
+      label: 'Urgent',
+      value: stats.urgent.toString(),
+      icon: '🚨',
+      accentColor: undergroundTheme.colors.status.error
     },
     {
       label: 'Resolved Today',
-      value: stats.resolvedToday.toString(),
+      value: stats.completed_today.toString(),
       icon: '✅',
       accentColor: undergroundTheme.colors.status.success
     },
@@ -259,7 +203,7 @@ export function SupportConsole() {
             onChange={(e) => setStatusFilter(e.target.value as TicketFilter)}
           >
             <option value="all">All Status</option>
-            <option value="open">Open</option>
+            <option value="pending">Pending</option>
             <option value="in_progress">In Progress</option>
             <option value="completed">Completed</option>
           </UndergroundSelect>
@@ -270,7 +214,7 @@ export function SupportConsole() {
             <option value="all">All Priority</option>
             <option value="urgent">Urgent</option>
             <option value="high">High</option>
-            <option value="medium">Medium</option>
+            <option value="normal">Normal</option>
             <option value="low">Low</option>
           </UndergroundSelect>
         </div>
@@ -279,7 +223,7 @@ export function SupportConsole() {
             fontSize: undergroundTheme.typography.fontSize.sm,
             color: undergroundTheme.colors.text.secondary
           }}>
-            {filteredTickets.length} tickets found
+            {tickets.length} tickets found
           </span>
           <UndergroundButton
             variant="primary"
@@ -290,7 +234,7 @@ export function SupportConsole() {
         </div>
       </UndergroundCard>
 
-      {filteredTickets.length === 0 ? (
+      {tickets.length === 0 ? (
         <UndergroundEmptyState
           icon="🎫"
           title="No tickets found"
@@ -298,7 +242,7 @@ export function SupportConsole() {
         />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
-          {filteredTickets.map((ticket) => (
+          {tickets.map((ticket) => (
             <UndergroundCard
               key={ticket.id}
               variant="light"
