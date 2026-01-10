@@ -148,28 +148,22 @@ export function getNavigationConfig(
         bottomNav: (
           <div style={{ display: 'flex' }}>
             <BottomNavItem
-              icon="🌍"
-              label="Freelance"
-              active={isActive('/driver/freelance')}
-              onClick={() => onNavigate('/driver/freelance')}
+              icon="🚚"
+              label="Deliveries"
+              active={isActive('/driver/deliveries')}
+              onClick={() => onNavigate('/driver/deliveries')}
             />
             <BottomNavItem
-              icon="🏢"
-              label="Collab"
-              active={isActive('/driver/collab')}
-              onClick={() => onNavigate('/driver/collab')}
+              icon="💰"
+              label="Earnings"
+              active={isActive('/driver/earnings')}
+              onClick={() => onNavigate('/driver/earnings')}
             />
             <BottomNavItem
               icon="📊"
               label="Stats"
               active={isActive('/driver/stats')}
               onClick={() => onNavigate('/driver/stats')}
-            />
-            <BottomNavItem
-              icon="👤"
-              label="Profile"
-              active={isActive('/store/profile')}
-              onClick={() => onNavigate('/store/profile')}
             />
           </div>
         ),

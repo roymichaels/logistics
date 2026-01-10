@@ -118,9 +118,8 @@ export const RightSidebarMenu = React.memo(function RightSidebarMenu({ isOpen, o
       ],
       driver: [
         { id: 'deliveries', label: t.my_deliveries, icon: '🚚', page: 'my-deliveries' },
-        { id: 'my-inventory', label: t.my_inventory, icon: '📦', page: 'my-inventory' },
-        { id: 'zones', label: t.my_zones, icon: '🗺️', page: 'my-zones' },
-        { id: 'status', label: t.driver_status, icon: '🟢', page: 'driver-status' }
+        { id: 'earnings', label: t.my_earnings || 'My Earnings', icon: '💰', page: 'driver-earnings' },
+        { id: 'stats', label: t.my_stats || 'My Stats', icon: '📊', page: 'driver-stats' }
       ],
       dispatcher: [
         { id: 'dispatch', label: t.dispatch_board, icon: '📋', page: 'dispatch-board' },

@@ -363,14 +363,6 @@ export const BUSINESS_MENU_CATEGORIES = [
 
 export const DRIVER_SHELL_NAV: NavigationItem[] = [
   {
-    id: 'driver-home',
-    label: 'בית',
-    path: '/driver/home',
-    icon: '🏠',
-    visible: true,
-    requiredRoles: ['driver']
-  },
-  {
     id: 'driver-deliveries',
     label: 'המשלוחים שלי',
     path: '/driver/deliveries',
@@ -391,22 +383,6 @@ export const DRIVER_SHELL_NAV: NavigationItem[] = [
     label: 'הסטטיסטיקות שלי',
     path: '/driver/stats',
     icon: '📊',
-    visible: true,
-    requiredRoles: ['driver']
-  },
-  {
-    id: 'driver-messages',
-    label: 'הודעות',
-    path: '/chat',
-    icon: '💬',
-    visible: true,
-    requiredRoles: ['driver']
-  },
-  {
-    id: 'driver-profile',
-    label: 'הפרופיל שלי',
-    path: '/driver/profile',
-    icon: '👤',
     visible: true,
     requiredRoles: ['driver']
   }
