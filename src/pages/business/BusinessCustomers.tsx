@@ -3,11 +3,17 @@ import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useSafeAppServices } from '../../context/AppServicesContext';
 import { useNavigate } from 'react-router-dom';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
-import { Card } from '../../components/molecules/Card';
-import { StatCard } from '../../components/molecules/StatCard';
-import { tokens } from '../../styles/tokens';
+import {
+  UndergroundCard,
+  UndergroundHeader,
+  UndergroundStatCard,
+  UndergroundButton,
+  UndergroundInput,
+  UndergroundSelect,
+  UndergroundLoadingSpinner,
+  UndergroundBadge
+} from '../../components/underground';
+import { undergroundTheme } from '../../styles/undergroundTheme';
 
 interface Customer {
   id: string;
@@ -128,11 +134,21 @@ export function BusinessCustomers() {
 
   const getSegmentColor = (segment: string): string => {
     switch (segment) {
-      case 'high_value': return tokens.colors.status.success;
-      case 'medium_value': return tokens.colors.status.info;
-      case 'low_value': return tokens.colors.status.warning;
-      case 'new': return tokens.colors.accent;
-      default: return tokens.colors.subtle;
+      case 'high_value': return undergroundTheme.colors.status.success;
+      case 'medium_value': return undergroundTheme.colors.status.info;
+      case 'low_value': return undergroundTheme.colors.status.warning;
+      case 'new': return undergroundTheme.colors.accent.primary;
+      default: return undergroundTheme.colors.text.muted;
+    }
+  };
+
+  const getSegmentVariant = (segment: string): 'success' | 'info' | 'warning' | 'default' => {
+    switch (segment) {
+      case 'high_value': return 'success';
+      case 'medium_value': return 'info';
+      case 'low_value': return 'warning';
+      case 'new': return 'default';
+      default: return 'default';
     }
   };
 
@@ -208,179 +224,159 @@ export function BusinessCustomers() {
 
   if (loading) {
     return (
-      <PageContainer>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>👥</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: tokens.colors.text }}>טוען לקוחות...</div>
-          </div>
-        </div>
-      </PageContainer>
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <UndergroundLoadingSpinner text="טוען לקוחות..." />
+      </div>
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing['3xl'],
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <UndergroundHeader
         icon="👥"
         title="ניהול לקוחות"
         subtitle="נהל ועקוב אחר הלקוחות שלך"
-        actionButton={
-          <button
-            onClick={exportCustomers}
-            style={{
-              padding: '10px 20px',
-              background: tokens.colors.accent,
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
+        actions={
+          <UndergroundButton onClick={exportCustomers} variant="primary">
             ייצוא CSV
-          </button>
+          </UndergroundButton>
         }
       />
 
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '16px',
-        marginBottom: '24px'
+        gap: undergroundTheme.spacing.lg,
+        marginBottom: undergroundTheme.spacing['2xl']
       }}>
-        <StatCard
+        <UndergroundStatCard
           icon="👥"
           label="סה״כ לקוחות"
           value={stats.total}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="⭐"
           label="לקוחות VIP"
           value={stats.highValue}
-          color={tokens.colors.status.success}
+          color={undergroundTheme.colors.status.success}
         />
-        <StatCard
+        <UndergroundStatCard
           icon="💰"
           label="סה״כ הכנסות"
           value={formatCurrency(stats.totalRevenue)}
-          color={tokens.colors.accent}
+          color={undergroundTheme.colors.accent.primary}
         />
       </div>
 
-      <div style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '12px', marginBottom: '16px' }}>
-          <input
+      <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['2xl'] }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: undergroundTheme.spacing.md }}>
+          <UndergroundInput
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="חיפוש לפי שם, אימייל או טלפון..."
-            style={{
-              padding: '10px 16px',
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: '8px',
-              fontSize: '14px',
-              background: tokens.colors.surface,
-              color: tokens.colors.text
-            }}
           />
 
-          <select
+          <UndergroundSelect
             value={segmentFilter}
             onChange={(e) => setSegmentFilter(e.target.value)}
-            style={{
-              padding: '10px 16px',
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: '8px',
-              fontSize: '14px',
-              background: tokens.colors.surface,
-              color: tokens.colors.text
-            }}
           >
             <option value="all">כל הסגמנטים</option>
             <option value="high_value">ערך גבוה</option>
             <option value="medium_value">ערך בינוני</option>
             <option value="low_value">ערך נמוך</option>
             <option value="new">חדשים</option>
-          </select>
+          </UndergroundSelect>
 
-          <select
+          <UndergroundSelect
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            style={{
-              padding: '10px 16px',
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: '8px',
-              fontSize: '14px',
-              background: tokens.colors.surface,
-              color: tokens.colors.text
-            }}
           >
             <option value="spent">לפי הוצאה</option>
             <option value="orders">לפי הזמנות</option>
             <option value="recent">לפי תאריך אחרון</option>
             <option value="name">לפי שם</option>
-          </select>
+          </UndergroundSelect>
         </div>
-      </div>
+      </UndergroundCard>
 
-      <Card>
+      <UndergroundCard>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: `2px solid ${tokens.colors.border}` }}>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>לקוח</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>טלפון</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>הזמנות</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>סה״כ הוצאה</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>הזמנה אחרונה</th>
-                <th style={{ padding: '16px', textAlign: 'right', color: tokens.colors.subtle, fontWeight: '600' }}>סגמנט</th>
+              <tr style={{ borderBottom: `2px solid ${undergroundTheme.colors.glassmorphism.border}` }}>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>לקוח</th>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>טלפון</th>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>הזמנות</th>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>סה״כ הוצאה</th>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>הזמנה אחרונה</th>
+                <th style={{ padding: '16px', textAlign: 'right', color: undergroundTheme.colors.text.tertiary, fontWeight: '600' }}>סגמנט</th>
               </tr>
             </thead>
             <tbody>
               {filteredCustomers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: tokens.colors.subtle }}>
+                  <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: undergroundTheme.colors.text.muted }}>
                     לא נמצאו לקוחות
                   </td>
                 </tr>
               ) : (
                 filteredCustomers.map((customer) => (
-                  <tr key={customer.id} style={{ borderBottom: `1px solid ${tokens.colors.border}` }}>
+                  <tr key={customer.id} style={{
+                    borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                    transition: undergroundTheme.transitions.fast,
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.light;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}>
                     <td style={{ padding: '16px' }}>
-                      <div style={{ fontWeight: '600', color: tokens.colors.text }}>
+                      <div style={{ fontWeight: '600', color: undergroundTheme.colors.text.primary }}>
                         {customer.full_name || 'ללא שם'}
                       </div>
-                      <div style={{ fontSize: '12px', color: tokens.colors.subtle, marginTop: '2px' }}>
+                      <div style={{
+                        fontSize: undergroundTheme.typography.fontSize.xs,
+                        color: undergroundTheme.colors.text.muted,
+                        marginTop: '2px',
+                        fontFamily: undergroundTheme.typography.fontFamily.mono
+                      }}>
                         {customer.email}
                       </div>
                     </td>
-                    <td style={{ padding: '16px', color: tokens.colors.text }}>
+                    <td style={{ padding: '16px', color: undergroundTheme.colors.text.secondary }}>
                       {customer.phone || '-'}
                     </td>
-                    <td style={{ padding: '16px', color: tokens.colors.text }}>
+                    <td style={{ padding: '16px', color: undergroundTheme.colors.text.secondary, fontWeight: '600' }}>
                       {customer.total_orders}
                     </td>
-                    <td style={{ padding: '16px', color: tokens.colors.text, fontWeight: '600' }}>
+                    <td style={{
+                      padding: '16px',
+                      color: undergroundTheme.colors.accent.primary,
+                      fontWeight: undergroundTheme.typography.fontWeight.bold
+                    }}>
                       {formatCurrency(customer.total_spent)}
                     </td>
-                    <td style={{ padding: '16px', color: tokens.colors.text }}>
+                    <td style={{ padding: '16px', color: undergroundTheme.colors.text.secondary }}>
                       {formatDate(customer.last_order_date)}
                     </td>
                     <td style={{ padding: '16px' }}>
-                      <span
-                        style={{
-                          padding: '4px 12px',
-                          borderRadius: '12px',
-                          fontSize: '12px',
-                          fontWeight: '600',
-                          background: getSegmentColor(customer.segment) + '20',
-                          color: getSegmentColor(customer.segment)
-                        }}
-                      >
+                      <UndergroundBadge variant={getSegmentVariant(customer.segment)}>
                         {getSegmentLabel(customer.segment)}
-                      </span>
+                      </UndergroundBadge>
                     </td>
                   </tr>
                 ))
@@ -390,16 +386,17 @@ export function BusinessCustomers() {
         </div>
 
         <div style={{
-          marginTop: '24px',
-          padding: '16px',
-          background: tokens.colors.surface,
-          borderRadius: '8px',
-          color: tokens.colors.subtle,
-          fontSize: '14px'
+          marginTop: undergroundTheme.spacing['2xl'],
+          padding: undergroundTheme.spacing.lg,
+          background: undergroundTheme.colors.glassmorphism.light,
+          borderRadius: undergroundTheme.borderRadius.md,
+          color: undergroundTheme.colors.text.tertiary,
+          fontSize: undergroundTheme.typography.fontSize.sm,
+          border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
         }}>
           <strong>סה״כ:</strong> {filteredCustomers.length} לקוחות (מתוך {customers.length})
         </div>
-      </Card>
-    </PageContainer>
+      </UndergroundCard>
+    </div>
   );
 }
