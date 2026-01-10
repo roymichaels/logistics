@@ -12,10 +12,14 @@ import {
   UndergroundSwitch,
   UndergroundLoadingSpinner,
   UndergroundBadge,
-  UndergroundEmptyState
+  UndergroundEmptyState,
+  UndergroundSelect
 } from '../../components/underground';
 import { NoActiveBusiness } from '../../components/NoActiveBusiness';
 import { ImageUploadZone } from '../../components/atoms/ImageUploadZone';
+import { Toast } from '../../components/Toast';
+import { useService } from '../../hooks/useService';
+import { FeatureFlagEngine } from '../../foundation/engine/FeatureFlagEngine';
 
 interface BusinessSettings {
   id: string;
@@ -58,19 +62,43 @@ const DAYS_OF_WEEK = [
   { key: 'saturday', label: 'שבת' }
 ];
 
+const CURRENCIES = [
+  { value: 'ILS', label: '₪ שקל ישראלי' },
+  { value: 'USD', label: '$ דולר אמריקאי' },
+  { value: 'EUR', label: '€ יורו' },
+  { value: 'GBP', label: '£ לירה שטרלינג' }
+];
+
+const TIMEZONES = [
+  { value: 'Asia/Jerusalem', label: 'ישראל (GMT+2)' },
+  { value: 'Europe/London', label: 'לונדון (GMT+0)' },
+  { value: 'America/New_York', label: 'ניו יורק (GMT-5)' },
+  { value: 'America/Los_Angeles', label: 'לוס אנג\'לס (GMT-8)' }
+];
+
 export default function Settings() {
   const appServices = useSafeAppServices();
   const currentBusinessId = appServices?.currentBusinessId;
   const navigate = useNavigate();
+  const featureFlagEngine = useService(FeatureFlagEngine);
 
   const [settings, setSettings] = useState<BusinessSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general' | 'operations' | 'branding' | 'hours'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'operations' | 'branding' | 'hours' | 'features' | 'notifications'>('general');
+  const [notificationPrefs, setNotificationPrefs] = useState({
+    orderNotifications: true,
+    inventoryAlerts: true,
+    driverUpdates: true,
+    customerMessages: true,
+    weeklyReports: true
+  });
+  const [featureFlags, setFeatureFlags] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (currentBusinessId) {
       loadSettings();
+      loadFeatureFlags();
     } else {
       setLoading(false);
     }
@@ -87,18 +115,53 @@ export default function Settings() {
 
       if (error) throw error;
       setSettings(data);
+
+      if (data.settings?.notification_preferences) {
+        setNotificationPrefs(data.settings.notification_preferences);
+      }
     } catch (error) {
       logger.error('[Settings] Failed to load settings', error);
+      Toast.error('Failed to load settings');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadFeatureFlags = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('feature_flags')
+        .select('*')
+        .eq('business_id', currentBusinessId);
+
+      if (error) throw error;
+
+      const flags: Record<string, boolean> = {};
+      data?.forEach((flag) => {
+        flags[flag.flag_name] = flag.enabled;
+      });
+      setFeatureFlags(flags);
+    } catch (error) {
+      logger.error('[Settings] Failed to load feature flags', error);
     }
   };
 
   const handleSave = async () => {
     if (!settings || !currentBusinessId) return;
 
+    if (!settings.name || !settings.slug) {
+      Toast.error('Business name and slug are required');
+      return;
+    }
+
     try {
       setSaving(true);
+
+      const updatedSettings = {
+        ...settings.settings,
+        notification_preferences: notificationPrefs
+      };
+
       const { error } = await supabase
         .from('businesses')
         .update({
@@ -115,17 +178,43 @@ export default function Settings() {
           primary_color: settings.primary_color,
           secondary_color: settings.secondary_color,
           default_currency: settings.default_currency,
-          settings: settings.settings,
+          settings: updatedSettings,
           updated_at: new Date().toISOString()
         })
         .eq('id', currentBusinessId);
 
       if (error) throw error;
+
+      Toast.success('Settings saved successfully');
       logger.info('[Settings] Settings saved successfully');
     } catch (error) {
       logger.error('[Settings] Failed to save settings', error);
+      Toast.error('Failed to save settings');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleFeatureFlagToggle = async (flagName: string, enabled: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('feature_flags')
+        .upsert({
+          business_id: currentBusinessId,
+          flag_name: flagName,
+          enabled,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'business_id,flag_name'
+        });
+
+      if (error) throw error;
+
+      setFeatureFlags(prev => ({ ...prev, [flagName]: enabled }));
+      Toast.success(`Feature ${enabled ? 'enabled' : 'disabled'}`);
+    } catch (error) {
+      logger.error('[Settings] Failed to update feature flag', error);
+      Toast.error('Failed to update feature');
     }
   };
 
@@ -196,7 +285,9 @@ export default function Settings() {
                 { key: 'general', label: 'כללי', icon: '📋' },
                 { key: 'operations', label: 'תפעול', icon: '🚚' },
                 { key: 'branding', label: 'מיתוג', icon: '🎨' },
-                { key: 'hours', label: 'שעות פעילות', icon: '⏰' }
+                { key: 'hours', label: 'שעות פעילות', icon: '⏰' },
+                { key: 'features', label: 'תכונות', icon: '🔧' },
+                { key: 'notifications', label: 'התראות', icon: '🔔' }
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -285,6 +376,23 @@ export default function Settings() {
                   value={settings.public_phone || ''}
                   onChange={(e) => setSettings({ ...settings, public_phone: e.target.value })}
                   dir="rtl"
+                />
+
+                <UndergroundSelect
+                  label="מטבע"
+                  value={settings.default_currency || 'ILS'}
+                  onChange={(e) => setSettings({ ...settings, default_currency: e.target.value })}
+                  options={CURRENCIES}
+                />
+
+                <UndergroundSelect
+                  label="אזור זמן"
+                  value={settings.settings?.timezone || 'Asia/Jerusalem'}
+                  onChange={(e) => setSettings({
+                    ...settings,
+                    settings: { ...settings.settings, timezone: e.target.value }
+                  })}
+                  options={TIMEZONES}
                 />
 
                 <div style={{
@@ -504,6 +612,153 @@ export default function Settings() {
                     />
                   </div>
                 )}
+              </div>
+            </UndergroundCard>
+          )}
+
+          {/* Features Tab */}
+          {activeTab === 'features' && (
+            <UndergroundCard>
+              <div style={{
+                display: 'grid',
+                gap: undergroundTheme.spacing.lg
+              }}>
+                <div style={{
+                  padding: undergroundTheme.spacing.md,
+                  background: 'rgba(139, 92, 246, 0.1)',
+                  borderRadius: undergroundTheme.borderRadius.md,
+                  border: '1px solid rgba(139, 92, 246, 0.2)',
+                  direction: 'rtl'
+                }}>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.sm,
+                    color: undergroundTheme.colors.text.secondary,
+                    marginBottom: undergroundTheme.spacing.xs
+                  }}>
+                    הפעל או כבה תכונות עבור העסק שלך
+                  </div>
+                </div>
+
+                {[
+                  { key: 'advanced_analytics', label: 'ניתוחים מתקדמים', description: 'גישה לדשבורדים וסטטיסטיקות מתקדמות' },
+                  { key: 'driver_management', label: 'ניהול נהגים', description: 'מעקב אחר נהגים ומשלוחים בזמן אמת' },
+                  { key: 'inventory_tracking', label: 'מעקב מלאי', description: 'ניהול מלאי אוטומטי עם התראות' },
+                  { key: 'customer_loyalty', label: 'תוכנית נאמנות', description: 'נקודות ומבצעים ללקוחות חוזרים' },
+                  { key: 'multi_location', label: 'מיקומים מרובים', description: 'ניהול סניפים ומחסנים שונים' },
+                  { key: 'api_access', label: 'גישה ל-API', description: 'אינטגרציה עם מערכות חיצוניות' }
+                ].map((feature) => (
+                  <div
+                    key={feature.key}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: undergroundTheme.spacing.md,
+                      background: 'rgba(0, 212, 255, 0.05)',
+                      borderRadius: undergroundTheme.borderRadius.md,
+                      border: '1px solid rgba(0, 212, 255, 0.1)',
+                      direction: 'rtl'
+                    }}
+                  >
+                    <div>
+                      <div style={{
+                        fontSize: undergroundTheme.typography.fontSize.md,
+                        fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                        color: undergroundTheme.colors.text.primary,
+                        marginBottom: undergroundTheme.spacing.xs
+                      }}>
+                        {feature.label}
+                      </div>
+                      <div style={{
+                        fontSize: undergroundTheme.typography.fontSize.sm,
+                        color: undergroundTheme.colors.text.tertiary
+                      }}>
+                        {feature.description}
+                      </div>
+                    </div>
+                    <UndergroundSwitch
+                      checked={featureFlags[feature.key] || false}
+                      onChange={(checked) => handleFeatureFlagToggle(feature.key, checked)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </UndergroundCard>
+          )}
+
+          {/* Notifications Tab */}
+          {activeTab === 'notifications' && (
+            <UndergroundCard>
+              <div style={{
+                display: 'grid',
+                gap: undergroundTheme.spacing.lg
+              }}>
+                <div style={{
+                  padding: undergroundTheme.spacing.md,
+                  background: 'rgba(251, 191, 36, 0.1)',
+                  borderRadius: undergroundTheme.borderRadius.md,
+                  border: '1px solid rgba(251, 191, 36, 0.2)',
+                  direction: 'rtl'
+                }}>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.sm,
+                    color: undergroundTheme.colors.text.secondary,
+                    marginBottom: undergroundTheme.spacing.xs
+                  }}>
+                    בחר אילו התראות תרצה לקבל
+                  </div>
+                </div>
+
+                {[
+                  { key: 'orderNotifications', label: 'הזמנות חדשות', description: 'קבל התראה כשיש הזמנה חדשה', icon: '📦' },
+                  { key: 'inventoryAlerts', label: 'התראות מלאי', description: 'מוצרים שעומדים להיגמר', icon: '📉' },
+                  { key: 'driverUpdates', label: 'עדכוני נהגים', description: 'שינויי סטטוס של משלוחים', icon: '🚗' },
+                  { key: 'customerMessages', label: 'הודעות לקוחות', description: 'שאלות ופניות מלקוחות', icon: '💬' },
+                  { key: 'weeklyReports', label: 'דוחות שבועיים', description: 'סיכום ביצועים שבועי', icon: '📊' }
+                ].map((pref) => (
+                  <div
+                    key={pref.key}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: undergroundTheme.spacing.md,
+                      background: 'rgba(0, 212, 255, 0.05)',
+                      borderRadius: undergroundTheme.borderRadius.md,
+                      border: '1px solid rgba(0, 212, 255, 0.1)',
+                      direction: 'rtl'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: undergroundTheme.spacing.md }}>
+                      <div style={{ fontSize: undergroundTheme.typography.fontSize['2xl'] }}>
+                        {pref.icon}
+                      </div>
+                      <div>
+                        <div style={{
+                          fontSize: undergroundTheme.typography.fontSize.md,
+                          fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                          color: undergroundTheme.colors.text.primary,
+                          marginBottom: undergroundTheme.spacing.xs
+                        }}>
+                          {pref.label}
+                        </div>
+                        <div style={{
+                          fontSize: undergroundTheme.typography.fontSize.sm,
+                          color: undergroundTheme.colors.text.tertiary
+                        }}>
+                          {pref.description}
+                        </div>
+                      </div>
+                    </div>
+                    <UndergroundSwitch
+                      checked={notificationPrefs[pref.key as keyof typeof notificationPrefs]}
+                      onChange={(checked) => setNotificationPrefs({
+                        ...notificationPrefs,
+                        [pref.key]: checked
+                      })}
+                    />
+                  </div>
+                ))}
               </div>
             </UndergroundCard>
           )}
