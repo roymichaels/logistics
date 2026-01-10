@@ -1,5 +1,5 @@
 import React from 'react';
-import { tokens } from '../../../styles/tokens';
+import { undergroundTheme } from '../../../styles/undergroundTheme';
 
 export type DriverStatusType = 'online' | 'offline' | 'busy' | 'available' | 'on_break' | 'assigned' | 'accepted' | 'picked_up' | 'delivered';
 
@@ -13,9 +13,18 @@ export function DriverStatusBadge({ status, showIcon = true, size = 'medium' }: 
   const config = getStatusConfig(status);
 
   const sizeStyles = {
-    small: { padding: '4px 10px', fontSize: '11px' },
-    medium: { padding: '6px 14px', fontSize: '13px' },
-    large: { padding: '8px 16px', fontSize: '14px' }
+    small: {
+      padding: `${undergroundTheme.spacing.xs} ${undergroundTheme.spacing.sm}`,
+      fontSize: undergroundTheme.typography.fontSize.xs
+    },
+    medium: {
+      padding: `${undergroundTheme.spacing.sm} ${undergroundTheme.spacing.md}`,
+      fontSize: undergroundTheme.typography.fontSize.sm
+    },
+    large: {
+      padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.lg}`,
+      fontSize: undergroundTheme.typography.fontSize.base
+    }
   };
 
   return (
@@ -23,14 +32,18 @@ export function DriverStatusBadge({ status, showIcon = true, size = 'medium' }: 
       ...sizeStyles[size],
       display: 'inline-flex',
       alignItems: 'center',
-      gap: '6px',
-      background: `${config.color}20`,
-      border: `1px solid ${config.color}50`,
-      borderRadius: '20px',
-      fontWeight: '600',
-      color: config.color
+      gap: undergroundTheme.spacing.xs,
+      background: `${config.color}15`,
+      border: `1px solid ${config.color}60`,
+      borderRadius: undergroundTheme.borderRadius.full,
+      fontWeight: undergroundTheme.typography.fontWeight.semibold,
+      color: config.color,
+      boxShadow: `0 0 10px ${config.color}20`,
+      transition: 'all 0.3s ease'
     }}>
-      {showIcon && <span>{config.icon}</span>}
+      {showIcon && <span style={{
+        filter: `drop-shadow(0 0 4px ${config.color}60)`
+      }}>{config.icon}</span>}
       {config.label}
     </div>
   );
@@ -40,22 +53,58 @@ function getStatusConfig(status: DriverStatusType) {
   switch (status) {
     case 'online':
     case 'available':
-      return { color: tokens.colors.status.success, label: 'מחובר', icon: '🟢' };
+      return {
+        color: undergroundTheme.colors.status.success,
+        label: 'מחובר',
+        icon: '🟢'
+      };
     case 'busy':
-      return { color: tokens.colors.status.info, label: 'עסוק', icon: '🔵' };
+      return {
+        color: undergroundTheme.colors.status.info,
+        label: 'עסוק',
+        icon: '🔵'
+      };
     case 'offline':
-      return { color: tokens.colors.subtle, label: 'לא מחובר', icon: '⚫' };
+      return {
+        color: undergroundTheme.colors.text.tertiary,
+        label: 'לא מחובר',
+        icon: '⚫'
+      };
     case 'on_break':
-      return { color: tokens.colors.status.warning, label: 'הפסקה', icon: '🟡' };
+      return {
+        color: undergroundTheme.colors.status.warning,
+        label: 'הפסקה',
+        icon: '🟡'
+      };
     case 'assigned':
-      return { color: tokens.colors.brand.primary, label: 'משימה חדשה', icon: '📋' };
+      return {
+        color: undergroundTheme.colors.primary.cyan,
+        label: 'משימה חדשה',
+        icon: '📋'
+      };
     case 'accepted':
-      return { color: tokens.colors.status.warning, label: 'התקבל', icon: '🚗' };
+      return {
+        color: undergroundTheme.colors.status.warning,
+        label: 'התקבל',
+        icon: '🚗'
+      };
     case 'picked_up':
-      return { color: tokens.colors.status.info, label: 'נאסף', icon: '📦' };
+      return {
+        color: undergroundTheme.colors.status.info,
+        label: 'נאסף',
+        icon: '📦'
+      };
     case 'delivered':
-      return { color: tokens.colors.status.success, label: 'הושלם', icon: '✅' };
+      return {
+        color: undergroundTheme.colors.status.success,
+        label: 'הושלם',
+        icon: '✅'
+      };
     default:
-      return { color: tokens.colors.subtle, label: status, icon: '❓' };
+      return {
+        color: undergroundTheme.colors.text.tertiary,
+        label: status,
+        icon: '❓'
+      };
   }
 }

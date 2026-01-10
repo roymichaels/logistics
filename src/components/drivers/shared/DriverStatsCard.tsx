@@ -1,5 +1,5 @@
 import React from 'react';
-import { tokens } from '../../../styles/tokens';
+import { undergroundTheme } from '../../../styles/undergroundTheme';
 
 interface DriverStatsCardProps {
   icon: string;
@@ -16,34 +16,49 @@ export function DriverStatsCard({
   color,
   gradient = false
 }: DriverStatsCardProps) {
+  const accentColor = color || undergroundTheme.colors.primary.cyan;
+
   const cardStyle = gradient
     ? {
-        background: `linear-gradient(135deg, ${color}20, ${color}05)`,
-        border: `1px solid ${color}30`
+        background: `linear-gradient(135deg, ${accentColor}15, ${accentColor}05)`,
+        border: `1px solid ${accentColor}40`,
+        boxShadow: `0 4px 20px ${accentColor}25, ${undergroundTheme.shadows.card.default}`
       }
     : {
-        background: tokens.colors.background.card,
-        border: `1px solid ${tokens.colors.background.cardBorder}`
+        background: undergroundTheme.colors.surface.darker,
+        border: `1px solid ${undergroundTheme.colors.border.subtle}`,
+        boxShadow: undergroundTheme.shadows.card.default
       };
 
   return (
     <div style={{
       ...cardStyle,
-      borderRadius: '16px',
-      padding: '20px',
+      borderRadius: undergroundTheme.borderRadius.lg,
+      padding: undergroundTheme.spacing.xl,
       textAlign: 'center' as const,
-      boxShadow: gradient ? `0 4px 12px ${color}20` : tokens.shadows.md
+      transition: 'all 0.3s ease'
     }}>
-      <div style={{ fontSize: '32px', marginBottom: '8px' }}>{icon}</div>
       <div style={{
-        fontSize: '28px',
-        fontWeight: '700',
-        color: color || tokens.colors.text,
-        marginBottom: '4px'
+        fontSize: undergroundTheme.typography.fontSize['3xl'],
+        marginBottom: undergroundTheme.spacing.sm,
+        filter: gradient ? `drop-shadow(0 0 8px ${accentColor}60)` : 'none'
+      }}>
+        {icon}
+      </div>
+      <div style={{
+        fontSize: undergroundTheme.typography.fontSize['3xl'],
+        fontWeight: undergroundTheme.typography.fontWeight.bold,
+        color: color || undergroundTheme.colors.text.primary,
+        marginBottom: undergroundTheme.spacing.xs,
+        textShadow: gradient ? undergroundTheme.shadows.glow.cyan : 'none'
       }}>
         {value}
       </div>
-      <div style={{ fontSize: '13px', color: tokens.colors.subtle }}>
+      <div style={{
+        fontSize: undergroundTheme.typography.fontSize.sm,
+        color: undergroundTheme.colors.text.secondary,
+        fontWeight: undergroundTheme.typography.fontWeight.medium
+      }}>
         {label}
       </div>
     </div>

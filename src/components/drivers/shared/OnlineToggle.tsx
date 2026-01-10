@@ -1,5 +1,5 @@
 import React from 'react';
-import { tokens } from '../../../styles/tokens';
+import { undergroundTheme } from '../../../styles/undergroundTheme';
 import { haptic } from '../../../utils/haptic';
 
 interface OnlineToggleProps {
@@ -18,30 +18,34 @@ export function OnlineToggle({ isOnline, onToggle, disabled = false }: OnlineTog
 
   return (
     <div style={{
-      background: tokens.colors.background.card,
-      borderRadius: '20px',
-      padding: '24px',
-      border: `2px solid ${isOnline ? tokens.colors.status.success : tokens.colors.background.cardBorder}`,
-      boxShadow: isOnline ? `0 8px 24px ${tokens.colors.status.success}30` : tokens.shadows.md
+      background: undergroundTheme.colors.surface.card,
+      borderRadius: undergroundTheme.borderRadius.xl,
+      padding: undergroundTheme.spacing['2xl'],
+      border: `2px solid ${isOnline ? undergroundTheme.colors.status.success : undergroundTheme.colors.border.default}`,
+      boxShadow: isOnline
+        ? `0 8px 24px ${undergroundTheme.colors.status.success}30, ${undergroundTheme.shadows.card.hover}`
+        : undergroundTheme.shadows.card.default,
+      transition: 'all 0.3s ease'
     }}>
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: '16px'
+        marginBottom: undergroundTheme.spacing.lg
       }}>
         <div>
           <div style={{
-            fontSize: '20px',
-            fontWeight: '700',
-            color: tokens.colors.text,
-            marginBottom: '4px'
+            fontSize: undergroundTheme.typography.fontSize.xl,
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            color: undergroundTheme.colors.text.primary,
+            marginBottom: undergroundTheme.spacing.xs,
+            textShadow: isOnline ? undergroundTheme.shadows.glow.text : 'none'
           }}>
             סטטוס
           </div>
           <div style={{
-            fontSize: '14px',
-            color: tokens.colors.subtle
+            fontSize: undergroundTheme.typography.fontSize.sm,
+            color: undergroundTheme.colors.text.secondary
           }}>
             {isOnline ? 'מחובר ומוכן למשלוחים' : 'לא מחובר'}
           </div>
@@ -55,14 +59,16 @@ export function OnlineToggle({ isOnline, onToggle, disabled = false }: OnlineTog
             width: '72px',
             height: '40px',
             background: isOnline
-              ? 'linear-gradient(135deg, #10b981, #059669)'
-              : tokens.colors.bg,
-            border: `2px solid ${isOnline ? '#10b981' : tokens.colors.background.cardBorder}`,
-            borderRadius: '20px',
+              ? `linear-gradient(135deg, ${undergroundTheme.colors.status.success}, ${undergroundTheme.colors.status.successDark})`
+              : undergroundTheme.colors.surface.darker,
+            border: `2px solid ${isOnline ? undergroundTheme.colors.status.success : undergroundTheme.colors.border.subtle}`,
+            borderRadius: undergroundTheme.borderRadius.full,
             cursor: disabled ? 'not-allowed' : 'pointer',
             transition: 'all 0.3s ease',
             padding: 0,
-            boxShadow: isOnline ? tokens.glows.success : 'none',
+            boxShadow: isOnline
+              ? `0 0 20px ${undergroundTheme.colors.status.success}50, ${undergroundTheme.shadows.glow.green}`
+              : 'none',
             opacity: disabled ? 0.5 : 1
           }}
         >
@@ -72,10 +78,12 @@ export function OnlineToggle({ isOnline, onToggle, disabled = false }: OnlineTog
             [isOnline ? 'right' : 'left']: '4px',
             width: '28px',
             height: '28px',
-            background: '#ffffff',
+            background: isOnline
+              ? undergroundTheme.colors.text.primary
+              : undergroundTheme.colors.text.tertiary,
             borderRadius: '50%',
             transition: 'all 0.3s ease',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+            boxShadow: undergroundTheme.shadows.card.default
           }} />
         </button>
       </div>
@@ -83,26 +91,42 @@ export function OnlineToggle({ isOnline, onToggle, disabled = false }: OnlineTog
       <div style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: '8px',
-        padding: '10px 16px',
+        gap: undergroundTheme.spacing.sm,
+        padding: `${undergroundTheme.spacing.sm} ${undergroundTheme.spacing.lg}`,
         background: isOnline
-          ? `${tokens.colors.status.success}20`
-          : `${tokens.colors.subtle}20`,
-        border: `1px solid ${isOnline ? tokens.colors.status.success : tokens.colors.subtle}50`,
-        borderRadius: '12px',
-        fontSize: '14px',
-        fontWeight: '600',
-        color: isOnline ? tokens.colors.status.success : tokens.colors.subtle
+          ? `${undergroundTheme.colors.status.success}15`
+          : `${undergroundTheme.colors.text.tertiary}15`,
+        border: `1px solid ${isOnline ? undergroundTheme.colors.status.success : undergroundTheme.colors.text.tertiary}50`,
+        borderRadius: undergroundTheme.borderRadius.lg,
+        fontSize: undergroundTheme.typography.fontSize.sm,
+        fontWeight: undergroundTheme.typography.fontWeight.semibold,
+        color: isOnline ? undergroundTheme.colors.status.success : undergroundTheme.colors.text.tertiary
       }}>
         <div style={{
           width: '10px',
           height: '10px',
           borderRadius: '50%',
-          background: isOnline ? tokens.colors.status.success : tokens.colors.subtle,
-          boxShadow: isOnline ? `0 0 8px ${tokens.colors.status.success}` : 'none'
+          background: isOnline ? undergroundTheme.colors.status.success : undergroundTheme.colors.text.tertiary,
+          boxShadow: isOnline
+            ? `0 0 8px ${undergroundTheme.colors.status.success}, ${undergroundTheme.shadows.glow.green}`
+            : 'none',
+          animation: isOnline ? 'pulse 2s ease-in-out infinite' : 'none'
         }} />
         {isOnline ? 'מחובר' : 'לא מחובר'}
       </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.7;
+            transform: scale(1.1);
+          }
+        }
+      `}</style>
     </div>
   );
 }
