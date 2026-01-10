@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { tokens } from '../../styles/tokens';
+import { undergroundTheme } from '../../styles/undergroundTheme';
+import { UndergroundCard } from '../../components/underground/UndergroundCard';
+import { UndergroundStatCard } from '../../components/underground/UndergroundStatCard';
+import { UndergroundButton } from '../../components/underground/UndergroundButton';
 import { logger } from '../../lib/logger';
 import { driverService, DriverStatus, DriverProfile } from '../../services/driver';
 import { useAuth } from '../../context/AuthContext';
@@ -99,11 +102,11 @@ export function DriverHome() {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        background: tokens.colors.panel
+        background: undergroundTheme.colors.gradient.primary
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚗</div>
-          <div style={{ color: tokens.colors.text, fontSize: '18px', fontWeight: '600' }}>
+          <div style={{ color: undergroundTheme.colors.text.primary, fontSize: '18px', fontWeight: '600' }}>
             טוען...
           </div>
         </div>
@@ -114,53 +117,68 @@ export function DriverHome() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: tokens.colors.panel,
-      padding: '20px',
-      paddingBottom: '100px',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing['2xl'],
+      paddingBottom: undergroundTheme.spacing['8xl'],
       direction: 'rtl'
     }}>
       {/* Header */}
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ marginBottom: undergroundTheme.spacing['3xl'] }}>
         <h1 style={{
-          fontSize: '32px',
-          fontWeight: '700',
+          fontSize: undergroundTheme.typography.fontSize['4xl'],
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
           margin: '0 0 8px 0',
-          color: tokens.colors.text
+          color: undergroundTheme.colors.text.primary,
+          textShadow: undergroundTheme.shadows.glow.cyan
         }}>
           👋 שלום {profile ? 'נהג' : ''}!
         </h1>
-        <p style={{ margin: '0', color: tokens.colors.subtle, fontSize: '16px' }}>
+        <p style={{ margin: '0', color: undergroundTheme.colors.text.secondary, fontSize: undergroundTheme.typography.fontSize.lg }}>
           {isOnline ? 'אתה מחובר ומוכן למשלוחים' : 'התחבר כדי להתחיל לעבוד'}
         </p>
       </div>
 
       {/* Online/Offline Toggle */}
-      <div style={{
-        background: tokens.colors.background.card,
-        borderRadius: '20px',
-        padding: '24px',
-        marginBottom: '24px',
-        border: `2px solid ${isOnline ? tokens.colors.status.success : tokens.colors.background.cardBorder}`,
-        boxShadow: isOnline ? `0 8px 24px ${tokens.colors.status.success}30` : tokens.shadows.md
-      }}>
+      <UndergroundCard
+        variant="strong"
+        glow={isOnline}
+        style={{
+          marginBottom: undergroundTheme.spacing['3xl'],
+          border: `2px solid ${isOnline ? undergroundTheme.colors.status.success : undergroundTheme.colors.glassmorphism.border}`,
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
+        {isOnline && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '3px',
+            background: undergroundTheme.colors.gradient.success,
+            boxShadow: undergroundTheme.shadows.glow.success
+          }} />
+        )}
+
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '16px'
+          marginBottom: undergroundTheme.spacing.lg
         }}>
           <div>
             <div style={{
-              fontSize: '20px',
-              fontWeight: '700',
-              color: tokens.colors.text,
+              fontSize: undergroundTheme.typography.fontSize.xl,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary,
               marginBottom: '4px'
             }}>
               סטטוס
             </div>
             <div style={{
-              fontSize: '14px',
-              color: tokens.colors.subtle
+              fontSize: undergroundTheme.typography.fontSize.sm,
+              color: undergroundTheme.colors.text.secondary
             }}>
               {isOnline ? 'מחובר ומוכן למשלוחים' : 'לא מחובר'}
             </div>
@@ -174,14 +192,14 @@ export function DriverHome() {
               width: '72px',
               height: '40px',
               background: isOnline
-                ? 'linear-gradient(135deg, #10b981, #059669)'
-                : tokens.colors.bg,
-              border: `2px solid ${isOnline ? '#10b981' : tokens.colors.background.cardBorder}`,
-              borderRadius: '20px',
+                ? undergroundTheme.colors.gradient.success
+                : undergroundTheme.colors.glassmorphism.light,
+              border: `2px solid ${isOnline ? undergroundTheme.colors.status.success : undergroundTheme.colors.glassmorphism.border}`,
+              borderRadius: undergroundTheme.borderRadius.full,
               cursor: 'pointer',
-              transition: 'all 0.3s ease',
+              transition: undergroundTheme.transitions.normal,
               padding: 0,
-              boxShadow: isOnline ? tokens.glows.success : 'none'
+              boxShadow: isOnline ? undergroundTheme.shadows.glow.success : 'none'
             }}
           >
             <div style={{
@@ -192,8 +210,8 @@ export function DriverHome() {
               height: '28px',
               background: '#ffffff',
               borderRadius: '50%',
-              transition: 'all 0.3s ease',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+              transition: undergroundTheme.transitions.normal,
+              boxShadow: undergroundTheme.shadows.md
             }} />
           </button>
         </div>
@@ -202,155 +220,71 @@ export function DriverHome() {
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: '8px',
-          padding: '10px 16px',
+          gap: undergroundTheme.spacing.sm,
+          padding: `${undergroundTheme.spacing.sm} ${undergroundTheme.spacing.lg}`,
           background: isOnline
-            ? `${tokens.colors.status.success}20`
-            : `${tokens.colors.subtle}20`,
-          border: `1px solid ${isOnline ? tokens.colors.status.success : tokens.colors.subtle}50`,
-          borderRadius: '12px',
-          fontSize: '14px',
-          fontWeight: '600',
-          color: isOnline ? tokens.colors.status.success : tokens.colors.subtle
+            ? `${undergroundTheme.colors.status.success}20`
+            : `${undergroundTheme.colors.text.muted}20`,
+          border: `1px solid ${isOnline ? undergroundTheme.colors.status.success : undergroundTheme.colors.text.muted}`,
+          borderRadius: undergroundTheme.borderRadius.md,
+          fontSize: undergroundTheme.typography.fontSize.sm,
+          fontWeight: undergroundTheme.typography.fontWeight.semibold,
+          color: isOnline ? undergroundTheme.colors.status.success : undergroundTheme.colors.text.muted
         }}>
           <div style={{
             width: '10px',
             height: '10px',
             borderRadius: '50%',
-            background: isOnline ? tokens.colors.status.success : tokens.colors.subtle,
-            boxShadow: isOnline ? `0 0 8px ${tokens.colors.status.success}` : 'none'
+            background: isOnline ? undergroundTheme.colors.status.success : undergroundTheme.colors.text.muted,
+            boxShadow: isOnline ? undergroundTheme.shadows.glow.success : 'none'
           }} />
           {isOnline ? 'מחובר' : 'לא מחובר'}
         </div>
-      </div>
+      </UndergroundCard>
 
       {/* Today's Stats */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: '16px',
-        marginBottom: '24px'
+        gap: undergroundTheme.spacing.lg,
+        marginBottom: undergroundTheme.spacing['3xl']
       }}>
-        {/* Deliveries */}
-        <div style={{
-          background: tokens.colors.background.card,
-          borderRadius: '16px',
-          padding: '20px',
-          border: `1px solid ${tokens.colors.background.cardBorder}`,
-          boxShadow: tokens.shadows.md
-        }}>
-          <div style={{
-            fontSize: '32px',
-            marginBottom: '8px'
-          }}>📦</div>
-          <div style={{
-            fontSize: '28px',
-            fontWeight: '700',
-            color: tokens.colors.text,
-            marginBottom: '4px'
-          }}>
-            {todayStats.deliveries}
-          </div>
-          <div style={{
-            fontSize: '13px',
-            color: tokens.colors.subtle
-          }}>
-            משלוחים היום
-          </div>
-        </div>
+        <UndergroundStatCard
+          icon={<span style={{ fontSize: '32px' }}>📦</span>}
+          label="משלוחים היום"
+          value={todayStats.deliveries}
+          accentColor={undergroundTheme.colors.accent.primary}
+        />
 
-        {/* Earnings */}
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05))',
-          borderRadius: '16px',
-          padding: '20px',
-          border: '1px solid rgba(16, 185, 129, 0.3)',
-          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
-        }}>
-          <div style={{
-            fontSize: '32px',
-            marginBottom: '8px'
-          }}>💰</div>
-          <div style={{
-            fontSize: '28px',
-            fontWeight: '700',
-            color: tokens.colors.status.success,
-            marginBottom: '4px'
-          }}>
-            ₪{todayStats.earnings.toFixed(0)}
-          </div>
-          <div style={{
-            fontSize: '13px',
-            color: tokens.colors.subtle
-          }}>
-            רווחים היום
-          </div>
-        </div>
+        <UndergroundStatCard
+          icon={<span style={{ fontSize: '32px' }}>💰</span>}
+          label="רווחים היום"
+          value={`₪${todayStats.earnings.toFixed(0)}`}
+          accentColor={undergroundTheme.colors.status.success}
+        />
 
-        {/* Rating */}
-        <div style={{
-          background: tokens.colors.background.card,
-          borderRadius: '16px',
-          padding: '20px',
-          border: `1px solid ${tokens.colors.background.cardBorder}`,
-          boxShadow: tokens.shadows.md
-        }}>
-          <div style={{
-            fontSize: '32px',
-            marginBottom: '8px'
-          }}>⭐</div>
-          <div style={{
-            fontSize: '28px',
-            fontWeight: '700',
-            color: tokens.colors.text,
-            marginBottom: '4px'
-          }}>
-            {profile?.rating.toFixed(1) || '5.0'}
-          </div>
-          <div style={{
-            fontSize: '13px',
-            color: tokens.colors.subtle
-          }}>
-            דירוג ממוצע
-          </div>
-        </div>
+        <UndergroundStatCard
+          icon={<span style={{ fontSize: '32px' }}>⭐</span>}
+          label="דירוג ממוצע"
+          value={profile?.rating.toFixed(1) || '5.0'}
+          accentColor={undergroundTheme.colors.status.warning}
+        />
 
-        {/* Total Deliveries */}
-        <div style={{
-          background: tokens.colors.background.card,
-          borderRadius: '16px',
-          padding: '20px',
-          border: `1px solid ${tokens.colors.background.cardBorder}`,
-          boxShadow: tokens.shadows.md
-        }}>
-          <div style={{
-            fontSize: '32px',
-            marginBottom: '8px'
-          }}>🚀</div>
-          <div style={{
-            fontSize: '28px',
-            fontWeight: '700',
-            color: tokens.colors.text,
-            marginBottom: '4px'
-          }}>
-            {profile?.total_deliveries || 0}
-          </div>
-          <div style={{
-            fontSize: '13px',
-            color: tokens.colors.subtle
-          }}>
-            סה"כ משלוחים
-          </div>
-        </div>
+        <UndergroundStatCard
+          icon={<span style={{ fontSize: '32px' }}>🚀</span>}
+          label="סה״כ משלוחים"
+          value={profile?.total_deliveries || 0}
+          accentColor={undergroundTheme.colors.status.info}
+        />
       </div>
 
       {/* Quick Actions */}
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ marginBottom: undergroundTheme.spacing['3xl'] }}>
         <h2 style={{
-          fontSize: '20px',
-          fontWeight: '700',
-          color: tokens.colors.text,
-          marginBottom: '16px'
+          fontSize: undergroundTheme.typography.fontSize.xl,
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          color: undergroundTheme.colors.text.primary,
+          marginBottom: undergroundTheme.spacing.lg
         }}>
           פעולות מהירות
         </h2>
@@ -358,243 +292,129 @@ export function DriverHome() {
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: '12px'
+          gap: undergroundTheme.spacing.md
         }}>
-          <button
+          <UndergroundButton
+            variant="primary"
             onClick={() => {
               navigate('/driver/deliveries');
               haptic('light');
             }}
             style={{
-              padding: '20px',
-              background: tokens.gradients.primary,
-              border: 'none',
-              borderRadius: '16px',
-              cursor: 'pointer',
+              padding: undergroundTheme.spacing['2xl'],
               textAlign: 'right',
-              transition: 'all 0.3s ease',
-              boxShadow: tokens.glows.primaryStrong
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(29, 155, 240, 0.5)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = tokens.glows.primaryStrong;
+              display: 'block',
+              height: 'auto'
             }}
           >
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>🚚</div>
+            <div style={{ fontSize: '32px', marginBottom: undergroundTheme.spacing.sm }}>🚚</div>
             <div style={{
-              fontSize: '16px',
-              fontWeight: '700',
-              color: '#ffffff',
+              fontSize: undergroundTheme.typography.fontSize.lg,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
               marginBottom: '4px'
             }}>
               המשלוחים שלי
             </div>
             <div style={{
-              fontSize: '12px',
-              color: 'rgba(255, 255, 255, 0.8)'
+              fontSize: undergroundTheme.typography.fontSize.xs,
+              opacity: 0.8
             }}>
               צפה במשימות פעילות
             </div>
-          </button>
+          </UndergroundButton>
 
-          <button
+          <QuickActionCard
+            icon="💵"
+            title="הרווחים שלי"
+            subtitle="היסטוריית תשלומים"
             onClick={() => {
               navigate('/driver/earnings');
               haptic('light');
             }}
-            style={{
-              padding: '20px',
-              background: tokens.colors.background.card,
-              border: `1px solid ${tokens.colors.background.cardBorder}`,
-              borderRadius: '16px',
-              cursor: 'pointer',
-              textAlign: 'right',
-              transition: 'all 0.3s ease',
-              boxShadow: tokens.shadows.md
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.borderColor = tokens.colors.brand.primary;
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.borderColor = tokens.colors.background.cardBorder;
-              e.currentTarget.style.boxShadow = tokens.shadows.md;
-            }}
-          >
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>💵</div>
-            <div style={{
-              fontSize: '16px',
-              fontWeight: '700',
-              color: tokens.colors.text,
-              marginBottom: '4px'
-            }}>
-              הרווחים שלי
-            </div>
-            <div style={{
-              fontSize: '12px',
-              color: tokens.colors.subtle
-            }}>
-              היסטוריית תשלומים
-            </div>
-          </button>
+          />
 
-          <button
+          <QuickActionCard
+            icon="📊"
+            title="הסטטיסטיקות שלי"
+            subtitle="ביצועים ודירוגים"
             onClick={() => {
               navigate('/driver/stats');
               haptic('light');
             }}
-            style={{
-              padding: '20px',
-              background: tokens.colors.background.card,
-              border: `1px solid ${tokens.colors.background.cardBorder}`,
-              borderRadius: '16px',
-              cursor: 'pointer',
-              textAlign: 'right',
-              transition: 'all 0.3s ease',
-              boxShadow: tokens.shadows.md
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.borderColor = tokens.colors.brand.primary;
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.borderColor = tokens.colors.background.cardBorder;
-              e.currentTarget.style.boxShadow = tokens.shadows.md;
-            }}
-          >
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>📊</div>
-            <div style={{
-              fontSize: '16px',
-              fontWeight: '700',
-              color: tokens.colors.text,
-              marginBottom: '4px'
-            }}>
-              הסטטיסטיקות שלי
-            </div>
-            <div style={{
-              fontSize: '12px',
-              color: tokens.colors.subtle
-            }}>
-              ביצועים ודירוגים
-            </div>
-          </button>
+          />
 
-          <button
+          <QuickActionCard
+            icon="⚙️"
+            title="הפרופיל שלי"
+            subtitle="הגדרות ופרטים אישיים"
             onClick={() => {
               navigate('/driver/profile');
               haptic('light');
             }}
-            style={{
-              padding: '20px',
-              background: tokens.colors.background.card,
-              border: `1px solid ${tokens.colors.background.cardBorder}`,
-              borderRadius: '16px',
-              cursor: 'pointer',
-              textAlign: 'right',
-              transition: 'all 0.3s ease',
-              boxShadow: tokens.shadows.md
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.borderColor = tokens.colors.brand.primary;
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.borderColor = tokens.colors.background.cardBorder;
-              e.currentTarget.style.boxShadow = tokens.shadows.md;
-            }}
-          >
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>⚙️</div>
-            <div style={{
-              fontSize: '16px',
-              fontWeight: '700',
-              color: tokens.colors.text,
-              marginBottom: '4px'
-            }}>
-              הפרופיל שלי
-            </div>
-            <div style={{
-              fontSize: '12px',
-              color: tokens.colors.subtle
-            }}>
-              הגדרות ופרטים אישיים
-            </div>
-          </button>
+          />
         </div>
       </div>
 
       {/* Driver Info Card */}
       {profile && (
-        <div style={{
-          background: tokens.colors.background.card,
-          borderRadius: '20px',
-          padding: '24px',
-          border: `1px solid ${tokens.colors.background.cardBorder}`,
-          boxShadow: tokens.shadows.md
-        }}>
+        <UndergroundCard>
           <h2 style={{
-            fontSize: '20px',
-            fontWeight: '700',
-            color: tokens.colors.text,
-            marginBottom: '16px'
+            fontSize: undergroundTheme.typography.fontSize.xl,
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
+            color: undergroundTheme.colors.text.primary,
+            marginBottom: undergroundTheme.spacing.lg
           }}>
             פרטי רכב
           </h2>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '12px',
-              background: tokens.colors.bg,
-              borderRadius: '12px'
-            }}>
-              <span style={{ fontSize: '14px', color: tokens.colors.subtle }}>סוג רכב</span>
-              <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text }}>
-                {profile.vehicle_type || 'לא צוין'}
-              </span>
-            </div>
-
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '12px',
-              background: tokens.colors.bg,
-              borderRadius: '12px'
-            }}>
-              <span style={{ fontSize: '14px', color: tokens.colors.subtle }}>מספר רכב</span>
-              <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text }}>
-                {profile.vehicle_plate || 'לא צוין'}
-              </span>
-            </div>
-
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '12px',
-              background: tokens.colors.bg,
-              borderRadius: '12px'
-            }}>
-              <span style={{ fontSize: '14px', color: tokens.colors.subtle }}>טלפון</span>
-              <span style={{ fontSize: '15px', fontWeight: '600', color: tokens.colors.text }}>
-                {profile.phone || 'לא צוין'}
-              </span>
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
+            <InfoRow label="סוג רכב" value={profile.vehicle_type || 'לא צוין'} />
+            <InfoRow label="מספר רכב" value={profile.vehicle_plate || 'לא צוין'} />
+            <InfoRow label="טלפון" value={profile.phone || 'לא צוין'} />
           </div>
-        </div>
+        </UndergroundCard>
       )}
+    </div>
+  );
+}
+
+function QuickActionCard({ icon, title, subtitle, onClick }: { icon: string; title: string; subtitle: string; onClick: () => void }) {
+  return (
+    <UndergroundCard hover onClick={onClick} style={{ padding: undergroundTheme.spacing['2xl'], textAlign: 'right' }}>
+      <div style={{ fontSize: '32px', marginBottom: undergroundTheme.spacing.sm }}>{icon}</div>
+      <div style={{
+        fontSize: undergroundTheme.typography.fontSize.lg,
+        fontWeight: undergroundTheme.typography.fontWeight.bold,
+        color: undergroundTheme.colors.text.primary,
+        marginBottom: '4px'
+      }}>
+        {title}
+      </div>
+      <div style={{
+        fontSize: undergroundTheme.typography.fontSize.xs,
+        color: undergroundTheme.colors.text.secondary
+      }}>
+        {subtitle}
+      </div>
+    </UndergroundCard>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: undergroundTheme.spacing.md,
+      background: undergroundTheme.colors.glassmorphism.light,
+      borderRadius: undergroundTheme.borderRadius.md,
+      border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
+    }}>
+      <span style={{ fontSize: undergroundTheme.typography.fontSize.sm, color: undergroundTheme.colors.text.secondary }}>{label}</span>
+      <span style={{ fontSize: undergroundTheme.typography.fontSize.base, fontWeight: undergroundTheme.typography.fontWeight.semibold, color: undergroundTheme.colors.text.primary }}>
+        {value}
+      </span>
     </div>
   );
 }
