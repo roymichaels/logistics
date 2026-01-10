@@ -5,6 +5,9 @@ export interface MenuItemConfig {
   label: string;
   icon: string;
   path: string;
+  disabled?: boolean;
+  disabledMessage?: string;
+  requiresBusinessContext?: boolean;
 }
 
 interface UnifiedMenuPanelProps {
@@ -41,7 +44,11 @@ export function UnifiedMenuPanel({
     return currentPath === itemPath || currentPath.startsWith(itemPath + '/');
   };
 
-  const handleNavigate = (path: string) => {
+  const handleNavigate = (path: string, disabled?: boolean, disabledMessage?: string) => {
+    if (disabled) {
+      alert(disabledMessage || 'אנא בחר עסק כדי לגשת לתכונה זו');
+      return;
+    }
     onNavigate(path);
     onClose();
   };
@@ -147,7 +154,8 @@ export function UnifiedMenuPanel({
           {items.map((item) => (
             <button
               key={item.id}
-              onClick={() => handleNavigate(item.path)}
+              onClick={() => handleNavigate(item.path, item.disabled, item.disabledMessage)}
+              title={item.disabled ? (item.disabledMessage || 'בחר עסק כדי לגשת') : undefined}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -158,25 +166,28 @@ export function UnifiedMenuPanel({
                 backgroundColor: isActive(item.path)
                   ? 'rgba(59, 130, 246, 0.15)'
                   : 'transparent',
-                color: isActive(item.path)
+                color: item.disabled
+                  ? 'rgba(255, 255, 255, 0.3)'
+                  : isActive(item.path)
                   ? '#60a5fa'
                   : 'rgba(255, 255, 255, 0.7)',
                 fontSize: '14px',
                 fontWeight: isActive(item.path) ? '600' : '500',
-                cursor: 'pointer',
+                cursor: item.disabled ? 'not-allowed' : 'pointer',
                 transition: 'all 0.15s ease',
                 textAlign: 'right',
                 position: 'relative',
+                opacity: item.disabled ? 0.5 : 1,
               }}
               onMouseEnter={(e) => {
-                if (!isActive(item.path)) {
+                if (!isActive(item.path) && !item.disabled) {
                   e.currentTarget.style.backgroundColor =
                     'rgba(255, 255, 255, 0.05)';
                   e.currentTarget.style.color = 'rgba(255, 255, 255, 0.95)';
                 }
               }}
               onMouseLeave={(e) => {
-                if (!isActive(item.path)) {
+                if (!isActive(item.path) && !item.disabled) {
                   e.currentTarget.style.backgroundColor = 'transparent';
                   e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
                 }
@@ -195,7 +206,10 @@ export function UnifiedMenuPanel({
                 />
               )}
               <span style={{ fontSize: '18px' }}>{item.icon}</span>
-              <span>{item.label}</span>
+              <span style={{ flex: 1 }}>{item.label}</span>
+              {item.disabled && (
+                <span style={{ fontSize: '14px', opacity: 0.5 }}>🔒</span>
+              )}
             </button>
           ))}
         </div>

@@ -39,33 +39,27 @@ export function BusinessShell({
   const navigationItems = getNavigationForRole(role);
   const isMultiBusinessOwner = role === 'infrastructure_owner' || (role === 'business_owner' && availableBusinesses.length > 1);
 
-  // Filter menu items - if no business context, only show business selection
-  let menuItems: MenuItemConfig[] = [];
+  // Show all menu items, but mark business-dependent ones as disabled when no business is selected
+  const menuItems: MenuItemConfig[] = navigationItems
+    .filter(item => item.visible)
+    .filter(item => {
+      if (!item.requiredRoles) return true;
+      return item.requiredRoles.includes(role as any);
+    })
+    .map(item => {
+      const requiresBusiness = item.requiresBusinessContext ?? true;
+      const isDisabled = businessAccess.isBusinessScopedRole && !businessAccess.hasBusinessContext && requiresBusiness;
 
-  if (businessAccess.isBusinessScopedRole && !businessAccess.hasBusinessContext) {
-    // Show only business selection option
-    menuItems = [
-      {
-        id: 'select-business',
-        label: 'בחר עסק',
-        icon: '🏢',
-        path: '/business/businesses',
-      }
-    ];
-  } else {
-    menuItems = navigationItems
-      .filter(item => item.visible)
-      .filter(item => {
-        if (!item.requiredRoles) return true;
-        return item.requiredRoles.includes(role as any);
-      })
-      .map(item => ({
+      return {
         id: item.id,
         label: item.label,
         icon: item.icon || '📌',
         path: item.path,
-      }));
-  }
+        disabled: isDisabled,
+        disabledMessage: isDisabled ? 'אנא בחר עסק כדי לגשת לתכונה זו' : undefined,
+        requiresBusinessContext: requiresBusiness,
+      };
+    });
 
   const handleShowModeSelector = () => {
     logger.info('[BusinessShell] Opening order wizard');
