@@ -1,12 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../hooks/useCart';
-import { Section } from '../components/atoms/Section';
-import { Card } from '../components/molecules/Card';
-import { Button } from '../components/atoms/Button';
-import { Text } from '../components/atoms/Typography';
-import { EmptyState } from '../components/molecules/EmptyState';
-import { colors, spacing, borderRadius, shadows } from '../styles/design-system';
+import { undergroundTheme } from '../styles/undergroundTheme';
+import { UndergroundCard } from '../components/underground/UndergroundCard';
+import { UndergroundButton } from '../components/underground/UndergroundButton';
+import { UndergroundSection } from '../components/underground/UndergroundSection';
 
 interface CartPageProps {
   onNavigate?: (dest: string) => void;
@@ -37,260 +35,361 @@ export function CartPage({ onNavigate }: CartPageProps) {
 
   if (cart.items.length === 0) {
     return (
-      <div style={{ padding: spacing.xl, maxWidth: '900px', margin: '0 auto', paddingBottom: '100px' }}>
-        <Button
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        padding: undergroundTheme.spacing.xl,
+        paddingBottom: undergroundTheme.spacing['8xl']
+      }}>
+        <UndergroundButton
           variant="ghost"
           onClick={handleContinueShopping}
-          style={{ marginBottom: spacing.xl }}
+          style={{ marginBottom: undergroundTheme.spacing.xl }}
         >
           ← Back to Catalog
-        </Button>
+        </UndergroundButton>
 
-        <Card variant="outlined">
-          <EmptyState
-            variant="default"
-            title="Your cart is empty"
-            description="Browse our catalog and add items to your cart to get started!"
-            action={{
-              label: 'Browse Catalog',
-              onClick: handleContinueShopping,
-            }}
-          />
-        </Card>
+        <UndergroundCard>
+          <div style={{
+            textAlign: 'center',
+            padding: undergroundTheme.spacing['4xl']
+          }}>
+            <div style={{ fontSize: '80px', marginBottom: undergroundTheme.spacing.lg }}>🛒</div>
+            <h2 style={{
+              margin: 0,
+              fontSize: undergroundTheme.typography.fontSize['2xl'],
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary,
+              marginBottom: undergroundTheme.spacing.md
+            }}>
+              Your cart is empty
+            </h2>
+            <p style={{
+              margin: `0 0 ${undergroundTheme.spacing.xl} 0`,
+              color: undergroundTheme.colors.text.secondary,
+              fontSize: undergroundTheme.typography.fontSize.md,
+              lineHeight: 1.6
+            }}>
+              Browse our catalog and add items to your cart to get started!
+            </p>
+            <UndergroundButton onClick={handleContinueShopping}>
+              Browse Catalog
+            </UndergroundButton>
+          </div>
+        </UndergroundCard>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: spacing.xl, maxWidth: '900px', margin: '0 auto', paddingBottom: '100px' }}>
-      <Button
-        variant="ghost"
-        onClick={handleContinueShopping}
-        style={{ marginBottom: spacing.xl }}
-      >
-        ← Continue Shopping
-      </Button>
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing.xl,
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <UndergroundButton
+          variant="ghost"
+          onClick={handleContinueShopping}
+          style={{ marginBottom: undergroundTheme.spacing.xl }}
+        >
+          ← Continue Shopping
+        </UndergroundButton>
 
-      <Section
-        title="Shopping Cart"
-        style={{ marginBottom: spacing.xl }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.lg }}>
-          <Card variant="outlined">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg }}>
-              <Text variant="h4">Cart Items ({cart.totalItems})</Text>
-              <Button
-                variant="ghost"
-                size="small"
-                onClick={clearCart}
-                style={{ color: colors.status.error }}
-              >
-                Clear Cart
-              </Button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
-              {cart.items.map((item) => (
-                <div
-                  key={item.product.id}
-                  style={{
-                    display: 'flex',
-                    gap: spacing.md,
-                    padding: spacing.md,
-                    background: colors.background.secondary,
-                    borderRadius: borderRadius.lg,
-                    border: `1px solid ${colors.border.primary}`,
-                  }}
+        <UndergroundSection
+          title="Shopping Cart"
+          icon="🛒"
+          style={{ marginBottom: undergroundTheme.spacing.xl }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.lg }}>
+            <UndergroundCard>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: undergroundTheme.spacing.lg
+              }}>
+                <h3 style={{
+                  margin: 0,
+                  fontSize: undergroundTheme.typography.fontSize.xl,
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
+                  Cart Items ({cart.totalItems})
+                </h3>
+                <UndergroundButton
+                  variant="ghost"
+                  size="small"
+                  onClick={clearCart}
+                  style={{ color: undergroundTheme.colors.status.error }}
                 >
+                  Clear Cart
+                </UndergroundButton>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
+                {cart.items.map((item) => (
                   <div
+                    key={item.product.id}
                     style={{
+                      display: 'flex',
+                      gap: undergroundTheme.spacing.md,
+                      padding: undergroundTheme.spacing.md,
+                      background: undergroundTheme.colors.glassmorphism.light,
+                      borderRadius: undergroundTheme.borderRadius.lg,
+                      border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                      transition: undergroundTheme.transitions.standard
+                    }}
+                  >
+                    <div style={{
                       width: '80px',
                       height: '80px',
-                      borderRadius: borderRadius.md,
-                      background: colors.background.tertiary,
+                      borderRadius: undergroundTheme.borderRadius.md,
+                      background: undergroundTheme.colors.glassmorphism.medium,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span style={{ fontSize: '32px' }}>📦</span>
-                  </div>
+                      flexShrink: 0
+                    }}>
+                      <span style={{ fontSize: '32px' }}>📦</span>
+                    </div>
 
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <Text variant="h5" style={{ marginBottom: spacing.xs }}>
-                      {item.product.name}
-                    </Text>
-                    <Text variant="small" color="secondary" style={{ marginBottom: spacing.sm }}>
-                      {item.product.category || 'Security Product'}
-                    </Text>
-                    <Text variant="body" weight="bold" style={{ color: colors.brand.primary }}>
-                      ₪{item.product.price.toFixed(2)} each
-                    </Text>
-                  </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h4 style={{
+                        margin: `0 0 ${undergroundTheme.spacing.xs} 0`,
+                        fontSize: undergroundTheme.typography.fontSize.lg,
+                        fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                        color: undergroundTheme.colors.text.primary
+                      }}>
+                        {item.product.name}
+                      </h4>
+                      <p style={{
+                        margin: `0 0 ${undergroundTheme.spacing.sm} 0`,
+                        fontSize: undergroundTheme.typography.fontSize.sm,
+                        color: undergroundTheme.colors.text.tertiary
+                      }}>
+                        {item.product.category || 'Security Product'}
+                      </p>
+                      <p style={{
+                        margin: 0,
+                        fontSize: undergroundTheme.typography.fontSize.md,
+                        fontWeight: undergroundTheme.typography.fontWeight.bold,
+                        color: undergroundTheme.colors.accent.primary
+                      }}>
+                        ₪{item.product.price.toFixed(2)} each
+                      </p>
+                    </div>
 
-                  <div
-                    style={{
+                    <div style={{
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'flex-end',
-                      gap: spacing.md,
-                      minWidth: '120px',
-                    }}
-                  >
-                    <div
-                      style={{
+                      gap: undergroundTheme.spacing.md,
+                      minWidth: '120px'
+                    }}>
+                      <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: spacing.xs,
-                        background: colors.background.tertiary,
-                        borderRadius: borderRadius.full,
-                        padding: spacing.xs,
-                      }}
-                    >
-                      <button
-                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                        gap: undergroundTheme.spacing.xs,
+                        background: undergroundTheme.colors.glassmorphism.medium,
+                        borderRadius: undergroundTheme.borderRadius.full,
+                        padding: undergroundTheme.spacing.xs
+                      }}>
+                        <button
+                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                            background: undergroundTheme.colors.glassmorphism.dark,
+                            color: undergroundTheme.colors.text.primary,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '18px',
+                            fontWeight: 'bold',
+                            transition: undergroundTheme.transitions.fast
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.medium;
+                            e.currentTarget.style.borderColor = undergroundTheme.colors.accent.primary;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.dark;
+                            e.currentTarget.style.borderColor = undergroundTheme.colors.glassmorphism.border;
+                          }}
+                        >
+                          -
+                        </button>
+                        <span style={{
+                          minWidth: '30px',
+                          textAlign: 'center',
+                          fontSize: undergroundTheme.typography.fontSize.md,
+                          fontWeight: undergroundTheme.typography.fontWeight.bold,
+                          color: undergroundTheme.colors.text.primary
+                        }}>
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            border: `1px solid ${undergroundTheme.colors.accent.primary}`,
+                            background: `${undergroundTheme.colors.accent.primary}20`,
+                            color: undergroundTheme.colors.accent.primary,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '18px',
+                            fontWeight: 'bold',
+                            transition: undergroundTheme.transitions.fast
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = `${undergroundTheme.colors.accent.primary}40`;
+                            e.currentTarget.style.boxShadow = undergroundTheme.shadows.glow.cyan;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = `${undergroundTheme.colors.accent.primary}20`;
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <p style={{
+                        margin: 0,
+                        fontSize: undergroundTheme.typography.fontSize.lg,
+                        fontWeight: undergroundTheme.typography.fontWeight.bold,
+                        color: undergroundTheme.colors.accent.primary
+                      }}>
+                        ₪{(item.product.price * item.quantity).toFixed(2)}
+                      </p>
+
+                      <UndergroundButton
+                        variant="ghost"
+                        size="small"
+                        onClick={() => removeItem(item.product.id)}
                         style={{
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '50%',
-                          border: 'none',
-                          background: colors.background.elevated,
-                          color: colors.text.primary,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '18px',
-                          fontWeight: 'bold',
+                          color: undergroundTheme.colors.status.error,
+                          fontSize: undergroundTheme.typography.fontSize.xs
                         }}
                       >
-                        -
-                      </button>
-                      <Text
-                        variant="body"
-                        weight="bold"
-                        style={{ minWidth: '30px', textAlign: 'center' }}
-                      >
-                        {item.quantity}
-                      </Text>
-                      <button
-                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                        style={{
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '50%',
-                          border: 'none',
-                          background: colors.brand.primary,
-                          color: colors.white,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '18px',
-                          fontWeight: 'bold',
-                        }}
-                      >
-                        +
-                      </button>
+                        Remove
+                      </UndergroundButton>
                     </div>
+                  </div>
+                ))}
+              </div>
+            </UndergroundCard>
 
-                    <Text variant="h5" weight="bold">
-                      ₪{(item.product.price * item.quantity).toFixed(2)}
-                    </Text>
+            <UndergroundCard>
+              <h3 style={{
+                margin: `0 0 ${undergroundTheme.spacing.lg} 0`,
+                fontSize: undergroundTheme.typography.fontSize.xl,
+                fontWeight: undergroundTheme.typography.fontWeight.bold,
+                color: undergroundTheme.colors.text.primary
+              }}>
+                Order Summary
+              </h3>
 
-                    <Button
-                      variant="ghost"
-                      size="small"
-                      onClick={() => removeItem(item.product.id)}
-                      style={{ color: colors.status.error, fontSize: '12px' }}
-                    >
-                      Remove
-                    </Button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: undergroundTheme.colors.text.secondary }}>
+                    Subtotal ({cart.totalItems} items)
+                  </span>
+                  <span style={{
+                    fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                    color: undergroundTheme.colors.text.primary
+                  }}>
+                    ₪{cart.totalPrice.toFixed(2)}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: undergroundTheme.colors.text.secondary }}>Shipping</span>
+                  <span style={{
+                    fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                    color: shippingCost === 0 ? undergroundTheme.colors.status.success : undergroundTheme.colors.text.primary
+                  }}>
+                    {shippingCost === 0 ? 'FREE' : `₪${shippingCost.toFixed(2)}`}
+                  </span>
+                </div>
+
+                {cart.totalPrice < 100 && cart.totalPrice > 0 && (
+                  <div style={{
+                    padding: undergroundTheme.spacing.sm,
+                    background: `${undergroundTheme.colors.status.info}20`,
+                    borderRadius: undergroundTheme.borderRadius.md,
+                    border: `1px solid ${undergroundTheme.colors.status.info}`
+                  }}>
+                    <p style={{
+                      margin: 0,
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.status.info
+                    }}>
+                      Add ₪{(100 - cart.totalPrice).toFixed(2)} more for free shipping!
+                    </p>
+                  </div>
+                )}
+
+                <div style={{
+                  borderTop: `2px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                  paddingTop: undergroundTheme.spacing.md,
+                  marginTop: undergroundTheme.spacing.sm
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <span style={{
+                      fontSize: undergroundTheme.typography.fontSize.xl,
+                      fontWeight: undergroundTheme.typography.fontWeight.bold,
+                      color: undergroundTheme.colors.text.primary
+                    }}>
+                      Total
+                    </span>
+                    <span style={{
+                      fontSize: undergroundTheme.typography.fontSize['2xl'],
+                      fontWeight: undergroundTheme.typography.fontWeight.bold,
+                      color: undergroundTheme.colors.accent.primary,
+                      textShadow: undergroundTheme.shadows.glow.cyan
+                    }}>
+                      ₪{totalAmount.toFixed(2)}
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          </Card>
-
-          <Card variant="outlined">
-            <Text variant="h4" style={{ marginBottom: spacing.lg }}>
-              Order Summary
-            </Text>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Text color="secondary">Subtotal ({cart.totalItems} items)</Text>
-                <Text weight="semibold">₪{cart.totalPrice.toFixed(2)}</Text>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Text color="secondary">Shipping</Text>
-                <Text weight="semibold">
-                  {shippingCost === 0 ? (
-                    <span style={{ color: colors.status.success }}>FREE</span>
-                  ) : (
-                    `₪${shippingCost.toFixed(2)}`
-                  )}
-                </Text>
-              </div>
-
-              {cart.totalPrice < 100 && cart.totalPrice > 0 && (
-                <div
-                  style={{
-                    padding: spacing.sm,
-                    background: colors.status.infoFaded,
-                    borderRadius: borderRadius.md,
-                    border: `1px solid ${colors.status.info}`,
-                  }}
-                >
-                  <Text variant="small" style={{ color: colors.status.info }}>
-                    Add ₪{(100 - cart.totalPrice).toFixed(2)} more for free shipping!
-                  </Text>
-                </div>
-              )}
-
-              <div
-                style={{
-                  borderTop: `2px solid ${colors.border.primary}`,
-                  paddingTop: spacing.md,
-                  marginTop: spacing.sm,
-                }}
+              <UndergroundButton
+                size="large"
+                fullWidth
+                onClick={handleCheckout}
+                style={{ marginTop: undergroundTheme.spacing.lg }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text variant="h4">Total</Text>
-                  <Text variant="h3" style={{ color: colors.brand.primary }}>
-                    ₪{totalAmount.toFixed(2)}
-                  </Text>
-                </div>
-              </div>
-            </div>
+                Proceed to Checkout →
+              </UndergroundButton>
 
-            <Button
-              variant="primary"
-              size="large"
-              fullWidth
-              onClick={handleCheckout}
-              style={{
-                marginTop: spacing.lg,
-                boxShadow: shadows.md,
-              }}
-            >
-              Proceed to Checkout
-            </Button>
-
-            <Button
-              variant="secondary"
-              size="medium"
-              fullWidth
-              onClick={handleContinueShopping}
-              style={{ marginTop: spacing.md }}
-            >
-              Continue Shopping
-            </Button>
-          </Card>
-        </div>
-      </Section>
+              <UndergroundButton
+                variant="secondary"
+                size="medium"
+                fullWidth
+                onClick={handleContinueShopping}
+                style={{ marginTop: undergroundTheme.spacing.md }}
+              >
+                Continue Shopping
+              </UndergroundButton>
+            </UndergroundCard>
+          </div>
+        </UndergroundSection>
+      </div>
     </div>
   );
 }

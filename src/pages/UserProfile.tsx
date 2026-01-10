@@ -2,19 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useAppServices } from '../context/AppServicesContext';
 import { useAuth } from '../context/AuthContext';
 import type { UserProfile, Post, User } from '../data/types';
+import { undergroundTheme } from '../styles/undergroundTheme';
+import { UndergroundCard } from '../components/underground/UndergroundCard';
+import { UndergroundButton } from '../components/underground/UndergroundButton';
+import { UndergroundBadge } from '../components/underground/UndergroundBadge';
+import { UndergroundAvatar } from '../components/underground/UndergroundAvatar';
 import { PostCard } from '../components/social/PostCard';
-import { Card } from '../components/molecules/Card';
-import { MetricCard, MetricGrid } from '../components/dashboard/MetricCard';
-import { Button } from '../components/atoms/Button';
-import { Avatar } from '../components/atoms/Avatar';
-import { Badge } from '../components/atoms/Badge';
-import { Divider } from '../components/atoms/Divider';
-import { EmptyState } from '../components/molecules/EmptyState';
-import { LoadingState } from '../components/molecules/LoadingState';
 import { EditProfileModal } from '../components/organisms/EditProfileModal';
 import { SettingsModal } from '../components/organisms/SettingsModal';
 import { logger } from '../lib/logger';
-import { colors, spacing, borderRadius, shadows, typography } from '../styles/design-system';
 
 interface UserProfileProps {
   userId?: string;
@@ -163,7 +159,6 @@ export function UserProfilePage({ userId }: UserProfileProps) {
     photo_url?: string;
   }) => {
     try {
-      // Update all profile fields in the profiles table
       await dataStore.updateProfile?.({
         id: targetUserId,
         name: updatedProfile.name,
@@ -172,7 +167,7 @@ export function UserProfilePage({ userId }: UserProfileProps) {
         location: updatedProfile.location,
         website: updatedProfile.website,
         photo_url: updatedProfile.photo_url,
-        avatar_url: updatedProfile.photo_url, // Keep avatar_url in sync
+        avatar_url: updatedProfile.photo_url,
       });
 
       await loadProfile();
@@ -190,9 +185,17 @@ export function UserProfilePage({ userId }: UserProfileProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: colors.background.primary
+        background: undergroundTheme.colors.gradient.primary
       }}>
-        <LoadingState message="Loading profile..." />
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: undergroundTheme.spacing.md }}>⏳</div>
+          <div style={{
+            color: undergroundTheme.colors.text.secondary,
+            fontSize: undergroundTheme.typography.fontSize.lg
+          }}>
+            Loading profile...
+          </div>
+        </div>
       </div>
     );
   }
@@ -207,116 +210,88 @@ export function UserProfilePage({ userId }: UserProfileProps) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#15202B',
-      paddingBottom: spacing['3xl']
+      background: undergroundTheme.colors.gradient.primary,
+      paddingBottom: undergroundTheme.spacing['8xl']
     }}>
-      <div style={{
-        maxWidth: '600px',
-        margin: '0 auto',
-        position: 'relative'
-      }}>
-        {/* Settings Button - Top Right */}
+      <div style={{ maxWidth: '600px', margin: '0 auto', position: 'relative' }}>
         {isOwnProfile && (
           <button
             onClick={() => setSettingsModalOpen(true)}
             style={{
               position: 'absolute',
-              top: spacing.lg,
-              right: spacing.lg,
+              top: undergroundTheme.spacing.lg,
+              right: undergroundTheme.spacing.lg,
               width: '44px',
               height: '44px',
               borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.1)',
-              border: 'none',
+              background: undergroundTheme.colors.glassmorphism.medium,
+              border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
               fontSize: '20px',
-              color: 'rgba(255, 255, 255, 0.7)',
-              transition: 'all 0.2s ease',
+              transition: undergroundTheme.transitions.fast,
               zIndex: 10
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+              e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.dark;
+              e.currentTarget.style.borderColor = undergroundTheme.colors.accent.primary;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.medium;
+              e.currentTarget.style.borderColor = undergroundTheme.colors.glassmorphism.border;
             }}
           >
             ⚙️
           </button>
         )}
 
-        {/* Profile Content */}
-        <div style={{
-          background: 'rgba(30, 30, 35, 0.8)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: '16px',
-          margin: spacing.lg,
-          padding: `${spacing['3xl']} ${spacing.xl}`,
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+        <UndergroundCard style={{
+          margin: undergroundTheme.spacing.lg,
+          padding: `${undergroundTheme.spacing['3xl']} ${undergroundTheme.spacing.xl}`,
           textAlign: 'center'
         }}>
-          {/* Avatar */}
           <div style={{
             display: 'flex',
             justifyContent: 'center',
-            marginBottom: spacing.xl
+            marginBottom: undergroundTheme.spacing.xl
           }}>
-            <div style={{ position: 'relative' }}>
-              <Avatar
-                src={user.photo_url}
-                alt={user.name || 'User'}
-                size={140}
-                fallback={user.name || user.username}
-                online={isOwnProfile}
-              />
-            </div>
+            <UndergroundAvatar
+              src={user.photo_url}
+              name={user.name || user.username || 'User'}
+              size={140}
+              online={isOwnProfile}
+            />
           </div>
 
-          {/* Edit Profile Button */}
           {isOwnProfile && (
-            <Button
+            <UndergroundButton
               variant="secondary"
               size="md"
               onClick={() => setEditModalOpen(true)}
-              style={{
-                marginBottom: spacing.xl,
-                background: 'rgba(29, 155, 240, 0.1)',
-                color: '#1D9BF0',
-                border: '1px solid rgba(29, 155, 240, 0.3)',
-                padding: '10px 24px',
-                borderRadius: '20px',
-                fontWeight: 600
-              }}
+              style={{ marginBottom: undergroundTheme.spacing.xl }}
             >
               Edit Profile
-            </Button>
+            </UndergroundButton>
           )}
 
           {!isOwnProfile && (
-            <Button
+            <UndergroundButton
               variant={isFollowing ? 'secondary' : 'primary'}
               size="md"
               onClick={handleFollow}
-              style={{
-                marginBottom: spacing.xl,
-                padding: '10px 32px',
-                borderRadius: '20px',
-                fontWeight: 600
-              }}
+              style={{ marginBottom: undergroundTheme.spacing.xl }}
             >
               {isFollowing ? 'Following' : 'Follow'}
-            </Button>
+            </UndergroundButton>
           )}
 
-          {/* User Info */}
           <h1 style={{
-            color: '#E7E9EA',
-            marginBottom: spacing.xs,
+            color: undergroundTheme.colors.text.primary,
+            marginBottom: undergroundTheme.spacing.xs,
             fontSize: 'clamp(24px, 5vw, 28px)',
-            fontWeight: 700,
+            fontWeight: undergroundTheme.typography.fontWeight.bold,
             letterSpacing: '-0.5px'
           }}>
             {user.name || user.username || 'Unknown User'}
@@ -324,9 +299,9 @@ export function UserProfilePage({ userId }: UserProfileProps) {
 
           {user.username && (
             <p style={{
-              color: '#71767B',
-              marginBottom: spacing.md,
-              fontSize: '15px'
+              color: undergroundTheme.colors.text.tertiary,
+              marginBottom: undergroundTheme.spacing.md,
+              fontSize: undergroundTheme.typography.fontSize.md
             }}>
               @{user.username}
             </p>
@@ -334,14 +309,14 @@ export function UserProfilePage({ userId }: UserProfileProps) {
 
           {user.wallet_address && (
             <p style={{
-              color: '#71767B',
-              marginBottom: spacing.md,
-              fontSize: '13px',
+              color: undergroundTheme.colors.text.tertiary,
+              marginBottom: undergroundTheme.spacing.md,
+              fontSize: undergroundTheme.typography.fontSize.xs,
               fontFamily: 'monospace',
               wordBreak: 'break-all',
-              padding: `${spacing.xs} ${spacing.md}`,
-              background: 'rgba(255, 255, 255, 0.05)',
-              borderRadius: '8px',
+              padding: `${undergroundTheme.spacing.xs} ${undergroundTheme.spacing.md}`,
+              background: undergroundTheme.colors.glassmorphism.light,
+              borderRadius: undergroundTheme.borderRadius.md,
               display: 'inline-block'
             }}>
               {user.wallet_address}
@@ -351,67 +326,54 @@ export function UserProfilePage({ userId }: UserProfileProps) {
           {user.role && (
             <div style={{
               display: 'inline-block',
-              marginBottom: spacing.lg
+              marginBottom: undergroundTheme.spacing.lg
             }}>
-              <Badge
-                variant="primary"
-                style={{
-                  background: 'rgba(29, 155, 240, 0.15)',
-                  color: '#1D9BF0',
-                  border: '1px solid rgba(29, 155, 240, 0.3)',
-                  padding: `${spacing.sm} ${spacing.md}`,
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}
-              >
+              <UndergroundBadge variant="primary">
                 {user.role}
-              </Badge>
+              </UndergroundBadge>
             </div>
           )}
 
           {profile.bio && (
             <p style={{
-              color: '#E7E9EA',
-              marginTop: spacing.lg,
-              marginBottom: spacing.lg,
+              color: undergroundTheme.colors.text.primary,
+              marginTop: undergroundTheme.spacing.lg,
+              marginBottom: undergroundTheme.spacing.lg,
               lineHeight: 1.6,
-              fontSize: '15px',
+              fontSize: undergroundTheme.typography.fontSize.md,
               maxWidth: '400px',
-              margin: `${spacing.lg} auto`
+              margin: `${undergroundTheme.spacing.lg} auto`
             }}>
               {profile.bio}
             </p>
           )}
 
-          {/* Location & Website */}
           {(profile.location || profile.website) && (
             <div style={{
               display: 'flex',
-              gap: spacing.lg,
+              gap: undergroundTheme.spacing.lg,
               justifyContent: 'center',
-              marginTop: spacing.lg,
-              marginBottom: spacing.xl,
-              color: '#71767B',
+              marginTop: undergroundTheme.spacing.lg,
+              marginBottom: undergroundTheme.spacing.xl,
+              color: undergroundTheme.colors.text.tertiary,
               flexWrap: 'wrap'
             }}>
               {profile.location && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: spacing.xs }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: undergroundTheme.spacing.xs }}>
                   <span style={{ fontSize: '16px' }}>📍</span>
-                  <span style={{ fontSize: '14px' }}>{profile.location}</span>
+                  <span style={{ fontSize: undergroundTheme.typography.fontSize.sm }}>{profile.location}</span>
                 </div>
               )}
               {profile.website && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: spacing.xs }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: undergroundTheme.spacing.xs }}>
                   <span style={{ fontSize: '16px' }}>🔗</span>
                   <a
                     href={profile.website}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
-                      fontSize: '14px',
-                      color: '#1D9BF0',
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.accent.primary,
                       textDecoration: 'none'
                     }}
                   >
@@ -422,27 +384,26 @@ export function UserProfilePage({ userId }: UserProfileProps) {
             </div>
           )}
 
-          {/* Stats - Followers/Following */}
           <div style={{
             display: 'flex',
-            gap: spacing.xl,
+            gap: undergroundTheme.spacing.xl,
             justifyContent: 'center',
-            marginTop: spacing.xl,
-            paddingTop: spacing.lg,
-            borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+            marginTop: undergroundTheme.spacing.xl,
+            paddingTop: undergroundTheme.spacing.lg,
+            borderTop: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
           }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{
-                fontSize: '20px',
-                fontWeight: 700,
-                color: '#E7E9EA',
-                marginBottom: spacing.xs
+                fontSize: undergroundTheme.typography.fontSize.xl,
+                fontWeight: undergroundTheme.typography.fontWeight.bold,
+                color: undergroundTheme.colors.accent.primary,
+                marginBottom: undergroundTheme.spacing.xs
               }}>
                 {profile.following_count || 0}
               </div>
               <div style={{
-                fontSize: '13px',
-                color: '#71767B',
+                fontSize: undergroundTheme.typography.fontSize.xs,
+                color: undergroundTheme.colors.text.tertiary,
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px'
               }}>
@@ -451,20 +412,20 @@ export function UserProfilePage({ userId }: UserProfileProps) {
             </div>
             <div style={{
               width: '1px',
-              background: 'rgba(255, 255, 255, 0.1)'
+              background: undergroundTheme.colors.glassmorphism.border
             }} />
             <div style={{ textAlign: 'center' }}>
               <div style={{
-                fontSize: '20px',
-                fontWeight: 700,
-                color: '#E7E9EA',
-                marginBottom: spacing.xs
+                fontSize: undergroundTheme.typography.fontSize.xl,
+                fontWeight: undergroundTheme.typography.fontWeight.bold,
+                color: undergroundTheme.colors.accent.primary,
+                marginBottom: undergroundTheme.spacing.xs
               }}>
                 {profile.followers_count || 0}
               </div>
               <div style={{
-                fontSize: '13px',
-                color: '#71767B',
+                fontSize: undergroundTheme.typography.fontSize.xs,
+                color: undergroundTheme.colors.text.tertiary,
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px'
               }}>
@@ -472,50 +433,45 @@ export function UserProfilePage({ userId }: UserProfileProps) {
               </div>
             </div>
           </div>
-        </div>
+        </UndergroundCard>
 
-        {/* Tabs Section */}
-        <div style={{
-          background: 'rgba(30, 30, 35, 0.8)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: '16px',
-          margin: spacing.lg,
-          marginTop: spacing.xl,
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+        <UndergroundCard style={{
+          margin: undergroundTheme.spacing.lg,
+          marginTop: undergroundTheme.spacing.xl,
           overflow: 'hidden'
         }}>
           <div style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${tabItems.length}, 1fr)`,
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+            borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`
           }}>
             {tabItems.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 style={{
-                  padding: spacing.lg,
+                  padding: undergroundTheme.spacing.lg,
                   background: 'transparent',
                   border: 'none',
-                  fontWeight: 600,
-                  color: activeTab === tab.id ? '#1D9BF0' : '#71767B',
-                  borderBottom: activeTab === tab.id ? '2px solid #1D9BF0' : '2px solid transparent',
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: activeTab === tab.id ? undergroundTheme.colors.accent.primary : undergroundTheme.colors.text.tertiary,
+                  borderBottom: activeTab === tab.id ? `2px solid ${undergroundTheme.colors.accent.primary}` : '2px solid transparent',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
+                  transition: undergroundTheme.transitions.fast,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: spacing.sm,
-                  fontSize: '14px'
+                  gap: undergroundTheme.spacing.sm,
+                  fontSize: undergroundTheme.typography.fontSize.sm
                 }}
                 onMouseEnter={(e) => {
                   if (activeTab !== tab.id) {
-                    e.currentTarget.style.color = '#8B98A5';
+                    e.currentTarget.style.color = undergroundTheme.colors.text.secondary;
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (activeTab !== tab.id) {
-                    e.currentTarget.style.color = '#71767B';
+                    e.currentTarget.style.color = undergroundTheme.colors.text.tertiary;
                   }
                 }}
               >
@@ -527,22 +483,30 @@ export function UserProfilePage({ userId }: UserProfileProps) {
 
           <div>
             {loading ? (
-              <div style={{ padding: spacing.xxl }}>
-                <LoadingState message="Loading posts..." />
+              <div style={{ padding: undergroundTheme.spacing['4xl'], textAlign: 'center' }}>
+                <div style={{ fontSize: '48px', marginBottom: undergroundTheme.spacing.md }}>⏳</div>
+                <div style={{ color: undergroundTheme.colors.text.secondary }}>Loading posts...</div>
               </div>
             ) : posts.length === 0 ? (
-              <div style={{ padding: spacing.xxl }}>
-                <EmptyState
-                  icon="📝"
-                  title="No posts yet"
-                  description={isOwnProfile ? "You haven't posted anything yet" : "This user hasn't posted anything yet"}
-                />
+              <div style={{ padding: undergroundTheme.spacing['4xl'], textAlign: 'center' }}>
+                <div style={{ fontSize: '64px', marginBottom: undergroundTheme.spacing.md }}>📝</div>
+                <div style={{
+                  color: undergroundTheme.colors.text.primary,
+                  fontSize: undergroundTheme.typography.fontSize.lg,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  marginBottom: undergroundTheme.spacing.sm
+                }}>
+                  No posts yet
+                </div>
+                <div style={{ color: undergroundTheme.colors.text.tertiary }}>
+                  {isOwnProfile ? "You haven't posted anything yet" : "This user hasn't posted anything yet"}
+                </div>
               </div>
             ) : (
               <div>
                 {posts.map((post, index) => (
                   <div key={post.id}>
-                    <div style={{ padding: spacing.lg }}>
+                    <div style={{ padding: undergroundTheme.spacing.lg }}>
                       <PostCard
                         post={post}
                         onLike={(isLiked) => handleLike(post.id, isLiked)}
@@ -550,13 +514,18 @@ export function UserProfilePage({ userId }: UserProfileProps) {
                         onDelete={() => handleDelete(post.id)}
                       />
                     </div>
-                    {index < posts.length - 1 && <Divider />}
+                    {index < posts.length - 1 && (
+                      <div style={{
+                        height: '1px',
+                        background: undergroundTheme.colors.glassmorphism.border
+                      }} />
+                    )}
                   </div>
                 ))}
               </div>
             )}
           </div>
-        </div>
+        </UndergroundCard>
       </div>
 
       <EditProfileModal

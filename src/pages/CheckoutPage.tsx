@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { undergroundTheme } from '../styles/undergroundTheme';
+import { UndergroundCard } from '../components/underground/UndergroundCard';
+import { UndergroundButton } from '../components/underground/UndergroundButton';
+import { UndergroundSection } from '../components/underground/UndergroundSection';
 import { PaymentMethodSelector, OrderPaymentStatus } from '../components/payments';
 
 interface Order {
@@ -27,7 +31,6 @@ export default function CheckoutPage() {
   }, [orderId]);
 
   const loadOrder = async () => {
-    // Frontend-only mode: Payment processing not available
     console.warn('Payment processing not available in frontend-only mode');
     setLoading(false);
   };
@@ -50,15 +53,21 @@ export default function CheckoutPage() {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        padding: '20px'
+        background: undergroundTheme.colors.gradient.primary,
+        padding: undergroundTheme.spacing.xl
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{
             fontSize: '48px',
-            marginBottom: '16px',
+            marginBottom: undergroundTheme.spacing.md,
             animation: 'spin 1s linear infinite'
           }}>⏳</div>
-          <div style={{ fontSize: '18px', color: '#666' }}>Loading order...</div>
+          <div style={{
+            fontSize: undergroundTheme.typography.fontSize.lg,
+            color: undergroundTheme.colors.text.secondary
+          }}>
+            Loading order...
+          </div>
         </div>
       </div>
     );
@@ -66,23 +75,38 @@ export default function CheckoutPage() {
 
   if (!order) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <div style={{ fontSize: '64px', marginBottom: '16px' }}>❌</div>
-        <h2 style={{ fontSize: '24px', marginBottom: '16px' }}>Order Not Found</h2>
-        <button
-          onClick={() => navigate('/orders')}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#0088cc',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            cursor: 'pointer'
-          }}
-        >
-          Back to Orders
-        </button>
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        padding: undergroundTheme.spacing.xl,
+        paddingBottom: undergroundTheme.spacing['8xl']
+      }}>
+        <UndergroundCard>
+          <div style={{
+            textAlign: 'center',
+            padding: undergroundTheme.spacing['4xl']
+          }}>
+            <div style={{ fontSize: '64px', marginBottom: undergroundTheme.spacing.lg }}>❌</div>
+            <h2 style={{
+              margin: 0,
+              fontSize: undergroundTheme.typography.fontSize['2xl'],
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary,
+              marginBottom: undergroundTheme.spacing.md
+            }}>
+              Order Not Found
+            </h2>
+            <p style={{
+              margin: `0 0 ${undergroundTheme.spacing.xl} 0`,
+              color: undergroundTheme.colors.text.secondary
+            }}>
+              The requested order could not be found
+            </p>
+            <UndergroundButton onClick={() => navigate('/orders')}>
+              Back to Orders
+            </UndergroundButton>
+          </div>
+        </UndergroundCard>
       </div>
     );
   }
@@ -90,124 +114,186 @@ export default function CheckoutPage() {
   if (paymentComplete) {
     return (
       <div style={{
-        padding: '20px',
-        maxWidth: '600px',
-        margin: '0 auto',
-        textAlign: 'center'
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        padding: undergroundTheme.spacing.xl,
+        paddingBottom: undergroundTheme.spacing['8xl']
       }}>
-        <div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div>
-        <h2 style={{ fontSize: '24px', marginBottom: '16px', fontWeight: '700' }}>
-          Payment Successful!
-        </h2>
-        <p style={{ fontSize: '16px', color: '#666', marginBottom: '24px' }}>
-          Your order #{order.order_number} has been paid.
-        </p>
+        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+          <UndergroundCard variant="success">
+            <div style={{
+              textAlign: 'center',
+              padding: undergroundTheme.spacing['3xl']
+            }}>
+              <div style={{ fontSize: '80px', marginBottom: undergroundTheme.spacing.lg }}>✅</div>
+              <h2 style={{
+                margin: 0,
+                fontSize: undergroundTheme.typography.fontSize['2xl'],
+                fontWeight: undergroundTheme.typography.fontWeight.bold,
+                color: undergroundTheme.colors.status.success,
+                marginBottom: undergroundTheme.spacing.md
+              }}>
+                Payment Successful!
+              </h2>
+              <p style={{
+                margin: `0 0 ${undergroundTheme.spacing.lg} 0`,
+                fontSize: undergroundTheme.typography.fontSize.md,
+                color: undergroundTheme.colors.text.secondary
+              }}>
+                Your order #{order.order_number} has been paid.
+              </p>
 
-        {orderId && (
-          <div style={{ marginBottom: '24px' }}>
-            <OrderPaymentStatus orderId={orderId} />
-          </div>
-        )}
+              {orderId && (
+                <div style={{ marginBottom: undergroundTheme.spacing.xl }}>
+                  <OrderPaymentStatus orderId={orderId} />
+                </div>
+              )}
 
-        <button
-          onClick={() => navigate(`/orders/${orderId}`)}
-          style={{
-            padding: '14px 28px',
-            backgroundColor: '#0088cc',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            fontWeight: '600',
-            cursor: 'pointer'
-          }}
-        >
-          View Order Details
-        </button>
+              <UndergroundButton
+                size="large"
+                onClick={() => navigate(`/orders/${orderId}`)}
+              >
+                View Order Details →
+              </UndergroundButton>
+            </div>
+          </UndergroundCard>
+        </div>
       </div>
     );
   }
 
   return (
     <div style={{
-      padding: '20px',
-      maxWidth: '600px',
-      margin: '0 auto',
-      minHeight: '100vh'
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing.xl,
+      paddingBottom: undergroundTheme.spacing['8xl']
     }}>
-      <button
-        onClick={() => navigate(-1)}
-        style={{
-          marginBottom: '20px',
-          padding: '8px 16px',
-          backgroundColor: 'transparent',
-          border: '1px solid #ddd',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          fontSize: '14px'
-        }}
-      >
-        ← Back
-      </button>
+      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+        <UndergroundButton
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          style={{ marginBottom: undergroundTheme.spacing.xl }}
+        >
+          ← Back
+        </UndergroundButton>
 
-      <div style={{
-        padding: '24px',
-        backgroundColor: 'white',
-        borderRadius: '16px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        marginBottom: '24px'
-      }}>
-        <h1 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>
-          Checkout
-        </h1>
-        <p style={{ fontSize: '14px', color: '#666', marginBottom: '24px' }}>
-          Order #{order.order_number}
-        </p>
+        <UndergroundSection
+          title="Checkout"
+          icon="💳"
+          style={{ marginBottom: undergroundTheme.spacing.xl }}
+        >
+          <UndergroundCard>
+            <div style={{ marginBottom: undergroundTheme.spacing.xl }}>
+              <div style={{
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                color: undergroundTheme.colors.text.tertiary,
+                marginBottom: undergroundTheme.spacing.xs
+              }}>
+                Order Number
+              </div>
+              <div style={{
+                fontSize: undergroundTheme.typography.fontSize.lg,
+                fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                color: undergroundTheme.colors.accent.primary,
+                fontFamily: 'monospace'
+              }}>
+                #{order.order_number}
+              </div>
+            </div>
 
-        <div style={{
-          padding: '16px',
-          backgroundColor: '#f9fafb',
-          borderRadius: '12px',
-          marginBottom: '24px'
+            <div style={{
+              padding: undergroundTheme.spacing.lg,
+              background: undergroundTheme.colors.glassmorphism.light,
+              borderRadius: undergroundTheme.borderRadius.lg,
+              border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+              marginBottom: undergroundTheme.spacing.xl
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: undergroundTheme.spacing.md
+              }}>
+                <span style={{
+                  color: undergroundTheme.colors.text.secondary,
+                  fontSize: undergroundTheme.typography.fontSize.sm
+                }}>
+                  Delivery Address:
+                </span>
+                <span style={{
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary,
+                  textAlign: 'right',
+                  maxWidth: '200px',
+                  fontSize: undergroundTheme.typography.fontSize.sm
+                }}>
+                  {order.delivery_address}
+                </span>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                paddingTop: undergroundTheme.spacing.md,
+                borderTop: `2px solid ${undergroundTheme.colors.glassmorphism.border}`
+              }}>
+                <span style={{
+                  fontSize: undergroundTheme.typography.fontSize.lg,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
+                  Total:
+                </span>
+                <span style={{
+                  fontSize: undergroundTheme.typography.fontSize['2xl'],
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.accent.primary,
+                  textShadow: undergroundTheme.shadows.glow.cyan
+                }}>
+                  {order.total_amount} ILS
+                </span>
+              </div>
+            </div>
+
+            <PaymentMethodSelector
+              orderId={order.id}
+              businessId={order.business_id}
+              amount={order.total_amount}
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+            />
+          </UndergroundCard>
+        </UndergroundSection>
+
+        <UndergroundCard style={{
+          background: `${undergroundTheme.colors.status.info}15`,
+          border: `1px solid ${undergroundTheme.colors.status.info}40`
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <span style={{ color: '#6b7280' }}>Delivery Address:</span>
-            <span style={{ fontWeight: '600', textAlign: 'right', maxWidth: '200px' }}>
-              {order.delivery_address}
-            </span>
-          </div>
           <div style={{
             display: 'flex',
-            justifyContent: 'space-between',
-            paddingTop: '12px',
-            borderTop: '2px solid #e5e7eb'
+            gap: undergroundTheme.spacing.md,
+            alignItems: 'flex-start'
           }}>
-            <span style={{ fontSize: '18px', fontWeight: '600' }}>Total:</span>
-            <span style={{ fontSize: '24px', fontWeight: '700', color: '#0088cc' }}>
-              {order.total_amount} ILS
-            </span>
+            <div style={{ fontSize: '24px' }}>🔒</div>
+            <div>
+              <div style={{
+                fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                color: undergroundTheme.colors.status.info,
+                marginBottom: undergroundTheme.spacing.xs,
+                fontSize: undergroundTheme.typography.fontSize.md
+              }}>
+                Secure Payment
+              </div>
+              <div style={{
+                color: undergroundTheme.colors.text.secondary,
+                fontSize: undergroundTheme.typography.fontSize.sm,
+                lineHeight: 1.5
+              }}>
+                Your payment is secured by blockchain technology. Funds are held in escrow until delivery is complete.
+              </div>
+            </div>
           </div>
-        </div>
-
-        <PaymentMethodSelector
-          orderId={order.id}
-          businessId={order.business_id}
-          amount={order.total_amount}
-          onSuccess={handlePaymentSuccess}
-          onError={handlePaymentError}
-        />
-      </div>
-
-      <div style={{
-        padding: '16px',
-        backgroundColor: '#f0f9ff',
-        borderRadius: '12px',
-        fontSize: '14px'
-      }}>
-        <div style={{ fontWeight: '600', marginBottom: '8px' }}>🔒 Secure Payment</div>
-        <div style={{ color: '#374151' }}>
-          Your payment is secured by blockchain technology. Funds are held in escrow until delivery is complete.
-        </div>
+        </UndergroundCard>
       </div>
     </div>
   );

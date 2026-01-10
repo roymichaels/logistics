@@ -5,6 +5,7 @@ import { logger } from '../lib/logger';
 import { haptic } from '../utils/haptic';
 import { getUserIdentifier } from '../utils/userIdentifier';
 import { useAppServices } from '../context/AppServicesContext';
+import { undergroundTheme } from '../styles/undergroundTheme';
 import {
   useConversations,
   useMessages,
@@ -166,19 +167,29 @@ export function ModernChat({ currentUser: propCurrentUser }: ModernChatProps = {
 
   if (loading) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100vh',
-          background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%)',
-          color: '#00d4ff',
-          fontSize: '18px',
-          fontWeight: '600',
-        }}
-      >
-        טוען...
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        background: undergroundTheme.colors.gradient.primary
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            fontSize: '48px',
+            marginBottom: undergroundTheme.spacing.md,
+            animation: 'spin 1s linear infinite'
+          }}>
+            ⏳
+          </div>
+          <div style={{
+            color: undergroundTheme.colors.accent.primary,
+            fontSize: undergroundTheme.typography.fontSize.lg,
+            fontWeight: undergroundTheme.typography.fontWeight.semibold
+          }}>
+            טוען שיחות...
+          </div>
+        </div>
       </div>
     );
   }
@@ -192,13 +203,12 @@ export function ModernChat({ currentUser: propCurrentUser }: ModernChatProps = {
   );
 
   const mainContent = selectedConversationId ? (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%'
-      }}
-    >
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      background: undergroundTheme.colors.gradient.primary
+    }}>
       <ModernChatHeader
         name={chatPartner?.name || 'משתמש'}
         avatar={chatPartner?.avatar}
@@ -219,39 +229,41 @@ export function ModernChat({ currentUser: propCurrentUser }: ModernChatProps = {
       />
     </div>
   ) : (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        flexDirection: 'column',
-        gap: '20px',
-        padding: '40px'
-      }}
-    >
-      <div style={{ fontSize: '80px', opacity: 0.5 }}>💬</div>
-      <h2
-        style={{
-          margin: 0,
-          fontSize: '24px',
-          fontWeight: '700',
-          color: '#00d4ff',
-          textAlign: 'center'
-        }}
-      >
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100%',
+      flexDirection: 'column',
+      gap: undergroundTheme.spacing.xl,
+      padding: undergroundTheme.spacing['4xl'],
+      background: undergroundTheme.colors.gradient.primary
+    }}>
+      <div style={{
+        fontSize: '80px',
+        opacity: 0.5,
+        textShadow: undergroundTheme.shadows.glow.cyan
+      }}>
+        💬
+      </div>
+      <h2 style={{
+        margin: 0,
+        fontSize: undergroundTheme.typography.fontSize['2xl'],
+        fontWeight: undergroundTheme.typography.fontWeight.bold,
+        color: undergroundTheme.colors.text.primary,
+        textAlign: 'center',
+        textShadow: undergroundTheme.shadows.text
+      }}>
         בחר שיחה
       </h2>
-      <p
-        style={{
-          margin: 0,
-          fontSize: '16px',
-          color: 'rgba(255, 255, 255, 0.5)',
-          textAlign: 'center',
-          maxWidth: '400px',
-          lineHeight: '1.6'
-        }}
-      >
+      <p style={{
+        margin: 0,
+        fontSize: undergroundTheme.typography.fontSize.md,
+        color: undergroundTheme.colors.text.secondary,
+        textAlign: 'center',
+        maxWidth: '400px',
+        lineHeight: 1.6
+      }}>
         בחר שיחה מהרשימה כדי להתחיל לשלוח ולקבל הודעות
       </p>
     </div>
