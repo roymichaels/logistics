@@ -8,12 +8,18 @@ import { Diagnostics } from '../foundation/diagnostics/DiagnosticsStore';
 import { Toast } from '../components/Toast';
 import { logger } from '../lib/logger';
 import { useNavigate } from 'react-router-dom';
-import { colors, spacing, typography, borderRadius, shadows, transitions } from '../styles/design-system';
-import { MetricCard, MetricGrid } from '../components/dashboard/MetricCard';
-import { Card } from '../components/molecules/Card';
-import { Button } from '../components/atoms/Button';
-import { Input } from '../components/atoms/Input';
-import { Badge } from '../components/atoms/Badge';
+import { undergroundTheme } from '../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundButton,
+  UndergroundHeader,
+  UndergroundSection,
+  UndergroundLoadingSpinner,
+  UndergroundEmptyState,
+  UndergroundStatCard,
+  UndergroundInput,
+  UndergroundBadge
+} from '../components/underground';
 import type { Product } from '../application/queries/catalog.queries';
 
 interface BusinessCatalogProps {
@@ -130,126 +136,101 @@ export function BusinessCatalog({ onNavigate: propOnNavigate }: BusinessCatalogP
   if (loading && products.length === 0) {
     return (
       <div style={{
-        padding: spacing['3xl'],
-        textAlign: 'center',
-        minHeight: '400px',
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        padding: undergroundTheme.spacing.xl
       }}>
-        <div style={{ fontSize: '48px', marginBottom: spacing.lg }}>📦</div>
-        <div style={{ color: colors.text.secondary, fontSize: typography.fontSize.lg }}>Loading catalog...</div>
+        <UndergroundLoadingSpinner size="large" />
       </div>
     );
   }
 
   return (
     <div style={{
-      padding: spacing['3xl'],
-      maxWidth: '1400px',
-      margin: '0 auto'
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing['2xl'],
+      paddingBottom: undergroundTheme.spacing['8xl']
     }}>
-      {/* Header */}
-      <div style={{ marginBottom: spacing['3xl'] }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: spacing['2xl'],
-          flexWrap: 'wrap',
-          gap: spacing.lg
-        }}>
-          <div>
-            <h1 style={{
-              fontSize: typography.fontSize['3xl'],
-              fontWeight: typography.fontWeight.bold,
-              color: colors.text.primary,
-              margin: 0,
-              marginBottom: spacing.sm
-            }}>
-              {translations.catalog || 'Business Catalog'}
-            </h1>
-            <p style={{
-              fontSize: typography.fontSize.base,
-              color: colors.text.secondary,
-              margin: 0
-            }}>
-              Manage product visibility in your storefront
-            </p>
-          </div>
-          <Button
-            onClick={() => onNavigate('/products')}
+      <UndergroundHeader
+        title={translations.catalog || '🏪 Business Catalog'}
+        subtitle="Manage product visibility in your storefront"
+        action={
+          <UndergroundButton
             variant="primary"
-            size="md"
-            leftIcon={<span>+</span>}
+            onClick={() => onNavigate('/products')}
           >
+            <span style={{ marginRight: undergroundTheme.spacing.sm }}>+</span>
             Add Products
-          </Button>
-        </div>
+          </UndergroundButton>
+        }
+      />
 
-        {/* Stats */}
-        <MetricGrid columns={3}>
-          <MetricCard
+      <UndergroundSection style={{ marginTop: undergroundTheme.spacing['3xl'] }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: undergroundTheme.spacing.lg,
+          marginBottom: undergroundTheme.spacing['3xl']
+        }}>
+          <UndergroundStatCard
             icon="📦"
             label="Total Products"
-            value={stats.total}
-            variant="default"
+            value={stats.total.toString()}
           />
-          <MetricCard
+          <UndergroundStatCard
             icon="✅"
             label="Published"
-            value={stats.published}
-            variant="success"
+            value={stats.published.toString()}
+            accentColor={undergroundTheme.colors.status.success}
           />
-          <MetricCard
+          <UndergroundStatCard
             icon="📝"
             label="Draft"
-            value={stats.draft}
-            variant="warning"
+            value={stats.draft.toString()}
+            accentColor={undergroundTheme.colors.status.warning}
           />
-        </MetricGrid>
+        </div>
 
-        {/* Filters and Search */}
         <div style={{
           display: 'flex',
-          gap: spacing.md,
-          marginBottom: spacing.xl,
+          gap: undergroundTheme.spacing.md,
+          marginBottom: undergroundTheme.spacing.xl,
           flexWrap: 'wrap',
           alignItems: 'center'
         }}>
-          <div style={{ flex: '1 1 300px', minWidth: '200px' }}>
-            <Input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              fullWidth
-            />
-          </div>
+          <UndergroundInput
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ flex: '1 1 300px', minWidth: '200px' }}
+          />
 
-          <div style={{ display: 'flex', gap: spacing.sm, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: undergroundTheme.spacing.sm, flexWrap: 'wrap' }}>
             {(['all', 'published', 'draft'] as const).map(filterOption => (
-              <Button
+              <UndergroundButton
                 key={filterOption}
                 onClick={() => setFilter(filterOption)}
                 variant={filter === filterOption ? 'primary' : 'secondary'}
-                size="md"
+                size="small"
               >
                 {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
-              </Button>
+              </UndergroundButton>
             ))}
           </div>
         </div>
 
-        {/* Bulk Actions */}
         {selectedProducts.size > 0 && (
-          <Card
-            variant="elevated"
+          <UndergroundCard
+            variant="darker"
             style={{
-              marginBottom: spacing.xl,
-              padding: spacing.xl,
-              background: colors.ui.highlight
+              marginBottom: undergroundTheme.spacing.xl,
+              border: `1px solid ${undergroundTheme.colors.primary.cyan}`,
+              boxShadow: undergroundTheme.shadows.glow.cyan
             }}
           >
             <div style={{
@@ -257,204 +238,221 @@ export function BusinessCatalog({ onNavigate: propOnNavigate }: BusinessCatalogP
               justifyContent: 'space-between',
               alignItems: 'center',
               flexWrap: 'wrap',
-              gap: spacing.md
+              gap: undergroundTheme.spacing.md
             }}>
               <div style={{
-                color: colors.text.primary,
-                fontWeight: typography.fontWeight.semibold,
-                fontSize: typography.fontSize.base
+                color: undergroundTheme.colors.text.primary,
+                fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                fontSize: undergroundTheme.typography.fontSize.lg,
+                textShadow: undergroundTheme.shadows.glow.text
               }}>
-                {selectedProducts.size} products selected
+                ✓ {selectedProducts.size} products selected
               </div>
-              <div style={{ display: 'flex', gap: spacing.sm, flexWrap: 'wrap' }}>
-                <Button
+              <div style={{ display: 'flex', gap: undergroundTheme.spacing.sm, flexWrap: 'wrap' }}>
+                <UndergroundButton
                   onClick={() => handleBulkToggleVisibility(true)}
                   variant="primary"
-                  size="sm"
+                  size="small"
                 >
                   Publish Selected
-                </Button>
-                <Button
+                </UndergroundButton>
+                <UndergroundButton
                   onClick={() => handleBulkToggleVisibility(false)}
                   variant="secondary"
-                  size="sm"
+                  size="small"
                 >
                   Hide Selected
-                </Button>
-                <Button
+                </UndergroundButton>
+                <UndergroundButton
                   onClick={() => setSelectedProducts(new Set())}
-                  variant="secondary"
-                  size="sm"
+                  variant="danger"
+                  size="small"
                 >
                   Clear
-                </Button>
+                </UndergroundButton>
               </div>
             </div>
-          </Card>
+          </UndergroundCard>
         )}
-      </div>
+      </UndergroundSection>
 
-      {/* Product List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
-        {/* Select All Row */}
+      <UndergroundSection>
         {filteredProducts.length > 0 && (
-          <Card
-            variant="outlined"
-            hoverable
-            interactive
+          <UndergroundCard
+            variant="light"
+            hover
             onClick={handleSelectAll}
             style={{
-              padding: spacing.lg,
+              marginBottom: undergroundTheme.spacing.md,
               cursor: 'pointer'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: undergroundTheme.spacing.md }}>
               <input
                 type="checkbox"
                 checked={selectedProducts.size === filteredProducts.length && filteredProducts.length > 0}
                 onChange={() => {}}
-                style={{ cursor: 'pointer', width: '18px', height: '18px' }}
+                style={{
+                  cursor: 'pointer',
+                  width: '18px',
+                  height: '18px',
+                  accentColor: undergroundTheme.colors.primary.cyan
+                }}
               />
               <span style={{
-                color: colors.text.primary,
-                fontWeight: typography.fontWeight.semibold,
-                fontSize: typography.fontSize.base
+                color: undergroundTheme.colors.text.primary,
+                fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                fontSize: undergroundTheme.typography.fontSize.md
               }}>
                 Select All ({filteredProducts.length})
               </span>
             </div>
-          </Card>
+          </UndergroundCard>
         )}
 
         {filteredProducts.length === 0 ? (
-          <Card variant="outlined" style={{ textAlign: 'center', padding: spacing['3xl'] }}>
-            <div style={{ fontSize: '64px', marginBottom: spacing.lg, opacity: 0.5 }}>📦</div>
-            <div style={{
-              fontSize: typography.fontSize.xl,
-              color: colors.text.primary,
-              fontWeight: typography.fontWeight.semibold,
-              marginBottom: spacing.sm
-            }}>
-              No products found
-            </div>
-            <div style={{ fontSize: typography.fontSize.base, color: colors.text.secondary }}>
-              {filter !== 'all' ? 'Try changing your filter' : 'Add products to your inventory first'}
-            </div>
-          </Card>
+          <UndergroundEmptyState
+            icon="📦"
+            title="No products found"
+            description={filter !== 'all' ? 'Try changing your filter' : 'Add products to your inventory first'}
+            action={
+              filter === 'all' ? (
+                <UndergroundButton
+                  variant="primary"
+                  onClick={() => onNavigate('/products')}
+                >
+                  Add Your First Product
+                </UndergroundButton>
+              ) : undefined
+            }
+          />
         ) : (
-          filteredProducts.map(product => (
-            <Card
-              key={product.id}
-              variant={selectedProducts.has(product.id) ? 'elevated' : 'outlined'}
-              hoverable
-              style={{
-                padding: spacing.lg,
-                borderColor: selectedProducts.has(product.id) ? colors.brand.primary : undefined,
-                borderWidth: selectedProducts.has(product.id) ? '2px' : undefined,
-                transition: transitions.normal
-              }}
-            >
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: spacing.lg,
-                flexWrap: 'wrap'
-              }}>
-                <input
-                  type="checkbox"
-                  checked={selectedProducts.has(product.id)}
-                  onChange={() => handleSelectProduct(product.id)}
-                  style={{ cursor: 'pointer', width: '18px', height: '18px' }}
-                />
-
-                {product.image_url ? (
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    style={{
-                      width: '64px',
-                      height: '64px',
-                      objectFit: 'cover',
-                      borderRadius: borderRadius.md,
-                      background: colors.background.secondary,
-                      border: `1px solid ${colors.border.primary}`
-                    }}
-                  />
-                ) : (
-                  <div style={{
-                    width: '64px',
-                    height: '64px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: borderRadius.md,
-                    background: colors.background.secondary,
-                    border: `1px solid ${colors.border.primary}`,
-                    fontSize: '32px'
-                  }}>
-                    📦
-                  </div>
-                )}
-
-                <div style={{ flex: 1, minWidth: '200px' }}>
-                  <div style={{
-                    fontSize: typography.fontSize.lg,
-                    fontWeight: typography.fontWeight.bold,
-                    color: colors.text.primary,
-                    marginBottom: spacing.xs
-                  }}>
-                    {product.name}
-                  </div>
-                  {product.description && (
-                    <div style={{
-                      fontSize: typography.fontSize.sm,
-                      color: colors.text.secondary,
-                      marginBottom: spacing.sm,
-                      lineHeight: typography.lineHeight.normal
-                    }}>
-                      {product.description.substring(0, 100)}{product.description.length > 100 ? '...' : ''}
-                    </div>
-                  )}
-                  <div style={{
-                    display: 'flex',
-                    gap: spacing.lg,
-                    fontSize: typography.fontSize.sm,
-                    color: colors.text.tertiary,
-                    flexWrap: 'wrap'
-                  }}>
-                    {product.sku && <span>SKU: {product.sku}</span>}
-                    <span>Price: {formatCurrency(product.price || 0)}</span>
-                    <span>Stock: {product.stock || 0}</span>
-                  </div>
-                </div>
-
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
+            {filteredProducts.map(product => (
+              <UndergroundCard
+                key={product.id}
+                variant={selectedProducts.has(product.id) ? 'darker' : 'light'}
+                hover
+                style={{
+                  borderColor: selectedProducts.has(product.id) ? undergroundTheme.colors.primary.cyan : undefined,
+                  borderWidth: selectedProducts.has(product.id) ? '2px' : undefined,
+                  boxShadow: selectedProducts.has(product.id) ? undergroundTheme.shadows.glow.cyan : undefined
+                }}
+              >
                 <div style={{
                   display: 'flex',
-                  gap: spacing.sm,
                   alignItems: 'center',
+                  gap: undergroundTheme.spacing.lg,
                   flexWrap: 'wrap'
                 }}>
-                  <Badge
-                    variant={(product.is_visible !== false) ? 'success' : 'warning'}
-                    size="md"
-                  >
-                    {(product.is_visible !== false) ? 'Published' : 'Draft'}
-                  </Badge>
+                  <input
+                    type="checkbox"
+                    checked={selectedProducts.has(product.id)}
+                    onChange={() => handleSelectProduct(product.id)}
+                    style={{
+                      cursor: 'pointer',
+                      width: '18px',
+                      height: '18px',
+                      accentColor: undergroundTheme.colors.primary.cyan
+                    }}
+                  />
 
-                  <Button
-                    onClick={() => handleToggleVisibility(product.id, product.is_visible !== false)}
-                    disabled={updating}
-                    variant={(product.is_visible !== false) ? 'secondary' : 'primary'}
-                    size="sm"
-                  >
-                    {(product.is_visible !== false) ? 'Hide' : 'Publish'}
-                  </Button>
+                  {product.image_url ? (
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      style={{
+                        width: '64px',
+                        height: '64px',
+                        objectFit: 'cover',
+                        borderRadius: undergroundTheme.borderRadius.lg,
+                        background: undergroundTheme.colors.surface.darker,
+                        border: `1px solid ${undergroundTheme.colors.border.subtle}`,
+                        boxShadow: undergroundTheme.shadows.sm
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '64px',
+                      height: '64px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: undergroundTheme.borderRadius.lg,
+                      background: undergroundTheme.colors.surface.darker,
+                      border: `1px solid ${undergroundTheme.colors.border.subtle}`,
+                      fontSize: '32px'
+                    }}>
+                      📦
+                    </div>
+                  )}
+
+                  <div style={{ flex: 1, minWidth: '200px' }}>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.lg,
+                      fontWeight: undergroundTheme.typography.fontWeight.bold,
+                      color: undergroundTheme.colors.text.primary,
+                      marginBottom: undergroundTheme.spacing.xs,
+                      textShadow: undergroundTheme.shadows.glow.text
+                    }}>
+                      {product.name}
+                    </div>
+                    {product.description && (
+                      <div style={{
+                        fontSize: undergroundTheme.typography.fontSize.sm,
+                        color: undergroundTheme.colors.text.secondary,
+                        marginBottom: undergroundTheme.spacing.sm,
+                        lineHeight: undergroundTheme.typography.lineHeight.normal
+                      }}>
+                        {product.description.substring(0, 100)}{product.description.length > 100 ? '...' : ''}
+                      </div>
+                    )}
+                    <div style={{
+                      display: 'flex',
+                      gap: undergroundTheme.spacing.lg,
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.text.tertiary,
+                      flexWrap: 'wrap',
+                      fontFamily: 'monospace'
+                    }}>
+                      {product.sku && <span>SKU: {product.sku}</span>}
+                      <span style={{
+                        color: undergroundTheme.colors.primary.cyan,
+                        fontWeight: undergroundTheme.typography.fontWeight.semibold
+                      }}>
+                        Price: {formatCurrency(product.price || 0)}
+                      </span>
+                      <span>Stock: {product.stock || 0}</span>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    display: 'flex',
+                    gap: undergroundTheme.spacing.sm,
+                    alignItems: 'center',
+                    flexWrap: 'wrap'
+                  }}>
+                    <UndergroundBadge
+                      variant={(product.is_visible !== false) ? 'success' : 'warning'}
+                    >
+                      {(product.is_visible !== false) ? '✅ Published' : '📝 Draft'}
+                    </UndergroundBadge>
+
+                    <UndergroundButton
+                      onClick={() => handleToggleVisibility(product.id, product.is_visible !== false)}
+                      disabled={updating}
+                      variant={(product.is_visible !== false) ? 'secondary' : 'primary'}
+                      size="small"
+                    >
+                      {(product.is_visible !== false) ? 'Hide' : 'Publish'}
+                    </UndergroundButton>
+                  </div>
                 </div>
-              </div>
-            </Card>
-          ))
+              </UndergroundCard>
+            ))}
+          </div>
         )}
-      </div>
+      </UndergroundSection>
     </div>
   );
 }

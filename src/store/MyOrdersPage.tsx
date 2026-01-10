@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { UndergroundSection } from '../components/underground/UndergroundSection';
 import { UndergroundCard } from '../components/underground/UndergroundCard';
 import { UndergroundButton } from '../components/underground/UndergroundButton';
 import { UndergroundBadge } from '../components/underground/UndergroundBadge';
 import { UndergroundEmptyState } from '../components/underground/UndergroundEmptyState';
+import { UndergroundLoadingSpinner } from '../components/underground/UndergroundLoadingSpinner';
+import { UndergroundHeader } from '../components/underground/UndergroundHeader';
 import { undergroundTheme } from '../styles/undergroundTheme';
 import { getStatusBadgeStyle, createPageContainerStyle } from '../utils/undergroundStyles';
+import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
+import { Toast } from '../components/Toast';
 
 interface MyOrdersPageProps {
   dataStore?: any;
@@ -45,24 +51,89 @@ const STATUS_CONFIG = {
 
 export function MyOrdersPage({ dataStore, onNavigate }: MyOrdersPageProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadOrders();
-  }, []);
+    if (user) {
+      loadOrders();
+
+      const channel = supabase
+        .channel('my-orders')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `customer_id=eq.${user.id}`
+        }, () => {
+          logger.info('[MyOrdersPage] Order updated, refetching...');
+          loadOrders();
+        })
+        .subscribe();
+
+      return () => {
+        channel.unsubscribe();
+      };
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
   const loadOrders = async () => {
+    if (!user) {
+      logger.warn('[MyOrdersPage] No user logged in');
+      setLoading(false);
+      return;
+    }
+
     try {
-      if (dataStore?.listOrders) {
-        const ordersList = await dataStore.listOrders();
-        setOrders(ordersList);
-      } else {
-        const storedOrders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
-        setOrders(storedOrders.reverse());
+      logger.info('[MyOrdersPage] Loading orders for user', { userId: user.id });
+
+      const { data: ordersData, error: ordersError } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          order_items (
+            product_id,
+            product_name,
+            quantity,
+            price
+          )
+        `)
+        .eq('customer_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (ordersError) {
+        throw ordersError;
       }
-    } catch (error) {
-      console.error('Failed to load orders:', error);
+
+      const formattedOrders: Order[] = (ordersData || []).map(order => ({
+        id: order.id,
+        order_number: order.order_number || `ORD-${order.id.slice(0, 8)}`,
+        customer_name: order.customer_name || '',
+        customer_phone: order.customer_phone || '',
+        delivery_address: order.delivery_address || '',
+        notes: order.notes,
+        items: (order.order_items || []).map((item: any) => ({
+          product_id: item.product_id,
+          product_name: item.product_name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        subtotal: order.subtotal || 0,
+        shipping_cost: order.shipping_cost || 0,
+        total_amount: order.total_amount || 0,
+        payment_method: order.payment_method || 'cash_on_delivery',
+        status: order.status || 'pending',
+        created_at: order.created_at,
+      }));
+
+      logger.info('[MyOrdersPage] Orders loaded successfully', { count: formattedOrders.length });
+      setOrders(formattedOrders);
+    } catch (error: any) {
+      logger.error('[MyOrdersPage] Failed to load orders', { error });
+      Toast.error('Failed to load orders. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -100,17 +171,55 @@ export function MyOrdersPage({ dataStore, onNavigate }: MyOrdersPageProps) {
       <div style={{
         ...createPageContainerStyle(),
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: '100vh'
+        minHeight: '100vh',
+        gap: undergroundTheme.spacing.lg
       }}>
+        <UndergroundLoadingSpinner size="large" />
         <div style={{
           color: undergroundTheme.colors.text.primary,
-          fontSize: undergroundTheme.typography.fontSize['2xl'],
+          fontSize: undergroundTheme.typography.fontSize.lg,
           fontWeight: undergroundTheme.typography.fontWeight.semibold
         }}>
-          Loading orders...
+          Loading your orders...
         </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div style={createPageContainerStyle()}>
+        <UndergroundCard>
+          <div style={{
+            textAlign: 'center',
+            padding: undergroundTheme.spacing['4xl']
+          }}>
+            <div style={{ fontSize: '64px', marginBottom: undergroundTheme.spacing.lg }}>🔒</div>
+            <h2 style={{
+              margin: 0,
+              fontSize: undergroundTheme.typography.fontSize['2xl'],
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary,
+              marginBottom: undergroundTheme.spacing.md
+            }}>
+              Please Log In
+            </h2>
+            <p style={{
+              margin: `0 0 ${undergroundTheme.spacing.xl} 0`,
+              color: undergroundTheme.colors.text.secondary,
+              fontSize: undergroundTheme.typography.fontSize.md,
+              lineHeight: 1.6
+            }}>
+              You need to be logged in to view your orders
+            </p>
+            <UndergroundButton onClick={() => navigate('/login')}>
+              Go to Login
+            </UndergroundButton>
+          </div>
+        </UndergroundCard>
       </div>
     );
   }

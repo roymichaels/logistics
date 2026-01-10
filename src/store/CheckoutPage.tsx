@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../hooks/useCart';
-import { Section } from '../components/atoms/Section';
-import { Card } from '../components/molecules/Card';
-import { Button } from '../components/atoms/Button';
-import { Text } from '../components/atoms/Typography';
-import { Input } from '../components/atoms/Input';
-import { Badge } from '../components/atoms/Badge';
-import { colors, spacing, borderRadius, shadows } from '../styles/design-system';
+import { useAuth } from '../context/AuthContext';
+import { useAppServices } from '../context/AppServicesContext';
+import { undergroundTheme } from '../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundButton,
+  UndergroundSection,
+  UndergroundHeader,
+  UndergroundInput,
+  UndergroundBadge,
+  UndergroundLoadingSpinner,
+} from '../components/underground';
+import { Toast } from '../components/Toast';
+import { logger } from '../lib/logger';
+import { supabase } from '../lib/supabase';
 
 interface CheckoutPageProps {
   dataStore?: any;
@@ -27,6 +35,8 @@ type PaymentMethod = 'cash_on_delivery' | 'crypto';
 export function CheckoutPage({ dataStore, onNavigate }: CheckoutPageProps) {
   const navigate = useNavigate();
   const { cart, clearCart } = useCart();
+  const { user } = useAuth();
+  const { currentBusinessId } = useAppServices();
   const [formData, setFormData] = useState<OrderFormData>({
     fullName: '',
     phone: '',
@@ -34,7 +44,7 @@ export function CheckoutPage({ dataStore, onNavigate }: CheckoutPageProps) {
     city: '',
     notes: '',
   });
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('crypto');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash_on_delivery');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<OrderFormData>>({});
 
@@ -70,66 +80,104 @@ export function CheckoutPage({ dataStore, onNavigate }: CheckoutPageProps) {
     e.preventDefault();
 
     if (!validateForm()) {
+      Toast.error('Please fill in all required fields');
       return;
     }
 
     if (cart.items.length === 0) {
-      alert('Your cart is empty');
+      Toast.error('Your cart is empty');
+      return;
+    }
+
+    if (!user) {
+      Toast.error('You must be logged in to place an order');
+      return;
+    }
+
+    if (!currentBusinessId) {
+      Toast.error('No business selected');
       return;
     }
 
     setLoading(true);
 
     try {
-      const order = {
-        id: `ORDER-${Date.now()}`,
-        order_number: `ORD-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-        customer_name: formData.fullName,
-        customer_phone: formData.phone,
-        delivery_address: `${formData.address}, ${formData.city}`,
-        notes: formData.notes,
-        items: cart.items.map((item) => ({
-          product_id: item.product.id,
-          product_name: item.product.name,
-          quantity: item.quantity,
-          price: item.product.price,
-        })),
-        subtotal: cart.totalPrice,
-        shipping_cost: shippingCost,
-        total_amount: totalAmount,
-        payment_method: paymentMethod,
-        status: paymentMethod === 'crypto' ? 'pending_payment' : 'pending',
-        created_at: new Date().toISOString(),
-      };
+      logger.info('[CheckoutPage] Creating order', {
+        userId: user.id,
+        businessId: currentBusinessId,
+        itemCount: cart.items.length,
+        totalAmount
+      });
 
-      if (paymentMethod === 'crypto') {
-        localStorage.setItem('pending_order', JSON.stringify(order));
+      const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
-        if (onNavigate) {
-          onNavigate('/payments/crypto');
-        } else {
-          navigate('/payments/crypto');
-        }
-      } else {
-        if (dataStore?.createOrder) {
-          await dataStore.createOrder(order);
-        } else {
-          const orders = JSON.parse(localStorage.getItem('customer_orders') || '[]');
-          orders.push(order);
-          localStorage.setItem('customer_orders', JSON.stringify(orders));
-        }
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          business_id: currentBusinessId,
+          customer_id: user.id,
+          customer_name: formData.fullName,
+          customer_phone: formData.phone,
+          delivery_address: `${formData.address}, ${formData.city}`,
+          notes: formData.notes || null,
+          subtotal: cart.totalPrice,
+          shipping_cost: shippingCost,
+          total_amount: totalAmount,
+          payment_method: paymentMethod,
+          status: paymentMethod === 'crypto' ? 'pending_payment' : 'pending',
+          order_number: orderNumber,
+        })
+        .select()
+        .single();
 
-        clearCart();
+      if (orderError) {
+        throw orderError;
+      }
 
-        if (onNavigate) {
-          onNavigate(`/store/orders/${order.id}`);
-        } else {
-          navigate(`/store/orders/${order.id}`);
+      logger.info('[CheckoutPage] Order created successfully', { orderId: order.id });
+
+      for (const item of cart.items) {
+        const { error: itemError } = await supabase
+          .from('order_items')
+          .insert({
+            order_id: order.id,
+            product_id: item.product.id,
+            product_name: item.product.name,
+            quantity: item.quantity,
+            price: item.product.price,
+            subtotal: item.product.price * item.quantity,
+          });
+
+        if (itemError) {
+          logger.error('[CheckoutPage] Failed to create order item', { error: itemError, productId: item.product.id });
         }
       }
-    } catch (error) {
-      console.error('Failed to create order:', error);
-      alert('Failed to place order. Please try again.');
+
+      const { error: eventError } = await supabase
+        .from('order_events')
+        .insert({
+          order_id: order.id,
+          event_type: 'order_placed',
+          description: `Order placed by ${formData.fullName}`,
+          metadata: { payment_method: paymentMethod },
+        });
+
+      if (eventError) {
+        logger.error('[CheckoutPage] Failed to create order event', { error: eventError });
+      }
+
+      clearCart();
+
+      Toast.success('Order placed successfully!');
+
+      if (onNavigate) {
+        onNavigate(`/store/orders/${order.id}`);
+      } else {
+        navigate(`/store/orders/${order.id}`);
+      }
+    } catch (error: any) {
+      logger.error('[CheckoutPage] Failed to create order', { error });
+      Toast.error(error.message || 'Failed to place order. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -152,40 +200,79 @@ export function CheckoutPage({ dataStore, onNavigate }: CheckoutPageProps) {
 
   if (cart.items.length === 0) {
     return (
-      <div style={{ padding: spacing['2xl'], textAlign: 'center' }}>
-        <Text variant="h3" style={{ marginBottom: spacing.xl }}>
-          Your cart is empty
-        </Text>
-        <Button variant="primary" onClick={handleBack}>
-          Continue Shopping
-        </Button>
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        padding: undergroundTheme.spacing.xl,
+        paddingBottom: undergroundTheme.spacing['8xl']
+      }}>
+        <UndergroundCard>
+          <div style={{
+            textAlign: 'center',
+            padding: undergroundTheme.spacing['4xl']
+          }}>
+            <div style={{ fontSize: '80px', marginBottom: undergroundTheme.spacing.lg }}>🛒</div>
+            <h2 style={{
+              margin: 0,
+              fontSize: undergroundTheme.typography.fontSize['2xl'],
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary,
+              marginBottom: undergroundTheme.spacing.md
+            }}>
+              Your cart is empty
+            </h2>
+            <p style={{
+              margin: `0 0 ${undergroundTheme.spacing.xl} 0`,
+              color: undergroundTheme.colors.text.secondary,
+              fontSize: undergroundTheme.typography.fontSize.md,
+              lineHeight: 1.6
+            }}>
+              Add items to your cart before checking out
+            </p>
+            <UndergroundButton onClick={handleBack}>
+              Continue Shopping
+            </UndergroundButton>
+          </div>
+        </UndergroundCard>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: spacing.xl, maxWidth: '800px', margin: '0 auto', paddingBottom: '100px' }}>
-      <Button
-        variant="secondary"
-        onClick={handleBack}
-        style={{ marginBottom: spacing.xl }}
-      >
-        ← Back to Store
-      </Button>
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing.xl,
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <UndergroundButton
+          variant="ghost"
+          onClick={handleBack}
+          style={{ marginBottom: undergroundTheme.spacing.xl }}
+        >
+          ← Back to Store
+        </UndergroundButton>
 
-      <Section
-        title="Checkout"
-        style={{
-          marginBottom: spacing.xl,
-        }}
-      >
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: spacing.xl }}>
-          <Card variant="outlined">
-            <Text variant="h4" style={{ marginBottom: spacing.lg }}>
-              Order Summary
-            </Text>
+        <UndergroundHeader
+          title="Checkout"
+          subtitle="Complete your order and choose payment method"
+          icon="💳"
+        />
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
+        <UndergroundSection style={{ marginTop: undergroundTheme.spacing['3xl'] }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.xl }}>
+          <UndergroundCard variant="light">
+            <h3 style={{
+              margin: `0 0 ${undergroundTheme.spacing.lg} 0`,
+              fontSize: undergroundTheme.typography.fontSize.xl,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary
+            }}>
+              📦 Order Summary
+            </h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
               {cart.items.map((item) => (
                 <div
                   key={item.product.id}
@@ -193,143 +280,225 @@ export function CheckoutPage({ dataStore, onNavigate }: CheckoutPageProps) {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    padding: spacing.md,
-                    background: colors.background.secondary,
-                    borderRadius: borderRadius.md,
+                    padding: undergroundTheme.spacing.md,
+                    background: undergroundTheme.colors.glassmorphism.light,
+                    borderRadius: undergroundTheme.borderRadius.lg,
+                    border: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
                   }}
                 >
                   <div style={{ flex: 1 }}>
-                    <Text weight="semibold">{item.product.name}</Text>
-                    <Text variant="small" color="secondary">
+                    <div style={{
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                      color: undergroundTheme.colors.text.primary,
+                      marginBottom: undergroundTheme.spacing.xs
+                    }}>
+                      {item.product.name}
+                    </div>
+                    <div style={{
+                      fontSize: undergroundTheme.typography.fontSize.sm,
+                      color: undergroundTheme.colors.text.tertiary
+                    }}>
                       Quantity: {item.quantity} × ₪{item.product.price}
-                    </Text>
+                    </div>
                   </div>
-                  <Text weight="bold">₪{(item.product.price * item.quantity).toFixed(2)}</Text>
+                  <div style={{
+                    fontWeight: undergroundTheme.typography.fontWeight.bold,
+                    color: undergroundTheme.colors.accent.primary,
+                    fontSize: undergroundTheme.typography.fontSize.lg
+                  }}>
+                    ₪{(item.product.price * item.quantity).toFixed(2)}
+                  </div>
                 </div>
               ))}
             </div>
 
             <div
               style={{
-                marginTop: spacing.lg,
-                paddingTop: spacing.lg,
-                borderTop: `1px solid ${colors.border.primary}`,
+                marginTop: undergroundTheme.spacing.lg,
+                paddingTop: undergroundTheme.spacing.lg,
+                borderTop: `2px solid ${undergroundTheme.colors.glassmorphism.border}`,
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: spacing.sm }}>
-                <Text color="secondary">Subtotal</Text>
-                <Text weight="semibold">₪{cart.totalPrice.toFixed(2)}</Text>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: undergroundTheme.spacing.sm }}>
+                <span style={{ color: undergroundTheme.colors.text.secondary }}>Subtotal</span>
+                <span style={{
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
+                  ₪{cart.totalPrice.toFixed(2)}
+                </span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: spacing.sm }}>
-                <Text color="secondary">Shipping</Text>
-                <Text weight="semibold">
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: undergroundTheme.spacing.sm }}>
+                <span style={{ color: undergroundTheme.colors.text.secondary }}>Shipping</span>
+                <span style={{
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: shippingCost === 0 ? undergroundTheme.colors.status.success : undergroundTheme.colors.text.primary
+                }}>
                   {shippingCost === 0 ? 'FREE' : `₪${shippingCost.toFixed(2)}`}
-                </Text>
+                </span>
               </div>
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  paddingTop: spacing.md,
-                  borderTop: `1px solid ${colors.border.primary}`,
+                  paddingTop: undergroundTheme.spacing.md,
+                  marginTop: undergroundTheme.spacing.sm,
+                  borderTop: `2px solid ${undergroundTheme.colors.glassmorphism.border}`,
                 }}
               >
-                <Text variant="h4">Total</Text>
-                <Text variant="h4" style={{ color: colors.brand.primary }}>
+                <span style={{
+                  fontSize: undergroundTheme.typography.fontSize.xl,
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
+                  Total
+                </span>
+                <span style={{
+                  fontSize: undergroundTheme.typography.fontSize['2xl'],
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.accent.primary,
+                  textShadow: undergroundTheme.shadows.glow.cyan
+                }}>
                   ₪{totalAmount.toFixed(2)}
-                </Text>
+                </span>
               </div>
             </div>
-          </Card>
+          </UndergroundCard>
 
-          <Card variant="outlined">
-            <Text variant="h4" style={{ marginBottom: spacing.lg }}>
-              Delivery Information
-            </Text>
+          <UndergroundCard variant="light">
+            <h3 style={{
+              margin: `0 0 ${undergroundTheme.spacing.lg} 0`,
+              fontSize: undergroundTheme.typography.fontSize.xl,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary
+            }}>
+              📍 Delivery Information
+            </h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.lg }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.lg }}>
               <div>
-                <label style={{ display: 'block', marginBottom: spacing.sm, fontWeight: 500 }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: undergroundTheme.spacing.sm,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
                   Full Name *
                 </label>
-                <Input
+                <UndergroundInput
                   type="text"
                   value={formData.fullName}
                   onChange={(e) => handleInputChange('fullName', e.target.value)}
                   placeholder="Enter your full name"
                   style={{
-                    borderColor: errors.fullName ? colors.status.error : undefined,
+                    borderColor: errors.fullName ? undergroundTheme.colors.status.error : undefined,
                   }}
                 />
                 {errors.fullName && (
-                  <Text variant="small" style={{ color: colors.status.error, marginTop: spacing.xs }}>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.sm,
+                    color: undergroundTheme.colors.status.error,
+                    marginTop: undergroundTheme.spacing.xs
+                  }}>
                     {errors.fullName}
-                  </Text>
+                  </div>
                 )}
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: spacing.sm, fontWeight: 500 }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: undergroundTheme.spacing.sm,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
                   Phone Number *
                 </label>
-                <Input
+                <UndergroundInput
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                   placeholder="+972 50 123 4567"
                   style={{
-                    borderColor: errors.phone ? colors.status.error : undefined,
+                    borderColor: errors.phone ? undergroundTheme.colors.status.error : undefined,
                   }}
                 />
                 {errors.phone && (
-                  <Text variant="small" style={{ color: colors.status.error, marginTop: spacing.xs }}>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.sm,
+                    color: undergroundTheme.colors.status.error,
+                    marginTop: undergroundTheme.spacing.xs
+                  }}>
                     {errors.phone}
-                  </Text>
+                  </div>
                 )}
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: spacing.sm, fontWeight: 500 }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: undergroundTheme.spacing.sm,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
                   Street Address *
                 </label>
-                <Input
+                <UndergroundInput
                   type="text"
                   value={formData.address}
                   onChange={(e) => handleInputChange('address', e.target.value)}
                   placeholder="Enter your street address"
                   style={{
-                    borderColor: errors.address ? colors.status.error : undefined,
+                    borderColor: errors.address ? undergroundTheme.colors.status.error : undefined,
                   }}
                 />
                 {errors.address && (
-                  <Text variant="small" style={{ color: colors.status.error, marginTop: spacing.xs }}>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.sm,
+                    color: undergroundTheme.colors.status.error,
+                    marginTop: undergroundTheme.spacing.xs
+                  }}>
                     {errors.address}
-                  </Text>
+                  </div>
                 )}
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: spacing.sm, fontWeight: 500 }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: undergroundTheme.spacing.sm,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
                   City *
                 </label>
-                <Input
+                <UndergroundInput
                   type="text"
                   value={formData.city}
                   onChange={(e) => handleInputChange('city', e.target.value)}
                   placeholder="Enter your city"
                   style={{
-                    borderColor: errors.city ? colors.status.error : undefined,
+                    borderColor: errors.city ? undergroundTheme.colors.status.error : undefined,
                   }}
                 />
                 {errors.city && (
-                  <Text variant="small" style={{ color: colors.status.error, marginTop: spacing.xs }}>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.sm,
+                    color: undergroundTheme.colors.status.error,
+                    marginTop: undergroundTheme.spacing.xs
+                  }}>
                     {errors.city}
-                  </Text>
+                  </div>
                 )}
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: spacing.sm, fontWeight: 500 }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: undergroundTheme.spacing.sm,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                  color: undergroundTheme.colors.text.primary
+                }}>
                   Delivery Notes (Optional)
                 </label>
                 <textarea
@@ -339,127 +508,205 @@ export function CheckoutPage({ dataStore, onNavigate }: CheckoutPageProps) {
                   rows={3}
                   style={{
                     width: '100%',
-                    padding: spacing.md,
-                    borderRadius: borderRadius.md,
-                    border: `1px solid ${colors.border.primary}`,
-                    fontSize: '14px',
+                    padding: undergroundTheme.spacing.md,
+                    borderRadius: undergroundTheme.borderRadius.md,
+                    border: `1px solid ${undergroundTheme.colors.border.subtle}`,
+                    background: undergroundTheme.colors.surface.darker,
+                    color: undergroundTheme.colors.text.primary,
+                    fontSize: undergroundTheme.typography.fontSize.md,
                     fontFamily: 'inherit',
                     resize: 'vertical',
+                    outline: 'none',
+                    transition: undergroundTheme.transitions.standard,
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = undergroundTheme.colors.primary.cyan;
+                    e.currentTarget.style.boxShadow = undergroundTheme.shadows.glow.cyan;
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = undergroundTheme.colors.border.subtle;
+                    e.currentTarget.style.boxShadow = 'none';
                   }}
                 />
               </div>
             </div>
-          </Card>
+          </UndergroundCard>
 
-          <Card variant="outlined">
-            <Text variant="h4" style={{ marginBottom: spacing.lg }}>
-              Payment Method
-            </Text>
+          <UndergroundCard variant="light">
+            <h3 style={{
+              margin: `0 0 ${undergroundTheme.spacing.lg} 0`,
+              fontSize: undergroundTheme.typography.fontSize.xl,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary
+            }}>
+              💳 Payment Method
+            </h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
-              <div
-                onClick={() => setPaymentMethod('crypto')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: spacing.md,
-                  padding: spacing.lg,
-                  background: colors.background.secondary,
-                  borderRadius: borderRadius.md,
-                  border: `2px solid ${paymentMethod === 'crypto' ? colors.brand.primary : colors.border.primary}`,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <div style={{ fontSize: '32px' }}>💰</div>
-                <div style={{ flex: 1 }}>
-                  <Text weight="bold">Cryptocurrency</Text>
-                  <Text variant="small" color="secondary">
-                    Pay with ETH, SOL, or TON
-                  </Text>
-                </div>
-                {paymentMethod === 'crypto' && <Badge variant="success">Selected</Badge>}
-              </div>
-
+            <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
               <div
                 onClick={() => setPaymentMethod('cash_on_delivery')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: spacing.md,
-                  padding: spacing.lg,
-                  background: colors.background.secondary,
-                  borderRadius: borderRadius.md,
-                  border: `2px solid ${paymentMethod === 'cash_on_delivery' ? colors.brand.primary : colors.border.primary}`,
+                  gap: undergroundTheme.spacing.md,
+                  padding: undergroundTheme.spacing.lg,
+                  background: undergroundTheme.colors.glassmorphism.light,
+                  borderRadius: undergroundTheme.borderRadius.lg,
+                  border: `2px solid ${paymentMethod === 'cash_on_delivery' ? undergroundTheme.colors.primary.cyan : undergroundTheme.colors.glassmorphism.border}`,
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
+                  transition: undergroundTheme.transitions.standard,
+                  boxShadow: paymentMethod === 'cash_on_delivery' ? undergroundTheme.shadows.glow.cyan : 'none',
+                }}
+                onMouseEnter={(e) => {
+                  if (paymentMethod !== 'cash_on_delivery') {
+                    e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.medium;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (paymentMethod !== 'cash_on_delivery') {
+                    e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.light;
+                  }
                 }}
               >
                 <div style={{ fontSize: '32px' }}>💵</div>
                 <div style={{ flex: 1 }}>
-                  <Text weight="bold">Cash on Delivery</Text>
-                  <Text variant="small" color="secondary">
+                  <div style={{
+                    fontWeight: undergroundTheme.typography.fontWeight.bold,
+                    color: undergroundTheme.colors.text.primary,
+                    marginBottom: undergroundTheme.spacing.xs
+                  }}>
+                    Cash on Delivery
+                  </div>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.sm,
+                    color: undergroundTheme.colors.text.secondary
+                  }}>
                     Pay with cash when you receive your order
-                  </Text>
+                  </div>
                 </div>
-                {paymentMethod === 'cash_on_delivery' && <Badge variant="success">Selected</Badge>}
+                {paymentMethod === 'cash_on_delivery' && (
+                  <UndergroundBadge variant="success">✓ Selected</UndergroundBadge>
+                )}
+              </div>
+
+              <div
+                onClick={() => setPaymentMethod('crypto')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: undergroundTheme.spacing.md,
+                  padding: undergroundTheme.spacing.lg,
+                  background: undergroundTheme.colors.glassmorphism.light,
+                  borderRadius: undergroundTheme.borderRadius.lg,
+                  border: `2px solid ${paymentMethod === 'crypto' ? undergroundTheme.colors.primary.cyan : undergroundTheme.colors.glassmorphism.border}`,
+                  cursor: 'pointer',
+                  transition: undergroundTheme.transitions.standard,
+                  boxShadow: paymentMethod === 'crypto' ? undergroundTheme.shadows.glow.cyan : 'none',
+                }}
+                onMouseEnter={(e) => {
+                  if (paymentMethod !== 'crypto') {
+                    e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.medium;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (paymentMethod !== 'crypto') {
+                    e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.light;
+                  }
+                }}
+              >
+                <div style={{ fontSize: '32px' }}>💰</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{
+                    fontWeight: undergroundTheme.typography.fontWeight.bold,
+                    color: undergroundTheme.colors.text.primary,
+                    marginBottom: undergroundTheme.spacing.xs
+                  }}>
+                    Cryptocurrency
+                  </div>
+                  <div style={{
+                    fontSize: undergroundTheme.typography.fontSize.sm,
+                    color: undergroundTheme.colors.text.secondary
+                  }}>
+                    Pay with ETH, SOL, or TON
+                  </div>
+                </div>
+                {paymentMethod === 'crypto' && (
+                  <UndergroundBadge variant="success">✓ Selected</UndergroundBadge>
+                )}
               </div>
             </div>
 
             {paymentMethod === 'cash_on_delivery' && (
               <div
                 style={{
-                  marginTop: spacing.md,
-                  padding: spacing.md,
-                  background: colors.background.tertiary,
-                  borderRadius: borderRadius.sm,
+                  marginTop: undergroundTheme.spacing.lg,
+                  padding: undergroundTheme.spacing.md,
+                  background: `${undergroundTheme.colors.status.info}15`,
+                  borderRadius: undergroundTheme.borderRadius.md,
+                  border: `1px solid ${undergroundTheme.colors.status.info}40`,
                 }}
               >
-                <Text variant="small" color="secondary">
-                  Please have the exact amount ready (₪{totalAmount.toFixed(2)}) when the driver arrives
-                </Text>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  color: undergroundTheme.colors.status.info,
+                  lineHeight: 1.5
+                }}>
+                  💡 Please have the exact amount ready (₪{totalAmount.toFixed(2)}) when the driver arrives
+                </div>
               </div>
             )}
 
             {paymentMethod === 'crypto' && (
               <div
                 style={{
-                  marginTop: spacing.md,
-                  padding: spacing.md,
-                  background: colors.background.tertiary,
-                  borderRadius: borderRadius.sm,
+                  marginTop: undergroundTheme.spacing.lg,
+                  padding: undergroundTheme.spacing.md,
+                  background: `${undergroundTheme.colors.primary.cyan}15`,
+                  borderRadius: undergroundTheme.borderRadius.md,
+                  border: `1px solid ${undergroundTheme.colors.primary.cyan}40`,
                 }}
               >
-                <Text variant="small" color="secondary">
-                  You will be redirected to complete your payment with cryptocurrency on the next page
-                </Text>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  color: undergroundTheme.colors.primary.cyan,
+                  lineHeight: 1.5
+                }}>
+                  🔒 Secure blockchain payment - Order will be created after completing payment
+                </div>
               </div>
             )}
-          </Card>
+          </UndergroundCard>
 
-          <Button
+          <UndergroundButton
             type="submit"
             variant="primary"
             size="large"
             fullWidth
             disabled={loading}
             style={{
-              boxShadow: shadows.lg,
+              marginTop: undergroundTheme.spacing.md,
             }}
           >
             {loading
-              ? 'Processing...'
+              ? '⏳ Processing...'
               : paymentMethod === 'crypto'
-                ? `Continue to Payment - ₪${totalAmount.toFixed(2)}`
-                : `Place Order - ₪${totalAmount.toFixed(2)}`
+                ? `Continue to Payment → ₪${totalAmount.toFixed(2)}`
+                : `Place Order → ₪${totalAmount.toFixed(2)}`
             }
-          </Button>
+          </UndergroundButton>
 
-          <Text variant="small" color="secondary" style={{ textAlign: 'center' }}>
+          <div style={{
+            textAlign: 'center',
+            fontSize: undergroundTheme.typography.fontSize.sm,
+            color: undergroundTheme.colors.text.tertiary,
+            marginTop: undergroundTheme.spacing.md,
+            lineHeight: 1.5
+          }}>
             By placing this order, you agree to our terms of service and privacy policy
-          </Text>
+          </div>
         </form>
-      </Section>
+        </UndergroundSection>
+      </div>
     </div>
   );
 }
