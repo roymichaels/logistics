@@ -69,11 +69,18 @@ export function DispatchBoard() {
 
   const loadData = useCallback(async () => {
     if (!currentBusinessId) {
+      logger.warn('[DispatchBoard] No business context, skipping load');
       setLoading(false);
+      setError('No active business selected');
       return;
     }
 
+    setLoading(true);
+    setError(null);
+
     try {
+      logger.info('[DispatchBoard] Loading data for business:', currentBusinessId);
+
       const [
         { data: zonesData, error: zonesError },
         { data: driversData, error: driversError },
@@ -92,14 +99,23 @@ export function DispatchBoard() {
           .from('orders')
           .select('*, profiles(full_name, phone)')
           .eq('business_id', currentBusinessId)
-          .in('status', ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered'])
+          .in('status', ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery'])
           .order('created_at', { ascending: false })
           .limit(100)
       ]);
 
-      if (zonesError) throw zonesError;
-      if (driversError) throw driversError;
-      if (ordersError) throw ordersError;
+      if (zonesError) {
+        logger.error('[DispatchBoard] Zones query error:', zonesError);
+        throw new Error(`Failed to load zones: ${zonesError.message}`);
+      }
+      if (driversError) {
+        logger.error('[DispatchBoard] Drivers query error:', driversError);
+        throw new Error(`Failed to load drivers: ${driversError.message}`);
+      }
+      if (ordersError) {
+        logger.error('[DispatchBoard] Orders query error:', ordersError);
+        throw new Error(`Failed to load orders: ${ordersError.message}`);
+      }
 
       setZones(zonesData || []);
       setDrivers(driversData || []);
@@ -112,9 +128,10 @@ export function DispatchBoard() {
         orders: ordersData?.length || 0
       });
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load dispatch data';
       logger.error('[DispatchBoard] Failed to load data:', err);
-      setError('Failed to load dispatch data');
-      Toast.error('Failed to load dispatch data');
+      setError(errorMessage);
+      Toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

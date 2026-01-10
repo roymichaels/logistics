@@ -205,14 +205,10 @@ export function SimpleRouter() {
           <Route path="/business/operations" element={<Suspense fallback={<PageLoadingSkeleton />}><OperationsHub /></Suspense>} />
           <Route path="/business/preview" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessPreview /></Suspense>} />
           <Route path="/business/businesses" element={<Suspense fallback={<PageLoadingSkeleton />}><Businesses dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
-          <Route path="/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessOrders /></Suspense>} />
           <Route path="/business/orders" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessOrders /></Suspense>} />
-          <Route path="/products" element={<Suspense fallback={<PageLoadingSkeleton />}><Products /></Suspense>} />
           <Route path="/business/products" element={<Suspense fallback={<PageLoadingSkeleton />}><Products /></Suspense>} />
           <Route path="/business/catalog" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessCatalogManagement /></Suspense>} />
-          <Route path="/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
           <Route path="/business/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
-          <Route path="/inventory" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessInventory /></Suspense>} />
           <Route path="/business/inventory" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessInventory /></Suspense>} />
           <Route path="/business/dispatch" element={<Suspense fallback={<PageLoadingSkeleton />}><DispatchBoard dataStore={dataStore} userId={userId} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/business/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><BusinessDrivers /></Suspense>} />

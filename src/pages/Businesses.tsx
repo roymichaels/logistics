@@ -5,11 +5,8 @@ import { tokens, styles } from '../styles/tokens';
 
 import { CreateBusinessModal, AddEquityStakeholderModal, ProfitDistributionModal, BusinessSettingsModal } from '../modules/business/components';
 import { getBusinessEquityBreakdown, getAvailableEquity, type EquityStakeholder } from '../services/equity';
-import { RoleDiagnostics } from '../lib/diagnostics';
 import { logger } from '../lib/logger';
-import { localBusinessDataService, type Business as LocalBusiness, type BusinessOwnership as LocalOwnership } from '../services/localBusinessDataService';
 import { useAppServices } from '../context/AppServicesContext';
-import { runtimeEnvironment } from '../lib/runtimeEnvironment';
 
 interface BusinessesProps {
   dataStore: DataStore;
@@ -118,56 +115,32 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
       setInitStage('loading_businesses');
       logger.info('🏢 Businesses: Loading business data...');
 
-      // Check if we're using Supabase or frontend-only mode
-      const useFrontendOnly = runtimeEnvironment.isFrontendOnlyMode();
+      // Use data from AppServicesContext (Supabase source of truth)
+      logger.info('Using Supabase data from AppServicesContext');
 
-      if (useFrontendOnly) {
-        // Frontend-only mode: Use local storage
-        logger.info('Using local storage (frontend-only mode)');
-
-        // Load all businesses (for infrastructure owners)
-        if (profile.role === 'infrastructure_owner' || profile.global_role === 'infrastructure_owner') {
-          const allBusinesses = localBusinessDataService.getBusinesses();
-          setBusinesses(allBusinesses);
-          logger.info('✅ Loaded all businesses:', allBusinesses);
-        }
-
-        // Load user's ownerships from local storage
-        const ownerships = localBusinessDataService.getMyBusinesses(profile.id);
-
-        if (ownerships.length > 0) {
-          setMyOwnerships(ownerships);
-          logger.info('✅ Loaded user ownerships:', ownerships);
-        } else {
-          logger.info('ℹ️ No business ownerships found for user (local storage)');
-        }
-      } else {
-        // Supabase mode: Use data from AppServicesContext
-        logger.info('Using Supabase data from AppServicesContext');
-
-        if (appServices.ownedBusinesses && appServices.ownedBusinesses.length > 0) {
-          // Convert AppServices format to local format for compatibility
-          const ownerships = appServices.ownedBusinesses.map(b => ({
+      if (appServices.ownedBusinesses && appServices.ownedBusinesses.length > 0) {
+        // Convert AppServices format to local format for compatibility
+        const ownerships = appServices.ownedBusinesses.map(b => ({
+          id: b.id,
+          business_id: b.id,
+          owner_user_id: profile.id,
+          ownership_percentage: 100, // Owner has 100% by default
+          equity_type: 'founder' as const,
+          profit_share_percentage: 100,
+          voting_rights: true,
+          active: true,
+          business: {
             id: b.id,
-            business_id: b.id,
-            owner_user_id: profile.id,
-            ownership_percentage: 100, // Owner has 100% by default
-            equity_type: 'founder' as const,
-            profit_share_percentage: 100,
-            voting_rights: true,
+            name: b.name,
+            description: b.description,
             active: true,
-            business: {
-              id: b.id,
-              name: b.name,
-              active: true,
-              created_at: b.created_at || new Date().toISOString()
-            }
-          }));
-          setMyOwnerships(ownerships);
-          logger.info('✅ Loaded user ownerships from Supabase:', ownerships);
-        } else {
-          logger.info('ℹ️ No business ownerships found for user (Supabase)');
-        }
+            created_at: b.created_at || new Date().toISOString()
+          }
+        }));
+        setMyOwnerships(ownerships);
+        logger.info('✅ Loaded user ownerships from Supabase:', ownerships);
+      } else {
+        logger.info('ℹ️ No business ownerships found for user');
       }
 
       setInitStage('ready');
@@ -183,9 +156,9 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
     }
   }, [dataStore, appServices.ownedBusinesses]);
 
-  // Reload data when ownedBusinesses changes in Supabase mode
+  // Reload data when ownedBusinesses changes
   useEffect(() => {
-    if (!runtimeEnvironment.isFrontendOnlyMode() && user && appServices.ownedBusinesses) {
+    if (user && appServices.ownedBusinesses) {
       logger.info('🔄 Businesses: Owned businesses updated, reloading...');
       loadData();
     }
@@ -193,9 +166,6 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
 
   const totalOwnershipPercentage = myOwnerships.reduce((sum, o) => sum + o.ownership_percentage, 0);
   const businessesIOwn = myOwnerships.filter(o => o.ownership_percentage > 0).length;
-
-  // Diagnostic check for Create Business button visibility
-  const createBusinessCheck = RoleDiagnostics.shouldShowCreateBusinessButton(user);
 
   // Show initialization error
   if (initError) {
@@ -302,15 +272,13 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
         </div>
       </div>
 
-      {/* Create Business Button - for infrastructure_owner and business_owner */}
-      {(user?.role === 'infrastructure_owner' || user?.global_role === 'infrastructure_owner' ||
-        user?.role === 'business_owner' || user?.global_role === 'business_owner') ? (
+      {/* Create Business Button - for business_owner only */}
+      {(user?.role === 'business_owner' || user?.global_role === 'business_owner') && (
         <div style={{ marginBottom: '24px' }}>
           <button
             onClick={() => {
               logger.info('✅ Create Business button clicked');
               setShowCreateModal(true);
-
             }}
             style={{
               ...styles.button.primary,
@@ -324,7 +292,7 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
             + צור עסק חדש
           </button>
         </div>
-      ) : null}
+      )}
 
       {/* My Ownerships List */}
       {myOwnerships.length > 0 && (
@@ -350,32 +318,8 @@ export function Businesses({ dataStore, onNavigate }: BusinessesProps) {
         </div>
       )}
 
-      {/* All Businesses (Infrastructure Owner Only) */}
-      {(user?.role === 'infrastructure_owner' || user?.global_role === 'infrastructure_owner') && businesses.length > 0 && (
-        <div>
-          <h2 style={{
-            margin: '0 0 16px 0',
-            fontSize: '20px',
-            color: tokens.colors.text,
-            fontWeight: '600'
-          }}>
-            כל העסקים בפלטפורמה
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {businesses.map((business) => (
-              <BusinessCard
-                key={business.id}
-                business={business}
-                dataStore={dataStore}
-                onUpdate={loadData}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Empty State */}
-      {myOwnerships.length === 0 && businesses.length === 0 && (
+      {myOwnerships.length === 0 && (
         <div style={styles.emptyState.container}>
           <div style={styles.emptyState.containerIcon}>🏢</div>
           <div style={styles.emptyState.containerText}>

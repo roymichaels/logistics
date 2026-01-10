@@ -37,7 +37,7 @@ export function BusinessShell({
   const businessAccess = useBusinessScopedAccess();
 
   const navigationItems = getNavigationForRole(role);
-  const isMultiBusinessOwner = role === 'infrastructure_owner' || (role === 'business_owner' && availableBusinesses.length > 1);
+  const isMultiBusinessOwner = role === 'business_owner' && availableBusinesses.length > 1;
 
   // Show all menu items, but mark business-dependent ones as disabled when no business is selected
   const menuItems: MenuItemConfig[] = navigationItems
