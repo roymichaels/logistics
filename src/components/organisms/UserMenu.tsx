@@ -177,7 +177,8 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
               .user-menu-dropdown {
                 bottom: auto !important;
                 top: 0 !important;
-                right: calc(100% + 8px) !important;
+                left: calc(100% + 8px) !important;
+                right: auto !important;
                 transform: none !important;
               }
             }
