@@ -238,6 +238,18 @@ export function CollapsibleMenuPanel({
 
   return (
     <>
+      <style>{`
+        .desktop-profile-dropdown {
+          display: none;
+        }
+
+        @media (min-width: 768px) {
+          .desktop-profile-dropdown {
+            display: block;
+          }
+        }
+      `}</style>
+
       <div
         style={{
           position: 'fixed',
@@ -343,9 +355,9 @@ export function CollapsibleMenuPanel({
           {/* Render categories with their items */}
           {categories.map(renderCategory)}
 
-          {/* Profile dropdown at the bottom */}
+          {/* Profile dropdown at the bottom - desktop only */}
           {user && onLogout && (
-            <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
+            <div className="desktop-profile-dropdown" style={{ marginTop: 'auto', paddingTop: '12px' }}>
               <ProfileDropdown
                 user={user}
                 onNavigate={(path) => {
