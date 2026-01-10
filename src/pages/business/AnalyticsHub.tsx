@@ -1,39 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useSafeAppServices } from '../../context/AppServicesContext';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { PageHeader } from '../../components/layout/PageHeader';
-import { NoActiveBusiness } from '../../components/NoActiveBusiness';
-import { StatCard } from '../../components/molecules/StatCard';
-import { Card } from '../../components/molecules/Card';
-import { Button } from '../../components/atoms/Button';
 import { useNavigate } from 'react-router-dom';
-import { tokens } from '../../styles/tokens';
-import { formatCurrency } from '../../utils/businessFormatters';
+import { undergroundTheme } from '../../styles/undergroundTheme';
+import { AnalyticsService, type BusinessKPIs, type DriverPerformance, type ProductPerformance } from '../../services/modules/AnalyticsService';
+import {
+  UndergroundCard,
+  UndergroundHeader,
+  UndergroundButton,
+  UndergroundLoadingSpinner,
+  UndergroundStatCard,
+  UndergroundSelect,
+  UndergroundTabs,
+  UndergroundEmptyState,
+} from '../../components/underground';
+import { NoActiveBusiness } from '../../components/NoActiveBusiness';
 
-type Section = 'overview' | 'orders' | 'products' | 'customers' | 'drivers' | 'inventory';
-type DateRange = '7d' | '30d' | '90d' | 'all';
-
-interface AnalyticsData {
-  orderTrends: { date: string; count: number; revenue: number }[];
-  topProducts: { name: string; sales: number; revenue: number }[];
-  driverPerformance: { name: string; deliveries: number; rating: number }[];
-  customerPatterns: { segment: string; count: number; avgOrderValue: number }[];
-  inventoryTurnover: { product: string; turnoverRate: number }[];
-  totalOrders: number;
-  totalRevenue: number;
-  avgOrderValue: number;
-  totalCustomers: number;
-}
+type Section = 'overview' | 'drivers' | 'products';
+type DateRangeOption = '7d' | '30d' | '90d' | 'all';
 
 const sections: { id: Section; label: string; icon: string }[] = [
   { id: 'overview', label: 'סקירה', icon: '📊' },
-  { id: 'orders', label: 'הזמנות', icon: '📦' },
-  { id: 'products', label: 'מוצרים', icon: '🏷️' },
-  { id: 'customers', label: 'לקוחות', icon: '👥' },
   { id: 'drivers', label: 'נהגים', icon: '🚗' },
-  { id: 'inventory', label: 'מלאי', icon: '📊' },
+  { id: 'products', label: 'מוצרים', icon: '🏷️' },
 ];
 
 export function AnalyticsHub() {
@@ -42,107 +31,41 @@ export function AnalyticsHub() {
   const currentBusinessId = appServices?.currentBusinessId;
 
   const [activeSection, setActiveSection] = useState<Section>('overview');
-  const [dateRange, setDateRange] = useState<DateRange>('30d');
-  const [comparePeriod, setComparePeriod] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRangeOption>('30d');
   const [loading, setLoading] = useState(true);
-  const [analytics, setAnalytics] = useState<AnalyticsData>({
-    orderTrends: [],
-    topProducts: [],
-    driverPerformance: [],
-    customerPatterns: [],
-    inventoryTurnover: [],
-    totalOrders: 0,
-    totalRevenue: 0,
-    avgOrderValue: 0,
-    totalCustomers: 0,
-  });
+  const [kpis, setKpis] = useState<BusinessKPIs | null>(null);
+  const [driverPerformance, setDriverPerformance] = useState<DriverPerformance[]>([]);
+  const [productPerformance, setProductPerformance] = useState<ProductPerformance[]>([]);
+
+  const analyticsService = currentBusinessId ? new AnalyticsService(currentBusinessId) : null;
 
   useEffect(() => {
-    loadAnalytics();
+    loadAllAnalytics();
   }, [currentBusinessId, dateRange]);
 
-  if (!currentBusinessId) {
-    return (
-      <PageContainer>
-        <NoActiveBusiness
-          onNavigateToBusinesses={() => navigate('/business/businesses')}
-          message="מרכז האנליטיקה דורש עסק פעיל. אנא בחר עסק או צור עסק חדש."
-        />
-      </PageContainer>
-    );
-  }
+  const loadAllAnalytics = async () => {
+    if (!analyticsService || !currentBusinessId) {
+      logger.warn('[AnalyticsHub] No business context');
+      setLoading(false);
+      return;
+    }
 
-  const getDateThreshold = (range: DateRange): string => {
-    const now = new Date();
-    let daysAgo = 30;
-    if (range === '7d') daysAgo = 7;
-    if (range === '90d') daysAgo = 90;
-    if (range === 'all') return '2000-01-01';
-
-    const threshold = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
-    return threshold.toISOString();
-  };
-
-  const loadAnalytics = async () => {
     try {
       setLoading(true);
 
-      if (!currentBusinessId) {
-        logger.warn('[AnalyticsHub] No business context');
-        return;
-      }
+      const dateFilter = getDateRangeFilter(dateRange);
 
-      const dateThreshold = getDateThreshold(dateRange);
-
-      const [
-        { data: orders },
-        { data: orderItems },
-        { data: products },
-        { data: drivers }
-      ] = await Promise.all([
-        supabase
-          .from('orders')
-          .select('id, total_amount, status, created_at, customer_id, driver_id')
-          .eq('business_id', currentBusinessId)
-          .gte('created_at', dateThreshold),
-        supabase
-          .from('order_items')
-          .select('product_id, quantity, unit_price, created_at')
-          .gte('created_at', dateThreshold),
-        supabase
-          .from('products')
-          .select('id, name')
-          .eq('business_id', currentBusinessId),
-        supabase
-          .from('driver_profiles')
-          .select('id, active')
-          .eq('business_id', currentBusinessId)
+      const [businessKPIs, drivers, products] = await Promise.all([
+        analyticsService.getBusinessKPIs(currentBusinessId, dateFilter),
+        analyticsService.getDriverPerformance(currentBusinessId, dateFilter),
+        analyticsService.getTopProducts(currentBusinessId, dateFilter, 10)
       ]);
 
-      const orderTrends = calculateOrderTrends(orders || []);
-      const topProducts = calculateTopProducts(orderItems || [], products || []);
-      const driverPerformance = calculateDriverPerformance(orders || []);
-      const customerPatterns = calculateCustomerPatterns(orders || []);
-      const inventoryTurnover = calculateInventoryTurnover(orderItems || [], products || []);
+      setKpis(businessKPIs);
+      setDriverPerformance(drivers);
+      setProductPerformance(products);
 
-      const totalOrders = orders?.length || 0;
-      const totalRevenue = orders?.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0) || 0;
-      const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-      const totalCustomers = new Set(orders?.map(o => o.customer_id).filter(Boolean)).size;
-
-      setAnalytics({
-        orderTrends,
-        topProducts,
-        driverPerformance,
-        customerPatterns,
-        inventoryTurnover,
-        totalOrders,
-        totalRevenue,
-        avgOrderValue,
-        totalCustomers,
-      });
-
-      logger.info('[AnalyticsHub] Analytics loaded');
+      logger.info('[AnalyticsHub] All analytics loaded');
     } catch (error) {
       logger.error('[AnalyticsHub] Failed to load analytics:', error);
     } finally {
@@ -150,434 +73,591 @@ export function AnalyticsHub() {
     }
   };
 
-  const calculateOrderTrends = (orders: any[]): any[] => {
-    const trendMap = new Map<string, { count: number; revenue: number }>();
+  const getDateRangeFilter = (range: DateRangeOption) => {
+    const now = new Date();
+    let daysAgo = 30;
 
-    orders.forEach(order => {
-      const date = new Date(order.created_at).toISOString().split('T')[0];
-      const existing = trendMap.get(date) || { count: 0, revenue: 0 };
-      trendMap.set(date, {
-        count: existing.count + 1,
-        revenue: existing.revenue + (Number(order.total_amount) || 0)
-      });
-    });
-
-    return Array.from(trendMap.entries())
-      .map(([date, data]) => ({ date, ...data }))
-      .sort((a, b) => a.date.localeCompare(b.date));
-  };
-
-  const calculateTopProducts = (orderItems: any[], products: any[]): any[] => {
-    const productMap = new Map(products.map(p => [p.id, p.name]));
-    const salesMap = new Map<string, { sales: number; revenue: number }>();
-
-    orderItems.forEach(item => {
-      const productName = productMap.get(item.product_id) || 'Unknown';
-      const existing = salesMap.get(productName) || { sales: 0, revenue: 0 };
-      salesMap.set(productName, {
-        sales: existing.sales + (item.quantity || 0),
-        revenue: existing.revenue + ((item.quantity || 0) * (item.unit_price || 0))
-      });
-    });
-
-    return Array.from(salesMap.entries())
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 10);
-  };
-
-  const calculateDriverPerformance = (orders: any[]): any[] => {
-    const driverMap = new Map<string, { deliveries: number; rating: number }>();
-
-    orders.forEach(order => {
-      if (order.driver_id && order.status === 'delivered') {
-        const existing = driverMap.get(order.driver_id) || { deliveries: 0, rating: 4.5 };
-        driverMap.set(order.driver_id, {
-          deliveries: existing.deliveries + 1,
-          rating: existing.rating
-        });
-      }
-    });
-
-    return Array.from(driverMap.entries())
-      .map(([id, data]) => ({ name: `נהג ${id.slice(0, 8)}`, ...data }))
-      .sort((a, b) => b.deliveries - a.deliveries)
-      .slice(0, 10);
-  };
-
-  const calculateCustomerPatterns = (orders: any[]): any[] => {
-    const customerMap = new Map<string, number[]>();
-
-    orders.forEach(order => {
-      if (order.customer_id) {
-        const customerOrders = customerMap.get(order.customer_id) || [];
-        customerOrders.push(Number(order.total_amount) || 0);
-        customerMap.set(order.customer_id, customerOrders);
-      }
-    });
-
-    const highValue = Array.from(customerMap.values()).filter(orders =>
-      orders.reduce((sum, o) => sum + o, 0) / orders.length > 200
-    ).length;
-
-    const mediumValue = Array.from(customerMap.values()).filter(orders => {
-      const avg = orders.reduce((sum, o) => sum + o, 0) / orders.length;
-      return avg >= 100 && avg <= 200;
-    }).length;
-
-    const lowValue = customerMap.size - highValue - mediumValue;
-
-    return [
-      { segment: 'לקוחות בעלי ערך גבוה', count: highValue, avgOrderValue: 250 },
-      { segment: 'לקוחות בעלי ערך בינוני', count: mediumValue, avgOrderValue: 150 },
-      { segment: 'לקוחות בעלי ערך נמוך', count: lowValue, avgOrderValue: 75 }
-    ];
-  };
-
-  const calculateInventoryTurnover = (orderItems: any[], products: any[]): any[] => {
-    const productMap = new Map(products.map(p => [p.id, p.name]));
-    const turnoverMap = new Map<string, number>();
-
-    orderItems.forEach(item => {
-      const productName = productMap.get(item.product_id) || 'Unknown';
-      const existing = turnoverMap.get(productName) || 0;
-      turnoverMap.set(productName, existing + (item.quantity || 0));
-    });
-
-    return Array.from(turnoverMap.entries())
-      .map(([product, quantity]) => ({ product, turnoverRate: quantity }))
-      .sort((a, b) => b.turnoverRate - a.turnoverRate)
-      .slice(0, 10);
-  };
-
-  const exportData = () => {
-    let csvData: any[] = [];
-    let filename = '';
-
-    if (activeSection === 'overview' || activeSection === 'orders') {
-      csvData = [
-        ['תאריך', 'הזמנות', 'הכנסות'],
-        ...analytics.orderTrends.map(t => [t.date, t.count, t.revenue])
-      ];
-      filename = `order-trends-${dateRange}.csv`;
-    } else if (activeSection === 'products') {
-      csvData = [
-        ['מוצר', 'מכירות', 'הכנסות'],
-        ...analytics.topProducts.map(p => [p.name, p.sales, p.revenue])
-      ];
-      filename = `top-products-${dateRange}.csv`;
-    } else if (activeSection === 'customers') {
-      csvData = [
-        ['סגמנט', 'לקוחות', 'ממוצע הזמנה'],
-        ...analytics.customerPatterns.map(c => [c.segment, c.count, c.avgOrderValue])
-      ];
-      filename = `customer-patterns-${dateRange}.csv`;
-    } else if (activeSection === 'drivers') {
-      csvData = [
-        ['נהג', 'משלוחים', 'דירוג'],
-        ...analytics.driverPerformance.map(d => [d.name, d.deliveries, d.rating])
-      ];
-      filename = `driver-performance-${dateRange}.csv`;
-    } else if (activeSection === 'inventory') {
-      csvData = [
-        ['מוצר', 'תחלופה'],
-        ...analytics.inventoryTurnover.map(i => [i.product, i.turnoverRate])
-      ];
-      filename = `inventory-turnover-${dateRange}.csv`;
+    if (range === '7d') daysAgo = 7;
+    if (range === '30d') daysAgo = 30;
+    if (range === '90d') daysAgo = 90;
+    if (range === 'all') {
+      return {
+        startDate: '2000-01-01',
+        endDate: now.toISOString()
+      };
     }
 
-    const csv = csvData.map(row => row.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-    logger.info('[AnalyticsHub] Data exported:', filename);
+    const startDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+    return {
+      startDate: startDate.toISOString(),
+      endDate: now.toISOString()
+    };
   };
 
-  if (loading) {
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('he-IL', {
+      style: 'currency',
+      currency: 'ILS',
+    }).format(amount);
+  };
+
+  if (!currentBusinessId) {
     return (
-      <PageContainer>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '60vh'
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
-            <div style={{
-              fontSize: '18px',
-              fontWeight: '600',
-              color: tokens.colors.text
-            }}>
-              טוען אנליטיקה...
-            </div>
-          </div>
-        </div>
-      </PageContainer>
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: undergroundTheme.spacing.xl
+      }}>
+        <NoActiveBusiness
+          onNavigateToBusinesses={() => navigate('/business/businesses')}
+          message="מרכז האנליטיקה דורש עסק פעיל. אנא בחר עסק או צור עסק חדש."
+        />
+      </div>
     );
   }
 
-  return (
-    <PageContainer>
-      <PageHeader
-        title="מרכז אנליטיקה"
-        subtitle="תובנות מעמיקות על הביצועים העסקיים שלך"
-        actions={
-          <div style={{ display: 'flex', gap: tokens.spacing.sm, alignItems: 'center' }}>
-            <select
-              value={dateRange}
-              onChange={(e) => setDateRange(e.target.value as DateRange)}
-              style={{
-                padding: '10px 16px',
-                fontSize: '14px',
-                fontWeight: '500',
-                borderRadius: '8px',
-                border: `1px solid ${tokens.colors.border}`,
-                backgroundColor: tokens.colors.background,
-                color: tokens.colors.text,
-                cursor: 'pointer'
-              }}
-            >
-              <option value="7d">7 ימים</option>
-              <option value="30d">30 ימים</option>
-              <option value="90d">90 ימים</option>
-              <option value="all">הכל</option>
-            </select>
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <UndergroundLoadingSpinner text="טוען מרכז אנליטיקה..." />
+      </div>
+    );
+  }
 
-            <Button
-              onClick={() => setComparePeriod(!comparePeriod)}
-              variant={comparePeriod ? 'primary' : 'secondary'}
-            >
-              השווה תקופות
-            </Button>
+  if (!kpis) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <UndergroundEmptyState
+          icon="📊"
+          title="אין נתונים זמינים"
+          message="לא נמצאו נתוני אנליטיקס לתקופה הנבחרת"
+        />
+      </div>
+    );
+  }
 
-            <Button onClick={exportData} variant="primary">
-              <span>📥</span> ייצוא
-            </Button>
+  const renderOverviewSection = () => (
+    <>
+      <UndergroundCard style={{ marginBottom: undergroundTheme.spacing.xl }}>
+        <h3 style={{
+          margin: 0,
+          marginBottom: undergroundTheme.spacing.lg,
+          fontSize: undergroundTheme.typography.fontSize.lg,
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          color: undergroundTheme.colors.text.primary
+        }}>
+          מדדי ביצועים ראשיים
+        </h3>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: undergroundTheme.spacing.lg
+        }}>
+          <UndergroundStatCard
+            icon="💰"
+            label="הכנסות"
+            value={formatCurrency(kpis.revenue.total)}
+            trend={`${kpis.revenue.trend >= 0 ? '+' : ''}${kpis.revenue.trend.toFixed(1)}%`}
+            trendColor={kpis.revenue.trend >= 0 ? undergroundTheme.colors.status.success : undergroundTheme.colors.status.danger}
+          />
+          <UndergroundStatCard
+            icon="📦"
+            label="הזמנות"
+            value={kpis.orders.total}
+            trend={`${kpis.orders.trend >= 0 ? '+' : ''}${kpis.orders.trend.toFixed(1)}%`}
+            trendColor={kpis.orders.trend >= 0 ? undergroundTheme.colors.status.success : undergroundTheme.colors.status.danger}
+          />
+          <UndergroundStatCard
+            icon="👥"
+            label="לקוחות"
+            value={kpis.customers.total}
+            trend={`${kpis.customers.trend >= 0 ? '+' : ''}${kpis.customers.trend.toFixed(1)}%`}
+            trendColor={kpis.customers.trend >= 0 ? undergroundTheme.colors.status.success : undergroundTheme.colors.status.danger}
+          />
+          <UndergroundStatCard
+            icon="🚗"
+            label="נהגים פעילים"
+            value={kpis.drivers.active}
+            color={undergroundTheme.colors.accent.primary}
+          />
+        </div>
+      </UndergroundCard>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gap: undergroundTheme.spacing.xl
+      }}>
+        <UndergroundCard>
+          <h4 style={{
+            margin: 0,
+            marginBottom: undergroundTheme.spacing.lg,
+            fontSize: undergroundTheme.typography.fontSize.base,
+            fontWeight: undergroundTheme.typography.fontWeight.semibold,
+            color: undergroundTheme.colors.text.secondary
+          }}>
+            התפלגות הזמנות
+          </h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: undergroundTheme.colors.text.secondary }}>הושלמו</span>
+              <span style={{
+                color: undergroundTheme.colors.status.success,
+                fontWeight: undergroundTheme.typography.fontWeight.bold
+              }}>
+                {kpis.orders.completed}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: undergroundTheme.colors.text.secondary }}>בהמתנה</span>
+              <span style={{
+                color: undergroundTheme.colors.status.warning,
+                fontWeight: undergroundTheme.typography.fontWeight.bold
+              }}>
+                {kpis.orders.pending}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: undergroundTheme.colors.text.secondary }}>בוטלו</span>
+              <span style={{
+                color: undergroundTheme.colors.status.danger,
+                fontWeight: undergroundTheme.typography.fontWeight.bold
+              }}>
+                {kpis.orders.cancelled}
+              </span>
+            </div>
           </div>
+        </UndergroundCard>
+
+        <UndergroundCard>
+          <h4 style={{
+            margin: 0,
+            marginBottom: undergroundTheme.spacing.lg,
+            fontSize: undergroundTheme.typography.fontSize.base,
+            fontWeight: undergroundTheme.typography.fontWeight.semibold,
+            color: undergroundTheme.colors.text.secondary
+          }}>
+            סטטוס מלאי
+          </h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: undergroundTheme.spacing.md }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: undergroundTheme.colors.text.secondary }}>סה״כ מוצרים</span>
+              <span style={{
+                color: undergroundTheme.colors.text.primary,
+                fontWeight: undergroundTheme.typography.fontWeight.bold
+              }}>
+                {kpis.inventory.totalProducts}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: undergroundTheme.colors.text.secondary }}>מלאי נמוך</span>
+              <span style={{
+                color: undergroundTheme.colors.status.warning,
+                fontWeight: undergroundTheme.typography.fontWeight.bold
+              }}>
+                {kpis.inventory.lowStock}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: undergroundTheme.colors.text.secondary }}>אזל מהמלאי</span>
+              <span style={{
+                color: undergroundTheme.colors.status.danger,
+                fontWeight: undergroundTheme.typography.fontWeight.bold
+              }}>
+                {kpis.inventory.outOfStock}
+              </span>
+            </div>
+            <div style={{
+              marginTop: undergroundTheme.spacing.md,
+              paddingTop: undergroundTheme.spacing.md,
+              borderTop: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span style={{ color: undergroundTheme.colors.text.secondary }}>ערך המלאי</span>
+              <span style={{
+                color: undergroundTheme.colors.accent.primary,
+                fontWeight: undergroundTheme.typography.fontWeight.bold
+              }}>
+                {formatCurrency(kpis.inventory.totalValue)}
+              </span>
+            </div>
+          </div>
+        </UndergroundCard>
+      </div>
+    </>
+  );
+
+  const renderDriversSection = () => (
+    <UndergroundCard>
+      <h3 style={{
+        margin: 0,
+        marginBottom: undergroundTheme.spacing.xl,
+        fontSize: undergroundTheme.typography.fontSize.lg,
+        fontWeight: undergroundTheme.typography.fontWeight.bold,
+        color: undergroundTheme.colors.text.primary
+      }}>
+        ביצועי נהגים
+      </h3>
+
+      {driverPerformance.length === 0 ? (
+        <UndergroundEmptyState
+          icon="🚗"
+          title="אין נתוני נהגים"
+          message="לא נמצאו נתוני ביצועים לנהגים בתקופה זו"
+        />
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: `2px solid ${undergroundTheme.colors.glassmorphism.border}` }}>
+                <th style={{
+                  padding: undergroundTheme.spacing.md,
+                  textAlign: 'right',
+                  color: undergroundTheme.colors.text.tertiary,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold
+                }}>
+                  נהג
+                </th>
+                <th style={{
+                  padding: undergroundTheme.spacing.md,
+                  textAlign: 'right',
+                  color: undergroundTheme.colors.text.tertiary,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold
+                }}>
+                  משלוחים
+                </th>
+                <th style={{
+                  padding: undergroundTheme.spacing.md,
+                  textAlign: 'right',
+                  color: undergroundTheme.colors.text.tertiary,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold
+                }}>
+                  דירוג
+                </th>
+                <th style={{
+                  padding: undergroundTheme.spacing.md,
+                  textAlign: 'right',
+                  color: undergroundTheme.colors.text.tertiary,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold
+                }}>
+                  הכנסות
+                </th>
+                <th style={{
+                  padding: undergroundTheme.spacing.md,
+                  textAlign: 'right',
+                  color: undergroundTheme.colors.text.tertiary,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold
+                }}>
+                  שיעור בזמן
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {driverPerformance.map((driver, index) => (
+                <tr
+                  key={driver.driverId}
+                  style={{
+                    borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                    transition: undergroundTheme.transitions.fast
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.light;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  <td style={{ padding: undergroundTheme.spacing.md }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: undergroundTheme.spacing.sm
+                    }}>
+                      <div style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: undergroundTheme.colors.accent.gradient,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: undergroundTheme.typography.fontSize.sm,
+                        fontWeight: undergroundTheme.typography.fontWeight.bold,
+                        color: undergroundTheme.colors.text.primary
+                      }}>
+                        {index + 1}
+                      </div>
+                      <span style={{
+                        color: undergroundTheme.colors.text.primary,
+                        fontWeight: undergroundTheme.typography.fontWeight.medium
+                      }}>
+                        {driver.driverName}
+                      </span>
+                    </div>
+                  </td>
+                  <td style={{ padding: undergroundTheme.spacing.md }}>
+                    <span style={{
+                      color: undergroundTheme.colors.accent.primary,
+                      fontWeight: undergroundTheme.typography.fontWeight.bold
+                    }}>
+                      {driver.completedDeliveries}/{driver.totalDeliveries}
+                    </span>
+                  </td>
+                  <td style={{ padding: undergroundTheme.spacing.md }}>
+                    <span style={{ color: undergroundTheme.colors.text.secondary }}>
+                      ⭐ {driver.avgRating.toFixed(1)}
+                    </span>
+                  </td>
+                  <td style={{ padding: undergroundTheme.spacing.md }}>
+                    <span style={{
+                      color: undergroundTheme.colors.status.success,
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold
+                    }}>
+                      {formatCurrency(driver.totalEarnings)}
+                    </span>
+                  </td>
+                  <td style={{ padding: undergroundTheme.spacing.md }}>
+                    <span style={{
+                      color: driver.onTimeRate >= 90
+                        ? undergroundTheme.colors.status.success
+                        : driver.onTimeRate >= 70
+                        ? undergroundTheme.colors.status.warning
+                        : undergroundTheme.colors.status.danger,
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold
+                    }}>
+                      {driver.onTimeRate.toFixed(0)}%
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </UndergroundCard>
+  );
+
+  const renderProductsSection = () => (
+    <UndergroundCard>
+      <h3 style={{
+        margin: 0,
+        marginBottom: undergroundTheme.spacing.xl,
+        fontSize: undergroundTheme.typography.fontSize.lg,
+        fontWeight: undergroundTheme.typography.fontWeight.bold,
+        color: undergroundTheme.colors.text.primary
+      }}>
+        מוצרים מובילים
+      </h3>
+
+      {productPerformance.length === 0 ? (
+        <UndergroundEmptyState
+          icon="🏷️"
+          title="אין נתוני מוצרים"
+          message="לא נמצאו נתוני ביצועים למוצרים בתקופה זו"
+        />
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: `2px solid ${undergroundTheme.colors.glassmorphism.border}` }}>
+                <th style={{
+                  padding: undergroundTheme.spacing.md,
+                  textAlign: 'right',
+                  color: undergroundTheme.colors.text.tertiary,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold
+                }}>
+                  מוצר
+                </th>
+                <th style={{
+                  padding: undergroundTheme.spacing.md,
+                  textAlign: 'right',
+                  color: undergroundTheme.colors.text.tertiary,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold
+                }}>
+                  נמכרו
+                </th>
+                <th style={{
+                  padding: undergroundTheme.spacing.md,
+                  textAlign: 'right',
+                  color: undergroundTheme.colors.text.tertiary,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold
+                }}>
+                  הכנסות
+                </th>
+                <th style={{
+                  padding: undergroundTheme.spacing.md,
+                  textAlign: 'right',
+                  color: undergroundTheme.colors.text.tertiary,
+                  fontWeight: undergroundTheme.typography.fontWeight.semibold
+                }}>
+                  מלאי
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {productPerformance.map((product, index) => (
+                <tr
+                  key={product.productId}
+                  style={{
+                    borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
+                    transition: undergroundTheme.transitions.fast
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.light;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  <td style={{ padding: undergroundTheme.spacing.md }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: undergroundTheme.spacing.sm
+                    }}>
+                      <div style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: undergroundTheme.colors.accent.gradient,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: undergroundTheme.typography.fontSize.sm,
+                        fontWeight: undergroundTheme.typography.fontWeight.bold,
+                        color: undergroundTheme.colors.text.primary
+                      }}>
+                        {index + 1}
+                      </div>
+                      <span style={{
+                        color: undergroundTheme.colors.text.primary,
+                        fontWeight: undergroundTheme.typography.fontWeight.medium
+                      }}>
+                        {product.productName}
+                      </span>
+                    </div>
+                  </td>
+                  <td style={{ padding: undergroundTheme.spacing.md }}>
+                    <span style={{
+                      color: undergroundTheme.colors.accent.primary,
+                      fontWeight: undergroundTheme.typography.fontWeight.bold
+                    }}>
+                      {product.totalSold}
+                    </span>
+                  </td>
+                  <td style={{ padding: undergroundTheme.spacing.md }}>
+                    <span style={{
+                      color: undergroundTheme.colors.status.success,
+                      fontWeight: undergroundTheme.typography.fontWeight.semibold
+                    }}>
+                      {formatCurrency(product.revenue)}
+                    </span>
+                  </td>
+                  <td style={{ padding: undergroundTheme.spacing.md }}>
+                    <span style={{
+                      color: product.stockLevel < 10
+                        ? undergroundTheme.colors.status.danger
+                        : product.stockLevel < 50
+                        ? undergroundTheme.colors.status.warning
+                        : undergroundTheme.colors.text.secondary
+                    }}>
+                      {product.stockLevel}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </UndergroundCard>
+  );
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing['3xl'],
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <UndergroundHeader
+        icon="📊"
+        title="מרכז אנליטיקה"
+        subtitle="תובנות עסקיות מתקדמות"
+        actions={
+          <UndergroundSelect
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value as DateRangeOption)}
+            style={{ minWidth: '150px' }}
+          >
+            <option value="7d">7 ימים</option>
+            <option value="30d">30 ימים</option>
+            <option value="90d">90 ימים</option>
+            <option value="all">כל התקופה</option>
+          </UndergroundSelect>
         }
       />
 
-      <Card style={{ marginBottom: tokens.spacing.lg }}>
-        <div style={{
-          display: 'flex',
-          gap: tokens.spacing.sm,
-          overflowX: 'auto',
-          paddingBottom: '8px'
-        }}>
-          {sections.map(section => (
+      <UndergroundCard style={{ marginBottom: undergroundTheme.spacing.xl }}>
+        <div style={{ display: 'flex', gap: undergroundTheme.spacing.md, borderBottom: `2px solid ${undergroundTheme.colors.glassmorphism.border}` }}>
+          {sections.map((section) => (
             <button
               key={section.id}
               onClick={() => setActiveSection(section.id)}
               style={{
-                padding: '12px 20px',
-                fontSize: '14px',
-                fontWeight: '600',
-                borderRadius: '8px',
-                border: `1px solid ${tokens.colors.border}`,
-                backgroundColor: activeSection === section.id ? tokens.colors.primary : tokens.colors.surface,
-                color: activeSection === section.id ? '#ffffff' : tokens.colors.text,
+                padding: `${undergroundTheme.spacing.md} ${undergroundTheme.spacing.xl}`,
+                background: 'transparent',
+                border: 'none',
+                borderBottom: activeSection === section.id
+                  ? `2px solid ${undergroundTheme.colors.accent.primary}`
+                  : '2px solid transparent',
+                color: activeSection === section.id
+                  ? undergroundTheme.colors.text.primary
+                  : undergroundTheme.colors.text.muted,
+                fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                fontSize: undergroundTheme.typography.fontSize.base,
                 cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.2s'
+                transition: undergroundTheme.transitions.fast,
+                marginBottom: '-2px'
+              }}
+              onMouseEnter={(e) => {
+                if (activeSection !== section.id) {
+                  e.currentTarget.style.color = undergroundTheme.colors.text.secondary;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeSection !== section.id) {
+                  e.currentTarget.style.color = undergroundTheme.colors.text.muted;
+                }
               }}
             >
-              <span>{section.icon}</span>
-              <span>{section.label}</span>
+              {section.icon} {section.label}
             </button>
           ))}
         </div>
-      </Card>
+      </UndergroundCard>
 
-      {activeSection === 'overview' && (
-        <div style={{ display: 'grid', gap: tokens.spacing.lg }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: tokens.spacing.md
-          }}>
-            <StatCard label="סה״כ הזמנות" value={analytics.totalOrders.toString()} icon="📦" />
-            <StatCard label="סה״כ הכנסות" value={formatCurrency(analytics.totalRevenue, 'ILS')} icon="💰" />
-            <StatCard label="ממוצע הזמנה" value={formatCurrency(analytics.avgOrderValue, 'ILS')} icon="📊" />
-            <StatCard label="לקוחות" value={analytics.totalCustomers.toString()} icon="👥" />
-          </div>
-
-          <DataTable
-            title="מגמות הזמנות"
-            headers={['תאריך', 'הזמנות', 'הכנסות']}
-            rows={analytics.orderTrends.slice(-10).map(t => [
-              t.date,
-              t.count.toString(),
-              formatCurrency(t.revenue, 'ILS')
-            ])}
-          />
-        </div>
-      )}
-
-      {activeSection === 'orders' && (
-        <DataTable
-          title="מגמות הזמנות"
-          headers={['תאריך', 'הזמנות', 'הכנסות']}
-          rows={analytics.orderTrends.map(t => [
-            t.date,
-            t.count.toString(),
-            formatCurrency(t.revenue, 'ILS')
-          ])}
-        />
-      )}
-
-      {activeSection === 'products' && (
-        <DataTable
-          title="מוצרים מובילים"
-          headers={['מוצר', 'מכירות', 'הכנסות']}
-          rows={analytics.topProducts.map(p => [
-            p.name,
-            p.sales.toString(),
-            formatCurrency(p.revenue, 'ILS')
-          ])}
-        />
-      )}
-
-      {activeSection === 'customers' && (
-        <div style={{ display: 'grid', gap: '16px' }}>
-          {analytics.customerPatterns.map((pattern, idx) => (
-            <div
-              key={idx}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '20px',
-                backgroundColor: tokens.colors.surface,
-                border: `1px solid ${tokens.colors.border}`,
-                borderRadius: '12px'
-              }}
-            >
-              <span style={{
-                fontSize: '16px',
-                fontWeight: '600',
-                color: tokens.colors.text
-              }}>
-                {pattern.segment}
-              </span>
-              <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-                <span style={{
-                  fontSize: '14px',
-                  color: tokens.colors.textSecondary
-                }}>
-                  {pattern.count} לקוחות
-                </span>
-                <span style={{
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  color: tokens.colors.primary
-                }}>
-                  {formatCurrency(pattern.avgOrderValue, 'ILS')} ממוצע
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {activeSection === 'drivers' && (
-        <DataTable
-          title="ביצועי נהגים"
-          headers={['נהג', 'משלוחים', 'דירוג']}
-          rows={analytics.driverPerformance.map(d => [
-            d.name,
-            d.deliveries.toString(),
-            `${d.rating.toFixed(1)} ⭐`
-          ])}
-        />
-      )}
-
-      {activeSection === 'inventory' && (
-        <DataTable
-          title="תחלופת מלאי"
-          headers={['מוצר', 'תחלופה']}
-          rows={analytics.inventoryTurnover.map(i => [
-            i.product,
-            i.turnoverRate.toString()
-          ])}
-        />
-      )}
-    </PageContainer>
-  );
-}
-
-function DataTable({ title, headers, rows }: {
-  title: string;
-  headers: string[];
-  rows: string[][];
-}) {
-  return (
-    <div style={{
-      backgroundColor: tokens.colors.surface,
-      border: `1px solid ${tokens.colors.border}`,
-      borderRadius: '12px',
-      overflow: 'hidden'
-    }}>
-      <div style={{
-        padding: '20px',
-        borderBottom: `1px solid ${tokens.colors.border}`,
-        fontSize: '18px',
-        fontWeight: '600',
-        color: tokens.colors.text
-      }}>
-        {title}
-      </div>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ backgroundColor: tokens.colors.background }}>
-              {headers.map((header, idx) => (
-                <th
-                  key={idx}
-                  style={{
-                    padding: '12px 16px',
-                    textAlign: 'right',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: tokens.colors.textSecondary
-                  }}
-                >
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, rowIdx) => (
-              <tr
-                key={rowIdx}
-                style={{
-                  borderBottom: `1px solid ${tokens.colors.border}`
-                }}
-              >
-                {row.map((cell, cellIdx) => (
-                  <td
-                    key={cellIdx}
-                    style={{
-                      padding: '12px 16px',
-                      fontSize: '14px',
-                      color: tokens.colors.text
-                    }}
-                  >
-                    {cell}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div>
+        {activeSection === 'overview' && renderOverviewSection()}
+        {activeSection === 'drivers' && renderDriversSection()}
+        {activeSection === 'products' && renderProductsSection()}
       </div>
     </div>
   );

@@ -1,81 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 import { useSafeAppServices } from '../../context/AppServicesContext';
 import { undergroundTheme } from '../../styles/undergroundTheme';
+import { AnalyticsService, type BusinessKPIs } from '../../services/modules/AnalyticsService';
 import {
   UndergroundCard,
   UndergroundHeader,
   UndergroundButton,
   UndergroundLoadingSpinner,
-  UndergroundSection,
-  UndergroundEmptyState,
   UndergroundStatCard,
+  UndergroundSelect,
+  UndergroundEmptyState,
 } from '../../components/underground';
 
-interface AnalyticsData {
-  orderTrends: { date: string; count: number; revenue: number }[];
-  topProducts: { name: string; sales: number; revenue: number }[];
-  driverPerformance: { name: string; deliveries: number; rating: number }[];
-  customerPatterns: { segment: string; count: number; avgOrderValue: number }[];
-  inventoryTurnover: { product: string; turnoverRate: number }[];
-}
+type DateRangeOption = '7d' | '30d' | '90d' | 'all';
 
 export function BusinessAnalytics() {
   const appServices = useSafeAppServices();
   const currentBusinessId = appServices?.currentBusinessId;
 
-  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
+  const [dateRange, setDateRange] = useState<DateRangeOption>('30d');
   const [loading, setLoading] = useState(true);
-  const [analytics, setAnalytics] = useState<AnalyticsData>({
-    orderTrends: [],
-    topProducts: [],
-    driverPerformance: [],
-    customerPatterns: [],
-    inventoryTurnover: [],
-  });
+  const [kpis, setKpis] = useState<BusinessKPIs | null>(null);
+
+  const analyticsService = currentBusinessId ? new AnalyticsService(currentBusinessId) : null;
 
   useEffect(() => {
     loadAnalytics();
   }, [currentBusinessId, dateRange]);
 
   const loadAnalytics = async () => {
+    if (!analyticsService || !currentBusinessId) {
+      logger.warn('[BusinessAnalytics] No business context');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
 
-      if (!currentBusinessId) {
-        logger.warn('[BusinessAnalytics] No business context');
-        return;
-      }
+      const dateFilter = getDateRangeFilter(dateRange);
+      const businessKPIs = await analyticsService.getBusinessKPIs(currentBusinessId, dateFilter);
 
-      const dateThreshold = getDateThreshold(dateRange);
-
-      const [{ data: orders }, { data: orderItems }, { data: products }, { data: drivers }] = await Promise.all([
-        supabase
-          .from('orders')
-          .select('id, total, status, created_at, customer_id, driver_id')
-          .eq('business_id', currentBusinessId)
-          .gte('created_at', dateThreshold),
-        supabase.from('order_items').select('product_id, quantity, unit_price').gte('created_at', dateThreshold),
-        supabase.from('products').select('id, name').eq('business_id', currentBusinessId),
-        supabase.from('driver_profiles').select('id, active').eq('business_id', currentBusinessId),
-      ]);
-
-      const orderTrends = calculateOrderTrends(orders || []);
-      const topProducts = calculateTopProducts(orderItems || [], products || []);
-      const driverPerformance = calculateDriverPerformance(orders || [], drivers || []);
-      const customerPatterns = calculateCustomerPatterns(orders || []);
-      const inventoryTurnover = calculateInventoryTurnover(orderItems || [], products || []);
-
-      setAnalytics({
-        orderTrends,
-        topProducts,
-        driverPerformance,
-        customerPatterns,
-        inventoryTurnover,
-      });
-
-      logger.info('[BusinessAnalytics] Analytics loaded');
+      setKpis(businessKPIs);
+      logger.info('[BusinessAnalytics] KPIs loaded:', businessKPIs);
     } catch (error) {
       logger.error('[BusinessAnalytics] Failed to load analytics:', error);
     } finally {
@@ -83,522 +51,368 @@ export function BusinessAnalytics() {
     }
   };
 
-  const getDateThreshold = (range: string): string => {
+  const getDateRangeFilter = (range: DateRangeOption) => {
     const now = new Date();
     let daysAgo = 30;
+
     if (range === '7d') daysAgo = 7;
+    if (range === '30d') daysAgo = 30;
     if (range === '90d') daysAgo = 90;
-    if (range === 'all') return '2000-01-01';
+    if (range === 'all') {
+      return {
+        startDate: '2000-01-01',
+        endDate: now.toISOString()
+      };
+    }
 
-    const threshold = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
-    return threshold.toISOString();
-  };
-
-  const calculateOrderTrends = (orders: any[]): any[] => {
-    const trendMap = new Map<string, { count: number; revenue: number }>();
-
-    orders.forEach((order) => {
-      const date = new Date(order.created_at).toISOString().split('T')[0];
-      const existing = trendMap.get(date) || { count: 0, revenue: 0 };
-      trendMap.set(date, {
-        count: existing.count + 1,
-        revenue: existing.revenue + (Number(order.total) || 0),
-      });
-    });
-
-    return Array.from(trendMap.entries())
-      .map(([date, data]) => ({ date, ...data }))
-      .sort((a, b) => a.date.localeCompare(b.date));
-  };
-
-  const calculateTopProducts = (orderItems: any[], products: any[]): any[] => {
-    const productMap = new Map(products.map((p) => [p.id, p.name]));
-    const salesMap = new Map<string, { sales: number; revenue: number }>();
-
-    orderItems.forEach((item) => {
-      const productName = productMap.get(item.product_id) || 'Unknown';
-      const existing = salesMap.get(productName) || { sales: 0, revenue: 0 };
-      salesMap.set(productName, {
-        sales: existing.sales + (item.quantity || 0),
-        revenue: existing.revenue + (item.quantity || 0) * (item.unit_price || 0),
-      });
-    });
-
-    return Array.from(salesMap.entries())
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 10);
-  };
-
-  const calculateDriverPerformance = (orders: any[], drivers: any[]): any[] => {
-    const driverMap = new Map<string, { deliveries: number; rating: number }>();
-
-    orders.forEach((order) => {
-      if (order.driver_id && order.status === 'delivered') {
-        const existing = driverMap.get(order.driver_id) || { deliveries: 0, rating: 4.5 };
-        driverMap.set(order.driver_id, {
-          deliveries: existing.deliveries + 1,
-          rating: existing.rating,
-        });
-      }
-    });
-
-    return Array.from(driverMap.entries())
-      .map(([id, data]) => ({ name: `Driver ${id.slice(0, 8)}`, ...data }))
-      .sort((a, b) => b.deliveries - a.deliveries)
-      .slice(0, 10);
-  };
-
-  const calculateCustomerPatterns = (orders: any[]): any[] => {
-    const customerMap = new Map<string, number[]>();
-
-    orders.forEach((order) => {
-      if (order.customer_id) {
-        const orders = customerMap.get(order.customer_id) || [];
-        orders.push(Number(order.total) || 0);
-        customerMap.set(order.customer_id, orders);
-      }
-    });
-
-    const highValue = Array.from(customerMap.values()).filter(
-      (orders) => orders.reduce((sum, o) => sum + o, 0) / orders.length > 200
-    ).length;
-
-    const mediumValue = Array.from(customerMap.values()).filter(
-      (orders) =>
-        orders.reduce((sum, o) => sum + o, 0) / orders.length >= 100 &&
-        orders.reduce((sum, o) => sum + o, 0) / orders.length <= 200
-    ).length;
-
-    const lowValue = customerMap.size - highValue - mediumValue;
-
-    return [
-      { segment: 'High Value Customers', count: highValue, avgOrderValue: 250 },
-      { segment: 'Medium Value Customers', count: mediumValue, avgOrderValue: 150 },
-      { segment: 'Low Value Customers', count: lowValue, avgOrderValue: 75 },
-    ];
-  };
-
-  const calculateInventoryTurnover = (orderItems: any[], products: any[]): any[] => {
-    const productMap = new Map(products.map((p) => [p.id, p.name]));
-    const turnoverMap = new Map<string, number>();
-
-    orderItems.forEach((item) => {
-      const productName = productMap.get(item.product_id) || 'Unknown';
-      const existing = turnoverMap.get(productName) || 0;
-      turnoverMap.set(productName, existing + (item.quantity || 0));
-    });
-
-    return Array.from(turnoverMap.entries())
-      .map(([product, quantity]) => ({ product, turnoverRate: quantity }))
-      .sort((a, b) => b.turnoverRate - a.turnoverRate)
-      .slice(0, 10);
+    const startDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+    return {
+      startDate: startDate.toISOString(),
+      endDate: now.toISOString()
+    };
   };
 
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('he-IL', {
       style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
+      currency: 'ILS',
     }).format(amount);
   };
 
-  const exportData = () => {
-    const csvData = [['Date', 'Orders', 'Revenue'], ...analytics.orderTrends.map((t) => [t.date, t.count, t.revenue])];
+  const formatTrend = (trend: number): string => {
+    const sign = trend >= 0 ? '+' : '';
+    return `${sign}${trend.toFixed(1)}%`;
+  };
 
-    const csv = csvData.map((row) => row.join(',')).join('\n');
+  const getTrendColor = (trend: number): string => {
+    if (trend > 0) return undergroundTheme.colors.status.success;
+    if (trend < 0) return undergroundTheme.colors.status.danger;
+    return undergroundTheme.colors.text.muted;
+  };
+
+  const exportReport = () => {
+    if (!kpis) return;
+
+    const csvData = [
+      ['Business Analytics Report', `Date Range: ${dateRange}`],
+      [],
+      ['Revenue Metrics'],
+      ['Total Revenue', formatCurrency(kpis.revenue.total)],
+      ['Revenue Trend', formatTrend(kpis.revenue.trend)],
+      [],
+      ['Order Metrics'],
+      ['Total Orders', kpis.orders.total],
+      ['Completed', kpis.orders.completed],
+      ['Pending', kpis.orders.pending],
+      ['Cancelled', kpis.orders.cancelled],
+      ['Order Trend', formatTrend(kpis.orders.trend)],
+      [],
+      ['Customer Metrics'],
+      ['Total Customers', kpis.customers.total],
+      ['New Customers', kpis.customers.new],
+      ['Returning Customers', kpis.customers.returning],
+      ['Customer Trend', formatTrend(kpis.customers.trend)],
+      [],
+      ['Inventory Metrics'],
+      ['Total Products', kpis.inventory.totalProducts],
+      ['Low Stock Items', kpis.inventory.lowStock],
+      ['Out of Stock', kpis.inventory.outOfStock],
+      ['Total Value', formatCurrency(kpis.inventory.totalValue)],
+      [],
+      ['Driver Metrics'],
+      ['Active Drivers', kpis.drivers.active],
+      ['Total Drivers', kpis.drivers.total],
+      ['Average Rating', kpis.drivers.avgRating.toFixed(2)],
+      ['Completion Rate', `${kpis.drivers.completionRate.toFixed(1)}%`],
+    ];
+
+    const csv = csvData.map(row => row.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `analytics-${dateRange}.csv`;
+    a.download = `analytics-${dateRange}-${Date.now()}.csv`;
     a.click();
-    logger.info('[BusinessAnalytics] Data exported');
+    logger.info('[BusinessAnalytics] Report exported');
   };
 
   if (!currentBusinessId) {
     return (
-      <div
-        style={{
-          background: undergroundTheme.colors.gradient.primary,
-          minHeight: '100vh',
-          padding: undergroundTheme.spacing['2xl'],
-        }}
-      >
-        <UndergroundEmptyState title="No Business Context" message="Please select a business to view analytics" />
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <UndergroundEmptyState
+          icon="📊"
+          title="לא נבחר עסק"
+          message="כדי לצפות באנליטיקס, עליך לבחור עסק פעיל"
+        />
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div
-        style={{
-          background: undergroundTheme.colors.gradient.primary,
-          minHeight: '100vh',
-          padding: undergroundTheme.spacing['2xl'],
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <UndergroundLoadingSpinner size="lg" />
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <UndergroundLoadingSpinner text="טוען אנליטיקס..." />
       </div>
     );
   }
 
-  const hasData =
-    analytics.orderTrends.length > 0 ||
-    analytics.topProducts.length > 0 ||
-    analytics.driverPerformance.length > 0 ||
-    analytics.customerPatterns.length > 0;
+  if (!kpis) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: undergroundTheme.colors.gradient.primary,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <UndergroundEmptyState
+          icon="📊"
+          title="אין נתונים זמינים"
+          message="לא נמצאו נתוני אנליטיקס לתקופה הנבחרת"
+        />
+      </div>
+    );
+  }
 
   return (
-    <div
-      style={{
-        background: undergroundTheme.colors.gradient.primary,
-        color: undergroundTheme.colors.text.primary,
-        minHeight: '100vh',
-        padding: undergroundTheme.spacing['2xl'],
-        paddingBottom: undergroundTheme.spacing['8xl'],
-      }}
-    >
-      <UndergroundHeader title="Business Analytics" subtitle="Deep insights into your business performance" />
-
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: undergroundTheme.spacing.xl,
-          gap: undergroundTheme.spacing.lg,
-          flexWrap: 'wrap',
-        }}
-      >
-        <div style={{ display: 'flex', gap: undergroundTheme.spacing.md, flexWrap: 'wrap' }}>
-          {(['7d', '30d', '90d', 'all'] as const).map((range) => (
-            <UndergroundButton
-              key={range}
-              onClick={() => setDateRange(range)}
-              variant={dateRange === range ? 'primary' : 'secondary'}
-              size="sm"
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing['3xl'],
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <UndergroundHeader
+        icon="📊"
+        title="אנליטיקס עסקית"
+        subtitle="מדדי ביצועים ותובנות עסקיות"
+        actions={
+          <div style={{ display: 'flex', gap: undergroundTheme.spacing.md, alignItems: 'center' }}>
+            <UndergroundSelect
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value as DateRangeOption)}
+              style={{ minWidth: '150px' }}
             >
-              {range === '7d' ? '7 Days' : range === '30d' ? '30 Days' : range === '90d' ? '90 Days' : 'All Time'}
+              <option value="7d">7 ימים אחרונים</option>
+              <option value="30d">30 ימים אחרונים</option>
+              <option value="90d">90 ימים אחרונים</option>
+              <option value="all">כל התקופה</option>
+            </UndergroundSelect>
+            <UndergroundButton onClick={exportReport} variant="primary">
+              ייצוא CSV
             </UndergroundButton>
-          ))}
+          </div>
+        }
+      />
+
+      {/* Revenue Section */}
+      <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['2xl'] }}>
+        <h3 style={{
+          margin: 0,
+          marginBottom: undergroundTheme.spacing.xl,
+          fontSize: undergroundTheme.typography.fontSize.xl,
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          color: undergroundTheme.colors.text.primary
+        }}>
+          הכנסות
+        </h3>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: undergroundTheme.spacing.lg
+        }}>
+          <UndergroundStatCard
+            icon="💰"
+            label="סה״כ הכנסות"
+            value={formatCurrency(kpis.revenue.total)}
+            trend={formatTrend(kpis.revenue.trend)}
+            trendColor={getTrendColor(kpis.revenue.trend)}
+          />
+          <UndergroundStatCard
+            icon="📈"
+            label="מגמת הכנסות"
+            value={formatTrend(kpis.revenue.trend)}
+            color={getTrendColor(kpis.revenue.trend)}
+          />
         </div>
-        {hasData && (
-          <UndergroundButton onClick={exportData} variant="primary" size="sm">
-            Export Data
-          </UndergroundButton>
-        )}
-      </div>
+      </UndergroundCard>
 
-      {!hasData ? (
-        <UndergroundEmptyState title="No Analytics Data" message="No data available for the selected time range" />
-      ) : (
-        <div style={{ display: 'grid', gap: undergroundTheme.spacing.xl }}>
-          <UndergroundSection title="Order Trends">
-            <UndergroundCard>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr
-                      style={{
-                        borderBottom: `2px solid ${undergroundTheme.colors.glassmorphism.border}`,
-                      }}
-                    >
-                      <th
-                        style={{
-                          padding: undergroundTheme.spacing.lg,
-                          textAlign: 'left',
-                          color: undergroundTheme.colors.text.secondary,
-                          fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                          fontSize: undergroundTheme.typography.fontSize.sm,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }}
-                      >
-                        Date
-                      </th>
-                      <th
-                        style={{
-                          padding: undergroundTheme.spacing.lg,
-                          textAlign: 'left',
-                          color: undergroundTheme.colors.text.secondary,
-                          fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                          fontSize: undergroundTheme.typography.fontSize.sm,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }}
-                      >
-                        Orders
-                      </th>
-                      <th
-                        style={{
-                          padding: undergroundTheme.spacing.lg,
-                          textAlign: 'left',
-                          color: undergroundTheme.colors.text.secondary,
-                          fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                          fontSize: undergroundTheme.typography.fontSize.sm,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }}
-                      >
-                        Revenue
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {analytics.orderTrends.slice(-10).map((trend, idx) => (
-                      <tr
-                        key={idx}
-                        style={{
-                          borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`,
-                          transition: undergroundTheme.transitions.fast,
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.light;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'transparent';
-                        }}
-                      >
-                        <td style={{ padding: undergroundTheme.spacing.md, color: undergroundTheme.colors.text.primary }}>
-                          {trend.date}
-                        </td>
-                        <td
-                          style={{
-                            padding: undergroundTheme.spacing.md,
-                            color: undergroundTheme.colors.accent.primary,
-                            fontWeight: 600,
-                          }}
-                        >
-                          {trend.count}
-                        </td>
-                        <td
-                          style={{
-                            padding: undergroundTheme.spacing.md,
-                            color: undergroundTheme.colors.status.success,
-                            fontWeight: 600,
-                          }}
-                        >
-                          {formatCurrency(trend.revenue)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </UndergroundCard>
-          </UndergroundSection>
-
-          <UndergroundSection title="Top Products">
-            <UndergroundCard>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ borderBottom: `2px solid ${undergroundTheme.colors.glassmorphism.border}` }}>
-                      <th
-                        style={{
-                          padding: undergroundTheme.spacing.lg,
-                          textAlign: 'left',
-                          color: undergroundTheme.colors.text.secondary,
-                          fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                          fontSize: undergroundTheme.typography.fontSize.sm,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }}
-                      >
-                        Product
-                      </th>
-                      <th
-                        style={{
-                          padding: undergroundTheme.spacing.lg,
-                          textAlign: 'left',
-                          color: undergroundTheme.colors.text.secondary,
-                          fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                          fontSize: undergroundTheme.typography.fontSize.sm,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }}
-                      >
-                        Sales
-                      </th>
-                      <th
-                        style={{
-                          padding: undergroundTheme.spacing.lg,
-                          textAlign: 'left',
-                          color: undergroundTheme.colors.text.secondary,
-                          fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                          fontSize: undergroundTheme.typography.fontSize.sm,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }}
-                      >
-                        Revenue
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {analytics.topProducts.map((product, idx) => (
-                      <tr
-                        key={idx}
-                        style={{ borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`, transition: undergroundTheme.transitions.fast }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.light;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'transparent';
-                        }}
-                      >
-                        <td style={{ padding: undergroundTheme.spacing.md, color: undergroundTheme.colors.text.primary }}>
-                          {product.name}
-                        </td>
-                        <td
-                          style={{
-                            padding: undergroundTheme.spacing.md,
-                            color: undergroundTheme.colors.accent.primary,
-                            fontWeight: 600,
-                          }}
-                        >
-                          {product.sales}
-                        </td>
-                        <td
-                          style={{
-                            padding: undergroundTheme.spacing.md,
-                            color: undergroundTheme.colors.status.success,
-                            fontWeight: 600,
-                          }}
-                        >
-                          {formatCurrency(product.revenue)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </UndergroundCard>
-          </UndergroundSection>
-
-          <UndergroundSection title="Driver Performance">
-            <UndergroundCard>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ borderBottom: `2px solid ${undergroundTheme.colors.glassmorphism.border}` }}>
-                      <th
-                        style={{
-                          padding: undergroundTheme.spacing.lg,
-                          textAlign: 'left',
-                          color: undergroundTheme.colors.text.secondary,
-                          fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                          fontSize: undergroundTheme.typography.fontSize.sm,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }}
-                      >
-                        Driver
-                      </th>
-                      <th
-                        style={{
-                          padding: undergroundTheme.spacing.lg,
-                          textAlign: 'left',
-                          color: undergroundTheme.colors.text.secondary,
-                          fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                          fontSize: undergroundTheme.typography.fontSize.sm,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }}
-                      >
-                        Deliveries
-                      </th>
-                      <th
-                        style={{
-                          padding: undergroundTheme.spacing.lg,
-                          textAlign: 'left',
-                          color: undergroundTheme.colors.text.secondary,
-                          fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                          fontSize: undergroundTheme.typography.fontSize.sm,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }}
-                      >
-                        Rating
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {analytics.driverPerformance.map((driver, idx) => (
-                      <tr
-                        key={idx}
-                        style={{ borderBottom: `1px solid ${undergroundTheme.colors.glassmorphism.border}`, transition: undergroundTheme.transitions.fast }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = undergroundTheme.colors.glassmorphism.light;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'transparent';
-                        }}
-                      >
-                        <td style={{ padding: undergroundTheme.spacing.md, color: undergroundTheme.colors.text.primary }}>
-                          {driver.name}
-                        </td>
-                        <td
-                          style={{
-                            padding: undergroundTheme.spacing.md,
-                            color: undergroundTheme.colors.accent.primary,
-                            fontWeight: 600,
-                          }}
-                        >
-                          {driver.deliveries}
-                        </td>
-                        <td style={{ padding: undergroundTheme.spacing.md, color: undergroundTheme.colors.status.warning }}>
-                          {driver.rating.toFixed(1)} ⭐
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </UndergroundCard>
-          </UndergroundSection>
-
-          <UndergroundSection title="Customer Patterns">
-            <div style={{ display: 'grid', gap: undergroundTheme.spacing.md }}>
-              {analytics.customerPatterns.map((pattern, idx) => (
-                <UndergroundCard
-                  key={idx}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <span
-                    style={{
-                      color: undergroundTheme.colors.text.primary,
-                      fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                    }}
-                  >
-                    {pattern.segment}
-                  </span>
-                  <div style={{ display: 'flex', gap: undergroundTheme.spacing.xl }}>
-                    <span style={{ color: undergroundTheme.colors.text.secondary }}>{pattern.count} customers</span>
-                    <span
-                      style={{
-                        color: undergroundTheme.colors.accent.primary,
-                        fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                      }}
-                    >
-                      {formatCurrency(pattern.avgOrderValue)} avg
-                    </span>
-                  </div>
-                </UndergroundCard>
-              ))}
-            </div>
-          </UndergroundSection>
+      {/* Orders Section */}
+      <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['2xl'] }}>
+        <h3 style={{
+          margin: 0,
+          marginBottom: undergroundTheme.spacing.xl,
+          fontSize: undergroundTheme.typography.fontSize.xl,
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          color: undergroundTheme.colors.text.primary
+        }}>
+          הזמנות
+        </h3>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: undergroundTheme.spacing.lg
+        }}>
+          <UndergroundStatCard
+            icon="📦"
+            label="סה״כ הזמנות"
+            value={kpis.orders.total}
+            trend={formatTrend(kpis.orders.trend)}
+            trendColor={getTrendColor(kpis.orders.trend)}
+          />
+          <UndergroundStatCard
+            icon="✅"
+            label="הושלמו"
+            value={kpis.orders.completed}
+            color={undergroundTheme.colors.status.success}
+          />
+          <UndergroundStatCard
+            icon="⏳"
+            label="בהמתנה"
+            value={kpis.orders.pending}
+            color={undergroundTheme.colors.status.warning}
+          />
+          <UndergroundStatCard
+            icon="❌"
+            label="בוטלו"
+            value={kpis.orders.cancelled}
+            color={undergroundTheme.colors.status.danger}
+          />
         </div>
-      )}
+      </UndergroundCard>
+
+      {/* Customers Section */}
+      <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['2xl'] }}>
+        <h3 style={{
+          margin: 0,
+          marginBottom: undergroundTheme.spacing.xl,
+          fontSize: undergroundTheme.typography.fontSize.xl,
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          color: undergroundTheme.colors.text.primary
+        }}>
+          לקוחות
+        </h3>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: undergroundTheme.spacing.lg
+        }}>
+          <UndergroundStatCard
+            icon="👥"
+            label="סה״כ לקוחות"
+            value={kpis.customers.total}
+            trend={formatTrend(kpis.customers.trend)}
+            trendColor={getTrendColor(kpis.customers.trend)}
+          />
+          <UndergroundStatCard
+            icon="🆕"
+            label="לקוחות חדשים"
+            value={kpis.customers.new}
+            color={undergroundTheme.colors.accent.primary}
+          />
+          <UndergroundStatCard
+            icon="🔄"
+            label="לקוחות חוזרים"
+            value={kpis.customers.returning}
+            color={undergroundTheme.colors.accent.secondary}
+          />
+        </div>
+      </UndergroundCard>
+
+      {/* Inventory Section */}
+      <UndergroundCard style={{ marginBottom: undergroundTheme.spacing['2xl'] }}>
+        <h3 style={{
+          margin: 0,
+          marginBottom: undergroundTheme.spacing.xl,
+          fontSize: undergroundTheme.typography.fontSize.xl,
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          color: undergroundTheme.colors.text.primary
+        }}>
+          מלאי
+        </h3>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: undergroundTheme.spacing.lg
+        }}>
+          <UndergroundStatCard
+            icon="📦"
+            label="סה״כ מוצרים"
+            value={kpis.inventory.totalProducts}
+          />
+          <UndergroundStatCard
+            icon="⚠️"
+            label="מלאי נמוך"
+            value={kpis.inventory.lowStock}
+            color={undergroundTheme.colors.status.warning}
+          />
+          <UndergroundStatCard
+            icon="🚫"
+            label="אזל מהמלאי"
+            value={kpis.inventory.outOfStock}
+            color={undergroundTheme.colors.status.danger}
+          />
+          <UndergroundStatCard
+            icon="💎"
+            label="ערך המלאי"
+            value={formatCurrency(kpis.inventory.totalValue)}
+            color={undergroundTheme.colors.accent.primary}
+          />
+        </div>
+      </UndergroundCard>
+
+      {/* Drivers Section */}
+      <UndergroundCard>
+        <h3 style={{
+          margin: 0,
+          marginBottom: undergroundTheme.spacing.xl,
+          fontSize: undergroundTheme.typography.fontSize.xl,
+          fontWeight: undergroundTheme.typography.fontWeight.bold,
+          color: undergroundTheme.colors.text.primary
+        }}>
+          נהגים
+        </h3>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: undergroundTheme.spacing.lg
+        }}>
+          <UndergroundStatCard
+            icon="🚗"
+            label="נהגים פעילים"
+            value={kpis.drivers.active}
+            color={undergroundTheme.colors.status.success}
+          />
+          <UndergroundStatCard
+            icon="👨‍✈️"
+            label="סה״כ נהגים"
+            value={kpis.drivers.total}
+          />
+          <UndergroundStatCard
+            icon="⭐"
+            label="דירוג ממוצע"
+            value={kpis.drivers.avgRating.toFixed(1)}
+            color={undergroundTheme.colors.accent.secondary}
+          />
+          <UndergroundStatCard
+            icon="✅"
+            label="שיעור השלמה"
+            value={`${kpis.drivers.completionRate.toFixed(0)}%`}
+            color={undergroundTheme.colors.accent.primary}
+          />
+        </div>
+      </UndergroundCard>
     </div>
   );
 }

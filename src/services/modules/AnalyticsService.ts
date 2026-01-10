@@ -1,6 +1,6 @@
 import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
-import { BaseService } from './BaseService';
+import { BaseService } from '../base/BaseService';
 
 export interface BusinessKPIs {
   revenue: {
