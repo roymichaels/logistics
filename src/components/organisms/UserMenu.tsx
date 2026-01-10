@@ -125,10 +125,9 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
   };
 
   const dropdownStyles: React.CSSProperties = {
-    position: 'absolute',
-    bottom: 'calc(100% + 8px)',
-    right: '50%',
-    transform: 'translateX(50%)',
+    position: 'fixed',
+    bottom: '70px',
+    left: '8px',
     minWidth: '240px',
     maxWidth: 'calc(100vw - 16px)',
     background: 'rgba(30, 30, 35, 0.98)',
@@ -136,7 +135,7 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
     borderRadius: borderRadius.xl,
     boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
     backdropFilter: 'blur(12px)',
-    zIndex: zIndex.dropdown,
+    zIndex: 10000,
     overflow: 'hidden',
   };
 
@@ -175,11 +174,8 @@ export function UserMenu({ user, onNavigate, onLogout }: UserMenuProps) {
           <style>{`
             @media (min-width: 768px) {
               .user-menu-dropdown {
-                bottom: auto !important;
-                top: 0 !important;
-                left: calc(100% + 8px) !important;
-                right: auto !important;
-                transform: none !important;
+                bottom: 8px !important;
+                left: 96px !important;
               }
             }
           `}</style>
