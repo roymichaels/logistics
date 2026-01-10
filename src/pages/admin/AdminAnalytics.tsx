@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { colors, spacing } from '../../styles/theme';
 import { DataStore, User } from '../../data/types';
 import { logger } from '../../lib/logger';
-import { getUserDisplayName } from '../../utils/userIdentifier';
-import { MetricCard, MetricGrid } from '../../components/dashboard/MetricCard';
+import { undergroundTheme } from '../../styles/undergroundTheme';
+import {
+  UndergroundCard,
+  UndergroundSection,
+  UndergroundStatCard,
+  UndergroundLoadingSpinner
+} from '../../components/underground';
 
 interface AdminAnalyticsProps {
   dataStore: DataStore;
@@ -79,159 +83,190 @@ export function AdminAnalytics({ dataStore }: AdminAnalyticsProps) {
 
   if (loading) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          backgroundColor: colors.background.primary,
-          color: colors.text.primary,
-          padding: spacing['2xl'],
-          direction: 'rtl'
-        }}
-      >
-        <h1 style={{ fontSize: '24px', margin: '0 0 16px', fontWeight: '700' }}>
-          ניתוח פלטפורמה
-        </h1>
-        <p style={{ margin: '0 0 24px', color: colors.text.secondary }}>
-          טוען נתונים...
-        </p>
-        <div style={{ display: 'grid', gap: spacing.lg, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div
-              key={i}
-              style={{
-                borderRadius: '16px',
-                backgroundColor: colors.background.secondary,
-                border: `1px solid ${colors.border.primary}`,
-                padding: spacing['2xl'],
-                height: '100px'
-              }}
-            >
-              <div
-                style={{
-                  height: '8px',
-                  borderRadius: '4px',
-                  backgroundColor: colors.status.infoFaded,
-                  animation: 'pulse 1.5s ease-in-out infinite'
-                }}
-              />
-            </div>
-          ))}
-        </div>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: undergroundTheme.colors.gradient.primary
+      }}>
+        <UndergroundLoadingSpinner size="large" />
       </div>
     );
   }
 
   if (!metrics) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          backgroundColor: colors.background.primary,
-          color: colors.text.primary,
-          padding: spacing['2xl'],
-          direction: 'rtl',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        <p style={{ color: colors.text.secondary }}>לא ניתן לטעון נתונים</p>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: undergroundTheme.colors.gradient.primary
+      }}>
+        <UndergroundCard>
+          <div style={{ textAlign: 'center', padding: undergroundTheme.spacing['4xl'] }}>
+            <div style={{ fontSize: '64px', marginBottom: undergroundTheme.spacing.lg }}>⚠️</div>
+            <div style={{
+              fontSize: undergroundTheme.typography.fontSize.xl,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary
+            }}>
+              Failed to load analytics
+            </div>
+          </div>
+        </UndergroundCard>
       </div>
     );
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: colors.background.primary,
-        color: colors.text.primary,
-        padding: spacing['2xl'],
-        direction: 'rtl'
-      }}
-    >
-      <h1 style={{ fontSize: '24px', margin: '0 0 8px', fontWeight: '700' }}>
-        ניתוח פלטפורמה {user ? `• ${getUserDisplayName(user)}` : ''}
-      </h1>
-      <p style={{ margin: '0 0 24px', color: colors.text.secondary, fontSize: '14px' }}>
-        סקירה כללית של הפעילות והביצועים במערכת
-      </p>
-
-      <MetricGrid columns={3}>
-        <MetricCard
-          label="עסקים פעילים"
-          value={metrics.activeBusinesses}
-          subtitle={`מתוך ${metrics.totalBusinesses} סה"כ`}
-          icon="🏢"
-          variant="primary"
-        />
-        <MetricCard
-          label='הזמנות סה"כ'
-          value={metrics.totalOrders}
-          subtitle={`${metrics.ordersToday} היום`}
-          icon="📦"
-          variant="success"
-        />
-        <MetricCard
-          label="הכנסות כוללות"
-          value={`₪${metrics.totalRevenue.toLocaleString()}`}
-          icon="💰"
-          variant="warning"
-        />
-        <MetricCard
-          label="נהגים פעילים"
-          value={metrics.activeDrivers}
-          subtitle={`מתוך ${metrics.totalDrivers} סה"כ`}
-          icon="🚗"
-          variant="default"
-        />
-        <MetricCard
-          label="משתמשים רשומים"
-          value={metrics.totalUsers}
-          icon="👥"
-          variant="default"
-        />
-        <MetricCard
-          label="ממוצע הזמנה"
-          value={
-            metrics.totalOrders > 0
-              ? `₪${Math.round(metrics.totalRevenue / metrics.totalOrders).toLocaleString()}`
-              : '₪0'
-          }
+    <div style={{
+      minHeight: '100vh',
+      background: undergroundTheme.colors.gradient.primary,
+      padding: undergroundTheme.spacing.xl,
+      paddingBottom: undergroundTheme.spacing['8xl']
+    }}>
+      <div style={{ maxWidth: '1600px', margin: '0 auto' }}>
+        <UndergroundSection
+          title="Platform Analytics"
           icon="📊"
-          variant="default"
-        />
-      </MetricGrid>
+          style={{ marginBottom: undergroundTheme.spacing.xl }}
+        >
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: undergroundTheme.spacing.lg,
+            marginBottom: undergroundTheme.spacing['3xl']
+          }}>
+            <UndergroundStatCard
+              title="Total Businesses"
+              value={metrics.totalBusinesses}
+              icon="🏪"
+              subtitle={`${metrics.activeBusinesses} active`}
+            />
 
-      <div
-        style={{
-          marginTop: spacing['4xl'],
-          padding: spacing['3xl'],
-          borderRadius: '16px',
-          background: colors.ui.card,
-          border: `1px solid ${colors.border.primary}`
-        }}
-      >
-        <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: spacing.lg, color: colors.text.primary }}>
-          סטטוס מערכת
-        </h2>
-        <div style={{ display: 'grid', gap: spacing.md }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: colors.text.secondary }}>תפעול:</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: spacing.sm, color: colors.status.success, fontWeight: '600' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.status.success }} />
-              פעיל
-            </span>
+            <UndergroundStatCard
+              title="Total Orders"
+              value={metrics.totalOrders}
+              icon="📦"
+              subtitle={`${metrics.ordersToday} today`}
+            />
+
+            <UndergroundStatCard
+              title="Total Revenue"
+              value={`₪${metrics.totalRevenue.toFixed(2)}`}
+              icon="💰"
+              subtitle="All time"
+            />
+
+            <UndergroundStatCard
+              title="Total Drivers"
+              value={metrics.totalDrivers}
+              icon="🚚"
+              subtitle={`${metrics.activeDrivers} active`}
+            />
+
+            <UndergroundStatCard
+              title="Total Users"
+              value={metrics.totalUsers}
+              icon="👥"
+              subtitle="Platform-wide"
+            />
+
+            <UndergroundStatCard
+              title="Orders Today"
+              value={metrics.ordersToday}
+              icon="📈"
+              subtitle="Last 24 hours"
+            />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: colors.text.secondary }}>זמן פעילות:</span>
-            <span style={{ fontWeight: '600', color: colors.text.primary }}>99.9%</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: colors.text.secondary }}>גרסה:</span>
-            <span style={{ fontWeight: '600', color: colors.text.primary }}>v1.0.0</span>
-          </div>
-        </div>
+
+          <UndergroundCard>
+            <h3 style={{
+              margin: `0 0 ${undergroundTheme.spacing.lg} 0`,
+              fontSize: undergroundTheme.typography.fontSize.xl,
+              fontWeight: undergroundTheme.typography.fontWeight.bold,
+              color: undergroundTheme.colors.text.primary
+            }}>
+              Quick Stats
+            </h3>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: undergroundTheme.spacing.lg
+            }}>
+              <div>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  color: undergroundTheme.colors.text.tertiary,
+                  marginBottom: undergroundTheme.spacing.xs
+                }}>
+                  Avg Revenue per Order
+                </div>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize['2xl'],
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.accent.primary
+                }}>
+                  ₪{metrics.totalOrders > 0 ? (metrics.totalRevenue / metrics.totalOrders).toFixed(2) : '0.00'}
+                </div>
+              </div>
+
+              <div>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  color: undergroundTheme.colors.text.tertiary,
+                  marginBottom: undergroundTheme.spacing.xs
+                }}>
+                  Orders per Business
+                </div>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize['2xl'],
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.accent.primary
+                }}>
+                  {metrics.totalBusinesses > 0 ? (metrics.totalOrders / metrics.totalBusinesses).toFixed(1) : '0'}
+                </div>
+              </div>
+
+              <div>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  color: undergroundTheme.colors.text.tertiary,
+                  marginBottom: undergroundTheme.spacing.xs
+                }}>
+                  Active Business %
+                </div>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize['2xl'],
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.accent.primary
+                }}>
+                  {metrics.totalBusinesses > 0 ? ((metrics.activeBusinesses / metrics.totalBusinesses) * 100).toFixed(0) : '0'}%
+                </div>
+              </div>
+
+              <div>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize.sm,
+                  color: undergroundTheme.colors.text.tertiary,
+                  marginBottom: undergroundTheme.spacing.xs
+                }}>
+                  Active Driver %
+                </div>
+                <div style={{
+                  fontSize: undergroundTheme.typography.fontSize['2xl'],
+                  fontWeight: undergroundTheme.typography.fontWeight.bold,
+                  color: undergroundTheme.colors.accent.primary
+                }}>
+                  {metrics.totalDrivers > 0 ? ((metrics.activeDrivers / metrics.totalDrivers) * 100).toFixed(0) : '0'}%
+                </div>
+              </div>
+            </div>
+          </UndergroundCard>
+        </UndergroundSection>
       </div>
     </div>
   );
