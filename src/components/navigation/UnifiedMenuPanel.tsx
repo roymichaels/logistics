@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ProfileDropdown } from './ProfileDropdown';
+import { useBusinessScopedAccess } from '../../hooks/useBusinessScopedAccess';
+import { useAuth } from '../../context/AuthContext';
 
 export interface MenuItemConfig {
   id: string;
@@ -42,6 +44,8 @@ export function UnifiedMenuPanel({
   user,
   onLogout,
 }: UnifiedMenuPanelProps) {
+  const businessAccess = useBusinessScopedAccess();
+  const { role } = useAuth();
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(categories?.filter(c => c.defaultOpen).map(c => c.id) || [])
   );
@@ -205,6 +209,99 @@ export function UnifiedMenuPanel({
             gap: '4px',
           }}
         >
+          {businessAccess.isBusinessScopedRole && !businessAccess.hasBusinessContext ? (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: 1,
+              gap: '20px',
+              padding: '32px 24px',
+              textAlign: 'center'
+            }}>
+              <div style={{
+                fontSize: '64px',
+                opacity: 0.2,
+                filter: 'grayscale(100%)',
+              }}>
+                🏢
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <h3 style={{
+                  margin: 0,
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  lineHeight: '1.4'
+                }}>
+                  נדרש הקשר עסקי
+                </h3>
+                <p style={{
+                  margin: 0,
+                  fontSize: '13px',
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  lineHeight: '1.6',
+                  maxWidth: '260px'
+                }}>
+                  {role === 'business_owner'
+                    ? 'עליך לבחור או ליצור עסק כדי לגשת לתפריט'
+                    : 'תפקידך מחייב שיוך לעסק פעיל'}
+                </p>
+              </div>
+
+              {role === 'business_owner' && (
+                <button
+                  onClick={() => {
+                    onNavigate('/business/businesses');
+                    onClose();
+                  }}
+                  style={{
+                    padding: '12px 24px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    color: '#60a5fa',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    width: '100%',
+                    maxWidth: '240px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
+                  }}
+                >
+                  🏢 בחר עסק
+                </button>
+              )}
+
+              {role !== 'business_owner' && (
+                <div style={{
+                  padding: '12px 16px',
+                  borderRadius: '10px',
+                  backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                  border: '1px solid rgba(251, 191, 36, 0.2)',
+                  maxWidth: '260px'
+                }}>
+                  <p style={{
+                    margin: 0,
+                    fontSize: '12px',
+                    color: 'rgba(251, 191, 36, 0.9)',
+                    lineHeight: '1.5'
+                  }}>
+                    <strong>שים לב:</strong> בעל העסק צריך להוסיף אותך לעסק
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
           {uncategorizedItems.map((item) => (
             <button
               key={item.id}
@@ -384,6 +481,8 @@ export function UnifiedMenuPanel({
                 position="left"
               />
             </div>
+          )}
+          </>
           )}
         </div>
       </div>

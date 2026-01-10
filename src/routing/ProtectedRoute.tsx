@@ -7,6 +7,7 @@ import { sessionManager } from '../lib/sessionManager';
 import { logger } from '../lib/logger';
 import { PageLoadingSkeleton } from '../components/LoadingSkeleton';
 import { UserRole } from '../shells/types';
+import { isBusinessScopedRole } from '../lib/roleUtils';
 
 export interface ProtectedRouteProps {
   children: ReactNode;
@@ -79,23 +80,27 @@ export function ProtectedRoute({
     return <Navigate to="/unauthorized" replace />;
   }
 
-  if (requiresBusinessContext) {
-    const requiresBusinessRoles: UserRole[] = [
-      'business_owner',
-      'manager',
-      'warehouse',
-      'dispatcher',
-      'sales',
-      'customer_service',
-    ];
+  // Check if business context is required
+  const needsBusinessContext = requiresBusinessContext || (role && isBusinessScopedRole(role));
 
-    if (role && requiresBusinessRoles.includes(role)) {
+  // Allowed paths without business context for business-scoped roles
+  const allowedPathsWithoutBusiness = [
+    '/business/businesses',
+    '/unauthorized',
+    '/auth/login',
+    '/auth/logout'
+  ];
+
+  const isAllowedPath = allowedPathsWithoutBusiness.some(path => location.pathname.startsWith(path));
+
+  if (needsBusinessContext && !isAllowedPath) {
+    if (role && isBusinessScopedRole(role)) {
       if (!businessContext?.activeBusiness) {
-        logger.warn('[ProtectedRoute] Access denied - no business context', {
+        logger.warn('[ProtectedRoute] Access denied - business scoped role without business context', {
           path: location.pathname,
           userRole: role,
         });
-        return <Navigate to="/business/select" replace />;
+        return <Navigate to="/business/businesses" replace state={{ from: location }} />;
       }
     }
   }
