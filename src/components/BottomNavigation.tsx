@@ -615,7 +615,7 @@ export const BottomNavigation = React.memo(function BottomNavigation({
             right: auto !important;
             width: 80px !important;
             height: 100vh !important;
-            flex-direction: column !important;
+            flex-direction: column-reverse !important;
             padding: 16px 8px !important;
             border-top: none !important;
             border-right: 1px solid rgba(56, 68, 77, 0.6) !important;
@@ -627,7 +627,8 @@ export const BottomNavigation = React.memo(function BottomNavigation({
             border-right-color: rgba(56, 68, 77, 0.8) !important;
           }
 
-          .bottom-nav-container button {
+          .bottom-nav-container button,
+          .bottom-nav-container > div {
             width: 100% !important;
             flex: 0 0 auto !important;
           }
