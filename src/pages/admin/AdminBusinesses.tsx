@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { logger } from '../../lib/logger';
+import { supabase } from '../../lib/supabase';
+import { Toast } from '../../components/Toast';
 import { undergroundTheme } from '../../styles/undergroundTheme';
 import {
   UndergroundCard,
@@ -12,7 +14,21 @@ import {
   UndergroundLoadingSpinner,
   UndergroundModal
 } from '../../components/underground';
-import { listAllBusinesses, updateBusinessAdmin, BusinessWithStats } from '../../services/superadmin';
+
+interface BusinessWithStats {
+  id: string;
+  name: string;
+  business_type: string;
+  public_phone?: string | null;
+  public_email?: string | null;
+  status: 'active' | 'inactive' | 'suspended';
+  owner_id: string;
+  created_at: string;
+  owner_name?: string;
+  owner_email?: string;
+  total_orders?: number;
+  total_revenue?: number;
+}
 
 const getStatusVariant = (status: string): 'success' | 'warning' | 'error' => {
   if (status === 'active') return 'success';
@@ -43,11 +59,58 @@ export function AdminBusinesses() {
   const loadBusinesses = async () => {
     try {
       setLoading(true);
-      const businessList = await listAllBusinesses();
-      setBusinesses(businessList);
-      logger.info('[AdminBusinesses] Loaded businesses from Supabase', { count: businessList.length });
+
+      // Fetch businesses with owner info
+      const { data: businesses, error: businessError } = await supabase
+        .from('businesses')
+        .select(`
+          *,
+          profiles!businesses_owner_id_fkey (
+            full_name,
+            email
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (businessError) throw businessError;
+
+      // Get order statistics for each business
+      const businessesWithStats = await Promise.all(
+        (businesses || []).map(async (business: any) => {
+          try {
+            const { data: orders } = await supabase
+              .from('orders')
+              .select('status, total_amount')
+              .eq('business_id', business.id);
+
+            const totalOrders = orders?.length || 0;
+            const completedOrders = orders?.filter(o => o.status === 'delivered') || [];
+            const totalRevenue = completedOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+
+            return {
+              ...business,
+              owner_name: business.profiles?.full_name,
+              owner_email: business.profiles?.email,
+              total_orders: totalOrders,
+              total_revenue: totalRevenue,
+            };
+          } catch (error) {
+            return {
+              ...business,
+              owner_name: business.profiles?.full_name,
+              owner_email: business.profiles?.email,
+              total_orders: 0,
+              total_revenue: 0,
+            };
+          }
+        })
+      );
+
+      setBusinesses(businessesWithStats);
+      logger.info('[AdminBusinesses] Loaded businesses', { count: businessesWithStats.length });
     } catch (error) {
       logger.error('[AdminBusinesses] Failed to load businesses', error);
+      Toast.error('Failed to load businesses');
       setBusinesses([]);
     } finally {
       setLoading(false);
@@ -70,14 +133,27 @@ export function AdminBusinesses() {
     if (!editingBusiness) return;
 
     try {
-      await updateBusinessAdmin(editingBusiness.id, formData);
+      const { error } = await supabase
+        .from('businesses')
+        .update({
+          name: formData.name,
+          business_type: formData.business_type,
+          public_phone: formData.public_phone,
+          public_email: formData.public_email,
+          status: formData.status,
+        })
+        .eq('id', editingBusiness.id);
+
+      if (error) throw error;
+
+      Toast.success('Business updated successfully');
       setShowEditModal(false);
       setEditingBusiness(null);
       await loadBusinesses();
       logger.info('[AdminBusinesses] Business updated successfully');
     } catch (error) {
       logger.error('[AdminBusinesses] Failed to update business', error);
-      alert('Failed to update business. Please try again.');
+      Toast.error('Failed to update business');
     }
   };
 
@@ -278,15 +354,25 @@ export function AdminBusinesses() {
                 {
                   key: 'revenue',
                   label: 'Revenue',
-                  render: (_, business) => (
-                    <div style={{
-                      fontSize: undergroundTheme.typography.fontSize.md,
-                      fontWeight: undergroundTheme.typography.fontWeight.semibold,
-                      color: undergroundTheme.colors.accent.primary
-                    }}>
-                      ₪{(business.total_revenue || 0).toFixed(2)}
-                    </div>
-                  )
+                  render: (_, business) => {
+                    const formatCurrency = (amount: number): string => {
+                      return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                        minimumFractionDigits: 0
+                      }).format(amount);
+                    };
+
+                    return (
+                      <div style={{
+                        fontSize: undergroundTheme.typography.fontSize.md,
+                        fontWeight: undergroundTheme.typography.fontWeight.semibold,
+                        color: undergroundTheme.colors.accent.primary
+                      }}>
+                        {formatCurrency(business.total_revenue || 0)}
+                      </div>
+                    );
+                  }
                 },
                 {
                   key: 'actions',

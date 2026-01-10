@@ -17,6 +17,7 @@ import {
   UndergroundLoadingSpinner,
   UndergroundEmptyState,
 } from '../../components/underground';
+import { Toast } from '../../components/Toast';
 
 type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready_for_pickup' | 'in_delivery' | 'delivered' | 'cancelled';
 
@@ -69,7 +70,7 @@ export function BusinessOrders() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [currentBusinessId]);
+  }, [currentBusinessId, dateFilter]);
 
   const loadOrders = async () => {
     try {
@@ -105,6 +106,7 @@ export function BusinessOrders() {
 
       if (error) {
         logger.error('[BusinessOrders] Error loading orders:', error);
+        Toast.error('Failed to load orders');
         return;
       }
 
@@ -127,7 +129,7 @@ export function BusinessOrders() {
         const profile = order.customer_id ? profilesMap.get(order.customer_id) : null;
         return {
           ...order,
-          customer_name: profile?.full_name || 'לקוח אנונימי',
+          customer_name: profile?.full_name || 'Anonymous Customer',
           customer_phone: profile?.phone || ''
         };
       });
@@ -136,6 +138,7 @@ export function BusinessOrders() {
       logger.info('[BusinessOrders] Orders loaded:', enrichedOrders.length);
     } catch (error) {
       logger.error('[BusinessOrders] Failed to load orders:', error);
+      Toast.error('Failed to load orders');
     } finally {
       setLoading(false);
     }
@@ -143,28 +146,28 @@ export function BusinessOrders() {
 
   const getStatusLabel = (status: OrderStatus): string => {
     const labels: Record<OrderStatus, string> = {
-      pending: 'ממתין',
-      confirmed: 'אושר',
-      preparing: 'בהכנה',
-      ready_for_pickup: 'מוכן לאיסוף',
-      in_delivery: 'במשלוח',
-      delivered: 'נמסר',
-      cancelled: 'בוטל'
+      pending: 'Pending',
+      confirmed: 'Confirmed',
+      preparing: 'Preparing',
+      ready_for_pickup: 'Ready for Pickup',
+      in_delivery: 'In Delivery',
+      delivered: 'Delivered',
+      cancelled: 'Cancelled'
     };
     return labels[status] || status;
   };
 
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('he-IL', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'ILS',
+      currency: 'USD',
       minimumFractionDigits: 0
     }).format(amount);
   };
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('he-IL', {
+    return new Intl.DateTimeFormat('en-US', {
       dateStyle: 'short',
       timeStyle: 'short'
     }).format(date);
@@ -172,9 +175,9 @@ export function BusinessOrders() {
 
   const exportOrders = () => {
     const csvData = [
-      ['מספר הזמנה', 'לקוח', 'טלפון', 'סטטוס', 'סכום', 'תאריך'],
+      ['Order Number', 'Customer', 'Phone', 'Status', 'Amount', 'Date'],
       ...filteredOrders.map(o => [
-        o.order_number,
+        o.order_number || `#${o.id.slice(0, 8)}`,
         o.customer_name || '',
         o.customer_phone || '',
         getStatusLabel(o.status),
@@ -188,9 +191,10 @@ export function BusinessOrders() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'orders.csv';
+    a.download = `orders-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     logger.info('[BusinessOrders] Orders exported');
+    Toast.success('Orders exported successfully');
   };
 
   const filteredOrders = orders
@@ -217,7 +221,7 @@ export function BusinessOrders() {
   const tableColumns = [
     {
       key: 'order_number',
-      label: 'מספר הזמנה',
+      label: 'Order Number',
       render: (value: string, row: Order) => (
         <div style={{ fontWeight: undergroundTheme.typography.fontWeight.semibold }}>
           {value || `#${row.id.slice(0, 8)}`}
@@ -226,16 +230,16 @@ export function BusinessOrders() {
     },
     {
       key: 'customer_name',
-      label: 'לקוח',
+      label: 'Customer',
     },
     {
       key: 'customer_phone',
-      label: 'טלפון',
+      label: 'Phone',
       render: (value: string) => value || '-',
     },
     {
       key: 'status',
-      label: 'סטטוס',
+      label: 'Status',
       render: (value: OrderStatus) => (
         <span style={{
           ...getStatusBadgeStyle(value),
@@ -250,7 +254,7 @@ export function BusinessOrders() {
     },
     {
       key: 'total',
-      label: 'סכום',
+      label: 'Amount',
       render: (value: number) => (
         <span style={{ fontWeight: undergroundTheme.typography.fontWeight.semibold }}>
           {formatCurrency(value)}
@@ -259,12 +263,12 @@ export function BusinessOrders() {
     },
     {
       key: 'created_at',
-      label: 'תאריך',
+      label: 'Date',
       render: (value: string) => formatDate(value),
     },
     {
       key: 'actions',
-      label: 'פעולות',
+      label: 'Actions',
       render: (_: any, row: Order) => (
         <UndergroundButton
           variant="primary"
@@ -274,33 +278,62 @@ export function BusinessOrders() {
             fontSize: undergroundTheme.typography.fontSize.sm,
           }}
         >
-          צפה
+          View
         </UndergroundButton>
       ),
     },
   ];
 
+  if (!currentBusinessId) {
+    return (
+      <div style={{
+        background: undergroundTheme.colors.gradient.primary,
+        minHeight: '100vh',
+        padding: undergroundTheme.spacing['2xl'],
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <UndergroundEmptyState
+          title="No Business Context"
+          message="Please select a business to view orders"
+        />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
-      <div style={undergroundTheme.components.page}>
-        <UndergroundLoadingSpinner message="טוען הזמנות..." />
+      <div style={{
+        background: undergroundTheme.colors.gradient.primary,
+        minHeight: '100vh',
+        padding: undergroundTheme.spacing['2xl'],
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <UndergroundLoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div style={undergroundTheme.components.page}>
+    <div style={{
+      background: undergroundTheme.colors.gradient.primary,
+      color: undergroundTheme.colors.text.primary,
+      minHeight: '100vh',
+      padding: undergroundTheme.spacing['2xl'],
+      paddingBottom: undergroundTheme.spacing['8xl'],
+    }}>
       <UndergroundHeader
-        title="ניהול הזמנות"
-        subtitle="נהל ועקוב אחר ההזמנות שלך"
-        icon="📦"
+        title="Order Management"
+        subtitle="Track and manage your orders"
         action={
           <UndergroundButton
             variant="primary"
             onClick={exportOrders}
-            icon={<span>📥</span>}
           >
-            ייצוא CSV
+            Export CSV
           </UndergroundButton>
         }
       />
@@ -308,41 +341,41 @@ export function BusinessOrders() {
       <UndergroundSection>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: undergroundTheme.spacing.xl,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: undergroundTheme.spacing.lg,
         }}>
           <UndergroundStatCard
-            icon="📦"
-            label="סה״כ הזמנות"
+            icon={<span style={{ fontSize: '28px' }}>📦</span>}
+            label="Total Orders"
             value={stats.total}
+            accentColor={undergroundTheme.colors.accent.primary}
             onClick={() => setStatusFilter('all')}
-            glow
           />
           <UndergroundStatCard
-            icon="⏳"
-            label="ממתינות"
+            icon={<span style={{ fontSize: '28px' }}>⏳</span>}
+            label="Pending"
             value={stats.pending}
-            color={undergroundTheme.colors.status.warning}
+            accentColor={undergroundTheme.colors.status.warning}
             onClick={() => setStatusFilter('pending')}
           />
           <UndergroundStatCard
-            icon="🔄"
-            label="בטיפול"
+            icon={<span style={{ fontSize: '28px' }}>🔄</span>}
+            label="In Progress"
             value={stats.inProgress}
-            color={undergroundTheme.colors.status.info}
+            accentColor={undergroundTheme.colors.status.info}
           />
           <UndergroundStatCard
-            icon="✅"
-            label="הושלמו"
+            icon={<span style={{ fontSize: '28px' }}>✅</span>}
+            label="Completed"
             value={stats.completed}
-            color={undergroundTheme.colors.status.success}
+            accentColor={undergroundTheme.colors.status.success}
             onClick={() => setStatusFilter('delivered')}
           />
           <UndergroundStatCard
-            icon="💰"
-            label="הכנסות"
+            icon={<span style={{ fontSize: '28px' }}>💰</span>}
+            label="Revenue"
             value={formatCurrency(stats.revenue)}
-            color={undergroundTheme.colors.accent.primary}
+            accentColor={undergroundTheme.colors.accent.primary}
           />
         </div>
       </UndergroundSection>
@@ -358,7 +391,7 @@ export function BusinessOrders() {
             <UndergroundInput
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="חיפוש לפי מספר הזמנה, לקוח או טלפון..."
+              placeholder="Search by order number, customer or phone..."
               fullWidth
             />
 
@@ -366,58 +399,66 @@ export function BusinessOrders() {
               value={statusFilter}
               onChange={(value) => setStatusFilter(value as any)}
               options={[
-                { value: 'all', label: 'כל הסטטוסים' },
-                { value: 'pending', label: 'ממתין' },
-                { value: 'confirmed', label: 'אושר' },
-                { value: 'preparing', label: 'בהכנה' },
-                { value: 'ready_for_pickup', label: 'מוכן לאיסוף' },
-                { value: 'in_delivery', label: 'במשלוח' },
-                { value: 'delivered', label: 'נמסר' },
-                { value: 'cancelled', label: 'בוטל' },
+                { value: 'all', label: 'All Statuses' },
+                { value: 'pending', label: 'Pending' },
+                { value: 'confirmed', label: 'Confirmed' },
+                { value: 'preparing', label: 'Preparing' },
+                { value: 'ready_for_pickup', label: 'Ready for Pickup' },
+                { value: 'in_delivery', label: 'In Delivery' },
+                { value: 'delivered', label: 'Delivered' },
+                { value: 'cancelled', label: 'Cancelled' },
               ]}
             />
 
             <UndergroundSelect
               value={dateFilter}
-              onChange={(value) => {
-                setDateFilter(value as any);
-                loadOrders();
-              }}
+              onChange={(value) => setDateFilter(value as any)}
               options={[
-                { value: 'all', label: 'כל התקופה' },
-                { value: 'today', label: 'היום' },
-                { value: 'week', label: 'שבוע אחרון' },
-                { value: 'month', label: 'חודש אחרון' },
+                { value: 'all', label: 'All Time' },
+                { value: 'today', label: 'Today' },
+                { value: 'week', label: 'Last Week' },
+                { value: 'month', label: 'Last Month' },
               ]}
             />
 
             <UndergroundButton
               variant="ghost"
               onClick={loadOrders}
-              icon={<span>🔄</span>}
             >
-              רענן
+              🔄
             </UndergroundButton>
           </div>
 
-          <UndergroundTable
-            columns={tableColumns}
-            data={filteredOrders}
-            loading={false}
-            emptyMessage="לא נמצאו הזמנות"
-            hover
-          />
+          {filteredOrders.length === 0 ? (
+            <UndergroundEmptyState
+              title="No Orders Found"
+              message={searchQuery || statusFilter !== 'all' || dateFilter !== 'all'
+                ? 'No orders match your filters'
+                : 'No orders have been placed yet'}
+            />
+          ) : (
+            <>
+              <UndergroundTable
+                columns={tableColumns}
+                data={filteredOrders}
+                loading={false}
+                emptyMessage="No orders found"
+                hover
+              />
 
-          <div style={{
-            marginTop: undergroundTheme.spacing.xl,
-            padding: undergroundTheme.spacing.lg,
-            background: undergroundTheme.colors.glassmorphism.light,
-            borderRadius: undergroundTheme.borderRadius.lg,
-            color: undergroundTheme.colors.text.secondary,
-            fontSize: undergroundTheme.typography.fontSize.sm,
-          }}>
-            <strong>סה״כ:</strong> {filteredOrders.length} הזמנות (מתוך {orders.length})
-          </div>
+              <div style={{
+                marginTop: undergroundTheme.spacing.xl,
+                padding: undergroundTheme.spacing.lg,
+                ...undergroundTheme.effects.glassmorphism.light,
+                borderRadius: undergroundTheme.borderRadius.lg,
+                color: undergroundTheme.colors.text.secondary,
+                fontSize: undergroundTheme.typography.fontSize.sm,
+              }}>
+                <strong style={{ color: undergroundTheme.colors.text.primary }}>Total:</strong> {filteredOrders.length} orders
+                {(searchQuery || statusFilter !== 'all' || dateFilter !== 'all') && ` (filtered from ${orders.length})`}
+              </div>
+            </>
+          )}
         </UndergroundCard>
       </UndergroundSection>
     </div>

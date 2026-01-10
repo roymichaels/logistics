@@ -182,16 +182,6 @@ export const BUSINESS_SHELL_NAV: NavigationItem[] = [
     requiresBusinessContext: true,
     category: 'operations'
   },
-  {
-    id: 'business-tasks',
-    label: 'משימות',
-    path: '/business/tasks',
-    icon: '✅',
-    visible: true,
-    requiredRoles: ['business_owner', 'manager', 'warehouse', 'dispatcher', 'sales'],
-    requiresBusinessContext: true,
-    category: 'operations'
-  },
 
   // Inventory Category
   {
@@ -401,14 +391,6 @@ export const DRIVER_SHELL_NAV: NavigationItem[] = [
     label: 'הסטטיסטיקות שלי',
     path: '/driver/stats',
     icon: '📊',
-    visible: true,
-    requiredRoles: ['driver']
-  },
-  {
-    id: 'driver-tasks',
-    label: 'משימות',
-    path: '/tasks',
-    icon: '✓',
     visible: true,
     requiredRoles: ['driver']
   },

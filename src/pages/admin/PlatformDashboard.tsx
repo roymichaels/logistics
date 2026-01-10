@@ -77,8 +77,8 @@ export function PlatformDashboard() {
         recentActivity.push({
           id: 'biz',
           type: 'business',
-          message: `${recentBusinesses} עסקים חדשים נרשמו`,
-          time: 'היום'
+          message: `${recentBusinesses} new businesses registered`,
+          time: 'Today'
         });
       }
 
@@ -86,8 +86,8 @@ export function PlatformDashboard() {
         recentActivity.push({
           id: 'users',
           type: 'user',
-          message: `${recentUsers} משתמשים חדשים הצטרפו`,
-          time: 'היום'
+          message: `${recentUsers} new users joined`,
+          time: 'Today'
         });
       }
 
@@ -95,8 +95,8 @@ export function PlatformDashboard() {
         recentActivity.push({
           id: 'orders',
           type: 'order',
-          message: `${recentOrders} הזמנות חדשות בוצעו`,
-          time: 'היום'
+          message: `${recentOrders} new orders placed`,
+          time: 'Today'
         });
       }
 
@@ -106,7 +106,7 @@ export function PlatformDashboard() {
           recentActivity.push({
             id: `log-${idx}`,
             type: 'alert',
-            message: `${log.action} ב-${log.table_name}`,
+            message: `${log.action} in ${log.table_name}`,
             time: timeAgo
           });
         });
@@ -132,41 +132,41 @@ export function PlatformDashboard() {
   const getTimeAgo = (date: Date): string => {
     const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
 
-    if (seconds < 60) return `${seconds} שניות`;
+    if (seconds < 60) return `${seconds} seconds ago`;
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes} דקות`;
+    if (minutes < 60) return `${minutes} minutes ago`;
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours} שעות`;
+    if (hours < 24) return `${hours} hours ago`;
     const days = Math.floor(hours / 24);
-    return `${days} ימים`;
+    return `${days} days ago`;
   };
 
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('he-IL', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'ILS',
+      currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount);
   };
 
   const formatNumber = (num: number): string => {
-    return new Intl.NumberFormat('he-IL').format(num);
+    return new Intl.NumberFormat('en-US').format(num);
   };
 
   const quickActions: QuickAction[] = [
-    { id: '1', label: 'ניהול עסקים', icon: '🏢', onClick: () => navigate('/admin/businesses') },
-    { id: '2', label: 'ניהול משתמשים', icon: '👥', onClick: () => navigate('/admin/users') },
-    { id: '3', label: 'צפייה בהזמנות', icon: '📦', onClick: () => navigate('/admin/orders') },
-    { id: '4', label: 'ניהול נהגים', icon: '🚗', onClick: () => navigate('/admin/drivers') },
-    { id: '5', label: 'לוגים ואבטחה', icon: '🔐', onClick: () => navigate('/admin/logs') },
-    { id: '6', label: 'הגדרות מערכת', icon: '⚙️', onClick: () => navigate('/admin/system-settings') },
+    { id: '1', label: 'Manage Businesses', icon: '🏢', onClick: () => navigate('/admin/businesses') },
+    { id: '2', label: 'Manage Users', icon: '👥', onClick: () => navigate('/admin/users') },
+    { id: '3', label: 'View Orders', icon: '📦', onClick: () => navigate('/admin/orders') },
+    { id: '4', label: 'Manage Drivers', icon: '🚗', onClick: () => navigate('/admin/drivers') },
+    { id: '5', label: 'Logs & Security', icon: '🔐', onClick: () => navigate('/admin/logs') },
+    { id: '6', label: 'System Settings', icon: '⚙️', onClick: () => navigate('/admin/system-settings') },
   ];
 
   if (loading) {
     return (
       <div style={undergroundTheme.components.page}>
-        <UndergroundLoadingSpinner message="טוען נתוני פלטפורמה..." />
+        <UndergroundLoadingSpinner message="Loading platform data..." />
       </div>
     );
   }
@@ -175,8 +175,8 @@ export function PlatformDashboard() {
     <div style={undergroundTheme.components.page}>
       <UndergroundHeader
         icon="🏛️"
-        title="לוח בקרה ראשי"
-        subtitle="ניהול ומעקב אחר הפלטפורמה כולה"
+        title="Platform Dashboard"
+        subtitle="Manage and monitor the entire platform"
       />
 
       <div
@@ -188,28 +188,28 @@ export function PlatformDashboard() {
         }}
       >
         <UndergroundStatCard
-          label="עסקים פעילים"
+          label="Active Businesses"
           value={formatNumber(stats.totalBusinesses)}
           icon="🏢"
           onClick={() => navigate('/admin/businesses')}
           style={{ cursor: 'pointer' }}
         />
         <UndergroundStatCard
-          label="משתמשים פעילים"
+          label="Active Users"
           value={formatNumber(stats.activeUsers)}
           icon="👥"
           onClick={() => navigate('/admin/users')}
           style={{ cursor: 'pointer' }}
         />
         <UndergroundStatCard
-          label="סה״כ הזמנות"
+          label="Total Orders"
           value={formatNumber(stats.totalOrders)}
           icon="📦"
           onClick={() => navigate('/admin/orders')}
           style={{ cursor: 'pointer' }}
         />
         <UndergroundStatCard
-          label="הכנסות כוללות"
+          label="Total Revenue"
           value={formatCurrency(stats.totalRevenue)}
           icon="💰"
           onClick={() => navigate('/admin/analytics')}
@@ -218,12 +218,12 @@ export function PlatformDashboard() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px' }}>
-        <QuickActionGrid actions={quickActions} title="פעולות מהירות" />
+        <QuickActionGrid actions={quickActions} title="Quick Actions" />
         <ActivityFeed
           activities={stats.recentActivity.length > 0 ? stats.recentActivity : [
-            { id: '1', type: 'info', message: 'אין פעילות אחרונה', time: 'כעת' }
+            { id: '1', type: 'info', message: 'No recent activity', time: 'Now' }
           ]}
-          title="פעילות אחרונה"
+          title="Recent Activity"
           maxHeight="400px"
         />
       </div>
@@ -235,7 +235,7 @@ export function PlatformDashboard() {
           marginBottom: undergroundTheme.spacing.lg,
           color: undergroundTheme.colors.text.primary
         }}>
-          קישורים מהירים
+          Quick Links
         </h3>
         <div style={{
           display: 'grid',
@@ -243,12 +243,12 @@ export function PlatformDashboard() {
           gap: undergroundTheme.spacing.md
         }}>
           {[
-            { label: 'סופר-אדמינים', path: '/admin/superadmins', icon: '👑' },
-            { label: 'תשתיות', path: '/admin/infrastructures', icon: '🏭' },
-            { label: 'קטלוג פלטפורמה', path: '/admin/platform-catalog', icon: '📦' },
-            { label: 'בקשות נהגים', path: '/admin/driver-applications', icon: '🚗' },
-            { label: 'דגלי תכונות', path: '/admin/feature-flags', icon: '🚩' },
-            { label: 'הרשאות', path: '/admin/permissions', icon: '🔐' },
+            { label: 'Super Admins', path: '/admin/superadmins', icon: '👑' },
+            { label: 'Infrastructures', path: '/admin/infrastructures', icon: '��' },
+            { label: 'Platform Catalog', path: '/admin/platform-catalog', icon: '📦' },
+            { label: 'Driver Applications', path: '/admin/driver-applications', icon: '🚗' },
+            { label: 'Feature Flags', path: '/admin/feature-flags', icon: '🚩' },
+            { label: 'Permissions', path: '/admin/permissions', icon: '🔐' },
           ].map((link) => (
             <UndergroundCard
               key={link.path}

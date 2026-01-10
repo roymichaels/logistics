@@ -30,14 +30,14 @@ interface Widget {
 }
 
 const defaultWidgets: Widget[] = [
-  { id: 'orders', type: 'metric', title: 'הזמנות', visible: true, order: 1 },
-  { id: 'revenue', type: 'metric', title: 'הכנסות', visible: true, order: 2 },
-  { id: 'team', type: 'metric', title: 'צוות', visible: true, order: 3 },
-  { id: 'drivers', type: 'metric', title: 'נהגים', visible: true, order: 4 },
-  { id: 'inventory', type: 'metric', title: 'מלאי', visible: true, order: 5 },
-  { id: 'completion', type: 'metric', title: 'שיעור השלמה', visible: true, order: 6 },
-  { id: 'quickActions', type: 'quickAction', title: 'פעולות מהירות', visible: true, order: 7 },
-  { id: 'activity', type: 'activity', title: 'פעילות אחרונה', visible: true, order: 8 },
+  { id: 'orders', type: 'metric', title: 'Orders', visible: true, order: 1 },
+  { id: 'revenue', type: 'metric', title: 'Revenue', visible: true, order: 2 },
+  { id: 'team', type: 'metric', title: 'Team', visible: true, order: 3 },
+  { id: 'drivers', type: 'metric', title: 'Drivers', visible: true, order: 4 },
+  { id: 'inventory', type: 'metric', title: 'Inventory', visible: true, order: 5 },
+  { id: 'completion', type: 'metric', title: 'Completion Rate', visible: true, order: 6 },
+  { id: 'quickActions', type: 'quickAction', title: 'Quick Actions', visible: true, order: 7 },
+  { id: 'activity', type: 'activity', title: 'Recent Activity', visible: true, order: 8 },
 ];
 
 export function UnifiedBusinessDashboard() {
@@ -88,8 +88,8 @@ export function UnifiedBusinessDashboard() {
       acts.push({
         id: 'orders',
         type: 'order',
-        message: `${stats.recentOrders} הזמנות חדשות בוצעו`,
-        time: 'היום'
+        message: `${stats.recentOrders} new orders placed`,
+        time: 'Today'
       });
     }
 
@@ -97,8 +97,8 @@ export function UnifiedBusinessDashboard() {
       acts.push({
         id: 'stock-low',
         type: 'alert',
-        message: `${stats.lowStockItems} מוצרים במלאי נמוך`,
-        time: 'עכשיו'
+        message: `${stats.lowStockItems} items low in stock`,
+        time: 'Now'
       });
     }
 
@@ -106,8 +106,8 @@ export function UnifiedBusinessDashboard() {
       acts.push({
         id: 'stock-out',
         type: 'alert',
-        message: `${stats.outOfStockItems} מוצרים אזלו מהמלאי`,
-        time: 'עכשיו'
+        message: `${stats.outOfStockItems} items out of stock`,
+        time: 'Now'
       });
     }
 
@@ -115,8 +115,8 @@ export function UnifiedBusinessDashboard() {
       acts.push({
         id: 'pending',
         type: 'alert',
-        message: `${stats.pendingOrders} הזמנות ממתינות לטיפול`,
-        time: 'עכשיו'
+        message: `${stats.pendingOrders} orders awaiting processing`,
+        time: 'Now'
       });
     }
 
@@ -126,7 +126,7 @@ export function UnifiedBusinessDashboard() {
         acts.push({
           id: `log-${idx}`,
           type: log.action === 'DELETE' ? 'alert' : 'info',
-          message: `${log.action} ב-${log.table_name}`,
+          message: `${log.action} on ${log.table_name}`,
           time: timeAgo
         });
       });
@@ -136,7 +136,7 @@ export function UnifiedBusinessDashboard() {
       acts.push({
         id: 'no-activity',
         type: 'info',
-        message: 'אין פעילות אחרונה',
+        message: 'No recent activity',
         time: ''
       });
     }
@@ -200,22 +200,22 @@ export function UnifiedBusinessDashboard() {
       <div style={undergroundTheme.components.page}>
         <NoActiveBusiness
           onNavigateToBusinesses={() => navigate('/business/businesses')}
-          message="לוח הבקרה המאוחד דורש עסק פעיל. אנא בחר עסק או צור עסק חדש."
+          message="The unified dashboard requires an active business. Please select a business or create a new one."
         />
       </div>
     );
   }
 
   const quickActions = [
-    { id: '1', label: 'הזמנה חדשה', icon: <Package size={24} />, color: '#00d9ff', onClick: () => navigate('/business/orders') },
-    { id: '2', label: 'דף ציבורי', icon: <Globe size={24} />, color: '#10b981', onClick: () => navigate('/business/preview') },
-    { id: '3', label: 'ניהול צוות', icon: <Users size={24} />, color: '#8b5cf6', onClick: () => navigate('/business/team') },
-    { id: '4', label: 'בדיקת מלאי', icon: <BarChart3 size={24} />, color: '#f59e0b', onClick: () => navigate('/business/inventory') },
-    { id: '5', label: 'ניהול נהגים', icon: <Truck size={24} />, color: '#ec4899', onClick: () => navigate('/business/drivers') },
-    { id: '6', label: 'אנליטיקה', icon: <TrendingUp size={24} />, color: '#3b82f6', onClick: () => navigate('/business/analytics') },
-    { id: '7', label: 'הגדרות', icon: <Settings size={24} />, color: '#6b7280', onClick: () => navigate('/business/settings') },
-    { id: '8', label: 'יומני ביקורת', icon: <FileText size={24} />, color: '#06b6d4', onClick: () => navigate('/business/audit-logs') },
-    { id: '9', label: 'לקוחות', icon: <User size={24} />, color: '#f97316', onClick: () => navigate('/business/customers') },
+    { id: '1', label: 'New Order', icon: <Package size={24} />, color: '#00d9ff', onClick: () => navigate('/business/orders') },
+    { id: '2', label: 'Public Page', icon: <Globe size={24} />, color: '#10b981', onClick: () => navigate('/business/preview') },
+    { id: '3', label: 'Team Management', icon: <Users size={24} />, color: '#8b5cf6', onClick: () => navigate('/business/team') },
+    { id: '4', label: 'Check Inventory', icon: <BarChart3 size={24} />, color: '#f59e0b', onClick: () => navigate('/business/inventory') },
+    { id: '5', label: 'Manage Drivers', icon: <Truck size={24} />, color: '#ec4899', onClick: () => navigate('/business/drivers') },
+    { id: '6', label: 'Analytics', icon: <TrendingUp size={24} />, color: '#3b82f6', onClick: () => navigate('/business/analytics') },
+    { id: '7', label: 'Settings', icon: <Settings size={24} />, color: '#6b7280', onClick: () => navigate('/business/settings') },
+    { id: '8', label: 'Audit Logs', icon: <FileText size={24} />, color: '#06b6d4', onClick: () => navigate('/business/audit-logs') },
+    { id: '9', label: 'Customers', icon: <User size={24} />, color: '#f97316', onClick: () => navigate('/business/customers') },
   ];
 
   if (loading) {
@@ -225,7 +225,7 @@ export function UnifiedBusinessDashboard() {
           <UndergroundLoadingSpinner centered size="lg" />
           <div style={{ textAlign: 'center', marginTop: undergroundTheme.spacing.xl }}>
             <div style={{ fontSize: undergroundTheme.typography.fontSize.lg, fontWeight: undergroundTheme.typography.fontWeight.semibold, color: undergroundTheme.colors.text.primary }}>
-              טוען נתוני עסק...
+              Loading business data...
             </div>
           </div>
         </UndergroundCard>
@@ -240,10 +240,10 @@ export function UnifiedBusinessDashboard() {
           <div style={{ textAlign: 'center', padding: undergroundTheme.spacing['5xl'] }}>
             <AlertTriangle size={64} color={undergroundTheme.colors.status.error} style={{ marginBottom: undergroundTheme.spacing.xl }} />
             <div style={{ fontSize: undergroundTheme.typography.fontSize.xl, fontWeight: undergroundTheme.typography.fontWeight.semibold, color: undergroundTheme.colors.text.primary, marginBottom: undergroundTheme.spacing.lg }}>
-              שגיאה בטעינת נתוני העסק
+              Error Loading Business Data
             </div>
             <UndergroundButton onClick={refresh}>
-              נסה שנית
+              Try Again
             </UndergroundButton>
           </div>
         </UndergroundCard>
@@ -258,7 +258,7 @@ export function UnifiedBusinessDashboard() {
           <div style={{ textAlign: 'center', padding: undergroundTheme.spacing['5xl'] }}>
             <Package size={64} color={undergroundTheme.colors.text.tertiary} style={{ marginBottom: undergroundTheme.spacing.xl }} />
             <div style={{ fontSize: undergroundTheme.typography.fontSize.xl, fontWeight: undergroundTheme.typography.fontWeight.semibold, color: undergroundTheme.colors.text.primary }}>
-              לא נמצא הקשר עסקי
+              No Business Context Found
             </div>
           </div>
         </UndergroundCard>
@@ -275,8 +275,8 @@ export function UnifiedBusinessDashboard() {
   return (
     <div style={undergroundTheme.components.page}>
       <UndergroundHeader
-        title={businessName || 'לוח בקרה מאוחד'}
-        subtitle="סקירה מקיפה של הפעילות העסקית שלך"
+        title={businessName || 'Unified Dashboard'}
+        subtitle="Comprehensive overview of your business activity"
         icon={<Activity size={32} />}
         gradient
         actions={
@@ -291,11 +291,11 @@ export function UnifiedBusinessDashboard() {
                 cursor: 'pointer',
               }}
             >
-              <option value="1d">היום</option>
-              <option value="7d">7 ימים</option>
-              <option value="30d">30 ימים</option>
-              <option value="90d">90 ימים</option>
-              <option value="all">הכל</option>
+              <option value="1d">Today</option>
+              <option value="7d">7 Days</option>
+              <option value="30d">30 Days</option>
+              <option value="90d">90 Days</option>
+              <option value="all">All Time</option>
             </select>
 
             <UndergroundButton
@@ -303,7 +303,7 @@ export function UnifiedBusinessDashboard() {
               onClick={() => setShowCustomize(!showCustomize)}
               icon={<Settings size={18} />}
             >
-              התאמה אישית
+              Customize
             </UndergroundButton>
 
             <UndergroundButton
@@ -311,7 +311,7 @@ export function UnifiedBusinessDashboard() {
               onClick={refresh}
               icon={<Activity size={18} />}
             >
-              רענן
+              Refresh
             </UndergroundButton>
           </div>
         }
@@ -325,7 +325,7 @@ export function UnifiedBusinessDashboard() {
             color: undergroundTheme.colors.text.primary,
             marginBottom: undergroundTheme.spacing.xl
           }}>
-            בחר ווידג'טים להצגה
+            Select Widgets to Display
           </h3>
           <div style={{
             display: 'grid',
@@ -373,9 +373,9 @@ export function UnifiedBusinessDashboard() {
               <UndergroundStatCard
                 key={widget.id}
                 icon={<Package size={28} />}
-                label="סה״כ הזמנות"
+                label="Total Orders"
                 value={formatNumber(stats.totalOrders)}
-                subtext={stats.recentOrders > 0 ? `+${stats.recentOrders} היום` : undefined}
+                subtext={stats.recentOrders > 0 ? `+${stats.recentOrders} today` : undefined}
                 accentColor={undergroundTheme.colors.accent.primary}
                 onClick={() => navigate('/business/orders')}
                 trend={stats.recentOrders > 0 ? { value: `+${stats.recentOrders}`, direction: 'up' } : undefined}
@@ -388,21 +388,21 @@ export function UnifiedBusinessDashboard() {
               <React.Fragment key={widget.id}>
                 <UndergroundStatCard
                   icon={<DollarSign size={28} />}
-                  label="הכנסות כוללות"
-                  value={formatCurrency(stats.totalRevenue, 'ILS')}
+                  label="Total Revenue"
+                  value={formatCurrency(stats.totalRevenue, 'USD')}
                   accentColor={undergroundTheme.colors.status.success}
                   onClick={() => navigate('/business/analytics')}
                 />
                 <UndergroundStatCard
                   icon={<BarChart3 size={28} />}
-                  label="ממוצע הזמנה"
-                  value={formatCurrency(stats.averageOrderValue, 'ILS')}
+                  label="Average Order"
+                  value={formatCurrency(stats.averageOrderValue, 'USD')}
                   accentColor="#8b5cf6"
                   onClick={() => navigate('/business/analytics')}
                 />
                 <UndergroundStatCard
                   icon={<Activity size={28} />}
-                  label="הזמנות ממתינות"
+                  label="Pending Orders"
                   value={formatNumber(stats.pendingOrders)}
                   accentColor={undergroundTheme.colors.status.warning}
                   onClick={() => navigate('/business/orders')}
@@ -416,7 +416,7 @@ export function UnifiedBusinessDashboard() {
               <UndergroundStatCard
                 key={widget.id}
                 icon={<Users size={28} />}
-                label="חברי צוות פעילים"
+                label="Active Team Members"
                 value={formatNumber(stats.activeTeamMembers)}
                 accentColor="#8b5cf6"
                 onClick={() => navigate('/business/team')}
@@ -429,7 +429,7 @@ export function UnifiedBusinessDashboard() {
               <UndergroundStatCard
                 key={widget.id}
                 icon={<Truck size={28} />}
-                label="נהגים זמינים"
+                label="Available Drivers"
                 value={`${formatNumber(stats.availableDrivers)}/${formatNumber(stats.totalDrivers)}`}
                 accentColor="#ec4899"
                 onClick={() => navigate('/business/drivers')}
@@ -442,7 +442,7 @@ export function UnifiedBusinessDashboard() {
               <UndergroundStatCard
                 key={widget.id}
                 icon={<AlertTriangle size={28} />}
-                label="פריטים במלאי נמוך"
+                label="Low Stock Items"
                 value={formatNumber(stats.lowStockItems)}
                 accentColor={stats.lowStockItems > 0 ? undergroundTheme.colors.status.warning : undergroundTheme.colors.status.success}
                 onClick={() => navigate('/business/inventory')}
@@ -461,7 +461,7 @@ export function UnifiedBusinessDashboard() {
               <UndergroundStatCard
                 key={widget.id}
                 icon={<CheckCircle size={28} />}
-                label="שיעור השלמה"
+                label="Completion Rate"
                 value={`${orderCompletionRate.toFixed(1)}%`}
                 accentColor={completionColor}
                 onClick={() => navigate('/business/analytics')}
@@ -482,7 +482,7 @@ export function UnifiedBusinessDashboard() {
           gap: undergroundTheme.spacing['3xl'],
         }}>
           {visibleWidgets.find(w => w.id === 'quickActions') && (
-            <UndergroundSection title="פעולות מהירות">
+            <UndergroundSection title="Quick Actions">
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
@@ -526,7 +526,7 @@ export function UnifiedBusinessDashboard() {
           )}
 
           {visibleWidgets.find(w => w.id === 'activity') && (
-            <UndergroundSection title="פעילות אחרונה">
+            <UndergroundSection title="Recent Activity">
               <UndergroundCard variant="medium">
                 {activities.map((activity, index) => (
                   <div
@@ -574,7 +574,7 @@ export function UnifiedBusinessDashboard() {
           color: undergroundTheme.colors.text.tertiary,
           fontSize: undergroundTheme.typography.fontSize.xs
         }}>
-          עדכון אחרון: {stats.lastUpdated.toLocaleTimeString('he-IL')}
+          Last updated: {stats.lastUpdated.toLocaleTimeString('en-US')}
         </div>
       </UndergroundCard>
     </div>
