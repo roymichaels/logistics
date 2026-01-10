@@ -371,17 +371,9 @@ export const DRIVER_SHELL_NAV: NavigationItem[] = [
     requiredRoles: ['driver']
   },
   {
-    id: 'driver-earnings',
-    label: 'הרווחים שלי',
-    path: '/driver/earnings',
-    icon: '💰',
-    visible: true,
-    requiredRoles: ['driver']
-  },
-  {
-    id: 'driver-stats',
-    label: 'הסטטיסטיקות שלי',
-    path: '/driver/stats',
+    id: 'driver-analytics',
+    label: 'אנליטיקה ורווחים',
+    path: '/driver/analytics',
     icon: '📊',
     visible: true,
     requiredRoles: ['driver']

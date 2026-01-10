@@ -171,9 +171,9 @@ export class NavigationService {
         permission: 'view:zones',
       },
       {
-        path: '/driver/earnings',
-        label: 'Earnings',
-        icon: '💰',
+        path: '/driver/analytics',
+        label: 'Analytics & Earnings',
+        icon: '📊',
         permission: 'view:own_earnings',
       },
     ];

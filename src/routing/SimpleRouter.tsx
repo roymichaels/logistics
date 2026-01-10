@@ -35,6 +35,7 @@ const MyDeliveries = React.lazy(() => import('../pages/MyDeliveries').then(m => 
 const DriverHome = React.lazy(() => import('../pages/driver/DriverHome').then(m => ({ default: m.DriverHome })));
 const EnhancedDeliveries = React.lazy(() => import('../pages/driver/EnhancedDeliveries').then(m => ({ default: m.EnhancedDeliveries })));
 const DriverStats = React.lazy(() => import('../pages/driver/DriverStats').then(m => ({ default: m.DriverStats })));
+const DriverAnalytics = React.lazy(() => import('../pages/driver/DriverAnalytics').then(m => ({ default: m.default })));
 const DriverFreelance = React.lazy(() => import('../pages/driver/DriverFreelance').then(m => ({ default: m.DriverFreelance })));
 const DriverCollab = React.lazy(() => import('../pages/driver/DriverCollab').then(m => ({ default: m.DriverCollab })));
 const UnifiedDriverDashboard = React.lazy(() => import('../pages/driver/UnifiedDriverDashboard').then(m => ({ default: m.UnifiedDriverDashboard })));
@@ -238,17 +239,18 @@ export function SimpleRouter() {
       {isDriverRole && (
         <>
           <Route path="/driver/drivers" element={<Suspense fallback={<PageLoadingSkeleton />}><DriversPage role="driver" /></Suspense>} />
-          <Route path="/driver/earnings" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverStats /></Suspense>} />
-          <Route path="/driver/stats" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverStats /></Suspense>} />
+          <Route path="/driver/analytics" element={<Suspense fallback={<PageLoadingSkeleton />}><DriverAnalytics /></Suspense>} />
           <Route path="/driver/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
           <Route path="/driver/chat" element={<Suspense fallback={<PageLoadingSkeleton />}><Chat /></Suspense>} />
           <Route path="/driver/tasks" element={<Suspense fallback={<PageLoadingSkeleton />}><Tasks dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/notifications" element={<Suspense fallback={<PageLoadingSkeleton />}><Notifications dataStore={dataStore} onNavigate={(path) => navigate(path)} /></Suspense>} />
           <Route path="/store/profile" element={<Suspense fallback={<PageLoadingSkeleton />}><UserProfile /></Suspense>} />
-          {/* Legacy routes - redirect to new unified page */}
+          {/* Legacy routes - redirect to new pages */}
           <Route path="/driver/dashboard" element={<Navigate to="/driver/drivers" replace />} />
           <Route path="/driver/deliveries" element={<Navigate to="/driver/drivers" replace />} />
           <Route path="/driver/home" element={<Navigate to="/driver/drivers" replace />} />
+          <Route path="/driver/earnings" element={<Navigate to="/driver/analytics" replace />} />
+          <Route path="/driver/stats" element={<Navigate to="/driver/analytics" replace />} />
         </>
       )}
 

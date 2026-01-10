@@ -391,7 +391,7 @@ export function DriverPersonalView() {
           <UndergroundCard
             variant="light"
             onClick={() => {
-              navigate('/driver/earnings');
+              navigate('/driver/analytics');
               haptic('light');
             }}
             style={{ cursor: 'pointer', textAlign: 'right' }}

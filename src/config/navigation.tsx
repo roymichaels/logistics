@@ -154,16 +154,10 @@ export function getNavigationConfig(
               onClick={() => onNavigate('/driver/deliveries')}
             />
             <BottomNavItem
-              icon="💰"
-              label="Earnings"
-              active={isActive('/driver/earnings')}
-              onClick={() => onNavigate('/driver/earnings')}
-            />
-            <BottomNavItem
               icon="📊"
-              label="Stats"
-              active={isActive('/driver/stats')}
-              onClick={() => onNavigate('/driver/stats')}
+              label="Analytics"
+              active={isActive('/driver/analytics')}
+              onClick={() => onNavigate('/driver/analytics')}
             />
           </div>
         ),

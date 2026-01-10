@@ -590,21 +590,11 @@ export function DriverHome() {
           </UndergroundButton>
 
           <QuickActionCard
-            icon="💵"
-            title="הרווחים שלי"
-            subtitle="היסטוריית תשלומים"
-            onClick={() => {
-              navigate('/driver/earnings');
-              haptic('light');
-            }}
-          />
-
-          <QuickActionCard
             icon="📊"
-            title="הסטטיסטיקות שלי"
-            subtitle="ביצועים ודירוגים"
+            title="אנליטיקה ורווחים"
+            subtitle="ביצועים, דירוגים והכנסות"
             onClick={() => {
-              navigate('/driver/stats');
+              navigate('/driver/analytics');
               haptic('light');
             }}
           />

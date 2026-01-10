@@ -63,8 +63,8 @@ export const UNIFIED_ROUTES: RouteConfig[] = [
     roles: ['driver'],
     isEntryPoint: true,
     children: [
-      { path: '/driver/drivers', name: 'Drivers', roles: ['driver'], isEntryPoint: true },
-      { path: '/driver/earnings', name: 'Earnings', roles: ['driver'] },
+      { path: '/driver/drivers', name: 'My Deliveries', roles: ['driver'], isEntryPoint: true },
+      { path: '/driver/analytics', name: 'Analytics & Earnings', roles: ['driver'] },
       { path: '/driver/profile', name: 'Profile', roles: ['driver'] }
     ]
   },

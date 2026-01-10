@@ -175,8 +175,8 @@ export const dashboardConfigs: Record<DashboardRole, RoleDashboardConfig> = {
     subtitle: 'Your deliveries and earnings',
     metricsFetcher: 'fetchDriverMetrics',
     quickActions: [
-      { id: 'deliveries', label: 'My Deliveries', icon: '📦', route: '/driver/deliveries' },
-      { id: 'earnings', label: 'Earnings', icon: '💰', route: '/driver/earnings' },
+      { id: 'deliveries', label: 'My Deliveries', icon: '📦', route: '/driver/drivers' },
+      { id: 'analytics', label: 'Analytics & Earnings', icon: '📊', route: '/driver/analytics' },
       { id: 'status', label: 'Update Status', icon: '🔄', route: '/driver/status', variant: 'secondary' }
     ],
     sections: [
