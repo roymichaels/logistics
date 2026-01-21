@@ -58,7 +58,7 @@
     "@vitejs/plugin-react": "^4.0.0",
     "@vitest/environment-jsdom": "file:packages/vitest-environment-jsdom",
     "baseline-browser-mapping": "^2.9.4",
-    "expo": "^50.0.0",
+    "expo": "^54.0.31",
     "jsdom": "^27.0.0",
     "rollup-plugin-visualizer": "^6.0.3",
     "terser": "^5.44.0",
